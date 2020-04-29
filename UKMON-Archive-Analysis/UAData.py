@@ -1,6 +1,7 @@
 # create a data type for UFO Analyser style CSV files
 import numpy
 
+#defines the data content of a UFOAnalyser CSV file
 UAData = numpy.dtype([('Ver','S8'),('Group','S8'),('LocalTime','S16'),
     ('Mag','f8'),('Dur','f8'),('AV','f8'),('Loc_Cam','S16'),
     ('TZ','f8'),('Yr','i4'),('Mth','i4'),('Day','i4'),
