@@ -129,6 +129,6 @@ else
         readUAxml $thisfile $ofname
     }
     write-output "wrote to $ofname"
-    cat $ofname
+    get-content $ofname
     set-location $pwd
 }
