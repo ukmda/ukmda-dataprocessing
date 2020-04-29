@@ -8,5 +8,5 @@ aws cloudwatch get-metric-statistics --metric-name Duration --start-time 2020-02
 (get-content -path .\CSVTrigger1.json | convertfrom-json).Datapoints | convertto-csv -notypeinformation | set-content CSVTrigger1.csv
 (get-content -path .\CSVTrigger2.json | convertfrom-json).Datapoints | convertto-csv -notypeinformation | set-content CSVTrigger2.csv
 
-del Consoli*.json
-del CSVTrigger*.json
+Remove-Item Consoli*.json
+Remove-Item CSVTrigger*.json
