@@ -1,4 +1,8 @@
-# Script to create Shower maps
+# convert whole day's worth of data to RMS format
+param(
+    [string]$inf="nope"
+)
+#process one record from an A.XML file
 function processonerecord($rec, $ofname)
 {
     #process a single meteor record from a UA file
@@ -12,9 +16,11 @@ function processonerecord($rec, $ofname)
         $ostr | out-file -path $ofname -append
     }
 }
-function readUAxml($fname, $srcpath, $on)
+# read an A.XML file and process it
+function readUAxml($fname, $on)
 {
     # read a UFO Analyser XML file and extract the meteor track data
+    $srcpath=$fname | split-path
     [xml]$f=get-content $fname # read the XML file
 
     #get the station details and time+date
@@ -78,16 +84,51 @@ function readUAxml($fname, $srcpath, $on)
         }
     }
 }
-# start of main function
-$pwd = get-location
-$srcpath=[string]$pwd
-Set-Location 'c:\users\mark\documents\projects\meteorhunting\RMS'
-$inf = $args[0]
-$on = 'nope'
-if($args.count -gt 1) {$on = $args[1]}
-$xmlfil= (get-childitem -path $inf).fullname
 
-readUAxml $xmlfil $srcpath $on
+if ($inf  -eq "nope")
+{
+    write-output "Usage: UFO2RMS.ps1 srcpath"
+}
+else
+{
+    $pwd = get-location
+    $srcpth=$inf+'\*A.xml'
+    $fils=get-childitem -path $srcpth -recurse
+    $nfils=$fils.count
+    if($nfils -gt 1)
+    {
+        $fn1=$fils[0].Name
+    }
+    else
+    {
+        $fn1=$fils.Name
+    }
+    $ymd=$fn1.substring(1,8)
+    $tail=$fn1.substring(17)
+    $cam=$tail.substring(0,$tail.length-5)
+    $lid=$cam.substring(0,$cam.indexof('_'))
+    $sid=$cam.substring($cam.indexof('_')+1)
 
-set-location $pwd
+    $ofname = [string]$inf+'\FTPdetectinfo_'+$lid+$sid+'_'+$ymd+'_000000_0000000.txt'
+    'Meteor Count = '+$nfils | out-file -path $ofname 
+    '-----------------------------------------------------'| out-file -path $ofname -Append
+    'Processed with powershell scripts by MJMM' | out-file -path $ofname -Append
+    '-----------------------------------------------------'| out-file -path $ofname -Append
+    'FF  folder = '+[string]$pwd | out-file -path $ofname -Append
+    'CAL folder = /nowhere' | out-file -path $ofname -Append
+    '-----------------------------------------------------'| out-file -path $ofname -Append
+    'FF  file processed'| out-file -path $ofname -Append
+    'CAL file processed'| out-file -path $ofname -Append
+    'Cam# Meteor# #Segments fps hnr mle bin Pix/fm Rho Phi'| out-file -path $ofname -Append
+    'Per segment:  Frame# Col Row RA Dec Azim Elev Inten Mag'| out-file -path $ofname -Append
 
+    get-childitem -path $srcpth -Recurse | foreach-object -Process {
+        $thisfile=$_.fullname
+        $fn=$_.Name
+        write-output "processing $fn"
+        readUAxml $thisfile $ofname
+    }
+    write-output "wrote to $ofname"
+    cat $ofname
+    set-location $pwd
+}
