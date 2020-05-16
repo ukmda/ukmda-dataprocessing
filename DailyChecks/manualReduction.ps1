@@ -20,23 +20,23 @@ $RMSloc=$ini.rms_loc
 #crate a folder under the datadir where you'll run manual reduction 
 # and make sure its empty if it already existed
 $targdir=$datadir+'\manual\'
-md -force $targdir | out-null
+mkdir -force $targdir | out-null
 set-location $targdir
-del *.*
+remove-item *.*
 
 # copy the required files from the CapturedFiles folder
 write-output 'copying FF file'
 $src=$rootdir +"CapturedFiles\"+ $cam+"_"+ $srcdir +"*\FF_"+$cam+"*"+$srcfile+"*.fits"
-Copy $src $targdir
+Copy-item $src $targdir
 write-output 'copying bin file if present'
 $src=$rootdir +"CapturedFiles\"+ $cam+"_"+ $srcdir +"*\FR_"+$cam+"*"+$srcfile+"*.bin"
-Copy $src $targdir
+Copy-item $src $targdir
 write-output 'copying platepar file'
 $src=$rootdir +"platepar*.cal"
-Copy $src $targdir
+Copy-item $src $targdir
 write-output 'copying config file'
 $src=$rootdir +".config"
-Copy $src $targdir
+Copy-item $src $targdir
 
 $ffpath=$targdir+'\FF*.fits'
 $ff=(Get-ChildItem $ffpath).fullname
