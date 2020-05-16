@@ -19,7 +19,7 @@ $myf = $destpath + '\'+$path
 # Use the Python version of binviewer, or the compiled binary?
 if ($ini.USE_EXE = 1){
     set-location $ini.binviewer_exe_loc
-    & .\CMN_binviewer.exe $myf   | out-null
+    & .\CMN_binviewer.exe $myf | out-null
 }
 else {
     conda activate $ini.binviewer_env
@@ -67,3 +67,4 @@ if ($ini.RMS_INSTALLED=1){
     }    
 }
 set-location $PSScriptRoot
+pause
