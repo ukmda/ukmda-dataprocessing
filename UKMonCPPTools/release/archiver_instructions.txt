@@ -1,0 +1,38 @@
+Installation
+============
+Run the installer. :) 
+
+Configuration
+=============
+The config file will be opened once installation completes. 
+There are instructions in the file but here's a brief summary:
+Decide how many months you want to rescan each time you run the app. 
+You can set this to any number less than 13. 
+If you need to upload historic data please contact me. 
+
+Set "cameras=" to however many cameras you have
+Then for each camera make sure there a section [camera-1], [camera-2] etc 
+containing the source to scan and the destination in the Archive to copy to. 
+
+NB:: Delete any Cameras you don't need. 
+
+TAKE CARE TO GET THIS RIGHT - if you make a mistake, you may overwrite other people's
+data. 
+
+I recommend leaving "dryrun=1" at first to check you have it configured properly. 
+
+Running
+=======
+First you must create the monthly M.CSV and M.XML files from UFOAnalyser. 
+
+Then double-click UKMonMonthlyArchiver from the Start Menu to run it.
+Watch as the app uploads your files. 
+Note that it will only upload NEW files. This is to save your bandwidth and time. 
+
+Logging
+=======
+The application logs to the Windows Application Event Log under the UKMonLiveCL source. 
+
+XP Compatability
+================
+This application is not compatible with Windows XP or earlier. I'm sorry about that, but Microsoft ceased support for XP in in 2014 and completely rewrote the network stack for the next version. As a result the support libraries from AWS and indeed Microsoft are not available in backward-compatible versions. 
