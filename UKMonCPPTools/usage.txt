@@ -1,0 +1,43 @@
+Installation
+============
+If necessary, first install the Visual C redistributable runtime (vc_redist.x86 or 
+vc_redist.x64 as appropriate for your platform). 
+Then copy the other files in a folder somewhere on your hard drive.
+
+Double-click UkmonliveCL.exe to run it.
+
+Configuration
+=============
+The programme reads the configuration from your existing UKMONLIVEWatcher.ini 
+and AUTH_UKMONLIVEWatcher.ini files so these must exist and contain valid 
+security keys and the location of your data. 
+
+Filtering
+=========
+This version of the software can filter out aircraft, faint meteors and flashes. 
+To enable filtering, add two extra rows at the bottom of UKMONLIVEWatcher.ini as explained below.
+To disable filtering, either delete the lines or set both values to 0.
+
+Frame limits
+----------
+The first extra line is the maximum number of frames to consider 'good'
+A sensible value is 150. Even fireballs will usually be less than 150 frames while
+aircraft trails will usually be longer. Do experiment though. 
+Setting the limit to 0 will cause all frame counts to be considered. 
+Note also that events of one frame will *aways* be discarded. 
+
+Min Brightness
+--------------
+The second extra line is the minimum brightness to consider 'good'. 
+You'll need to experiment with this. Start with 60 and if its missing too many meteors, 
+reduce it till you're happy. 
+Setting the value to 0 will cause all brightnesses to be considered. 
+
+Testing
+=======
+To run in 'dry run' mode - ie will run but not upload anything - pass a parameter T 
+eg	"ukmonlivecl.exe T"
+To run in debug mode but still upload files, pass a parameter D 
+eg 	"ukmonlivecl.exe D"
+
+Both debug modes will generate a lot of verbose output on the screen
