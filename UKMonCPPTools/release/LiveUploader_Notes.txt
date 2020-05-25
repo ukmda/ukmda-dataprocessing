@@ -1,0 +1,52 @@
+About this app
+==============
+This application will upload images of meteors in realtime to the UKMON live site.
+It is a "commandline tool" and when you run it you will get a text window with some logging and other information. As events are detected the window will be updated with what has been seen. 
+You can minimise the window to your taskbar and it will keep running. 
+
+Installation 
+============
+Run the installer. This will install the support libraries if needed and create a desktop icon.
+At the end of the install Notepad will pop up so you can adjust the config file (see below)
+
+To remove the application, use the icon in the UKMonLive folder on your start menu. 
+
+Configuration
+=============
+The programme reads the configuration from UKMONLIVEWatcher.ini and AUTH_UKMONLIVEWatcher.ini files so these must exist and contain valid security keys and the location of your data. These files are in c:\users\{yourname}\AppData\Local\ and will be created if not present. 
+
+Filtering
+=========
+This version of the software can filter out aircraft, faint meteors and flashes. To enable filtering, modify the two final lines of UKMONLIVEWatcher.ini as explained below. To disable filtering, set both values to 0. By default filtering is disabled. 
+
+Frame limits
+----------
+The first extra line is the maximum number of frames to consider 'good'. A sensible value is 150. Even fireballs will usually be less than 150 frames while aircraft trails will usually be longer. Do experiment though.
+
+Setting the limit to 0 will cause all frame counts greater than 61 to be considered. 
+
+61 or less frames will *aways* be discarded. This is because UFOCapture records 30 frames either side of an event, so 61 frames is a flash, probably a cosmic ray strike or camera glitch.
+
+Min Brightness
+--------------
+The second extra line is the minimum brightness to consider 'good'. The purpose of this setting is to avoid uploading really faint meteors to UKMONlive as the general public are probably more interested in the fireballs and bright events.
+
+You'll need to experiment with this. Start with 60 and if its missing too many meteors, reduce it till you're happy. Setting the value to 0 will cause all brightnesses to be considered. 
+
+Testing
+=======
+To run in 'dry run' mode - ie will run but not upload anything - run the application from a command prommpt window and pass a parameter T 
+eg	"ukmonlivecl.exe T"
+To run in debug mode but still upload files, pass a parameter D 
+eg 	"ukmonlivecl.exe D"
+
+Both debug modes will generate a lot of verbose output on the screen
+
+Logging
+=======
+The application logs to the Windows Application Event Log under the UKMonLiveCL source. 
+
+XP Compatability
+================
+This application is not compatible with Windows XP or earlier. I'm sorry about that, but Microsoft ceased support for XP in in 2014 and completely rewrote the network stack for the next version. As a result the support libraries from AWS and indeed Microsoft are not available in backward-compatible versions. 
+
