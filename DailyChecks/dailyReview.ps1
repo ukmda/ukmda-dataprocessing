@@ -67,4 +67,5 @@ if ($ini.RMS_INSTALLED=1){
     }    
 }
 set-location $PSScriptRoot
+.\reorgByYMD.ps1
 pause
