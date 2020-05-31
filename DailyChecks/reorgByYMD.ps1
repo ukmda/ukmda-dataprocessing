@@ -43,9 +43,9 @@ foreach ($dname in $dlist)
     $src=$arcpath+$dname +'\*.csv'
     copy-item $src $pth
     write-output 'copying JPGs, gifs and MP4s'
-    $src=$arcpath+$dname +'\FF_UK0006_*.jpg'
+    $src=$arcpath+$dname +'\FF_*.jpg'
     copy-item $src $pth
-    $src=$arcpath+$dname +'\FF_UK0006_*.gif'
+    $src=$arcpath+$dname +'\FF_*.gif'
     copy-item $src $pth
     $src=$arcpath+$dname +'\*.mp4'
     copy-item $src $pth
