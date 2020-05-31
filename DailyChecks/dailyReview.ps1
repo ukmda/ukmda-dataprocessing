@@ -53,7 +53,7 @@ if ($ini.RMS_INSTALLED=1){
             $nfits=(get-childitem $fits).count
             if ($nfits -gt 1)
             {
-                python -m Utils.StackFFs $myf jpg -s  -x   
+                python -m Utils.StackFFs $myf jpg -s -b -x   
             }
             # mp4 generation is not yet in the main RMS codebase
             $mp4gen=$ini.rms_loc+'\Utils\GenerateMP4s.py'
