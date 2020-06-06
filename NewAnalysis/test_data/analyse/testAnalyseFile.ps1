@@ -7,8 +7,9 @@ $config = '.config_NE'
 
 $fname=$ff_directory+'/'+$ff_name
 
-$modname="-m RMS.Reprocess"
+$modname=$srcdir+'AnalyseUFOwithRMS.py'
 
+conda activate RMS
 set-location C:\Users\mark\Documents\Projects\meteorhunting\RMS
 
 python $modname -c $config $fname 

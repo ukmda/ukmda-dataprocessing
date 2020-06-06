@@ -4,7 +4,7 @@ $fn='C:\Users\mark\Documents\Projects\meteorhunting\UKmon-shared\NewAnalysis\tes
 $cf='C:\Users\mark\Documents\Projects\meteorhunting\UKmon-shared\NewAnalysis\test_data\platepar\.config_NE'
 
 set-location C:\Users\mark\Documents\Projects\meteorhunting\RMS
-
+conda activate RMS
 python -m RMS.Astrometry.SkyFit -c $cf $fn
 
 set-location $PSScriptRoot
