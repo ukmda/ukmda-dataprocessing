@@ -1,8 +1,8 @@
 #
-# analyse a JPG using RMS
+# analyse a UFO dataset using RMS
 #
-import sys, os
-sys.path.append('c:/users/mark/documents/projects/meteorhunting/RMS')
+import sys, os, argparse
+sys.path.append('c:/users/mark/documents/projects/meteorhunting/RMS/')
 import RMS.ConfigReader as cr
 from RMS.DetectStarsAndMeteors import detectStarsAndMeteors
 
@@ -18,11 +18,25 @@ def AnalyseUFOwithRMS(config, ff_directory, ff_name):
     print(meteor_list)
     
 if __name__ == '__main__':
+    ### COMMAND LINE ARGUMENTS
+    # Init the command line arguments parser
+    arg_parser = argparse.ArgumentParser(description="Analyses a UFO avi with RMS.")
 
-    ff_directory='c:/users/mark/documents/projects/meteorhunting/ukmon-shared/newanalysis/test_data'
-    ff_name='M20200514_232502_TACKLEY_NE.avi'
-    config = '.config'
+    arg_parser.add_argument('ff_path', nargs='+', metavar='FILE_PATH', type=str, \
+        help='Full path and name of the file to analyse')
 
-    config = cr.loadConfigFromDirectory(config, ff_directory)
+    arg_parser.add_argument('-c', '--config', nargs=1, metavar='CONFIG_PATH', type=str, \
+        help="Path to a config file which will be used instead of the default one.")
+    
+    # Parse the command line arguments
+    cml_args = arg_parser.parse_args()
 
+    #########################
+
+    ff_directory, ff_name = os.path.split(cml_args.ff_path[0])
+
+    print(ff_directory, ff_name)
+    config = cr.loadConfigFromDirectory(cml_args.config[0], ff_directory)
+    print("loaded config \n\n\n")
+    
     AnalyseUFOwithRMS(config, ff_directory, ff_name)
