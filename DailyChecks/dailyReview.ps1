@@ -29,7 +29,7 @@ else {
 # switch RMS environment to do some post processing
 if ($ini.RMS_INSTALLED=1){
     # reprocess the ConfirmedFiles folder to generate JPGs, shower maps, etc
-    conda activate $ini.RMS
+    conda activate $ini.RMS_ENV
     set-location $ini.RMS_LOC
     $destpath=$ini.localfolder+'\ConfirmedFiles'
     $mindt = (get-date).AddDays(-$age)
