@@ -4,7 +4,11 @@
 
 # read the inifile
 set-location $PSScriptRoot
-$ini=get-content camera1.ini -raw | convertfrom-stringdata
+if ($args.count -eq 0) {
+    $ini=get-content camera1.ini -raw | convertfrom-stringdata
+}else {
+    $ini=get-content $args[0] -raw | convertfrom-stringdata
+}
 
 # copy the latest data from the Pi
 $srcpath='\\'+$ini.piname+'\RMS_share\ArchivedFiles'
