@@ -8,7 +8,11 @@ $srcfile=$args[1]
 
 # read the inifile
 set-location $PSScriptRoot
-$ini=get-content camera1.ini -raw | convertfrom-stringdata
+if ($args.count -lt 3) {
+    $ini=get-content camera1.ini -raw | convertfrom-stringdata
+}else {
+    $ini=get-content $args[2] -raw | convertfrom-stringdata
+}
 
 #these details are specific to your camera and file system 
 # and are read from the ini file

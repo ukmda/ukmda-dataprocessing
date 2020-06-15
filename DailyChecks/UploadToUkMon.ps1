@@ -1,7 +1,12 @@
 #daily upload of Pi data to the UKMON archive
 
+$curloc=get-location
 set-location $PSScriptRoot
-$ini=get-content camera1.ini -raw | convertfrom-stringdata
+if ($args.count -eq 0) {
+    $ini=get-content camera1.ini -raw | convertfrom-stringdata
+}else {
+    $ini=get-content $args[0] -raw | convertfrom-stringdata
+}
 
 # for this to be useable you must be a UKMON contributor 
 # contact us on Facebook to start contributing! 
@@ -23,9 +28,10 @@ if ($ismember -eq 'Yes')
 
     #aws s3 sync $srcpath $targ --exclude * --include *.txt --include *.csv --include *.jpg --include *.bmp --include *.mp4 
     aws s3 sync $srcpath $targ --include * --exclude *.fits --exclude *.bin --exclude *.gif  --exclude *.bz2 
-    echo 'checked and uploaded any new files'
+    Write-Output 'checked and uploaded any new files'
 }
 else {
-    echo 'check camera.ini to make sure ukmon details are set'
-    echo 'as this script will only work if you are set up as a contributor'
+    Write-Output 'check ini file to make sure ukmon details are set'
+    Write-Output 'as this script will only work if you are set up as a contributor'
 }
+set-location $curloc
