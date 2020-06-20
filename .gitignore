@@ -5,6 +5,7 @@ __pycache__/
 
 # repo-specific exclusions
 PCB/
+*.state
 
 # C extensions
 *.so
@@ -494,3 +495,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+NewAnalysis/test_data/platepar/skyFit_latest.state
+NewAnalysis/test_data/platepar/skyFit_latest.state
