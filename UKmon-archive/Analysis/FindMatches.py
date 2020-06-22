@@ -1,6 +1,7 @@
 import sys, os, shutil, glob, datetime
 import numpy, math
-import UAData
+sys.path.append('..')
+import Formats.UAFormats as UAFormats
 import VectorMaths
 
 def compare(row1, row2,i, f):
@@ -21,12 +22,20 @@ def compare(row1, row2,i, f):
 
     sx = row1['Sec']
     s = int(math.floor(sx))
-    ms = int((sx-s)*1000000)
+    if s==60:
+        s=59
+        ms=999999
+    else:
+        ms = int((sx-s)*1000000)
     t1 = datetime.datetime(row1['Yr'], row1['Mth'], row1['Day'], \
         row1['Hr'], row1['Min'], s, ms)
     sx = row2['Sec']
     s = int(math.floor(sx))
-    ms = int((sx-s)*1000000)
+    if s==60:
+        s=59
+        ms=999999
+    else:
+        ms = int((sx-s)*1000000)
     t2 = datetime.datetime(row2['Yr'], row2['Mth'], row2['Day'], \
         row2['Hr'], row2['Min'],s,ms )
     if t2 < t1 :
@@ -34,9 +43,6 @@ def compare(row1, row2,i, f):
     else:
         tdiff = t2-t1
     sdiff = abs(tdiff.seconds + tdiff.microseconds/1000000)
-    #if(row2['Mth']==3 and row2['Day']==23 and row2['Hr']==21 and row2['Min']==26):
-    #    print(t1, t2, tdiff, sdiff) 
-    # fix annoying camera names
     
     if loc1[:7] == 'Lockyer':
         loc1='Lockyer'
@@ -77,7 +83,7 @@ def main():
     f.write('id,Cam1,Cam2,date_time,dir1,dir2,ra1,ra2,dec1,dec2\n')
     print (outfnam)
 
-    mydata = numpy.loadtxt(tmpfnam, delimiter=',',skiprows=1, dtype=UAData.UAData)
+    mydata = numpy.loadtxt(tmpfnam, delimiter=',',skiprows=1, dtype=UAFormats.UFOCSV)
 
     sorteddata=numpy.sort(mydata, order=['LocalTime', 'Mag'])
 
