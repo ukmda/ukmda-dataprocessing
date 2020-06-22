@@ -71,6 +71,6 @@ if ($ini.RMS_INSTALLED=1){
     }    
 }
 set-location $PSScriptRoot
-.\reorgByYMD.ps1
-.\UploadToUkMon.ps1
+.\reorgByYMD.ps1 $args[0]
+.\UploadToUkMon.ps1 $args[0]
 #pause
