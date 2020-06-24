@@ -497,3 +497,7 @@ MigrationBackup/
 FodyWeavers.xsd
 NewAnalysis/test_data/platepar/skyFit_latest.state
 NewAnalysis/test_data/platepar/skyFit_latest.state
+DailyChecks/UK000F.ini
+DailyChecks/tackley_tc.ini
+DailyChecks/UK0006.ini
+DailyChecks/tackley_ne.ini

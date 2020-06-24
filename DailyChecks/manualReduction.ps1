@@ -17,7 +17,7 @@ if ($args.count -lt 3) {
 #these details are specific to your camera and file system 
 # and are read from the ini file
 $cam=$ini.camera_name      
-$rootdir='\\'+$ini.piname+'\RMS_Share\' 
+$rootdir='\\'+$ini.hostname+'\RMS_Share\' 
 $datadir=$ini.localfolder
 $RMSloc=$ini.rms_loc
 

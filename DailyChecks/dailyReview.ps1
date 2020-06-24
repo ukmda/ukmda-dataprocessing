@@ -11,7 +11,7 @@ if ($args.count -eq 0) {
 }
 
 # copy the latest data from the Pi
-$srcpath='\\'+$ini.piname+'\RMS_share\ArchivedFiles'
+$srcpath='\\'+$ini.hostname+'\RMS_share\ArchivedFiles'
 $destpath=$ini.localfolder+'\ArchivedFiles'
 $age=[int]$ini.maxage
 robocopy $srcpath $destpath /dcopy:DAT /tee /v /s /r:3 /maxage:$age
