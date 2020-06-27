@@ -28,7 +28,7 @@ int delay_ms=1000;	 // retry delay if the jpg isn't present or the upload fails
 long framelimit=120; // max number of frames before we consider it to be an aircraft or bird
 long minframes = 63; // software records 30 frames either side of event so 63 = 3 actual frames of data
 long minbright=60;	 // min brightness to be too dim to bother uploading
-
+double maxrms = 4.0; // max error in the LSQ fit before the data is discarded. Meteors are usually < 1.0 !
 
 std::ofstream errf;
 
@@ -37,10 +37,13 @@ int dryrun = 0;
 
 int main(int argc, char** argv)
 {
-	wchar_t msg[128] = {0};
-	wchar_t msg2[128] = {0};
-	wchar_t msg3[128] = {0};
-	wchar_t msg4[128] = {0};
+//	wchar_t msg[512] = {0};
+//	wchar_t msg2[512] = {0};
+//	wchar_t msg3[512] = {0};
+//	wchar_t msg4[512] = {0};
+
+	Aws::SDKOptions options;
+	Aws::InitAPI(options);
 
 	if (argc > 1 && argv[1][0] == 'D')
 		Debug = 1;
@@ -53,52 +56,56 @@ int main(int argc, char** argv)
 	theEventLog.Initialize(L"UKMonLiveCL");
 	if (LoadIniFiles() < 0)
 		return -1;
-	theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 0, L"Started", L"");
+	//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 0, L"Started", L"");
+
+	creds.SetAWSAccessKeyId(theKeys.AccountName_D);
+	creds.SetAWSSecretKey(theKeys.AccountKey_D);
+	clientConfig.region = theKeys.region;
 
 	std::time_t t = std::time(0);   // get time now
 	std::tm* now = std::localtime(&t);
 
 	std::cout << (now->tm_year + 1900) << '-' << (now->tm_mon + 1) << '-' << now->tm_mday << ' ' << now->tm_hour << ":" << now->tm_min << ":" << now->tm_sec;
 	std::cout << " UKMON Live Filewatcher C++ version. Monitoring: " << ProcessingPath << std::endl;
-	std::cout << "Logging to the windows eventlog" << std::endl;
-	wchar_t msg0[512];
-	char msg0_s[512];
-	sprintf(msg0_s, "Monitoring %s", ProcessingPath);
-	mbstowcs(msg0, msg0_s, 512);
+	//std::cout << "Logging to the windows eventlog" << std::endl;
+	//wchar_t msg0[512] = { 0 };
+	//char msg0_s[512] = { 0 };
+	//sprintf(msg0_s, "Monitoring %s", ProcessingPath);
+	//mbstowcs(msg0, msg0_s, 512);
 
 	if (framelimit > -1)
 	{
 		std::cout << "Checking for trails longer than  " << framelimit << ";";
-		wsprintf(msg, L"Checking for trails longer than  %ld;", framelimit);
+	//	wsprintf(msg, L"Checking for trails longer than  %ld;", framelimit);
 	}
 	else
 	{
 		std::cout << "No framecount active; ";
-		wsprintf(msg, L"Not checking frame count;");
+		//wsprintf(msg, L"Not checking frame count;");
 	}
 	if (minbright > -1)
 	{
 		std::cout << "Checking for objects brighter than " << minbright;
-		wsprintf(msg2, L"Checking for objects brighter than %ld;", minbright);
+		//wsprintf(msg2, L"Checking for objects brighter than %ld;", minbright);
 	}
 	else
 	{
 		std::cout << "No brightness check active ";
-		wsprintf(msg2, L"No brightness check active;");
+		//wsprintf(msg2, L"No brightness check active;");
 	}
 	std::cout << std::endl;
 
 	if (Debug)
 	{
 		std::cout << "Debugging is on" << std::endl;
-		wsprintf(msg3, L"Debugging is on;");
+		//wsprintf(msg3, L"Debugging is on;");
 	}
 	if (dryrun)
 	{
 		std::cout << "Dry run enabled - nothing will be uploaded" << std::endl;
-		wsprintf(msg4, L"Dry run is on- nothing will be uploaded;");
+		//wsprintf(msg4, L"Dry run is on- nothing will be uploaded;");
 	}
-	theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 1, msg0, msg, msg2, msg3, msg4, L"");
+	//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 1, msg0, msg, msg2, msg3, msg4, L"");
 
 	std::cout << "==============================================" << std::endl;
 
@@ -133,7 +140,7 @@ int main(int argc, char** argv)
 		FILE_NOTIFY_INFORMATION *pbuf;
 		if (!lpBuf)
 		{
-			theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Unable to allocate memory for directory reads; cannot continue;", L"");
+	//		theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Unable to allocate memory for directory reads; cannot continue;", L"");
 			exit (-1);
 		}
 		if (Debug) std::cout << "1. waiting for changes" << std::endl;
@@ -148,7 +155,7 @@ int main(int argc, char** argv)
 				FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, e, 0, msg, 512,NULL);
 				wcstombs(msg_s, msg, 512);
 				std::cout << "Error " << e << " scanning directory" << ProcessingPath << " - buffer trashed" << msg << std::endl;
-				theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 98, L"Error Scanning directory" , L"buffer trashed;", L"");
+				//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 98, L"Error Scanning directory" , L"buffer trashed;", L"");
 			}	
 			else if (retsiz > 0)
 			{
@@ -161,7 +168,7 @@ int main(int argc, char** argv)
 					offset = pbuf->NextEntryOffset;
 
 					// check file is different and action is modified 
-					if (wcsncmp(lastname, fname, pbuf->FileNameLength) != 0 && (pbuf->Action == FILE_ACTION_ADDED))
+					if (wcsncmp(lastname, fname, pbuf->FileNameLength/2) != 0 && (pbuf->Action == FILE_ACTION_ADDED))
 					{
 						char filename_s[512] = { 0 };
 						wcstombs(filename_s, fname, wcslen(fname));
@@ -183,12 +190,13 @@ int main(int argc, char** argv)
 							// check for data quality - long recordings are usually planes or birds, short ones are flashes
 							// and dim ones arent worth uploading to the live stream
 
-							long frcount = 0;
-							long maxbmax = 0;
+							long frcount = minframes+1;
+							long maxbmax = minbright+1;
+							double rms = 0;
 							std::string pth = ProcessingPath;
 							int gooddata = 1;
-							ReadBasicXML(pth, filename_s, frcount, maxbmax);
-							if (framelimit > -1 && (frcount > framelimit || frcount < minframes ))
+							ReadBasicXML(pth, filename_s, frcount, maxbmax, rms);
+							if (framelimit > -1 && (frcount > framelimit || frcount < minframes || rms > maxrms))
 								gooddata = 0;
 							if (minbright > -1 && maxbmax < minbright)
 								gooddata = 0;
@@ -197,9 +205,9 @@ int main(int argc, char** argv)
 
 							if (gooddata)
 							{
-								put_file(theKeys.BucketName, filename_s, theKeys.region, theKeys.AccountName_D, theKeys.AccountKey_D, frcount, maxbmax);
+								put_file(theKeys.BucketName, filename_s, frcount, maxbmax, rms);
 								fn.replace(m1, 4, "P.jpg");
-								put_file(theKeys.BucketName, fn.c_str(), theKeys.region, theKeys.AccountName_D, theKeys.AccountKey_D, frcount, maxbmax);
+								put_file(theKeys.BucketName, fn.c_str(), frcount, maxbmax, rms);
 							}
 							else
 							{
@@ -211,10 +219,12 @@ int main(int argc, char** argv)
 									std::cout << " framecount " << frcount << ">" << framelimit;
 								if (maxbmax < minbright)
 									std::cout << " brightness " << maxbmax << "<" << minbright;
+								if (rms > maxrms)
+									std::cout << " RMS error " << rms << ">" << maxrms;
 								std::cout << std::endl;
 
-								wsprintf(msg, L"%d: skipping %ls - framecount %d brightness %d", nCounter, fname, frcount, maxbmax);
-								theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 3, msg, L"");
+								//wsprintf(msg, L"%d: skipping %ls - framecount %d brightness %d rms %.2f", nCounter, fname, frcount, maxbmax, rms);
+								//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 3, msg, L"");
 							}
 						}
 					}
@@ -229,15 +239,16 @@ int main(int argc, char** argv)
 		else
 		{
 			wchar_t mmsg[512] = { 0 };
-			char msg_s[512] = { 0 };
+			//char msg_s[512] = { 0 };
 			DWORD e = GetLastError();
 			FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, e, 0, mmsg, 512, NULL);
-			wcstombs(msg_s, mmsg, 512);
+			//wcstombs(msg_s, mmsg, 512);
 			std::cout << "Error " << e << " scanning directory" << ProcessingPath << " " << mmsg << std::endl;
-			theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Error Scanning Directory; cannot continue", mmsg, L"");
+			//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Error Scanning Directory; cannot continue", mmsg, L"");
 			exit(-1);
 		}
 		free(lpBuf);
 	}
+	Aws::ShutdownAPI(options);
 	return 0;
 }

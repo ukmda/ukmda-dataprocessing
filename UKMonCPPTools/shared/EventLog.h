@@ -37,7 +37,7 @@ public:
 	CEventLog(void);
 	virtual ~CEventLog(void);
 
-	BOOL Initialize(wchar_t *csApp);
+	BOOL Initialize(const wchar_t *csApp);
 	HANDLE GetHandle(void) { return m_hLog; };
 
 	BOOL Fire(WORD wType, WORD wCategory, DWORD dwEventID, ...);
@@ -47,8 +47,8 @@ public:
 	CString LoadMessage(DWORD dwMsgId, ...);
 	BOOL LaunchViewer(void);
 
-	DWORD AddEventSource(wchar_t *csName,DWORD dwCategoryCount = 0);
-	DWORD RemoveEventSource(wchar_t *csApp);
+	DWORD AddEventSource(const wchar_t *csName,DWORD dwCategoryCount = 0);
+	DWORD RemoveEventSource(const wchar_t *csApp);
 
 protected:
 	PSID GetUserSID(PSID * ppSid);

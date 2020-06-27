@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#define _WIN32_WINNT 0x0501
+//#define _WIN32_WINNT 0x0501
 
 #include "EventLog.h"
 #include <Windows.h>
@@ -28,6 +28,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <fstream>
 #include <ctime>
 
+#include <aws/core/Aws.h>
+#include <aws/s3/S3Client.h>
+#include <aws/s3/model/PutObjectRequest.h>
+#include <aws/core/auth/AWSCredentialsProvider.h>
 
 struct KeyData
 {
@@ -52,6 +56,9 @@ extern int delay_ms;
 extern long framelimit;
 extern long minbright;
 extern long minframes;
+extern double maxrms;
+extern Aws::Auth::AWSCredentials creds; // aws credentials
+extern Aws::Client::ClientConfiguration clientConfig; // client setup
 
 int LoadIniFiles(void);
 
@@ -60,10 +67,10 @@ int Hex2String(char* out, char* in);
 int Encrypt(char *out, char* in, int Key);
 int Decrypt(char *out, char* in, int Key);
 
-int put_file(char* buckname, const char* fname, char* reg, char* acct, char* secret, long frcount, long maxbmax);
+int put_file(char* buckname, const char* fname, long frcount, long maxbmax, double rms);
 
 int ProcessData(std::string pattern, long framelimit, long minbright, char *pth);
-int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &maxbmax);
+int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &maxbmax, double &rms);
 int ReadAnalysisXML(std::string pth, const char* cFileName, double &mag);
 
 
