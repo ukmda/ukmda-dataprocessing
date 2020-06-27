@@ -15,7 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#include "..\LiveUploader\UKMonLiveCL.h"
+#include "..\ukmonlive\UKMonLiveCL.h"
 #include "..\shared\tinyxml\tinyxml.h"
 #include "..\shared\llsq.h"
 
