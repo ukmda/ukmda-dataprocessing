@@ -1,6 +1,6 @@
 #pragma once
 /*
-Copyright 2018 Mark McIntyre. 
+Copyright 2018-2020 Mark McIntyre. 
 
 UKMONLiveCL is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -16,102 +16,130 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "..\LiveUploader\UKMonLiveCL.h"
+#include "..\shared\tinyxml\tinyxml.h"
+#include "..\shared\llsq.h"
 
-int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &maxbmax)
+int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &maxbmax, double &rms)
 {
-	std::ifstream thef;
 	std::string fname = pth;
-	fname += "/";
+	fname += "\\";
 	fname += cFileName;
-	thef.open(fname);
-	int retry = 0;
-	while (!thef.is_open() && retry++ < 100)
+
+	TiXmlDocument doc(fname.c_str());
+	bool loadOkay = doc.LoadFile();
+
+	if (!loadOkay)
 	{
-		Sleep(100);
-		thef.open(fname);
-	}
-	if (!thef.is_open())
-	{
-		std::cout << "Unable to open xml file " << cFileName << std::endl;
-		theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 1, L"Unable to open XML file for analysis;", L"");
+		Sleep(500);
+		loadOkay = doc.LoadFile();
+		if (!loadOkay)
+		{
+			printf("Could not load %s'. Error='%s'. Exiting.\n", fname.c_str(), doc.ErrorDesc());
+			theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 1, L"Unable to open XML file for analysis;", L"");
+		}
 	}
 	else
 	{
-		std::string aline;
-		std::getline(thef, aline);
-		std::getline(thef, aline);
-		size_t m1 = aline.find("frames");
-		if (m1 == aline.npos || aline.length() == 0)
-			theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 1, L"Frames value not found in the XML;", L"");
-		else
+		TiXmlNode* node = 0;
+		TiXmlElement* ufocapture_record = 0;
+		TiXmlElement* ufocapture_paths = 0;
+		TiXmlElement* uc_path = 0;
+		int frames = 0;
+		int ret;
+
+		node = doc.FirstChild("ufocapture_record"); // the top level record
+		assert(node);
+		ufocapture_record = node->ToElement();
+		assert(ufocapture_record);
+		ret = ufocapture_record->QueryIntAttribute("frames", &frames);
+		frcount = frames;
+
+		node = ufocapture_record->FirstChildElement(); // ufocapture_paths 
+		assert(node);
+		ufocapture_paths = node->ToElement();
+		assert(ufocapture_paths);
+
+		int hits;
+		ret = ufocapture_paths->QueryIntAttribute("hit", &hits); //get number of hits
+		hits = hits > 400 ? 400 : hits; // no need for more than 400 points in a fit
+
+		double x[400], y[400], maxbri = 0;
+		double px, py;
+		int pb;
+		node = ufocapture_paths->FirstChildElement(); // should be the first ua_path line
+		assert(node);
+		uc_path = node->ToElement();
+		assert(uc_path);
+		ret = uc_path->QueryDoubleAttribute("x", &px);
+		ret = uc_path->QueryDoubleAttribute("y", &py);
+		ret = uc_path->QueryIntAttribute("bmax", &pb);
+		x[0] = px; y[0] = py;
+		maxbri = pb;
+		for (int i = 1; i < hits; i++)
 		{
-			size_t m2 = aline.find("\"", m1 + 8);
-			std::string fr = aline.substr(m1 + 8, m2 - m1 - 8);
-			frcount = atol(fr.c_str());
+			uc_path = uc_path->NextSiblingElement();
+			assert(uc_path);
+			ret = uc_path->QueryDoubleAttribute("x", &px);
+			ret = uc_path->QueryDoubleAttribute("y", &py);
+			ret = uc_path->QueryIntAttribute("bmax", &pb);
+			x[i] = px; y[i] = py;
+			if (pb > maxbri) maxbri = pb;
 		}
-		std::getline(thef, aline);
-		m1 = aline.find("hit") + 5;
-		if (m1 == aline.npos || aline.length() == 0)
-			theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 1, L"Hit value not found in the XML;", L"");
-		else
-		{
-			size_t m2 = aline.find("\"", m1);
-			std::string hi = aline.substr(m1, m2 - m1);
-			long hitcount = atol(hi.c_str());
-			if (Debug) std::cout << hitcount << " ";
-			for (int i = 0; i < hitcount; i++)
-			{
-				std::getline(thef, aline);
-				m1 = aline.find("bmax") + 6;
-				if (m1 == aline.npos || aline.length() == 0)
-					theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 1, L"bmax value not found in the XML;", L"");
-				else
-				{
-					size_t m2 = aline.find("\"", m1);
-					std::string bm = aline.substr(m1, m2 - m1);
-					long bmax = atol(bm.c_str());
-					if (bmax > maxbmax)
-						maxbmax = bmax;
-					if (Debug) std::cout << bmax << " ";
-				}
-			}
-			if (Debug)std::cout << frcount << " " << maxbmax << std::endl;
-			if(Debug) std::cout << cFileName << " frames=" << frcount << " ";
-			if (Debug) std::cout << "max bmax=" << maxbmax << " ";
-		}
-		thef.close();
+		maxbmax = (long)maxbri;
+
+		double alpha, beta, l_rms=0;
+		llsq(hits, x, y, alpha, beta, l_rms);
+		rms = l_rms;
 	}
 	return 0;
 }
+
 int ReadAnalysisXML(std::string pth, const char* cFileName, double &mag)
 {
-	std::ifstream thef;
+	int ret;
+
 	std::string fname = pth;
-	fname += "/";
+	fname += "\\";
 	fname += cFileName;
-	std::string postf = "A.xml";
-	fname.replace(fname.length()-4, 5, postf);
-	thef.open(fname);
-	if (!thef.is_open())
-		std::cout << "mag=99.99" << std::endl;
+
+	TiXmlDocument doc(fname.c_str());
+	bool loadOkay = doc.LoadFile();
+
+	if (!loadOkay)
+	{
+		Sleep(500);
+		loadOkay = doc.LoadFile();
+		if (!loadOkay)
+		{
+			printf("Could not load %s'. Error='%s'. Exiting.\n", fname.c_str(), doc.ErrorDesc());
+			theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 1, L"Unable to open XML file for analysis;", L"");
+		}
+	}
 	else
 	{
-		std::string aline;
-		std::getline(thef, aline); // skip this line
-		size_t m1 = aline.find("mag=");
-		while ((m1 = aline.find(" mag=")) == aline.npos && !thef.eof() && aline.length() != 0)
-			std::getline(thef, aline);
+		TiXmlNode* node = 0;
+		TiXmlElement* ufoanalyzer_record = 0;
+		TiXmlElement* ua2_objects = 0;
+		TiXmlElement* ua2_object = 0;
 
-		if (thef.eof())
-			std::cout << "mag=99.99" << std::endl;
-		else
-		{
-			size_t m2 = aline.find("\"", m1 + 6);
-			std::string fr = aline.substr(m1 + 6, m2 - m1 - 6);
-			mag = atof(fr.c_str());
-		}
-		std::cout << "mag=" << mag << std::endl;
-		thef.close();
+		node = doc.FirstChild("ufoanalyzer_record"); // the top level record
+		assert(node);
+		ufoanalyzer_record = node->ToElement();
+		assert(ufoanalyzer_record);
+
+		node = ufoanalyzer_record->FirstChildElement(); // ufocapture_paths 
+		assert(node);
+		ua2_objects = node->ToElement();
+		assert(ua2_objects);
+
+		node = ua2_objects->FirstChildElement(); // should be the first ua_path line
+		assert(node);
+		ua2_object = node->ToElement();
+		assert(ua2_object);
+
+		double pmg = 99.99;
+		ret = ua2_object->QueryDoubleAttribute("mag", &pmg);
+		mag = pmg;
 	}
 	return 0;
 }
@@ -127,7 +155,8 @@ int ProcessData(std::string pattern, long framelimit, long minbright, char *pth)
 			if (Debug) std::cout << data.cFileName << std::endl;
 			long maxbmax=0, frcount=0;
 			double mag=99.99;
-			ReadBasicXML(pth, data.cFileName, frcount, maxbmax);
+			double rms = 0;
+			ReadBasicXML(pth, data.cFileName, frcount, maxbmax, rms);
 			ReadAnalysisXML(pth, data.cFileName, mag);
 			csvfile << data.cFileName << "," << maxbmax << "," << frcount << "," << mag << std::endl;
 		} while (FindNextFileA(hFind, &data));

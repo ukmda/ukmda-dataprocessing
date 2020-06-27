@@ -37,7 +37,7 @@ int LoadIniFiles(void)
 	if (!f)
 	{
 		std::cerr << "Unable to open security key file" << std::endl;
-		theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Unable to open AUTH_UKMONLiveWatcher.ini; cannot continue", L"");
+		//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Unable to open AUTH_UKMONLiveWatcher.ini; cannot continue", L"");
 		return -1;
 	}
 
@@ -50,7 +50,7 @@ int LoadIniFiles(void)
 	fgets(theKeys.TableEndPoint, 128, f);
 	if (fgets(theKeys.BucketName, 128, f) == NULL)
 	{
-		theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Security key file malformed; cannot continue", L"");
+		//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Security key file malformed; cannot continue", L"");
 		return -1;
 	}
 
@@ -72,7 +72,7 @@ int LoadIniFiles(void)
 	f = fopen(inifile, "r");
 	if (!f)
 	{
-		theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Unable to open UKMONLiveWatcher.ini; cannot continue", L"");
+		//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Unable to open UKMONLiveWatcher.ini; cannot continue", L"");
 		return -1;
 	}
 	fgets(s, 512, f); // ignore this line
