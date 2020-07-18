@@ -105,10 +105,10 @@ int LoadIniFiles(void)
 	if (fgets(tmp, 20, f) != NULL)
 	{
 		maxrms = atof(tmp);
-		if (maxrms< 0.2) maxrms = 2.0;
+		if (maxrms< 0.2) maxrms = 1.0;
 	}
 	else
-		maxrms = 2.0;
+		maxrms = 1.0;
 
 	fclose(f);
 

@@ -26,7 +26,7 @@ int nCounter;		 // number of events uploaded
 int maxretry = 5;	 // number of retries 
 int delay_ms=1000;	 // retry delay if the jpg isn't present or the upload fails
 long framelimit=120; // max number of frames before we consider it to be an aircraft or bird
-long minframes = 63; // software records 30 frames either side of event so 63 = 3 actual frames of data
+long minframes = 66; // software records 30 frames either side of event
 long minbright=60;	 // min brightness to be too dim to bother uploading
 double maxrms = 2.0; // max error in the LSQ fit before the data is discarded. Meteors are usually < 1.0 !
 
@@ -128,10 +128,10 @@ int main(int argc, char** argv)
 			theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Unable to allocate memory for directory reads; cannot continue;", L"");
 			exit (-1);
 		}
-		if (Debug) std::cout << "1. waiting for changes" << std::endl;
+		if (Debug && !dryrun) std::cout << "1. waiting for changes" << std::endl;
 		if (ReadDirectoryChangesW(hDir, (LPVOID)lpBuf, buflen, TRUE, dwFilter, &retsiz, NULL, NULL))
 		{
-			if (Debug) std::cout << "2. Recieved " << retsiz << " bytes" << std::endl;
+			if (Debug && !dryrun) std::cout << "2. Recieved " << retsiz << " bytes" << std::endl;
 			if (lpBuf == NULL)
 			{
 				wchar_t msg[512] = { 0 };
@@ -158,7 +158,7 @@ int main(int argc, char** argv)
 						char filename_s[512] = { 0 };
 						wcstombs(filename_s, fname, wcslen(fname));
 
-						if (Debug) std::cout << filename_s << std::endl;
+						if (Debug && !dryrun) std::cout << filename_s << std::endl;
 
 
 						// wait for the XML file, but skip files with a + in it as these are manual captures. 
@@ -187,7 +187,7 @@ int main(int argc, char** argv)
 							if (minbright > -1 && maxbmax < minbright)
 								gooddata = 0;
 
-							if(Debug) std::cout << "A: " << filename_s << " " << theKeys.BucketName << std::endl;
+							if(Debug && !dryrun) std::cout << "A: " << filename_s << " " << theKeys.BucketName << std::endl;
 
 							if (gooddata)
 							{

@@ -30,7 +30,7 @@ int put_file(char* buckname, const char* fname, long frcount, long maxbmax, doub
 	Aws::String file_name = ProcessingPath;
 	file_name += "/";
 	file_name += fname;
-	if (Debug) std::cout << "B1: " << file_name << " " << buckname << std::endl;
+	if (Debug && !dryrun) std::cout << "B1: " << file_name << " " << buckname << std::endl;
 	const char* fullname = file_name.c_str();
 
 	// filename may contain path relative to the processing path - we need to remove this before
@@ -42,7 +42,7 @@ int put_file(char* buckname, const char* fname, long frcount, long maxbmax, doub
 	else
 		key_name = fname;
 
-	if (Debug) std::cout << "C: " << key_name << " " << key_name.c_str() << std::endl;
+	if (Debug && !dryrun) std::cout << "C: " << key_name << " " << key_name.c_str() << std::endl;
 
 	nCounter++;
 
@@ -91,7 +91,13 @@ int put_file(char* buckname, const char* fname, long frcount, long maxbmax, doub
 	}
 	else
 	{
-		std::cout << std::endl << "dry run, would have sent " << file_name << std::endl;
+		int l = file_name.length();
+		Aws::String ext = "xml";
+		if (file_name.substr(l - 3, 3) != ext)
+		{
+			std::cout << "dry run, would have sent " << file_name << std::endl;
+			std::cout << frcount << " " << maxbmax << " " << rms << std::endl;
+		}
 		wchar_t wfname[512] = { 0 };
 		mbstowcs(wfname, fname, strlen(fname));
 		wsprintf(msg, L"Dry Run: Uploading %ls....done!", wfname);
