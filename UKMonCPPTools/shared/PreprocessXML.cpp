@@ -87,9 +87,18 @@ int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &ma
 		}
 		maxbmax = (long)maxbri;
 
-		double alpha, beta, l_rms=0;
+		// check for straightness of the fit. Very poor fits are likely to be non-meteoric
+		// note that we have to check fit of x to y and y to x because nearly-vertical meteors
+		// might have large fit errors in y while still being pretty straight. Fitting in 
+		// x instead may produce smaller errors. Ideally we'd fit a line, then calculate the residuals
+		// perpendicular to this line. 
+
+		double alpha, beta, l_rms=0, r_rms=0;
 		llsq(hits, x, y, alpha, beta, l_rms);
-		rms = l_rms;
+		llsq(hits, y, x, alpha, beta, r_rms);
+
+		// use the smaller of the two values to allow for nearly-vertical events
+		rms = (l_rms < r_rms ? l_rms:r_rms);
 	}
 	return 0;
 }
