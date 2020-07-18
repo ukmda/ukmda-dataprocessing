@@ -504,6 +504,8 @@ DailyChecks/tackley_ne.ini
 /UKMonCPPTools/TestPutFile
 M*.jpg
 M*.xml
-ukmon-live/numpy/**
-ukmon-live/pytz/**
-ukmon-live/numpy.libs/**
+# don't want to duplicate this into github
+ukmon-live/curate/numpy/**
+ukmon-live/curate/pytz/**
+ukmon-live/curate/numpy.libs/**
+ukmon-live/curate/ReadUFO*
