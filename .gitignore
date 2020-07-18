@@ -502,3 +502,8 @@ DailyChecks/tackley_tc.ini
 DailyChecks/UK0006.ini
 DailyChecks/tackley_ne.ini
 /UKMonCPPTools/TestPutFile
+M*.jpg
+M*.xml
+ukmon-live/numpy/**
+ukmon-live/pytz/**
+ukmon-live/numpy.libs/**
