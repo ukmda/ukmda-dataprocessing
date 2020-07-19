@@ -3,7 +3,7 @@
 # note: see instructions at end of file on how to build and deploy
 
 import os, sys 
-#import fnmatch, subprocess, datetime
+import datetime, math
 import boto3
 import botocore
 from urllib.parse import unquote_plus
@@ -19,7 +19,8 @@ def monotonic(x):
 
 def AddToIndex(fname, target, bri, rms):
     s3 = boto3.resource('s3')
-    liveindex='liveindex.csv'
+    tod=datetime.datetime.now()
+    liveindex='idx{:04d}{:02d}.csv'.format(tod.year, math.ceil(tod.month/3))
     tmpf='/tmp/'+liveindex
     try:
         s3.meta.client.download_file(Bucket=target, Key=liveindex, Filename=tmpf) 
