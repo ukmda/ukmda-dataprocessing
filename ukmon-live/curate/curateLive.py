@@ -17,7 +17,34 @@ def monotonic(x):
     dx = np.diff(x)
     return np.all(dx <= 0) or np.all(dx >= 0)
 
-def CheckifValidMeteor(xmlname):
+def AddToIndex(fname, target, bri, rms):
+    s3 = boto3.resource('s3')
+    liveindex='liveindex.csv'
+    tmpf='/tmp/'+liveindex
+    try:
+        s3.meta.client.download_file(Bucket=target, Key=liveindex, Filename=tmpf) 
+    except:
+        pass
+    #print('LiveMon: downloaded index')
+    f=open(tmpf,'a+')
+    dmy=fname[1:9]
+    hms=fname[10:16]
+    stat=fname[17:fname.rfind('.')]
+    sid=stat[:stat.rfind('_')]
+    if(sid =='Lockyer2' or sid =='Lockyer1'):
+        sid='Lockyer'
+    if(sid =='Exeter2' or sid =='Exeter1'):
+        sid='Exeter'
+    lid=stat[stat.rfind('_')+1:]
+    strtowrite = dmy + ','+hms+ ',' + sid+ ',' +lid + ',{:.2f},{:.2f}\n'.format(bri,rms)
+    print('LiveMon: adding ', strtowrite)
+    f.write(strtowrite)
+    f.close()
+    s3.meta.client.upload_file(Bucket=target, Key=liveindex, Filename=tmpf) 
+    #print('LiveMon: uploaded index again')
+    return 
+
+def CheckifValidMeteor(xmlname, target):
     # initialise fit variables
     dist=0
     app_m=0
@@ -30,7 +57,7 @@ def CheckifValidMeteor(xmlname):
 
     dd=ReadUFOCapXML.UCXml(xmlname)
     fps, cx, cy = dd.getCameraDetails()
-    pathx, pathy, _ = dd.getPath()
+    pathx, pathy, bri = dd.getPath()
     _,fname=os.path.split(xmlname)
 
     # we expect meteor paths to be monotonic in X or Y or both
@@ -67,37 +94,38 @@ def CheckifValidMeteor(xmlname):
             rms = np.sqrt(resid[0]/len(pathy))
             app_m = (pathx[-1]-pathx[0])/(pathy[-1]-pathy[0])
 
-        # work out the length of the line; very short lines are statistically unreliable
-        p1=np.c_[pathx[0],pathy[0]]
-        p2=np.c_[pathx[-1],pathy[-1]]
-        dist=np.linalg.norm(p2-p1)
-        vel=dist*2*fps/l
-
-        # very low RMS is improbable but lets allow it for now
-        if rms > maxrms :
-            msg='plane, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
-            print (logname, fname, msg )
-            return False
-        else:
-            xm = int(max(pathx))
-            if xm > cx/2:
-                xm = int(min(pathx))
-            ym = int(min(pathy))
-            if ym > cy/2:
-                ym = int(min(pathy))
-            if dist < 5 :
-                msg='flash, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
-                print (logname, fname, msg )
-                return False
-
-            msg='meteor, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
-            print (logname, fname, msg)
-            return True
-
     except:
         msg='fitfail, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
         print(logname, fname, msg)
         return False
+
+    # work out the length of the line; very short lines are statistically unreliable
+    p1=np.c_[pathx[0],pathy[0]]
+    p2=np.c_[pathx[-1],pathy[-1]]
+    dist=np.linalg.norm(p2-p1)
+    vel=dist*2*fps/l
+
+    # very low RMS is improbable but lets allow it for now
+    if rms > maxrms :
+        msg='plane, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
+        print (logname, fname, msg )
+        return False
+    else:
+        xm = int(max(pathx))
+        if xm > cx/2:
+            xm = int(min(pathx))
+        ym = int(min(pathy))
+        if ym > cy/2:
+            ym = int(min(pathy))
+        if dist < 5 :
+            msg='flash, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
+            print (logname, fname, msg )
+            return False
+
+        msg='meteor, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
+        print (logname, fname, msg)
+        AddToIndex(fname, target, max(bri), rms)
+        return True
 
 def lambda_handler(event, context):
 
@@ -124,7 +152,7 @@ def lambda_handler(event, context):
         xmlname = '/tmp/' + s3object
         s3.meta.client.download_file(target, s3object, xmlname) 
 
-        if CheckifValidMeteor(xmlname)==False:
+        if CheckifValidMeteor(xmlname, target)==False:
             #print ('delete ', s3object)
             try: 
                 s3.meta.client.delete_object(Bucket=target, Key=s3object)
