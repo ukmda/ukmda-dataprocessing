@@ -1,11 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
-Description: An AWS Serverless Specification template describing your function.
+Description: Copies the camera CSV files to the temp area for later consolidation.
 Resources:
   CSVTrigger:
     Type: 'AWS::Serverless::Function'
     Properties:
-      Handler: lambda_function.lambda_handler
+      Handler: csvTrigger.lambda_handler
       Runtime: python3.7
       CodeUri: .
       Description: ''
