@@ -3,6 +3,12 @@
 #   yymmdd date to copy for 
 #   hhmmss time to copy for
 
+if($args.count -lt 3) {
+    echo "usage: manuaReduction srcdir srcfile camerainifile"
+    echo "eg manuaReduction 20200703 015505 UK006.ini"
+    exit
+}
+
 $srcdir=$args[0]
 $srcfile=$args[1]
 
