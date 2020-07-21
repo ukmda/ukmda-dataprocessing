@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "UKMonLive"
-#define MyAppVersion "2.0.1.0"
+#define MyAppVersion "2.1.0.0"
 #define MyAppPublisher "Mark McIntyre"
 #define MyAppURL "https://ukmeteornetwork.co.uk/live/#/"
 #define MyAppExeName "LiveUploader.exe"

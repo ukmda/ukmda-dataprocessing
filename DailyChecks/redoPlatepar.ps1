@@ -4,7 +4,11 @@
 $here=get-location 
 # read the inifile
 set-location $PSScriptRoot
-$ini=get-content camera1.ini -raw | convertfrom-stringdata
+if ($args.count -eq 0) {
+    $ini=get-content camera1.ini -raw | convertfrom-stringdata
+}else {
+    $ini=get-content $args[0] -raw | convertfrom-stringdata
+}
 $RMSloc=$ini.rms_loc
 
 # find the latest set of data on the local drive

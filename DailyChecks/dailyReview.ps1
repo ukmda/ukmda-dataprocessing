@@ -4,10 +4,14 @@
 
 # read the inifile
 set-location $PSScriptRoot
-$ini=get-content camera1.ini -raw | convertfrom-stringdata
+if ($args.count -eq 0) {
+    $ini=get-content camera1.ini -raw | convertfrom-stringdata
+}else {
+    $ini=get-content $args[0] -raw | convertfrom-stringdata
+}
 
 # copy the latest data from the Pi
-$srcpath='\\'+$ini.piname+'\RMS_share\ArchivedFiles'
+$srcpath='\\'+$ini.hostname+'\RMS_share\ArchivedFiles'
 $destpath=$ini.localfolder+'\ArchivedFiles'
 $age=[int]$ini.maxage
 robocopy $srcpath $destpath /dcopy:DAT /tee /v /s /r:3 /maxage:$age
@@ -29,7 +33,7 @@ else {
 # switch RMS environment to do some post processing
 if ($ini.RMS_INSTALLED=1){
     # reprocess the ConfirmedFiles folder to generate JPGs, shower maps, etc
-    conda activate $ini.RMS
+    conda activate $ini.RMS_ENV
     set-location $ini.RMS_LOC
     $destpath=$ini.localfolder+'\ConfirmedFiles'
     $mindt = (get-date).AddDays(-$age)
@@ -53,7 +57,7 @@ if ($ini.RMS_INSTALLED=1){
             $nfits=(get-childitem $fits).count
             if ($nfits -gt 1)
             {
-                python -m Utils.StackFFs $myf jpg -s  -x   
+                python -m Utils.StackFFs $myf jpg -s -b -x   
             }
             # mp4 generation is not yet in the main RMS codebase
             $mp4gen=$ini.rms_loc+'\Utils\GenerateMP4s.py'
@@ -67,4 +71,6 @@ if ($ini.RMS_INSTALLED=1){
     }    
 }
 set-location $PSScriptRoot
-pause
+.\reorgByYMD.ps1 $args[0]
+.\UploadToUkMon.ps1 $args[0]
+#pause

@@ -49,7 +49,7 @@ CEventLog::~CEventLog()
 }
 
 
-BOOL CEventLog::Initialize(wchar_t *csApp)
+BOOL CEventLog::Initialize(const wchar_t *csApp)
 {
 	// Try to add application to EventVwr
 	AddEventSource(csApp, 3);
@@ -68,7 +68,7 @@ BOOL CEventLog::Initialize(wchar_t *csApp)
 	return TRUE;
 }
 
-DWORD CEventLog::AddEventSource(wchar_t *csName, DWORD dwCategoryCount)
+DWORD CEventLog::AddEventSource(const wchar_t *csName, DWORD dwCategoryCount)
 {
 	HKEY hRegKey = NULL;
 	DWORD dwError = 0;
@@ -119,7 +119,7 @@ DWORD CEventLog::AddEventSource(wchar_t *csName, DWORD dwCategoryCount)
 	return dwError;
 }
 
-DWORD CEventLog::RemoveEventSource(wchar_t *csApp)
+DWORD CEventLog::RemoveEventSource(const wchar_t *csApp)
 {
 	DWORD dwError = 0;
 	TCHAR szPath[MAX_PATH];
@@ -223,6 +223,7 @@ BOOL CEventLog::FireWithData(WORD wType, WORD wCategory,
 	return bRet;
 }
 
+#if 0
 BOOL CEventLog::LaunchViewer()
 {
 	CString csVwr = "%SystemRoot%\\system32\\eventvwr.msc", csParam = " /s";
@@ -332,7 +333,7 @@ BOOL CEventLog::LaunchViewer()
 	}
 	return FALSE;
 }
-
+#endif
 PSID CEventLog::GetUserSID(PSID * ppSid)
 {
 	BOOL bRet = FALSE;
