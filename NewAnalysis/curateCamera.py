@@ -218,7 +218,10 @@ if __name__ == '__main__':
     else:
         if sys.argv[1]=='live':
             config=cfg.ConfigParser()
-            config.read('live.ini')
+            pth, _ = os.path.split(os.path.realpath(__file__))
+            cfgfile=os.path.join(pth, 'live.ini')
+            print(cfgfile)
+            config.read(cfgfile)
             path=config['live']['src']
             badfilepath=config['live']['bad']
             logfilepath=config['live']['log']
@@ -235,13 +238,17 @@ if __name__ == '__main__':
             except:
                 pass
             print('Processing {:d} days; movefiles='.format(daystodo)+str(movfiles))
-            for i in range(0,daystodo+1):
-                dd=datetime.date.today()-datetime.timedelta(days=i)
-                ymd='{:04d}{:02d}{:02d}'.format(dd.year, dd.month, dd.day)
-                cmdstr='aws s3 cp s3://ukmon-live/ '+ path + ' --exclude "*" --include "M'+ymd+'*" --recursive'
-                #print(cmdstr)
-                os.system(cmdstr)
+            if len(sys.argv) >2:
+                ymd=sys.argv[2]
                 ProcessADay(path, ymd, actionscript, badfilepath, logfilepath)   
+            else:
+                for i in range(0,daystodo+1):
+                    dd=datetime.date.today()-datetime.timedelta(days=i)
+                    ymd='{:04d}{:02d}{:02d}'.format(dd.year, dd.month, dd.day)
+                    cmdstr='aws s3 cp s3://ukmon-live/ '+ path + ' --exclude "*" --include "M'+ymd+'*" --recursive'
+                    #print(cmdstr)
+                    os.system(cmdstr)
+                    ProcessADay(path, ymd, actionscript, badfilepath, logfilepath)   
         else: 
             # args should be id yyyymmdd
             cloc=sys.argv[1]
