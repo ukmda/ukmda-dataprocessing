@@ -58,7 +58,7 @@ def CheckifValidMeteor(xmlname, target):
 
     dd=ReadUFOCapXML.UCXml(xmlname)
     fps, cx, cy = dd.getCameraDetails()
-    pathx, pathy, bri = dd.getPath()
+    pathx, pathy, _ = dd.getPath()
     _,fname=os.path.split(xmlname)
 
     # we expect meteor paths to be monotonic in X or Y or both
@@ -125,7 +125,7 @@ def CheckifValidMeteor(xmlname, target):
 
         msg='meteor, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
         print (logname, fname, msg)
-        AddToIndex(fname, target, max(bri), rms)
+        #AddToIndex(fname, target, max(bri), rms)
         return True
 
 def lambda_handler(event, context):
