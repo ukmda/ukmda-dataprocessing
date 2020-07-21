@@ -3,8 +3,13 @@
 # for easier searching
 
 # read the inifile
+$curloc=get-location
 set-location $PSScriptRoot
-$ini=get-content camera1.ini -raw | convertfrom-stringdata
+if ($args.count -eq 0) {
+    $ini=get-content camera1.ini -raw | convertfrom-stringdata
+}else {
+    $ini=get-content $args[0] -raw | convertfrom-stringdata
+}
 
 $srcpath=$ini.localfolder+'\'
 $age=[int]$ini.maxage
@@ -43,9 +48,9 @@ foreach ($dname in $dlist)
     $src=$arcpath+$dname +'\*.csv'
     copy-item $src $pth
     write-output 'copying JPGs, gifs and MP4s'
-    $src=$arcpath+$dname +'\FF_UK0006_*.jpg'
+    $src=$arcpath+$dname +'\FF_*.jpg'
     copy-item $src $pth
-    $src=$arcpath+$dname +'\FF_UK0006_*.gif'
+    $src=$arcpath+$dname +'\FF_*.gif'
     copy-item $src $pth
     $src=$arcpath+$dname +'\*.mp4'
     copy-item $src $pth
@@ -61,3 +66,4 @@ foreach ($dname in $dlist)
         copy-item $src $pth
     }
 }
+set-location $curloc

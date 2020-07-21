@@ -1,6 +1,7 @@
 # Python class to parse a UFOCapture XML files
 import os, sys
 import xmltodict 
+import numpy
 
 class UCXml: 
     def __init__(self, fname):
@@ -49,7 +50,30 @@ class UCXml:
         uc=self.ucxml['ufocapture_record']['ufocapture_paths']
         return int(uc['@hit'])
 
-    def getPaths(self, fno):
+    def getPath(self):
+        try:
+            uc=self.ucxml['ufocapture_record']['ufocapture_paths']
+        except:
+            #print('xml file not valid - no ufocapture_paths')
+            pathx=numpy.empty(1)
+            pathy=numpy.empty(1)
+            bri=numpy.empty(1)
+            return pathx, pathy, bri
+        nhits=int(uc['@hit'])
+        pathx=numpy.empty(nhits)
+        pathy=numpy.empty(nhits)
+        bri=numpy.empty(nhits)
+        if nhits < 2 :
+            return pathx, pathy, bri
+            
+        for i in range(nhits):
+           p=uc['uc_path'][i]
+           pathx[i]=p['@x']
+           pathy[i]=p['@y']
+           bri[i]=p['@bmax']
+        return pathx, pathy, bri
+
+    def getPathElement(self, fno):
         uc=self.ucxml['ufocapture_record']['ufocapture_paths']
         pth=uc['uc_path'][fno]
         return pth['@fno'],pth['@ono'], pth['@pixel'],pth['@bmax'],pth['@x'],pth['@y']
@@ -68,6 +92,6 @@ if __name__ == '__main__':
 
     nhits = dd.getHits()
     for i in range(nhits):
-        fno,ono,pixel,bmax,x,y = dd.getPaths(i)
+        fno,ono,pixel,bmax,x,y = dd.getPathElement(i)
         print(fno,pixel,bmax,x,y)
  

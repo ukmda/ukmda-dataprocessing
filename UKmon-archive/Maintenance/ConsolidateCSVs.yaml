@@ -1,11 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
-Description: An AWS Serverless Specification template describing your function.
+Description: Consolidates individual camera CSVs into the annual indices.
 Resources:
   ConsolidateCSVs:
     Type: 'AWS::Serverless::Function'
     Properties:
-      Handler: lambda_function.lambda_handler
+      Handler: consolidateCSVs.lambda_handler
       Runtime: python3.8
       CodeUri: .
       Description: ''

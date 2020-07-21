@@ -3,17 +3,27 @@
 #   yymmdd date to copy for 
 #   hhmmss time to copy for
 
+if($args.count -lt 3) {
+    echo "usage: manuaReduction srcdir srcfile camerainifile"
+    echo "eg manuaReduction 20200703 015505 UK006.ini"
+    exit
+}
+
 $srcdir=$args[0]
 $srcfile=$args[1]
 
 # read the inifile
 set-location $PSScriptRoot
-$ini=get-content camera1.ini -raw | convertfrom-stringdata
+if ($args.count -lt 3) {
+    $ini=get-content camera1.ini -raw | convertfrom-stringdata
+}else {
+    $ini=get-content $args[2] -raw | convertfrom-stringdata
+}
 
 #these details are specific to your camera and file system 
 # and are read from the ini file
 $cam=$ini.camera_name      
-$rootdir='\\'+$ini.piname+'\RMS_Share\' 
+$rootdir='\\'+$ini.hostname+'\RMS_Share\' 
 $datadir=$ini.localfolder
 $RMSloc=$ini.rms_loc
 
