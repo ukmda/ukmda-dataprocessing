@@ -54,7 +54,7 @@ class UCXml:
         try:
             uc=self.ucxml['ufocapture_record']['ufocapture_paths']
         except:
-            print('xml file not valid - no ufocapture_paths')
+            #print('xml file not valid - no ufocapture_paths')
             pathx=numpy.empty(1)
             pathy=numpy.empty(1)
             bri=numpy.empty(1)
