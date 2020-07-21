@@ -214,7 +214,7 @@ def ProcessADay(path, ymd, actionscript, badfilepath, logfilepath):
 if __name__ == '__main__':
     if len(sys.argv) ==1:
         print('usage:\n python curateUkmonLive.py live')
-        print('or\n python curateUkmonLive.py yyyymmdd')
+        print('or\n python curateUkmonLive.py CC yyyymmdd')
     else:
         if sys.argv[1]=='live':
             config=cfg.ConfigParser()
