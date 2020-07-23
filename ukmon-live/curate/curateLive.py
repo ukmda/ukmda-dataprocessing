@@ -17,34 +17,6 @@ def monotonic(x):
     dx = np.diff(x)
     return np.all(dx <= 0) or np.all(dx >= 0)
 
-def AddToIndex(fname, target, bri, rms):
-    s3 = boto3.resource('s3')
-    tod=datetime.datetime.now()
-    liveindex='idx{:04d}{:02d}.csv'.format(tod.year, math.ceil(tod.month/3))
-    tmpf='/tmp/'+liveindex
-    try:
-        s3.meta.client.download_file(Bucket=target, Key=liveindex, Filename=tmpf) 
-    except:
-        pass
-    #print('LiveMon: downloaded index')
-    f=open(tmpf,'a+')
-    dmy=fname[1:9]
-    hms=fname[10:16]
-    stat=fname[17:fname.rfind('.')]
-    sid=stat[:stat.rfind('_')]
-    if(sid =='Lockyer2' or sid =='Lockyer1'):
-        sid='Lockyer'
-    if(sid =='Exeter2' or sid =='Exeter1'):
-        sid='Exeter'
-    lid=stat[stat.rfind('_')+1:]
-    strtowrite = dmy + ','+hms+ ',' + sid+ ',' +lid + ',{:.2f},{:.2f}\n'.format(bri,rms)
-    print('LiveMon: adding ', strtowrite)
-    f.write(strtowrite)
-    f.close()
-    s3.meta.client.upload_file(Bucket=target, Key=liveindex, Filename=tmpf) 
-    #print('LiveMon: uploaded index again')
-    return 
-
 def CheckifValidMeteor(xmlname, target):
     # initialise fit variables
     dist=0
@@ -125,7 +97,6 @@ def CheckifValidMeteor(xmlname, target):
 
         msg='meteor, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
         print (logname, fname, msg)
-        #AddToIndex(fname, target, max(bri), rms)
         return True
 
 def lambda_handler(event, context):
@@ -154,8 +125,12 @@ def lambda_handler(event, context):
         s3.meta.client.download_file(target, s3object, xmlname) 
 
         if CheckifValidMeteor(xmlname, target)==False:
-            #print ('delete ', s3object)
+            # move the files to a holding area on ukmon-shared in case we need them back
+            archbucket='ukmon-shared'
             try: 
+                copy_source={'Bucket': target, 'Key': s3object}   
+                archname='live-bad-files/'+s3object
+                s3.meta.client.copy(CopySource=copy_source, Bucket=archbucket, Key=archname)
                 s3.meta.client.delete_object(Bucket=target, Key=s3object)
             except:
                 print(logname, s3object,' removing the xml file failed!')
@@ -164,6 +139,9 @@ def lambda_handler(event, context):
             jpgname=s3object[:l-4]+'P.jpg'
             #print('delete ', jpgname)
             try: 
+                copy_source={'Bucket': target, 'Key': jpgname}   
+                archname='live-bad-files/'+jpgname
+                s3.meta.client.copy(CopySource=copy_source, Bucket=archbucket, Key=archname)
                 s3.meta.client.delete_object(Bucket=target, Key=jpgname)
             except:
                 print(logname, jpgname, ' removing the jpg file failed!')

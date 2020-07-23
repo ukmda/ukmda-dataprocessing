@@ -11,8 +11,8 @@ $env:AWS_DEFAULT_REGION="eu-west-1"
 # compress-archive -path .\pytz -destinationpath .\function.zip -force
 # compress-archive -path .\numpy -destinationpath .\function.zip -update
 # compress-archive -path .\numpy.libs -destinationpath .\function.zip -update
-copy-item ..\..\NewAnalysis\ReadUFOCapXML.py .
 
+copy-item ..\..\NewAnalysis\ReadUFOCapXML.py .
 compress-archive -path .\*.py -destinationpath .\function.zip -update
 aws lambda update-function-code --function-name MonitorLiveFeed --zip-file fileb://function.zip
-
+Remove-Item REadUFOCapXML.py
