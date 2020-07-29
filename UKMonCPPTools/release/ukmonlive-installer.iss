@@ -40,6 +40,9 @@ Source: "vc_redist.x86.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 Source: "vc_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 Source: "aws-cpp-sdk-core.dll"; DestDir: "{app}"; Flags: onlyifdoesntexist 
 Source: "aws-cpp-sdk-s3.dll"; DestDir: "{app}";   Flags: onlyifdoesntexist
+Source: "aws-c-event-stream.dll"; DestDir: "{app}";   Flags: onlyifdoesntexist
+Source: "aws-c-common.dll"; DestDir: "{app}";   Flags: onlyifdoesntexist
+Source: "aws-checksums.dll"; DestDir: "{app}";   Flags: onlyifdoesntexist
 Source: "mfc140u.dll"; DestDir: "{app}"; Flags: onlyifdoesntexist
 Source: "msvcp140.dll"; DestDir: "{app}"; Flags: onlyifdoesntexist
 Source: "ucrtbase.dll"; DestDir: "{app}"; Flags: onlyifdoesntexist
