@@ -512,3 +512,5 @@ ukmon-live/curate/ReadUFO*
 notshared/**
 NewAnalysis/test_data/platepar/platepar_cmn2010_ne.cal
 NewAnalysis/test_data/platepar/skyFit_latest.state
+ukmon-live/getlogs/.ukmoncreds
+*.retry
