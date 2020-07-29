@@ -50,6 +50,26 @@ class UCXml:
         uc=self.ucxml['ufocapture_record']['ufocapture_paths']
         return int(uc['@hit'])
 
+    def getNumObjs(self):
+        try:
+            uc=self.ucxml['ufocapture_record']['ufocapture_paths']
+        except:
+            return 0, None
+        nhits=int(uc['@hit'])
+        objlist=numpy.zeros(nhits)
+        nobjs=0
+        for i in range(nhits):
+            if nhits==1:
+                p=uc['uc_path']
+            else:
+                p=uc['uc_path'][i]
+            ono=int(p['@ono'])
+            if ono not in objlist: 
+                objlist[nobjs]=ono
+                nobjs=nobjs+1
+        objlist=numpy.resize(objlist, nobjs)
+        return nobjs, objlist 
+
     def getPath(self):
         try:
             uc=self.ucxml['ufocapture_record']['ufocapture_paths']
@@ -58,19 +78,59 @@ class UCXml:
             pathx=numpy.empty(1)
             pathy=numpy.empty(1)
             bri=numpy.empty(1)
+            return pathx, pathy, bri, 0
+        nhits=int(uc['@hit'])
+        pathx=numpy.zeros(nhits)
+        pathy=numpy.zeros(nhits)
+        bri=numpy.zeros(nhits)
+        if nhits < 2 :
+            return pathx, pathy, bri, 0
+        lastono=0 
+        for i in range(nhits):
+            p=uc['uc_path'][i]
+            ono=int(p['@ono'])
+            # its possible for one path to include two events
+            # at different times. This is a UFO feature...
+            if lastono > 0 and lastono != ono:
+                pathx = numpy.resize(pathx,i)
+                pathy = numpy.resize(pathy,i)
+                bri = numpy.resize(bri,i)
+                return pathx, pathy, bri, i
+            lastono = ono
+            pathx[i]=p['@x']
+            pathy[i]=p['@y']
+            bri[i]=p['@bmax']
+        return pathx, pathy, bri, 0
+
+    def getPathv2(self, objno):
+        try:
+            uc=self.ucxml['ufocapture_record']['ufocapture_paths']
+        except:
+            pathx=numpy.empty(1)
+            pathy=numpy.empty(1)
+            bri=numpy.empty(1)
             return pathx, pathy, bri
         nhits=int(uc['@hit'])
-        pathx=numpy.empty(nhits)
-        pathy=numpy.empty(nhits)
-        bri=numpy.empty(nhits)
-        if nhits < 2 :
-            return pathx, pathy, bri
-            
+        pathx=numpy.zeros(nhits)
+        pathy=numpy.zeros(nhits)
+        bri=numpy.zeros(nhits)
+        j=0
         for i in range(nhits):
-           p=uc['uc_path'][i]
-           pathx[i]=p['@x']
-           pathy[i]=p['@y']
-           bri[i]=p['@bmax']
+            if nhits==1:
+                p=uc['uc_path']
+            else:
+                p=uc['uc_path'][i]
+            ono=int(p['@ono'])
+            if ono == objno:
+            # its possible for one path to include two events
+            # at different times. This is a UFO feature...
+                pathx[j]=p['@x']
+                pathy[j]=p['@y']
+                bri[j]=p['@bmax']
+                j=j+1
+        pathx = numpy.resize(pathx,j)
+        pathy = numpy.resize(pathy,j)
+        bri = numpy.resize(bri,j)
         return pathx, pathy, bri
 
     def getPathElement(self, fno):
