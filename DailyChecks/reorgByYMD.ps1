@@ -21,7 +21,11 @@ $localfolder=$ini['camera']['localfolder']
 $srcpath=$localfolder+'\'
 $age=[int]$maxage
 
-$arcpath=$srcpath + '\ArchivedFiles\'
+$arcpath=$srcpath + '\ConfirmedFiles\'
+if (-not (test-path $arcpath))
+{
+    $arcpath=$srcpath + '\ArchivedFiles\'
+}
 $mindt = (get-date).AddDays(-$age)
 $dlist = (get-childitem -directory $arcpath | where-object {$_.creationtime -gt $mindt }).Name
 foreach ($dname in $dlist)
