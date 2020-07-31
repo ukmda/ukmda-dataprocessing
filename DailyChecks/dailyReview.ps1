@@ -74,8 +74,41 @@ if ($RMS_INSTALLED -eq 1){
                 python -m Utils.StackFFs $myf jpg -s -b -x   
             }
             # mp4 generation is not yet in the main RMS codebase
-            $mp4gen=$ini.rms_loc+'\Utils\GenerateMP4s.py'
-            if ((get-childitem $mp4gen).count -gt 0 ){
+            $mp4gen=$rms_loc+'/Utils/GenerateMP4s.py'
+            if (test-path $mp4gen ){
+                python -m Utils.GenerateMP4s $myf
+            }
+        }
+        else{
+            write-output skipping' '$myf
+        }
+    }    
+    $destpath=$localfolder+'\ConfirmedFiles'
+    $dlist = (Get-ChildItem  -directory $destpath | Where-Object { $_.creationtime -gt $mindt }).name
+    foreach ($path in $dlist) {
+        $myf = $destpath + '\'+$path
+        $ftpfil=$myf+'\FTPdetectinfo_'+$path+'.txt'
+        $platepar=$myf+ '\platepar_cmn2010.cal'
+
+        $ufo=$myf+'\*.csv'
+        $isdone=(get-childitem $ufo).Name
+        $ftpexists=test-path $ftpfil
+        if ($isdone.count -eq 0 -and $ftpexists -ne 0){
+            # generate the UFO-compatible CSV, shower association map 
+            # convert fits to jpeg and create a stack
+            python -m Utils.RMS2UFO $ftpfil $platepar
+            python -m Utils.ShowerAssociation $ftpfil -x
+            python -m Utils.BatchFFtoImage $myf jpg
+            #stack them if more than one to stack
+            $fits = $myf  + '\FF*.fits'
+            $nfits=(get-childitem $fits).count
+            if ($nfits -gt 1)
+            {
+                python -m Utils.StackFFs $myf jpg -s -b -x   
+            }
+            # mp4 generation is not yet in the main RMS codebase
+            $mp4gen=$rms_loc+'\Utils\GenerateMP4s.py'
+            if (test-path $mp4gen ){
                 python -m Utils.GenerateMP4s $myf
             }
         }
