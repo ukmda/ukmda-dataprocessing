@@ -29,7 +29,6 @@ long framelimit=120; // max number of frames before we consider it to be an airc
 long minframes = 66; // software records 30 frames either side of event
 long minbright=60;	 // min brightness to be too dim to bother uploading
 double maxrms = 2.0; // max error in the LSQ fit before the data is discarded. Meteors are usually < 1.0 !
-long minPxls = 200;	 // min pixelcount for an interesting event
 
 std::ofstream errf;
 
@@ -54,10 +53,10 @@ int main(int argc, char** argv)
 		dryrun = 1;
 	}
 	const wchar_t* ptr = L"UKMonLiveCL";
-	//theEventLog.Initialize(ptr);
+	theEventLog.Initialize(ptr);
 	if (LoadIniFiles() < 0)
 		return -1;
-	//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 0, L"Started", L"");
+	theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 0, L"Started", L"");
 
 	creds.SetAWSAccessKeyId(theKeys.AccountName_D);
 	creds.SetAWSSecretKey(theKeys.AccountKey_D);
@@ -91,7 +90,7 @@ int main(int argc, char** argv)
 		std::cout << "Dry run enabled - nothing will be uploaded" << std::endl;
 		wsprintf(msg4, L"Dry run is on- nothing will be uploaded;");
 	}
-	//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 1, msg0, msg, msg2, msg3, msg4, L"");
+	theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 1, msg0, msg, msg2, msg3, msg4, L"");
 
 	std::cout << "==============================================" << std::endl;
 
@@ -110,7 +109,7 @@ int main(int argc, char** argv)
 		NULL);
 	if (hDir == NULL)
 	{
-		//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Invalid data file path; cannot continue;", L"");
+		theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Invalid data file path; cannot continue;", L"");
 		return -1;
 	}
 
@@ -126,7 +125,7 @@ int main(int argc, char** argv)
 		FILE_NOTIFY_INFORMATION *pbuf;
 		if (!lpBuf)
 		{
-			//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Unable to allocate memory for directory reads; cannot continue;", L"");
+			theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Unable to allocate memory for directory reads; cannot continue;", L"");
 			exit (-1);
 		}
 		if (Debug && !dryrun) std::cout << "1. waiting for changes" << std::endl;
@@ -141,7 +140,7 @@ int main(int argc, char** argv)
 				FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, e, 0, msg, 512,NULL);
 				wcstombs(msg_s, msg, 512);
 				std::cout << "Error " << e << " scanning directory" << ProcessingPath << " - buffer trashed" << msg << std::endl;
-				//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 98, L"Error Scanning directory" , L"buffer trashed;", L"");
+				theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 98, L"Error Scanning directory" , L"buffer trashed;", L"");
 			}	
 			else if (retsiz > 0)
 			{
@@ -197,17 +196,6 @@ int main(int argc, char** argv)
 								fn.replace(m1, 4, "P.jpg");
 								put_file(theKeys.BucketName, fn.c_str(), frcount, maxbmax, rms);
 							}
-							if (gooddata && pxls > minPxls)
-							{
-								std::string bname = fn.substr(0, m1);
-								std::cout << bname << std::endl;
-								char cmd[265] = { 0 };
-								sprintf(cmd, "ffmpeg\\ffmpeg.exe -i %s.avi %s.mp4",bname.c_str(), bname.c_str());
-								system(cmd);
-								fn.replace(m1, 4, ".mp4");
-								put_file(theKeys.BucketName, fn.c_str(), frcount, maxbmax, rms);
-
-							}
 							else
 							{
 								nCounter++;
@@ -223,7 +211,7 @@ int main(int argc, char** argv)
 								std::cout << std::endl;
 
 								wsprintf(msg, L"%d: skipping %ls - framecount %d brightness %d rms %.2f", nCounter, fname, frcount, maxbmax, rms);
-								//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 3, msg, L"");
+								theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 3, msg, L"");
 							}
 						}
 					}
@@ -243,7 +231,7 @@ int main(int argc, char** argv)
 			FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, e, 0, mmsg, 512, NULL);
 			wcstombs(msg_s, mmsg, 512);
 			std::cout << "Error " << e << " scanning directory" << ProcessingPath << " " << mmsg << std::endl;
-			//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Error Scanning Directory; cannot continue", mmsg, L"");
+			theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Error Scanning Directory; cannot continue", mmsg, L"");
 			exit(-1);
 		}
 		free(lpBuf);
