@@ -7,9 +7,14 @@ if __name__ == '__main__':
     path = sys.argv[1]
 
     config=cfg.ConfigParser()
-    config.read('testing.ini')
+    cfgfile=os.path.join(path, 'testing.ini')
+    config.read(cfgfile)
     cc.badfilepath=config['cleaning']['badfolder']
     logfilepath=cc.badfilepath
+    cc.MAXRMS=float(config['cleaning']['maxrms'])
+    cc.MINLEN=int(config['cleaning']['minlen'])
+    cc.MAXLEN=int(config['cleaning']['maxlen'])
+    cc.MAXOBJS=int(config['cleaning']['maxobjs'])
     if config['cleaning']['movefiles'] in ['True', 'TRUE','true']:
         cc.movfiles=True
     else:
@@ -18,11 +23,6 @@ if __name__ == '__main__':
     cc.maxrms=1
     cc.debug = False
     print('Processing '+path+'; cc.movefiles='+str(cc.movfiles))
-#    xmlname='c:/users/mark/videos/astro/meteorcam/livebad/maybe/M20200429_002513_Bideford_SE.xml'
-#    dd=ReadUFOCapXML.UCXml(xmlname)
-#    nobjs, objlist = dd.getNumObjs()
-#    for i in range(nobjs):
-#        pathx,pathy,bri = dd.getPathv2(objlist[i])
-#        print (pathx,pathy)
+    print( cc.MAXOBJS,    cc.MAXRMS,     cc.MINLEN) 
 
     cc.ProcessADay(path, '*', cc.badfilepath, logfilepath)
