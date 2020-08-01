@@ -20,8 +20,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
-    <ProjectGuid>{EB386633-9CDB-4E3C-8313-A6D16ED71085}</ProjectGuid>
-    <RootNamespace>ArchiveUploader</RootNamespace>
+    <ProjectGuid>{FDE05E2F-C85D-4E92-BB90-9A4788E34081}</ProjectGuid>
+    <RootNamespace>LiveUploader</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -71,14 +71,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\shared</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\shared</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -93,7 +91,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>..\debug\tinyxml.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>../debug/tinyxml.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -122,7 +120,6 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>..\release\tinyxml.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -142,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\shared\EventLog.cpp" />
     <ClCompile Include="..\shared\llsq.cpp" />
     <ClCompile Include="..\shared\PreprocessXML.cpp" />
     <ClCompile Include="Auth.cpp" />
@@ -149,19 +147,19 @@
     <ClCompile Include="UKMonLiveCL.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Icon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resource.aps" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\shared\EventLog.h" />
     <ClInclude Include="..\shared\llsq.h" />
-    <ClInclude Include="..\shared\PreprocessXML.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="UKMonLiveCL.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\ukmon_ZPQ_icon.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="Resource.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resource.aps" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

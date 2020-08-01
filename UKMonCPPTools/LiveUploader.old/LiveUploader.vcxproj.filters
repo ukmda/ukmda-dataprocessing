@@ -24,6 +24,9 @@
     <ClCompile Include="UKMonLiveCL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\shared\EventLog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\shared\llsq.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -32,30 +35,30 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Icon.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resource.aps" />
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="UKMonLiveCL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\shared\EventLog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\shared\llsq.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\shared\PreprocessXML.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\ukmon_ZPQ_icon.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resource.aps" />
   </ItemGroup>
 </Project>

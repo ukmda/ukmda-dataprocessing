@@ -13,7 +13,11 @@ import configparser as cfg
 #import matplotlib.pyplot as plt
 
 badfilepath=''
-maxrms=1
+MAXRMS=1
+MINLEN=3
+MAXLEN=80
+MAXOBJS=10
+MAXGAP=75 # corresponds to 1.5 seconds gap in the meteor trail
 interactive=False
 movfiles=False
 debug=False
@@ -32,22 +36,8 @@ def monotonic(x):
     dx = np.diff(x)
     return np.all(dx <= 0) or np.all(dx >= 0)
 
-#def ShowGraph(xmlname, pathx, pathy, A0=0, m=0, msg='', cx=720, cy=576):
-#    if interactive == False:
-#        return
-#    fity=np.empty(len(pathx))
-#    for i in range(len(pathx)):
-#        fity[i]=A0+m*pathx[i]
-#    plt.plot(pathx, pathy, pathx, fity)
-#    #plt.axis([min(pathx)-20, max(pathx)+20,min(pathy)-20,max(pathy)+20])
-#    plt.axis([0,cx,0,cy])
-#    plt.title(xmlname+'\n'+msg)
-#    plt.show()
-
-def AddToRemoveList(fname, errf, movebad=False, msg='', nobjs=0,maxbri=0):
+def AddToRemoveList(fname, errf, movebad=False, msg='', nobjs=0, maxbri=0, tottotpx=0):
     _,fn=os.path.split(fname)
-    l=len(fn)
-    jpgname=fn[:l-4]+'*'
     l=len(fname)
     allf=fname[:l-4]+'*'
     if movebad==True:
@@ -55,18 +45,17 @@ def AddToRemoveList(fname, errf, movebad=False, msg='', nobjs=0,maxbri=0):
             shutil.move(fl, badfilepath)
     else:
         pass
-        #print('would have moved {:s} to {:s}'.format(jpgname, os.path.join(badfilepath, jpgname)))
-    msg = msg + ',{:d},{:d}'.format(nobjs, int(maxbri))
+    msg = msg + ',{:d},{:d}, {:d}'.format(nobjs, int(maxbri), int(tottotpx))
     print(fn+ ',' +msg)
     if errf is not None :
         errf.write(fn+ ',' + msg + '\n')
 
-def CheckifValidMeteor(jpgname, errf, goodf):
+def CheckifValidMeteor(jpgname, errf):
 
     xmlname = jpgname[:len(jpgname)-5]+".xml"
     if(os.path.isfile(xmlname) == False):
         msg='noxml, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(0, 0, 0, 0, 0, 0, 0, 0)
-        AddToRemoveList(xmlname, errf, movfiles, msg, 0, 0)
+        AddToRemoveList(xmlname, errf, movfiles, msg, 0, 0, 0)
         return False
 
     dd=ReadUFOCapXML.UCXml(xmlname)
@@ -76,24 +65,35 @@ def CheckifValidMeteor(jpgname, errf, goodf):
     isgood=0
     if nobjs==0:
         msg='nopaths, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(0, 0, 0, 0, 0, 0, 0, 0)
-        AddToRemoveList(xmlname, errf, movfiles, msg, 0, 0)
+        AddToRemoveList(xmlname, errf, movfiles, msg, 0, 0, 0)
+        return False
+    if nobjs>MAXOBJS:
+        msg='manyobjs, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(0, 0, 0, 0, 0, 0, 0, 0)
+        AddToRemoveList(xmlname, errf, movfiles, msg, nobjs, 0, 0)
         return False
     goodmsg=''
+    gtp=0
+    tottotpx=0
+    
     _,fn=os.path.split(xmlname)
     for i in range(nobjs):
-        pathx, pathy, bri = dd.getPathv2(objlist[i])
-        res, msg= CheckALine(pathx, pathy, xmlname, errf, goodf, fps, cx, cy)
-        print (msg)
+        pathx, pathy, bri, pxls, fnos = dd.getPathv2(objlist[i])
+        totpx=sum(pxls)
+        tottotpx = tottotpx + totpx
+        res, msg= CheckALine(pathx, pathy, xmlname, errf, fps, cx, cy, fnos)
+        if nobjs > 1:
+            print ('{:s}, {:d}'.format(msg, int(totpx)))
         if res==1:
             goodmsg = msg
+            gtp=totpx
         isgood = isgood + res
         
     if isgood == 0:    
-        AddToRemoveList(xmlname, errf, movfiles, msg, nobjs, max(bri))
+        AddToRemoveList(xmlname, errf, movfiles, msg, nobjs, max(bri), tottotpx)
         return False
     else:
-        goodmsg = goodmsg + ',{:d}, {:d}'.format(nobjs, int(max(bri)))
-        goodf.write(fn +',' + goodmsg +'\n')
+        goodmsg = goodmsg + ',{:d}, {:d}, {:d}, {:d}'.format(nobjs, int(max(bri)), int(gtp), int(tottotpx))
+        errf.write(fn +',' + goodmsg +'\n')
         print(fn +',' + goodmsg)
         return True    
 
@@ -101,7 +101,7 @@ def leastsq1(x, y):
     a = np.vstack([x, np.ones(len(x))]).T
     return np.dot(np.linalg.inv(np.dot(a.T, a)), np.dot(a.T, y))
     
-def CheckALine(pathx, pathy, xmlname, errf, goodf, fps, cx, cy):
+def CheckALine(pathx, pathy, xmlname, errf, fps, cx, cy, fnos):
     dist=0
     app_m=0
     m=0
@@ -117,11 +117,16 @@ def CheckALine(pathx, pathy, xmlname, errf, goodf, fps, cx, cy):
         if debug==True:
             print (pathx, pathy)
         badline=True
+    plen=len(pathx)
+    maxg=0
+    if plen > 1:
+        maxg=int(max(np.diff(fnos)))
+        if maxg > MAXGAP:
+            badline=True
 
-    # RMS ignores paths of less than 6 frames
-    # lets try with 4 for now
-    l=len(pathx)
-    if l > 4 and badline == False:
+    # very short paths are stasticially unreliable
+    # very long paths are unrealistic as meteors pretty quick events
+    if plen >= MINLEN and plen <=MAXLEN:
         try:
             cmin, cmax = min(pathx), max(pathx)
             pfit, stats = Polynomial.fit(pathx, pathy, 1, full=True, window=(cmin, cmax),
@@ -134,7 +139,7 @@ def CheckALine(pathx, pathy, xmlname, errf, goodf, fps, cx, cy):
 
             # if the line is nearly vertical, a fit of y wil be a poor estimate
             # so before discarding the data, try swapping the axes
-            if rms > maxrms:
+            if rms > MAXRMS:
                 cmin, cmax = min(pathy), max(pathy)
                 pfit, stats = Polynomial.fit(pathy, pathx, 1, full=True, window=(cmin, cmax),
                     domain=(cmin, cmax))
@@ -146,17 +151,17 @@ def CheckALine(pathx, pathy, xmlname, errf, goodf, fps, cx, cy):
                 rms2 = min(rms2, rms)
                 rms = min(rms2,rms)
         except:
-            msg='fitfail, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
+            msg='fitfail, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
             return 0, msg
 
         # work out the length of the line; very short lines are statistically unreliable
         p1=np.c_[pathx[0],pathy[0]]
         p2=np.c_[pathx[-1],pathy[-1]]
         dist=np.linalg.norm(p2-p1)
-        vel=dist*2*fps/l
+        vel=dist*2*fps/plen
         # very low RMS is improbable but lets allow it for now
-        if rms > maxrms :
-            msg='plane, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
+        if rms > MAXRMS :
+            msg='plane, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
             return 0, msg
             #ShowGraph(fname, pathx, pathy, A0, m, msg)
         else:
@@ -166,22 +171,26 @@ def CheckALine(pathx, pathy, xmlname, errf, goodf, fps, cx, cy):
             ym = int(min(pathy))
             if ym > cy/2:
                 ym = int(min(pathy))
-            if dist < 5 :
-                msg='flash, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
+            if dist < 10 and vel < 100 :
+                msg='flash, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
                 return 0, msg
-                #ShowGraph(fname, pathx, pathy, A0, m, msg, cx, cy)
             else:
-                msg='meteor, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
-                return 1, msg
-            #ShowGraph(fname, pathx,pathy, A0,m, msg, cx, cy)
+                if badline == True: 
+                    msg='badline, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
+                    return 0, msg
+                else:
+                    msg='meteor, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
+                    return 1, msg
     else:
         if badline==True:
-            msg='badline, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, int(xm), int(ym),m, app_m, dist, vel)
+            msg='badline, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, int(xm), int(ym),m, app_m, dist, vel, maxg)
         else:
-            msg='flash, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, int(xm), int(ym),m, app_m, dist, vel)
+            if plen < MINLEN:
+                msg='flash, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, int(xm), int(ym),m, app_m, dist, vel, maxg)
+            else:
+                msg='toolong, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, int(xm), int(ym),m, app_m, dist, vel, maxg)
         return 0, msg
-        #ShowGraph(fname, pathx, pathy, 0, 0, msg)
-    msg='flash, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), 0,0,0,0,0,0,0)
+    msg='flash, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), 0,0,0,0,0,0,0, maxg)
     return 0, msg
 
 def ProcessADay(path, ymd, badfilepath, logfilepath):
@@ -192,15 +201,13 @@ def ProcessADay(path, ymd, badfilepath, logfilepath):
         return 
     listOfFiles.sort()
     pattern='M{:s}*P.jpg'.format(ymd)
-    errf=open(os.path.join(logfilepath, 'bad.txt'),'a+')
-    goodf=open(os.path.join(logfilepath, 'good.txt'),'a+')
+    errf=open(os.path.join(logfilepath, 'results.txt'),'a+')
     for entry in listOfFiles:
         if fnmatch.fnmatch(entry, pattern):
             x=entry.find('UK00')
             if x== -1 :
-                CheckifValidMeteor(os.path.join(path, entry), errf, goodf)
+                CheckifValidMeteor(os.path.join(path, entry), errf)
     errf.close()
-    goodf.close()
     return
 
 if __name__ == '__main__':
@@ -219,7 +226,10 @@ if __name__ == '__main__':
             srcpath=config['camera']['localfolder']
             badfilepath=config['cleaning']['badfolder']
             logfilepath=badfilepath
-            maxrms=int(config['cleaning']['maxrms'])
+            MAXRMS=float(config['cleaning']['maxrms'])
+            MINLEN=int(config['cleaning']['minlen'])
+            MAXLEN=int(config['cleaning']['maxlen'])
+            MAXOBJS=int(config['cleaning']['maxobjs'])
             if config['cleaning']['debug'] in ['True', 'TRUE','true']:
                 debug=True
             else:

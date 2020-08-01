@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#define _WIN32_WINNT 0x0501
+//#define _WIN32_WINNT 0x0501
 
 #define _AFXDLL
 #if !defined(AFX_EVENTLOG_H__7D48CC33_4E41_4E0C_B16A_5FC714CAC457__INCLUDED_)

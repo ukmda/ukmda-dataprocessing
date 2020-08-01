@@ -72,21 +72,21 @@ int put_file(char* buckname, const char* fname, long frcount, long maxbmax, doub
 		if (put_object_outcome.IsSuccess())
 		{
 			std::cerr << "Done! Frames " << frcount << " brightness " << maxbmax << std::setprecision(2) << " rms " << rms << std::endl;
-			//wchar_t wfname[512] = { 0 };
-			//mbstowcs(wfname, fname, strlen(fname));
-			//wsprintf(msg, L"%d: Uploading %ls....done! Frames %d brightness %d rms %.2f", nCounter, wfname, frcount, maxbmax, rms);
-			//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 2, msg, L"");
+			wchar_t wfname[512] = { 0 };
+			mbstowcs(wfname, fname, strlen(fname));
+			wsprintf(msg, L"%d: Uploading %ls....done! Frames %d brightness %d rms %.2f", nCounter, wfname, frcount, maxbmax, rms);
+			theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 2, msg, L"");
 		}
 		else
 		{
 			std::cerr << "Upload of " << file_name << " failed after " << maxretry << " attempts - check log!" << std::endl;
 
-			//wchar_t wfname[512] = { 0 };
-			//mbstowcs(wfname, fname, strlen(fname));
-			//wsprintf(msg, L"%d: Uploading %ls....Failed after %d attempts!", nCounter, wfname, maxretry);
-			//wchar_t msg2[512] = { 0 };
-			//wsprintf(msg2, L"%s: %s", put_object_outcome.GetError().GetExceptionName(), put_object_outcome.GetError().GetMessage());
-			//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 2, msg, msg2, L"");
+			wchar_t wfname[512] = { 0 };
+			mbstowcs(wfname, fname, strlen(fname));
+			wsprintf(msg, L"%d: Uploading %ls....Failed after %d attempts!", nCounter, wfname, maxretry);
+			wchar_t msg2[512] = { 0 };
+			wsprintf(msg2, L"%s: %s", put_object_outcome.GetError().GetExceptionName(), put_object_outcome.GetError().GetMessage());
+			theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 2, msg, msg2, L"");
 		}
 	}
 	else
@@ -98,10 +98,10 @@ int put_file(char* buckname, const char* fname, long frcount, long maxbmax, doub
 			std::cout << "dry run, would have sent " << file_name << std::endl;
 			std::cout << frcount << " " << maxbmax << " " << rms << std::endl;
 		}
-		//wchar_t wfname[512] = { 0 };
-		//mbstowcs(wfname, fname, strlen(fname));
-		//wsprintf(msg, L"Dry Run: Uploading %ls....done!", wfname);
-		//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 2, msg, L"");
+		wchar_t wfname[512] = { 0 };
+		mbstowcs(wfname, fname, strlen(fname));
+		wsprintf(msg, L"Dry Run: Uploading %ls....done!", wfname);
+		theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 2, msg, L"");
 	}
 	return 0;
 }
