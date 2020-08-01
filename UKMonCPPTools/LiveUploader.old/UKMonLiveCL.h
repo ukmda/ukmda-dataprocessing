@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#define _WIN32_WINNT 0x0501
+//#define _WIN32_WINNT 0x0501
 
 #include <Windows.h>
 #include <stdio.h>
@@ -33,8 +33,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <aws/s3/model/PutObjectRequest.h>
 #include <aws/core/auth/AWSCredentialsProvider.h>
 
+#include "../shared/eventlog.h"
 #include "../shared/PreprocessXML.h"
-//#include "../shared/eventlog.h"
 
 struct KeyData
 {
@@ -60,7 +60,6 @@ extern long framelimit;
 extern long minbright;
 extern long minframes;
 extern double maxrms;
-extern long minPxls;
 extern Aws::Auth::AWSCredentials creds; // aws credentials
 extern Aws::Client::ClientConfiguration clientConfig; // client setup
 

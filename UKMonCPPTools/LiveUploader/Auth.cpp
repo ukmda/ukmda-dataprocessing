@@ -24,94 +24,160 @@ char ErrFile[512];
 
 #define INIFILENAME "UKMONLiveWatcher.ini"
 #define AUTHFILENAME "AUTH_UKMONLiveWatcher.ini"
+#define NEWAUTHFILENAME "UKMONArchiver.ini"
 
 int LoadIniFiles(void)
 {
-	char szLocalPath[512];
-	HRESULT hres = SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, szLocalPath);
 	char inifile[512];
 	char authfile[512];
-	sprintf(inifile, "%s\\%s", szLocalPath, INIFILENAME);
-	sprintf(authfile, "%s\\%s", szLocalPath, AUTHFILENAME);
-	FILE *f = fopen(authfile, "r");
-	if (!f)
-	{
-		std::cerr << "Unable to open security key file" << std::endl;
-		//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Unable to open AUTH_UKMONLiveWatcher.ini; cannot continue", L"");
-		return -1;
-	}
+	char szLocalPath[512];
+	wchar_t wInifile[512] = { 0 };
+	wchar_t wRetVal[128] = { 0 };
 
-	char s[512];
-	fgets(s, 512, f); // ignore this line
-	fgets(theKeys.AccountKey, 128, f); // account key encrypted and recoded in Hex 
-	fgets(theKeys.AccountName, 128, f); // account name encrypted and recoded in Hex
-	fgets(theKeys.QueueEndPoint, 128, f);
-	fgets(theKeys.StorageEndPoint, 128, f);
-	fgets(theKeys.TableEndPoint, 128, f);
-	if (fgets(theKeys.BucketName, 128, f) == NULL)
+	HRESULT hres = SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, szLocalPath);
+	sprintf(authfile, "%s\\UKMON\\%s", szLocalPath, NEWAUTHFILENAME);
+	mbstowcs(wInifile, authfile, strlen(authfile));
+	DWORD res;
+	res = GetPrivateProfileString(L"liveawsconfig", L"key", NULL, wRetVal, 128, wInifile);
+	if (res == 0)
 	{
-		//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Security key file malformed; cannot continue", L"");
-		return -1;
-	}
+		sprintf(inifile, "%s\\%s", szLocalPath, INIFILENAME);
+		sprintf(authfile, "%s\\%s", szLocalPath, AUTHFILENAME);
+		FILE* f = fopen(authfile, "r");
+		if (!f)
+		{
+			std::cerr << "Unable to open security key file" << std::endl;
+			//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Unable to open AUTH_UKMONLiveWatcher.ini; cannot continue", L"");
+			return -1;
+		}
 
-	theKeys.AccountKey[strcspn(theKeys.AccountKey, "\n")] = 0;
-	theKeys.AccountName[strcspn(theKeys.AccountName, "\n")] = 0;
-	theKeys.QueueEndPoint[strcspn(theKeys.QueueEndPoint, "\n")] = 0;
-	theKeys.StorageEndPoint[strcspn(theKeys.StorageEndPoint, "\n")] = 0;
-	theKeys.TableEndPoint[strcspn(theKeys.TableEndPoint, "\n")] = 0;
-	theKeys.BucketName[strcspn(theKeys.BucketName, "\n")] = 0;
+		char s[512];
+		fgets(s, 512, f); // ignore this line
+		fgets(theKeys.AccountKey, 128, f); // account key encrypted and recoded in Hex 
+		fgets(theKeys.AccountName, 128, f); // account name encrypted and recoded in Hex
+		fgets(theKeys.QueueEndPoint, 128, f);
+		fgets(theKeys.StorageEndPoint, 128, f);
+		fgets(theKeys.TableEndPoint, 128, f);
+		if (fgets(theKeys.BucketName, 128, f) == NULL)
+		{
+			//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Security key file malformed; cannot continue", L"");
+			return -1;
+		}
 
-	Decrypt(theKeys.AccountName_D, theKeys.AccountName, 712); // hope this works! 
-	Decrypt(theKeys.AccountKey_D, theKeys.AccountKey, 1207);
-	char s3buck[128];
-	strcpy(s3buck, theKeys.StorageEndPoint);
-	strtok(s3buck, ".");
-	strcpy(theKeys.region, &s3buck[3]);
+		theKeys.AccountKey[strcspn(theKeys.AccountKey, "\n")] = 0;
+		theKeys.AccountName[strcspn(theKeys.AccountName, "\n")] = 0;
+		theKeys.QueueEndPoint[strcspn(theKeys.QueueEndPoint, "\n")] = 0;
+		theKeys.StorageEndPoint[strcspn(theKeys.StorageEndPoint, "\n")] = 0;
+		theKeys.TableEndPoint[strcspn(theKeys.TableEndPoint, "\n")] = 0;
+		theKeys.BucketName[strcspn(theKeys.BucketName, "\n")] = 0;
 
-	fclose(f);
-	f = fopen(inifile, "r");
-	if (!f)
-	{
-		//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Unable to open UKMONLiveWatcher.ini; cannot continue", L"");
-		return -1;
-	}
-	fgets(s, 512, f); // ignore this line
-	if (fgets(ProcessingPath, 512, f) == NULL) // location of files
-	{
-		std::cerr << "Ini file malformed" << std::endl;
-		return -1;
-	}
+		Decrypt(theKeys.AccountName_D, theKeys.AccountName, 712); // hope this works! 
+		Decrypt(theKeys.AccountKey_D, theKeys.AccountKey, 1207);
+		char s3buck[128];
+		strcpy(s3buck, theKeys.StorageEndPoint);
+		strtok(s3buck, ".");
+		strcpy(theKeys.region, &s3buck[3]);
 
-	ProcessingPath[strcspn(ProcessingPath, "\n")] = 0;
-	char tmp[20];
-	if (fgets(tmp, 20, f) != NULL)
-		delay_ms = atoi(tmp);
-	if (fgets(tmp, 20, f) != NULL)
-	{
-		framelimit = atol(tmp);
-		if (framelimit == 0) framelimit = -1;
+		fclose(f);
+		f = fopen(inifile, "r");
+		if (!f)
+		{
+			//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Unable to open UKMONLiveWatcher.ini; cannot continue", L"");
+			return -1;
+		}
+		fgets(s, 512, f); // ignore this line
+		if (fgets(ProcessingPath, 512, f) == NULL) // location of files
+		{
+			std::cerr << "Ini file malformed" << std::endl;
+			return -1;
+		}
+
+		ProcessingPath[strcspn(ProcessingPath, "\n")] = 0;
+		char tmp[20];
+		if (fgets(tmp, 20, f) != NULL)
+			delay_ms = atoi(tmp);
+		if (fgets(tmp, 20, f) != NULL)
+		{
+			framelimit = atol(tmp);
+			if (framelimit == 0) framelimit = -1;
+		}
+		else
+			framelimit = -1;
+
+		if (fgets(tmp, 20, f) != NULL)
+		{
+			minbright = atol(tmp);
+			if (minbright == 0) minbright = -1;
+		}
+		else
+			minbright = -1;
+
+		if (fgets(tmp, 20, f) != NULL)
+		{
+			maxrms = atof(tmp);
+			if (maxrms < 0.2) maxrms = 1.0;
+		}
+		else
+			maxrms = 1.0;
+
+		fclose(f);
+		// now write the keys back to the new file
+		wchar_t an[512] = {};
+		mbstowcs(an, theKeys.AccountName, strlen(theKeys.AccountName));
+		WritePrivateProfileString(L"liveawsconfig", L"Key", an, wInifile);
+		wchar_t ak[512] = {};
+		mbstowcs(ak, theKeys.AccountKey, strlen(theKeys.AccountKey));
+		WritePrivateProfileString(L"liveawsconfig", L"Secret", ak, wInifile);
+		wchar_t bn[512] = {};
+		mbstowcs(bn, theKeys.BucketName, strlen(theKeys.BucketName));
+		WritePrivateProfileString(L"liveawsconfig", L"Bucket", bn, wInifile);
+		WritePrivateProfileString(L"liveawsconfig", L"Region", L"eu-west-1", wInifile);
+		wchar_t pp[512] = {};
+		mbstowcs(pp, ProcessingPath, strlen(ProcessingPath));
+		WritePrivateProfileString(L"liveawsconfig", L"ProcessingPath", pp, wInifile);
+		wchar_t wtmp[256] = { 0 };
+		wsprintf(wtmp, L"%d\0", framelimit);
+		WritePrivateProfileString(L"liveawsconfig", L"FrameLimit", wtmp, wInifile);
+		wsprintf(wtmp, L"%d\0", minbright);
+		WritePrivateProfileString(L"liveawsconfig", L"MinBright", wtmp, wInifile);
+		wsprintf(wtmp, L"%d\0", maxrms);
+		WritePrivateProfileString(L"liveawsconfig", L"MaxRMS", wtmp, wInifile);
+		WritePrivateProfileString(L"liveawsconfig", L"MinPxls", L"200", wInifile);
+
+		// now remove the old config files
+		printf("Merged config into %%APPDATA%%\\local\\ukmon\\ukmonarchiver.ini\n");
+		remove(inifile);
+		remove(authfile);
 	}
 	else
-		framelimit = -1;
-
-	if (fgets(tmp, 20, f) != NULL)
 	{
-		minbright = atol(tmp);
-		if (minbright==0) minbright = -1;
+		res = GetPrivateProfileString(L"liveawsconfig", L"Key", NULL, wRetVal, 128, wInifile);
+		wcstombs(theKeys.AccountName, wRetVal, wcslen(wRetVal));
+		res = GetPrivateProfileString(L"liveawsconfig", L"Secret", NULL, wRetVal, 128, wInifile);
+		wcstombs(theKeys.AccountKey, wRetVal, wcslen(wRetVal));
+		Decrypt(theKeys.AccountName_D, theKeys.AccountName, 712); // hope this works! 
+		Decrypt(theKeys.AccountKey_D, theKeys.AccountKey, 1207);
+
+		res = GetPrivateProfileString(L"liveawsconfig", L"Bucket", NULL, wRetVal, 128, wInifile);
+		wcstombs(theKeys.BucketName, wRetVal, wcslen(wRetVal));
+		res = GetPrivateProfileString(L"liveawsconfig", L"Region", NULL, wRetVal, 128, wInifile);
+		wcstombs(theKeys.region, wRetVal, wcslen(wRetVal));
+		res = GetPrivateProfileString(L"liveawsconfig", L"ProcessingPath", NULL, wRetVal, 128, wInifile);
+		wcstombs(ProcessingPath, wRetVal, wcslen(wRetVal));
+		res = GetPrivateProfileString(L"liveawsconfig", L"FrameLimit", NULL, wRetVal, 128, wInifile);
+		char rv[128] = { 0 };
+		wcstombs(rv, wRetVal, wcslen(wRetVal));
+		framelimit = atoi(rv);
+		res = GetPrivateProfileString(L"liveawsconfig", L"MinBright", NULL, wRetVal, 128, wInifile);
+		wcstombs(rv, wRetVal, wcslen(wRetVal));
+		minbright = atoi(rv);
+		res = GetPrivateProfileString(L"liveawsconfig", L"MaxRMS", NULL, wRetVal, 128, wInifile);
+		wcstombs(rv, wRetVal, wcslen(wRetVal));
+		maxrms = atof(rv);
+		res = GetPrivateProfileString(L"liveawsconfig", L"MinPxls", NULL, wRetVal, 128, wInifile);
+		wcstombs(rv, wRetVal, wcslen(wRetVal));
+		minPxls = atol(rv);
 	}
-	else
-		minbright = -1;
-
-	if (fgets(tmp, 20, f) != NULL)
-	{
-		maxrms = atof(tmp);
-		if (maxrms< 0.2) maxrms = 1.0;
-	}
-	else
-		maxrms = 1.0;
-
-	fclose(f);
-
 	return 0;
 }
 
