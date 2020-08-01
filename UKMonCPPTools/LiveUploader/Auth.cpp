@@ -21,6 +21,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 struct KeyData theKeys = { 0,0,0,0,0,0,0,0,0};
 char ProcessingPath[512];
 char ErrFile[512];
+char ffmpegPath[512];
 
 #define INIFILENAME "UKMONLiveWatcher.ini"
 #define AUTHFILENAME "AUTH_UKMONLiveWatcher.ini"
@@ -115,10 +116,10 @@ int LoadIniFiles(void)
 		if (fgets(tmp, 20, f) != NULL)
 		{
 			maxrms = atof(tmp);
-			if (maxrms < 0.2) maxrms = 1.0;
+			if (maxrms < 1.0) maxrms = 1.5;
 		}
 		else
-			maxrms = 1.0;
+			maxrms = 1.5;
 
 		fclose(f);
 		// now write the keys back to the new file
@@ -140,10 +141,10 @@ int LoadIniFiles(void)
 		WritePrivateProfileString(L"liveawsconfig", L"FrameLimit", wtmp, wInifile);
 		wsprintf(wtmp, L"%d\0", minbright);
 		WritePrivateProfileString(L"liveawsconfig", L"MinBright", wtmp, wInifile);
-		wsprintf(wtmp, L"%d\0", maxrms);
+		wsprintf(wtmp, L"%.2f\0", maxrms);
 		WritePrivateProfileString(L"liveawsconfig", L"MaxRMS", wtmp, wInifile);
 		WritePrivateProfileString(L"liveawsconfig", L"MinPxls", L"200", wInifile);
-
+		WritePrivateProfileString(L"liveawsconfig", L"FFMpeg", L"C:\\Program Files (x86)\\ukmonlive\\ffmpeg.exe", wInifile);
 		// now remove the old config files
 		printf("Merged config into %%APPDATA%%\\local\\ukmon\\ukmonarchiver.ini\n");
 		remove(inifile);
@@ -165,18 +166,15 @@ int LoadIniFiles(void)
 		res = GetPrivateProfileString(L"liveawsconfig", L"ProcessingPath", NULL, wRetVal, 128, wInifile);
 		wcstombs(ProcessingPath, wRetVal, wcslen(wRetVal));
 		res = GetPrivateProfileString(L"liveawsconfig", L"FrameLimit", NULL, wRetVal, 128, wInifile);
-		char rv[128] = { 0 };
-		wcstombs(rv, wRetVal, wcslen(wRetVal));
-		framelimit = atoi(rv);
+		framelimit = _wtoi(wRetVal);
 		res = GetPrivateProfileString(L"liveawsconfig", L"MinBright", NULL, wRetVal, 128, wInifile);
-		wcstombs(rv, wRetVal, wcslen(wRetVal));
-		minbright = atoi(rv);
+		minbright = _wtoi(wRetVal);
 		res = GetPrivateProfileString(L"liveawsconfig", L"MaxRMS", NULL, wRetVal, 128, wInifile);
-		wcstombs(rv, wRetVal, wcslen(wRetVal));
-		maxrms = atof(rv);
+		maxrms = _wtof(wRetVal);
 		res = GetPrivateProfileString(L"liveawsconfig", L"MinPxls", NULL, wRetVal, 128, wInifile);
-		wcstombs(rv, wRetVal, wcslen(wRetVal));
-		minPxls = atol(rv);
+		minPxls = _wtol(wRetVal);
+		res = GetPrivateProfileString(L"liveawsconfig", L"FFMpeg", L"C:\\Program Files (x86)\\ukmonlive\\ffmpeg.exe", wRetVal, 128, wInifile);
+		wcstombs(ffmpegPath, wRetVal, wcslen(wRetVal));
 	}
 	return 0;
 }
