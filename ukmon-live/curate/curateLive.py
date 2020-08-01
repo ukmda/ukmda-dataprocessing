@@ -12,6 +12,11 @@ import numpy as np
 Polynomial = np.polynomial.Polynomial
 
 logname='LiveMon: '
+MAXRMS=1.5
+MINLEN=4 # very short trails are statistically unreliable
+MAXLEN=80 # 80 frames is about 1.5 seconds video
+MAXOBJS=20
+MAXGAP=75 # corresponds to 1.5 seconds gap in the meteor trail
 
 def monotonic(x):
     dx = np.diff(x)
@@ -19,6 +24,41 @@ def monotonic(x):
 
 def CheckifValidMeteor(xmlname, target):
     # initialise fit variables
+
+    dd=ReadUFOCapXML.UCXml(xmlname)
+    fps, cx, cy = dd.getCameraDetails()
+    nobjs, objlist = dd.getNumObjs()
+    isgood=0
+    _,fname=os.path.split(xmlname)
+
+    if nobjs==0:
+        print('{:s}, nopaths, 0, 0.0, 0, 0, 0.00, 0.00, 0.00, 0.00, 0, 0, 0, 0, 0'.format(fname))
+        return False
+
+    if nobjs>MAXOBJS:
+        print('{:s}, manyobjs, 0, 0.0, 0, 0, 0.00, 0.00, 0.00, 0.00, 0, {:d}, 0, 0, 0'.format(fname, nobjs))
+        return False
+
+    tottotpx=0
+    for i in range(nobjs):
+        pathx, pathy, bri, pxls, fnos = dd.getPathv2(objlist[i])
+        totpx=int(sum(pxls))
+        tottotpx = tottotpx + totpx
+        res, msg= CheckALine(pathx, pathy, xmlname, fps, cx, cy, fnos)
+        isgood = isgood + res
+        maxbri=int(max(bri))
+        print('{:s}, {:s}, {:d}, {:d}, {:d}, {:d}'.format(fname, msg, nobjs, maxbri, totpx, tottotpx))
+        
+    if isgood == 0:    
+        return False
+    else:
+        return True
+
+def leastsq1(x, y):
+    a = np.vstack([x, np.ones(len(x))]).T
+    return np.dot(np.linalg.inv(np.dot(a.T, a)), np.dot(a.T, y))
+    
+def CheckALine(pathx, pathy, xmlname, fps, cx, cy, fnos):
     dist=0
     app_m=0
     m=0
@@ -26,78 +66,88 @@ def CheckifValidMeteor(xmlname, target):
     xm=0
     vel=0
     rms=0
-    maxrms=1
-
-    dd=ReadUFOCapXML.UCXml(xmlname)
-    fps, cx, cy = dd.getCameraDetails()
-    pathx, pathy, _ = dd.getPath()
-    _,fname=os.path.split(xmlname)
 
     # we expect meteor paths to be monotonic in X or Y or both
     # A path that darts about is unlikely to be analysable
+    badline=False
     if  monotonic(pathx)==False and  monotonic(pathy) == False:
-        msg='erratic, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
-        print (logname, fname, msg )
-        return False
+        badline=True
+    plen=len(pathx)
+    maxg=0
+    if plen > 1:
+        maxg=int(max(np.diff(fnos)))
+        if maxg > MAXGAP:
+            badline=True
 
-    # RMS ignores paths of less than 6 frames
-    # lets try with 4 for now
-    l=len(pathx)
-    if l < 4 :
-        msg='flash, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
-        print (logname, fname, msg )
-        return False
-
-    try:
-        cmin, cmax = min(pathx), max(pathx)
-        pfit, stats = Polynomial.fit(pathx, pathy, 1, full=True, window=(cmin, cmax),
-            domain=(cmin, cmax))
-        _, m = pfit
-        app_m = (pathy[-1]-pathy[0])/(pathx[-1]-pathx[0])
-        resid, _, _, _ = stats
-        rms = np.sqrt(resid[0]/len(pathx))
-        # if the line is nearly vertical, a fit of y wil be a poor estimate
-        # so before discarding the data, try swapping the axes
-        if rms > maxrms:
-            cmin, cmax = min(pathy), max(pathy)
-            pfit, stats = Polynomial.fit(pathy, pathx, 1, full=True, window=(cmin, cmax),
+    # very short paths are stasticially unreliable
+    # very long paths are unrealistic as meteors pretty quick events
+    if plen >= MINLEN and plen <=MAXLEN:
+        try:
+            cmin, cmax = min(pathx), max(pathx)
+            pfit, stats = Polynomial.fit(pathx, pathy, 1, full=True, window=(cmin, cmax),
                 domain=(cmin, cmax))
             _, m = pfit
+            if (pathx[-1]-pathx[0]) !=0:
+                app_m = (pathy[-1]-pathy[0])/(pathx[-1]-pathx[0])
             resid, _, _, _ = stats
-            rms = np.sqrt(resid[0]/len(pathy))
-            app_m = (pathx[-1]-pathx[0])/(pathy[-1]-pathy[0])
+            rms = np.sqrt(resid[0]/len(pathx))
 
-    except:
-        msg='fitfail, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
-        print(logname, fname, msg)
-        return False
+            # if the line is nearly vertical, a fit of y wil be a poor estimate
+            # so before discarding the data, try swapping the axes
+            if rms > MAXRMS:
+                cmin, cmax = min(pathy), max(pathy)
+                pfit, stats = Polynomial.fit(pathy, pathx, 1, full=True, window=(cmin, cmax),
+                    domain=(cmin, cmax))
+                _, m = pfit
+                resid, _, _, _ = stats
+                rms2 = np.sqrt(resid[0]/len(pathy))
+                if (pathy[-1]-pathy[0]) != 0:
+                    app_m = (pathx[-1]-pathx[0])/(pathy[-1]-pathy[0])
+                rms2 = min(rms2, rms)
+                rms = min(rms2,rms)
+        except:
+            msg='fitfail, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
+            return 0, msg
 
-    # work out the length of the line; very short lines are statistically unreliable
-    p1=np.c_[pathx[0],pathy[0]]
-    p2=np.c_[pathx[-1],pathy[-1]]
-    dist=np.linalg.norm(p2-p1)
-    vel=dist*2*fps/l
-
-    # very low RMS is improbable but lets allow it for now
-    if rms > maxrms :
-        msg='plane, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
-        print (logname, fname, msg )
-        return False
-    else:
-        xm = int(max(pathx))
-        if xm > cx/2:
-            xm = int(min(pathx))
-        ym = int(min(pathy))
-        if ym > cy/2:
+        # work out the length of the line; very short lines are statistically unreliable
+        p1=np.c_[pathx[0],pathy[0]]
+        p2=np.c_[pathx[-1],pathy[-1]]
+        dist=np.linalg.norm(p2-p1)
+        vel=dist*2*fps/plen
+        # very low RMS is improbable but lets allow it for now
+        if rms > MAXRMS :
+            msg='plane, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
+            return 0, msg
+            #ShowGraph(fname, pathx, pathy, A0, m, msg)
+        else:
+            xm = int(max(pathx))
+            if xm > cx/2:
+                xm = int(min(pathx))
             ym = int(min(pathy))
-        if dist < 5 :
-            msg='flash, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
-            print (logname, fname, msg )
-            return False
+            if ym > cy/2:
+                ym = int(min(pathy))
+            if dist < 10 and vel < 100 :
+                msg='flash, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
+                return 0, msg
+            else:
+                if badline == True: 
+                    msg='badline, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
+                    return 0, msg
+                else:
+                    msg='meteor, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
+                    return 1, msg
+    else:
+        if badline==True:
+            msg='badline, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, int(xm), int(ym),m, app_m, dist, vel, maxg)
+        else:
+            if plen < MINLEN:
+                msg='flash, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, int(xm), int(ym),m, app_m, dist, vel, maxg)
+            else:
+                msg='toolong, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, int(xm), int(ym),m, app_m, dist, vel, maxg)
+        return 0, msg
+    msg='flash, {:d}, 0.0, 0, 0, 0.00, 0.00, 0.00, 0.00, {:d}'.format(len(pathx), maxg)
+    return 0, msg
 
-        msg='meteor, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel)
-        print (logname, fname, msg)
-        return True
 
 def lambda_handler(event, context):
 
@@ -132,6 +182,7 @@ def lambda_handler(event, context):
                 archname='live-bad-files/'+s3object
                 s3.meta.client.copy(CopySource=copy_source, Bucket=archbucket, Key=archname)
                 s3.meta.client.delete_object(Bucket=target, Key=s3object)
+                print(logname, s3object, ' moved')
             except:
                 print(logname, s3object,' removing the xml file failed!')
 
@@ -143,6 +194,7 @@ def lambda_handler(event, context):
                 archname='live-bad-files/'+jpgname
                 s3.meta.client.copy(CopySource=copy_source, Bucket=archbucket, Key=archname)
                 s3.meta.client.delete_object(Bucket=target, Key=jpgname)
+                print(logname, jpgname, ' moved')
             except:
                 print(logname, jpgname, ' removing the jpg file failed!')
         # clean up local filesystem
