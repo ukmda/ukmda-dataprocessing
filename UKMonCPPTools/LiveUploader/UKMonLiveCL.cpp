@@ -184,7 +184,7 @@ int main(int argc, char** argv)
 							int gooddata = 1;
 							Sleep(500); //to allow file write to complete
 							ReadBasicXML(pth, filename_s, frcount, maxbmax, rms, pxls);
-							if (framelimit > -1 && (frcount > framelimit || frcount < minframes || rms > maxrms))
+							if (framelimit > -1 && (frcount > framelimit || frcount < minframes))// || rms > maxrms))
 								gooddata = 0;
 							if (minbright > -1 && maxbmax < minbright)
 								gooddata = 0;
@@ -196,17 +196,17 @@ int main(int argc, char** argv)
 								put_file(theKeys.BucketName, filename_s, frcount, maxbmax, rms);
 								fn.replace(m1, 4, "P.jpg");
 								put_file(theKeys.BucketName, fn.c_str(), frcount, maxbmax, rms);
-							}
-							if (gooddata && pxls > minPxls)
-							{
-								std::string bname = fn.substr(0, m1);
-								std::cout << bname << std::endl;
-								char cmd[265] = { 0 };
-								sprintf(cmd, "ffmpeg\\ffmpeg.exe -i %s.avi %s.mp4",bname.c_str(), bname.c_str());
-								system(cmd);
-								fn.replace(m1, 4, ".mp4");
-								put_file(theKeys.BucketName, fn.c_str(), frcount, maxbmax, rms);
-
+								if (pxls > minPxls)
+								{
+									std::string bname = fn.substr(0, m1);
+									std::cout << bname << std::endl;
+									char cmd[512] = { 0 };
+									sprintf(cmd, "%s -i %s\\%s.avi %s\\%s.mp4", ffmpegPath,
+										ProcessingPath, bname.c_str(), ProcessingPath, bname.c_str());
+									system(cmd);
+									std::string mp4name = bname + ".mp4";
+									put_file(theKeys.BucketName, mp4name.c_str(), frcount, maxbmax, rms);
+								}
 							}
 							else
 							{

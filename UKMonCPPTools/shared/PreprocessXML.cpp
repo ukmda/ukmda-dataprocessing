@@ -77,7 +77,7 @@ int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &ma
 		ret = uc_path->QueryDoubleAttribute("x", &px);
 		ret = uc_path->QueryDoubleAttribute("y", &py);
 		ret = uc_path->QueryIntAttribute("bmax", &pb);
-		ret = uc_path->QueryIntAttribute("pixels", &pxl);
+		ret = uc_path->QueryIntAttribute("pixel", &pxl);
 		x[0] = px; y[0] = py;
 		maxbri = pb; pxls=pxl;
 		for (int i = 1; i < hits; i++)
@@ -87,7 +87,7 @@ int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &ma
 			ret = uc_path->QueryDoubleAttribute("x", &px);
 			ret = uc_path->QueryDoubleAttribute("y", &py);
 			ret = uc_path->QueryIntAttribute("bmax", &pb);
-			ret = uc_path->QueryIntAttribute("pixels", &pxl);
+			ret = uc_path->QueryIntAttribute("pixel", &pxl);
 			x[i] = px; y[i] = py;
 			pxls+=pxl;
 			if (pb > maxbri) maxbri = pb;

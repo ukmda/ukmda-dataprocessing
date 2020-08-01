@@ -51,6 +51,7 @@ struct KeyData
 
 extern struct KeyData theKeys;
 extern char ProcessingPath[512];
+extern char ffmpegPath[512];
 extern int nCounter;
 extern int maxretry;
 extern int Debug;
