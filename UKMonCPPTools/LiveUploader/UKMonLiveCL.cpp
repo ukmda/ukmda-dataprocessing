@@ -25,11 +25,15 @@ To build this project you will need the AWS C++ SDK, Visual Studio 2015 or later
 int nCounter;		 // number of events uploaded
 int maxretry = 5;	 // number of retries 
 int delay_ms=1000;	 // retry delay if the jpg isn't present or the upload fails
-long framelimit=120; // max number of frames before we consider it to be an aircraft or bird
-long minframes = 66; // software records 30 frames either side of event
+long framelimit=135; // max number of frames before we consider it to be an aircraft or bird
+long minframes = 64; // software records 30 frames either side of event
 long minbright=60;	 // min brightness to be too dim to bother uploading
-double maxrms = 2.0; // max error in the LSQ fit before the data is discarded. Meteors are usually < 1.0 !
-long minPxls = 200;	 // min pixelcount for an interesting event
+double maxrms = 1.5; // max error in the LSQ fit before the data is discarded. Meteors are usually < 1.0 !
+
+int doFireballs = 1; // whether to upload fireballs
+long minPxls = 200;	 // min pixelcount for a fireball-type event
+
+char VER[] = "V2.3.0.1";
 
 std::ofstream errf;
 
@@ -56,7 +60,11 @@ int main(int argc, char** argv)
 	const wchar_t* ptr = L"UKMonLiveCL";
 	//theEventLog.Initialize(ptr);
 	if (LoadIniFiles() < 0)
+	{
+		printf("Problem reading the config file\nPlease reinstall the application\nPress any key to exit\n");
+		(void)getchar();
 		return -1;
+	}
 	//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 0, L"Started", L"");
 
 	creds.SetAWSAccessKeyId(theKeys.AccountName_D);
@@ -67,31 +75,17 @@ int main(int argc, char** argv)
 	std::tm* now = std::localtime(&t);
 
 	std::cout << (now->tm_year + 1900) << '-' << (now->tm_mon + 1) << '-' << now->tm_mday << ' ' << now->tm_hour << ":" << now->tm_min << ":" << now->tm_sec;
-	std::cout << " UKMON Live Filewatcher C++ version. Monitoring: " << ProcessingPath << std::endl;
-	std::cout << "Logging to the windows eventlog" << std::endl;
-	wchar_t msg0[512] = { 0 };
-	char msg0_s[512] = { 0 };
-	sprintf(msg0_s, "Monitoring %s", ProcessingPath);
-	mbstowcs(msg0, msg0_s, 512);
+	std::cout << " UKMON Live Filewatcher "<< VER <<std::endl <<"Monitoring: " << ProcessingPath << std::endl;
+	std::cout << "ffmpeg location = " << ffmpegPath << std::endl << std::endl;
 	std::cout << "The following checks are in place: " << std::endl;
 	if (framelimit > -1) std::cout << "frame count < " << framelimit << std::endl;
 	if (minbright > -1) std::cout << "brightness > " << minbright << std::endl;
 	std::cout << "error in fit < " << std::setprecision(2) << maxrms << std::endl;
 
-	wsprintf(msg, L"Checking for trails shorter than %ld;", framelimit);
-	wsprintf(msg2, L"Checking for objects brighter than %ld;", minbright);
-
 	if (Debug)
-	{
 		std::cout << "Debugging is on" << std::endl;
-		wsprintf(msg3, L"Debugging is on;");
-	}
 	if (dryrun)
-	{
 		std::cout << "Dry run enabled - nothing will be uploaded" << std::endl;
-		wsprintf(msg4, L"Dry run is on- nothing will be uploaded;");
-	}
-	//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 1, msg0, msg, msg2, msg3, msg4, L"");
 
 	std::cout << "==============================================" << std::endl;
 
@@ -110,7 +104,8 @@ int main(int argc, char** argv)
 		NULL);
 	if (hDir == NULL)
 	{
-		//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Invalid data file path; cannot continue;", L"");
+		printf("ProcessingPath does not exist - please check config file\nPress any key to exit\n");
+		(void)getchar();
 		return -1;
 	}
 
@@ -126,7 +121,8 @@ int main(int argc, char** argv)
 		FILE_NOTIFY_INFORMATION *pbuf;
 		if (!lpBuf)
 		{
-			//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Unable to allocate memory for directory reads; cannot continue;", L"");
+			printf("Unable to allocate memory for directory reads; cannot continue\nPress any key to exit\n");
+			(void)getchar();
 			exit (-1);
 		}
 		if (Debug && !dryrun) std::cout << "1. waiting for changes" << std::endl;
@@ -141,7 +137,8 @@ int main(int argc, char** argv)
 				FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, e, 0, msg, 512,NULL);
 				wcstombs(msg_s, msg, 512);
 				std::cout << "Error " << e << " scanning directory" << ProcessingPath << " - buffer trashed" << msg << std::endl;
-				//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 98, L"Error Scanning directory" , L"buffer trashed;", L"");
+				std::cout << "press any key to exit" << std::endl;
+				getchar();
 			}	
 			else if (retsiz > 0)
 			{
@@ -196,14 +193,39 @@ int main(int argc, char** argv)
 								put_file(theKeys.BucketName, filename_s, frcount, maxbmax, rms);
 								fn.replace(m1, 4, "P.jpg");
 								put_file(theKeys.BucketName, fn.c_str(), frcount, maxbmax, rms);
-								if (pxls > minPxls)
+								if (pxls > minPxls && doFireballs)
 								{
+									STARTUPINFO si;
+									PROCESS_INFORMATION pi; // The function returns this
+									ZeroMemory(&si, sizeof(si));
+									si.cb = sizeof(si);
+									ZeroMemory(&pi, sizeof(pi));
+
 									std::string bname = fn.substr(0, m1);
 									std::cout << bname << std::endl;
-									char cmd[512] = { 0 };
-									sprintf(cmd, "%s -i %s\\%s.avi %s\\%s.mp4", ffmpegPath,
+									wchar_t exe[512] = { 0 };
+									wchar_t cmd[512] = { 0 };
+									char cmd_s[512] = { 0 };
+									SHELLEXECUTEINFO ShExecInfo = { 0 };
+
+									mbstowcs(exe, ffmpegPath, strlen(ffmpegPath));
+									sprintf(cmd_s, " -i \"%s\\%s.avi\" \"%s\\%s.mp4\"\0", 
 										ProcessingPath, bname.c_str(), ProcessingPath, bname.c_str());
-									system(cmd);
+									mbstowcs(cmd, cmd_s, strlen(cmd_s));
+
+									ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+									ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+									ShExecInfo.hwnd = NULL;
+									ShExecInfo.lpVerb = NULL;
+									ShExecInfo.lpFile = exe;
+									ShExecInfo.lpParameters = cmd;
+									ShExecInfo.lpDirectory = NULL;
+									ShExecInfo.nShow = SW_SHOW;
+									ShExecInfo.hInstApp = NULL;
+									ShellExecuteEx(&ShExecInfo);
+									WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
+									CloseHandle(ShExecInfo.hProcess);
+
 									std::string mp4name = bname + ".mp4";
 									put_file(theKeys.BucketName, mp4name.c_str(), frcount, maxbmax, rms);
 								}
@@ -221,9 +243,6 @@ int main(int argc, char** argv)
 								if (rms > maxrms)
 									std::cout << " RMS error " << std::setprecision(2) << rms << ">" << maxrms;
 								std::cout << std::endl;
-
-								wsprintf(msg, L"%d: skipping %ls - framecount %d brightness %d rms %.2f", nCounter, fname, frcount, maxbmax, rms);
-								//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 3, msg, L"");
 							}
 						}
 					}
@@ -237,13 +256,8 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			wchar_t mmsg[512] = { 0 };
-			char msg_s[512] = { 0 };
-			DWORD e = GetLastError();
-			FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, e, 0, mmsg, 512, NULL);
-			wcstombs(msg_s, mmsg, 512);
-			std::cout << "Error " << e << " scanning directory" << ProcessingPath << " " << mmsg << std::endl;
-			//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Error Scanning Directory; cannot continue", mmsg, L"");
+			printf("Error monitoring target folder\nCheck config file\nPress any key to exit\n");
+			getchar();
 			exit(-1);
 		}
 		free(lpBuf);

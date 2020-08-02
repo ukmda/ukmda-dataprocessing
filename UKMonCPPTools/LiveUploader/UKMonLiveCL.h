@@ -62,6 +62,7 @@ extern long minbright;
 extern long minframes;
 extern double maxrms;
 extern long minPxls;
+extern int doFireballs;
 extern Aws::Auth::AWSCredentials creds; // aws credentials
 extern Aws::Client::ClientConfiguration clientConfig; // client setup
 
