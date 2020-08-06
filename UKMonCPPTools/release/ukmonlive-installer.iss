@@ -48,7 +48,7 @@ Source: "msvcp140.dll"; DestDir: "{app}"; Flags: onlyifdoesntexist
 Source: "ucrtbase.dll"; DestDir: "{app}"; Flags: onlyifdoesntexist
 Source: "vcruntime140.dll"; DestDir: "{app}"; Flags: onlyifdoesntexist
 Source: "ffmpeg.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "UKMonArchiver.ini"; DestDir: "{localappdata}\UKMON"; Flags: onlyifdoesntexist
+Source: "UKMonLive.ini"; DestDir: "{localappdata}\UKMON"; Flags: onlyifdoesntexist
 ;Source: "AUTH_UKMONLiveWatcher.ini"; DestDir: "{localappdata}"; Flags: onlyifdoesntexist; 
 ;Source: "UKMONLiveWatcher.ini"; DestDir: "{localappdata}"; Flags: onlyifdoesntexist
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
@@ -59,7 +59,7 @@ Type: Files; Name: "{app}\UKMonLiveCL.exe"
 [Icons]
 Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{commonprograms}\{#MyAppName}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{commonprograms}\{#MyAppName}\{#MyAppName} Configuration"; Filename: "{win}\notepad.exe"; Parameters: "{localappdata}\UKMON\UKMonArchiver.ini"
+Name: "{commonprograms}\{#MyAppName}\{#MyAppName} Configuration"; Filename: "{win}\notepad.exe"; Parameters: "{localappdata}\UKMON\UKMonLive.ini"
 Name: "{commonprograms}\{#MyAppName}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"
 Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
