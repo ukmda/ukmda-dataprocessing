@@ -22,10 +22,13 @@ struct KeyData theKeys = { 0,0,0,0,0,0,0,0,0};
 char ProcessingPath[512];
 char ErrFile[512];
 char ffmpegPath[512]= {"C:\\Program Files (x86)\\ukmonlive\\ffmpeg.exe"};
+char ff32[512] = { "C:\\Program Files\\ukmonlive\\ffmpeg.exe" };
 
 #define INIFILENAME "UKMONLiveWatcher.ini"
 #define AUTHFILENAME "AUTH_UKMONLiveWatcher.ini"
-#define NEWAUTHFILENAME "UKMONArchiver.ini"
+#define NEWAUTHFILENAME "UKMonLive.ini"
+
+static BOOL IsWow64();
 
 int LoadIniFiles(void)
 {
@@ -39,6 +42,11 @@ int LoadIniFiles(void)
 	sprintf(authfile, "%s\\UKMON\\%s", szLocalPath, NEWAUTHFILENAME);
 	mbstowcs(wInifile, authfile, strlen(authfile));
 	DWORD res;
+	if (!IsWow64())
+	{
+		memset(ffmpegPath, 0, 128 * sizeof(char));
+		strncpy(ffmpegPath, ff32, strlen(ff32));
+	}
 	res = GetPrivateProfileString(L"liveaws", L"key", NULL, wRetVal, 128, wInifile);
 	if (res == 0)
 	{
@@ -59,7 +67,9 @@ int LoadIniFiles(void)
 
 			WritePrivateProfileString(L"fireball", L"DoFireballs", L"1", wInifile);
 			WritePrivateProfileString(L"fireball", L"MinPxls", L"200", wInifile);
-			WritePrivateProfileString(L"fireball", L"FFMpeg", L"C:\\Program Files (x86)\\ukmonlive\\ffmpeg.exe", wInifile);
+			wchar_t wtmp[512] = { 0 };
+			mbstowcs(wtmp, ffmpegPath, strlen(ffmpegPath));
+			WritePrivateProfileString(L"fireball", L"FFMpeg", wtmp, wInifile);
 		}
 		else
 		{
@@ -72,7 +82,6 @@ int LoadIniFiles(void)
 			fgets(theKeys.TableEndPoint, 128, f);
 			if (fgets(theKeys.BucketName, 128, f) == NULL)
 			{
-				//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Security key file malformed; cannot continue", L"");
 				return -1;
 			}
 
@@ -94,10 +103,9 @@ int LoadIniFiles(void)
 			f = fopen(inifile, "r");
 			if (!f)
 			{
-				//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 99, L"Unable to open UKMONLiveWatcher.ini; cannot continue", L"");
 				return -1;
 			}
-			fgets(s, 512, f); // ignore this line
+				fgets(s, 512, f); // ignore this line
 			if (fgets(ProcessingPath, 512, f) == NULL) // location of files
 			{
 				std::cerr << "Ini file malformed" << std::endl;
@@ -156,6 +164,7 @@ int LoadIniFiles(void)
 			wsprintf(wtmp, L"%d\0", doFireballs);
 			WritePrivateProfileString(L"fireball", L"DoFireballs", wtmp, wInifile);
 			WritePrivateProfileString(L"fireball", L"MinPxls", L"200", wInifile);
+
 			mbstowcs(wtmp, ffmpegPath, strlen(ffmpegPath));
 			WritePrivateProfileString(L"fireball", L"FFMpeg", wtmp, wInifile);
 			// now remove the old config files
@@ -164,30 +173,42 @@ int LoadIniFiles(void)
 			remove(authfile);
 		}
 	}
+	memset(wRetVal, 0, sizeof(wchar_t) * 128);
 	res = GetPrivateProfileString(L"liveaws", L"Key", NULL, wRetVal, 128, wInifile);
 	wcstombs(theKeys.AccountName, wRetVal, wcslen(wRetVal));
+
+	memset(wRetVal, 0, sizeof(wchar_t) * 128);
 	res = GetPrivateProfileString(L"liveaws", L"Secret", NULL, wRetVal, 128, wInifile);
 	wcstombs(theKeys.AccountKey, wRetVal, wcslen(wRetVal));
+
 	Decrypt(theKeys.AccountName_D, theKeys.AccountName, 712); // hope this works! 
 	Decrypt(theKeys.AccountKey_D, theKeys.AccountKey, 1207);
 
+	memset(wRetVal, 0, sizeof(wchar_t) * 128);
 	res = GetPrivateProfileString(L"liveaws", L"Bucket", NULL, wRetVal, 128, wInifile);
 	wcstombs(theKeys.BucketName, wRetVal, wcslen(wRetVal));
+
+	memset(wRetVal, 0, sizeof(wchar_t) * 128);
 	res = GetPrivateProfileString(L"liveaws", L"Region", NULL, wRetVal, 128, wInifile);
 	wcstombs(theKeys.region, wRetVal, wcslen(wRetVal));
 
+	memset(wRetVal, 0, sizeof(wchar_t) * 128);
 	res = GetPrivateProfileString(L"live", L"ProcessingPath", NULL, wRetVal, 128, wInifile);
 	wcstombs(ProcessingPath, wRetVal, wcslen(wRetVal));
 	framelimit=GetPrivateProfileInt(L"live", L"FrameLimit", 135, wInifile);
 	minbright = GetPrivateProfileInt(L"live", L"MinBright", 60, wInifile);
 
+	memset(wRetVal, 0, sizeof(wchar_t) * 128);
 	res = GetPrivateProfileString(L"live", L"MaxRMS", NULL, wRetVal, 128, wInifile);
 	maxrms = _wtof(wRetVal);
 	if (maxrms < 1.0) maxrms = 1.5;
 
 	doFireballs = GetPrivateProfileInt(L"fireball", L"DoFireballs", 1, wInifile);
 	minPxls = GetPrivateProfileInt(L"fireball", L"MinPxls", 200, wInifile);
-	res = GetPrivateProfileString(L"fireball", L"FFMpeg", L"C:\\Program Files (x86)\\ukmonlive\\ffmpeg.exe", wRetVal, 128, wInifile);
+
+	memset(wRetVal, 0, sizeof(wchar_t) * 128);
+	res = GetPrivateProfileString(L"fireball", L"FFMpeg", NULL, wRetVal, 128, wInifile);
+	memset(ffmpegPath, 0, 128*sizeof(char));
 	wcstombs(ffmpegPath, wRetVal, wcslen(wRetVal));
 
 	return 0;
@@ -235,4 +256,29 @@ int Encrypt(char *out, char* in, int Key)
 	for (size_t i = 0; i < strlen(in); i++)
 		tmp[i] = in[i] ^ (Key >> 8);
 	return String2Hex(out, tmp);
+}
+
+typedef BOOL(WINAPI* LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
+
+LPFN_ISWOW64PROCESS fnIsWow64Process;
+
+static BOOL IsWow64()
+{
+	BOOL bIsWow64 = FALSE;
+
+	//IsWow64Process is not available on all supported versions of Windows.
+	//Use GetModuleHandle to get a handle to the DLL that contains the function
+	//and GetProcAddress to get a pointer to the function if available.
+
+	fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(
+		GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
+
+	if (NULL != fnIsWow64Process)
+	{
+		if (!fnIsWow64Process(GetCurrentProcess(), &bIsWow64))
+		{
+			//handle error
+		}
+	}
+	return bIsWow64;
 }
