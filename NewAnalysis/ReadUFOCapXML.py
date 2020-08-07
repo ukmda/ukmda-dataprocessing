@@ -109,11 +109,15 @@ class UCXml:
             pathx=numpy.empty(1)
             pathy=numpy.empty(1)
             bri=numpy.empty(1)
-            return pathx, pathy, bri
+            pxls=numpy.empty(1)
+            fnos=numpy.empty(1)
+            return pathx, pathy, bri, pxls, fnos
         nhits=int(uc['@hit'])
         pathx=numpy.zeros(nhits)
         pathy=numpy.zeros(nhits)
         bri=numpy.zeros(nhits)
+        pxls=numpy.zeros(nhits)
+        fnos=numpy.zeros(nhits)
         j=0
         for i in range(nhits):
             if nhits==1:
@@ -127,11 +131,15 @@ class UCXml:
                 pathx[j]=p['@x']
                 pathy[j]=p['@y']
                 bri[j]=p['@bmax']
+                pxls[j]=p['@pixel']
+                fnos[j]=p['@fno']
                 j=j+1
         pathx = numpy.resize(pathx,j)
         pathy = numpy.resize(pathy,j)
         bri = numpy.resize(bri,j)
-        return pathx, pathy, bri
+        pxls = numpy.resize(pxls,j)
+        fnos = numpy.resize(fnos,j)
+        return pathx, pathy, bri, pxls, fnos
 
     def getPathElement(self, fno):
         uc=self.ucxml['ufocapture_record']['ufocapture_paths']
