@@ -4,7 +4,7 @@
 
 set-location $PSScriptRoot
 # load the helper functions
-. helperfunctions.ps1
+. .\helperfunctions.ps1
 # read the inifile
 if ($args.count -eq 0) {
     $inifname='../TACKLEY_TC.ini'
@@ -28,7 +28,7 @@ $rms_env=$ini['rms']['rms_env']
 $srcpath='\\'+$hostname+'\RMS_share\ArchivedFiles'
 $destpath=$localfolder+'\ArchivedFiles'
 $age=[int]$maxage
-robocopy $srcpath $destpath /dcopy:DAT /tee /v /s /r:3 /maxage:$age
+robocopy $srcpath $destpath /dcopy:DAT /tee /v /s /r:3 /maxage:$age /xf *.bz2
 
 # find the latest set of data on the local drive
 $path=(get-childitem $destpath -directory | sort-object creationtime | select-object -last 1).name
