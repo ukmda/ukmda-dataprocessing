@@ -217,10 +217,9 @@ if __name__ == '__main__':
         print('Reads config from an inifile -read example inifile for more info\n')
     else: 
         # args should be id yyyymmdd
-        cloc=sys.argv[1]
+        infname=sys.argv[1]
         ymd=sys.argv[2]
         if valid_date(ymd) == True:
-            infname=cloc+'.ini'
             config=cfg.ConfigParser()
             config.read(infname)
             srcpath=config['camera']['localfolder']
