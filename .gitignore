@@ -516,3 +516,5 @@ ukmon-live/getlogs/.ukmoncreds
 *.retry
 *.bkp
 *.rtf
+*.txt
+deploy_local.ps1

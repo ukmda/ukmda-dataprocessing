@@ -273,12 +273,11 @@ static BOOL IsWow64()
 	fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(
 		GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
 
-	if (NULL != fnIsWow64Process)
-	{
-		if (!fnIsWow64Process(GetCurrentProcess(), &bIsWow64))
-		{
-			//handle error
-		}
-	}
+	if (!fnIsWow64Process)
+		return bIsWow64;
+
+	if (!fnIsWow64Process(GetCurrentProcess(), &bIsWow64))
+		return FALSE;
+
 	return bIsWow64;
 }
