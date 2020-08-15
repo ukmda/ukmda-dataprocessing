@@ -33,7 +33,7 @@ double maxrms = 1.5; // max error in the LSQ fit before the data is discarded. M
 int doFireballs = 1; // whether to upload fireballs
 long minPxls = 200;	 // min pixelcount for a fireball-type event
 
-char VER[] = "V2.3.0.1";
+char VER[] = "V2.3.0.2";
 
 std::ofstream errf;
 
@@ -139,6 +139,7 @@ int main(int argc, char** argv)
 				std::cout << "Error " << e << " scanning directory" << ProcessingPath << " - buffer trashed" << msg << std::endl;
 				std::cout << "press any key to exit" << std::endl;
 				getchar();
+				exit(-1);
 			}	
 			else if (retsiz > 0)
 			{
@@ -209,7 +210,7 @@ int main(int argc, char** argv)
 									SHELLEXECUTEINFO ShExecInfo = { 0 };
 
 									mbstowcs(exe, ffmpegPath, strlen(ffmpegPath));
-									sprintf(cmd_s, " -i \"%s\\%s.avi\" \"%s\\%s.mp4\"\0", 
+									sprintf(cmd_s, " -i \"%s\\%s.avi\" -vframes 200 \"%s\\%s.mp4\"\0", 
 										ProcessingPath, bname.c_str(), ProcessingPath, bname.c_str());
 									mbstowcs(cmd, cmd_s, strlen(cmd_s));
 

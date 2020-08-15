@@ -4,11 +4,11 @@
 # include <time.h>
 
 # include "llsq.h"
-static double getrms(double x[], double y[], double a, double b, int n);
+static double getrms(double *x, double *y, double a, double b, int n);
 
 /******************************************************************************/
 
-void llsq0 ( int n, double x[], double y[], double &a, double &rms )
+void llsq0 ( int n, double *x, double *y, double &a, double &rms )
 
 /******************************************************************************/
 /*
@@ -42,9 +42,9 @@ void llsq0 ( int n, double x[], double y[], double &a, double &rms )
     Output, double *A, the slope of the least-squares approximant to the data.
 */
 {
-  double bot;
-  int i;
-  double top;
+  double bot=0.0;
+  int i=0;
+  double top=0.0;
 /*
   Special case.
 */
@@ -64,8 +64,6 @@ void llsq0 ( int n, double x[], double y[], double &a, double &rms )
 /*
   Compute (x'y)/(x'x).
 */
-  top = 0.0;
-  bot = 0.0;
   for ( i = 0; i < n; i++ )
   {
     top = top + x[i] * y[i];
@@ -80,7 +78,7 @@ void llsq0 ( int n, double x[], double y[], double &a, double &rms )
 }
 /******************************************************************************/
 
-void llsq ( int n, double x[], double y[], double &a, double &b, double& rms )
+void llsq ( int n, double *x, double *y, double &a, double &b, double& rms )
 
 /******************************************************************************/
 /*
@@ -115,11 +113,11 @@ void llsq ( int n, double x[], double y[], double &a, double &b, double& rms )
     approximant to the data.
 */
 {
-  double bot;
-  int i;
-  double top;
-  double xbar;
-  double ybar;
+  double bot=0.0;
+  int i=0;
+  double top=0.0;
+  double xbar=0.0;
+  double ybar=0.0;
 /*
   Special case.
 */
@@ -133,8 +131,6 @@ void llsq ( int n, double x[], double y[], double &a, double &b, double& rms )
 /*
   Average X and Y.
 */
-  xbar = 0.0;
-  ybar = 0.0;
   for ( i = 0; i < n; i++ )
   {
     xbar = xbar + x[i];
@@ -162,7 +158,7 @@ void llsq ( int n, double x[], double y[], double &a, double &b, double& rms )
   return;
 }
 
-static double getrms(double x[], double y[], double a, double b, int n)
+static double getrms(double *x, double *y, double a, double b, int n)
 {
     double yn=0, rms=0;
     double resids = 0;

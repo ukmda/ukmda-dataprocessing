@@ -10,7 +10,7 @@ Run the installer. This will install the support libraries if needed and create 
 
 Configuration
 =============
-Upon first run, the app will update the ini file or create a default configuration if you've never used the programme before.
+Upon first run, the app will update the ini file (or create a default configuration if you've never used the programme before).
 You will need to set the ProcessingPath to point to the location of your files. 
 To edit the config file, use the icon under UKMonLive on the start menu. 
 
@@ -28,4 +28,12 @@ Events shorter than FrameLimit or dimmer than MinBright will be ignored. Note th
 XP Compatability
 ================
 This application is not compatible with Windows XP or earlier. I'm sorry about that, but Microsoft ceased support for XP in in 2014 and completely rewrote the network stack for the next version. As a result the support libraries from AWS and indeed Microsoft are not available in backward-compatible versions. 
+
+Version info
+============
+2.3.0.2 	bugfix for memory leak which caused random crash
+2.3.0.1		Added fireball uploader capability, temporarily disabled line fitting checks
+2.2.0.0		Added line fitting quality check to prevent upload of bats, aircraft, clous
+2.0.0.0		First version in C++, based on the Pascal version written by Peter Campbell-Burns
+
 
