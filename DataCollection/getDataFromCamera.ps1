@@ -21,6 +21,8 @@ $hostname=$ini['camera']['hostname']
 $camname=$ini['camera']['camera_name']
 $locfldr=$ini['camera']['localfolder']
 $isufo=$ini['camera']['UFO']
+$remuser=$ini['camera']['remoteuser']
+$rempass=(get-content $ini['camera']['remotepass'])
 
 Write-Output "Getting data from $camname" (get-date) 
 
@@ -50,7 +52,7 @@ if ($isufo -eq 1){
     }
     $remfldr = $remfldr.replace("/","\")
     $rempth='\\'+$hostname+$remfldr
-    net use $rempth /user:dataxfer Wombat33dx 
+    net use $rempth /user:$remuser $rempass
     $src=$rempth+'\'+$tod
 
     Write-Output "copying data for $src to $tod" 
