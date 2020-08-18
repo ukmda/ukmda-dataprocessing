@@ -15,12 +15,12 @@ if((test-path $inifname) -eq $false){
     write-output "datadir missing or invalid, can't continue"
     exit 2
 }
-
-write-output 'updating colorgrammes'
+$logf=$datadir+'/logs/process-'+(get-date -uformat '%Y%m%d')+'.log'
+write-output 'updating colorgrammes' | tee-object $logf
 Set-Location $PSScriptRoot
-python .\colorgram.py
+python .\colorgram.py | tee-object $logf -append
 
-write-output "Copying to website..." 
+write-output "Copying to website..." | tee-object $logf -append
 
 # collect details about your website. 
 $sitename=$ini['website']['sitename']
@@ -29,19 +29,19 @@ $userid=$ini['website']['userid']
 $key=$ini['website']['key']
 $targ= $userid+'@'+$sitename+':'+$targetdir
 
-write-output "copying latest 2d image" 
+write-output "copying latest 2d image" | tee-object $logf -append
 set-location $datadir
 scp -o StrictHostKeyChecking=no -i $key latest2d.jpg $targ
 
 $ssloc=$datadir+'\screenshots'
 set-location $ssloc
 
-Write-Output 'copying last capture'
+Write-Output 'copying last capture' | tee-object $logf -append
 $fnam=(get-childitem  event*.jpg | sort-object lastwritetime).name | select-object -last 1
 copy-item $fnam  -destination latestcapture.jpg
 scp -o StrictHostKeyChecking=no -i $key latestcapture.jpg $targ
 
-Write-Output 'copying colorgramme file'
+Write-Output 'copying colorgramme file' | tee-object $logf -append
 #$mmyyyy=((get-date).tostring("MMyyyy"))
 $srcfile=$datadir+'\RMOB\RMOB_latest.jpg'
 copy-item $srcfile -destination .
@@ -53,7 +53,7 @@ copy-item $srcfile -destination .
 $fnam='3months_latest.jpg'
 scp -o StrictHostKeyChecking=no -i $key $fnam $targ
 
-$msg=(get-date -uformat '%Y5m%d-%H%M%S')+' done'
-write-output $msg
+$msg=(get-date -uformat '%Y%m%d-%H%M%S')+' done'
+write-output $msg | tee-object $logf -append
 set-location $PSScriptRoot
-.\pushToUkmon.ps1
+.\pushToUkmon.ps1 
