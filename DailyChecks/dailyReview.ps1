@@ -7,7 +7,7 @@ set-location $PSScriptRoot
 . .\helperfunctions.ps1
 # read the inifile
 if ($args.count -eq 0) {
-    $inifname='../TACKLEY_TC.ini'
+    $inifname='TACKLEY_TC.ini'
 }
 else {
     $inifname = $args[0]

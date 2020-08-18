@@ -13,17 +13,17 @@ import configparser as cfg
 interval = 100 # millisecs between loops in Colorlab
 
 def ConvertToCsv (yr, mt, dy, srcpath, targpath):
-    print('processing ' + yr+mt+dy)
+    print('convering to CSV for ' + yr+mt+dy)
     #dt = "{:4d}{:02d}{:02d}".format(yr,mt,dy)
     dt = yr+mt+dy
 
     config=cfg.ConfigParser()
     config.read('./station.ini')
-    lat = config['observer']['Lati']
-    lng = config['observer']['Lati']
+    lat = float(config['observer']['Lati'])
+    lng = float(config['observer']['Lati'])
     id  = config['observer']['station']
-    alt = config['observer']['altitude']
-    tz  =  config['observer']['tz']
+    alt = float(config['observer']['altitude'])
+    tz  =  int(config['observer']['tz'])
 
 
     srcfile = srcpath + 'event_log' +dt + '.txt'
@@ -245,6 +245,7 @@ def main(srcpath, targpath, tod) :
 
 
     fname = os.path.join(targpath, str(yyyy)+'.jpg')
+    print('creating ', fname)
     plt.savefig(fname, dpi=300,bbox_inches='tight')
     plt.close()
 
@@ -296,6 +297,7 @@ def main(srcpath, targpath, tod) :
     #plt.show()
 
     fname2 = os.path.join(targpath, str(yyyy)+dys+'.jpg')
+    print('creating ', fname2)
     plt.savefig(fname2, dpi=300,bbox_inches='tight')
     plt.close()
 
@@ -315,6 +317,7 @@ def main(srcpath, targpath, tod) :
     # save this as RMOB_yyyymmdd.jpg
     #
     fname3 = os.path.join(targpath , 'RMOB_'+str(yyyy)+dys+'.jpg')
+    print('creating ', fname3)
     plt.savefig(fname3, dpi=300,bbox_inches='tight')
     plt.close()
 
@@ -416,6 +419,7 @@ def main(srcpath, targpath, tod) :
     plt.tight_layout()
 
     fname2 = os.path.join(targpath , str(yyyy)+'-3mths.jpg')
+    print('creating ', fname2)
     plt.savefig(fname2, dpi=300,bbox_inches='tight')
     plt.close()
     latfname=os.path.join(targpath, '3months_latest.jpg')
