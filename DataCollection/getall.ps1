@@ -15,34 +15,30 @@ if((test-path .\dayornight.txt) -eq - $false)
     $curdn=(.\sunwait.exe poll +51.88N +1.31W)    
     Write-Output $curdn > .\dayornight.txt
 }
-$lastdn=get-content .\dayornight.txt
-$curdn=(.\sunwait.exe poll +51.88N +1.31W)
-#if ($curdn -ne $lastdn -and $curdn -eq "DAY"){
-    write-output "curating UFO cameras" >> $logf
-    Write-Output $curdn > .\dayornight.txt
-    conda activate RMS
+write-output "curating UFO cameras" >> $logf
+conda activate RMS
 
-    python -V > c:\temp\foo.log
+python -V > c:\temp\foo.log
 
-    $dt=get-date -uformat '%Y%m%d'
-    write-output "processing $dt TC" >> $logf
-    & python .\curateCamera.py .\tackley_tc.ini $dt >> $logf
-    write-output "processing $dt NE" >> $logf
-    & python .\curateCamera.py .\tackley_ne.ini $dt >> $logf
+$dt=get-date -uformat '%Y%m%d'
+write-output "processing $dt TC" >> $logf
+& python .\curateCamera.py .\tackley_tc.ini $dt >> $logf
+write-output "processing $dt NE" >> $logf
+& python .\curateCamera.py .\tackley_ne.ini $dt >> $logf
 
-    $dt=(get-date).adddays(-1).tostring('yyyyMMdd')
-    write-output "processing $dt" >> $logf
+$dt=(get-date).adddays(-1).tostring('yyyyMMdd')
+write-output "processing $dt" >> $logf
 
-    write-output "processing $dt TC" >> $logf
-    $res = python .\curateCamera.py .\tackley_tc.ini $dt
-    $res >> $logf
-    write-output $res >> $logf
-    write-output "processing $dt NE" >> $logf
-    $res = python .\curateCamera.py .\tackley_ne.ini $dt
-    write-output $res >> $logf
+write-output "processing $dt TC" >> $logf
+$res = python .\curateCamera.py .\tackley_tc.ini $dt
+$res >> $logf
+write-output $res >> $logf
+write-output "processing $dt NE" >> $logf
+$res = python .\curateCamera.py .\tackley_ne.ini $dt
+write-output $res >> $logf
 
-    write-output "done" >> $logf
-#}
+write-output "done" >> $logf
+
 set-location $PSScriptRoot
 if ((get-date).hour -eq 20 ) {
     write-output "refreshing website" >> $logf
