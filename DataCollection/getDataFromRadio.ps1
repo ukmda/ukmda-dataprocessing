@@ -14,28 +14,13 @@ $localfolder=$ini['camera']['localfolder']
 $remfldr=$ini['camera']['remotefolder']
 $remuser=$ini['camera']['remoteuser']
 $rempass=(get-content $ini['camera']['remotepass'])
-$keyfile=$ini['aws']['AWS_keyfile']
-$instid=$ini['aws']['AWS_instance']
 
 set-location $localfolder
-
-# this bit is so that my radio detector can send some stuff to AWS
-write-output "getting AWS details..." 
-$keys=((Get-Content $keyfile)[1]).split(',')
-$Env:AWS_ACCESS_KEY_ID = $keys[0]
-$env:AWS_SECRET_ACCESS_KEY = $keys[1]
-$awssite=((aws ec2 describe-instances --instance-ids $instid) | convertfrom-json).reservations[0].instances[0].publicdnsname
-if ($awssite.length -gt 5 )
-{
-    write-output $awssite > awssite.txt
-}
 
 # now grab the latest radio data and process it
 write-output "copying files" 
 $remfldr = $remfldr.replace("/","\")
 $rempath='\\'+$hostname+$remfldr
-
-echo $rempath $remuser $rempass
 
 net use $rempath /user:$remuser $rempass
 if ($? -ne "True")  {
@@ -43,8 +28,6 @@ if ($? -ne "True")  {
     set-location $PSScriptRoot
     exit 2
 } 
-$scrpath=$rempath+'\scripts'
-Copy-Item awssite.txt $scrpath
 
 robocopy $rempath *.jpg *.dat eve*.txt *.csv *.zip  .  /dcopy:DAT /tee /m /v /s /r:3
 
