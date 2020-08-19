@@ -70,6 +70,11 @@ def LookForMatches(doff, idxfile, idxfile2=None):
     ystr=(yest.year*10000) +( yest.month *100) + yest.day
     reldata=data[data['YMD']==ystr]
 
+    # correct RMS timestamps which are 2.4 seconds ahead
+    for rw in reldata:
+        if rw['LID'].length > 2:
+            rw['HMS']=rw['HMS']-2
+
     mailsubj='Daily UKMON matches for {:04d}-{:02d}-{:02d}'.format(yest.year, yest.month, yest.day)
     domail=False
     print('DailyCheck: ', mailsubj)
