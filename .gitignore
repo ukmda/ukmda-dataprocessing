@@ -516,5 +516,5 @@ ukmon-live/getlogs/.ukmoncreds
 *.retry
 *.bkp
 *.rtf
-*.txt
-deploy_local.ps1
+*/deploy*.ps1
+UKMonCPPTools/stacker/test/*
