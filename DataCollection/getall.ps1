@@ -10,11 +10,7 @@ Write-Output "starting to get all data" > $logf
 Write-Output "got all data" >> $logf
 
 set-location $PSScriptRoot
-if((test-path .\dayornight.txt) -eq - $false)
-{
-    $curdn=(.\sunwait.exe poll +51.88N +1.31W)    
-    Write-Output $curdn > .\dayornight.txt
-}
+
 write-output "curating UFO cameras" >> $logf
 conda activate RMS
 
@@ -49,6 +45,12 @@ set-location $PSScriptRoot
 if ((get-date).hour -eq 8 ) {
     write-output "refreshing UKMON archive" >> $logf
     .\ukmon-archive\get-archive.ps1
+}
+if ((get-date).hour -eq 10)
+{
+    $dtstr=((get-date).adddays(-1)).tostring('yyyyMMdd')
+    .\getPossibles .\UK0006.ini $dtstr
+    .\getPossibles .\UK000F.ini $dtstr
 }
 
 $dt= (get-date -uformat '%Y-%m-%d %H:%M:%S')
