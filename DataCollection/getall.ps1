@@ -1,57 +1,50 @@
 ﻿set-location $PSScriptRoot
 $now=(get-date -uformat '%Y%m%d')
 $logf="..\logs\"+$now+".log"
-Write-Output "starting to get all data" > $logf
-.\getDataFromCamera.ps1 .\tackley_ne.ini >> $logf
-.\getDataFromCamera.ps1 .\tackley_tc.ini >> $logf
-.\getDataFromCamera.ps1 .\UK0006.ini >> $logf
-.\getDataFromCamera.ps1 .\UK000F.ini >> $logf
-.\getDataFromRadio.ps1 >> $logf
-Write-Output "got all data" >> $logf
+
+Write-Output "starting to get all data" | tee-object $logf -append
+.\getDataFromCamera.ps1 .\tackley_ne.ini | tee-object $logf -append
+.\getDataFromCamera.ps1 .\tackley_tc.ini | tee-object $logf -append
+.\getDataFromCamera.ps1 .\UK0006.ini | tee-object $logf -append
+.\getDataFromCamera.ps1 .\UK000F.ini | tee-object $logf -append
+.\getDataFromRadio.ps1 | tee-object $logf -append
+Write-Output "got all data" | tee-object $logf -append
 
 set-location $PSScriptRoot
 
-write-output "curating UFO cameras" >> $logf
+write-output "curating UFO cameras" | tee-object $logf -append
 conda activate RMS
 
-python -V > c:\temp\foo.log
-
 $dt=get-date -uformat '%Y%m%d'
-write-output "processing $dt TC" >> $logf
-& python .\curateCamera.py .\tackley_tc.ini $dt >> $logf
-write-output "processing $dt NE" >> $logf
-& python .\curateCamera.py .\tackley_ne.ini $dt >> $logf
+write-output "processing $dt TC" | tee-object $logf -append
+& python .\curateCamera.py .\tackley_tc.ini $dt | tee-object $logf -append
+write-output "processing $dt NE" | tee-object $logf -append
+& python .\curateCamera.py .\tackley_ne.ini $dt | tee-object $logf -append
 
 $dt=(get-date).adddays(-1).tostring('yyyyMMdd')
-write-output "processing $dt" >> $logf
+write-output "processing $dt" | tee-object $logf -append
 
-write-output "processing $dt TC" >> $logf
+write-output "processing $dt TC" | tee-object $logf -append
 $res = python .\curateCamera.py .\tackley_tc.ini $dt
-$res >> $logf
-write-output $res >> $logf
-write-output "processing $dt NE" >> $logf
+write-output $res | tee-object $logf -append
+write-output "processing $dt NE" | tee-object $logf -append
 $res = python .\curateCamera.py .\tackley_ne.ini $dt
-write-output $res >> $logf
+write-output $res | tee-object $logf -append
 
-write-output "done" >> $logf
+write-output "done" | tee-object $logf -append
 
 set-location $PSScriptRoot
 if ((get-date).hour -eq 20 ) {
-    write-output "refreshing website" >> $logf
-    .\pushtowebsite.ps1
-}
-
-set-location $PSScriptRoot
-if ((get-date).hour -eq 8 ) {
-    write-output "refreshing UKMON archive" >> $logf
-    .\ukmon-archive\get-archive.ps1
+    write-output "refreshing website" | tee-object $logf -append
+    .\pushtowebsite.ps1 | tee-object $logf -append
 }
 if ((get-date).hour -eq 10)
 {
+    write-output "getting possible interesting events" | tee-object $logf -append
     $dtstr=((get-date).adddays(-1)).tostring('yyyyMMdd')
     .\getPossibles .\UK0006.ini $dtstr
     .\getPossibles .\UK000F.ini $dtstr
 }
 
 $dt= (get-date -uformat '%Y-%m-%d %H:%M:%S')
-write-output "getall finished at $dt"
+write-output "getall finished at $dt"| tee-object $logf -append
