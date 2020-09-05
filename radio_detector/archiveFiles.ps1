@@ -1,3 +1,4 @@
+$curloc=get-location
 set-location $PSScriptRoot
 . .\helperfunctions.ps1
 $inifname = './station.ini'
@@ -18,10 +19,15 @@ $txtdt=[string]$args[0]
 $jpgdt=$txtdt.substring(2)
 
 compress-archive -path event_log$txtdt*.txt -DestinationPath event_log$txtdt.zip
-Move-Item event_log$txtdt.zip $arcdir
-Remove-Item event_log$txtdt*.txt
-
+if ((test-path event_log$txtdt.zip) -eq 1)
+{
+    Move-Item event_log$txtdt.zip $arcdir -force
+    Remove-Item event_log$txtdt*.txt
+}
 compress-archive -path screenshots\event$jpgdt*.jpg -DestinationPath screenshots\event$jpgdt.zip
-Move-Item screenshots\event$jpgdt.zip $arcdir
-Remove-Item screenshots\event$jpgdt*.jpg
-set-location $PSScriptRoot
+if ((test-path screenshots\event$jpgdt.zip) -eq 1)
+{
+    Move-Item screenshots\event$jpgdt.zip $arcdir -force
+    Remove-Item screenshots\event$jpgdt*.jpg
+}
+set-location $curloc

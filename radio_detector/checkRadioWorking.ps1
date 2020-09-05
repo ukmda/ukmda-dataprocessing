@@ -44,5 +44,6 @@ while($true)
             & scripts\runSDRSharp.exe
         }
     } 
+    write-output 'Waiting 10 minutes...'
     Start-Sleep -seconds 600
 }
