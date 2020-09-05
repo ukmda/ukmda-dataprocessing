@@ -36,10 +36,15 @@ scp -o StrictHostKeyChecking=no -i $key latest2d.jpg $targ
 $ssloc=$datadir+'\screenshots'
 set-location $ssloc
 
-Write-Output 'copying last capture' | tee-object $logf -append
-$fnam=(get-childitem  event*.jpg | sort-object lastwritetime).name | select-object -last 1
-copy-item $fnam  -destination latestcapture.jpg
-scp -o StrictHostKeyChecking=no -i $key latestcapture.jpg $targ
+$curdt=(get-date -uformat '%y%m%d')
+$fnam=(get-childitem  event$curdt*.jpg | sort-object lastwritetime).name | select-object -last 1
+if($fnam){
+    Write-Output 'copying last capture' | tee-object $logf -append
+    copy-item $fnam  -destination latestcapture.jpg
+    scp -o StrictHostKeyChecking=no -i $key latestcapture.jpg $targ
+}else{
+    write-output 'no capture yet today' | tee-object $logf -append
+}
 
 Write-Output 'copying colorgramme file' | tee-object $logf -append
 #$mmyyyy=((get-date).tostring("MMyyyy"))
