@@ -30,7 +30,7 @@ $loopctr=0
 ping -n 1 $hostname
 while (($? -ne "True") -and ($loopctr -lt 10))  {
     Start-Sleep 30
-    ping -n 1 $hostname
+    ping -n 1 -4 $hostname
     $loopctr++
 }
 if ($loopctr -eq 10)  {
@@ -57,10 +57,10 @@ if ($isufo -eq 1){
 
     Write-Output "copying data for $src to $tod" 
 
-    robocopy $src $tod *.jpg *.bmp *.txt *.xml M*.avi M*.mp4 /dcopy:DAT /tee /m /v /s /r:3 /mov /mt:16 /z /np
+    robocopy $src $tod *.jpg *.bmp *.txt *.xml M*.avi M*.mp4 /dcopy:DAT /tee /v /s /r:3 /mov /z /np
     if ($tod -ne $ytd) {
         Write-Output "copying data for $ytd"
-        robocopy $rempth\$ytd $ytd *.jpg *.bmp *.txt *.xml M*.avi M*.mp4 /dcopy:DAT /tee /m /v /s /r:3 /mov /mt:16 /z  /np
+        robocopy $rempth\$ytd $ytd *.jpg *.bmp *.txt *.xml M*.avi M*.mp4 /dcopy:DAT /tee /v /s /r:3 /mov /z  /np
     }
     net use $rempth /d >> c:\temp\log.log
 }
@@ -78,20 +78,20 @@ else {
             $llt=(get-childitem $lp -directory).lastwritetime   
             if ($llt -lt $lrt){
                 $rmpth=$remfldr+'\'+$dn
-                robocopy $rmpth  $locpth /dcopy:DAT /tee /v /s /r:3 /np /mt:16 /z /xf *.bz2
+                robocopy $rmpth  $locpth /dcopy:DAT /tee /v /s /r:3 /np /z /xf *.bz2
                 (get-item $locpth).lastwritetime=(get-date)
             }
         }
         else{
             $rmpth=$remfldr+'\'+$dn
-            robocopy $rmpth $locpth /dcopy:DAT /tee /v /s /r:3 /np /mt:16 /z /xf *.bz2
+            robocopy $rmpth $locpth /dcopy:DAT /tee /v /s /r:3 /np /z /xf *.bz2
         }
     }
     $remfldr= '\\'+$hostname+'\rms_share\logs'
     robocopy $remfldr logs /dcopy:DAT /tee /v /s /r:3 
 
     Set-Location $psscriptroot
-    .\reorgByYMD.ps1 $camname
+    .\reorgByYMD.ps1 $inifname
 }
 Set-Location $psscriptroot
 Write-Output "finished" (get-date) 

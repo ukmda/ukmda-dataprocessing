@@ -33,8 +33,8 @@ def valid_date(s):
     return False
 
 def monotonic(x):
-    dx = np.diff(x)
-    return np.all(dx <= 0) or np.all(dx >= 0)
+    dx = abs(np.diff(x))
+    return np.all(dx <= 3) # or np.all(dx >= 0)
 
 def AddToRemoveList(fname, errf, movebad=False, msg='', nobjs=0, maxbri=0, tottotpx=0):
     _,fn=os.path.split(fname)
@@ -80,8 +80,10 @@ def CheckifValidMeteor(jpgname, errf):
         pathx, pathy, bri, pxls, fnos = dd.getPathv2(objlist[i])
         totpx=sum(pxls)
         tottotpx = tottotpx + totpx
-        res, msg= CheckALine(pathx, pathy, xmlname, errf, fps, cx, cy, fnos)
+        res, msg= CheckALine(pathx, pathy, xmlname, fps, cx, cy, fnos)
         if nobjs > 1:
+            if debug==True:
+                errf.write(fn +',' + msg +'\n')
             print ('{:s}, {:d}'.format(msg, int(totpx)))
         if res==1:
             goodmsg = msg
@@ -101,7 +103,7 @@ def leastsq1(x, y):
     a = np.vstack([x, np.ones(len(x))]).T
     return np.dot(np.linalg.inv(np.dot(a.T, a)), np.dot(a.T, y))
     
-def CheckALine(pathx, pathy, xmlname, errf, fps, cx, cy, fnos):
+def CheckALine(pathx, pathy, xmlname, fps, cx, cy, fnos):
     dist=0
     app_m=0
     m=0

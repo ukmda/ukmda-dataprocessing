@@ -45,6 +45,8 @@ if ((get-date).hour -eq 10)
     .\getPossibles .\UK0006.ini $dtstr
     .\getPossibles .\UK000F.ini $dtstr
 }
+.\loadMySQL.ps1 .\tackley_tc.ini
+.\loadMySQL.ps1 .\tackley_ne.ini
 
 $dt= (get-date -uformat '%Y-%m-%d %H:%M:%S')
 write-output "getall finished at $dt"| tee-object $logf -append
