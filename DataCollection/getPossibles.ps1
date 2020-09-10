@@ -49,7 +49,7 @@ if ($flist.length -gt 0) {
     Set-Location $rms_loc
     python -m Utils.BatchFFtoImage $targdir jpg
     Set-Location $PSScriptRoot
-    explorer ($targdir).replace('/','\')
+#    explorer ($targdir).replace('/','\')
 }
 else {
     write-output "nothing of interest"

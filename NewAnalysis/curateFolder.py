@@ -15,14 +15,19 @@ if __name__ == '__main__':
     cc.MINLEN=int(config['cleaning']['minlen'])
     cc.MAXLEN=int(config['cleaning']['maxlen'])
     cc.MAXOBJS=int(config['cleaning']['maxobjs'])
+    print(config['cleaning']['debug'])
+    if config['cleaning']['debug'] in ['True', 'TRUE','true']:
+        cc.debug=True
+    else:
+        cc.debug=False
     if config['cleaning']['movefiles'] in ['True', 'TRUE','true']:
         cc.movfiles=True
     else:
         cc.movfiles=False
 
-    cc.maxrms=1
-    cc.debug = False
+#    cc.maxrms=1
+#    cc.debug = False
     print('Processing '+path+'; cc.movefiles='+str(cc.movfiles))
-    print( cc.MAXOBJS,    cc.MAXRMS,     cc.MINLEN) 
+    print( cc.MAXOBJS,    cc.MAXRMS,     cc.MINLEN, cc.debug) 
 
     cc.ProcessADay(path, '*', cc.badfilepath, logfilepath)
