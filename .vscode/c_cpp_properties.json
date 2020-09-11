@@ -6,7 +6,7 @@
                 "${workspaceFolder}/**",
                 "${vcpkgRoot}/x64-windows/include",
                 "${vcpkgRoot}/x86-windows/include",
-                "C:/Users/mark/Documents/Projects/opencv3/opencv-3.4.11/build/install/include"
+                "e:/dev/opencv3/opencv-3.4.11/build/install/include"
             ],
             "defines": [
                 "_DEBUG",
