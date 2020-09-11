@@ -212,6 +212,7 @@ StyleCopReport.xml
 *.ilk
 *.meta
 *.obj
+*.o
 *.iobj
 *.pch
 *.pdb
@@ -233,6 +234,7 @@ StyleCopReport.xml
 *.pidb
 *.svclog
 *.scc
+*.exe
 
 # Chutzpah Test files
 _Chutzpah*
@@ -520,3 +522,4 @@ ukmon-live/getlogs/.ukmoncreds
 UKMonCPPTools/stacker/test/*
 deploy_*.ps1
 NewAnalysis/deployToAWS.yml
+*.zip
