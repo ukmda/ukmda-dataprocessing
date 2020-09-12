@@ -3,7 +3,14 @@ import os, sys
 import xmltodict 
 import numpy
 
+MAXGAP = 50
+
 class UCXml: 
+    MAXGAP=50
+
+    def setMaxGap(self, mg):
+        self.MAXGAP=mg
+
     def __init__(self, fname):
         with open(fname) as fd:
             self.ucxml=xmltodict.parse(fd.read())    
@@ -112,6 +119,8 @@ class UCXml:
             pxls=numpy.empty(1)
             fnos=numpy.empty(1)
             return pathx, pathy, bri, pxls, fnos
+        pfno=0 # previous frame number, to check for unrealistic gaps in trails
+        fno=0 # current frame number, to check for unrealistic gaps in trails
         nhits=int(uc['@hit'])
         pathx=numpy.zeros(nhits)
         pathy=numpy.zeros(nhits)
@@ -125,7 +134,12 @@ class UCXml:
             else:
                 p=uc['uc_path'][i]
             ono=int(p['@ono'])
-            if ono == objno:
+            npx=int(p['@pixel']) # ignore very small changes in pixel count
+            fno=int(p['@fno']) 
+            if pfno == 0:
+                pfno = fno
+            fdiff = fno-pfno
+            if ono == objno and npx > 3 and fdiff < self.MAXGAP:
             # its possible for one path to include two events
             # at different times. This is a UFO feature...
                 pathx[j]=p['@x']
@@ -134,11 +148,18 @@ class UCXml:
                 pxls[j]=p['@pixel']
                 fnos[j]=p['@fno']
                 j=j+1
-        pathx = numpy.resize(pathx,j)
-        pathy = numpy.resize(pathy,j)
-        bri = numpy.resize(bri,j)
-        pxls = numpy.resize(pxls,j)
-        fnos = numpy.resize(fnos,j)
+        if j > 0:
+            pathx = numpy.resize(pathx,j)
+            pathy = numpy.resize(pathy,j)
+            bri = numpy.resize(bri,j)
+            pxls = numpy.resize(pxls,j)
+            fnos = numpy.resize(fnos,j)
+        else:
+            pathx=numpy.empty(1)
+            pathy=numpy.empty(1)
+            bri=numpy.empty(1)
+            pxls=numpy.empty(1)
+            fnos=numpy.empty(1)
         return pathx, pathy, bri, pxls, fnos
 
     def getPathElement(self, fno):
