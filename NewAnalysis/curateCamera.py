@@ -14,9 +14,10 @@ import configparser as cfg
 
 badfilepath=''
 MAXRMS=1
-MINLEN=3
-MAXLEN=80
-MAXOBJS=10
+MINLEN=4
+MAXLEN=100
+MAXBRI=1000
+MAXOBJS=20
 MAXGAP=75 # corresponds to 1.5 seconds gap in the meteor trail
 interactive=False
 movfiles=False
@@ -34,7 +35,7 @@ def valid_date(s):
 
 def monotonic(x):
     dx = abs(np.diff(x))
-    return np.all(dx <= 3) # or np.all(dx >= 0)
+    return np.all(dx <= 5)
 
 def AddToRemoveList(fname, errf, movebad=False, msg='', nobjs=0, maxbri=0, tottotpx=0):
     _,fn=os.path.split(fname)
@@ -59,6 +60,8 @@ def CheckifValidMeteor(jpgname, errf):
         return False
 
     dd=ReadUFOCapXML.UCXml(xmlname)
+    dd.setMaxGap(25)
+    
     fps, cx, cy = dd.getCameraDetails()
     nobjs, objlist = dd.getNumObjs()
     #print(nobjs, objlist)
@@ -74,11 +77,13 @@ def CheckifValidMeteor(jpgname, errf):
     goodmsg=''
     gtp=0
     tottotpx=0
+    totbri=0
     
     _,fn=os.path.split(xmlname)
     for i in range(nobjs):
         pathx, pathy, bri, pxls, fnos = dd.getPathv2(objlist[i])
         totpx=sum(pxls)
+        totbri = totbri + sum(bri)
         tottotpx = tottotpx + totpx
         res, msg= CheckALine(pathx, pathy, xmlname, fps, cx, cy, fnos)
         if nobjs > 1:
@@ -89,7 +94,13 @@ def CheckifValidMeteor(jpgname, errf):
             goodmsg = msg
             gtp=totpx
         isgood = isgood + res
-        
+
+    print ('totbri is ', totbri) 
+    # we want to hang on to bright events even if there are issues with the path
+    if totbri > MAXBRI and isgood == 0: 
+        isgood = 1
+        goodmsg=msg   
+
     if isgood == 0:    
         AddToRemoveList(xmlname, errf, movfiles, msg, nobjs, max(bri), tottotpx)
         return False
@@ -118,6 +129,7 @@ def CheckALine(pathx, pathy, xmlname, fps, cx, cy, fnos):
     if  monotonic(pathx)==False and  monotonic(pathy) == False:
         if debug==True:
             print (pathx, pathy)
+            print(np.diff(pathx), np.diff(pathy))
         badline=True
     plen=len(pathx)
     maxg=0
@@ -127,7 +139,7 @@ def CheckALine(pathx, pathy, xmlname, fps, cx, cy, fnos):
             badline=True
 
     # very short paths are stasticially unreliable
-    # very long paths are unrealistic as meteors pretty quick events
+    # very long paths are unrealistic as meteors are pretty quick events
     if plen >= MINLEN and plen <=MAXLEN:
         try:
             cmin, cmax = min(pathx), max(pathx)
@@ -159,13 +171,19 @@ def CheckALine(pathx, pathy, xmlname, fps, cx, cy, fnos):
         # work out the length of the line; very short lines are statistically unreliable
         p1=np.c_[pathx[0],pathy[0]]
         p2=np.c_[pathx[-1],pathy[-1]]
-        dist=np.linalg.norm(p2-p1)
-        vel=dist*2*fps/plen
-        # very low RMS is improbable but lets allow it for now
-        if rms > MAXRMS :
-            msg='plane, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
+        try:
+            dist=np.linalg.norm(p2-p1)
+        except:
+            msg='parallel, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
             return 0, msg
-            #ShowGraph(fname, pathx, pathy, A0, m, msg)
+        vel=dist*2*fps/plen
+        # very low RMS is improbable
+        if rms > MAXRMS :
+            msg='rmshigh, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
+            return 0, msg
+        elif rms < 0.0001 :
+            msg='rmslow, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
+            return 0, msg
         else:
             xm = int(max(pathx))
             if xm > cx/2:
