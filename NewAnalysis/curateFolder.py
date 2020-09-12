@@ -5,10 +5,18 @@ import ReadUFOCapXML
 
 if __name__ == '__main__':
     path = sys.argv[1]
-
     config=cfg.ConfigParser()
-    cfgfile=os.path.join(path, 'testing.ini')
-    config.read(cfgfile)
+
+    # if the argument is an ini file, read from it.
+    # otherwise look for a file testing.ini in the target folder
+    if path[-4:]=='.ini':
+        cfgfile=path
+        config.read(cfgfile)
+        path=config['camera']['localfolder']
+    else:
+        cfgfile=os.path.join(path, 'testing.ini')
+        config.read(cfgfile)
+
     cc.badfilepath=config['cleaning']['badfolder']
     logfilepath=cc.badfilepath
     cc.MAXRMS=float(config['cleaning']['maxrms'])
