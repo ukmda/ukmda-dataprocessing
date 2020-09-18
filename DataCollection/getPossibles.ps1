@@ -34,17 +34,26 @@ conda activate $rms_env
 $srcdir='\\'+$hostname+'\RMS_Share\CapturedFiles\*'+$args[1]+'*'
 $srcdir=(get-childitem $srcdir).fullname
 $targdir=$localfolder+'/Interesting/'+$args[1]
+$arcfil=$localfolder+'/ArchivedFiles/*'+$args[1]+'*/*.fits'
+
 if ((test-path $targdir) -eq $false) { mkdir $targdir | out-null }
 
 Set-Location $srcdir
-$flist=(Get-ChildItem "*.bin").basename
+$flist=(Get-ChildItem "*.bin").basename # all possible events
+$gotlist=(Get-ChildItem $arcfil).basename # list of events already captured
+
 if ($flist.length -gt 0) {
     for ($i=0;$i -lt $flist.length;$i++)
     {
-        $fn=$flist[$i]+".fits"
-        $fn="FF_"+$fn.substring(3)
-        write-output $fn  
-        Copy-Item $fn $targdir
+        $fn="FF_"+$flist[$i].substring(3)
+        if($gotlist -contains $fn){
+            $msg='skipping '+$fn+'.fits'
+            write-output $msg
+        }else{
+            $fn=$fn+".fits"
+            write-output $fn  
+            Copy-Item $fn $targdir
+        }
     }
     Set-Location $rms_loc
     python -m Utils.BatchFFtoImage $targdir jpg
