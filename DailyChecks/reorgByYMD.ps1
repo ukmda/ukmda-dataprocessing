@@ -22,7 +22,8 @@ $srcpath=$localfolder+'\'
 $age=[int]$maxage
 
 $arcpath=$srcpath + '\ConfirmedFiles\'
-if (-not (test-path $arcpath))
+#$numfiles= (dir $arcpath).count
+if (-not (test-path $arcpath) ) #-or $numfiles -eq 0)
 {
     $arcpath=$srcpath + '\ArchivedFiles\'
 }
