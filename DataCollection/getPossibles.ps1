@@ -41,11 +41,13 @@ if ((test-path $targdir) -eq $false) { mkdir $targdir | out-null }
 # if RMS restarts in the night you may have two folders for that night
 for($i=0; $i -lt $srcdirs.count ; $i++)
 {
-    $srcdir=$srcdirs[$i]
+    if($srcdirs.count -eq 1 ){$srcdir=$srcdirs} else { $srcdir=$srcdirs[$i]}
+    
     Set-Location $srcdir
     $flist=(Get-ChildItem "*.bin").basename # all possible events
     $gotlist=(Get-ChildItem $arcfil).basename # list of events already captured
 
+    write-output $srcdir
     if ($flist.length -gt 0) {
         for ($i=0;$i -lt $flist.length;$i++)
         {
