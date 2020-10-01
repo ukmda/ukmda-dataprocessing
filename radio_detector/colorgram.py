@@ -191,7 +191,7 @@ def main(srcpath, targpath, tod) :
 
     # create heatmap for this month
     # named yyyymm.jpg eg 200206.jpg
-    mthdays=calendar.monthrange(int(tod[:4]), int(tod[5:6]))[1]
+    mthdays=calendar.monthrange(int(tod[:4]), int(tod[4:6]))[1]
 
     # read the RMOB file
     myarray= np.zeros((24,mthdays), dtype=int)
