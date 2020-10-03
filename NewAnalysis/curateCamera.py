@@ -1,27 +1,18 @@
-# UKMONLiveLineChecker.py
+# curateCamera.py
 #
 # python script to validate data before uploading to ukon live
 
 import os, sys
 import fnmatch
 import datetime
-import shutil, glob
-import ReadUFOCapXML
-import numpy as np
-Polynomial = np.polynomial.Polynomial
-import configparser as cfg
-#import matplotlib.pyplot as plt
+import shutil
+import glob
 
-badfilepath=''
-MAXRMS=1
-MINLEN=4
-MAXLEN=100
-MAXBRI=1000
-MAXOBJS=20
-MAXGAP=75 # corresponds to 1.5 seconds gap in the meteor trail
-interactive=False
+import configparser as cfg
+import curateEngine as ce
+
 movfiles=False
-debug=False
+useSubfolders=False
 
 def valid_date(s):
     try:
@@ -33,17 +24,20 @@ def valid_date(s):
         return True
     return False
 
-def monotonic(x):
-    dx = abs(np.diff(x))
-    return np.all(dx <= 5)
 
 def AddToRemoveList(fname, errf, movebad=False, msg='', nobjs=0, maxbri=0, tottotpx=0):
     _,fn=os.path.split(fname)
     l=len(fname)
     allf=fname[:l-4]+'*'
     if movebad==True:
+        bfp = badfilepath
+        if useSubfolders == True:
+            typ=msg.split(',')[0]
+            bfp = os.path.join(badfilepath,typ)
+            if os.path.exists(bfp) == False:
+                os.mkdir(bfp)
         for fl in glob.glob(allf):
-            shutil.move(fl, badfilepath)
+            shutil.move(fl, bfp)
     else:
         pass
     msg = msg + ',{:d},{:d}, {:d}'.format(nobjs, int(maxbri), int(tottotpx))
@@ -51,167 +45,6 @@ def AddToRemoveList(fname, errf, movebad=False, msg='', nobjs=0, maxbri=0, totto
     if errf is not None :
         errf.write(fn+ ',' + msg + '\n')
 
-def CheckifValidMeteor(jpgname, errf):
-
-    xmlname = jpgname[:len(jpgname)-5]+".xml"
-    if(os.path.isfile(xmlname) == False):
-        msg='noxml, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(0, 0, 0, 0, 0, 0, 0, 0)
-        AddToRemoveList(xmlname, errf, movfiles, msg, 0, 0, 0)
-        return False
-
-    dd=ReadUFOCapXML.UCXml(xmlname)
-    dd.setMaxGap(25)
-    
-    fps, cx, cy = dd.getCameraDetails()
-    nobjs, objlist = dd.getNumObjs()
-    #print(nobjs, objlist)
-    isgood=0
-    if nobjs==0:
-        msg='nopaths, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(0, 0, 0, 0, 0, 0, 0, 0)
-        AddToRemoveList(xmlname, errf, movfiles, msg, 0, 0, 0)
-        return False
-    if nobjs>MAXOBJS:
-        msg='manyobjs, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(0, 0, 0, 0, 0, 0, 0, 0)
-        AddToRemoveList(xmlname, errf, movfiles, msg, nobjs, 0, 0)
-        return False
-    goodmsg=''
-    gtp=0
-    tottotpx=0
-    totbri=0
-    
-    _,fn=os.path.split(xmlname)
-    for i in range(nobjs):
-        pathx, pathy, bri, pxls, fnos = dd.getPathv2(objlist[i])
-        totpx=sum(pxls)
-        totbri = totbri + sum(bri)
-        tottotpx = tottotpx + totpx
-        res, msg= CheckALine(pathx, pathy, xmlname, fps, cx, cy, fnos)
-        if nobjs > 1:
-            if debug==True:
-                errf.write(fn +',' + msg +'\n')
-            print ('{:s}, {:d}'.format(msg, int(totpx)))
-        if res==1:
-            goodmsg = msg
-            gtp=totpx
-        isgood = isgood + res
-
-    print ('totbri is ', totbri) 
-    # we want to hang on to bright events even if there are issues with the path
-    if totbri > MAXBRI and isgood == 0: 
-        isgood = 1
-        goodmsg=msg   
-
-    if isgood == 0:    
-        AddToRemoveList(xmlname, errf, movfiles, msg, nobjs, max(bri), tottotpx)
-        return False
-    else:
-        goodmsg = goodmsg + ',{:d}, {:d}, {:d}, {:d}'.format(nobjs, int(max(bri)), int(gtp), int(tottotpx))
-        errf.write(fn +',' + goodmsg +'\n')
-        print(fn +',' + goodmsg)
-        return True    
-
-def leastsq1(x, y):
-    a = np.vstack([x, np.ones(len(x))]).T
-    return np.dot(np.linalg.inv(np.dot(a.T, a)), np.dot(a.T, y))
-    
-def CheckALine(pathx, pathy, xmlname, fps, cx, cy, fnos):
-    dist=0
-    app_m=0
-    m=0
-    ym=0
-    xm=0
-    vel=0
-    rms=0
-
-    # we expect meteor paths to be monotonic in X or Y or both
-    # A path that darts about is unlikely to be analysable
-    badline=False
-    if  monotonic(pathx)==False and  monotonic(pathy) == False:
-        if debug==True:
-            print (pathx, pathy)
-            print(np.diff(pathx), np.diff(pathy))
-        badline=True
-    plen=len(pathx)
-    maxg=0
-    if plen > 1:
-        maxg=int(max(np.diff(fnos)))
-        if maxg > MAXGAP:
-            badline=True
-
-    # very short paths are stasticially unreliable
-    # very long paths are unrealistic as meteors are pretty quick events
-    if plen >= MINLEN and plen <=MAXLEN:
-        try:
-            cmin, cmax = min(pathx), max(pathx)
-            pfit, stats = Polynomial.fit(pathx, pathy, 1, full=True, window=(cmin, cmax),
-                domain=(cmin, cmax))
-            _, m = pfit
-            if (pathx[-1]-pathx[0]) !=0:
-                app_m = (pathy[-1]-pathy[0])/(pathx[-1]-pathx[0])
-            resid, _, _, _ = stats
-            rms = np.sqrt(resid[0]/len(pathx))
-
-            # if the line is nearly vertical, a fit of y wil be a poor estimate
-            # so before discarding the data, try swapping the axes
-            if rms > MAXRMS:
-                cmin, cmax = min(pathy), max(pathy)
-                pfit, stats = Polynomial.fit(pathy, pathx, 1, full=True, window=(cmin, cmax),
-                    domain=(cmin, cmax))
-                _, m = pfit
-                resid, _, _, _ = stats
-                rms2 = np.sqrt(resid[0]/len(pathy))
-                if (pathy[-1]-pathy[0]) != 0:
-                    app_m = (pathx[-1]-pathx[0])/(pathy[-1]-pathy[0])
-                rms2 = min(rms2, rms)
-                rms = min(rms2,rms)
-        except:
-            msg='fitfail, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
-            return 0, msg
-
-        # work out the length of the line; very short lines are statistically unreliable
-        p1=np.c_[pathx[0],pathy[0]]
-        p2=np.c_[pathx[-1],pathy[-1]]
-        try:
-            dist=np.linalg.norm(p2-p1)
-        except:
-            msg='parallel, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
-            return 0, msg
-        vel=dist*2*fps/plen
-        # very low RMS is improbable
-        if rms > MAXRMS :
-            msg='rmshigh, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
-            return 0, msg
-        elif rms < 0.0001 :
-            msg='rmslow, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
-            return 0, msg
-        else:
-            xm = int(max(pathx))
-            if xm > cx/2:
-                xm = int(min(pathx))
-            ym = int(min(pathy))
-            if ym > cy/2:
-                ym = int(min(pathy))
-            if dist < 10 and vel < 100 :
-                msg='flash, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
-                return 0, msg
-            else:
-                if badline == True: 
-                    msg='badline, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
-                    return 0, msg
-                else:
-                    msg='meteor, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, xm, ym, m, app_m, dist, vel, maxg)
-                    return 1, msg
-    else:
-        if badline==True:
-            msg='badline, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, int(xm), int(ym),m, app_m, dist, vel, maxg)
-        else:
-            if plen < MINLEN:
-                msg='flash, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, int(xm), int(ym),m, app_m, dist, vel, maxg)
-            else:
-                msg='toolong, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), rms, int(xm), int(ym),m, app_m, dist, vel, maxg)
-        return 0, msg
-    msg='flash, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:d}'.format(len(pathx), 0,0,0,0,0,0,0, maxg)
-    return 0, msg
 
 def ProcessADay(path, ymd, badfilepath, logfilepath):
     try: 
@@ -226,7 +59,17 @@ def ProcessADay(path, ymd, badfilepath, logfilepath):
         if fnmatch.fnmatch(entry, pattern):
             x=entry.find('UK00')
             if x== -1 :
-                CheckifValidMeteor(os.path.join(path, entry), errf)
+                jpgname = os.path.join(path, entry)
+                xmlname = jpgname[:len(jpgname)-5]+".xml"
+                sts, msg, nobjs, maxbri, gtp, tottotpx = ce.CheckifValidMeteor(xmlname)
+                if sts == False:
+                    AddToRemoveList(xmlname, errf, movfiles, msg, nobjs, maxbri, tottotpx)
+                else:
+                    msg = msg + ',{:d},{:d}, {:d}'.format(nobjs, int(maxbri), int(tottotpx))
+                    _,fn = os.path.split(xmlname)
+                    print(fn + "," + msg)
+                    if errf is not None :
+                        errf.write(fn+ ',' + msg + '\n')
     errf.close()
     return
 
@@ -245,18 +88,22 @@ if __name__ == '__main__':
             srcpath=config['camera']['localfolder']
             badfilepath=config['cleaning']['badfolder']
             logfilepath=badfilepath
-            MAXRMS=float(config['cleaning']['maxrms'])
-            MINLEN=int(config['cleaning']['minlen'])
-            MAXLEN=int(config['cleaning']['maxlen'])
-            MAXOBJS=int(config['cleaning']['maxobjs'])
+            ce.logname='Curator: '
+            ce.MAXRMS=float(config['cleaning']['maxrms'])
+            ce.MINLEN=int(config['cleaning']['minlen'])
+            ce.MAXLEN=int(config['cleaning']['maxlen'])
+            ce.MAXBRI=int(config['cleaning']['maxbri'])
+            ce.MAXOBJS=int(config['cleaning']['maxobjs'])
             if config['cleaning']['debug'] in ['True', 'TRUE','true']:
-                debug=True
+                ce.debug=True
             else:
-                debug=False
+                ce.debug=False
             if config['cleaning']['movefiles'] in ['True', 'TRUE','true']:
                 movfiles=True
+            if config['cleaning']['useSubfolders'] in ['True', 'TRUE','true']:
+                useSubfolders=True
             else:
-                movfiles=False
+                useSubfolders=False
                 
             yyyy=ymd[:4]
             yymm=ymd[:6]
