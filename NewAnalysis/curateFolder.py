@@ -1,5 +1,6 @@
 import os, sys
 import curateCamera as cc
+import curateEngine as ce
 import configparser as cfg
 import ReadUFOCapXML
 
@@ -19,16 +20,16 @@ if __name__ == '__main__':
 
     cc.badfilepath=config['cleaning']['badfolder']
     logfilepath=cc.badfilepath
-    cc.MAXRMS=float(config['cleaning']['maxrms'])
-    cc.MINLEN=int(config['cleaning']['minlen'])
-    cc.MAXLEN=int(config['cleaning']['maxlen'])
-    cc.MAXBRI=int(config['cleaning']['maxbri'])
-    cc.MAXOBJS=int(config['cleaning']['maxobjs'])
+    ce.MAXRMS=float(config['cleaning']['maxrms'])
+    ce.MINLEN=int(config['cleaning']['minlen'])
+    ce.MAXLEN=int(config['cleaning']['maxlen'])
+    ce.MAXBRI=int(config['cleaning']['maxbri'])
+    ce.MAXOBJS=int(config['cleaning']['maxobjs'])
     print(config['cleaning']['debug'])
     if config['cleaning']['debug'] in ['True', 'TRUE','true']:
-        cc.debug=True
+        ce.debug=True
     else:
-        cc.debug=False
+        ce.debug=False
     if config['cleaning']['movefiles'] in ['True', 'TRUE','true']:
         cc.movfiles=True
     else:
@@ -38,9 +39,7 @@ if __name__ == '__main__':
         cc.useSubfolders=True
     else:
         cc.useSubfolders=False
-#    cc.maxrms=1
-#    cc.debug = False
+
     print('Processing '+path+'; cc.movefiles='+str(cc.movfiles))
-    print( cc.MAXOBJS,    cc.MAXRMS,     cc.MINLEN, cc.debug) 
 
     cc.ProcessADay(path, '*', cc.badfilepath, logfilepath)
