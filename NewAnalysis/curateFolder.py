@@ -22,6 +22,7 @@ if __name__ == '__main__':
     cc.MAXRMS=float(config['cleaning']['maxrms'])
     cc.MINLEN=int(config['cleaning']['minlen'])
     cc.MAXLEN=int(config['cleaning']['maxlen'])
+    cc.MAXBRI=int(config['cleaning']['maxbri'])
     cc.MAXOBJS=int(config['cleaning']['maxobjs'])
     print(config['cleaning']['debug'])
     if config['cleaning']['debug'] in ['True', 'TRUE','true']:
@@ -33,6 +34,10 @@ if __name__ == '__main__':
     else:
         cc.movfiles=False
 
+    if config['cleaning']['useSubfolders'] in ['True', 'TRUE','true']:
+        cc.useSubfolders=True
+    else:
+        cc.useSubfolders=False
 #    cc.maxrms=1
 #    cc.debug = False
     print('Processing '+path+'; cc.movefiles='+str(cc.movfiles))
