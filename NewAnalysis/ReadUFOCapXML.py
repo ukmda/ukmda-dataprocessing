@@ -134,12 +134,12 @@ class UCXml:
             else:
                 p=uc['uc_path'][i]
             ono=int(p['@ono'])
-            npx=int(p['@pixel']) # ignore very small changes in pixel count
+            npx=int(p['@pixel']) 
             fno=int(p['@fno']) 
             if pfno == 0:
                 pfno = fno
             fdiff = fno-pfno
-            if ono == objno and npx > 3 and fdiff < self.MAXGAP:
+            if ono == objno  and fdiff < self.MAXGAP: # and npx > 3:
             # its possible for one path to include two events
             # at different times. This is a UFO feature...
                 pathx[j]=p['@x']
