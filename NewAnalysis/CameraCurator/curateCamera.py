@@ -10,10 +10,13 @@ import shutil
 import glob
 
 import configparser as cfg
+
+import CameraCurator  # noqa: F401
 from CameraCurator import curateEngine as ce
 
 movfiles = False
 useSubfolders = False
+badfilepath = ''
 
 
 def valid_date(s):
@@ -76,6 +79,46 @@ def ProcessADay(path, ymd, badfilepath, logfilepath):
     return
 
 
+def main(infname, ymd):
+    if valid_date(ymd) is True:
+        config = cfg.ConfigParser()
+        config.read(infname)
+        srcpath = config['camera']['localfolder']
+        badfilepath = config['cleaning']['badfolder']
+        logfilepath = badfilepath
+        ce.logname = 'Curator: '
+        ce.MAXRMS = float(config['cleaning']['maxrms'])
+        ce.MINLEN = int(config['cleaning']['minlen'])
+        ce.MAXLEN = int(config['cleaning']['maxlen'])
+        ce.MAXBRI = int(config['cleaning']['maxbri'])
+        ce.MAXOBJS = int(config['cleaning']['maxobjs'])
+
+        if config['cleaning']['debug'] in ['True', 'TRUE', 'true']:
+            ce.debug = True
+        else:
+            ce.debug = False
+        if config['cleaning']['movefiles'] in ['True', 'TRUE', 'true']:
+            movfiles = True
+        if config['cleaning']['useSubfolders'] in ['True', 'TRUE', 'true']:
+            useSubfolders = True  # noqa: F841
+
+        yyyy = ymd[:4]
+        yymm = ymd[:6]
+        path = os.path.join(srcpath, yyyy, yymm, ymd)
+        try:
+            os.mkdir(badfilepath)
+        except:
+            pass
+        try:
+            os.mkdir(logfilepath)
+        except:
+            pass
+        print('Processing ' + ymd + '; movefiles=' + str(movfiles))
+        ProcessADay(path, ymd, badfilepath, logfilepath)
+    else:
+        print('Invalid date, must be YYYYMMDD')
+
+
 if __name__ == '__main__':
     if len(sys.argv) < 3:
         print('\nusage: python curateCamera.py camera_name yyyymmdd')
@@ -85,41 +128,4 @@ if __name__ == '__main__':
         # args should be id yyyymmdd
         infname = sys.argv[1]
         ymd = sys.argv[2]
-        if valid_date(ymd) is True:
-            config = cfg.ConfigParser()
-            config.read(infname)
-            srcpath = config['camera']['localfolder']
-            badfilepath = config['cleaning']['badfolder']
-            logfilepath = badfilepath
-            ce.logname = 'Curator: '
-            ce.MAXRMS = float(config['cleaning']['maxrms'])
-            ce.MINLEN = int(config['cleaning']['minlen'])
-            ce.MAXLEN = int(config['cleaning']['maxlen'])
-            ce.MAXBRI = int(config['cleaning']['maxbri'])
-            ce.MAXOBJS = int(config['cleaning']['maxobjs'])
-            if config['cleaning']['debug'] in ['True', 'TRUE', 'true']:
-                ce.debug = True
-            else:
-                ce.debug = False
-            if config['cleaning']['movefiles'] in ['True', 'TRUE', 'true']:
-                movfiles = True
-            if config['cleaning']['useSubfolders'] in ['True', 'TRUE', 'true']:
-                useSubfolders = True
-            else:
-                useSubfolders = False
-
-            yyyy = ymd[:4]
-            yymm = ymd[:6]
-            path = os.path.join(srcpath, yyyy, yymm, ymd)
-            try:
-                os.mkdir(badfilepath)
-            except:
-                pass
-            try:
-                os.mkdir(logfilepath)
-            except:
-                pass
-            print('Processing ' + ymd + '; movefiles=' + str(movfiles))
-            ProcessADay(path, ymd, badfilepath, logfilepath)
-        else:
-            print('Invalid date, must be YYYYMMDD')
+        main(infname, ymd)
