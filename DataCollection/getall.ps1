@@ -25,10 +25,10 @@ $dt=(get-date).adddays(-1).tostring('yyyyMMdd')
 write-output "processing $dt" | tee-object $logf -append
 
 write-output "processing $dt TC" | tee-object $logf -append
-$res = python .\curateCamera.py .\tackley_tc.ini $dt
+$res = python .\curateUFO.py .\tackley_tc.ini $dt
 write-output $res | tee-object $logf -append
 write-output "processing $dt NE" | tee-object $logf -append
-$res = python .\curateCamera.py .\tackley_ne.ini $dt
+$res = python .\curateUFO.py .\tackley_ne.ini $dt
 write-output $res | tee-object $logf -append
 
 write-output "done" | tee-object $logf -append
