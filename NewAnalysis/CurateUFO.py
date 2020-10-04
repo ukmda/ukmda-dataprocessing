@@ -11,9 +11,20 @@ An example config file is shown below
 import sys
 import six
 from CameraCurator import curateFolder
+from CameraCurator import curateCamera
 
 if __name__ == '__main__':
-    curateFolder.main(sys.argv[1])
+    if len(sys.argv) < 2:
+        print('\nusage: python curateUFO.py inifile optonal_date')
+        print('eg python curateUFO.py tackley_tc.ini 20200712')
+        print('Reads config from an inifile -read example inifile for more info\n')
+    else:
+        if len(sys.argv) == 3:
+            curateCamera.main(sys.argv[1], sys.argv[2])
+        else:
+            curateFolder.main(sys.argv[1])
+
+    
 
 """
 Example config file

@@ -6,6 +6,7 @@ import os
 import sys
 import configparser as cfg
 
+import CameraCurator  # noqa: F401
 from CameraCurator import curateCamera as cc
 from CameraCurator import curateEngine as ce
 
