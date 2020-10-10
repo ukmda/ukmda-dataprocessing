@@ -14,10 +14,6 @@ import configparser as cfg
 import CameraCurator  # noqa: F401
 from CameraCurator import curateEngine as ce
 
-movfiles = False
-useSubfolders = False
-badfilepath = ''
-
 
 def valid_date(s):
     try:
@@ -30,11 +26,12 @@ def valid_date(s):
     return False
 
 
-def AddToRemoveList(fname, errf, movebad=False, msg='', nobjs=0, maxbri=0, tottotpx=0):
+def AddToRemoveList(fname, errf, movebad=False, msg='', nobjs=0, maxbri=0, tottotpx=0, useSubfolders=False, badfilepath='.'):
     _, fn = os.path.split(fname)
     namelen = len(fname)
     allf = fname[:namelen - 4] + '*'
     if movebad is True:
+        print('moving file')
         bfp = badfilepath
         if useSubfolders is True:
             typ = msg.split(',')[0]
@@ -51,7 +48,7 @@ def AddToRemoveList(fname, errf, movebad=False, msg='', nobjs=0, maxbri=0, totto
         errf.write(fn + ',' + msg + '\n')
 
 
-def ProcessADay(path, ymd, badfilepath, logfilepath):
+def ProcessADay(path, ymd, badfilepath, logfilepath, movebad, useSubfolders):
     try:
         listOfFiles = os.listdir(path)
     except:
@@ -68,7 +65,7 @@ def ProcessADay(path, ymd, badfilepath, logfilepath):
                 xmlname = jpgname[:len(jpgname) - 5] + ".xml"
                 sts, msg, nobjs, maxbri, gtp, tottotpx = ce.CheckifValidMeteor(xmlname)
                 if sts is False:
-                    AddToRemoveList(xmlname, errf, movfiles, msg, nobjs, maxbri, tottotpx)
+                    AddToRemoveList(xmlname, errf, movebad, msg, nobjs, maxbri, tottotpx, useSubfolders, badfilepath)
                 else:
                     msg = msg + ',{:d},{:d}, {:d}'.format(nobjs, int(maxbri), int(tottotpx))
                     _, fn = os.path.split(xmlname)
@@ -97,8 +94,10 @@ def main(infname, ymd):
             ce.debug = True
         else:
             ce.debug = False
+        movebad = False
         if config['cleaning']['movefiles'] in ['True', 'TRUE', 'true']:
-            movfiles = True
+            movebad = True
+        useSubfolders = False
         if config['cleaning']['useSubfolders'] in ['True', 'TRUE', 'true']:
             useSubfolders = True  # noqa: F841
 
@@ -113,8 +112,8 @@ def main(infname, ymd):
             os.mkdir(logfilepath)
         except:
             pass
-        print('Processing ' + ymd + '; movefiles=' + str(movfiles))
-        ProcessADay(path, ymd, badfilepath, logfilepath)
+        print('Processing ' + ymd + '; movefiles=' + str(movebad))
+        ProcessADay(path, ymd, badfilepath, logfilepath, movebad, useSubfolders)
     else:
         print('Invalid date, must be YYYYMMDD')
 
