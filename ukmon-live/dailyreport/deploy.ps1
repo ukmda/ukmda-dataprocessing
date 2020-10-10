@@ -13,7 +13,7 @@
 #compress-archive -path .\numpy.libs -destinationpath .\dailyReport.zip -update
 #Move-Item dailyReport.zip ..\dailyreport
 #Set-Location ..\dailyreport
-copy-item ..\..\NewAnalysis\ReadUFOCapXML.py .
+copy-item ..\..\NewAnalysis\UFOHandler\ReadUFOCapXML.py .
 copy-item ..\curate\xmltodict.py .
 compress-archive -path .\*.py -destinationpath .\dailyReport.zip -update
 $env:AWS_DEFAULT_REGION="eu-west-1"
