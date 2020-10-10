@@ -7,6 +7,7 @@ Write-Output "starting to get all data" | tee-object $logf -append
 .\getDataFromCamera.ps1 .\tackley_tc.ini | tee-object $logf -append
 .\getDataFromCamera.ps1 .\UK0006.ini | tee-object $logf -append
 .\getDataFromCamera.ps1 .\UK000F.ini | tee-object $logf -append
+.\getDataFromCamera.ps1 .\UK9999.ini | tee-object $logf -append
 .\getDataFromRadio.ps1 | tee-object $logf -append
 Write-Output "got all data" | tee-object $logf -append
 
