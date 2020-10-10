@@ -33,7 +33,7 @@ def monotonic(x):
 def CheckifValidMeteor(xmlname):
     if(os.path.isfile(xmlname) is False):
         msg = 'noxml, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(0, 0, 0, 0, 0, 0, 0, 0)
-        return False, msg, 0, 0, 0
+        return False, msg, 0, 0, 0, 0
 
     dd = ReadUFOCapXML.UCXml(xmlname)
     dd.setMaxGap(25)
@@ -43,7 +43,11 @@ def CheckifValidMeteor(xmlname):
     isgood = 0
     if nobjs == 0:
         msg = 'nopaths, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(0, 0, 0, 0, 0, 0, 0, 0)
-        return False, msg, 0, 0, 0
+        return False, msg, 0, 0, 0, 0
+
+    if nobjs > MAXOBJS:
+        msg = 'toomany, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(0, 0, 0, 0, 0, 0, 0, 0)
+        return False, msg, 0, 0, 0, 0
     goodmsg = ''
     gtp = 0
     tottotpx = 0
