@@ -75,7 +75,7 @@ class _DictSAXHandler(object):
         i = full_name.rfind(self.namespace_separator)
         if i == -1:
             return full_name
-        namespace, name = full_name[:i], full_name[i+1:]
+        namespace, name = full_name[:i], full_name[i + 1:]
         short_namespace = self.namespaces.get(namespace, namespace)
         if not short_namespace:
             return name
@@ -102,7 +102,7 @@ class _DictSAXHandler(object):
             if self.xml_attribs:
                 attr_entries = []
                 for key, value in attrs.items():
-                    key = self.attr_prefix+self._build_name(key)
+                    key = self.attr_prefix + self._build_name(key)
                     if self.postprocessor:
                         entry = self.postprocessor(self.path, key, value)
                     else:
@@ -405,7 +405,7 @@ def _emit(key, value, content_handler,
             content_handler.ignorableWhitespace(newl)
         for child_key, child_value in children:
             _emit(child_key, child_value, content_handler,
-                  attr_prefix, cdata_key, depth+1, preprocessor,
+                  attr_prefix, cdata_key, depth + 1, preprocessor,
                   pretty, newl, indent, namespaces=namespaces,
                   namespace_separator=namespace_separator)
         if cdata is not None:
