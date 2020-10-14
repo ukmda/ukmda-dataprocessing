@@ -523,3 +523,7 @@ UKMonCPPTools/stacker/test/*
 deploy_*.ps1
 NewAnalysis/deployToAWS.yml
 *.zip
+StandaloneCurator/CameraCurator/*
+StandaloneCurator/UFOHandler/*
+StandaloneCurator/CurateUFO.py
+StandaloneCurator/*.ini
