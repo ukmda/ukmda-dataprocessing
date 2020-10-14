@@ -93,7 +93,8 @@ def LookForMatches(doff, idxfile, idxfile2=None):
 
     # correct RMS timestamps which are 2.4 seconds ahead
     for rw in reldata:
-        if rw['LID'].length > 2:
+        lid = rw['LID']
+        if lid[:3] == 'UK0':
             rw['HMS'] = rw['HMS'] - 2
 
     mailsubj = 'Daily UKMON matches for {:04d}-{:02d}-{:02d}'.format(yest.year, yest.month, yest.day)
