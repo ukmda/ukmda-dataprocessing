@@ -33,8 +33,6 @@ double maxrms = 1.5; // max error in the LSQ fit before the data is discarded. M
 int doFireballs = 1; // whether to upload fireballs
 long minPxls = 200;	 // min pixelcount for a fireball-type event
 
-char VER[] = "V2.3.0.2";
-
 std::ofstream errf;
 
 int Debug = 0;
@@ -69,13 +67,12 @@ int main(int argc, char** argv)
 
 	creds.SetAWSAccessKeyId(theKeys.AccountName_D);
 	creds.SetAWSSecretKey(theKeys.AccountKey_D);
-	clientConfig.region = theKeys.region;
 
 	std::time_t t = std::time(0);   // get time now
 	std::tm* now = std::localtime(&t);
 
 	std::cout << (now->tm_year + 1900) << '-' << (now->tm_mon + 1) << '-' << now->tm_mday << ' ' << now->tm_hour << ":" << now->tm_min << ":" << now->tm_sec;
-	std::cout << " UKMON Live Filewatcher "<< VER <<std::endl <<"Monitoring: " << ProcessingPath << std::endl;
+	std::cout << " UKMON Live Filewatcher "<< VERSIONSTRING <<std::endl <<"Monitoring: " << ProcessingPath << std::endl;
 	std::cout << "ffmpeg location = " << ffmpegPath << std::endl << std::endl;
 	std::cout << "The following checks are in place: " << std::endl;
 	if (framelimit > -1) std::cout << "frame count < " << framelimit << std::endl;
@@ -191,9 +188,9 @@ int main(int argc, char** argv)
 
 							if (gooddata)
 							{
-								put_file(theKeys.BucketName, filename_s, frcount, maxbmax, rms);
+								put_file(theKeys.BucketName, filename_s, frcount, maxbmax, rms, XML);
 								fn.replace(m1, 4, "P.jpg");
-								put_file(theKeys.BucketName, fn.c_str(), frcount, maxbmax, rms);
+								put_file(theKeys.BucketName, fn.c_str(), frcount, maxbmax, rms, JPG);
 								if (pxls > minPxls && doFireballs)
 								{
 									STARTUPINFO si;
@@ -204,9 +201,9 @@ int main(int argc, char** argv)
 
 									std::string bname = fn.substr(0, m1);
 									std::cout << bname << std::endl;
-									wchar_t exe[512] = { 0 };
-									wchar_t cmd[512] = { 0 };
-									char cmd_s[512] = { 0 };
+									wchar_t exe[1024] = { 0 };
+									wchar_t cmd[1024] = { 0 };
+									char cmd_s[1024] = { 0 };
 									SHELLEXECUTEINFO ShExecInfo = { 0 };
 
 									mbstowcs(exe, ffmpegPath, strlen(ffmpegPath));
@@ -228,7 +225,7 @@ int main(int argc, char** argv)
 									CloseHandle(ShExecInfo.hProcess);
 
 									std::string mp4name = bname + ".mp4";
-									put_file(theKeys.BucketName, mp4name.c_str(), frcount, maxbmax, rms);
+									put_file(theKeys.BucketName, mp4name.c_str(), frcount, maxbmax, rms, MP4);
 								}
 							}
 							else
