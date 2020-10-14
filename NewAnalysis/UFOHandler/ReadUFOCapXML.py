@@ -142,7 +142,7 @@ class UCXml:
             else:
                 p = uc['uc_path'][i]
             ono = int(p['@ono'])
-            npx = int(p['@pixel'])
+            # npx = int(p['@pixel'])
             fno = int(p['@fno'])
             if pfno == 0:
                 pfno = fno
