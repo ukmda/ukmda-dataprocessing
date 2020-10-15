@@ -510,7 +510,8 @@ M*.xml
 ukmon-live/curate/numpy/**
 ukmon-live/curate/pytz/**
 ukmon-live/curate/numpy.libs/**
-ukmon-live/curate/ReadUFO*
+ukmon-live/curate/UFOHandler/*
+ukmon-live/curate/curateEngine*
 notshared/**
 NewAnalysis/test_data/platepar/platepar_cmn2010_ne.cal
 NewAnalysis/test_data/platepar/skyFit_latest.state
