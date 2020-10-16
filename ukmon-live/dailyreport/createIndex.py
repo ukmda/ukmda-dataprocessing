@@ -1,39 +1,36 @@
 # create an initial index file for the ukmon-live stream
 #
 import os
-# import sys
-# import fnmatch
 import datetime
 import math
 import boto3
-import numpy as np
-# sys.path.append('../curate')
+# import numpy as np
 import ReadUFOCapXML
-Polynomial = np.polynomial.Polynomial
+# Polynomial = np.polynomial.Polynomial
 
 
 def AddToIndex(fname, idxfile, pth):
     dd = ReadUFOCapXML.UCXml(os.path.join(pth, fname))
     pathx, pathy, bri, _ = dd.getPath()
     bri = max(bri)
-    rms = 0
-    if(len(pathx) > 3):
-        rms = 0
-        cmin, cmax = min(pathx), max(pathx)
-        _, stats = Polynomial.fit(pathx, pathy, 1, full=True, window=(cmin, cmax),
-            domain=(cmin, cmax))
-        resid, _, _, _ = stats
-        rms = np.sqrt(resid[0] / len(pathx))
-        if rms > 1:
-            cmin, cmax = min(pathy), max(pathy)
-            _, stats = Polynomial.fit(pathy, pathx, 1, full=True, window=(cmin, cmax),
-                domain=(cmin, cmax))
-            resid, _, _, _ = stats
-            rms2 = np.sqrt(resid[0] / len(pathy))
-            rms = min(rms2, rms)
-    else:
-        rms = 0
-        bri = 0
+    rms = 0  # not calculating this any more
+#    if(len(pathx) > 3):
+#        rms = 0
+#        cmin, cmax = min(pathx), max(pathx)
+#        _, stats = Polynomial.fit(pathx, pathy, 1, full=True, window=(cmin, cmax),
+#            domain=(cmin, cmax))
+#        resid, _, _, _ = stats
+#        rms = np.sqrt(resid[0] / len(pathx))
+#        if rms > 1:
+#            cmin, cmax = min(pathy), max(pathy)
+#            _, stats = Polynomial.fit(pathy, pathx, 1, full=True, window=(cmin, cmax),
+#                domain=(cmin, cmax))
+#            resid, _, _, _ = stats
+#            rms2 = np.sqrt(resid[0] / len(pathy))
+#            rms = min(rms2, rms)
+#    else:
+#        rms = 0
+#        bri = 0
 
     dmy = fname[1:9]
     hms = fname[10:16]
