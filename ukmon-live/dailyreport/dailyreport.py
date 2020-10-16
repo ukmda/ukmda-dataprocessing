@@ -7,9 +7,6 @@ import boto3
 from botocore.exceptions import ClientError
 import numpy
 import math
-# import botocore
-# from urllib.parse import unquote_plus
-# import csv
 import createIndex
 
 idxtype = numpy.dtype([('YMD', 'i4'), ('HMS', 'i4'), ('SID', 'S16'), ('LID', 'S6'),
@@ -43,12 +40,12 @@ def AddBlank(body, bodytext):
 
 
 def addFooter(body, bodytext):
-    brim = 'Bright = max brightnes recorded by UFO '
-    rmsm = 'RMS = residual error in straight line fit to the meteor path'
-    pim = 'Note: Bright and RMS not available for Pi cameras'
+    brim = 'Bright = max brightness recorded by UFO '
+    # rmsm = 'RMS = residual error in straight line fit to the meteor path'
+    pim = 'Note: Brightness not available for Pi cameras'
     fbm = 'Seen a fireball? <a href=https://ukmeteornetwork.co.uk/fireball-report/>Click here</a> to report it'
-    body = body + '</table><br><br>\n' + brim + '<br>' + rmsm + '<br>' + pim + '<br><br>' + fbm + '<br>'
-    bodytext = bodytext + '\n' + brim + '\n' + rmsm + '\n' + '\n' + pim + '\n' + fbm + '\n'
+    body = body + '</table><br><br>\n' + brim + '<br>' + pim + '<br><br>' + fbm + '<br>'
+    bodytext = bodytext + '\n' + brim + '\n' + '\n' + pim + '\n' + fbm + '\n'
     return body, bodytext
 
 
@@ -67,8 +64,8 @@ def AddRow(body, bodytext, ele):
     lnkstr = lnkpath.format(ymd, hms, sid, lid)
     hmss = '{:06d}'.format(hms)
     ymds = str(ymd)[:4] + '-' + str(ymd)[4:6] + '-' + str(ymd)[6:8] + 'T' + hmss[:2] + ':' + hmss[2:4] + ':' + hmss[4:6] + 'Z'
-    str1 = '<tr><td>{:s}</td><td>{:s}</td><td><a href={:s}>{:s}</a></td><td>{:.1f}</td><td>{:.1f}</td></tr>'.format(sid, lid,
-        lnkstr, ymds, bri, rms)
+    str1 = '<tr><td>{:s}</td><td>{:s}</td><td><a href={:s}>{:s}</a></td><td>{:.1f}</td></tr>'.format(sid, lid,
+        lnkstr, ymds, bri)
     str2 = '{:16s} {:6s} {:s} Bri={:.1f} RMS={:.1f}'.format(sid, lid, ymds, bri, rms)
     body = body + str1 + '\n'
     bodytext = bodytext + str2 + '\n'
@@ -175,12 +172,16 @@ def sendMail(subj, body, bodytext):
         AWS_REGION = 'eu-west-1'
     CHARSET = "UTF-8"
 
-    try:
-        recs = os.environ['RECIPS']
-        RECIPIENT = recs.split(';')
-        print('DailyCheck: ', RECIPIENT)
-    except:
+    deb = os.environ['DEBUG']
+    if deb in ['True', 'TRUE', 'true']:
         RECIPIENT = ['mark.jm.mcintyre@cesmail.net', 'mjmm456@gmail.com']
+    else:
+        try:
+            recs = os.environ['RECIPS']
+            RECIPIENT = recs.split(';')
+            print('DailyCheck: ', RECIPIENT)
+        except:
+            RECIPIENT = ['mark.jm.mcintyre@cesmail.net', 'mjmm456@gmail.com']
 
     client = boto3.client('ses', region_name=AWS_REGION)
     try:
