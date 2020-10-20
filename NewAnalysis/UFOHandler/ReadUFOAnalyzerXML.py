@@ -1,11 +1,13 @@
-# A class to handle UFO Analyser xml files
-#
-# disable some linter warnings
-# flake8: noqa: E501, E302
+#  A class to handle UFO Analyser xml files
 
-import xmltodict 
+import sys
+import xmltodict
+import datetime
+import math
+import numpy
 
-class UAXml: 
+
+class UAXml:
     def __init__(self, fname):
         """Construct the object from a filename
 
@@ -13,15 +15,26 @@ class UAXml:
             fname string -- The full path and filename to the XML file
         """
         with open(fname) as fd:
-            self.uaxml=xmltodict.parse(fd.read())
+            self.uaxml = xmltodict.parse(fd.read())
+
+    def getDateTime(self):
+        y, m, d = UAXml.getDateYMD(self)
+        h, mi, s = UAXml.getTimeHMS(self)
+        ss = int(math.floor(s))
+        ms = int((s - ss) * 1000000)
+
+        dtim = datetime.datetime(y, m, d, h, mi, ss, ms)
+        return dtim
+
     def getDate(self):
         """ Get the event date as an int
 
         Returns:
             int -- date as YYYYMMDD
         """
-        ur=self.uaxml['ufoanalyzer_record']
-        return int(ur['@y'])*10000 + int(ur['@mo'])*100 +int(ur['@d'])
+        ur = self.uaxml['ufoanalyzer_record']
+        return int(ur['@y']) * 10000 + int(ur['@mo']) * 100 + int(ur['@d'])
+
     def getDateYMD(self):
         """Get the event date as a tuple y,n,d
 
@@ -30,18 +43,18 @@ class UAXml:
             int -- month
             int -- day
         """
-        yr= int(self.uaxml['ufoanalyzer_record']['@y'])
+        yr = int(self.uaxml['ufoanalyzer_record']['@y'])
         mo = int(self.uaxml['ufoanalyzer_record']['@mo'])
         dy = int(self.uaxml['ufoanalyzer_record']['@d'])
-        return yr,mo,dy
-    def getDateStr(self):
-        """get the event date as a string 
+        return yr, mo, dy
 
+    def getDateStr(self):
+        """get the event date as a string
         Returns:
             string -- YYYY-MM-DD
         """
-        ur=self.uaxml['ufoanalyzer_record']
-        return ur['@y']+"-"+ur['@mo']+"-"+ur['@d']
+        ur = self.uaxml['ufoanalyzer_record']
+        return ur['@y'] + "-" + ur['@mo'] + "-" + ur['@d']
 
     def getTime(self):
         """Get the time as a number of seconds since midnight
@@ -49,16 +62,18 @@ class UAXml:
         Returns:
             int -- secs
         """
-        ur=self.uaxml['ufoanalyzer_record']
-        return int(ur['@h'])*3600 + int(ur['@m'])*60 +float(ur['@s'])
+        ur = self.uaxml['ufoanalyzer_record']
+        return int(ur['@h']) * 3600 + int(ur['@m']) * 60 + float(ur['@s'])
+
     def getTimeStr(self):
         """Get time as a string
 
         Returns:
             string -- hh:mm:ss.sss
         """
-        ur=self.uaxml['ufoanalyzer_record']
-        return ur['@h'] +":"+ ur['@m']+":" +ur['@s']
+        ur = self.uaxml['ufoanalyzer_record']
+        return ur['@h'] + ":" + ur['@m'] + ":" + ur['@s']
+
     def getTimeHMS(self):
         """Get time as H,M and S
 
@@ -69,8 +84,8 @@ class UAXml:
         """
         h = int(self.uaxml['ufoanalyzer_record']['@h'])
         m = int(self.uaxml['ufoanalyzer_record']['@m'])
-        s =  float(self.uaxml['ufoanalyzer_record']['@s'])
-        return h,m,s
+        s = float(self.uaxml['ufoanalyzer_record']['@s'])
+        return h, m, s
 
     def getCameraDetails(self):
         """Get basic camera details
@@ -81,9 +96,10 @@ class UAXml:
             float -- vertical resolution cy
         """
         fps = float(self.uaxml['ufoanalyzer_record']['@fps'])
-        cx  = float(self.uaxml['ufoanalyzer_record']['@cx'])
-        cy  = float(self.uaxml['ufoanalyzer_record']['@cy'])
-        return fps,cx,cy
+        cx = float(self.uaxml['ufoanalyzer_record']['@cx'])
+        cy = float(self.uaxml['ufoanalyzer_record']['@cy'])
+        isintl = int(self.uaxml['ufoanalyzer_record']['@interlaced'])
+        return fps, cx, cy, isintl
 
     def getStationDetails(self):
         """Get station details
@@ -96,9 +112,9 @@ class UAXml:
             float -- longitude (W negative)
             float -- altitude (metres)
         """
-        sta = self.uaxml['ufoanalyzer_record']['@lid'] + "_"+self.uaxml['ufoanalyzer_record']['@sid']
+        sta = self.uaxml['ufoanalyzer_record']['@lid'] + "_" + self.uaxml['ufoanalyzer_record']['@sid']
         lid = self.uaxml['ufoanalyzer_record']['@lid']
-        sid =  self.uaxml['ufoanalyzer_record']['@sid']
+        sid = self.uaxml['ufoanalyzer_record']['@sid']
         lat = float(self.uaxml['ufoanalyzer_record']['@lat'])
         lng = float(self.uaxml['ufoanalyzer_record']['@lng'])
         alt = float(self.uaxml['ufoanalyzer_record']['@alt'])
@@ -113,14 +129,14 @@ class UAXml:
             float -- yx, dz, dy (some fit parameters)
             float -- number of linked stars
         """
-        az  = float(self.uaxml['ufoanalyzer_record']['@az'])
-        ev  = float(self.uaxml['ufoanalyzer_record']['@ev'])
+        az = float(self.uaxml['ufoanalyzer_record']['@az'])
+        ev = float(self.uaxml['ufoanalyzer_record']['@ev'])
         rot = float(self.uaxml['ufoanalyzer_record']['@rot'])
-        fovh= float(self.uaxml['ufoanalyzer_record']['@vx'])
+        fovh = float(self.uaxml['ufoanalyzer_record']['@vx'])
         yx = float(self.uaxml['ufoanalyzer_record']['@yx'])
         dx = float(self.uaxml['ufoanalyzer_record']['@dx'])
         dy = float(self.uaxml['ufoanalyzer_record']['@dy'])
-        lnk= float(self.uaxml['ufoanalyzer_record']['@dl'])
+        lnk = float(self.uaxml['ufoanalyzer_record']['@dl'])
         return az, ev, rot, fovh, yx, dx, dy, lnk
 
     def getObjectCount(self):
@@ -145,12 +161,12 @@ class UAXml:
             float -- magnitude estimate
             int -- number of frames with a moving object in
         """
-        uos=self.uaxml['ufoanalyzer_record']['ua2_objects']
+        uos = self.uaxml['ufoanalyzer_record']['ua2_objects']
         oc = int(self.uaxml['ufoanalyzer_record']['@o'])
-        if oc == 1 : 
-            uo=uos['ua2_object']
+        if oc == 1:
+            uo = uos['ua2_object']
         else:
-            uo=uos['ua2_object'][objno]
+            uo = uos['ua2_object'][objno]
         sec = float(uo['@sec'])
         av = float(uo['@av'])
         pix = int(uo['@pix'])
@@ -168,18 +184,18 @@ class UAXml:
         Returns:
             floats - ra, dec, height, distance, latitude and longitude
         """
-        uos=self.uaxml['ufoanalyzer_record']['ua2_objects']
+        uos = self.uaxml['ufoanalyzer_record']['ua2_objects']
         oc = int(self.uaxml['ufoanalyzer_record']['@o'])
-        if oc == 1 : 
-            uo=uos['ua2_object']
+        if oc == 1:
+            uo = uos['ua2_object']
         else:
-            uo=uos['ua2_object'][objno]
+            uo = uos['ua2_object'][objno]
         ra1 = uo['@ra1']
         dc1 = uo['@dc1']
-        h1  = uo['@h1']
-        dist1= uo['@dist1']
-        lng1= uo['@lng1']
-        lat1= uo['@lat1']
+        h1 = uo['@h1']
+        dist1 = uo['@dist1']
+        lng1 = uo['@lng1']
+        lat1 = uo['@lat1']
         return ra1, dc1, h1, dist1, lng1, lat1
 
     def getObjectEnd(self, objno):
@@ -191,70 +207,109 @@ class UAXml:
         Returns:
             floats - ra, dec, height, distance, latitude and longitude
         """
-        uos=self.uaxml['ufoanalyzer_record']['ua2_objects']
+        uos = self.uaxml['ufoanalyzer_record']['ua2_objects']
         oc = int(self.uaxml['ufoanalyzer_record']['@o'])
-        if oc == 1 : 
-            uo=uos['ua2_object']
+        if oc == 1:
+            uo = uos['ua2_object']
         else:
-            uo=uos['ua2_object'][objno]
+            uo = uos['ua2_object'][objno]
         ra2 = uo['@ra2']
         dc2 = uo['@dc2']
-        h2  = uo['@h2']
-        dist2= uo['@dist2']
-        lng2= uo['@lng2']
-        lat2= uo['@lat2']
+        h2 = uo['@h2']
+        dist2 = uo['@dist2']
+        lng2 = uo['@lng2']
+        lat2 = uo['@lat2']
         return ra2, dc2, h2, dist2, lng2, lat2
 
     def getObjectFrameDetails(self, objno, fno):
-        """Get details of a specific frame 
+        """Get details of a specific frame
 
         Arguments:
             objno int -- object number
-            fno int -- frame number 
+            fno int -- frame number
 
         Returns:
             float -- frame no,ra, dec, magnitude, az, ev, total brightness
             int -- b
         """
-        uos=self.uaxml['ufoanalyzer_record']['ua2_objects']
+        uos = self.uaxml['ufoanalyzer_record']['ua2_objects']
         oc = int(self.uaxml['ufoanalyzer_record']['@o'])
-        if oc == 1 : 
-            uo=uos['ua2_object']
+        if oc == 1:
+            uo = uos['ua2_object']
         else:
-            uo=uos['ua2_object'][objno]
-        uop=uo['ua2_objpath']['ua2_fdata2'][fno]
+            uo = uos['ua2_object'][objno]
+        uop = uo['ua2_objpath']['ua2_fdata2'][fno]
         fno = int(uop['@fno'])
-        b    = int(uop['@b'])
+        b = int(uop['@b'])
         lsum = float(uop['@Lsum'])
         mag = float(uop['@mag'])
-        az  = float(uop['@az'])
-        ev  = float(uop['@ev'])
-        ra  = float(uop['@ra'])
-        dec  = float(uop['@dec'])
+        az = float(uop['@az'])
+        ev = float(uop['@ev'])
+        ra = float(uop['@ra'])
+        dec = float(uop['@dec'])
         return fno, ra, dec, mag, az, ev, lsum, b
 
+    def getPathVector(self, objno, equat=True):
+        fps, _, _, isintl = UAXml.getCameraDetails(self)
+        dtim = UAXml.getDateTime(self)
+
+        uos = self.uaxml['ufoanalyzer_record']['ua2_objects']
+        oc = UAXml.getObjectCount(self)
+        if oc == 1:
+            uo = uos['ua2_object']
+        else:
+            uo = uos['ua2_object'][objno]
+        fcount = int(uo['@sN'])
+        fno = numpy.zeros(fcount)
+        ra = numpy.zeros(fcount)
+        dec = numpy.zeros(fcount)
+        tt = numpy.zeros(fcount)
+        mag = numpy.zeros(fcount)
+        for fc in range(fcount):
+            uop = uo['ua2_objpath']['ua2_fdata2'][fc]
+            fno[fc] = int(uop['@fno'])
+            if equat == 1:
+                ra[fc] = float(uop['@ra'])
+                dec[fc] = float(uop['@dec'])
+            else:
+                ra[fc] = float(uop['@az'])
+                dec[fc] = float(uop['@ev'])
+            mag[fc] = float(uop['@mag'])
+
+            # UFO timestamps the 32nd frame for unknown reasons
+            us = int((fno[fc]-32) / fps * 1000000)
+            tt[fc] = round((dtim + datetime.timedelta(microseconds=us)).timestamp(), 2)
+        return fno, tt, ra, dec, mag, fcount
+
+
 if __name__ == '__main__':
-    dd=UAXml('test_data/M20200427_201548_TACKLEY_NEA.XML')
+    dd = UAXml(sys.argv[1])
 
-    y,m,d = dd.getDateYMD()
-    h,mi,s = dd.getTimeHMS()
-    print ('date and time', y,m,d,h,mi,s)
+    dtim = dd.getDateTime()
 
-    station, lid, sid, lat, lng,alti=dd.getStationDetails()
-    fps, cx, cy = dd.getCameraDetails()
+    station, lid, sid, lat, lng, alti = dd.getStationDetails()
+    fps, cx, cy, isintl = dd.getCameraDetails()
     print('location', station, lat, lng, alti)
-    print('camera', fps, cx, cy)
-    az, ev, rot, fovh, yx, dx, dy, lnk=dd.getProfDetails()
-    print('profile',az, ev, rot, fovh, yx, dx, dy, lnk)
+    print('date ', dtim, '\nand path')
+    if isintl == 1:
+        fps = fps * 2
+    # print('camera', fps, cx, cy)
+    # az, ev, rot, fovh, yx, dx, dy, lnk = dd.getProfDetails()
+    # print('profile', az, ev, rot, fovh, yx, dx, dy, lnk)
 
     nobjs = dd.getObjectCount()
     for i in range(nobjs):
-        sec, av, pix, bmax, mag, fcount=dd.getObjectBasics(i)
-        ra1, dc1, h1, dist1, lng1, lat1 = dd.getObjectStart(i)
-        ra2, dc2, h2, dist2, lng2, lat2 = dd.getObjectEnd(i)
-        print(sec, ra1, dc1, h1, dist1, lng1, lat1, ra2, dc2, h2, dist2, lng2, lat2)
-        print (fcount)
-        print ('fno', 'ra', 'dec', 'mag', 'az', 'ev', 'lsum', 'b')
+        # sec, av, pix, bmax, mag, fcount = dd.getObjectBasics(i)
+        # ra1, dc1, h1, dist1, lng1, lat1 = dd.getObjectStart(i)
+        # ra2, dc2, h2, dist2, lng2, lat2 = dd.getObjectEnd(i)
+        # print(sec, ra1, dc1, h1, dist1, lng1, lat1, ra2, dc2, h2, dist2, lng2, lat2)
+        # print(fcount)
+        # print('fno', 'ra', 'dec', 'mag', 'az', 'ev', 'lsum', 'b')
+        # for j in range(fcount):
+        #     fno, ra, dec, mag, az, ev, lsum, b = dd.getObjectFrameDetails(i, j)
+        #     us = int(fno / fps * 1000000)
+        #     tt = dtim + datetime.timedelta(microseconds=us)
+        #     print(tt, fno, ra, dec, mag, az, ev, lsum, b)
+        fno, tt, ra, dec, fcount = dd.getPathVector(i)
         for j in range(fcount):
-            fno, ra, dec, mag, az, ev, lsum, b = dd.getObjectFrameDetails(i,j)
-            print (fno, ra, dec, mag, az, ev, lsum, b)
+            print(datetime.datetime.fromtimestamp(tt[j]), ra[j], dec[j], fno[j])
