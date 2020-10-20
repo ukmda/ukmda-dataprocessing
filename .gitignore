@@ -528,3 +528,6 @@ StandaloneCurator/CameraCurator/*
 StandaloneCurator/UFOHandler/*
 StandaloneCurator/CurateUFO.py
 StandaloneCurator/*.ini
+NewAnalysis/*.png
+NewAnalysis/*.pickle
+NewAnalysis/*.txt
