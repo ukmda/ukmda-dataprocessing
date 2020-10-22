@@ -18,7 +18,7 @@ conda activate binviewer
 $env:VS90COMNTOOLS='C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\'
 
 
-$pwd = Get-Location
+$curdir = Get-Location
 $targ = $args[0]
 $src = $targ.substring($targ.lastindexof('UK'))
 
@@ -41,4 +41,4 @@ if ($nfits -gt 1)
     python -m Utils.StackFFs $targ jpg -s  -x   
 }
 python -m Utils.GenerateMP4s $targ
-set-location $pwd
+set-location $curdir

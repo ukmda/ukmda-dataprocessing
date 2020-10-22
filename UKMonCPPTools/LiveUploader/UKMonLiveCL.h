@@ -18,6 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #define _WIN32_WINNT 0x0501
 
+// disable warnings that I'm ignoring the return from getchar and strtok. I know...
+#pragma warning( disable : 6031)
+
 #include <Windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,6 +38,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "../shared/PreprocessXML.h"
 //#include "../shared/eventlog.h"
+#include "version.h"
 
 struct KeyData
 {
@@ -51,6 +55,7 @@ struct KeyData
 
 extern struct KeyData theKeys;
 extern char ProcessingPath[512];
+extern char ffmpegPath[512];
 extern int nCounter;
 extern int maxretry;
 extern int Debug;
@@ -61,6 +66,7 @@ extern long minbright;
 extern long minframes;
 extern double maxrms;
 extern long minPxls;
+extern int doFireballs;
 extern Aws::Auth::AWSCredentials creds; // aws credentials
 extern Aws::Client::ClientConfiguration clientConfig; // client setup
 
@@ -71,7 +77,11 @@ int Hex2String(char* out, char* in);
 int Encrypt(char *out, char* in, int Key);
 int Decrypt(char *out, char* in, int Key);
 
-int put_file(char* buckname, const char* fname, long frcount, long maxbmax, double rms);
+#define XML 1
+#define JPG 2
+#define MP4 3
+
+int put_file(char* buckname, const char* fname, long frcount, long maxbmax, double rms, int filetype);
 
 int ProcessData(std::string pattern, long framelimit, long minbright, char *pth);
 

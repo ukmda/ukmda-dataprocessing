@@ -20,6 +20,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "..\shared\llsq.h"
 #include "..\shared\PreprocessXML.h"
 
+#define MAXPTS 512
+
 int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &maxbmax, double &rms, int &pxls)
 {
 	std::string fname = pth;
@@ -64,8 +66,8 @@ int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &ma
 		ret = ufocapture_paths->QueryIntAttribute("hit", &hits); //get number of hits
 		//hits = hits > 400 ? 400 : hits; // no need for more than 400 points in a fit
 
-		double* x = new double[hits]();
-		double* y = new double[hits]();
+		double x[MAXPTS];
+		double y[MAXPTS];
 		double maxbri = 0;
 		double px, py;
 		int pxl;
@@ -77,7 +79,7 @@ int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &ma
 		ret = uc_path->QueryDoubleAttribute("x", &px);
 		ret = uc_path->QueryDoubleAttribute("y", &py);
 		ret = uc_path->QueryIntAttribute("bmax", &pb);
-		ret = uc_path->QueryIntAttribute("pixels", &pxl);
+		ret = uc_path->QueryIntAttribute("pixel", &pxl);
 		x[0] = px; y[0] = py;
 		maxbri = pb; pxls=pxl;
 		for (int i = 1; i < hits; i++)
@@ -87,7 +89,7 @@ int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &ma
 			ret = uc_path->QueryDoubleAttribute("x", &px);
 			ret = uc_path->QueryDoubleAttribute("y", &py);
 			ret = uc_path->QueryIntAttribute("bmax", &pb);
-			ret = uc_path->QueryIntAttribute("pixels", &pxl);
+			ret = uc_path->QueryIntAttribute("pixel", &pxl);
 			x[i] = px; y[i] = py;
 			pxls+=pxl;
 			if (pb > maxbri) maxbri = pb;

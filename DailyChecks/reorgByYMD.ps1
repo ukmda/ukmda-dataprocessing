@@ -5,7 +5,7 @@
 $curloc=get-location
 set-location $PSScriptRoot
 # load the helper functions
-. helperfunctions.ps1
+. .\helperfunctions.ps1
 # read the inifile
 if ($args.count -eq 0) {
     $inifname='../TACKLEY_TC.ini'
@@ -22,7 +22,8 @@ $srcpath=$localfolder+'\'
 $age=[int]$maxage
 
 $arcpath=$srcpath + '\ConfirmedFiles\'
-if (-not (test-path $arcpath))
+#$numfiles= (dir $arcpath).count
+if (-not (test-path $arcpath) ) #-or $numfiles -eq 0)
 {
     $arcpath=$srcpath + '\ArchivedFiles\'
 }

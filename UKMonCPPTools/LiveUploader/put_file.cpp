@@ -19,13 +19,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "UKMonLiveCL.h"
 
 Aws::Auth::AWSCredentials creds; // aws credentials
-Aws::Client::ClientConfiguration clientConfig; // client setup
 
 /**
 * Put an object to an Amazon S3 bucket.
 */
-int put_file(char* buckname, const char* fname, long frcount, long maxbmax, double rms)
+int put_file(char* buckname, const char* fname, long frcount, long maxbmax, double rms, int filetype)
 {
+	Aws::Client::ClientConfiguration clientConfig; // client setup
+	clientConfig.region = theKeys.region;
+
 	wchar_t msg[512] = { 0 };
 	Aws::String file_name = ProcessingPath;
 	file_name += "/";
@@ -55,6 +57,17 @@ int put_file(char* buckname, const char* fname, long frcount, long maxbmax, doub
 		Aws::S3::Model::PutObjectRequest object_request;
 		object_request.SetBucket(buckname);
 		object_request.SetKey(key_name.c_str());
+		switch (filetype) {
+		case MP4: 
+			object_request.AddMetadata("Content-Type", "video/mp4");
+			break;
+		case JPG:
+			object_request.AddMetadata("Content-Type", "image/jpeg");
+			break;
+		default:
+			object_request.AddMetadata("Content-Type", "text/xml");
+			break;
+		}
 
 		// Binary files must also have the std::ios_base::bin flag or'ed in
 		const std::shared_ptr<Aws::IOStream> input_data =

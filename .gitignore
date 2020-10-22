@@ -212,6 +212,7 @@ StyleCopReport.xml
 *.ilk
 *.meta
 *.obj
+*.o
 *.iobj
 *.pch
 *.pdb
@@ -233,6 +234,7 @@ StyleCopReport.xml
 *.pidb
 *.svclog
 *.scc
+*.exe
 
 # Chutzpah Test files
 _Chutzpah*
@@ -508,10 +510,24 @@ M*.xml
 ukmon-live/curate/numpy/**
 ukmon-live/curate/pytz/**
 ukmon-live/curate/numpy.libs/**
-ukmon-live/curate/ReadUFO*
+ukmon-live/curate/UFOHandler/*
+ukmon-live/curate/curateEngine*
 notshared/**
 NewAnalysis/test_data/platepar/platepar_cmn2010_ne.cal
 NewAnalysis/test_data/platepar/skyFit_latest.state
 ukmon-live/getlogs/.ukmoncreds
 *.retry
-*/*.bkp
+*.bkp
+*.rtf
+*/deploy*.ps1
+UKMonCPPTools/stacker/test/*
+deploy_*.ps1
+NewAnalysis/deployToAWS.yml
+*.zip
+StandaloneCurator/CameraCurator/*
+StandaloneCurator/UFOHandler/*
+StandaloneCurator/CurateUFO.py
+StandaloneCurator/*.ini
+NewAnalysis/*.png
+NewAnalysis/*.pickle
+NewAnalysis/*.txt
