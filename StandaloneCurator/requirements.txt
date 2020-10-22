@@ -3,3 +3,4 @@
 #
 xmltodict
 numpy
+six

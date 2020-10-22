@@ -36,12 +36,10 @@ if __name__ == '__main__':
             # if the second argument is a folder, treat it as a path to recurse into
             if os.path.isdir(sys.argv[2]):
                 badfolder=os.path.join(sys.argv[2], 'bad')
-                print('recursing into ' + sys.argv[2])
                 for root, subdirs, files in os.walk(sys.argv[2]):
                     for subdir in subdirs:
                         if subdir[:2] == '20': 
                             fn = os.path.join(root, subdir)
-                            print(fn)
                             curateFolder.main(sys.argv[1], fn, badfolder)
             elif os.path.isfile(sys.argv[1]):
                 curateCamera.main(sys.argv[1], sys.argv[2])

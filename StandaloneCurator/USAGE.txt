@@ -1,0 +1,44 @@
+TO USE THE PROGRAMME
+====================
+Open a command prompt or terminal window on the ufoCurator folder.
+Activate the virtual environment.
+Run the programme - for MacOS or Linux: 
+    ./curate.sh /path/to/your/data
+or for Windows:
+    .\curate.ps1 /path/to/your/data
+
+Where /path/to/your/data is the location of a folder containing your uncurated UFO files.
+
+WHAT IT DOES
+============
+The programme will classify your data and move bad data to a 'bad' folder in /path/to/your/data, 
+displaying its progress and rationale onscreen.
+It will also create a logfile in the same folder that indicates why it classified each file. 
+
+CONFIGURATION
+=============
+The programme reads various parmeters from the configuration file:
+
+MAXRMS - maximum deviation from a straight line before an event is rejected. 
+Note that this is overriden by MAXBRI, to allow for fireballs with curved paths. 
+
+MAXBRI - maximum brightness before an event is ALWAYS included. Prevents rejection of fireballs 
+at the expense of including things like lightning flashes and bright clouds.
+
+MAXLEN - maximum number of frames a track can traverse before its rejected. UFO cameras operate at 50fps
+interleaved, so the default max of 100 corresponds to two seconds. Thats a slow meteor or more likely a plane. 
+MINLEN - lower threshold below which data is rejected as unreliable (position errors too large). 
+
+MAXOBJS - maximum number of objects per frame. If you have more than 15 objects in a single frame
+then its almost always  clouds, aircraft or wildlife.
+
+MOVEFILES - set movefiles to False if you DO NOT want to actually move bad data. 
+
+USEFOLDERS - Set usefolders to False if you dont want the programme to sort bad data by type
+
+LOCALFOLDER and BADFOLDER - not used in the mode described above. The programme can also read the 
+path to your data from the config file. 
+
+
+
+
