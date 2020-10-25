@@ -46,7 +46,7 @@ def CheckifValidMeteor(xmlname):
         return False, msg, 0, 0, 0, 0
 
     if nobjs > MAXOBJS:
-        msg = 'toomany, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(0, 0, 0, 0, 0, 0, 0, 0)
+        msg = 'toomany, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(nobjs, 0, 0, 0, 0, 0, 0, 0)
         return False, msg, 0, 0, 0, 0
     goodmsg = ''
     gtp = 0
