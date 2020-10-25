@@ -1,0 +1,41 @@
+---
+- hosts: 3.8.65.98
+  vars:
+    srcdir: /mnt/e/dev/meteorhunting/UKMON-shared/Reports
+    destdir: ~/src/R/analysis
+  tasks:
+  - name: Copy files
+    copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
+    with_items:
+    - {src: '{{srcdir}}/monthlyReports.sh', dest: '{{destdir}}', mode: '755', backup: no }
+    - {src: '{{srcdir}}/analyse.sh', dest: '{{destdir}}', mode: '755', backup: no }
+    - {src: '{{srcdir}}/config.ini', dest: '{{destdir}}', mode: '644', backup: no }
+    - {src: '{{srcdir}}/UA_header.txt', dest: '{{destdir}}', mode: '644', backup: no }
+    - {src: '{{srcdir}}/UO_header.txt', dest: '{{destdir}}', mode: '644', backup: no }
+
+  - name: update mail recip
+    lineinfile: 
+      path: '{{destdir}}/config.ini'
+      regexp: 'MAILRECIP='
+      line: 'MAILRECIP=markmcintyre99@googlemail.com'
+  - name: update id file
+    lineinfile:
+      path: '{{destdir}}/config.ini'
+      regexp: 'IDFILE='
+      line: 'IDFILE=~/.ssh/mjmm-data.key'
+  - name: update AWS host
+    lineinfile:
+      path: '{{destdir}}/config.ini'
+      regexp: 'HOST='
+      line: 'HOST=s3://mjmm-data'
+  - name: update AWS user
+    lineinfile:
+      path: '{{destdir}}/config.ini'
+      regexp: 'USER='
+      line: 'USER=ec2-user'
+  - name: update target folder
+    lineinfile:
+      path: '{{destdir}}/config.ini'
+      regexp: 'REPORTDIR='
+      line: 'REPORTDIR=/mnt/mjmm-data/analysis/'
+    
