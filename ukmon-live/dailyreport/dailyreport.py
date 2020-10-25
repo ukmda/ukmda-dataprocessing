@@ -261,6 +261,9 @@ def lambda_handler(event, context):
     else:
         print('DailyCheck: no matches today')
 
+    print('DailyCheck: purging older data')
+    createIndex.purgeOlderFiles()
+
 
 if __name__ == '__main__':
     doff = 1

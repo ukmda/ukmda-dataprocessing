@@ -97,6 +97,40 @@ def createIndex(doff=1):
     return
 
 
+def purgeOlderFiles():
+    print('purging older bad data')
+    # check which account we're in
+    client = boto3.client('sts')
+    response = client.get_caller_identity()['Account']
+    if response == '317976261112':
+        target = 'mjmm-live'
+    else:
+        target = 'ukmon-shared'
+    s3 = boto3.client('s3')
+
+    # get purge limit
+    try:
+        doff = int(os.environ['PURGE']) + 1
+    except:
+        doff = 22
+
+    tod = datetime.datetime.today() - datetime.timedelta(days=doff)
+
+    # find pertinent files
+    for subfldr in ['/', '/badline/', '/fitfail/', '/flash/',
+            '/nopaths/', '/noxml/', '/rmshigh/', '/toomany/', '/tooslow/']:
+        fldr = 'live-bad-files' + subfldr
+        pref = fldr + 'M{:04d}{:02d}{:02d}'.format(tod.year, tod.month, tod.day)
+        flist = s3.list_objects_v2(Bucket=target, Prefix=pref)
+        if 'Contents' not in flist:  # no matching files
+            print('no matches', pref)
+        else:
+            for key in flist['Contents']:
+                fname = key['Key']
+                print('deleting', fname)
+                s3.delete_object(Bucket=target, Key=fname)
+
+
 def lambda_handler(event, context):
     # get day offset to process
     try:
@@ -105,6 +139,7 @@ def lambda_handler(event, context):
         offs = 1
 
     createIndex(offs)
+    purgeOlderFiles()
 
 
 if __name__ == '__main__':
