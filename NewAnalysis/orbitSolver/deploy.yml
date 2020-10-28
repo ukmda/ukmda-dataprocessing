@@ -1,0 +1,25 @@
+---
+- hosts: 3.8.65.98
+  vars:
+    src2: /mnt/e/dev/meteorhunting/UKMON-shared/NewAnalysis
+    src3: /mnt/e/dev/meteorhunting/UKMON-shared
+    dest2: ~/src/orbits
+  tasks:
+  - name: Copy files
+    copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
+    with_items:
+    - {src: '{{src2}}/orbitSolver/ufoTrajSolver.py', dest: '{{dest2}}', mode: '644', backup: no }
+    - {src: '{{src2}}/UFOHandler/ReadUFOAnalyzerXML.py', dest: '{{dest2}}/UFOHandler/', mode: '644', backup: no }
+    - {src: '{{src2}}/orbitSolver/reduceOrbit.sh', dest: '{{dest2}}', mode: '755', backup: no }
+    - {src: '{{src3}}/orbitsolver.ini', dest: '{{dest2}}', mode: '644', backup: no }
+
+  - name: set output filder  
+    lineinfile:
+      path: '{{dest2}}/orbitsolver.ini'
+      regexp: 'results='
+      line: 'results=~/src/orbits/output'
+  - name: update orbitsolver wmpl loc
+    lineinfile:
+      path: '{{dest2}}/orbitsolver.ini'
+      regexp: 'WMPL_LOC='
+      line: 'wmpl_loc=~/src/WesternMeteorPyLib'
