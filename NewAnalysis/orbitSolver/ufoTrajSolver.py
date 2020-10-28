@@ -3,12 +3,20 @@
 #
 import sys
 import os
+import re
 import numpy as np
+import fnmatch
 from UFOHandler import ReadUFOAnalyzerXML as ua
-sys.path.append('e:/dev/meteorhunting/WesternMeteorPyLib')
+# sys.path.append('e:/dev/meteorhunting/WesternMeteorPyLib')
 import wmpl.Trajectory.Trajectory as tra
 import wmpl.Utils.TrajConversions as trajconv
-# import pickle
+import configparser as cfg
+
+
+def find_files(path: str, glob_pat: str, ignore_case: bool = False):
+    rule = re.compile(fnmatch.translate(glob_pat), re.IGNORECASE) if ignore_case \
+        else re.compile(fnmatch.translate(glob_pat))
+    return [n for n in os.listdir(os.path.expanduser(path)) if rule.match(n)]
 
 
 def ufoTrajSolver(outdir, fnames):
@@ -24,6 +32,24 @@ def ufoTrajSolver(outdir, fnames):
 
     python ufoTrajSolver M20201011_123456_AliceA.xml M20201011_12344_BobA.xml M20201011_12347_JimA.xml
     """
+    verbose = False
+    monte_carlo = False
+    max_toff = 5  # need at least 5s for UFO data !
+    etv = True
+
+    config = cfg.ConfigParser()
+    config.read('orbitsolver.ini')
+
+    if config['orbitcalcs']['verbose'] in ['True', 'TRUE', 'true']:
+        verbose = True
+    if config['orbitcalcs']['use_mc'] in ['True', 'TRUE', 'true']:
+        monte_carlo = True
+
+    # if there's only one filename, assume its a folder containing the data
+    if len(fnames) == 1:
+        pth = fnames[0]
+        fnames = find_files(pth, '*.xml', True)
+
     num = len(fnames)
     stations = []
     lat = np.empty(num)
@@ -39,7 +65,8 @@ def ufoTrajSolver(outdir, fnames):
     i = 0
     for fn in fnames:
         print(fn)
-        dd[i] = ua.UAXml(fn)
+        fullname = os.path.join(pth, fn)
+        dd[i] = ua.UAXml(fullname)
         i = i + 1
 
     # date from  1st station, used to create output folder and set reference point
@@ -79,11 +106,9 @@ def ufoTrajSolver(outdir, fnames):
         tt[i] = tt[i] - reftime
 
     # Init new trajectory solving/ MC is much slower but a little more accurate
-    verbose = False
-    monte_carlo = False
     traj_solve = tra.Trajectory(jdt_ref, meastype=meastype,
         save_results=True, monte_carlo=monte_carlo, show_plots=False,
-        output_dir=outdir, verbose=verbose)
+        output_dir=outdir, verbose=verbose, max_toffset=max_toff, estimate_timing_vel=etv)
 
     # Set input points for the sites
     for i in range(num):
@@ -96,7 +121,7 @@ def ufoTrajSolver(outdir, fnames):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) > 3:
+    if len(sys.argv) > 2:
         args = sys.argv[2:]
         ufoTrajSolver(sys.argv[1], args)
     else:
