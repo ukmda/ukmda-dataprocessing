@@ -2,7 +2,7 @@
 - hosts: 3.8.65.98
   vars:
     srcdir: /mnt/e/dev/meteorhunting/UKMON-shared/Reports
-    destdir: ~/src/R/analysis
+    destdir: ~/src/analysis
   tasks:
   - name: Copy files
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
