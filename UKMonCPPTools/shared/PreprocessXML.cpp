@@ -28,6 +28,12 @@ int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &ma
 	fname += "\\";
 	fname += cFileName;
 
+	// make sure we don't return random junk
+	frcount = 0;
+	maxbmax = 0;
+	rms = 0.0;
+	pxls = 0;
+
 	TiXmlDocument doc(fname.c_str());
 	bool loadOkay = doc.LoadFile();
 
@@ -51,20 +57,22 @@ int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &ma
 		int ret;
 
 		node = doc.FirstChild("ufocapture_record"); // the top level record
-		assert(node);
+		if (node == NULL) return 0;
 		ufocapture_record = node->ToElement();
-		assert(ufocapture_record);
+		if (ufocapture_record == NULL) return 0;
+
 		ret = ufocapture_record->QueryIntAttribute("frames", &frames);
 		frcount = frames;
 
 		node = ufocapture_record->FirstChildElement(); // ufocapture_paths 
-		assert(node);
+		if (node == NULL) return 0;
 		ufocapture_paths = node->ToElement();
-		assert(ufocapture_paths);
+		if (ufocapture_paths == NULL) return 0;
 
 		int hits;
 		ret = ufocapture_paths->QueryIntAttribute("hit", &hits); //get number of hits
-		//hits = hits > 400 ? 400 : hits; // no need for more than 400 points in a fit
+		hits = hits > MAXPTS ? MAXPTS : hits; 
+
 
 		double x[MAXPTS];
 		double y[MAXPTS];

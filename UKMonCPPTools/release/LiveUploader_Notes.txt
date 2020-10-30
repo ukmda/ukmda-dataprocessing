@@ -16,7 +16,8 @@ To edit the config file, use the icon under UKMonLive on the start menu.
 
 Fireballs
 =========
-The [Fireballs] section of the config file controls whether the application will upload videos of fireballs. The videos are converted to MP4 and so are about 1-2MB in size. 
+The [Fireballs] section of the config file controls whether the application will upload videos of fireballs. The videos 
+are converted to MP4 and so are about 1-2MB in size. 
 MinPxls is the threshold above which the app will upload a video. Study of the UKMON data indicates this is a good value. 
 FFMpeg points to the location of ffmpeg, which is installed with the application. 
 
@@ -31,6 +32,8 @@ This application is not compatible with Windows XP or earlier. I'm sorry about t
 
 Version info
 ============
+2.3.1.1		Fixed bug in xml reader - now should not crash if zero path elements in the XML file
+2.3.1.0		Fixed bug in mp4 convertor - buffer overflow if installed on x64 OS
 2.3.0.2 	bugfix for memory leak which caused random crash
 2.3.0.1		Added fireball uploader capability, temporarily disabled line fitting checks
 2.2.0.0		Added line fitting quality check to prevent upload of bats, aircraft, clous
