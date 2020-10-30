@@ -40,6 +40,9 @@
   <ItemGroup>
     <Image Include="..\ukmon_ZPQ_icon.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\Release\LiveUploader_Notes.txt" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>

@@ -64,4 +64,7 @@
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\Release\LiveUploader_Notes.txt" />
+  </ItemGroup>
 </Project>
