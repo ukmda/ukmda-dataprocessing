@@ -12,37 +12,15 @@ import ReadUFOCapXML
 def AddToIndex(fname, idxfile, pth):
     dd = ReadUFOCapXML.UCXml(os.path.join(pth, fname))
     pathx, pathy, bri, _ = dd.getPath()
-    bri = max(bri)
-    rms = 0  # not calculating this any more
-#    if(len(pathx) > 3):
-#        rms = 0
-#        cmin, cmax = min(pathx), max(pathx)
-#        _, stats = Polynomial.fit(pathx, pathy, 1, full=True, window=(cmin, cmax),
-#            domain=(cmin, cmax))
-#        resid, _, _, _ = stats
-#        rms = np.sqrt(resid[0] / len(pathx))
-#        if rms > 1:
-#            cmin, cmax = min(pathy), max(pathy)
-#            _, stats = Polynomial.fit(pathy, pathx, 1, full=True, window=(cmin, cmax),
-#                domain=(cmin, cmax))
-#            resid, _, _, _ = stats
-#            rms2 = np.sqrt(resid[0] / len(pathy))
-#            rms = min(rms2, rms)
-#    else:
-#        rms = 0
-#        bri = 0
+    bri = int(max(bri))
 
     dmy = fname[1:9]
     hms = fname[10:16]
     stat = fname[17:fname.rfind('.')]
     sid = stat[:stat.rfind('_')]
-    if(sid == 'Lockyer2' or sid == 'Lockyer1'):
-        sid = 'Lockyer'
-    if(sid == 'Exeter2' or sid == 'EXETER1'):
-        sid = 'Exeter'
     lid = stat[stat.rfind('_') + 1:]
 
-    strtowrite = dmy + ',' + hms + ',' + sid + ',' + lid + ',{:.2f},{:.2f}\n'.format(bri, rms)
+    strtowrite = dmy + ',' + hms + ',' + sid + ',' + lid + ',{:d}\n'.format(bri)
     idxfile.write(strtowrite)
     return
 
@@ -83,6 +61,7 @@ def createIndex(doff=1):
             s3.download_file(target, xmlname, os.path.join(tmppth, xmlname))
             AddToIndex(xmlname, f, tmppth)
             os.remove(os.path.join(tmppth, xmlname))
+
     f.close()
 
     # sort and uniquify the data

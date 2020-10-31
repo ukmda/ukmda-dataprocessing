@@ -10,7 +10,7 @@ import math
 import createIndex
 
 idxtype = numpy.dtype([('YMD', 'i4'), ('HMS', 'i4'), ('SID', 'S16'), ('LID', 'S6'),
-    ('Bri', 'f8'), ('RMS', 'f8')])
+    ('Bri', 'i4')])
 lnkpath = 'https://live.ukmeteornetwork.co.uk/M{:08d}_{:06d}_{:s}_{:s}P.jpg'
 
 
@@ -19,7 +19,7 @@ def MakeFileWritable(ymd, hms, sid, lid):
     api_client = s3.meta.client
     bucket_name = 'ukmon-live'
     key = 'M{:08d}_{:06d}_{:s}_{:s}P.jpg'.format(ymd, hms, sid, lid)
-    response = api_client.copy_object(Bucket=bucket_name,
+    api_client.copy_object(Bucket=bucket_name,
         Key=key, ContentType='image/jpeg',
         MetadataDirective='REPLACE', CopySource=bucket_name + '/' + key)
 
@@ -28,7 +28,7 @@ def AddHeader(body, bodytext):
     body = body + '\nThe following multiple detections were found in UKMON Live in the last 24 hour period.\n'
     body = body + '<a href=\"https://ukmeteornetwork.co.uk/live/#/\">Click here</a> to see these events.\n'
     body = body + '<table border=\"0\">'
-    body = body + '<tr><td><b>Station</b></td><td><b>LID</b></td><td><b>Date/Time</b></td><td><b>Bright</b></td><td><b>RMS</b></td></tr>'
+    body = body + '<tr><td><b>Station</b></td><td><b>LID</b></td><td><b>Date/Time</b></td><td><b>Bright</b></td></tr>'
     bodytext = bodytext + 'The following multiple detections were found in UKMON Live the last 24 hour period,\n'
     return body, bodytext
 
@@ -41,7 +41,6 @@ def AddBlank(body, bodytext):
 
 def addFooter(body, bodytext):
     brim = 'Bright = max brightness recorded by UFO '
-    # rmsm = 'RMS = residual error in straight line fit to the meteor path'
     pim = 'Note: Brightness not available for Pi cameras'
     fbm = 'Seen a fireball? <a href=https://ukmeteornetwork.co.uk/fireball-report/>Click here</a> to report it'
     body = body + '</table><br><br>\n' + brim + '<br>' + pim + '<br><br>' + fbm + '<br>'
@@ -52,21 +51,13 @@ def addFooter(body, bodytext):
 def AddRow(body, bodytext, ele):
     ymd, hms = ele['YMD'], ele['HMS']
     lid, sid = ele['LID'].decode('utf-8'), ele['SID'].decode('utf-8')
-    if lid == 'L1':
-        sid = 'Lockyer1'
-    if lid == 'L2':
-        sid = 'Lockyer2'
-    if lid == 'NE' and sid == 'Exeter':
-        sid = 'EXETER1'
-    if lid == 'SW' and sid == 'Exeter':
-        sid = 'Exeter2'
-    bri, rms = ele['Bri'], ele['RMS']
+    bri = ele['Bri']
     lnkstr = lnkpath.format(ymd, hms, sid, lid)
     hmss = '{:06d}'.format(hms)
     ymds = str(ymd)[:4] + '-' + str(ymd)[4:6] + '-' + str(ymd)[6:8] + 'T' + hmss[:2] + ':' + hmss[2:4] + ':' + hmss[4:6] + 'Z'
     str1 = '<tr><td>{:s}</td><td>{:s}</td><td><a href={:s}>{:s}</a></td><td>{:.1f}</td></tr>'.format(sid, lid,
         lnkstr, ymds, bri)
-    str2 = '{:16s} {:6s} {:s} Bri={:.1f} RMS={:.1f}'.format(sid, lid, ymds, bri, rms)
+    str2 = '{:16s} {:6s} {:s} Bri={:.1f}'.format(sid, lid, ymds, bri)
     body = body + str1 + '\n'
     bodytext = bodytext + str2 + '\n'
     MakeFileWritable(ymd, hms, sid, lid)
@@ -97,21 +88,33 @@ def LookForMatches(doff, idxfile, idxfile2=None):
     mailsubj = 'Daily UKMON matches for {:04d}-{:02d}-{:02d}'.format(yest.year, yest.month, yest.day)
     domail = False
     print('DailyCheck: ', mailsubj)
+
     # iterate looking for matches
+    print('checking for ', ystr)
     lasttm = 0
-    # print(reldata)
     for rw in reldata:
         tm = rw['HMS']
         cond = abs(reldata['HMS'] - tm) < 5
         matchset = reldata[cond]
-        # print(matchset)
-        if len(matchset) > 1 and abs(lasttm - tm) > 4 and tm > 120000:
+        if len(matchset) > 1 and abs(lasttm - tm) > 4.9999 and tm > 120000:
             lasttm = tm
             numpy.sort(matchset)
+            print(len(matchset), ' matches')
             if len(matchset) == 2:
                 m = matchset[0]
                 n = matchset[1]
-                if m['SID'] != n['SID']:
+                sid1 = m['SID'].decode('utf-8')
+                sid2 = n['SID'].decode('utf-8')
+                if sid1 == 'EXETER1' or sid1 == 'Exeter2':
+                    sid1 = 'Exeter'
+                if sid2 == 'EXETER1' or sid2 == 'Exeter2':
+                    sid2 = 'Exeter'
+                if sid1 == 'Lockyer1':
+                    sid1 = 'Lockyer'
+                if sid2 == 'Lockyer2':
+                    sid2 = 'Lockyer'
+
+                if sid1 != sid2:
                     domail = True
                     body, bodytext = AddBlank(body, bodytext)
                     body, bodytext = AddRow(body, bodytext, matchset[0])
@@ -130,22 +133,36 @@ def LookForMatches(doff, idxfile, idxfile2=None):
     # extract yesterday's data
     yest = datetime.date.today() - datetime.timedelta(days=doff - 1)
     ystr = (yest.year * 10000) + (yest.month * 100) + yest.day
-    reldata = data[data['YMD'] == ystr]
+    reldata2 = data[data['YMD'] == ystr]
+    print('now checking for ', ystr)
+
     # iterate looking for matches
     lasttm = 0
     # print(reldata)
-    for rw in reldata:
+    for rw in reldata2:
         tm = rw['HMS']
-        cond = abs(reldata['HMS'] - tm) < 5
-        matchset = reldata[cond]
+        cond = abs(reldata2['HMS'] - tm) < 5
+        matchset = reldata2[cond]
         # print(matchset)
-        if len(matchset) > 1 and abs(lasttm - tm) > 4:
+        if len(matchset) > 1 and abs(lasttm - tm) > 4.9999 and tm < 120000:
             lasttm = tm
             numpy.sort(matchset)
+            print(len(matchset), ' matches')
             if len(matchset) == 2:
                 m = matchset[0]
                 n = matchset[1]
-                if m['SID'] != n['SID']:
+                sid1 = m['SID'].decode('utf-8')
+                sid2 = n['SID'].decode('utf-8')
+                if sid1 == 'EXETER1' or sid1 == 'Exeter2':
+                    sid1 = 'Exeter'
+                if sid2 == 'EXETER1' or sid2 == 'Exeter2':
+                    sid2 = 'Exeter'
+                if sid1 == 'Lockyer1':
+                    sid1 = 'Lockyer'
+                if sid2 == 'Lockyer2':
+                    sid2 = 'Lockyer'
+
+                if sid1 != sid2:
                     domail = True
                     body, bodytext = AddBlank(body, bodytext)
                     body, bodytext = AddRow(body, bodytext, matchset[0])
@@ -154,6 +171,7 @@ def LookForMatches(doff, idxfile, idxfile2=None):
                 domail = True
                 body, bodytext = AddBlank(body, bodytext)
                 for el in matchset:
+                    print(el)
                     body, bodytext = AddRow(body, bodytext, el)
     csvfile.close()
     body, bodytext = addFooter(body, bodytext)
