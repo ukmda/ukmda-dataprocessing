@@ -39,7 +39,11 @@ def AddToRemoveList(fname, errf, movebad=False, msg='', nobjs=0, maxbri=0, totto
             if os.path.exists(bfp) is False:
                 os.mkdir(bfp)
         for fl in glob.glob(allf):
-            shutil.move(fl, bfp)
+            _, fna = os.path.split(fl)
+            trg = os.path.join(bfp, fna)
+            if os.path.exists(trg):
+                os.remove(trg)
+            shutil.move(fl, trg)
     else:
         pass
     msg = msg + ',{:d},{:d}, {:d}'.format(nobjs, int(maxbri), int(tottotpx))
