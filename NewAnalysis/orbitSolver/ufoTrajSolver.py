@@ -30,7 +30,8 @@ def ufoTrajSolver(outdir, fnames):
 
     example usage:
 
-    python ufoTrajSolver M20201011_123456_AliceA.xml M20201011_12344_BobA.xml M20201011_12347_JimA.xml
+    python ufoTrajSolver c:\temp M20201011_123456_AliceA.xml M20201011_12344_BobA.xml M20201011_12347_JimA.xml
+    python ufoTrajSolver c:\temp folder_with_axmls
     """
     verbose = False
     monte_carlo = False
