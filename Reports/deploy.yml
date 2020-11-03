@@ -12,6 +12,8 @@
     - {src: '{{srcdir}}/config.ini', dest: '{{destdir}}', mode: '644', backup: no }
     - {src: '{{srcdir}}/UA_header.txt', dest: '{{destdir}}', mode: '644', backup: no }
     - {src: '{{srcdir}}/UO_header.txt', dest: '{{destdir}}', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon.css', dest: '{{destdir}}', mode: '644', backup: no }
+    - {src: '{{srcdir}}/report-template.html', dest: '{{destdir}}', mode: '644', backup: no }
 
   - name: update mail recip
     lineinfile: 
