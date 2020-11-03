@@ -531,3 +531,4 @@ StandaloneCurator/*.ini
 NewAnalysis/*.png
 NewAnalysis/*.pickle
 NewAnalysis/*.txt
+**/deploy*.yml
