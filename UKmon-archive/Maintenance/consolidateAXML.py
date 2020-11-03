@@ -27,17 +27,18 @@ def copyFile(loctime, loccam, tm, cams, fldrs, errf):
     fnam = 'M' + loctime + '_' + loccam + 'A.XML'
     destpath = 'matches/' + tmstr + '/' + fnam
 
+    # UFO data may be held in a folder by date of event
+    # or in a folder datestamped with the day that capture began
+    # so we need to look in D and D-1
     try:
         fnam = 'M' + loctime + '_' + loccam + 'A.XML'
         srcpth = pth + ymds + fnam
         api_client.copy_object(Bucket=bucket_name,
             Key=destpath, CopySource={'Bucket': bucket_name, 'Key': srcpth})
-        print('o')
+        print('d-0 ', fnam)
     except:
         try:
-            msg = 'unable to open ' + srcpth + ', trying T-1'
-            # UFO data may be held in a folder by date
-            # or in a folder datestamped with the day that capture began
+            msg = 'unable to open ' + srcpth + ', trying D-1'
             yr = int(loctime[:4])
             mt = int(loctime[4:6])
             dy = int(loctime[6:8])
@@ -47,19 +48,20 @@ def copyFile(loctime, loccam, tm, cams, fldrs, errf):
             api_client.copy_object(Bucket=bucket_name,
                 Key=destpath, CopySource={'Bucket': bucket_name, 'Key': srcpth})
             # print('copied ', key, ' to ', destpath)
-            print('x')
+            print('d-1 ', fnam)
         except:
             msg = 'unable to open ' + srcpth
             errf.write(msg + '\n')
             print(msg)
 
 
-def FindMatches(yr):
+def FindMatches(yr, mth=None):
     # fetch camera details from the CSV file
     camfile = 'camera-details.csv'
     fldrs = []
     cams = []
 
+    print('getting camera details file')
     s3 = boto3.resource('s3')
     s3.meta.client.download_file('ukmon-shared', 'consolidated/' + camfile, camfile)
     with open(camfile, 'r') as f:
@@ -72,7 +74,6 @@ def FindMatches(yr):
                     fldrs.append(row[0] + '/' + row[1])
                 cams.append(row[2] + '_' + row[3])
 
-    # print(cams)
     # fetch consolidated file and fetch out required details
     idxfile = 'M_' + yr + '-unified.csv'
     sortedidx = 'S_' + yr + '.csv'
@@ -84,6 +85,7 @@ def FindMatches(yr):
     dir1 = []
     alt1 = []
 
+    print('getting index file for ', yr, mth)
     s3 = boto3.resource('s3')
     s3.meta.client.download_file('ukmon-shared', 'consolidated/' + idxfile, idxfile)
 
@@ -91,9 +93,6 @@ def FindMatches(yr):
         r = csv.reader(f)
         for row in r:
             if row[0] != 'Ver':
-                grp.append(row[1])
-                localtime.append(row[2])
-                loccam.append(row[6])
                 hrs = int(row[11])
                 mins = int(row[12])
                 secs = float(row[13])
@@ -103,11 +102,24 @@ def FindMatches(yr):
                 else:
                     us = (secs - int(secs)) * 1000000
 
+                curmth = int(row[9])
                 dt = datetime.datetime(int(row[8]), int(row[9]), int(row[10]),
                     hrs, mins, int(secs), int(us))
-                dtstamp.append(dt.timestamp())
-                dir1.append(row[14])
-                alt1.append(row[15])
+                if mth is None:
+                    dtstamp.append(dt.timestamp())
+                    dir1.append(row[14])
+                    alt1.append(row[15])
+                    grp.append(row[1])
+                    localtime.append(row[2])
+                    loccam.append(row[6])
+                else:
+                    if mth == curmth:
+                        dtstamp.append(dt.timestamp())
+                        dir1.append(row[14])
+                        alt1.append(row[15])
+                        grp.append(row[1])
+                        localtime.append(row[2])
+                        loccam.append(row[6])
 
     # create a 2-d array and save it so we can read it in the right format
     meteors = numpy.column_stack((dtstamp, localtime, loccam, dir1, alt1))
@@ -135,17 +147,23 @@ def FindMatches(yr):
         tm = rw['tstamp']
         loccam = rw['loccam']
 
-        cond = (abs(meteors['tstamp'] - tm) < 5) & (meteors['loccam'] != loccam)
+        cond = (abs(meteors['tstamp'] - tm) < 5)
         matchset = meteors[cond]
 
-        # got one match and we're not rematching the last matches
-        if len(matchset) > 1 and abs(lasttm - tm) > 4.99999:
+        # if only a pair, check if the station location is the same
+        skipme = False
+        if len(matchset) == 2:
+            s1 = matchset[0]['loccam'].upper()[:6]
+            s2 = matchset[1]['loccam'].upper()[:6]
+            if s1 == s2:
+                skipme = True
+
+        # got at least a distinct pair and we're not rematching the last matches
+        if len(matchset) > 1 and skipme is False and abs(lasttm - tm) > 4.99999:
             lasttm = tm
             numpy.sort(matchset)
             print('=============')
             for el in matchset:
-                # print(el['tstamp'], el['localtime'], el['loccam'],
-                #    el['dir1'], el['alt1'])
                 copyFile(el['localtime'], el['loccam'], tm, cams, fldrs, errf)
 
     # upload logfile
@@ -157,4 +175,8 @@ def FindMatches(yr):
 
 
 if __name__ == '__main__':
-    FindMatches(sys.argv[1])
+    mth = None
+    if len(sys.argv) == 3:
+        mth = int(sys.argv[2])
+
+    FindMatches(sys.argv[1], mth)

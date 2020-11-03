@@ -1,0 +1,26 @@
+---
+- hosts: 3.8.65.98
+  vars:
+    src: /mnt/e/dev/meteorhunting/UKMON-shared/UKMON-Archive
+    dest: /home/ec2-user/src/orbits
+  tasks:
+  - name: Copy files
+    copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
+    with_items:
+    - {src: '{{src}}/Maintenance/consolidateAXML.py', dest: '{{dest}}', mode: '644', backup: no }
+    - {src: '{{src}}/Maintenance/consolAXML.sh', dest: '{{dest}}', mode: '750', backup: no }
+
+#  - name: set output filder  
+#    lineinfile:
+#      path: '{{dest2}}/orbitsolver.ini'
+#      regexp: 'results='
+#      line: 'results=~/src/orbits/output'
+#  - name: update orbitsolver wmpl loc
+#    lineinfile:
+#      path: '{{dest2}}/orbitsolver.ini'
+#      regexp: 'WMPL_LOC='
+#      line: 'wmpl_loc=~/src/WesternMeteorPyLib'
+#  - name: Execute dos2unix 
+#    shell: /usr/bin/dos2unix '{{dest2}}/orbitsolver.ini'
+#    args:
+#      chdir: '{{dest2}}'

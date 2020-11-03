@@ -3,7 +3,6 @@
 #
 
 # load the helper functions
-dos2unix ./orbitsolver.ini > /dev/null 2>&1
 source ./orbitsolver.ini > /dev/null 2>&1
 
 source ~/venvs/$WMPL_ENV/bin/activate
