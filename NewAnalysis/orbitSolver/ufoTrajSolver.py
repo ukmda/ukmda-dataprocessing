@@ -45,6 +45,8 @@ def ufoTrajSolver(outdir, fnames):
         verbose = True
     if config['orbitcalcs']['use_mc'] in ['True', 'TRUE', 'true']:
         monte_carlo = True
+    if config['orbitcalcs']['use_RA'] in ['True', 'TRUE', 'true']:
+        use_RA = True
 
     # if there's only one filename, assume its a folder containing the data
     if len(fnames) == 1:
@@ -83,7 +85,12 @@ def ufoTrajSolver(outdir, fnames):
 
     # Inputs are RA/Dec or Alt/Az as read from UFOA data
     # useful options are 1=RA/Dec, 2=az/ev measured N->E/Horiz up
-    meastype = 2
+    if use_RA is True:
+        print('reading RA and Dec')
+        meastype = 1
+    else:
+        print('reading Az and Alt')
+        meastype = 2
 
     # read data from each station
     for i in range(num):
@@ -95,6 +102,7 @@ def ufoTrajSolver(outdir, fnames):
 
         # read meteor time, magnitude, RA/Dec or Alt/Az and convert to radians
         _, stt, sra, sdec, smag, fcount[i] = dd[i].getPathVector(0, equat=meastype)
+        print(sra)
         tt.append(stt)
         ang1.append(sra)
         ang2.append(sdec)
