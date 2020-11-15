@@ -1,17 +1,22 @@
 #!/bin/bash
+here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 if [ $# -lt 2 ] ; then
 	echo Usage: analyse.sh GEM 2017
 else
-	./GENERATE_REPORTS_V2.r $1 $2
+	source $here/config.ini >/dev/null 2>&1
+
+	$here/GENERATE_REPORTS_V2.r $1 $2
 	echo .
-	echo done generating reports, now copying them
-	if [ -d REPORTS/$2/$1 ] ; then 
-		mkdir -p ~/data/analysis/$2/$1
-		cp REPORTS/$2/$1/* ~/data/analysis/$2/$1
+	echo done generating graphs and tables, now copying them
+	if [ -d $here/REPORTS/$2/$1 ] ; then 
+		mkdir -p $REPORTDIR/$2/$1
+		cp $here/REPORTS/$2/$1/* $REPORTDIR/$2/$1
 	else
 		echo nothing to copy - no output created!
 	fi
 	echo done
+	$here/updateMainIndex.sh
+
 fi
 

@@ -11,7 +11,7 @@
 <meta name="author" content="UKMON" />
 
 <!-- meta name="date" content="2016-11-27" / -->
-<link rel="stylesheet" href="ukmon.css">
+<link rel="stylesheet" href="/data/mjmm-data/analysis/ukmon.css">
 <title>Summary report __YEAR__</title>
 </head>
 <body>
@@ -39,8 +39,8 @@ cameras.</p><br>
     A breakdown by month and by shower is shown below. </p>
     <img src="fireball_by_month.jpg" width="600">
     <img src="fireball_by_stream.jpg" width="600">
-<p>The brightest (top 10) fireballs observed during __YEAR__ were:</p>
-(to be worked out)
+<p>The brightest fireballs observed during __YEAR__ were:</p>
+<!--#include file="fireballtable.html" -->
 <h2>Velocity Distribution</h2>
 <p>The following graphs show the distribution of velocities</p>
 <img src="heliocentric_Velocity.jpg" width="600">
