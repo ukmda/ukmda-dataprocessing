@@ -22,10 +22,11 @@ def copyFile(loctime, loccam, tm, cams, fldrs, errf):
     idx = cams.index(loccam)
     pth = 'archive/' + fldrs[idx] + '/'
 
-    ymds = str(loctime)[:4] + '/' + str(loctime)[:6] + '/' + str(loctime)[:8] + '/'
-
+    ymstr = str(loctime)[:4] + '/' + str(loctime)[:6]
+    ymds = ymstr + '/' + str(loctime)[:8] + '/'
+    
     fnam = 'M' + loctime + '_' + loccam + 'A.XML'
-    destpath = 'matches/' + tmstr + '/' + fnam
+    destpath = 'matches/' + ymstr + '/' + tmstr + '/' + fnam
 
     # UFO data may be held in a folder by date of event
     # or in a folder datestamped with the day that capture began
