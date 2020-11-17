@@ -10,5 +10,6 @@ if ($args.count -lt 1 ){
 
 # conda activate ufoCurator
 pip install -r requirements.txt
-python ./CurateUFO.py ./curation.ini $args[0] | tee-object ./logs/curate-`date +%Y%m%m_%H%M%s`.log
-
+if ( !(test-path "logs")) {mkdir logs}
+$logf='./logs/curate-'+(get-date -uformat '%Y%m%d_%H%M%S')+'.log'
+python ./CurateUFO.py ./curation.ini $args[0] | tee-object $logf
