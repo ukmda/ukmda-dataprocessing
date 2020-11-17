@@ -35,9 +35,8 @@ cameras.</p><br>
 <p>A total of __FBCOUNT__ fireballs were observed in the reporting period.
     Here we define a fireball as a meteor event with a magnitude of -4 or less.</p>
 <!--#include file="fireballgraphs.html"-->
-<br>
 <!--#include file="fireballtable.html" -->
-<br>
+
 <h2>Velocity Distribution</h2>
 <p>The following graphs show the distribution of velocities</p>
 <img src="heliocentric_Velocity.jpg" width="600">

@@ -532,3 +532,4 @@ NewAnalysis/*.png
 NewAnalysis/*.pickle
 NewAnalysis/*.txt
 **/deploy*.yml
+mp4s

@@ -9,8 +9,13 @@ source $here/orbitsolver.ini > /dev/null 2>&1
 source ~/venvs/$WMPL_ENV/bin/activate
 export PYTHONPATH=$wmpl_loc
 pth=$1
-yr=${pth:0:4}
-ym=${pth:0:6}
+if [ $# -lt 3 ] ; then 
+    yr=${pth:0:4}
+    ym=${pth:0:6}
+else
+    yr=$2
+    ym=$3
+fi 
 outdir=$results/$yr/orbits/$ym
 mkdir -p $outdir >/dev/null 2>&1
 

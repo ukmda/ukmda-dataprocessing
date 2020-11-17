@@ -9,5 +9,5 @@ yr=${ym:0:4}
 
 ls -1d ${inputs}/${yr}/${ym}/*  | while read i
 do
-    $here/reduceOrbit.sh $i
+    $here/reduceOrbit.sh $i $yr $ym
 done
