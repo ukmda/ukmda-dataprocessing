@@ -1,19 +1,23 @@
-0. INTRODUCTION & PREREQUISITES
+INTRODUCTION & PREREQUISITES
 ===============================
 This programme will curate UFOcapture data, moving 'bad' data to a separate folder.
-You will need Python 3.x installed, either via Anaconda or via some other mechanism. 
-If not using Anaconda, you will also need to install virtualenv. Google will expain how. 
+
+0. INSTALL PYTHON 3
+===================
+Use your distro's normal mechanism to install Python3, pip3 and virtualenv. 
 
 1. CREATE A VIRTUAL ENVIRONMENT
-
-Create a virtual environment called "ufoCurator" either with Anaconda or with virtualenv.
+===============================
+Create a virtual environment called "ufoCurator" and activate it
 
 2. INSTALL SOFTWARE
 ===================
 In your home directory or other location of your choice, create a folder "ufoCurator" to contain 
 the programme and expand the zip file into into it. 
 You should have a structure like this in the new folder
+    curate.sh
     CurateUFO.py
+    curation.ini
     requirements.txt
     UFOHandler/ReadUFOCapXML.py
     UFOHandler/ReadUFOAnalyserXML.py
@@ -25,14 +29,10 @@ You should have a structure like this in the new folder
 =======
 - Open a command prompt or terminal window on the ufoCurator folder.
 - Activate the virtual environment.
-- Then 
-    - for linux or MacOS type 
+- make the script executable
         chmod +x ./curate.sh
-    followed by
+- then run it
         ./curate.sh 
-
-    - for Windows type
-        .\curate.ps1 
 
 This will check that all necessary python libraries are installed, and then run the programme and
 display the help information.

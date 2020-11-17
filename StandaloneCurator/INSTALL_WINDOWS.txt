@@ -1,0 +1,43 @@
+INTRODUCTION & PREREQUISITES
+===============================
+This programme will curate UFOcapture data, moving 'bad' data to a separate folder.
+
+0. INSTALL PYTHON 
+=================
+You will need Python 3.x installed. On Windows 10 this is simple: open the Microsoft store,
+search for Python and install the latest 3.x version (currently 3.9). On earlier versions of
+windows, go to www.python.org and find a suitable download.
+
+1. CREATE A VIRTUAL ENVIRONMENT (Optional)
+==========================================
+Python best-practice is to create a dedicated virtual environment for ufoCurator. If you don't know
+what this means you can skip this step. However if you've previously used Python it will 
+probably make sense to you. Once you've made the environment, you'll need to activate it before
+using the programme. 
+
+2. INSTALL THE SOFTWARE
+=======================
+In your home directory or other location of your choice, create a folder "ufoCurator" to contain 
+the programme and expand the zip file into into it. 
+You should have a structure like this in the new folder
+    curate.ps1
+    CurateUFO.py
+    curation.ini
+    requirements.txt
+    UFOHandler/ReadUFOCapXML.py
+    UFOHandler/ReadUFOAnalyserXML.py
+    CameraCurator/curateCamera.py
+    CameraCurator/curateEngine.py
+    CameraCurator/curateFolder.py
+
+3. TEST
+=======
+- Open Powershell and change directory to the ufoCurator folder.
+- Activate the virtual environment, if you created one.
+- type
+        .\curate.ps1 
+
+This will check that all necessary python libraries are installed, and then run the programme and
+display the help information.
+
+Now read USAGE.txt to see how to use the  programme.
