@@ -14,7 +14,8 @@ compress-archive -path .\INSTALL_WINDOWS.txt -destinationpath .\ufoCurator.zip -
 compress-archive -path .\INSTALL_LINUX.txt -destinationpath .\ufoCurator.zip -update
 compress-archive -path .\USAGE.txt -destinationpath .\ufoCurator.zip -update
 
-Remove-Item .\UFOHandler\__pycache__ -recurse
-Remove-Item .\CameraCurator\__pycache__ -recurse
+if ( (test-path ".\UFOHandler\__pycache__")) { Remove-Item .\UFOHandler\__pycache__ -recurse}
+if ( (test-path ".\CameraCurator\__pycache__")) {Remove-Item .\CameraCurator\__pycache__ -recurse }
+
 compress-archive -path .\UFOHandler -destinationpath .\ufoCurator.zip -update
 compress-archive -path .\CameraCurator -destinationpath .\ufoCurator.zip -update
