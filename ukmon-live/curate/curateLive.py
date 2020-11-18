@@ -74,13 +74,18 @@ def lambda_handler(event, context):
 
             obl = len(s3object)
             jpgname = s3object[:obl - 4] + 'P.jpg'
-            try:
-                copy_source = {'Bucket': target, 'Key': jpgname}
-                archname = 'live-bad-files/' + typ + '/' + jpgname
-                s3.meta.client.copy(CopySource=copy_source, Bucket=archbucket, Key=archname)
-                s3.meta.client.delete_object(Bucket=target, Key=jpgname)
-                print(logname, jpgname, ' moved')
-            except:
+            num_attempts = 0
+            while num_attempts < 5:
+                try:
+                    copy_source = {'Bucket': target, 'Key': jpgname}
+                    archname = 'live-bad-files/' + typ + '/' + jpgname
+                    s3.meta.client.copy(CopySource=copy_source, Bucket=archbucket, Key=archname)
+                    s3.meta.client.delete_object(Bucket=target, Key=jpgname)
+                    print(logname, jpgname, ' moved')
+                    num_attempts = 6
+                except:
+                    num_attempts += 1
+            if num_attempts == 5:
                 print(logname, jpgname, ' removing the jpg file failed!')
             jpgname = s3object[:obl - 4] + '.mp4'
             try:
