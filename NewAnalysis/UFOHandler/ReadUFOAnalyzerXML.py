@@ -249,7 +249,7 @@ class UAXml:
         dec = float(uop['@dec'])
         return fno, ra, dec, mag, az, ev, lsum, b
 
-    def getPathVector(self, objno, equat=True):
+    def getPathVector(self, objno):
         fps, _, _, isintl = UAXml.getCameraDetails(self)
         dtim = UAXml.getDateTime(self)
 
@@ -263,23 +263,27 @@ class UAXml:
         fno = numpy.zeros(fcount)
         ra = numpy.zeros(fcount)
         dec = numpy.zeros(fcount)
+        alt = numpy.zeros(fcount)
+        az = numpy.zeros(fcount)
         tt = numpy.zeros(fcount)
         mag = numpy.zeros(fcount)
+        b = numpy.zeros(fcount)
+        lsum = numpy.zeros(fcount)
         for fc in range(fcount):
             uop = uo['ua2_objpath']['ua2_fdata2'][fc]
             fno[fc] = int(uop['@fno'])
-            if equat == 1:
-                ra[fc] = float(uop['@ra'])
-                dec[fc] = float(uop['@dec'])
-            else:
-                ra[fc] = float(uop['@az'])
-                dec[fc] = float(uop['@ev'])
+            ra[fc] = float(uop['@ra'])
+            dec[fc] = float(uop['@dec'])
+            az[fc] = float(uop['@az'])
+            alt[fc] = float(uop['@ev'])
             mag[fc] = float(uop['@mag'])
+            b[fc] = float(uop['@b'])
+            lsum[fc] = float(uop['@Lsum'])
 
             # UFO timestamps the 32nd frame for unknown reasons
-            us = int((fno[fc]-32) / fps * 1000000)
+            us = int((fno[fc] - 32) / fps * 1000000)
             tt[fc] = round((dtim + datetime.timedelta(microseconds=us)).timestamp(), 2)
-        return fno, tt, ra, dec, mag, fcount
+        return fno, tt, ra, dec, mag, fcount, alt, az, b, lsum
 
 
 if __name__ == '__main__':

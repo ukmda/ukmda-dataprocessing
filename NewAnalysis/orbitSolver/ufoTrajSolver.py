@@ -101,11 +101,16 @@ def ufoTrajSolver(outdir, fnames):
         lat[i] = np.radians(lat[i])
 
         # read meteor time, magnitude, RA/Dec or Alt/Az and convert to radians
-        _, stt, sra, sdec, smag, fcount[i] = dd[i].getPathVector(0, equat=meastype)
+        _, stt, sra, sdec, smag, fcount[i], alt, az, b, lsum = dd[i].getPathVector(0)
         print(sra)
         tt.append(stt)
-        ang1.append(sra)
-        ang2.append(sdec)
+        if meastype == 1:
+            ang1.append(sra)
+            ang2.append(sdec)
+        else:
+            ang1.append(alt)
+            ang2.append(az)
+
         mag.append(smag)
 
         ang1[i] = np.radians(ang1[i])
