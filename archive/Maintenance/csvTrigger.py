@@ -1,5 +1,5 @@
 #
-# function to be triggered when a csv file arrives in ukmon-shared
+# lambda function to be triggered when a csv file arrives in ukmon-shared
 # to copy it to the temp area for consolidation later
 #
 import boto3
