@@ -14,7 +14,7 @@ def makeFBGraphs(root, yr, shwr, fbcount):
         of.write('<img src="fireball_by_month.jpg" width="600">')
         of.write('<img src="fireball_by_stream.jpg" width="600">')
         s = '<p>The brightest fireballs observed during ' + yr + ' were:</p>'
-        of.write(s)       
+        of.write(s)
     else:
         of.write('')
     of.close()

@@ -81,11 +81,11 @@ def writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, alt
 def createStationInfo(fldr, sta, lat, lng, alt):
     """
     Create CAMS style station info file. For some reason CAMS uses km as the altitude.
-    Lati and Longi are in degrees, East/North positive as usual
+    Lati and Longi are in degrees, North positive but WEST positive so not standard
     """
     statinfo = os.path.join(fldr, CAMINFOFILE)
     with open(statinfo, 'a') as statf:
-        dets = '{:s} {:.4f} {:.4f} {:.3f}\n'.format(sta, lat, lng, alt / 1000.0)
+        dets = '{:s} {:.4f} {:.4f} {:.3f}\n'.format(sta, lat, -lng, alt / 1000.0)
         statf.write(dets)
 
 
