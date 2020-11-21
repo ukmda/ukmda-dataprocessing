@@ -1,0 +1,21 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: Consolidates individual camera CSVs into the annual indices.
+Resources:
+  ConsolidateCSVs:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: consolidateCSVs.lambda_handler
+      Runtime: python3.8
+      CodeUri: .
+      Description: ''
+      MemorySize: 128
+      Timeout: 300
+      Role: 'arn:aws:iam::822069317839:role/service-role/S3FullAccess'
+      Events:
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 23 * * ? *)
+      Tags:
+        Project: ukmon-archive

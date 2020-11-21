@@ -507,11 +507,11 @@ DailyChecks/tackley_ne.ini
 M*.jpg
 M*.xml
 # don't want to duplicate this into github
-ukmon-live/curate/numpy/**
-ukmon-live/curate/pytz/**
-ukmon-live/curate/numpy.libs/**
-ukmon-live/curate/UFOHandler/*
-ukmon-live/curate/curateEngine*
+live/curate/numpy/**
+live/curate/pytz/**
+live/curate/numpy.libs/**
+live/curate/UFOHandler/*
+live/curate/curateEngine*
 notshared/**
 NewAnalysis/test_data/platepar/platepar_cmn2010_ne.cal
 NewAnalysis/test_data/platepar/skyFit_latest.state
@@ -534,3 +534,5 @@ NewAnalysis/*.txt
 **/deploy*.yml
 mp4s
 StandaloneCurator/.installed
+NewAnalysis/orbitSolver/testing
+NewAnalysis/FormatConverters/testing
