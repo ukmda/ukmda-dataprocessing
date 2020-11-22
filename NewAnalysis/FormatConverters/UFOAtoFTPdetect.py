@@ -61,6 +61,7 @@ def writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, alt
     """
     ftpf.write('-------------------------------------------------------\n')
     ms = '{:03d}'.format(int(evttime.microsecond / 1000))
+    lid = lid.replace('_', '')
     fname = 'FF_' + lid + '_' + evttime.strftime('%Y%m%d_%H%M%S_') + ms + '_0000000.fits\n'
     ftpf.write(fname)
     ftpf.write('Recalibrated with UFO on: ')
@@ -84,6 +85,7 @@ def createStationInfo(fldr, sta, lat, lng, alt):
     Lati and Longi are in degrees, North positive but WEST positive so not standard
     """
     statinfo = os.path.join(fldr, CAMINFOFILE)
+    #sta = sta.replace('_', '')
     with open(statinfo, 'a') as statf:
         dets = '{:s} {:.4f} {:.4f} {:.3f}\n'.format(sta, lat, -lng, alt / 1000.0)
         statf.write(dets)

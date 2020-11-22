@@ -13,8 +13,9 @@ do
     echo "<tr><td><a href=\"$i/ALL\">$i Full Year</a></td><td></td></tr>" >> yearlist.html
     ls -1 $i | egrep -v "ALL|orbits" | while read j
     do
-        echo "<tr><td></td><td><a href=\"$i/$j\">$j</a></td></tr>" >> yearlist.html
+        sname=`grep $j $here/CONFIG/streamnames.csv | awk -F, '{print $2}'`
+        echo "<tr><td></td><td><a href=\"$i/$j\">$sname</a></td></tr>" >> yearlist.html
     done
-        echo "<tr><td></td><td><a href=\"$i/orbits\">Orbits</a></td></tr>" >> yearlist.html
+    echo "<tr><td></td><td><a href=\"$i/orbits\">Orbits</a></td></tr>" >> yearlist.html
 done
 echo "</table>" >> yearlist.html

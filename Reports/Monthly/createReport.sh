@@ -3,16 +3,20 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 if [ $# -lt 2 ] ; then
-	echo Usage: createReport.sh GEM 2017
+	echo Usage: createReport.sh GEM 2017 {force}
 else
     source $here/config.ini >/dev/null 2>&1
     source /home/ec2-user/venvs/wmpl/bin/activate
-    if [ ! -d $REPORTDIR/$2/$1 ] ; then 
+    if [[ ! -d $here/REPORTS/$2/$1 || "$3" == "force" ]] ; then
         $here/analyse.sh $1 $2 
     fi
-
+    if [ "$1" == "ALL" ]; then
+        sname="All Data"
+    else
+        sname=`grep $1 $here/CONFIG/streamnames.csv | awk -F, '{print $2}'`
+    fi
     if [ -d $REPORTDIR/$2/$1 ] ; then 
-        if [ "$2" == "ALL" ]; then
+        if [ "$1" == "ALL" ]; then
             cp $here/report-template.shtml $REPORTDIR/$2/$1/index.shtml
             metcount=`cat $here/DATA/consolidated/M_${2}-unified.csv | wc -l`
             maxalt=`grep "_$2" $here/DATA/UKMON-all-unified.csv  | grep UNIFIED | awk -F, '{print $44}' | sort -n | tail -1`
@@ -22,8 +26,8 @@ else
             metcount=`cat $here/DATA/consolidated/M_${2}-unified.csv | grep $1 | wc -l`
             maxalt=`grep $1 $here/DATA/UKMON-all-unified.csv  | grep UNIFIED | grep "_$2" | awk -F, '{print $44}' | sort -n | tail -1`
             minalt=`grep $1 $here/DATA/UKMON-all-unified.csv  | grep UNIFIED | grep "_$2" | awk -F, '{print $52}' | sort -n | head -1`
-            echo $metcount $maxalt $minalt
         fi 
+        echo $sname $metcount $maxalt $minalt
 
         cd $REPORTDIR/$2/$1
 
@@ -40,8 +44,10 @@ else
             sed "s/__REPDATE__/${repdate}/g" | sed "s/__METCOUNT__/${metcount}/g" | \
             sed "s/__PAIRS__/${pairs}/g" | sed "s/__UNIFRAC__/${unifrac}/g" | \
             sed "s/__FBCOUNT__/${fbcount}/g" | sed "s/__MAXALT__/${maxalt}/g" | \
-            sed "s/__SHWR__/${1}/g" | \
+            sed "s/__SHWR__/${sname}/g" | \
             sed "s/__MINALT__/${minalt}/g" > tmpidx.shtml
             mv tmpidx.shtml index.shtml
+
+        $here/updateMainIndex.sh
     fi
 fi 
