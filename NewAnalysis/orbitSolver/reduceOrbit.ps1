@@ -7,7 +7,6 @@
 # read the inifile
 $inifname = '../../orbitsolver.ini'
 $ini = get-inicontent $inifname
-$outdir = $ini['orbitcalcs']['results']
 $disablemc = $ini['orbitcalcs']['disablemc']
 $timing_offset = $ini['orbitcalcs']['timing_offset']
 $plotallspatial = $ini['orbitcalcs']['plotallspatial']
@@ -15,13 +14,14 @@ $plotallspatial = $ini['orbitcalcs']['plotallspatial']
 $wmpl_loc = $ini['wmpl']['wmpl_loc']
 $wmpl_env = $ini['wmpl']['wmpl_env']
 
+$here=$psscriptroot
 
 conda activate $wmpl_env
 
-$env:pythonpath=$wmpl_loc
+$env:pythonpath="$wmpl_loc;..\"
 
 Write-Output "converting to RMS/CAMS format"
-#python UFOAtoFTPdetect.py $indir
+python $here/../FormatConverters/UFOAtoFTPdetect.py $args[0]
 Write-Output "solving for the orbit"
 # arguments 
 #   -x save but don't display graphs, 
@@ -33,5 +33,4 @@ Write-Output "solving for the orbit"
 #   -s solver (original or gural)
 
 $infile=$args[0] + '/FTPdetectinfo_UFO.txt'
-python $wmpl_loc/wmpl/Formats/CAMS.py $infile  -x $plotallspatial -t $timing_offset $disablemc 
-# python ufoTrajSolver.py $outdir $args[0] 
+python $here/ufoTrajSolver.py $infile  -x $plotallspatial -t $timing_offset $disablemc

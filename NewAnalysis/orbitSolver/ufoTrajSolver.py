@@ -1,232 +1,823 @@
-#
-# testing the trajectory solver for UFO data
-#
-import sys
+""" Loading CAMS file products, FTPDetectInfo and CameraSites files, running the
+    trajectory solver on loaded data.
+
+"""
+
+from __future__ import print_function, division, absolute_import
+
 import os
-import re
+import sys
+import argparse
 import numpy as np
-import fnmatch
-from UFOHandler import ReadUFOAnalyzerXML as ua
-# sys.path.append('e:/dev/meteorhunting/WesternMeteorPyLib')
-import wmpl.Trajectory.Trajectory as tra
-import wmpl.Utils.TrajConversions as trajconv
-import configparser as cfg
+import matplotlib
+
+from wmpl.Formats.GenericArgumentParser import addSolverOptions
+from wmpl.Formats.Milig import StationData, writeMiligInputFile
+from wmpl.Utils.TrajConversions import J2000_JD, date2JD, equatorialCoordPrecession_vect, raDec2AltAz_vect, \
+    jd2Date
+from wmpl.Trajectory.Trajectory import Trajectory
+from wmpl.Trajectory.GuralTrajectory import GuralTrajectory
+from wmpl.Utils.Math import mergeClosePoints, angleBetweenSphericalCoords
+from wmpl.Utils.Physics import calcMass
+from wmpl.Utils.ShowerAssociation import associateShower
 
 
-def find_files(path: str, glob_pat: str, ignore_case: bool = False):
-    rule = re.compile(fnmatch.translate(glob_pat), re.IGNORECASE) if ignore_case \
-        else re.compile(fnmatch.translate(glob_pat))
-    return [n for n in os.listdir(os.path.expanduser(path)) if rule.match(n)]
-
-
-def ufoTrajSolver(outdir, fnames):
+class MeteorObservation(object):
+    """ Container for meteor observations.
+        The loaded points are RA and Dec in J2000 epoch, in radians.
     """
-    Calculate trajectory and orbit for UFO-Analyser based output.
+    def __init__(self, jdt_ref, station_id, latitude, longitude, height, fps, ff_name=None):
+
+        self.jdt_ref = jdt_ref
+        self.station_id = station_id
+        self.latitude = latitude
+        self.longitude = longitude
+        self.height = height
+        self.fps = fps
+
+        self.ff_name = ff_name
+
+        self.frames = []
+        self.time_data = []
+        self.x_data = []
+        self.y_data = []
+        self.azim_data = []
+        self.elev_data = []
+        self.ra_data = []
+        self.dec_data = []
+        self.mag_data = []
+        self.abs_mag_data = []
+
+    def addPoint(self, frame_n, x, y, azim, elev, ra, dec, mag):
+        """ Adds the measurement point to the meteor.
+
+        Arguments:
+            frame_n: [flaot] Frame number from the reference time.
+            x: [float] X image coordinate.
+            y: [float] X image coordinate.
+            azim: [float] Azimuth, J2000 in degrees.
+            elev: [float] Elevation angle, J2000 in degrees.
+            ra: [float] Right ascension, J2000 in degrees.
+            dec: [float] Declination, J2000 in degrees.
+            mag: [float] Visual magnitude.
+
+        """
+
+        self.frames.append(frame_n)
+
+        # Calculate the time in seconds w.r.t. to the reference JD
+        point_time = float(frame_n) / self.fps
+
+        self.time_data.append(point_time)
+
+        self.x_data.append(x)
+        self.y_data.append(y)
+
+        # Angular coordinates converted to radians
+        self.azim_data.append(np.radians(azim))
+        self.elev_data.append(np.radians(elev))
+        self.ra_data.append(np.radians(ra))
+        self.dec_data.append(np.radians(dec))
+        self.mag_data.append(mag)
+
+    def finish(self):
+        """ When the initialization is done, convert data lists to numpy arrays. """
+
+        self.frames = np.array(self.frames)
+        self.time_data = np.array(self.time_data)
+        self.x_data = np.array(self.x_data)
+        self.y_data = np.array(self.y_data)
+        self.azim_data = np.array(self.azim_data)
+        self.elev_data = np.array(self.elev_data)
+        self.ra_data = np.array(self.ra_data)
+        self.dec_data = np.array(self.dec_data)
+        self.mag_data = np.array(self.mag_data)
+
+        # Sort by frame
+        temp_arr = np.c_[self.frames, self.time_data, self.x_data, self.y_data, self.azim_data,
+        self.elev_data, self.ra_data, self.dec_data, self.mag_data]
+        temp_arr = temp_arr[np.argsort(temp_arr[:, 0])]
+        self.frames, self.time_data, self.x_data, self.y_data, self.azim_data, self.elev_data, self.ra_data, \
+            self.dec_data, self.mag_data = temp_arr.T
+
+    def __repr__(self):
+
+        out_str = ''
+
+        out_str += 'Station ID = ' + str(self.station_id) + '\n'
+        out_str += 'JD ref = {:f}'.format(self.jdt_ref) + '\n'
+        out_str += 'DT ref = {:s}'.format(jd2Date(self.jdt_ref,
+            dt_obj=True).strftime("%Y/%m/%d-%H%M%S.%f")) + '\n'
+        out_str += 'Lat = {:f}, Lon = {:f}, Ht = {:f} m'.format(np.degrees(self.latitude),
+            np.degrees(self.longitude), self.height) + '\n'
+        out_str += 'FPS = {:f}'.format(self.fps) + '\n'
+
+        out_str += 'Points:\n'
+        out_str += 'Time, X, Y, azimuth, elevation, RA, Dec, Mag:\n'
+
+        for point_time, x, y, azim, elev, ra, dec, mag in zip(self.time_data, self.x_data, self.y_data,
+                self.azim_data, self.elev_data, self.ra_data, self.dec_data, self.mag_data):
+
+            if mag is None:
+                mag = 0
+
+            out_str += '{:.4f}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:+.2f}, {:.2f}\n'.format(point_time,
+                x, y, np.degrees(azim), np.degrees(elev), np.degrees(ra), np.degrees(dec), mag)
+
+        return out_str
+
+
+def loadCameraTimeOffsets(cameratimeoffsets_file_name):
+    """ Loads time offsets in seconds from the CameraTimeOffsets.txt file.
 
     Arguments:
-        outdir: [string] where to put the reports and graphs
+        camerasites_file_name: [str] Path to the CameraTimeOffsets.txt file.
 
-        fnames: [list of strings] list of two or more A.XML files
-
-    example usage:
-
-    python ufoTrajSolver c:/temp M20201011_123456_AliceA.xml M20201011_12344_BobA.xml M20201011_12347_JimA.xml
-    python ufoTrajSolver c:/temp folder_with_axmls
+    Return:
+        time_offsets: [dict] (key, value) pairs of (station_id, time_offset) for every station.
     """
-    verbose = False
-    monte_carlo = False
-    max_toff = 5  # need at least 5s for UFO data !
-    etv = True
 
-    config = cfg.ConfigParser()
-    config.read('orbitsolver.ini')
+    time_offsets = {}
 
-    if config['orbitcalcs']['verbose'] in ['True', 'TRUE', 'true']:
-        verbose = True
-    if config['orbitcalcs']['use_mc'] in ['True', 'TRUE', 'true']:
-        monte_carlo = True
-    if config['orbitcalcs']['use_RA'] in ['True', 'TRUE', 'true']:
-        use_RA = True
+    # If the file was not found, skip it
+    if not os.path.isfile(cameratimeoffsets_file_name):
+        print('The time offsets file could not be found! ', cameratimeoffsets_file_name)
+        return time_offsets
 
-    # if there's only one filename, assume its a folder containing the data
-    if len(fnames) == 1:
-        pth = fnames[0]
-        fnames = find_files(pth, '*.xml', True)
+    with open(cameratimeoffsets_file_name) as f:
 
-    num = len(fnames)
-    stations = []
-    lat = np.empty(num)
-    lon = np.empty(num)
-    ele = np.empty(num)
-    tt = []
-    ang1 = []
-    ang2 = []
-    mag = []
-    fcount = np.empty(num)
+        # Skip the header
+        for i in range(2):
+            next(f)
 
-    dd = np.empty(num, dtype='object')
-    i = 0
-    for fn in fnames:
-        print(fn)
-        fullname = os.path.join(pth, fn)
-        dd[i] = ua.UAXml(fullname)
-        i = i + 1
+        # Load camera time offsets
+        for line in f:
 
-    # date from  1st station, used to create output folder and set reference point
-    dtim = dd[0].getDateTime()
-    fname = dtim.strftime('%Y%m%d_%H%M%S')
-    outdir = os.path.join(outdir, fname)
+            line = line.replace('\n', '')
+            line = line.split()
 
-    # Reference julian date. This shouldbe close to the start-time of the meteor, hence using dtim
-    # note: processing will adjust this to match the earliest start time of any events
-    # so the JD in the report may not exactly match this value
-    reftime = dtim.timestamp()
-    jdt_ref = trajconv.datetime2JD(dtim)
+            station_id = line[0].strip()
 
-    # Inputs are RA/Dec or Alt/Az as read from UFOA data
-    # useful options are 1=RA/Dec, 2=az/ev measured N->E/Horiz up
-    if use_RA is True:
-        print('reading RA and Dec')
-        meastype = 1
+            # Try converting station ID to integer
+            try:
+                station_id = int(station_id)
+            except:
+                pass
+
+            t_offset = float(line[1])
+
+            time_offsets[station_id] = t_offset
+
+    return time_offsets
+
+
+def loadCameraSites(camerasites_file_name):
+    """ Loads locations of cameras from a CAMS-style CameraSites files.
+
+    Arguments:
+        camerasites_file_name: [str] Path to the CameraSites.txt file.
+
+    Return:
+        stations: [dict] A dictionary where the keys are stations IDs, and values are lists of:
+            - latitude +N in radians
+            - longitude +E in radians
+            - height in meters
+    """
+    stations = {}
+
+    with open(camerasites_file_name) as f:
+
+        # Skip the fist two lines (header)
+        for i in range(2):
+            next(f)
+
+        # Read in station info
+        for line in f:
+
+            # Skip commended out lines
+            if line[0] == '#':
+                continue
+
+            line = line.replace('\n', '')
+
+            if line:
+
+                line = line.split()
+
+                station_id, lat, lon, height = line[:4]
+
+                station_id = station_id.strip()
+
+                # Try converting station ID to integer
+                try:
+                    station_id = int(station_id)
+                except:
+                    pass
+
+                lat, lon, height = map(float, [lat, lon, height])
+
+                stations[station_id] = [np.radians(lat), np.radians(-lon), height * 1000]
+
+    return stations
+
+
+def loadFTPDetectInfo(ftpdetectinfo_file_name, stations, time_offsets=None,
+        join_broken_meteors=True):
+    """
+
+    Arguments:
+        ftpdetectinfo_file_name: [str] Path to the FTPdetectinfo file.
+        stations: [dict] A dictionary where the keys are stations IDs, and values are lists of:
+            - latitude +N in radians
+            - longitude +E in radians
+            - height in meters
+
+    Keyword arguments:
+        time_offsets: [dict] (key, value) pairs of (stations_id, time_offset) for every station. None by
+            default.
+        join_broken_meteors: [bool] Join meteors broken across 2 FF files.
+
+
+    Return:
+        meteor_list: [list] A list of MeteorObservation objects filled with data from the FTPdetectinfo file.
+
+    """
+
+    meteor_list = []
+
+    with open(ftpdetectinfo_file_name) as f:
+
+        # Skip the header
+        for i in range(11):
+            next(f)
+
+        current_meteor = None
+
+        bin_name = False
+        cal_name = False
+        meteor_header = False
+
+        for line in f:
+
+            line = line.replace('\n', '').replace('\r', '')
+
+            # Skip the line if it is empty
+            if not line:
+                continue
+
+            if '-----' in line:
+
+                # Mark that the next line is the bin name
+                bin_name = True
+
+                # If the separator is read in, save the current meteor
+                if current_meteor is not None:
+                    current_meteor.finish()
+                    meteor_list.append(current_meteor)
+
+                continue
+
+            if bin_name:
+
+                bin_name = False
+
+                # Mark that the next line is the calibration file name
+                cal_name = True
+
+                # Save the name of the FF file
+                ff_name = line
+
+                # Extract the reference time from the FF bin file name
+                line = line.split('_')
+
+                # Count the number of string segments, and determine if it the old or new CAMS format
+                if len(line) == 6:
+                    sc = 1
+                else:
+                    sc = 0
+
+                ff_date = line[1 + sc]
+                ff_time = line[2 + sc]
+                milliseconds = line[3 + sc]
+
+                year = ff_date[:4]
+                month = ff_date[4:6]
+                day = ff_date[6:8]
+
+                hour = ff_time[:2]
+                minute = ff_time[2:4]
+                seconds = ff_time[4:6]
+
+                year, month, day, hour, minute, seconds, milliseconds = map(int, [year, month, day, hour,
+                    minute, seconds, milliseconds])
+
+                # Calculate the reference JD time
+                jdt_ref = date2JD(year, month, day, hour, minute, seconds, milliseconds)
+
+                continue
+
+            if cal_name:
+
+                cal_name = False
+
+                # Mark that the next line is the meteor header
+                meteor_header = True
+
+                continue
+
+            if meteor_header:
+
+                meteor_header = False
+
+                line = line.split()
+
+                # Get the station ID and the FPS from the meteor header
+                station_id = line[0].strip()
+                fps = float(line[3])
+
+                # Try converting station ID to integer
+                try:
+                    station_id = int(station_id)
+                except:
+                    pass
+
+                # If the time offsets were given, apply the correction to the JD
+                if time_offsets is not None:
+
+                    if station_id in time_offsets:
+                        print('Applying time offset for station {:s} of {:.2f} s'.format(str(station_id),
+                            time_offsets[station_id]))
+
+                        jdt_ref += time_offsets[station_id] / 86400.0
+
+                    else:
+                        print('Time offset for given station not found!')
+
+                # Get the station data
+                if station_id in stations:
+                    lat, lon, height = stations[station_id]
+
+                else:
+                    print('ERROR! No info for station ', station_id, ' found in CameraSites.txt file!')
+                    print('Exiting...')
+                    break
+
+                # Init a new meteor observation
+                current_meteor = MeteorObservation(jdt_ref, station_id, lat, lon, height, fps,
+                    ff_name=ff_name)
+
+                continue
+
+            # Read in the meteor observation point
+            if (current_meteor is not None) and (not bin_name) and (not cal_name) and (not meteor_header):
+
+                line = line.replace('\n', '').split()
+
+                # Read in the meteor frame, RA and Dec
+                frame_n = float(line[0])
+                x = float(line[1])
+                y = float(line[2])
+                ra = float(line[3])
+                dec = float(line[4])
+                azim = float(line[5])
+                elev = float(line[6])
+
+                # Read the visual magnitude, if present
+                if len(line) > 8:
+
+                    mag = line[8]
+
+                    if mag == 'inf':
+                        mag = None
+
+                    else:
+                        mag = float(mag)
+
+                else:
+                    mag = None
+
+                # Add the measurement point to the current meteor
+                current_meteor.addPoint(frame_n, x, y, azim, elev, ra, dec, mag)
+
+        # Add the last meteor the the meteor list
+        if current_meteor is not None:
+            current_meteor.finish()
+            meteor_list.append(current_meteor)
+
+    # Concatenate observations across different FF files ###
+    if join_broken_meteors:
+
+        # Go through all meteors and compare the next observation
+        merged_indices = []
+        for i in range(len(meteor_list)):
+
+            # If the next observation was merged, skip it
+            if (i + 1) in merged_indices:
+                continue
+
+            # Get the current meteor observation
+            met1 = meteor_list[i]
+
+            if i >= (len(meteor_list) - 1):
+                break
+
+            # Get the next meteor observation
+            met2 = meteor_list[i + 1]
+
+            # Compare only same station observations
+            if met1.station_id != met2.station_id:
+                continue
+
+            # Extract frame number
+            met1_frame_no = int(met1.ff_name.split("_")[-1].split('.')[0])
+            met2_frame_no = int(met2.ff_name.split("_")[-1].split('.')[0])
+
+            # Skip if the next FF is not exactly 256 frames later
+            if met2_frame_no != (met1_frame_no + 256):
+                continue
+
+            # Check for frame continouty
+            if (met1.frames[-1] < 254) or (met2.frames[0] > 2):
+                continue
+
+            # Check if the next frame is close to the predicted position ###
+
+            # Compute angular distance between the last 2 points on the first FF
+            ang_dist = angleBetweenSphericalCoords(met1.dec_data[-2], met1.ra_data[-2], met1.dec_data[-1],
+                met1.ra_data[-1])
+
+            # Compute frame difference between the last frame on the 1st FF and the first frame on the 2nd FF
+            df = met2.frames[0] + (256 - met1.frames[-1])
+
+            # Skip the pair if the angular distance between the last and first frames is 2x larger than the
+            #   frame difference times the expected separation
+            ang_dist_between = angleBetweenSphericalCoords(met1.dec_data[-1], met1.ra_data[-1],
+                met2.dec_data[0], met2.ra_data[0])
+
+            if ang_dist_between > 2 * df * ang_dist:
+                continue
+
+            # If all checks have passed, merge observations ###
+
+            # Recompute the frames
+            frames = 256.0 + met2.frames
+
+            # Recompute the time data
+            time_data = frames / met1.fps
+
+            # Add the observations to first meteor object
+            met1.frames = np.append(met1.frames, frames)
+            met1.time_data = np.append(met1.time_data, time_data)
+            met1.x_data = np.append(met1.x_data, met2.x_data)
+            met1.y_data = np.append(met1.y_data, met2.y_data)
+            met1.azim_data = np.append(met1.azim_data, met2.azim_data)
+            met1.elev_data = np.append(met1.elev_data, met2.elev_data)
+            met1.ra_data = np.append(met1.ra_data, met2.ra_data)
+            met1.dec_data = np.append(met1.dec_data, met2.dec_data)
+            met1.mag_data = np.append(met1.mag_data, met2.mag_data)
+
+            # Sort all observations by time
+            met1.finish()
+
+            # Indicate that the next observation is to be skipped
+            merged_indices.append(i + 1)
+
+        # Removed merged meteors from the list
+        meteor_list = [element for i, element in enumerate(meteor_list) if i not in merged_indices]
+
+    return meteor_list
+
+
+def prepareObservations(meteor_list):
+    """ Takes a list of MeteorObservation objects, normalizes all data points to the same reference Julian
+        date, precesses the observations from J2000 to the epoch of date.
+
+    Arguments:
+        meteor_list: [list] List of MeteorObservation objects
+
+    Return:
+        (jdt_ref, meteor_list):
+            - jdt_ref: [float] reference Julian date for which t = 0
+            - meteor_list: [list] A list a MeteorObservations whose time is normalized to jdt_ref, and are
+                precessed to the epoch of date
+
+    """
+
+    if meteor_list:
+
+        # The reference meteor is the one with the first time of the first frame
+        ref_ind = np.argmin([met.jdt_ref + met.time_data[0] / 86400.0 for met in meteor_list])
+        tsec_delta = meteor_list[ref_ind].time_data[0]
+        jdt_delta = tsec_delta / 86400.0
+
+        # Normalize all times to the beginning of the first meteor
+
+        # Apply the normalization to the reference meteor
+        meteor_list[ref_ind].jdt_ref += jdt_delta
+        meteor_list[ref_ind].time_data -= tsec_delta
+
+        meteor_list_tcorr = []
+
+        for i, meteor in enumerate(meteor_list):
+
+            # Only correct non-reference meteors
+            if i != ref_ind:
+
+                # Calculate the difference between the reference and the current meteor
+                jdt_diff = meteor.jdt_ref - meteor_list[ref_ind].jdt_ref
+                tsec_diff = jdt_diff * 86400.0
+
+                # Normalize all meteor times to the same reference time
+                meteor.jdt_ref -= jdt_diff
+                meteor.time_data += tsec_diff
+
+            meteor_list_tcorr.append(meteor)
+
+        ######
+        # The reference JD for all meteors is thus the reference JD of the first meteor
+        jdt_ref = meteor_list_tcorr[ref_ind].jdt_ref
+
+        # Precess observations from J2000 to the epoch of date
+        meteor_list_epoch_of_date = []
+        for meteor in meteor_list_tcorr:
+
+            jdt_ref_vect = np.zeros_like(meteor.ra_data) + jdt_ref
+
+            # Precess from J2000 to the epoch of date
+            ra_prec, dec_prec = equatorialCoordPrecession_vect(J2000_JD.days, jdt_ref_vect, meteor.ra_data,
+                meteor.dec_data)
+
+            meteor.ra_data = ra_prec
+            meteor.dec_data = dec_prec
+
+            # Convert preccesed Ra, Dec to altitude and azimuth
+            meteor.azim_data, meteor.elev_data = raDec2AltAz_vect(meteor.ra_data, meteor.dec_data, jdt_ref,
+                meteor.latitude, meteor.longitude)
+
+            meteor_list_epoch_of_date.append(meteor)
+
+        return jdt_ref, meteor_list_epoch_of_date
+
     else:
-        print('reading Az and Alt')
-        meastype = 2
+        return None, None
 
-    # read data from each station
-    for i in range(num):
-        # read station location data and convert to radians
-        station, _, _, lat[i], lon[i], ele[i] = dd[i].getStationDetails()
-        stations.append(station)
-        lon[i] = np.radians(lon[i])
-        lat[i] = np.radians(lat[i])
 
-        # read meteor time, magnitude, RA/Dec or Alt/Az and convert to radians
-        _, stt, sra, sdec, smag, fcount[i], alt, az, b, lsum = dd[i].getPathVector(0)
-        print(sra)
-        tt.append(stt)
-        if meastype == 1:
-            ang1.append(sra)
-            ang2.append(sdec)
+def solveTrajectoryCAMS(meteor_list, output_dir, solver='original', **kwargs):
+    """ Feed the list of meteors in the trajectory solver. """
+    # Normalize the observations to the same reference Julian date and precess them from J2000 to the
+    # epoch of date
+    jdt_ref, meteor_list = prepareObservations(meteor_list)
+
+    if meteor_list is not None:
+
+        for meteor in meteor_list:
+            print(meteor)
+
+        # Init the trajectory solver
+        if solver == 'original':
+            traj = Trajectory(jdt_ref, output_dir=output_dir, meastype=1, **kwargs)
+
+        elif solver.lower().startswith('gural'):
+            velmodel = solver.lower().strip('gural')
+            if len(velmodel) == 1:
+                velmodel = int(velmodel)
+            else:
+                velmodel = 0
+
+            traj = GuralTrajectory(len(meteor_list), jdt_ref, velmodel=velmodel, meastype=1, verbose=1,
+                output_dir=output_dir)
+
         else:
-            ang1.append(alt)
-            ang2.append(az)
+            print('No such solver:', solver)
+            return
 
-        mag.append(smag)
+        # Add meteor observations to the solver
+        for meteor in meteor_list:
 
-        ang1[i] = np.radians(ang1[i])
-        ang2[i] = np.radians(ang2[i])
+            if solver == 'original':
 
-        # convert times to offsets from ref time
-        tt[i] = tt[i] - reftime
+                traj.infillTrajectory(meteor.ra_data, meteor.dec_data, meteor.time_data, meteor.latitude,
+                    meteor.longitude, meteor.height, station_id=meteor.station_id,
+                    magnitudes=meteor.mag_data)
 
-    # Init new trajectory solving/ MC is much slower but a little more accurate
-    traj_solve = tra.Trajectory(jdt_ref, meastype=meastype,
-        save_results=True, monte_carlo=monte_carlo, show_plots=False,
-        output_dir=outdir, verbose=verbose, max_toffset=max_toff, estimate_timing_vel=etv)
+            elif solver == 'gural':
 
-    # Set input points for the sites
-    for i in range(num):
-        traj_solve.infillTrajectory(ang1[i], ang2[i], tt[i], lat[i], lon[i], ele[i],
-            station_id=stations[i], magnitudes=mag[i])
+                traj.infillTrajectory(meteor.ra_data, meteor.dec_data, meteor.time_data, meteor.latitude,
+                    meteor.longitude, meteor.height)
 
-    # and now solve it. This routine also creates all the output files
-    traj_solve.run()
+        # Solve the trajectory
+        traj = traj.run()
+
+        return traj
+
+
+def cams2MiligInput(meteor_list, file_path):
+    """ Writes CAMS data to MILIG input file.
+
+    Arguments:
+        meteor_list: [list] A list of MeteorObservation objects.
+        file_path: [str] Path to the MILIG input file which will be written.
+
+    Return:
+        None
+    """
+
+    # Normalize the observations to the same reference Julian date and precess them from J2000 to the
+    # epoch of date
+    jdt_ref, meteor_list = prepareObservations(meteor_list)
+
+    # Convert CAMS MeteorObservation to MILIG StationData object
+    milig_list = []
+    for i, meteor in enumerate(meteor_list):
+
+        # Check if the station ID is an integer
+        try:
+            station_id = int(meteor.station_id)
+
+        except ValueError:
+            station_id = i + 1
+
+        # Init a new MILIG meteor data container
+        milig_meteor = StationData(station_id, meteor.longitude, meteor.latitude, meteor.height)
+
+        # Fill in meteor points
+        for azim, elev, t in zip(meteor.azim_data, meteor.elev_data, meteor.time_data):
+
+            # Convert +E of due N azimuth to +W of due S
+            milig_meteor.azim_data.append((azim + np.pi) % (2 * np.pi))
+
+            # Convert elevation angle to zenith angle
+            milig_meteor.zangle_data.append(np.pi / 2 - elev)
+            milig_meteor.time_data.append(t)
+
+        milig_list.append(milig_meteor)
+
+    # Write MILIG input file
+    writeMiligInputFile(jdt_ref, milig_list, file_path)
+
+
+def computeAbsoluteMagnitudes(traj, meteor_list):
+    """ Given the trajectory, compute the absolute mangitude (visual mangitude @100km). """
+
+    # Go though every observation of the meteor
+    for i, meteor_obs in enumerate(meteor_list):
+
+        # Go through all magnitudes and compute absolute mangitudes
+        for dist, mag in zip(traj.observations[i].model_range, meteor_obs.mag_data):
+
+            # Skip nonexistent magnitudes
+            if mag is not None:
+
+                # Compute the range-corrected magnitude
+                abs_mag = mag + 5 * np.log10((10**5) / dist)
+
+            else:
+                abs_mag = None
+
+            meteor_obs.abs_mag_data.append(abs_mag)
 
 
 if __name__ == "__main__":
+    # COMMAND LINE ARGUMENTS
 
-    if len(sys.argv) > 2:
-        args = sys.argv[2:]
-        ufoTrajSolver(sys.argv[1], args)
+    # Init the command line arguments parser
+    arg_parser = argparse.ArgumentParser(description="Run the trajectory solver on the given FTPdetectinfo file. It is assumed that only one meteor per file is given.")
+
+    arg_parser.add_argument('ftpdetectinfo_path', nargs=1, metavar='FTP_PATH', type=str,
+        help='Path to the FTPdetectinfo file. It is assumed that the CameraSites.txt and CameraTimeOffsets.txt are in the same folder.')
+
+    # Add other solver options
+    arg_parser = addSolverOptions(arg_parser, skip_velpart=True)
+
+    arg_parser.add_argument('-p', '--velpart', metavar='VELOCITY_PART',
+        help='Fixed part from the beginning of the meteor on which the initial velocity estimation using the sliding fit will start. Default is 0.4 (40 percent), but for noisier data this might be bumped up to 0.5.',
+        type=float, default=0.4)
+
+    # Parse the command line arguments
+    cml_args = arg_parser.parse_args()
+
+    #########################
+
+    # Parse command line arguments ###
+
+    ftpdetectinfo_path = os.path.abspath(cml_args.ftpdetectinfo_path[0])
+
+    dir_path = os.path.dirname(ftpdetectinfo_path)
+
+    # Check if the given directory is OK
+    if not os.path.isfile(ftpdetectinfo_path):
+        print('No such file:', ftpdetectinfo_path)
+        sys.exit()
+
+    max_toffset = None
+    if cml_args.maxtoffset:
+        max_toffset = cml_args.maxtoffset[0]
+
+    velpart = None
+    if cml_args.velpart:
+        velpart = cml_args.velpart
+
+    vinitht = None
+    if cml_args.vinitht:
+        vinitht = cml_args.vinitht[0]
+
+    # Image file type of the plots
+    plot_file_type = 'png'
+
+    camerasites_file_name = 'CameraSites.txt'
+    cameratimeoffsets_file_name = 'CameraTimeOffsets.txt'
+
+    camerasites_file_name = os.path.join(dir_path, camerasites_file_name)
+    cameratimeoffsets_file_name = os.path.join(dir_path, cameratimeoffsets_file_name)
+
+    # Get locations of stations
+    stations = loadCameraSites(camerasites_file_name)
+
+    # Get time offsets of cameras
+    time_offsets = loadCameraTimeOffsets(cameratimeoffsets_file_name)
+
+    # Get the meteor data
+    meteor_list = loadFTPDetectInfo(ftpdetectinfo_path, stations, time_offsets=time_offsets)
+
+    # Assume all entires in the FTPdetectinfo path should be used for one meteor
+    meteor_proc_list = [meteor_list]
+
+    for meteor in meteor_proc_list:
+
+        etv = False
+        # Run the trajectory solver
+        traj = solveTrajectoryCAMS(meteor, os.path.join(dir_path, jd2Date(meteor[0].jdt_ref,
+            dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")), solver=cml_args.solver, max_toffset=max_toffset,
+            monte_carlo=(not cml_args.disablemc), mc_runs=cml_args.mcruns,
+            geometric_uncert=cml_args.uncertgeom, gravity_correction=(not cml_args.disablegravity),
+            plot_all_spatial_residuals=cml_args.plotallspatial, plot_file_type=cml_args.imgformat,
+            show_plots=(not cml_args.hideplots), v_init_part=velpart, v_init_ht=vinitht,
+            estimate_timing_vel=etv, verbose=False)
+
+    # ### PERFORM PHOTOMETRY
+
+        # # Override default DPI for saving from the interactive window
+        matplotlib.rcParams['savefig.dpi'] = 300
+
+        # # Compute absolute mangitudes
+        computeAbsoluteMagnitudes(traj, meteor)
+
+        # # List of photometric uncertainties per station
+        photometry_stddevs = [0.3] * len(meteor)
+
+        time_data_all = []
+        abs_mag_data_all = []
+
+        # # Plot absolute magnitudes for every station
+        for i, (meteor_obs, photometry_stddev) in enumerate(zip(meteor, photometry_stddevs)):
+
+            # Take only magnitudes that are not None
+            good_mag_indices = [j for j, abs_mag in enumerate(meteor_obs.abs_mag_data) if abs_mag is not None]
+            time_data = traj.observations[i].time_data[good_mag_indices]
+            abs_mag_data = np.array(meteor_obs.abs_mag_data)[good_mag_indices]
+
+            time_data_all += time_data.tolist()
+            abs_mag_data_all += abs_mag_data.tolist()
+
+        # Sort by time
+            temp_arr = np.c_[time_data, abs_mag_data]
+            temp_arr = temp_arr[np.argsort(temp_arr[:, 0])]
+            time_data, abs_mag_data = temp_arr.T
+
+    # ### Compute the mass
+
+    # # Sort by time
+    temp_arr = np.c_[time_data_all, abs_mag_data_all]
+    temp_arr = temp_arr[np.argsort(temp_arr[:, 0])]
+    time_data_all, abs_mag_data_all = temp_arr.T
+
+    # # Average the close points
+    time_data_all, abs_mag_data_all = mergeClosePoints(time_data_all, abs_mag_data_all, 1 / (2 * 25))
+
+    time_data_all = np.array(time_data_all)
+    abs_mag_data_all = np.array(abs_mag_data_all)
+
+    # # Compute the mass
+    mass = calcMass(time_data_all, abs_mag_data_all, traj.v_avg, P_0m=1210)
+
+    print('mass (g)')
+    print(mass * 1000, 'g')
+
+    print('start/end lat/long/alti')
+    print(np.degrees(traj.rbeg_lon), np.degrees(traj.rbeg_lat), traj.rbeg_ele)
+    print(np.degrees(traj.rend_lon), np.degrees(traj.rend_lat), traj.rend_ele)
+
+    orb = traj.orbit
+    print(orb.jd_ref)
+    print('a, e, i, T, la_sun, peri, node, pi, q, Q, anom, ea, ma, last_peri, Tj')
+    print(orb.a, orb.e, np.degrees(orb.i), orb.T, np.degrees(orb.la_sun),
+        np.degrees(orb.peri), np.degrees(orb.node),
+        np.degrees(orb.pi), orb.q, orb.Q, np.degrees(orb.true_anomaly), np.degrees(orb.eccentric_anomaly),
+        np.degrees(orb.mean_anomaly), orb.last_perihelion, orb.Tj)
+
+    print('ID, code, LA, Lg, Bg, Vg')
+    shower_obj = associateShower(orb.la_sun, orb.L_g, orb.B_g, orb.v_g)
+    if shower_obj is None:
+        print(-1, '...', np.degrees(orb.L_g), np.degrees(orb.B_g), orb.v_g)
     else:
-        # TEST CASE ###
-        ##########################################################################################################
-
-        # import time
-        # from wmpl.Utils.TrajConversions import equatorialCoordPrecession_vect, J2000_JD
-
-        # TEST EVENT
-        ###############
-        # Reference julian date
-        jdt_ref = 2458601.365760937799
-
-        # Inputs are RA/Dec
-        meastype = 1
-
-        # Measurements
-        station_id1 = "RU0001"
-        time1 = np.array([0.401190, 0.441190, 0.481190, 0.521190, 0.561190, 0.601190, 0.641190, 0.681190,
-                        0.721190, 0.761190, 0.801190, 0.841190, 0.881190, 0.921190, 0.961190, 1.001190,
-                        1.041190, 1.081190, 1.121190, 1.161190, 1.201190, 1.241190, 1.281190, 1.321190,
-                        1.361190, 1.401190, 1.441190, 1.561190, 1.601190, 1.641190, 1.721190, 1.761190,
-                        1.841190])
-        ra1 = np.array([350.35970, 350.71676, 351.29184, 351.58998, 352.04673, 352.50644, 352.91289, 353.37336,
-                        353.80532, 354.23339, 354.69277, 355.07317, 355.49321, 355.93473, 356.32148, 356.74755,
-                        357.13866, 357.51363, 357.89944, 358.34052, 358.72626, 359.11597, 359.53391, 359.88343,
-                        000.35106, 000.71760, 001.05526, 002.17105, 002.58634, 002.86315, 003.58752, 003.90806,
-                        004.48084])
-        dec1 = np.array([+74.03591, +73.94472, +73.80889, +73.73877, +73.59830, +73.46001, +73.35001, +73.22812,
-                        +73.10211, +72.98779, +72.84568, +72.72924, +72.59691, +72.46677, +72.33622, +72.18147,
-                        +72.04381, +71.91015, +71.77648, +71.63370, +71.47512, +71.32664, +71.16185, +71.03236,
-                        +70.84506, +70.67285, +70.54194, +70.01219, +69.80856, +69.69043, +69.38316, +69.23522,
-                        +68.93025])
-
-        station_id2 = "RU0002"
-        time2 = np.array([0.000000, 0.040000, 0.080000, 0.120000, 0.160000, 0.200000, 0.240000, 0.280000,
-                        000.320000, 0.360000, 0.400000, 0.440000, 0.480000, 0.520000, 0.560000, 0.600000,
-                        000.640000, 0.680000, 0.720000, 0.760000, 0.800000, 0.840000, 0.880000, 0.920000,
-                        000.960000, 1.000000, 1.040000, 1.080000, 1.120000, 1.160000, 1.200000, 1.240000,
-                        001.280000, 1.320000, 1.360000, 1.400000, 1.440000, 1.480000, 1.520000, 1.560000,
-                        001.600000, 1.640000, 1.680000, 1.720000, 1.760000, 1.800000, 1.840000, 1.880000,
-                        001.920000, 1.960000, 2.000000, 2.040000, 2.080000, 2.120000, 2.160000, 2.200000,
-                        002.240000, 2.280000, 2.320000, 2.360000, 2.400000, 2.440000, 2.480000, 2.520000])
-        ra2 = np.array([081.27325, 81.20801, 81.06648, 81.03509, 80.93281, 80.87338, 80.74776, 80.68456,
-                        080.60038, 80.52306, 80.45021, 80.35990, 80.32309, 80.21477, 80.14311, 80.06967,
-                        079.98169, 79.92234, 79.84210, 79.77507, 79.72752, 79.62422, 79.52738, 79.48236,
-                        079.39613, 79.30580, 79.23434, 79.20863, 79.12019, 79.03670, 78.94849, 78.89223,
-                        078.84252, 78.76605, 78.69339, 78.64799, 78.53858, 78.53906, 78.47469, 78.39496,
-                        078.33473, 78.25761, 78.23964, 78.17867, 78.16914, 78.07010, 78.04741, 77.95169,
-                        077.89130, 77.85995, 77.78812, 77.76807, 77.72458, 77.66024, 77.61543, 77.54208,
-                        077.50465, 77.45944, 77.43200, 77.38361, 77.36004, 77.28842, 77.27131, 77.23300])
-        dec2 = np.array([+66.78618, +66.66040, +66.43476, +66.21971, +66.01550, +65.86401, +65.63294, +65.43265,
-                        +65.25161, +65.01655, +64.83118, +64.62955, +64.45051, +64.23361, +64.00504, +63.81778,
-                        +63.61334, +63.40714, +63.19009, +62.98101, +62.76420, +62.52019, +62.30266, +62.05585,
-                        +61.84240, +61.60207, +61.40390, +61.22904, +60.93950, +60.74076, +60.53772, +60.25602,
-                        +60.05801, +59.83635, +59.59978, +59.37846, +59.10216, +58.88266, +58.74728, +58.45432,
-                        +58.18503, +57.97737, +57.72030, +57.55891, +57.31933, +56.98481, +56.85845, +56.58652,
-                        +56.36153, +56.15409, +55.88252, +55.66986, +55.46593, +55.20145, +54.91643, +54.69826,
-                        +54.49443, +54.25651, +54.06386, +53.86395, +53.70069, +53.47312, +53.33715, +53.20272])
-
-        # Convert measurement to radians
-        ra1 = np.radians(ra1)
-        dec1 = np.radians(dec1)
-
-        ra2 = np.radians(ra2)
-        dec2 = np.radians(dec2)
-
-        # SITES INFO
-
-        lon1 = np.radians(37.315140)
-        lat1 = np.radians(44.890740)
-        ele1 = 26.00
-
-        lon2 = np.radians(38.583580)
-        lat2 = np.radians(44.791620)
-        ele2 = 240.00
-
-        ###
-
-        # Init new trajectory solving
-        traj_solve = tra.Trajectory(jdt_ref, meastype=meastype, save_results=True, monte_carlo=False, show_plots=False)
-
-        # Set input points for the first site
-        traj_solve.infillTrajectory(ra1, dec1, time1, lat1, lon1, ele1, station_id=station_id1)
-
-        # Set input points for the second site
-        traj_solve.infillTrajectory(ra2, dec2, time2, lat2, lon2, ele2, station_id=station_id2)
-
-        traj_solve.run()
-
-        # TEST
-        print('saving results')
-        fig_pickle_dict = traj_solve.savePlots('c:/temp/test', 'myfile', show_plots=False, ret_figs=False)
+        print(shower_obj.IAU_no, shower_obj.IAU_code, np.degrees(orb.L_g), np.degrees(orb.B_g), orb.v_g)

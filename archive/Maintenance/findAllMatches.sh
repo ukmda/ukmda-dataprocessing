@@ -13,4 +13,6 @@ fi
 yr=${ym:0:4}
 mth=${ym:4:2}
 
-python $here/consolidateMatchedData.py $yr $mth
+mkdir -p $here/logs > /dev/null 2>&1
+
+python $here/consolidateMatchedData.py $yr $mth |tee $here/logs/$ym.log

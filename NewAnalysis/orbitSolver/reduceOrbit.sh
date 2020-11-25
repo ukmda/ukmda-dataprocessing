@@ -18,11 +18,12 @@ else
 fi 
 outdir=$results/$yr/orbits/$ym
 indir=$inputs/$yr/$ym/$1
+mkdir -p $here/logs >/dev/null 2>&1
 
 cd $here
 echo "converting $1 to RMS/CAMS format"
 python UFOAtoFTPdetect.py $indir
-numas=`ls -1 $indir/*A.XML | wc -l`
+numas=`ls -1 $indir/*A.XML $indir/data*.txt | wc -l`
 if [ $numas -gt 1 ] ; then 
     echo "solving $1 for the orbit"
     # arguments 
@@ -34,7 +35,7 @@ if [ $numas -gt 1 ] ; then
     #   -t T max timing difference between stations
     #   -s solver (original or gural)
 
-    python ../WesternMeteorPyLib/wmpl/Formats/CAMS.py $indir/FTPdetectinfo_UFO.txt -x -l -t $timing_offset $disablemc > $indir/results.txt
+    python ../WesternMeteorPyLib/wmpl/Formats/CAMS.py $indir/FTPdetectinfo_UFO.txt -x -l -t $timing_offset $disablemc > $here/logs/$1.txt
     res=$?
     echo "done, result was $res"
     resultdir=$(ls -1trd $indir/${yr}* | grep -v .txt | tail -1)
@@ -46,9 +47,9 @@ if [ $numas -gt 1 ] ; then
         mkdir -p $fulltarg >/dev/null 2>&1
         echo "copying output files from $resultdir to $fulltarg"
         cp -pr $resultdir/* $fulltarg
-        cp $indir/results.txt $fulltarg
 
         $here/createPageIndex.sh $targ
+        $here/createMonthlyOrbitIndex.sh $ym
     else
         echo "$1 was not solvable - probably not a true match"
     fi

@@ -7,6 +7,7 @@
 
 import os
 import sys
+import shutil
 import fnmatch
 import datetime
 import UFOHandler.ReadUFOAnalyzerXML as UA
@@ -14,6 +15,20 @@ import UFOHandler.ReadUFOAnalyzerXML as UA
 CAMINFOFILE = 'CameraSites.txt'
 CAMOFFSETSFILE = 'CameraTimeOffsets.txt'
 FTPFILE = 'FTPdetectinfo_UFO.txt'
+
+
+def loadRMSdata(fldr):
+    rmsdata = []
+    stations = []
+    listOfFiles = os.listdir(fldr)
+    for entry in listOfFiles:
+        if fnmatch.fnmatch(entry, 'data*.txt'):
+            fullname = os.path.join(fldr, entry)
+            rmsdata.append(fullname)
+        if fnmatch.fnmatch(entry, 'stat*.txt'):
+            fullname = os.path.join(fldr, entry)
+            stations.append(fullname)
+    return rmsdata, stations
 
 
 def loadAXMLs(fldr):
@@ -79,13 +94,21 @@ def writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, alt
         ftpf.write(li)
 
 
+def createStationHeader(fldr):
+    statinfo = os.path.join(fldr, CAMINFOFILE)
+    statf = open(statinfo, 'w')
+    statf.write('# CAMS compatible station info file\n')
+    statf.write('# station_id, lat(+N degs), long (+W degs), Altitude (km)\n')
+    statf.close()
+
+
 def createStationInfo(fldr, sta, lat, lng, alt):
     """
     Create CAMS style station info file. For some reason CAMS uses km as the altitude.
     Lati and Longi are in degrees, North positive but WEST positive so not standard
     """
     statinfo = os.path.join(fldr, CAMINFOFILE)
-    #sta = sta.replace('_', '')
+    # sta = sta.replace('_', '')
     with open(statinfo, 'a') as statf:
         dets = '{:s} {:.4f} {:.4f} {:.3f}\n'.format(sta, lat, -lng, alt / 1000.0)
         statf.write(dets)
@@ -94,15 +117,12 @@ def createStationInfo(fldr, sta, lat, lng, alt):
 def convertFolder(fldr):
     """
     Read all the A.XML files and create an RMS-style ftpdetect file plus station info file
+    Then check for RMS-style data and append it onto the files
     """
     axmls, metcount, stime = loadAXMLs(fldr)
 
     # create an empty station info file
-    statinfo = os.path.join(fldr, CAMINFOFILE)
-    statf = open(statinfo, 'w')
-    statf.write('# CAMS compatible station info file\n')
-    statf.write('# station_id, lat(+N degs), long (+E degs), Altitude (km)\n')
-    statf.close()
+    createStationHeader(fldr)
 
     # create and populate the ftpdetectinfo file
     ftpfile = os.path.join(fldr, FTPFILE)
@@ -124,6 +144,17 @@ def convertFolder(fldr):
                 metno += 1
                 writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, alt, b, mag, lid)
                 # print(fno, tt, ra, dec, alt, az, b, mag)
+
+    rmsdata, statfiles = loadRMSdata(fldr)
+    with open(os.path.join(fldr, FTPFILE), 'a') as wfd:
+        for f in rmsdata:
+            with open(f, 'r') as fd:
+                shutil.copyfileobj(fd, wfd)
+    with open(os.path.join(fldr, CAMINFOFILE), 'a') as wfd:
+        for f in statfiles:
+            with open(f, 'r') as fd:
+                shutil.copyfileobj(fd, wfd)
+                wfd.write('\n')
 
     return
 

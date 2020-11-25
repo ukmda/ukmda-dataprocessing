@@ -196,7 +196,9 @@ class UAXml:
         dist1 = uo['@dist1']
         lng1 = uo['@lng1']
         lat1 = uo['@lat1']
-        return ra1, dc1, h1, dist1, lng1, lat1
+        az1 = uo['@az1']
+        ev1 = uo['@ev1']
+        return ra1, dc1, h1, dist1, lng1, lat1, az1, ev1
 
     def getObjectEnd(self, objno):
         """Get the details of the end point of an object
