@@ -22,6 +22,116 @@ from wmpl.Utils.Physics import calcMass
 from wmpl.Utils.ShowerAssociation import associateShower
 
 
+def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
+    print('Creating UFO Orbit style output file')
+    orb = traj.orbit
+    if shower_obj is None:
+        shid = -1
+        shcod = 'Spo'
+        shname = 'Sporadic'
+    else:
+        shid = shower_obj.IAU_no
+        shcod = shower_obj.IAU_code
+        shname = shower_obj.IAU_name
+
+    dtstr = jd2Date(orb.jd_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
+    dt = jd2Date(orb.jd_ref, dt_obj=True)
+    secs = dt.second + dt.microsecond / 1000000
+    lasun = np.degrees(orb.la_sun)
+    nO = len(traj.observations)
+    id = '_(UNIFIED_' + str(nO) + ')'
+    lg = np.degrees(orb.L_g)
+    bg = np.degrees(orb.B_g)
+    vg = orb.v_g / 1000
+    vh = orb.v_h / 1000
+    LD21 = 0
+    omag = 99  # ludicrous value to ensure convergence
+    dur = 0
+    totsamp = 0
+    d_t = max(abs(traj.time_diffs_final))
+    for obs in traj.observations:
+        LD21 = max(max(obs.length), LD21)
+        omag = min(min(obs.magnitudes), omag)
+        dur = max(max(obs.time_data) - min(obs.time_data), dur)
+        totsamp += len(obs.magnitudes)
+    LD21 /= 1000
+    leap = (totsamp - nO) / totsamp * 100.0
+
+    rao = np.degrees(orb.ra)
+    dco = np.degrees(orb.dec)
+    rat = np.degrees(orb.ra_g)
+    dct = np.degrees(orb.dec_g)
+    vo = orb.v_init / 1000
+    vi = vo
+    az1r = np.degrees(orb.azimuth_apparent)
+    ev1r = np.degrees(orb.elevation_apparent)
+
+    if shower_obj is None:
+        dr = -1
+        dvpct = -1
+    else:
+        dr = angleBetweenSphericalCoords(shower_obj.B_g, shower_obj.L_g, bg, (lg - lasun) % (2 * np.pi))
+        dvpct = np.abs(100 * (shower_obj.v_g - vg * 1000) / shower_obj.v_g)
+
+    # the below fields are specific to the way UFOOrbit calculates
+    Qo, GPlng, GPlat = 0, 0, 0
+    evrt = 0
+    ddeg, cdeg = 0, 0
+    Qc, dGP, Gmpct, dv12pct = 0, 0, 0, 0
+    zmv, QA = 0, 1
+    vo_sd = 0
+    ZF, OH, ZHR = 0, 0, 0
+
+    # create CSV file in UFOOrbit format
+    csvname = os.path.join(outdir, dtstr + '_orbit.csv')
+    with open(csvname, 'w', newline='') as csvf:
+        csvf.write('RMS,0,')
+        csvf.write('{:s}, {:.6f}, {:.6f}, {:s}, {:s}, {:.6f}, '.format(dt.strftime('_%Y%m%d_%H%M%S'), orb.jd_ref - 2400000.5, lasun, id, '_', amag))
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(rao, dco, rat, dct))
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(lg, bg, vo, vi, vg, vh))
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(orb.a, orb.q, orb.e, orb.T))
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(orb.peri), np.degrees(orb.node), np.degrees(orb.i)))
+        csvf.write('{:s}, '.format(shcod))
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(dr, dvpct, omag, Qo, dur))
+        csvf.write('0, 0, 0, 0, ')  # av Voa Pra Pdc always zero in Unified orbits
+        csvf.write('{:.6f}, {:.6f}, '.format(GPlng, GPlat))
+        csvf.write('0, 0, 0, 0, ')  # ra1 dc1 az1 ev1 always zero in Unified orbits
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(traj.rbeg_lon), np.degrees(traj.rbeg_lat), traj.rbeg_ele / 1000))
+        csvf.write('0, 0, 0, 0, 0, ')  # LD1 Qr1 Qd1 ra2 rc2 always zero in Unified orbits
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(traj.rend_lon), np.degrees(traj.rend_lat), traj.rend_ele / 1000))
+        csvf.write('0, 0, 0, ')  # LD2 Qr2 Qd2 always zero in Unified orbits
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, 0, {:.6f}, '.format(LD21, az1r, ev1r, evrt))
+        csvf.write('{:d}, {:d}, {:.6f}, 0, {:.6f}, {:.6f}, '.format(totsamp, nO, leap, ddeg, cdeg))
+        csvf.write('0, 0, 1, ')  # drop, inout, tme always zero in Unified orbits
+        csvf.write('{:.6f}, 0, {:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(d_t, Qc, dGP, Gmpct, dv12pct))  # GD
+        csvf.write('{:.6f}, 0, 0, {:.6f}, '.format(zmv, QA))  # Ed Ex always zero in Unified orbits
+        csvf.write('{:s}, {:s}, {:s}, {:s}, {:s}, {:.6f}, '.format(dtstr[:4], dtstr[4:6], dtstr[6:8],
+            dtstr[9:11], dtstr[11:13], secs))
+        csvf.write('{:d}, '.format(nO))
+        csvf.write('0, 0, 0, 0, ')  # Qp pole_sd rao_sd dco_sd always zero in UO
+        csvf.write('{:.6f}, '.format(vo_sd))
+        csvf.write('0, 0, 0, 0, ')  # rat_sd dct_sd vg_sd a_sd always zero in UO
+        csvf.write('{:.6f}, '.format(1 / orb.a))
+        csvf.write('0, 0, 0, 0, 0, 0, 0, ')  # 1/a_sd q_sd e_sd peri_sd node_sd incl_sd Er_sd always zero in UO
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(ZF, OH, ZHR))
+
+    # create CSV extras file
+    csvname = os.path.join(outdir, dtstr + '_orbit_extras.csv')
+    with open(csvname, 'w', newline='') as csvf:
+        csvf.write('# date, mjd,id,iau,name,mass,pi,Q,true_anom,EA,MA,Tj,T,last_peri,jacchia1,Jacchia2,numstats,stations\n#\n')
+        csvf.write('{:s}, {:.6f}, {:s}, '.format(dt.strftime('%Y%m%d_%H%M%S'), orb.jd_ref - 2400000.5, id))
+        csvf.write('{:d}, {:s}, {:.6f}, '.format(shid, shname, mass))
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(orb.pi), orb.Q, np.degrees(orb.true_anomaly)))
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(orb.eccentric_anomaly), np.degrees(orb.mean_anomaly), orb.Tj))
+        csvf.write('{:.6f}, {:s}, '.format(orb.T, orb.last_perihelion.strftime('%Y-%m-%d')))
+        csvf.write('{:.6f}, {:.6f}, '.format(traj.jacchia_fit[0], traj.jacchia_fit[1]))
+
+        statlist = ''
+        for obs in traj.observations:
+            statlist = statlist + str(obs.station_id) + ';'
+        csvf.write('{:d}, {:s}'.format(nO, statlist))
+
+
 class MeteorObservation(object):
     """ Container for meteor observations.
         The loaded points are RA and Dec in J2000 epoch, in radians.
@@ -570,8 +680,8 @@ def solveTrajectoryCAMS(meteor_list, output_dir, solver='original', **kwargs):
 
     if meteor_list is not None:
 
-        for meteor in meteor_list:
-            print(meteor)
+        # for meteor in meteor_list:
+        #    print(meteor)
 
         # Init the trajectory solver
         if solver == 'original':
@@ -693,6 +803,8 @@ if __name__ == "__main__":
         help='Fixed part from the beginning of the meteor on which the initial velocity estimation using the sliding fit will start. Default is 0.4 (40 percent), but for noisier data this might be bumped up to 0.5.',
         type=float, default=0.4)
 
+    arg_parser.add_argument('-np', '--noplots', help='Disable plots, just do the maths.', action="store_true")
+
     # Parse the command line arguments
     cml_args = arg_parser.parse_args()
 
@@ -721,6 +833,8 @@ if __name__ == "__main__":
     if cml_args.vinitht:
         vinitht = cml_args.vinitht[0]
 
+    print('noplots is', cml_args.noplots)
+
     # Image file type of the plots
     plot_file_type = 'png'
 
@@ -744,15 +858,16 @@ if __name__ == "__main__":
 
     for meteor in meteor_proc_list:
 
-        etv = False
+        etv = True
+        outdir = os.path.join(dir_path, jd2Date(meteor[0].jdt_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f"))
         # Run the trajectory solver
-        traj = solveTrajectoryCAMS(meteor, os.path.join(dir_path, jd2Date(meteor[0].jdt_ref,
-            dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")), solver=cml_args.solver, max_toffset=max_toffset,
+        traj = solveTrajectoryCAMS(meteor, outdir, solver=cml_args.solver, max_toffset=max_toffset,
             monte_carlo=(not cml_args.disablemc), mc_runs=cml_args.mcruns,
             geometric_uncert=cml_args.uncertgeom, gravity_correction=(not cml_args.disablegravity),
             plot_all_spatial_residuals=cml_args.plotallspatial, plot_file_type=cml_args.imgformat,
             show_plots=(not cml_args.hideplots), v_init_part=velpart, v_init_ht=vinitht,
-            estimate_timing_vel=etv, verbose=False)
+            show_jacchia=cml_args.jacchia, estimate_timing_vel=etv, verbose=False,
+            save_results=(not cml_args.noplots))
 
     # ### PERFORM PHOTOMETRY
 
@@ -784,8 +899,6 @@ if __name__ == "__main__":
             temp_arr = temp_arr[np.argsort(temp_arr[:, 0])]
             time_data, abs_mag_data = temp_arr.T
 
-    # ### Compute the mass
-
     # # Sort by time
     temp_arr = np.c_[time_data_all, abs_mag_data_all]
     temp_arr = temp_arr[np.argsort(temp_arr[:, 0])]
@@ -800,24 +913,43 @@ if __name__ == "__main__":
     # # Compute the mass
     mass = calcMass(time_data_all, abs_mag_data_all, traj.v_avg, P_0m=1210)
 
-    print('mass (g)')
-    print(mass * 1000, 'g')
-
-    print('start/end lat/long/alti')
-    print(np.degrees(traj.rbeg_lon), np.degrees(traj.rbeg_lat), traj.rbeg_ele)
-    print(np.degrees(traj.rend_lon), np.degrees(traj.rend_lat), traj.rend_ele)
+    # create Summary report for webpage
+    summrpt = os.path.join(outdir, 'summary.html')
 
     orb = traj.orbit
-    print(orb.jd_ref)
-    print('a, e, i, T, la_sun, peri, node, pi, q, Q, anom, ea, ma, last_peri, Tj')
-    print(orb.a, orb.e, np.degrees(orb.i), orb.T, np.degrees(orb.la_sun),
-        np.degrees(orb.peri), np.degrees(orb.node),
-        np.degrees(orb.pi), orb.q, orb.Q, np.degrees(orb.true_anomaly), np.degrees(orb.eccentric_anomaly),
-        np.degrees(orb.mean_anomaly), orb.last_perihelion, orb.Tj)
-
-    print('ID, code, LA, Lg, Bg, Vg')
+    lg = np.degrees(orb.L_g)
+    bg = np.degrees(orb.B_g)
+    vg = orb.v_g
     shower_obj = associateShower(orb.la_sun, orb.L_g, orb.B_g, orb.v_g)
     if shower_obj is None:
-        print(-1, '...', np.degrees(orb.L_g), np.degrees(orb.B_g), orb.v_g)
+        id = -1
+        cod = 'Spo'
     else:
-        print(shower_obj.IAU_no, shower_obj.IAU_code, np.degrees(orb.L_g), np.degrees(orb.B_g), orb.v_g)
+        id = shower_obj.IAU_no
+        cod = shower_obj.IAU_code
+
+    amag = min(abs_mag_data_all)
+
+    if traj.save_results:
+        with open(summrpt, 'w', newline='') as f:
+            f.write('Summary for Event\n')
+            f.write('-----------------\n')
+            # f.write('date {:s}<br>'.format(jd2Date(orb.jd_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")))
+
+            f.write('shower ID {:d} {:s}\n'.format(id, cod))
+            f.write('Lg {:.2f}&deg; Bg {:.2f}&deg; Vg {:.2f}km/s\n'.format(lg, bg, vg / 1000))
+
+            f.write('mass {:.5f}g, abs. mag {:.1f}\n'.format(mass * 1000, amag))
+
+            f.write('Path Details\n')
+            f.write('------------\n')
+            f.write('start {:.2f}&deg; {:.2f}&deg; {:.2f}km\n'.format(np.degrees(traj.rbeg_lon), np.degrees(traj.rbeg_lat), traj.rbeg_ele / 1000))
+            f.write('end   {:.2f}&deg; {:.2f}&deg; {:.2f}km\n\n'.format(np.degrees(traj.rend_lon), np.degrees(traj.rend_lat), traj.rend_ele / 1000))
+            f.write('Orbit Details\n')
+            f.write('-------------\n')
+            f.write('Semimajor axis {:.2f}A.U., eccentricity {:.2f}, inclination {:.2f}&deg;, '.format(orb.a, orb.e, np.degrees(orb.i)))
+            f.write('Period {:.2f}Y, LA Sun {:.2f}&deg;, last Perihelion {:s}\n'.format(orb.T, np.degrees(orb.la_sun),
+                orb.last_perihelion.strftime('%Y-%m-%d')))
+            f.write('\nFull details below\n')
+
+    createUFOOrbitFile(traj, outdir, amag, mass, shower_obj)

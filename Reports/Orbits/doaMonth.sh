@@ -13,4 +13,4 @@ do
     indir=`basename $i`
     $here/reduceOrbit.sh $indir
 done
-$here/createMonthlyOrbitIndex.sh $1
+$here/createYearlyOrbitIndex.sh $yr

@@ -10,6 +10,7 @@ $ini = get-inicontent $inifname
 $disablemc = $ini['orbitcalcs']['disablemc']
 $timing_offset = $ini['orbitcalcs']['timing_offset']
 $plotallspatial = $ini['orbitcalcs']['plotallspatial']
+$saveplots = $ini['orbitcalcs']['saveplots']
 
 $wmpl_loc = $ini['wmpl']['wmpl_loc']
 $wmpl_env = $ini['wmpl']['wmpl_env']
@@ -25,6 +26,7 @@ python $here/../FormatConverters/UFOAtoFTPdetect.py $args[0]
 Write-Output "solving for the orbit"
 # arguments 
 #   -x save but don't display graphs, 
+#   -np don't save plots after all
 #   -i image format eg jpg, png
 #   -l generate detailed plots of residuals
 #   -d disable monte carlo
@@ -33,4 +35,4 @@ Write-Output "solving for the orbit"
 #   -s solver (original or gural)
 
 $infile=$args[0] + '/FTPdetectinfo_UFO.txt'
-python $here/ufoTrajSolver.py $infile  -x $plotallspatial -t $timing_offset $disablemc
+python $here/ufoTrajSolver.py $infile $saveplots -x $plotallspatial -t $timing_offset $disablemc

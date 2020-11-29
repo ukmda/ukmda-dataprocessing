@@ -17,12 +17,20 @@ pref=${repfile:0:16}
 echo "<html><head><title>Orbit Report for $ym</title>" > $idxfile
 echo "<style>img {  border-radius: 5%;   border: 1px solid #555; }</style> </head>" >> $idxfile
 echo "<body><h1>Orbital Analysis for matched events on $ym</h1>" >> $idxfile
-echo "<h3>Click on a graph to see a larger view</h3>" >> $idxfile
+echo "<pre><!--#include file=\"summary.html\" --></pre>" >>$idxfile
+echo "<h3>Click on an image to see a larger view</h3>" >> $idxfile
 
 echo "<a href=\"${pref}orbit_top.png\"><img src=\"${pref}orbit_top.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}orbit_side.png\"><img src=\"${pref}orbit_side.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}ground_track.png\"><img src=\"${pref}ground_track.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}velocities.png\"><img src=\"${pref}velocities.png\" width=\"20%\"></a>" >> $idxfile
+echo "<br>">>$idxfile
+
+ls -1 ${results}/${yr}/orbits/${yr}$mth/${ym}/*P.jpg | while read jpg 
+do
+    jpgbn=`basename $jpg`
+    echo "<a href=\"$jpgbn\"><img src=\"$jpgbn\" width=\"20%\"></a>" >> $idxfile
+done
 echo "<br>">>$idxfile
 
 echo "<p>More graphs below the text report<br></p>" >>$idxfile

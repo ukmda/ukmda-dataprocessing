@@ -18,7 +18,7 @@ echo "<p>Click to explore each month.<hr>" >> $idxfile
 echo "<a href=\"/data/mjmm-data/analysis/\">Up to report index</a></p>" >> $idxfile
 echo "<br><table id=\"tablestyle\"><tr>" >> $idxfile
 j=0
-ls -1d ${results}/${yr}/orbits/* | grep -v index | while read i
+ls -1d ${results}/${yr}/orbits/* | egrep -v "index|csv" | while read i
 do
     indir=`basename $i`
     echo "<td><a href=$indir>$indir<a></td>" >> $idxfile
