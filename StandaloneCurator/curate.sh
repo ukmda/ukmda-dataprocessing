@@ -9,7 +9,7 @@ if [ $# -lt 1 ] ; then
     exit
 fi 
 
-# source ~/venvs/ufoCurator/bin/activate
+source ~/venvs/ufoCurator/bin/activate
 if [ ! -d ./logs ] ; then
     mkdir ./logs 
 fi
