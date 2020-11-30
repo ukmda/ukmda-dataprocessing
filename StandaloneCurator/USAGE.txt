@@ -1,6 +1,6 @@
 TO USE THE PROGRAMME
 ====================
-Open a command prompt or terminal window on the ufoCurator folder.
+Open a Windows powershell window or Linux/MacOS terminal window on the ufoCurator folder.
 Activate the virtual environment, if you created one.
 
 Run the programme - for MacOS or Linux: 
@@ -8,15 +8,19 @@ Run the programme - for MacOS or Linux:
 or for Windows:
     .\curate.ps1 c:\path\to\your\data
 
-Where /path/to/your/data is the location of a folder containing your uncurated UFO files.
+Where /path/to/your/data is the location of a folder containing your uncurated UFO files, 
+for example c:\meteordata
 
 
 SHORTCUTS
 =========
-I recommend that while testing your installation, you do so in a powershell or unix terminal window. 
+I recommend that while testing your installation, you do so in a powershell or terminal window
+as explained above. This will allow you to see any error messages 
 Once you have confirmed its working correctly, you can create a desktop shortcut. Just remember to include
 the path to the data, for example your shortcut command might read
-c:\users\fred\ufoCurator\curate.sh c:/ufo/2020
+c:\users\fred\ufoCurator\curate.ps1 c:/ufo/2020
+or 
+~/ufoCurator/curate.sh ~/meteordata/2020
 
 WHAT IT DOES
 ============
