@@ -5,7 +5,6 @@
 # create rule that triggers the lambda function periodically
 #
 import boto3
-import botocore
 import uuid
 import os
 
@@ -22,7 +21,8 @@ def lambda_handler(event, context):
         if x == -1:
             # its not a standard ufoa file, check if its an rms file
             x = s3object.find('UK')
-            if x == -1:
+            y = s3object.find('IE')
+            if x == -1 and y == -1:
                 # yep not interested
                 continue
             # okay, create the right format output
@@ -40,7 +40,7 @@ def lambda_handler(event, context):
 
         try:
             s3.meta.client.get_object(Bucket=target, Key=outf)
-        except botocore.exceptions.ClientError as e:
+        except:
             # The object does not exist.
             src = {'Bucket': target, 'Key': s3object}
 
