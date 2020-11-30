@@ -1,0 +1,58 @@
+   h1 {
+    margin-left: 30px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  h2 {
+    margin-left: 30px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  h3 {
+    margin-left: 30px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  p {
+    margin-left: 30px;
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  #tablestyle {
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 50%;
+    text-align: center;
+  }
+  
+  #tablestyle td, #customers th {
+    border: 1px solid rgb(7, 7, 7);
+    padding: 8px;
+  }
+  
+  #tablestyle tr:nth-child(even){background-color: #f2f2f2;}
+  
+  #tablestyle tr:hover {background-color: #ddd;}
+  
+  #tablestyle th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #4CAF50;
+    color: white;
+  }

@@ -15,15 +15,24 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#include "..\ukmonlive\UKMonLiveCL.h"
+#include "..\liveuploader\UKMonLiveCL.h"
 #include "..\shared\tinyxml\tinyxml.h"
 #include "..\shared\llsq.h"
+#include "..\shared\PreprocessXML.h"
 
-int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &maxbmax, double &rms)
+#define MAXPTS 512
+
+int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &maxbmax, double &rms, int &pxls)
 {
 	std::string fname = pth;
 	fname += "\\";
 	fname += cFileName;
+
+	// make sure we don't return random junk
+	frcount = 0;
+	maxbmax = 0;
+	rms = 0.0;
+	pxls = 0;
 
 	TiXmlDocument doc(fname.c_str());
 	bool loadOkay = doc.LoadFile();
@@ -35,7 +44,7 @@ int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &ma
 		if (!loadOkay)
 		{
 			printf("Could not load %s'. Error='%s'. Exiting.\n", fname.c_str(), doc.ErrorDesc());
-			theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 1, L"Unable to open XML file for analysis;", L"");
+			//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 1, L"Unable to open XML file for analysis;", L"");
 		}
 	}
 	else
@@ -48,23 +57,28 @@ int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &ma
 		int ret;
 
 		node = doc.FirstChild("ufocapture_record"); // the top level record
-		assert(node);
+		if (node == NULL) return 0;
 		ufocapture_record = node->ToElement();
-		assert(ufocapture_record);
+		if (ufocapture_record == NULL) return 0;
+
 		ret = ufocapture_record->QueryIntAttribute("frames", &frames);
 		frcount = frames;
 
 		node = ufocapture_record->FirstChildElement(); // ufocapture_paths 
-		assert(node);
+		if (node == NULL) return 0;
 		ufocapture_paths = node->ToElement();
-		assert(ufocapture_paths);
+		if (ufocapture_paths == NULL) return 0;
 
 		int hits;
 		ret = ufocapture_paths->QueryIntAttribute("hit", &hits); //get number of hits
-		hits = hits > 400 ? 400 : hits; // no need for more than 400 points in a fit
+		hits = hits > MAXPTS ? MAXPTS : hits; 
 
-		double x[400], y[400], maxbri = 0;
+
+		double x[MAXPTS];
+		double y[MAXPTS];
+		double maxbri = 0;
 		double px, py;
+		int pxl;
 		int pb;
 		node = ufocapture_paths->FirstChildElement(); // should be the first ua_path line
 		assert(node);
@@ -73,8 +87,9 @@ int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &ma
 		ret = uc_path->QueryDoubleAttribute("x", &px);
 		ret = uc_path->QueryDoubleAttribute("y", &py);
 		ret = uc_path->QueryIntAttribute("bmax", &pb);
+		ret = uc_path->QueryIntAttribute("pixel", &pxl);
 		x[0] = px; y[0] = py;
-		maxbri = pb;
+		maxbri = pb; pxls=pxl;
 		for (int i = 1; i < hits; i++)
 		{
 			uc_path = uc_path->NextSiblingElement();
@@ -82,7 +97,9 @@ int ReadBasicXML(std::string pth, const char* cFileName, long &frcount, long &ma
 			ret = uc_path->QueryDoubleAttribute("x", &px);
 			ret = uc_path->QueryDoubleAttribute("y", &py);
 			ret = uc_path->QueryIntAttribute("bmax", &pb);
+			ret = uc_path->QueryIntAttribute("pixel", &pxl);
 			x[i] = px; y[i] = py;
+			pxls+=pxl;
 			if (pb > maxbri) maxbri = pb;
 		}
 		maxbmax = (long)maxbri;
@@ -121,7 +138,7 @@ int ReadAnalysisXML(std::string pth, const char* cFileName, double &mag)
 		if (!loadOkay)
 		{
 			printf("Could not load %s'. Error='%s'. Exiting.\n", fname.c_str(), doc.ErrorDesc());
-			theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 1, L"Unable to open XML file for analysis;", L"");
+			//theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 1, L"Unable to open XML file for analysis;", L"");
 		}
 	}
 	else
@@ -165,7 +182,8 @@ int ProcessData(std::string pattern, long framelimit, long minbright, char *pth)
 			long maxbmax=0, frcount=0;
 			double mag=99.99;
 			double rms = 0;
-			ReadBasicXML(pth, data.cFileName, frcount, maxbmax, rms);
+			int pxls = 0;
+			ReadBasicXML(pth, data.cFileName, frcount, maxbmax, rms, pxls);
 			ReadAnalysisXML(pth, data.cFileName, mag);
 			csvfile << data.cFileName << "," << maxbmax << "," << frcount << "," << mag << std::endl;
 		} while (FindNextFileA(hFind, &data));

@@ -1,0 +1,6 @@
+#
+#######requirements.txt #######
+#
+xmltodict
+numpy
+six

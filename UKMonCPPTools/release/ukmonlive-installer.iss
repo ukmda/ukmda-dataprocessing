@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "UKMonLive"
-#define MyAppVersion "2.1.0.0"
+#define MyAppVersion "2.3.1.1"
 #define MyAppPublisher "Mark McIntyre"
 #define MyAppURL "https://ukmeteornetwork.co.uk/live/#/"
 #define MyAppExeName "LiveUploader.exe"
@@ -25,7 +25,7 @@ InfoBeforeFile=LiveUploader_Notes.txt
 OutputBaseFilename=UKMonLiveSetup
 Compression=lzma
 SolidCompression=yes
-SignTool=Standard sign /f "c:\users\mark\documents\projects\certs\markmcintyreDS.pfx" /p Wombat33 /d $qUKMON Live Installer$q $f
+SignTool=Standard sign /f "e:\dev\certs\markmcintyreDS.pfx" /p Wombat33 /d $qUKMON Live Installer$q $f
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -38,19 +38,28 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 Source: "LiveUploader.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "vc_redist.x86.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 Source: "vc_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
-Source: "aws-cpp-sdk-core.dll"; DestDir: "{app}"; Flags: onlyifdoesntexist 
-Source: "aws-cpp-sdk-s3.dll"; DestDir: "{app}";   Flags: onlyifdoesntexist
+Source: "aws-cpp-sdk-core.dll"; DestDir: "{app}"
+Source: "aws-cpp-sdk-s3.dll"; DestDir: "{app}"  
+Source: "aws-c-event-stream.dll"; DestDir: "{app}"
+Source: "aws-c-common.dll"; DestDir: "{app}"
+Source: "aws-checksums.dll"; DestDir: "{app}"
 Source: "mfc140u.dll"; DestDir: "{app}"; Flags: onlyifdoesntexist
 Source: "msvcp140.dll"; DestDir: "{app}"; Flags: onlyifdoesntexist
 Source: "ucrtbase.dll"; DestDir: "{app}"; Flags: onlyifdoesntexist
 Source: "vcruntime140.dll"; DestDir: "{app}"; Flags: onlyifdoesntexist
-Source: "AUTH_UKMONLiveWatcher.ini"; DestDir: "{localappdata}"; Flags: onlyifdoesntexist; 
-Source: "UKMONLiveWatcher.ini"; DestDir: "{localappdata}"; Flags: onlyifdoesntexist
+Source: "ffmpeg.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "UKMonLive.ini"; DestDir: "{localappdata}\UKMON"; Flags: onlyifdoesntexist
+;Source: "AUTH_UKMONLiveWatcher.ini"; DestDir: "{localappdata}"; Flags: onlyifdoesntexist; 
+;Source: "UKMONLiveWatcher.ini"; DestDir: "{localappdata}"; Flags: onlyifdoesntexist
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
+[InstallDelete]
+Type: Files; Name: "{app}\UKMonLiveCL.exe"
+
 [Icons]
+Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{commonprograms}\{#MyAppName}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{commonprograms}\{#MyAppName}\{#MyAppName} Configuration"; Filename: "{win}\notepad.exe"; Parameters: "{localappdata}\UKMONLiveWatcher.ini"
+Name: "{commonprograms}\{#MyAppName}\{#MyAppName} Configuration"; Filename: "{win}\notepad.exe"; Parameters: "{localappdata}\UKMON\UKMonLive.ini"
 Name: "{commonprograms}\{#MyAppName}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"
 Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
@@ -58,9 +67,9 @@ Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Fil
 #define VCmsg "Installing Microsoft Visual C++ Redistributable...."
 
 [Run]
-Filename: "{tmp}\vc_redist.x86.exe"; StatusMsg: "{#VCmsg}"; Check: not IsWin64 and not VCinstalled
-Filename: "{tmp}\vc_redist.x64.exe"; StatusMsg: "{#VCmsg}"; Check: IsWin64 and not VCinstalled
-Filename: "{win}\notepad.exe"; Parameters: "{localappdata}\UKMONLiveWatcher.ini";
+Filename: "{tmp}\vc_redist.x86.exe"; StatusMsg: "{#VCmsg}"; Check: not IsWin64 and not VCinstalled; Parameters: "/passive /quiet /norestart"
+Filename: "{tmp}\vc_redist.x64.exe"; StatusMsg: "{#VCmsg}"; Check: IsWin64 and not VCinstalled; Parameters: "/passive /quiet /norestart"
+;Filename: "{win}\notepad.exe"; Parameters: "{localappdata}\UKMONLiveWatcher.ini";
 
 [Code]
 
@@ -76,7 +85,7 @@ function VCinstalled: Boolean;
   dName, key, year: String;
  begin
   // Year of redistributable to find; leave null to find installation for any year.
-  year := '2019';
+  year := '2015-2019';
   Result := False;
   key := 'Software\Microsoft\Windows\CurrentVersion\Uninstall';
   // Get an array of all of the uninstall subkey names.
@@ -92,7 +101,9 @@ function VCinstalled: Boolean;
       if not RegQueryStringValue(HKEY_LOCAL_MACHINE, key + '\' + names[i], 'DisplayName', dName) then
        dName := names[i];
       // See if the value contains both of the strings below.
-      Result := (Pos(Trim('Visual C++ ' + year),dName) * Pos('Runtime',dName) <> 0)
+      Log(dName)
+      Result := (Pos(Trim('Visual C++ ' + year),dName) * Pos('Redistributable',dName) <> 0)
+      Log('Result is ' + IntToStr(Integer(Result)))
       i := i + 1;
      end;
    end;

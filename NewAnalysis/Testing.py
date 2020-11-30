@@ -20,7 +20,7 @@ if __name__ == '__main__':
 
     nhits = dd.getHits()
     for i in range(nhits):
-        fno,ono,pixel,bmax,x,y = dd.getPaths(i)
+        fno,ono,pixel,bmax,x,y = dd.getPathElement(i)
         print(fno,pixel,bmax,x,y)
 
     dd=ReadUFOAnalyzerXML.UAXml(xa)
