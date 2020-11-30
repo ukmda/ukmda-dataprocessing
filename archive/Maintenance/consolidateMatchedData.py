@@ -402,28 +402,35 @@ def FindMatches(yr, mth=None):
         skipme = False
         nummatches = len(matchset)
         ignore = numpy.zeros(nummatches)
-        for i in range(nummatches):
-            for j in range(i + 1, nummatches):
-                if matchset[i]['loccam'] == matchset[j]['loccam']:
-                    ignore[j] = 1
-                lat1, long1, _ = getCamLocation(matchset[i]['loccam'].decode('utf-8').strip(), cams, lati, longi, alti)
-                lat2, long2, _ = getCamLocation(matchset[j]['loccam'].decode('utf-8').strip(), cams, lati, longi, alti)
-                if abs(long1 - long2) < 0.01 and abs(lat1 - lat2) < 0.01:
-                    ignore[j] = 1
-
-        if sum(ignore) > nummatches - 2:
-            skipme = True
-
-        # got at least a distinct pair and we're not rematching the last matches
-        if len(matchset) > 1 and skipme is False and abs(lasttm - tm) > 4.99999:
-            print('got', len(matchset), 'matches')
-            lasttm = tm
-            numpy.sort(matchset)
-            print('=============')
+        if nummatches > 1:
             for i in range(nummatches):
-                if ignore[i] == 0:
-                    el = matchset[i]
-                    copyFile(el['localtime'], el['loccam'], tm, cams, fldrs, errf, camtyps, lati, longi, alti, fullcams)
+                d = datetime.datetime.fromtimestamp(matchset[i]['tstamp']).strftime('%Y%m%d_%H%M%S')
+                print(nummatches, matchset[i]['loccam'], ignore[i], d)
+                for j in range(i + 1, nummatches):
+                    if matchset[i]['loccam'][:6].upper() == matchset[j]['loccam'][:6].upper():
+                        ignore[j] = 1
+                    lat1, long1, _ = getCamLocation(matchset[i]['loccam'].decode('utf-8').strip(), cams, lati, longi, alti)
+                    lat2, long2, _ = getCamLocation(matchset[j]['loccam'].decode('utf-8').strip(), cams, lati, longi, alti)
+                    if abs(long1 - long2) < 0.01 and abs(lat1 - lat2) < 0.01:
+                        ignore[j] = 1
+                    if ignore[j] == 0:
+                        d = datetime.datetime.fromtimestamp(matchset[j]['tstamp']).strftime('%Y%m%d_%H%M%S')
+                        print('    ', matchset[j]['loccam'], ignore[j], d)
+
+            if sum(ignore) > nummatches - 2:
+                # print('skipping ', nummatches, sum(ignore))
+                skipme = True
+
+            # got at least a distinct pair and we're not rematching the last matches
+            if len(matchset) > 1 and skipme is False and abs(lasttm - tm) > 4.99999:
+                print('got', len(matchset), 'matches')
+                lasttm = tm
+                numpy.sort(matchset)
+                print('=============')
+                for i in range(nummatches):
+                    if ignore[i] == 0:
+                        el = matchset[i]
+                        copyFile(el['localtime'], el['loccam'], tm, cams, fldrs, errf, camtyps, lati, longi, alti, fullcams)
 
     # upload logfile
     errf.close()
@@ -431,6 +438,7 @@ def FindMatches(yr, mth=None):
     bucket_name = 'ukmon-shared'
     key = 'matches/' + errfname
     s3.upload_file(Bucket=bucket_name, Key=key, Filename=errfname)
+    os.remove(errfname)
 
 
 if __name__ == '__main__':
