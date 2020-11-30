@@ -6,47 +6,37 @@ You can minimise the window to your taskbar and it will keep running.
 
 Installation 
 ============
-Run the installer. This will install the support libraries if needed and create a desktop icon.
-At the end of the install Notepad will pop up so you can adjust the config file (see below)
-
-To remove the application, use the icon in the UKMonLive folder on your start menu. 
+Run the installer. This will install the support libraries if needed and create a desktop icon and startup shortcut.
 
 Configuration
 =============
-The programme reads the configuration from UKMONLIVEWatcher.ini and AUTH_UKMONLIVEWatcher.ini files so these must exist and contain valid security keys and the location of your data. These files are in c:\users\{yourname}\AppData\Local\ and will be created if not present. 
+Upon first run, the app will update the ini file (or create a default configuration if you've never used the programme before).
+You will need to set the ProcessingPath to point to the location of your files. 
+To edit the config file, use the icon under UKMonLive on the start menu. 
+
+Fireballs
+=========
+The [Fireballs] section of the config file controls whether the application will upload videos of fireballs. The videos 
+are converted to MP4 and so are about 1-2MB in size. 
+MinPxls is the threshold above which the app will upload a video. Study of the UKMON data indicates this is a good value. 
+FFMpeg points to the location of ffmpeg, which is installed with the application. 
 
 Filtering
 =========
-This version of the software can filter out aircraft, faint meteors and flashes. To enable filtering, modify the two final lines of UKMONLIVEWatcher.ini as explained below. To disable filtering, set both values to 0. By default filtering is disabled. 
-
-Frame limits
-----------
-The first extra line is the maximum number of frames to consider 'good'. A sensible value is 150. Even fireballs will usually be less than 150 frames while aircraft trails will usually be longer. Do experiment though.
-
-Setting the limit to 0 will cause all frame counts greater than 61 to be considered. 
-
-61 or less frames will *aways* be discarded. This is because UFOCapture records 30 frames either side of an event, so 61 frames is a flash, probably a cosmic ray strike or camera glitch.
-
-Min Brightness
---------------
-The second extra line is the minimum brightness to consider 'good'. The purpose of this setting is to avoid uploading really faint meteors to UKMONlive as the general public are probably more interested in the fireballs and bright events.
-
-You'll need to experiment with this. Start with 60 and if its missing too many meteors, reduce it till you're happy. Setting the value to 0 will cause all brightnesses to be considered. 
-
-Testing
-=======
-To run in 'dry run' mode - ie will run but not upload anything - run the application from a command prommpt window and pass a parameter T 
-eg	"ukmonlivecl.exe T"
-To run in debug mode but still upload files, pass a parameter D 
-eg 	"ukmonlivecl.exe D"
-
-Both debug modes will generate a lot of verbose output on the screen
-
-Logging
-=======
-The application logs to the Windows Application Event Log under the UKMonLiveCL source. 
+The software can filter out aircraft, faint meteors and flashes. This is enabled by default. 
+Events shorter than FrameLimit or dimmer than MinBright will be ignored. Note that FrameLimit includes the 30 frames that UFO captures before and after every event so a limit of 65 means 'ignore events that last less than 5 frames'
 
 XP Compatability
 ================
 This application is not compatible with Windows XP or earlier. I'm sorry about that, but Microsoft ceased support for XP in in 2014 and completely rewrote the network stack for the next version. As a result the support libraries from AWS and indeed Microsoft are not available in backward-compatible versions. 
+
+Version info
+============
+2.3.1.1		Fixed bug in xml reader - now should not crash if zero path elements in the XML file
+2.3.1.0		Fixed bug in mp4 convertor - buffer overflow if installed on x64 OS
+2.3.0.2 	bugfix for memory leak which caused random crash
+2.3.0.1		Added fireball uploader capability, temporarily disabled line fitting checks
+2.2.0.0		Added line fitting quality check to prevent upload of bats, aircraft, clous
+2.0.0.0		First version in C++, based on the Pascal version written by Peter Campbell-Burns
+
 

@@ -4,28 +4,32 @@
 #   hhmmss time to copy for
 
 if($args.count -lt 3) {
-    echo "usage: manuaReduction srcdir srcfile camerainifile"
-    echo "eg manuaReduction 20200703 015505 UK006.ini"
+    Write-Output "usage: manuaReduction srcdir srcfile camerainifile"
+    Write-Output "eg manuaReduction 20200703 015505 UK006.ini"
     exit
 }
 
 $srcdir=$args[0]
 $srcfile=$args[1]
 
-# read the inifile
 set-location $PSScriptRoot
-if ($args.count -lt 3) {
-    $ini=get-content camera1.ini -raw | convertfrom-stringdata
-}else {
-    $ini=get-content $args[2] -raw | convertfrom-stringdata
+# load the helper functions
+. helperfunctions.ps1
+# read the inifile
+if ($args.count -eq 0) {
+    $inifname='../TACKLEY_TC.ini'
 }
+else {
+    $inifname = $args[0]
+}
+$ini=get-inicontent $inifname
 
-#these details are specific to your camera and file system 
-# and are read from the ini file
-$cam=$ini.camera_name      
-$rootdir='\\'+$ini.hostname+'\RMS_Share\' 
-$datadir=$ini.localfolder
-$RMSloc=$ini.rms_loc
+$hostname=$ini['camera']['hostname']
+$cam=$ini['camera']['camera_name']
+$datadir=$ini['camera']['localfolder']
+$RMSloc=$ini['rms']['rms_loc']
+$rmsenv=$ini['rms']['rms_env']
+$rootdir='\\'+$hostname+'\RMS_Share\' 
 
 #crate a folder under the datadir where you'll run manual reduction 
 # and make sure its empty if it already existed
@@ -53,6 +57,7 @@ $ff=(Get-ChildItem $ffpath).fullname
 
 # run the manual reduction process
 set-location $RMSloc 
+conda activate $rmsenv
 python -m Utils.ManualReduction -c . $ff
 
 # find the new FTPfile and the original
