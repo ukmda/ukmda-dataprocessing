@@ -26,7 +26,7 @@ echo "<a href=\"${pref}ground_track.png\"><img src=\"${pref}ground_track.png\" w
 echo "<a href=\"${pref}velocities.png\"><img src=\"${pref}velocities.png\" width=\"20%\"></a>" >> $idxfile
 echo "<br>">>$idxfile
 
-ls -1 ${results}/${yr}/orbits/${yr}$mth/${ym}/*P.jpg | while read jpg 
+ls -1 ${results}/${yr}/orbits/${yr}$mth/${ym}/*.jpg | while read jpg 
 do
     jpgbn=`basename $jpg`
     echo "<a href=\"$jpgbn\"><img src=\"$jpgbn\" width=\"20%\"></a>" >> $idxfile

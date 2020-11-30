@@ -37,11 +37,16 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
     dtstr = jd2Date(orb.jd_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
     dt = jd2Date(orb.jd_ref, dt_obj=True)
     secs = dt.second + dt.microsecond / 1000000
-    lasun = np.degrees(orb.la_sun)
     nO = len(traj.observations)
     id = '_(UNIFIED_' + str(nO) + ')'
-    lg = np.degrees(orb.L_g)
-    bg = np.degrees(orb.B_g)
+    if orb.L_g is not None:
+        lasun = np.degrees(orb.la_sun)
+        lg = np.degrees(orb.L_g)
+        bg = np.degrees(orb.B_g)
+    else:
+        lasun = 0
+        lg = 0
+        bg = 0
     vg = orb.v_g / 1000
     vh = orb.v_h / 1000
     LD21 = 0
@@ -123,7 +128,11 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
         csvf.write('{:d}, {:s}, {:.6f}, '.format(shid, shname, mass))
         csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(orb.pi), orb.Q, np.degrees(orb.true_anomaly)))
         csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(orb.eccentric_anomaly), np.degrees(orb.mean_anomaly), orb.Tj))
-        csvf.write('{:.6f}, {:s}, '.format(orb.T, orb.last_perihelion.strftime('%Y-%m-%d')))
+        csvf.write('{:.6f}, '.format(orb.T))
+        if orb.last_perihelion is not None:
+            csvf.write('{:s}, '.format(orb.last_perihelion.strftime('%Y-%m-%d')))
+        else:
+            csvf.write('9999-99-99, ')
         csvf.write('{:.6f}, {:.6f}, '.format(traj.jacchia_fit[0], traj.jacchia_fit[1]))
 
         statlist = ''
@@ -773,18 +782,21 @@ def computeAbsoluteMagnitudes(traj, meteor_list):
     for i, meteor_obs in enumerate(meteor_list):
 
         # Go through all magnitudes and compute absolute mangitudes
-        for dist, mag in zip(traj.observations[i].model_range, meteor_obs.mag_data):
+        if traj is not None:
+            for dist, mag in zip(traj.observations[i].model_range, meteor_obs.mag_data):
 
-            # Skip nonexistent magnitudes
-            if mag is not None:
+                # Skip nonexistent magnitudes
+                if mag is not None:
 
-                # Compute the range-corrected magnitude
-                abs_mag = mag + 5 * np.log10((10**5) / dist)
+                    # Compute the range-corrected magnitude
+                    abs_mag = mag + 5 * np.log10((10**5) / dist)
 
-            else:
-                abs_mag = None
+                else:
+                    abs_mag = None
 
-            meteor_obs.abs_mag_data.append(abs_mag)
+                meteor_obs.abs_mag_data.append(abs_mag)
+        else:
+            meteor_obs.abs_mag_data.append(6)
 
 
 if __name__ == "__main__":
@@ -806,6 +818,7 @@ if __name__ == "__main__":
     arg_parser.add_argument('-np', '--noplots', help='Disable plots, just do the maths.', action="store_true")
 
     # Parse the command line arguments
+    print('parsing commandline args')
     cml_args = arg_parser.parse_args()
 
     #########################
@@ -820,7 +833,7 @@ if __name__ == "__main__":
     if not os.path.isfile(ftpdetectinfo_path):
         print('No such file:', ftpdetectinfo_path)
         sys.exit()
-
+    print('processing', ftpdetectinfo_path)
     max_toffset = None
     if cml_args.maxtoffset:
         max_toffset = cml_args.maxtoffset[0]
@@ -832,8 +845,6 @@ if __name__ == "__main__":
     vinitht = None
     if cml_args.vinitht:
         vinitht = cml_args.vinitht[0]
-
-    print('noplots is', cml_args.noplots)
 
     # Image file type of the plots
     plot_file_type = 'png'
@@ -915,18 +926,23 @@ if __name__ == "__main__":
 
     # create Summary report for webpage
     summrpt = os.path.join(outdir, 'summary.html')
-
+    shower_obj = None  # initialise this
     orb = traj.orbit
-    lg = np.degrees(orb.L_g)
-    bg = np.degrees(orb.B_g)
-    vg = orb.v_g
-    shower_obj = associateShower(orb.la_sun, orb.L_g, orb.B_g, orb.v_g)
-    if shower_obj is None:
+    if orb.L_g is not None:
+        lg = np.degrees(orb.L_g)
+        bg = np.degrees(orb.B_g)
+        vg = orb.v_g
+        shower_obj = associateShower(orb.la_sun, orb.L_g, orb.B_g, orb.v_g)
+        if shower_obj is None:
+            id = -1
+            cod = 'Spo'
+        else:
+            id = shower_obj.IAU_no
+            cod = shower_obj.IAU_code
+    else:
+        # no orbit was calculated
         id = -1
         cod = 'Spo'
-    else:
-        id = shower_obj.IAU_no
-        cod = shower_obj.IAU_code
 
     amag = min(abs_mag_data_all)
 
@@ -934,22 +950,29 @@ if __name__ == "__main__":
         with open(summrpt, 'w', newline='') as f:
             f.write('Summary for Event\n')
             f.write('-----------------\n')
-            # f.write('date {:s}<br>'.format(jd2Date(orb.jd_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")))
+            if orb is not None:
+                f.write('shower ID {:d} {:s}\n'.format(id, cod))
+                if orb.L_g is not None:
+                    f.write('Lg {:.2f}&deg; Bg {:.2f}&deg; Vg {:.2f}km/s\n'.format(lg, bg, vg / 1000))
 
-            f.write('shower ID {:d} {:s}\n'.format(id, cod))
-            f.write('Lg {:.2f}&deg; Bg {:.2f}&deg; Vg {:.2f}km/s\n'.format(lg, bg, vg / 1000))
-
-            f.write('mass {:.5f}g, abs. mag {:.1f}\n'.format(mass * 1000, amag))
-
+                f.write('mass {:.5f}g, abs. mag {:.1f}\n'.format(mass * 1000, amag))
+            else:
+                f.write('unable to calculate realistic shower details\n')
             f.write('Path Details\n')
             f.write('------------\n')
             f.write('start {:.2f}&deg; {:.2f}&deg; {:.2f}km\n'.format(np.degrees(traj.rbeg_lon), np.degrees(traj.rbeg_lat), traj.rbeg_ele / 1000))
             f.write('end   {:.2f}&deg; {:.2f}&deg; {:.2f}km\n\n'.format(np.degrees(traj.rend_lon), np.degrees(traj.rend_lat), traj.rend_ele / 1000))
             f.write('Orbit Details\n')
             f.write('-------------\n')
-            f.write('Semimajor axis {:.2f}A.U., eccentricity {:.2f}, inclination {:.2f}&deg;, '.format(orb.a, orb.e, np.degrees(orb.i)))
-            f.write('Period {:.2f}Y, LA Sun {:.2f}&deg;, last Perihelion {:s}\n'.format(orb.T, np.degrees(orb.la_sun),
-                orb.last_perihelion.strftime('%Y-%m-%d')))
+            if orb.L_g is not None:
+                f.write('Semimajor axis {:.2f}A.U., eccentricity {:.2f}, inclination {:.2f}&deg;, '.format(orb.a, orb.e, np.degrees(orb.i)))
+                f.write('Period {:.2f}Y, LA Sun {:.2f}&deg;, '.format(orb.T, np.degrees(orb.la_sun)))
+                if orb.last_perihelion is not None:
+                    f.write('last Perihelion {:s}'.format(orb.last_perihelion.strftime('%Y-%m-%d')))
+                f.write('\n')
+            else:
+                f.write('unable to calculate realistic orbit details\n')
             f.write('\nFull details below\n')
 
-    createUFOOrbitFile(traj, outdir, amag, mass, shower_obj)
+    if orb is not None:
+        createUFOOrbitFile(traj, outdir, amag, mass, shower_obj)

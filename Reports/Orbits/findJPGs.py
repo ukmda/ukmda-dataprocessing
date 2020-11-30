@@ -39,6 +39,8 @@ def getListOfFiles(fldr, cams, camfldrs, srcpth):
     jpgs = []
     fullpaths = []
     listOfFiles = os.listdir(fldr)
+    # initialise the values
+    yr, ym, ymd = '2020', '202001', '20200101'
     for entry in listOfFiles:
         if fnmatch.fnmatch(entry, '*A.XML'):
             basenam = entry[: len(entry) - 5]
@@ -80,8 +82,10 @@ def collectJPGS(afldr, targpath):
             try:
                 d = datetime.datetime.strptime(ymd, '%Y%m%d')
                 d -= datetime.timedelta(days=1)
+                yr2 = d.strftime('%Y')
+                ym2 = d.strftime('%Y%m')
                 ymd2 = d.strftime('%Y%m%d')
-                fname = os.path.join(pth, yr, ym, ymd2, fil)
+                fname = os.path.join(pth, yr2, ym2, ymd2, fil)
                 shutil.copy(fname, targpath)
                 msg = 'copied ' + fname + ' to ' + targpath
                 print(msg)
