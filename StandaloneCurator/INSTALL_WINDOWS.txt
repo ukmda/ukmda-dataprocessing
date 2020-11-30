@@ -8,18 +8,21 @@ You will need Python 3.x installed. On Windows 10 this is simple: open the Micro
 search for Python and install the latest 3.x version (currently 3.9). On earlier versions of
 windows, go to www.python.org and find a suitable download.
 
-1. CREATE A VIRTUAL ENVIRONMENT (Optional)
-==========================================
-Python best-practice is to create a dedicated virtual environment for ufoCurator. If you don't know
-what this means you can skip this step. However if you've previously used Python it will 
-probably make sense to you. Once you've made the environment, you'll need to activate it before
-using the programme. 
+1. CREATE A VIRTUAL ENVIRONMENT
+============================================
+Python best-practice is to create a dedicated virtual environment for ufoCurator. 
+Its not ESSENTIAL to do this, but strongly recommended as it helps keep each Python app
+in its own 'bubble'. 
+To create a virtual environment, open a Powershell prompt then type: 
+cd ~
+pip install virtualenv
+python -m virtualenv ufoCurator
 
 2. INSTALL THE SOFTWARE
 =======================
-In your home directory or other location of your choice, create a folder "ufoCurator" to contain 
-the programme and expand the zip file into into it. 
-You should have a structure like this in the new folder
+In your home directory or other location of your choice, create a folder "ufoCurator" (this folder
+will already exist if you created a virtual environment). Expand the zip file into into this folder. 
+You should have a structure like this:
     curate.ps1
     CurateUFO.py
     curation.ini
@@ -33,11 +36,11 @@ You should have a structure like this in the new folder
 3. TEST
 =======
 - Open Powershell and change directory to the ufoCurator folder.
-- Activate the virtual environment, if you created one.
 - type
+        cd ~\ufoCurator
         .\curate.ps1 
 
-This will check that all necessary python libraries are installed, and then run the programme and
-display the help information.
+This will activate your virtual environment, if used, then check that all necessary Python 
+libraries are installed, before runing the programme and displaying the help information.
 
 Now read USAGE.txt to see how to use the  programme.
