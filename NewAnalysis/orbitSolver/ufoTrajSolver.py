@@ -119,6 +119,7 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
         csvf.write('{:.6f}, '.format(1 / orb.a))
         csvf.write('0, 0, 0, 0, 0, 0, 0, ')  # 1/a_sd q_sd e_sd peri_sd node_sd incl_sd Er_sd always zero in UO
         csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(ZF, OH, ZHR))
+        csvf.write('\n')
 
     # create CSV extras file
     csvname = os.path.join(outdir, dtstr + '_orbit_extras.csv')
@@ -139,13 +140,14 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
         for obs in traj.observations:
             statlist = statlist + str(obs.station_id) + ';'
         csvf.write('{:d}, {:s}'.format(nO, statlist))
+        csvf.write('\n')
 
 
 class MeteorObservation(object):
     """ Container for meteor observations.
         The loaded points are RA and Dec in J2000 epoch, in radians.
     """
-    def __init__(self, jdt_ref, station_id, latitude, longitude, height, fps, ff_name=None):
+    def __init__(self, jdt_ref, station_id, latitude, longitude, height, fps, ff_name=None, isj2000=True):
 
         self.jdt_ref = jdt_ref
         self.station_id = station_id
@@ -155,6 +157,9 @@ class MeteorObservation(object):
         self.fps = fps
 
         self.ff_name = ff_name
+
+        # flag to indicate whether data is as-of-epoch or J2000
+        self.isj2000 = isj2000
 
         self.frames = []
         self.time_data = []
@@ -230,6 +235,7 @@ class MeteorObservation(object):
         out_str += 'Lat = {:f}, Lon = {:f}, Ht = {:f} m'.format(np.degrees(self.latitude),
             np.degrees(self.longitude), self.height) + '\n'
         out_str += 'FPS = {:f}'.format(self.fps) + '\n'
+        out_str += 'J2000 {:s}\n'.format(str(self.isj2000))
 
         out_str += 'Points:\n'
         out_str += 'Time, X, Y, azimuth, elevation, RA, Dec, Mag:\n'
@@ -439,6 +445,11 @@ def loadFTPDetectInfo(ftpdetectinfo_file_name, stations, time_offsets=None,
 
                 cal_name = False
 
+                isj2000 = True
+                # UFO style data is as-of-epoch, not J2000
+                if line[:3] == 'UFO':
+                    isj2000 = False
+
                 # Mark that the next line is the meteor header
                 meteor_header = True
 
@@ -483,7 +494,7 @@ def loadFTPDetectInfo(ftpdetectinfo_file_name, stations, time_offsets=None,
 
                 # Init a new meteor observation
                 current_meteor = MeteorObservation(jdt_ref, station_id, lat, lon, height, fps,
-                    ff_name=ff_name)
+                    ff_name=ff_name, isj2000=isj2000)
 
                 continue
 
@@ -660,18 +671,22 @@ def prepareObservations(meteor_list):
         meteor_list_epoch_of_date = []
         for meteor in meteor_list_tcorr:
 
-            jdt_ref_vect = np.zeros_like(meteor.ra_data) + jdt_ref
+            if meteor.isj2000 is True:
+                print('Precessing', meteor.ff_name, 'to epoch of date')
+                jdt_ref_vect = np.zeros_like(meteor.ra_data) + jdt_ref
 
-            # Precess from J2000 to the epoch of date
-            ra_prec, dec_prec = equatorialCoordPrecession_vect(J2000_JD.days, jdt_ref_vect, meteor.ra_data,
-                meteor.dec_data)
+                # Precess from J2000 to the epoch of date
+                ra_prec, dec_prec = equatorialCoordPrecession_vect(J2000_JD.days, jdt_ref_vect, meteor.ra_data,
+                    meteor.dec_data)
 
-            meteor.ra_data = ra_prec
-            meteor.dec_data = dec_prec
+                meteor.ra_data = ra_prec
+                meteor.dec_data = dec_prec
 
-            # Convert preccesed Ra, Dec to altitude and azimuth
-            meteor.azim_data, meteor.elev_data = raDec2AltAz_vect(meteor.ra_data, meteor.dec_data, jdt_ref,
-                meteor.latitude, meteor.longitude)
+                # Convert preccesed Ra, Dec to altitude and azimuth
+                meteor.azim_data, meteor.elev_data = raDec2AltAz_vect(meteor.ra_data, meteor.dec_data, jdt_ref,
+                    meteor.latitude, meteor.longitude)
+            else:
+                print(meteor.ff_name, 'already at epoch of date')
 
             meteor_list_epoch_of_date.append(meteor)
 

@@ -8,7 +8,7 @@ else
     source $here/config.ini >/dev/null 2>&1
     source /home/ec2-user/venvs/wmpl/bin/activate
     if [[ ! -d $here/REPORTS/$2/$1 || "$3" == "force" ]] ; then
-        $here/analyse.sh $1 $2 
+        $here/analyse.sh $1 $2  
     fi
     if [ "$1" == "ALL" ]; then
         sname="All Data"
@@ -19,13 +19,13 @@ else
         if [ "$1" == "ALL" ]; then
             cp $here/report-template.shtml $REPORTDIR/$2/$1/index.shtml
             metcount=`cat $here/DATA/consolidated/M_${2}-unified.csv | wc -l`
-            maxalt=`grep "_$2" $here/DATA/UKMON-all-unified.csv  | grep UNIFIED | awk -F, '{print $44}' | sort -n | tail -1`
-            minalt=`grep "_$2" $here/DATA/UKMON-all-unified.csv  | grep UNIFIED | awk -F, '{print $52}' | sort -n | head -1`
+            maxalt=`grep "_$2" $here/DATA/UKMON-all-matches.csv  | grep UNIFIED | awk -F, '{print $44}' | sort -n | tail -1`
+            minalt=`grep "_$2" $here/DATA/UKMON-all-matches.csv  | grep UNIFIED | awk -F, '{print $52}' | sort -n | head -1`
         else
             cp $here/shower-report-template.shtml $REPORTDIR/$2/$1/index.shtml
             metcount=`cat $here/DATA/consolidated/M_${2}-unified.csv | grep $1 | wc -l`
-            maxalt=`grep $1 $here/DATA/UKMON-all-unified.csv  | grep UNIFIED | grep "_$2" | awk -F, '{print $44}' | sort -n | tail -1`
-            minalt=`grep $1 $here/DATA/UKMON-all-unified.csv  | grep UNIFIED | grep "_$2" | awk -F, '{print $52}' | sort -n | head -1`
+            maxalt=`grep $1 $here/DATA/UKMON-all-matches.csv  | grep UNIFIED | grep "_$2" | awk -F, '{print $44}' | sort -n | tail -1`
+            minalt=`grep $1 $here/DATA/UKMON-all-matches.csv  | grep UNIFIED | grep "_$2" | awk -F, '{print $52}' | sort -n | head -1`
         fi 
         echo $sname $metcount $maxalt $minalt
 
