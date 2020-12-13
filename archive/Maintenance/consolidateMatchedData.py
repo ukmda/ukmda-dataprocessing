@@ -18,6 +18,7 @@ def findSection(fname, tstamp, cam, allcams, lati, longi, alti):
     frags = barefname.split('_')
     dataname = 'data_' + frags[1] + '_' + frags[2] + '_' + frags[3] + '.txt'
     statname = 'stat_' + frags[1] + '_' + frags[2] + '_' + frags[3] + '.txt'
+    dtimestmp = ' '
     for i in range(len(lines)):
         li = lines[i]
         if li[:3] == 'FF_':
@@ -96,7 +97,7 @@ def getCamLocation(c1, allcams, latis, longis, altis):
     return lati, longi, alti
 
 
-def getRMSIndexFile(yr):
+def getRMSIndexFile(yr, mth):
     # fetch consolidated file and fetch out required details
     idxfile = 'P_' + yr + '-unified.csv'
     sortedidx = 'SP_' + yr + '.csv'
@@ -175,7 +176,7 @@ def getRMSIndexFile(yr):
     return meteors
 
 
-def getUFOIndexFile(yr):
+def getUFOIndexFile(yr, mth):
     # fetch consolidated file and fetch out required details
     idxfile = 'M_' + yr + '-unified.csv'
     sortedidx = 'S_' + yr + '.csv'
@@ -349,7 +350,9 @@ def copyFile(loctime, loccam, tm, cams, fldrs, errf, camtyps, latis, longis, alt
             os.remove(statname)
             print('d-0 ', fnam, tmstr)
             try:
-                if fullcam[:7] == 'Tackley':
+                # HACK FOR TACKLEY CAMERA PRIOR TO END NOV 2020
+                switchtime = datetime.datetime(2020, 11, 25, 20, 0, 0, 0)
+                if fullcam[:7] == 'Tackley' and datetime.datetime.fromtimestamp(tm) < switchtime:
                     fullcam = 'Tackley'
                 fnam = 'M' + dtimestmp + '_' + fullcam + '_' + loccam + 'P.jpg'
                 destpath = 'matches/' + ymstr + '/' + tmstr + '/' + fnam
@@ -373,10 +376,10 @@ def FindMatches(yr, mth=None):
     cams, fldrs, lati, longi, alti, camtyps, fullcams = getCameraDetails()
 
     print('getting UFO index file')
-    meteors1 = getUFOIndexFile(yr)
+    meteors1 = getUFOIndexFile(yr, mth)
 
     print('getting RMS index file')
-    meteors2 = getRMSIndexFile(yr)
+    meteors2 = getRMSIndexFile(yr, mth)
 
     meteors = numpy.append(meteors1, meteors2)
     meteors.sort(order='tstamp')
@@ -385,6 +388,12 @@ def FindMatches(yr, mth=None):
     if len(meteors) == 0:
         print("no data returned to to search for matches in")
         return
+
+    wholefile = 'MERGED_' + yr + '-unified.csv'
+    with open(wholefile, 'w') as fout:
+        for li in meteors:
+            fout.write('{:.2f},{:s},{:s},{:.4f},{:.4f}\n'.format(li['tstamp'],
+                li['localtime'], li['loccam'], li['dir1'], li['alt1']))
 
     # create logfile
     errfname = 'missing-data-report.txt'
@@ -404,8 +413,8 @@ def FindMatches(yr, mth=None):
         ignore = numpy.zeros(nummatches)
         if nummatches > 1:
             for i in range(nummatches):
-                d = datetime.datetime.fromtimestamp(matchset[i]['tstamp']).strftime('%Y%m%d_%H%M%S')
-                print(nummatches, matchset[i]['loccam'], ignore[i], d)
+                # d = datetime.datetime.fromtimestamp(matchset[i]['tstamp']).strftime('%Y%m%d_%H%M%S')
+                # print(nummatches, matchset[i]['loccam'], ignore[i], d)
                 for j in range(i + 1, nummatches):
                     if matchset[i]['loccam'][:6].upper() == matchset[j]['loccam'][:6].upper():
                         ignore[j] = 1
@@ -413,9 +422,9 @@ def FindMatches(yr, mth=None):
                     lat2, long2, _ = getCamLocation(matchset[j]['loccam'].decode('utf-8').strip(), cams, lati, longi, alti)
                     if abs(long1 - long2) < 0.01 and abs(lat1 - lat2) < 0.01:
                         ignore[j] = 1
-                    if ignore[j] == 0:
-                        d = datetime.datetime.fromtimestamp(matchset[j]['tstamp']).strftime('%Y%m%d_%H%M%S')
-                        print('    ', matchset[j]['loccam'], ignore[j], d)
+                    # if ignore[j] == 0:
+                        # d = datetime.datetime.fromtimestamp(matchset[j]['tstamp']).strftime('%Y%m%d_%H%M%S')
+                        # print('    ', matchset[j]['loccam'], ignore[j], d)
 
             if sum(ignore) > nummatches - 2:
                 # print('skipping ', nummatches, sum(ignore))
@@ -430,6 +439,7 @@ def FindMatches(yr, mth=None):
                 for i in range(nummatches):
                     if ignore[i] == 0:
                         el = matchset[i]
+                        print(el['localtime'], el['loccam'])
                         copyFile(el['localtime'], el['loccam'], tm, cams, fldrs, errf, camtyps, lati, longi, alti, fullcams)
 
     # upload logfile
