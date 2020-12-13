@@ -1,62 +1,102 @@
 <!DOCTYPE html>
-
 <html xmlns="http://www.w3.org/1999/xhtml">
-
 <head>
-
 <meta charset="utf-8">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
-
 <meta name="author" content="UKMON" />
+<link rel="stylesheet" href="/data/mjmm-data/analysis/ukmon.css">
 
-<link rel="stylesheet" href="ukmon.css">
 <title>__SHWR__ report for __YEAR__</title>
 </head>
 <body>
-
+<a href="/data/mjmm-data/analysis/"><img src="/data/mjmm-data/analysis/ukmon-logo.png"></a>
 <h1>Summary Report for __SHWR__, __YEAR__</h1>
 <h2>UKMON</h2>
 <h3>Report Created: __REPDATE__</h3>
-<h2>Summary of Activity for __SHWR__</h2><br>
-<p>In __YEAR__ a total of __CAMCOUNT__ cameras contributed data to the UKMON repository. 
-Together, these cameras recorded __METCOUNT__ individual meteor observations for __SHWR__. 
-The number of recorded observations by station is as follows:</p><br>
-<img src="streamcounts_plot_by_station.jpg" width="600" frame=1>
+<h2>Summary of Activity for __SHWR__</h2>
+<p>
+    In __YEAR__, __CAMCOUNT__ cameras recorded __METCOUNT__ individual meteor observations 
+    identified as __SHWR__. This included __PAIRS__ unified events, meteors observed by more than one camera. 
+    The number of unified observations as a percentage of individual observations was __UNIFRAC__&percnt;.
+</p>
+<p>
+    The graphs below show some statistics relating to the individual observations and unified
+    data. The first two show the number of observations by station and by time. The third shows the 
+    number of unified events, sorted by the number of cameras that detected each event.
+    (Click on the graphs to see a larger version).
+</p>
+<a href="streamcounts_plot_by_station.jpg">
+<img src="streamcounts_plot_by_station.jpg" width="30%" frame=1></a>
+<a href="stream_plot_timeline_single.jpg">
+    <img src="stream_plot_timeline_single.jpg" width="30%" frame=1></a>
+<a href="stream_plot_by_correllation.jpg">
+<img src="stream_plot_by_correllation.jpg" width="30%" frame=1></a>
+    
 <br>
-<p>After applying quality criteria`we found that __PAIRS__ meteors were observed by more than one camera
-(Unified observations). The following shows a count of the number of meters observed by two, three, etc. 
-cameras.</p><br>
-<img src="stream_plot_by_correllation.jpg" width="600">
-<br>
-<p>The number of unified observations as a percentage of individual observations is __UNIFRAC__&percnt;. </p>
-<br><br>
-<h2>Fireball Ativity</h2>
-<p>A total of __FBCOUNT__ fireballs were observed in the reporting period.
-    Here we define a fireball as a meteor event with a magnitude of -4 or less.</p>
-<!--#include file="fireballgraphs.html"-->
+<h2>Fireball Activity and Magnitude Analysis</h2>
+<p>A total of __FBCOUNT__ fireballs were observed in the reporting period, defining a fireball 
+    as a meteor event with an absolute magnitude of -4 or less. <br>
+    Also shown is the absolute magnitude distribution. Each meteor shower has a 
+    unique distribution of magnitudes, known as the population index. This is an important factor
+    in determining how many bright meteors will be seen in a shower. Some showers have a large number of
+    faint meteors, and so will seem poor visually. However radio detectors may show many more events 
+    as they are more sensitive. 
+    <br>
+    Finally in this section is shown the variation of magnitude with start and end altitide. There is 
+    usually a correlation between these factors, as small faint meteors will tend to become visible 
+    lower and burn up at a higher altitude, whereas conversely large meteors will become visible
+    sooner and may last longer. A straight line fit through the two sets of data 
+     will thus often show a convergence towards the right of the graph. 
+</p>
+<!-- #include file="fireballgraphs.html"-->
 <!--#include file="fireballtable.html" -->
+<br>
+<a href="stream_plot_mag.jpg"> <img src="stream_plot_mag.jpg" width="30%"></a>
+<a href="abs_magnitude_vs_h1_h2_reg.jpg"><img src="abs_magnitude_vs_h1_h2_reg.jpg" width="30%"></a>
 
 <h2>Velocity Distribution</h2>
-<p>The following graphs show the distribution of velocities</p>
-<img src="heliocentric_Velocity.jpg" width="600">
-<br>
-<h2>Magnitudes</h2>
-<p>The following graphs show the distribution of magnitudes:</p>
-<img src="stream_plot_mag.jpg" width="600">
-<img src="abs_magnitude_vs_h1_h2.jpg" width="600">
-<br>
-<p>The following plots shows the altitude of the atart and end of ablation for each individual meteor. 
-    The plot is in order of decreasing start height and gives a good visualisation of the depth 
-    of the ablation zone. Where in the atmosphere ablation occurs will depend on factors 
-    such as meteor velocity and composition.
+<p>
+    The following graphs show the distribution of observed and heliocentric velocity
+    in the in the unified data. Observed velocity is the velocity as measured
+    from the observer's location. Heliocentric velocity is the true velocity of the meteoroid
+    around the Sun. There can be an appreciable difference between these values due to the 
+    velocity of the Earth along its orbit and of the observer they rotate with the Earth. 
 </p>
-<img src="stream_ablation.jpg" width="600">
-<br>
-<p>The maximum observed altitude was __MAXALT__ km and the minimum observed altitude was __MINALT__ km. 
-    The distribution of distances travelled through the ablation zone was as follows:</p>
-<img src="observed_trajectory_LD21.jpg" width="600">
+    <a href="stream_plot_vel.jpg"><img src="stream_plot_vel.jpg" width="30%"></a>
+    <a href="heliocentric_Velocity.jpg"><img src="heliocentric_Velocity.jpg" width="30%"></a>
 
+<h2>Altitude and Distance</h2>
+<p>The following plots shows the distribution of ground distance travelled 
+    and the altitude of the start and end of ablation for each individual meteor. 
+    Ground distance is the linear distance from the first to the last observed point. 
+    The ablation plot gives a visualisation of the vertical distance over which the meteor
+    ablated or burned up. The height at which this occurs will depend on factors 
+    such as meteor size, velocity and composition.
+    The maximum observed altitude was __MAXALT__ km and the minimum observed altitude was __MINALT__ km. 
+</p>
+<a href="observed_trajectory_LD21.jpg"><img src="observed_trajectory_LD21.jpg" width="30%"></a>
+<a href="stream_ablation.jpg"><img src="stream_ablation.jpg" width="30%"></a>
+<br>
+<h2> Orbital Analysis</h2>
+<p>
+    Trajectory and orbit analysis was performed for unified events. The charts below show the distribution 
+    of semimajor axis amongst the unified events. Some showers show pronounced clustering of semimajor axis
+    due to gravitational resonances particularly with Jupiter. Extremely large values are also possible
+    and often indicate that the meteoroid has been severely perturbed by close passage near a planet. 
+    <br>
+    Also shown is the position of the apparent radiant of each unified event. These should (obviously)
+    cluster round the radiant of the shower but its normal for shower meteors to be a few degrees 
+    away from this, though its important to remember that for most showers, the radiant moves
+    location each night due to the Earths movement through the debris stream.
+    The matching process uses distance from the expected radiant to filter
+    candidate events. 
+</p>
+<a href="semimajoraxisfreq.jpg"><img src="semimajoraxisfreq.jpg" width="30%"></a>
+<a href="stream_plot_radiant.jpg"><img src="stream_plot_radiant.jpg" width="30%"></a>
+<br>
+Details of every matched event in __YEAR__ can be found 
+<a href="../orbits/">on the Orbits page</a>
+<!--#include file="listoforbits.html"-->
 
 </body>
 </html>

@@ -5,7 +5,7 @@
 
 if($args.count -lt 3) {
     Write-Output "usage: manuaReduction srcdir srcfile camerainifile"
-    Write-Output "eg manuaReduction 20200703 015505 UK006.ini"
+    Write-Output "eg manuaReduction UK0006.ini 20200703 015505"
     exit
 }
 
@@ -14,14 +14,10 @@ $srcfile=$args[1]
 
 set-location $PSScriptRoot
 # load the helper functions
-. helperfunctions.ps1
+. .\helperfunctions.ps1
+
 # read the inifile
-if ($args.count -eq 0) {
-    $inifname='../TACKLEY_TC.ini'
-}
-else {
-    $inifname = $args[0]
-}
+$inifname = $args[0]
 $ini=get-inicontent $inifname
 
 $hostname=$ini['camera']['hostname']

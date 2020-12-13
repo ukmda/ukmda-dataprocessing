@@ -56,3 +56,8 @@
     background-color: #4CAF50;
     color: white;
   }
+
+  img {  
+    border-radius: 5%;   
+    border: 1px solid #555; 
+  }

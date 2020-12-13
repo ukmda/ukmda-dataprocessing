@@ -26,9 +26,10 @@ done
 source $here/../orbits/orbitsolver.ini
 YR=`date +%Y`
 
-cp $here/UO_header.txt matches-$YR.csv
-cat $results/$YR/orbits/csv/$YR*.csv >> matches-$YR.csv
-wc -l matches-$YR.csv
+cp $here/UO_header.txt $here/DATA/matched/matches-$YR.csv
+cat $results/$YR/orbits/csv/$YR*.csv >> $here/DATA/matched/matches-$YR.csv
+wc -l $here/DATA/matched/matches-$YR.csv
+cp $here/DATA/matched/matches-$YR.csv $here/DATA/UKMON-all-matches.csv
 
 cd $here
 $here/createReport.sh ALL $YR

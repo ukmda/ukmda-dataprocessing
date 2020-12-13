@@ -6,7 +6,7 @@ if [ $# -lt 2 ] ; then
 else
 	source $here/config.ini >/dev/null 2>&1
 
-	$here/GENERATE_REPORTS_V2.R $1 $2
+	$here/GENERATE_REPORTS_V2.r $1 $2
 	echo .
 	
 	if [ -d $here/REPORTS/$2/$1 ] ; then 
