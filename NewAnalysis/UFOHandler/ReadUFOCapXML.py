@@ -5,8 +5,6 @@
 import xmltodict
 import numpy
 
-MAXGAP = 50
-
 
 class UCXml:
     MAXGAP = 50
@@ -147,7 +145,7 @@ class UCXml:
             if pfno == 0:
                 pfno = fno
             fdiff = fno - pfno
-            if ono == objno and fdiff < self.MAXGAP:  # and npx > 3:
+            if ono == objno:  # and fdiff < self.MAXGAP:  # and npx > 3:
                 # its possible for one path to include two events
                 # at different times. This is a UFO feature...
                 pathx[j] = p['@x']
