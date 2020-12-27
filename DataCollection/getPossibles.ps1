@@ -59,10 +59,16 @@ for($i=0; $i -lt $srcdirs.count ; $i++)
                 $fn=$fn+".fits"
                 write-output $fn  
                 Copy-Item $fn $targdir
+                $binf= $flist[$i]+'.bin'
+                write-output $binf
+                copy-item $binf $targdir
             }
         }
         Set-Location $rms_loc
         python -m Utils.BatchFFtoImage $targdir jpg
+        $platepar=$localfolder+'/ArchivedFiles/*'+$args[1]+'*/platepar*'
+        write-output "copying $platepar"
+        copy-item $platepar $targdir
         Set-Location $PSScriptRoot
     #    explorer ($targdir).replace('/','\')
     }

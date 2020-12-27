@@ -6,11 +6,11 @@ set-location $PSScriptRoot
 . .\helperfunctions.ps1
 # read the inifile
 if ($args.count -eq 0) {
-    $inifname='../TACKLEY_TC.ini'
+    write-output "ini file missing, can't continue"
+    exit 1
 }
-else {
-    $inifname = $args[0]
-}
+$inifname = $args[0]
+
 $ini=get-inicontent $inifname
 
 $ukmon_member=$ini['ukmon']['ukmon_member']
@@ -31,20 +31,31 @@ if ($ismember -eq 'Yes')
     $keys=((Get-Content $keyfile)[1]).split(',')
     $Env:AWS_ACCESS_KEY_ID = $keys[0]
     $env:AWS_SECRET_ACCESS_KEY = $keys[1]
-    $yr = (get-date).year
+    $yr = (get-date).tostring("yyyy")
+    $ym = (get-date).tostring("yyyyMM")
+    $ym2 = $ym = (get-date).adddays(-1).tostring("yyyyMM")
 
-    $srcpath=$localfolder+'/'+$yr+'/'
+    $srcpath=$localfolder+'/'+$yr+'/' + $ym + '/'
 
-    $targ= 's3://ukmon-shared/archive/' + $ukmoncam +'/'+$yr+'/'
+    write-output "Syncing $srcpath"
+    $targ= 's3://ukmon-shared/archive/' + $ukmoncam  + '/' + $yr+'/' + $ym + '/'
 
-    if ($UFO -eq 0)
-    {
+    if ($UFO -eq 0){
         aws s3 sync $srcpath $targ --include * --exclude *.fits --exclude *.bin --exclude *.gif  --exclude *.bz2 
-    }
-    else
-    {
+    } else {
         aws s3 sync $srcpath $targ --exclude * --include *.csv --include *P.jpg --include *.txt --include *.xml --exclude *detlog.csv
     }
+    if ($ym2 -ne $ym){ 
+        $srcpath=$localfolder+'/'+$yr+'/' + $ym2 + '/'
+        write-output "Syncing $srcpath"
+        $targ= 's3://ukmon-shared/archive/' + $ukmoncam  + '/' + $yr+'/' + $ym2 + '/'
+        if ($UFO -eq 0){
+            aws s3 sync $srcpath $targ --include * --exclude *.fits --exclude *.bin --exclude *.gif  --exclude *.bz2 
+        } else {
+            aws s3 sync $srcpath $targ --exclude * --include *.csv --include *P.jpg --include *.txt --include *.xml --exclude *detlog.csv
+        }
+    }
+
     Write-Output 'checked and uploaded any new files'
 }
 else {
