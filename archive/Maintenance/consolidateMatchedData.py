@@ -99,8 +99,8 @@ def getCamLocation(c1, allcams, latis, longis, altis):
 
 def getRMSIndexFile(yr, mth):
     # fetch consolidated file and fetch out required details
-    idxfile = 'P_' + yr + '-unified.csv'
-    sortedidx = 'SP_' + yr + '.csv'
+    idxfile = 'P_{:04d}-unified.csv'.format(yr)
+    sortedidx = 'SP_{:04d}.csv'.format(yr)
 
     grp = []
     localtime = []
@@ -178,8 +178,8 @@ def getRMSIndexFile(yr, mth):
 
 def getUFOIndexFile(yr, mth):
     # fetch consolidated file and fetch out required details
-    idxfile = 'M_' + yr + '-unified.csv'
-    sortedidx = 'S_' + yr + '.csv'
+    idxfile = 'M_{:04d}-unified.csv'.format(yr)
+    sortedidx = 'SM_{:04d}.csv'.format(yr)
 
     grp = []
     localtime = []
@@ -371,15 +371,22 @@ def copyFile(loctime, loccam, tm, cams, fldrs, errf, camtyps, latis, longis, alt
         return
 
 
-def FindMatches(yr, mth=None):
+def FindMatches(yr=None, mth=None):
     print('getting camera details file')
     cams, fldrs, lati, longi, alti, camtyps, fullcams = getCameraDetails()
 
+    if yr is None:
+        yr = datetime.datetime.now().year
+    if mth is None:
+        mth = datetime.datetime.now().month
+
+    print('processing data for {:04d} {:02d}'.format(yr, mth))
+
     print('getting UFO index file')
-    meteors1 = getUFOIndexFile(yr, mth)
+    meteors1 = getUFOIndexFile(yr, None)
 
     print('getting RMS index file')
-    meteors2 = getRMSIndexFile(yr, mth)
+    meteors2 = getRMSIndexFile(yr, None)
 
     meteors = numpy.append(meteors1, meteors2)
     meteors.sort(order='tstamp')
@@ -389,8 +396,9 @@ def FindMatches(yr, mth=None):
         print("no data returned to to search for matches in")
         return
 
-    wholefile = 'MERGED_' + yr + '-unified.csv'
-    with open(wholefile, 'w') as fout:
+    wholefile = 'MERGED_{:04d}-unified.csv'.format(yr)
+
+    with open(os.path.join('/tmp', wholefile), 'w') as fout:
         for li in meteors:
             fout.write('{:.2f},{:s},{:s},{:.4f},{:.4f}\n'.format(li['tstamp'],
                 li['localtime'], li['loccam'], li['dir1'], li['alt1']))
@@ -399,8 +407,20 @@ def FindMatches(yr, mth=None):
     errfname = 'missing-data-report.txt'
     errf = open(errfname, 'w')
 
+    # filter by requested month
+    if mth is not None:
+        ts1 = (datetime.datetime(year=yr, month=mth, day=1) - datetime.timedelta(seconds=5)).timestamp()
+        cond = meteors['tstamp'] > ts1
+        meteors = meteors[cond]
+        from dateutil.relativedelta import relativedelta
+
+        ts2 = (datetime.datetime(year=yr, month=mth, day=1) + relativedelta(day=31) + datetime.timedelta(seconds=5)).timestamp()
+        cond = meteors['tstamp'] < ts2
+        meteors = meteors[cond]
+
     # search for matches
     lasttm = 0
+
     for rw in meteors:
         tm = rw['tstamp']
 
@@ -440,7 +460,8 @@ def FindMatches(yr, mth=None):
                     if ignore[i] == 0:
                         el = matchset[i]
                         print(el['localtime'], el['loccam'])
-                        copyFile(el['localtime'], el['loccam'], tm, cams, fldrs, errf, camtyps, lati, longi, alti, fullcams)
+                        copyFile(el['localtime'], el['loccam'], tm, cams,
+                            fldrs, errf, camtyps, lati, longi, alti, fullcams)
 
     # upload logfile
     errf.close()
@@ -450,10 +471,10 @@ def FindMatches(yr, mth=None):
     s3.upload_file(Bucket=bucket_name, Key=key, Filename=errfname)
     os.remove(errfname)
 
+    key = 'matches/{:04d}/{:s}'.format(yr, wholefile)
+    s3.upload_file(Bucket=bucket_name, Key=key, Filename=os.path.join('/tmp', wholefile))
+    os.remove(os.path.join('/tmp', wholefile))
+
 
 if __name__ == '__main__':
-    mth = None
-    if len(sys.argv) == 3:
-        mth = int(sys.argv[2])
-
-    FindMatches(sys.argv[1], mth)
+    FindMatches(int(sys.argv[1]), int(sys.argv[2]))
