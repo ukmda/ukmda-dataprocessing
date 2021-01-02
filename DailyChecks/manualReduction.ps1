@@ -28,19 +28,30 @@ $ff=(Get-ChildItem $ffpath).fullname
 # run the manual reduction process
 set-location $RMSloc 
 conda activate $rmsenv
-python -m Utils.ManualReduction $ff
+# python -m Utils.ManualReduction $ff
 
 # find the new FTPfile and the original
 $ftppath=$localdir+'\FTPdetectinfo*manual.txt'
 $ftp=(Get-ChildItem $ftppath).fullname
 
-$oldftppath=$datadir+"\ArchivedFiles\"+$cam+"_"+$args[1]+"*"+'\FTPdetectinfo*.txt'
-$oldftp=((Get-ChildItem $oldftppath -exclude *backup*,*uncal*).fullname)
+$arcpath=$datadir + '\ConfirmedFiles\'+$cam+'_'+$args[1]+'*'
+if (-not (test-path $arcpath) )
+{
+    $arcpath=$datadir + '\ArchivedFiles\'+$cam+'_'+$args[1]+'*'
+}
+
+$oldftppath=$arcpath+'\FTPdetectinfo*.txt'
+$oldftp=((Get-ChildItem $oldftppath -exclude *backup*,*uncal*,*pre-con*).fullname)
+$fuloldpth=(Get-ChildItem $arcpath).fullname
 
 msg  /w $env:username "opening windows for you to edit the FTPdetect files - don't forget to change the meteor count!"
 
 notepad $ftp
 notepad $oldftp | out-null
+
+$jppath=$localdir+'\FF*.jpg'
+copy-item $jppath $fuloldpth
+copy-item $ff $fuloldpth
 
 python $PSScriptRoot\ufoShowerAssoc.py $oldftp
 $platepar=$localdir+'\platepar_cmn2010.cal'

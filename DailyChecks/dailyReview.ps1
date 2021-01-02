@@ -111,6 +111,8 @@ if ($RMS_INSTALLED -eq 1){
             if (test-path $mp4gen ){
                 python -m Utils.GenerateMP4s $myf
             }
+            $allplates = $localfolder + '\ArchivedFiles\' + $path + '\platepars_all_recalibrated.json'
+            copy-file $allplates $destpath
         }
         else{
             write-output skipping' '$myf

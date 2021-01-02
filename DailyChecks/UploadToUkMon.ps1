@@ -43,7 +43,7 @@ if ($ismember -eq 'Yes')
     if ($UFO -eq 0){
         aws s3 sync $srcpath $targ --include * --exclude *.fits --exclude *.bin --exclude *.gif  --exclude *.bz2 
     } else {
-        aws s3 sync $srcpath $targ --exclude * --include *.csv --include *P.jpg --include *.txt --include *.xml --exclude *detlog.csv
+        aws s3 sync $srcpath $targ --exclude * --include *.csv --include *P.jpg --include *.txt --include *.xml --include *.json --exclude *detlog.csv
     }
     if ($ym2 -ne $ym){ 
         $srcpath=$localfolder+'/'+$yr+'/' + $ym2 + '/'
@@ -52,7 +52,7 @@ if ($ismember -eq 'Yes')
         if ($UFO -eq 0){
             aws s3 sync $srcpath $targ --include * --exclude *.fits --exclude *.bin --exclude *.gif  --exclude *.bz2 
         } else {
-            aws s3 sync $srcpath $targ --exclude * --include *.csv --include *P.jpg --include *.txt --include *.xml --exclude *detlog.csv
+            aws s3 sync $srcpath $targ --exclude * --include *.csv --include *P.jpg --include *.txt --include *.xml --include *.json --exclude *detlog.csv
         }
     }
 
