@@ -18,6 +18,7 @@ def findSection(fname, tstamp, cam, allcams, lati, longi, alti):
     frags = barefname.split('_')
     dataname = 'data_' + frags[1] + '_' + frags[2] + '_' + frags[3] + '.txt'
     statname = 'stat_' + frags[1] + '_' + frags[2] + '_' + frags[3] + '.txt'
+    dtimestmp = ' '
     for i in range(len(lines)):
         li = lines[i]
         if li[:3] == 'FF_':
@@ -96,10 +97,10 @@ def getCamLocation(c1, allcams, latis, longis, altis):
     return lati, longi, alti
 
 
-def getRMSIndexFile(yr):
+def getRMSIndexFile(yr, mth):
     # fetch consolidated file and fetch out required details
-    idxfile = 'P_' + yr + '-unified.csv'
-    sortedidx = 'SP_' + yr + '.csv'
+    idxfile = 'P_{:04d}-unified.csv'.format(yr)
+    sortedidx = 'SP_{:04d}.csv'.format(yr)
 
     grp = []
     localtime = []
@@ -175,10 +176,10 @@ def getRMSIndexFile(yr):
     return meteors
 
 
-def getUFOIndexFile(yr):
+def getUFOIndexFile(yr, mth):
     # fetch consolidated file and fetch out required details
-    idxfile = 'M_' + yr + '-unified.csv'
-    sortedidx = 'S_' + yr + '.csv'
+    idxfile = 'M_{:04d}-unified.csv'.format(yr)
+    sortedidx = 'SM_{:04d}.csv'.format(yr)
 
     grp = []
     localtime = []
@@ -349,7 +350,9 @@ def copyFile(loctime, loccam, tm, cams, fldrs, errf, camtyps, latis, longis, alt
             os.remove(statname)
             print('d-0 ', fnam, tmstr)
             try:
-                if fullcam[:7] == 'Tackley':
+                # HACK FOR TACKLEY CAMERA PRIOR TO END NOV 2020
+                switchtime = datetime.datetime(2020, 11, 25, 20, 0, 0, 0)
+                if fullcam[:7] == 'Tackley' and datetime.datetime.fromtimestamp(tm) < switchtime:
                     fullcam = 'Tackley'
                 fnam = 'M' + dtimestmp + '_' + fullcam + '_' + loccam + 'P.jpg'
                 destpath = 'matches/' + ymstr + '/' + tmstr + '/' + fnam
@@ -368,15 +371,22 @@ def copyFile(loctime, loccam, tm, cams, fldrs, errf, camtyps, latis, longis, alt
         return
 
 
-def FindMatches(yr, mth=None):
+def FindMatches(yr=None, mth=None):
     print('getting camera details file')
     cams, fldrs, lati, longi, alti, camtyps, fullcams = getCameraDetails()
 
+    if yr is None:
+        yr = datetime.datetime.now().year
+    if mth is None:
+        mth = datetime.datetime.now().month
+
+    print('processing data for {:04d} {:02d}'.format(yr, mth))
+
     print('getting UFO index file')
-    meteors1 = getUFOIndexFile(yr)
+    meteors1 = getUFOIndexFile(yr, None)
 
     print('getting RMS index file')
-    meteors2 = getRMSIndexFile(yr)
+    meteors2 = getRMSIndexFile(yr, None)
 
     meteors = numpy.append(meteors1, meteors2)
     meteors.sort(order='tstamp')
@@ -386,12 +396,31 @@ def FindMatches(yr, mth=None):
         print("no data returned to to search for matches in")
         return
 
+    wholefile = 'MERGED_{:04d}-unified.csv'.format(yr)
+
+    with open(os.path.join('/tmp', wholefile), 'w') as fout:
+        for li in meteors:
+            fout.write('{:.2f},{:s},{:s},{:.4f},{:.4f}\n'.format(li['tstamp'],
+                li['localtime'], li['loccam'], li['dir1'], li['alt1']))
+
     # create logfile
     errfname = 'missing-data-report.txt'
     errf = open(errfname, 'w')
 
+    # filter by requested month
+    if mth is not None:
+        ts1 = (datetime.datetime(year=yr, month=mth, day=1) - datetime.timedelta(seconds=5)).timestamp()
+        cond = meteors['tstamp'] > ts1
+        meteors = meteors[cond]
+        from dateutil.relativedelta import relativedelta
+
+        ts2 = (datetime.datetime(year=yr, month=mth, day=1) + relativedelta(day=31) + datetime.timedelta(seconds=5)).timestamp()
+        cond = meteors['tstamp'] < ts2
+        meteors = meteors[cond]
+
     # search for matches
     lasttm = 0
+
     for rw in meteors:
         tm = rw['tstamp']
 
@@ -402,28 +431,37 @@ def FindMatches(yr, mth=None):
         skipme = False
         nummatches = len(matchset)
         ignore = numpy.zeros(nummatches)
-        for i in range(nummatches):
-            for j in range(i + 1, nummatches):
-                if matchset[i]['loccam'] == matchset[j]['loccam']:
-                    ignore[j] = 1
-                lat1, long1, _ = getCamLocation(matchset[i]['loccam'].decode('utf-8').strip(), cams, lati, longi, alti)
-                lat2, long2, _ = getCamLocation(matchset[j]['loccam'].decode('utf-8').strip(), cams, lati, longi, alti)
-                if abs(long1 - long2) < 0.01 and abs(lat1 - lat2) < 0.01:
-                    ignore[j] = 1
-
-        if sum(ignore) > nummatches - 2:
-            skipme = True
-
-        # got at least a distinct pair and we're not rematching the last matches
-        if len(matchset) > 1 and skipme is False and abs(lasttm - tm) > 4.99999:
-            print('got', len(matchset), 'matches')
-            lasttm = tm
-            numpy.sort(matchset)
-            print('=============')
+        if nummatches > 1:
             for i in range(nummatches):
-                if ignore[i] == 0:
-                    el = matchset[i]
-                    copyFile(el['localtime'], el['loccam'], tm, cams, fldrs, errf, camtyps, lati, longi, alti, fullcams)
+                # d = datetime.datetime.fromtimestamp(matchset[i]['tstamp']).strftime('%Y%m%d_%H%M%S')
+                # print(nummatches, matchset[i]['loccam'], ignore[i], d)
+                for j in range(i + 1, nummatches):
+                    if matchset[i]['loccam'][:6].upper() == matchset[j]['loccam'][:6].upper():
+                        ignore[j] = 1
+                    lat1, long1, _ = getCamLocation(matchset[i]['loccam'].decode('utf-8').strip(), cams, lati, longi, alti)
+                    lat2, long2, _ = getCamLocation(matchset[j]['loccam'].decode('utf-8').strip(), cams, lati, longi, alti)
+                    if abs(long1 - long2) < 0.01 and abs(lat1 - lat2) < 0.01:
+                        ignore[j] = 1
+                    # if ignore[j] == 0:
+                        # d = datetime.datetime.fromtimestamp(matchset[j]['tstamp']).strftime('%Y%m%d_%H%M%S')
+                        # print('    ', matchset[j]['loccam'], ignore[j], d)
+
+            if sum(ignore) > nummatches - 2:
+                # print('skipping ', nummatches, sum(ignore))
+                skipme = True
+
+            # got at least a distinct pair and we're not rematching the last matches
+            if len(matchset) > 1 and skipme is False and abs(lasttm - tm) > 4.99999:
+                print('got', len(matchset), 'matches')
+                lasttm = tm
+                numpy.sort(matchset)
+                print('=============')
+                for i in range(nummatches):
+                    if ignore[i] == 0:
+                        el = matchset[i]
+                        print(el['localtime'], el['loccam'])
+                        copyFile(el['localtime'], el['loccam'], tm, cams,
+                            fldrs, errf, camtyps, lati, longi, alti, fullcams)
 
     # upload logfile
     errf.close()
@@ -431,11 +469,12 @@ def FindMatches(yr, mth=None):
     bucket_name = 'ukmon-shared'
     key = 'matches/' + errfname
     s3.upload_file(Bucket=bucket_name, Key=key, Filename=errfname)
+    os.remove(errfname)
+
+    key = 'matches/{:04d}/{:s}'.format(yr, wholefile)
+    s3.upload_file(Bucket=bucket_name, Key=key, Filename=os.path.join('/tmp', wholefile))
+    os.remove(os.path.join('/tmp', wholefile))
 
 
 if __name__ == '__main__':
-    mth = None
-    if len(sys.argv) == 3:
-        mth = int(sys.argv[2])
-
-    FindMatches(sys.argv[1], mth)
+    FindMatches(int(sys.argv[1]), int(sys.argv[2]))

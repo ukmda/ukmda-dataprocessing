@@ -386,7 +386,7 @@ PSID CEventLog::GetUserSID(PSID * ppSid)
 			if (IsValidSid(*ppSid) == FALSE)
 			{
 				CString csMsg;
-				csMsg.Format(L"The SID for %s is invalid.\n", csAccName);
+				csMsg.Format(L"The SID for %s is invalid.\n", csAccName.GetString());
 				AfxMessageBox(csMsg, MB_ICONSTOP);
 				bRet = FALSE;
 			}

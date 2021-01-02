@@ -7,11 +7,11 @@ set-location $PSScriptRoot
 . .\helperfunctions.ps1
 # read the inifile
 if ($args.count -eq 0) {
-    $inifname='TACKLEY_TC.ini'
+    write-output "ini file missing, can't continue"
+    exit 1
 }
-else {
-    $inifname = $args[0]
-}
+$inifname = $args[0]
+
 $ini=get-inicontent $inifname
 $hostname=$ini['camera']['hostname']
 $maxage=$ini['camera']['maxage']
@@ -111,6 +111,8 @@ if ($RMS_INSTALLED -eq 1){
             if (test-path $mp4gen ){
                 python -m Utils.GenerateMP4s $myf
             }
+            $allplates = $localfolder + '\ArchivedFiles\' + $path + '\platepars_all_recalibrated.json'
+            copy-file $allplates $destpath
         }
         else{
             write-output skipping' '$myf

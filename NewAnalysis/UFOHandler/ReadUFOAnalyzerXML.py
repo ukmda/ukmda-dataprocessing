@@ -198,7 +198,8 @@ class UAXml:
         lat1 = uo['@lat1']
         az1 = uo['@az1']
         ev1 = uo['@ev1']
-        return ra1, dc1, h1, dist1, lng1, lat1, az1, ev1
+        fs = uo['@fs']
+        return ra1, dc1, h1, dist1, lng1, lat1, az1, ev1, fs
 
     def getObjectEnd(self, objno):
         """Get the details of the end point of an object
@@ -221,7 +222,8 @@ class UAXml:
         dist2 = uo['@dist2']
         lng2 = uo['@lng2']
         lat2 = uo['@lat2']
-        return ra2, dc2, h2, dist2, lng2, lat2
+        fe = uo['@fe']
+        return ra2, dc2, h2, dist2, lng2, lat2, fe
 
     def getObjectFrameDetails(self, objno, fno):
         """Get details of a specific frame
@@ -262,6 +264,7 @@ class UAXml:
         else:
             uo = uos['ua2_object'][objno]
         fcount = int(uo['@sN'])
+        fs = int(uo['@fs'])
         fno = numpy.zeros(fcount)
         ra = numpy.zeros(fcount)
         dec = numpy.zeros(fcount)
@@ -282,8 +285,9 @@ class UAXml:
             b[fc] = float(uop['@b'])
             lsum[fc] = float(uop['@Lsum'])
 
-            # UFO timestamps the 32nd frame for unknown reasons
-            us = int((fno[fc] - 32) / fps * 1000000)
+            # UFO timestamps the first half-frame in which a detection happens and
+            # the framenumber of this is stored in "fs"
+            us = int((fno[fc] - fs) / fps * 1000000)
             tt[fc] = round((dtim + datetime.timedelta(microseconds=us)).timestamp(), 2)
         return fno, tt, ra, dec, mag, fcount, alt, az, b, lsum
 
@@ -306,8 +310,8 @@ if __name__ == '__main__':
     nobjs = dd.getObjectCount()
     for i in range(nobjs):
         # sec, av, pix, bmax, mag, fcount = dd.getObjectBasics(i)
-        # ra1, dc1, h1, dist1, lng1, lat1 = dd.getObjectStart(i)
-        # ra2, dc2, h2, dist2, lng2, lat2 = dd.getObjectEnd(i)
+        # ra1, dc1, h1, dist1, lng1, lat1, az1, ev1, fs  = dd.getObjectStart(i)
+        # ra2, dc2, h2, dist2, lng2, lat2, fe = dd.getObjectEnd(i)
         # print(sec, ra1, dc1, h1, dist1, lng1, lat1, ra2, dc2, h2, dist2, lng2, lat2)
         # print(fcount)
         # print('fno', 'ra', 'dec', 'mag', 'az', 'ev', 'lsum', 'b')

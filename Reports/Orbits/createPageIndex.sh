@@ -15,8 +15,9 @@ repfile=`basename $repf`
 pref=${repfile:0:16}
 
 echo "<html><head><title>Orbit Report for $ym</title>" > $idxfile
-echo "<style>img {  border-radius: 5%;   border: 1px solid #555; }</style> </head>" >> $idxfile
-echo "<body><h1>Orbital Analysis for matched events on $ym</h1>" >> $idxfile
+echo "</head><body>" >> $idxfile
+echo "<a href=\"/data/mjmm-data/analysis/\"><img src=\"/data/mjmm-data/analysis/ukmon-logo.png\"></a>" >> $idxfile
+echo "<h1>Orbital Analysis for matched events on $ym</h1>" >> $idxfile
 echo "<pre><!--#include file=\"summary.html\" --></pre>" >>$idxfile
 echo "<h3>Click on an image to see a larger view</h3>" >> $idxfile
 

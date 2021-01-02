@@ -28,108 +28,129 @@ specific language governing permissions and limitations under the License.
 */
 #include "UKMonMonthlyArchiver.h"
 
-#include <aws/core/Aws.h>
-#include <aws/s3/S3Client.h>
-#include <aws/s3/model/PutObjectRequest.h>
-#include <aws/core/auth/AWSCredentialsProvider.h>
-#include <aws/s3/model/HeadObjectRequest.h>
-#include <aws/s3/model/Object.h>
+#undef GetMessage                       // workaround for AWSError method GetMessage()
+#undef GetObject 
+#undef PutObject
 
+__int64 FileSize(const wchar_t* name);
 
 /**
 * Put an object to an Amazon S3 bucket.
 */
-int put_file(char* buckname, const char* objname, const char* fname, char* reg, char* acct, char* secret)
+int put_file(char* buckname, const char* objname, const char* fname, Aws::S3::S3Client s3_client)
 {
 	wchar_t msg[512] = { 0 };
-	Aws::SDKOptions options;
-//	options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Debug;
-	Aws::InitAPI(options);
+
+	const Aws::String bucket_name = buckname;
+
+	Aws::String file_name;
+	Aws::String key_name;
+	file_name = fname;
+	key_name = objname;
+	wchar_t wfname[512] = { 0 };
+
+	if (Debug) std::cout << "Checking " << key_name << " " << file_name << std::endl;
+
+	/* check if the object already exists - don't overwrite it unless the flag is set */
+	int exists = 0;
+	__int64 locfsize = 0, awsfsize = 0;
+
+	if (!overwrite)
 	{
-		const Aws::String bucket_name = buckname;
-		const Aws::String myregion = reg;
+		mbstowcs(wfname, fname, strlen(fname));
+		locfsize = FileSize(wfname);
 
-		Aws::String file_name;
-		Aws::String key_name;
-		file_name = fname;
-		key_name = objname;
-
-		if (Debug) std::cout << "Checking " << key_name << " " << file_name << std::endl;
-
-		Aws::Auth::AWSCredentials creds;
-		creds.SetAWSAccessKeyId(acct);
-		creds.SetAWSSecretKey(secret);
-
-		Aws::Client::ClientConfiguration clientConfig;
-		clientConfig.region = myregion;
-		Aws::S3::S3Client s3_client(creds, clientConfig);
-
-		/* check if the object already exists - don't overwrite it unless the flag is set */
-		int exists = 0;
-		if (!overwrite)
+		Aws::S3::Model::HeadObjectRequest request;
+		request.WithBucket(bucket_name).WithKey(key_name);
+		const auto res = s3_client.HeadObject(request);
+		if (res.IsSuccess())
 		{
-			Aws::S3::Model::HeadObjectRequest request;
-			request.WithBucket(bucket_name).WithKey(key_name);
-			const auto res = s3_client.HeadObject(request);
-			if (res.IsSuccess())
+			awsfsize = res.GetResult().GetContentLength();
+			if (awsfsize != locfsize)
+				exists = 0;
+			else
 				exists = 1;
 		}
-		if (overwrite || !exists)
+	}
+	if (overwrite || !exists)
+	{
+		Aws::S3::Model::PutObjectRequest object_request;
+		object_request.WithBucket(bucket_name).WithKey(key_name);
+
+		// Binary files must also have the std::ios_base::bin flag or'ed in
+		auto input_data = Aws::MakeShared<Aws::FStream>("PutObjectInputStream",
+			file_name.c_str(), std::ios_base::in | std::ios_base::binary);
+
+		object_request.SetBody(input_data);
+
+		if (dryrun == 0)
 		{
-			Aws::S3::Model::PutObjectRequest object_request;
-			object_request.WithBucket(bucket_name).WithKey(key_name);
+			nCounter++;
+			std::cout << nCounter << ": Uploading " << fname << "...";
 
-			// Binary files must also have the std::ios_base::bin flag or'ed in
-			auto input_data = Aws::MakeShared<Aws::FStream>("PutObjectInputStream",
-				file_name.c_str(), std::ios_base::in | std::ios_base::binary);
-
-			object_request.SetBody(input_data);
-
-			if (dryrun == 0)
+			Aws::S3::Model::PutObjectOutcome put_object_outcome = s3_client.PutObject(object_request);
+			int retry = maxretry;
+			while (!put_object_outcome.IsSuccess() && retry > 0)
 			{
-				nCounter++;
-				std::cout << nCounter << ": Uploading " << fname << "...";
-
-				auto put_object_outcome = s3_client.PutObject(object_request);
-				int retry = maxretry;
-				while (!put_object_outcome.IsSuccess() && retry > 0)
-				{
-					Sleep(1000);
-					put_object_outcome = s3_client.PutObject(object_request);
-					retry--;
-				}
-				if (put_object_outcome.IsSuccess())
-				{
-					std::cerr << "Done!" << std::endl;
-					wchar_t wfname[512] = { 0 };
-					mbstowcs(wfname, fname, strlen(fname));
-					wsprintf(msg, L"%d: Uploading %ls....done!", nCounter, wfname);
-					theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 2, msg, L"");
-				}
-				else
-				{
-					std::cerr << "Upload of " << file_name << " failed after " << maxretry << " attempts - check log!" << std::endl;
-
-					wchar_t wfname[512] = { 0 };
-					mbstowcs(wfname, fname, strlen(fname));
-					wsprintf(msg, L"%d: Uploading %ls....Failed after %d attempts!", nCounter, wfname, maxretry);
-					wchar_t msg2[512] = { 0 };
-					wsprintf(msg2, L"%s: %s", put_object_outcome.GetError().GetExceptionName(), put_object_outcome.GetError().GetMessage());
-					theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 2, msg, msg2, L"");
-				}
+				Sleep(1000);
+				put_object_outcome = s3_client.PutObject(object_request);
+				retry--;
+			}
+			if (put_object_outcome.IsSuccess())
+			{
+				std::cerr << "Done!" << std::endl;
+				wsprintf(msg, L"%d: Uploading %ls....done!", nCounter, wfname);
+				theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 2, msg, L"");
 			}
 			else
 			{
-				std::cout << std::endl << "dry run, would have sent " << file_name << std::endl;
+				std::cerr << "Upload of " << file_name << " failed after " << maxretry << " attempts - check log!" << std::endl;
+
 				wchar_t wfname[512] = { 0 };
 				mbstowcs(wfname, fname, strlen(fname));
-				wsprintf(msg, L"Dry Run: Uploading %ls....done!", wfname);
-				theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 2, msg, L"");
+				wsprintf(msg, L"%d: Uploading %ls....Failed after %d attempts!", nCounter, wfname, maxretry);
+				wchar_t msg2[512] = { 0 };
+				Aws::String errmsg = put_object_outcome.GetError().GetExceptionName();
+				wchar_t errtype[512] = { 0 };
+				mbstowcs(errtype, errmsg.c_str(), strlen(errmsg.c_str()));
+				wsprintf(msg2, L"%s: %s", errtype, L"failed");
+				theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 2, msg, msg2, L"");
 			}
 		}
+		else
+		{
+			std::cout << std::endl << "dry run, would have sent " << file_name << std::endl;
+			wchar_t wfname[512] = { 0 };
+			mbstowcs(wfname, fname, strlen(fname));
+			wsprintf(msg, L"Dry Run: Uploading %ls....done!", wfname);
+			theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 2, msg, L"");
+		}
 	}
-	Aws::ShutdownAPI(options);
+	else
+	{
+		//printf("skipping %s\n", fname);
+	}
+
 	return 0;
+}
+
+static __int64 FileSize(const wchar_t* name)
+{
+	HANDLE hFile = CreateFile(name, GENERIC_READ,
+		FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile == INVALID_HANDLE_VALUE)
+		return -1; // error condition, could call GetLastError to find out more
+
+	LARGE_INTEGER size;
+	if (!GetFileSizeEx(hFile, &size))
+	{
+		CloseHandle(hFile);
+		return -1; // error condition, could call GetLastError to find out more
+	}
+
+	CloseHandle(hFile);
+	return size.QuadPart;
 }
 #if 0
 #if (_WIN32_WINNT==0x0501)

@@ -7,12 +7,20 @@ import sys
 import configparser
 
 
+def makeOrbitList(root, yr, shwr):
+    of = open('listoforbits.html', 'w')
+
+    of.write('<br><table id="tablestyle">\n')
+    of.write('</table>\n')
+    of.close()
+
+
 def makeFBGraphs(root, yr, shwr, fbcount):
     of = open('fireballgraphs.html', 'w')
     if fbcount > 0:
-        of.write('<p>A breakdown by month and by shower is shown below. </p>')
-        of.write('<img src="fireball_by_month.jpg" width="600">')
-        of.write('<img src="fireball_by_stream.jpg" width="600">')
+        of.write('<p>A breakdown is shown below. </p>')
+        of.write('<a href="fireball_by_month.jpg"><img src="fireball_by_month.jpg" width="30%"></a>')
+        of.write('<a href="fireball_by_stream.jpg"><img src="fireball_by_stream.jpg" width="30%"></a>')
         s = '<p>The brightest fireballs observed during ' + yr + ' were:</p>'
         of.write(s)
     else:
@@ -39,7 +47,7 @@ def makeFBTable(root, yr, shwr, fbcount):
                 i = i + 1
                 if i == 10:
                     break
-        of.write('</table><br><br>\n')
+        of.write('</table>\n')
     else:
         of.write('')
     of.close()
@@ -48,6 +56,7 @@ def makeFBTable(root, yr, shwr, fbcount):
 def createTables(root, yr, shwr, fbcount):
     makeFBGraphs(root, yr, shwr, fbcount)
     makeFBTable(root, yr, shwr, fbcount)
+    makeOrbitList(root, yr, shwr)
 
 
 if __name__ == '__main__':

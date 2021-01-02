@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Monthly Archiver"
-#define MyAppVersion "2.0.0.0"
+#define MyAppVersion "2.1.0.0"
 #define MyAppPublisher "Mark McIntyre"
 #define MyAppURL "https://ukmeteornetwork.co.uk/archive/"
 #define MyAppExeName "ArchiveUploader.exe"
@@ -26,7 +26,7 @@ InfoBeforeFile=archiver_instructions.txt
 OutputBaseFilename=UKMonMonthlyArchiverSetup
 Compression=lzma
 SolidCompression=yes
-SignTool=Standard sign /f "c:\users\mark\documents\projects\certs\markmcintyreDS.pfx" /p Wombat33 /d $qUKMON Archiver Installer$q $f
+SignTool=Standard sign /f "e:\dev\certs\markmcintyreDS.pfx" /p Wombat33 /d $qUKMON Archiver Installer$q $f
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -39,11 +39,11 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 Source: "ArchiveUploader.exe"; DestDir: "{commonpf}\{#mydir}"; Flags: ignoreversion
 Source: "vc_redist.x86.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 Source: "vc_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
-Source: "aws-cpp-sdk-core.dll"; DestDir: "{commonpf}\{#mydir}"; Flags: onlyifdoesntexist
-Source: "aws-cpp-sdk-s3.dll"; DestDir: "{commonpf}\{#mydir}"; Flags: onlyifdoesntexist
-Source: "aws-c-common.dll"; DestDir: "{commonpf}\{#mydir}"; Flags: onlyifdoesntexist
-Source: "aws-c-event-stream.dll"; DestDir: "{commonpf}\{#mydir}"; Flags: onlyifdoesntexist
-Source: "aws-checksums.dll"; DestDir: "{commonpf}\{#mydir}"; Flags: onlyifdoesntexist
+Source: "aws-cpp-sdk-core.dll"; DestDir: "{commonpf}\{#mydir}"
+Source: "aws-cpp-sdk-s3.dll"; DestDir: "{commonpf}\{#mydir}"
+Source: "aws-c-common.dll"; DestDir: "{commonpf}\{#mydir}"
+Source: "aws-c-event-stream.dll"; DestDir: "{commonpf}\{#mydir}"
+Source: "aws-checksums.dll"; DestDir: "{commonpf}\{#mydir}"
 Source: "mfc140u.dll"; DestDir: "{commonpf}\{#mydir}"; Flags: onlyifdoesntexist
 Source: "msvcp140.dll"; DestDir: "{commonpf}\{#mydir}"; Flags: onlyifdoesntexist
 Source: "ucrtbase.dll"; DestDir: "{commonpf}\{#mydir}"; Flags: onlyifdoesntexist

@@ -12,8 +12,10 @@ idxfile=${results}/${yr}/orbits/index.shtml
 
 echo "<html><head><title>Orbit Reports for $yr</title>" > $idxfile
 echo "<link rel=\"stylesheet\" href=\"/data/mjmm-data/analysis/ukmon.css\">" >> $idxfile
-echo "</head>" >> $idxfile
-echo "<body><h1>Orbit Reports for $yr</h1>" >> $idxfile
+echo "</head><body>" >> $idxfile
+echo "</head><body>" >> $idxfile
+echo "<a href=\"/data/mjmm-data/analysis/\"><img src=\"/data/mjmm-data/analysis/ukmon-logo.png\"></a>" >> $idxfile
+echo "<h1>Orbit Reports for $yr</h1>" >> $idxfile
 echo "<p>Click to explore each month.<hr>" >> $idxfile
 echo "<a href=\"/data/mjmm-data/analysis/\">Up to report index</a></p>" >> $idxfile
 echo "<br><table id=\"tablestyle\"><tr>" >> $idxfile

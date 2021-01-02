@@ -79,13 +79,13 @@ def writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, alt
     lid = lid.replace('_', '')
     fname = 'FF_' + lid + '_' + evttime.strftime('%Y%m%d_%H%M%S_') + ms + '_0000000.fits\n'
     ftpf.write(fname)
-    ftpf.write('Recalibrated with UFO on: ')
+    ftpf.write('UFO FRIPON DATA recalibrated on: ')
     ftpf.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f UTC\n'))
     li = sta + ' 0001 {:04d} {:04.2f} '.format(fcount, fps) + '000.0 000.0  00.0 000.0 0000.0 0000.0\n'
     ftpf.write(li)
     for i in range(len(fno)):
         #    204.4909 0422.57 0353.46 262.3574 +16.6355 267.7148 +23.0996 000120 3.41
-        li = '{:08.4f} {:07.2f} {:07.2f} '.format(fno[i], 0, 0)
+        li = '{:08.4f} {:07.2f} {:07.2f} '.format(fno[i] - fno[0], 0, 0)  # UFO is timestamped as at the first detection
         li += '{:s} {:s} {:s} {:s} '.format('{:.4f}'.format(ra[i]).zfill(8),
             '{:+.4f}'.format(dec[i]).zfill(8),
             '{:.4f}'.format(az[i]).zfill(8),
@@ -148,6 +148,7 @@ def convertFolder(fldr):
     rmsdata, statfiles = loadRMSdata(fldr)
     with open(os.path.join(fldr, FTPFILE), 'a') as wfd:
         for f in rmsdata:
+            print(os.path.basename(f))
             with open(f, 'r') as fd:
                 shutil.copyfileobj(fd, wfd)
     with open(os.path.join(fldr, CAMINFOFILE), 'a') as wfd:

@@ -45,14 +45,18 @@ foreach ($dname in $dlist)
     write-output 'copying radiant data'
     $src=$arcpath+$dname +'\*radiants.*'
     copy-item $src $pth
+    $src=$arcpath+$dname +'\*assocs.*'
+    copy-item $src $pth
     write-output 'copying meteors data'
     $src=$arcpath+$dname +'\*meteors.*'
     copy-item $src $pth
     write-output 'copying thumbs'
     $src=$arcpath+$dname +'\*thumbs.jpg'
     copy-item $src $pth
-    write-output 'copying FTPdetect file'
+    write-output 'copying FTPdetect file and platepar'
     $src=$arcpath+$dname +'\FTP*.txt'
+    copy-item $src $pth
+    $src=$arcpath+$dname +'\platepar*'
     copy-item $src $pth
     $precs=$pth +'\FTP*pre-confirmation.txt'
     remove-item $precs

@@ -13,7 +13,7 @@ MINLEN = 4  # very short trails are statistically unreliable
 MAXLEN = 100  # 50 frames is one second
 MAXBRI = 1500
 MAXOBJS = 20
-MAXGAP = 75  # corresponds to 1.5 seconds gap in the meteor trail
+MAXGAP = 100  # corresponds to 1.5 seconds gap in the meteor trail
 debug = False
 
 
@@ -36,10 +36,11 @@ def CheckifValidMeteor(xmlname):
         return False, msg, 0, 0, 0, 0
 
     dd = ReadUFOCapXML.UCXml(xmlname)
-    dd.setMaxGap(25)
+    dd.setMaxGap(MAXGAP)
 
     fps, cx, cy = dd.getCameraDetails()
     nobjs, objlist = dd.getNumObjs()
+    # print(nobjs, objlist)
     isgood = 0
     if nobjs == 0:
         msg = 'nopaths, {:d}, {:.2f}, {:d}, {:d}, {:.2f}, {:.2f}, {:.2f}, {:.2f}'.format(0, 0, 0, 0, 0, 0, 0, 0)
@@ -55,8 +56,8 @@ def CheckifValidMeteor(xmlname):
     totpx = 0
 
     _, fn = os.path.split(xmlname)
-    for i in range(nobjs):
-        pathx, pathy, bri, pxls, fnos = dd.getPathv2(objlist[i])
+    for obj in objlist:
+        pathx, pathy, bri, pxls, fnos = dd.getPathv2(obj)
         totpx = sum(pxls)
         totbri = totbri + sum(bri)
         tottotpx = tottotpx + totpx

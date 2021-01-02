@@ -14,7 +14,7 @@ ym=${pth:0:6}
 
 force=0
 if [ $# -gt 1 ] ; then
-    if [ "$2" -eq "-f"] ; then 
+    if [ "$2" == "-f" ] ; then 
         force=1
     fi
 fi
@@ -25,7 +25,7 @@ mkdir -p $here/logs >/dev/null 2>&1
 
 cd $here
 
-echo "starting"
+echo "checking $pth"
 echo "-----------------------------------------------------"
 numas=`ls -1 $indir/*A.XML $indir/data*.txt | wc -l`
 if [ $numas -gt 1 ] ; then 
@@ -75,7 +75,23 @@ if [ $numas -gt 1 ] ; then
             fi 
         fi
     fi
-    if [ $dontprocess -eq 0 ] ; then
+    if [ $force -eq 1 ] ; then
+        echo "forcing recalc"
+    fi 
+    if [[ $dontprocess -eq 0 || $force -eq 1 ]] ; then
+        if [[ $resultdir != "" &&  -d $resultdir ]] ; then 
+            echo "removing previous results"
+            if [ -f $resultdir/*orbit.csv ] ; then 
+                orbfile=$(basename $(ls -1 $resultdir/*orbit.csv))
+                orbextras=$(basename $(ls -1 $resultdir/*orbit_extras.csv))
+                rm -f $outdir/../csv/${orbfile}
+                rm -f $outdir/../extracsv/${orbextras}
+            fi 
+            outbase=$(basename $resultdir)
+            rm -Rf $resultdir 
+            rm -Rf $outdir/$outbase
+        fi
+
         echo "converting $pth to RMS/CAMS format"
         python $here/UFOAtoFTPdetect.py $indir
 

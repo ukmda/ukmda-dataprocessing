@@ -5,7 +5,7 @@ source $here/config.ini >/dev/null 2>&1
 
 cp $here/main-index.shtml $REPORTDIR/index.shtml
 cp $here/ukmon.css $REPORTDIR/
-
+cp $here/ukmon-logo.png $REPORTDIR/
 cd $REPORTDIR
 echo "<table id=\"tablestyle\">" > yearlist.html
 ls -1dr 2* | while read i
