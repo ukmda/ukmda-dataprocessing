@@ -50,6 +50,7 @@ def lambda_handler(event, context):
             print(logname, s3object, ' skipping RMS files for now')
             return 0
 
+        print(logname, s3object, ' being checked')
         xmlname = '/tmp/' + s3object
         s3.meta.client.download_file(target, s3object, xmlname)
 

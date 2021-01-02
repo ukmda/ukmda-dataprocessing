@@ -8,12 +8,13 @@ else
 
 	$here/GENERATE_REPORTS_V2.r $1 $2
 	echo .
-	echo done generating graphs and tables, now copying them
+	
 	if [ -d $here/REPORTS/$2/$1 ] ; then 
+		echo "done generating graphs and tables, now copying them"
 		mkdir -p $REPORTDIR/$2/$1
 		cp $here/REPORTS/$2/$1/* $REPORTDIR/$2/$1
 	else
-		echo nothing to copy - no output created!
+		echo "nothing to copy - no output created!"
 	fi
 	echo done
 	$here/updateMainIndex.sh

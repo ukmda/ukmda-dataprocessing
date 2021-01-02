@@ -11,6 +11,6 @@ mth=${ym:3:2}
 ls -1d ${inputs}/${yr}/${ym}/*  | while read i
 do
     indir=`basename $i`
-    $here/reduceOrbit.sh $indir
+    $here/reduceOrbit.sh $indir $2
 done
 $here/createYearlyOrbitIndex.sh $yr

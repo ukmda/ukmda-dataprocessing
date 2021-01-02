@@ -28,6 +28,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <fstream>
 #include <ctime>
 
+#include <aws/core/Aws.h>
+#include <aws/s3/S3Client.h>
+#include <aws/s3/model/PutObjectRequest.h>
+#include <aws/core/auth/AWSCredentialsProvider.h>
+#include <aws/s3/model/HeadObjectRequest.h>
+#include <aws/s3/model/Object.h>
 
 struct KeyData
 {
@@ -64,7 +70,7 @@ int Hex2String(char* out, char* in);
 int Encrypt(char *out, char* in, int Key);
 int Decrypt(char *out, char* in, int Key);
 
-int put_file(char* buckname, const char* objname, const char* fname, char* reg, char* acct, char* secret);
+int put_file(char* buckname, const char* objname, const char* fname, Aws::S3::S3Client s3_client);
 
 
 

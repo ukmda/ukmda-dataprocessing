@@ -5,8 +5,6 @@
 import xmltodict
 import numpy
 
-MAXGAP = 50
-
 
 class UCXml:
     MAXGAP = 50
@@ -121,11 +119,11 @@ class UCXml:
         try:
             uc = self.ucxml['ufocapture_record']['ufocapture_paths']
         except:
-            pathx = numpy.empty(1)
-            pathy = numpy.empty(1)
-            bri = numpy.empty(1)
-            pxls = numpy.empty(1)
-            fnos = numpy.empty(1)
+            pathx = numpy.zeros(1)
+            pathy = numpy.zeros(1)
+            bri = numpy.zeros(1)
+            pxls = numpy.zeros(1)
+            fnos = numpy.zeros(1)
             return pathx, pathy, bri, pxls, fnos
         pfno = 0  # previous frame number, to check for unrealistic gaps in trails
         fno = 0  # current frame number, to check for unrealistic gaps in trails
@@ -147,7 +145,7 @@ class UCXml:
             if pfno == 0:
                 pfno = fno
             fdiff = fno - pfno
-            if ono == objno and fdiff < self.MAXGAP:  # and npx > 3:
+            if ono == objno:  # and fdiff < self.MAXGAP:  # and npx > 3:
                 # its possible for one path to include two events
                 # at different times. This is a UFO feature...
                 pathx[j] = p['@x']
@@ -163,11 +161,11 @@ class UCXml:
             pxls = numpy.resize(pxls, j)
             fnos = numpy.resize(fnos, j)
         else:
-            pathx = numpy.empty(1)
-            pathy = numpy.empty(1)
-            bri = numpy.empty(1)
-            pxls = numpy.empty(1)
-            fnos = numpy.empty(1)
+            pathx = numpy.zeros(1)
+            pathy = numpy.zeros(1)
+            bri = numpy.zeros(1)
+            pxls = numpy.zeros(1)
+            fnos = numpy.zeros(1)
         return pathx, pathy, bri, pxls, fnos
 
     def getPathElement(self, fno):

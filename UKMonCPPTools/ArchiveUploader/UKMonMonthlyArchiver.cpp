@@ -21,6 +21,7 @@ To build this project you will need the AWS C++ SDK, Visual Studio 2015 or later
 
 #include "UKMonMonthlyArchiver.h"
 #include <algorithm> 
+#include "version.h"
 
 #define BUFLEN 32768 // number of files I can read at one time
 int nCounter;		 // number of events uploaded
@@ -42,7 +43,7 @@ struct datasets* DataSets;
 int nSources;
 int maxmonths;
 
-static int FindAFile(char* inpath, const char* templ, int recursed, char* dest);
+static int FindAFile(char* inpath, const char* templ, int recursed, char* dest, Aws::S3::S3Client s3_client);
 
 static int CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData)
 {
@@ -100,8 +101,7 @@ int main(int argc, char** argv)
 		if (!strcmp(argv[ac], "-debug")) Debug = 1;
 	}
 
-	wchar_t* logname = (wchar_t*)"UKMONMonthlyArchiver";
-	theEventLog.Initialize(logname);
+	theEventLog.Initialize(L"UKMONMonthlyArchiver");
 	if (LoadIniFiles() < 0)
 		return -1;
 	theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 0, L"Started", L"");
@@ -124,7 +124,7 @@ int main(int argc, char** argv)
 	}
 	char buffer[32] = { 0 };
 	strftime(buffer, 32, "%Y-%m-%d %H:%M:%S", now);
-	std::cout << buffer << " UKMON Archive File uploader starting" << std::endl;
+	std::cout << buffer << " UKMON Archive File uploader " << VERSIONSTRING << " starting" << std::endl;
 	std::cout << "==============================================" << std::endl;
 	if (Debug)
 	{
@@ -137,6 +137,20 @@ int main(int argc, char** argv)
 		wsprintf(msg4, L"Dry run is on- nothing will be uploaded;");
 	}
 	std::cout << "  Scanning the last " << maxmonths << " months" << std::endl;
+
+	Aws::SDKOptions options;
+	//	options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Debug;
+	Aws::InitAPI(options);
+
+	Aws::Auth::AWSCredentials creds;
+	creds.SetAWSAccessKeyId(theKeys.AccountName_D);
+	creds.SetAWSSecretKey(theKeys.AccountKey_D);
+
+	Aws::Client::ClientConfiguration clientConfig;
+	//const Aws::String myregion = reg;
+	clientConfig.region = theKeys.region;
+
+	Aws::S3::S3Client s3_client(creds, clientConfig);
 
 	for(int i = 0; i < nSources; i++)
 	{
@@ -191,7 +205,7 @@ int main(int argc, char** argv)
 							sprintf(m, "%4.4s%2.2d", y, mth + 1);
 							sprintf(fullpath, "%s\\%s\\%s", ProcessingPath, y, m);
 							std::cout << "Checking " << fullpath << std::endl;
-							FindAFile(fullpath, "\\*", 0, DataSets[i].dest);
+							FindAFile(fullpath, "\\*", 0, DataSets[i].dest, s3_client);
 						}
 					}
 				}
@@ -203,6 +217,7 @@ int main(int argc, char** argv)
 		} while (FindNextFile(hFind, &file));
 		FindClose(hFind);
 	}
+	Aws::ShutdownAPI(options);
 	theEventLog.Fire(EVENTLOG_INFORMATION_TYPE, 1, 0, L"Done", L"");
 	std::cout << "Done - press any key to close this window" << std::endl << "==============================================" << std::endl;
 	getchar();
@@ -210,7 +225,7 @@ int main(int argc, char** argv)
 }
 
 
-static int FindAFile(char* inpath, const char* templ, int recursed, char* dest)
+static int FindAFile(char* inpath, const char* templ, int recursed, char* dest, Aws::S3::S3Client s3_client)
 {
 	HANDLE hFind;
 	WIN32_FIND_DATA file;
@@ -239,11 +254,11 @@ static int FindAFile(char* inpath, const char* templ, int recursed, char* dest)
 					strcat(newpath, "\\");
 					strcat(newpath, filename_s);
 
-					FindAFile(newpath, "\\*.csv", 1, dest);
-					FindAFile(newpath, "\\*.xml",1, dest);
-					FindAFile(newpath, "\\*.txt",1, dest);
-					FindAFile(newpath, "\\*p.jpg",1, dest);
-					FindAFile(newpath, "\\*.gif", 1, dest);
+					FindAFile(newpath, "\\*.csv", 1, dest, s3_client);
+					FindAFile(newpath, "\\*.xml",1, dest, s3_client);
+					FindAFile(newpath, "\\*.txt",1, dest, s3_client);
+					FindAFile(newpath, "\\*p.jpg",1, dest, s3_client);
+					FindAFile(newpath, "\\*.gif", 1, dest, s3_client);
 				}
 			}
 			else
@@ -256,7 +271,7 @@ static int FindAFile(char* inpath, const char* templ, int recursed, char* dest)
 					sprintf(objname, "%s/%s/%s/%s/%s", theKeys.ArchFolder, dest, y, m, filename_s);
 				sprintf(fullname, "%s\\%s", inpath, filename_s);
 
-				put_file(theKeys.BucketName, objname, fullname, theKeys.region, theKeys.AccountName_D, theKeys.AccountKey_D);
+				put_file(theKeys.BucketName, objname, fullname, s3_client);
 			}
 		} while (FindNextFile(hFind, &file));
 		FindClose(hFind);

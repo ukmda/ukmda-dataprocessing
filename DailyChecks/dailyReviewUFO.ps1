@@ -6,11 +6,11 @@ set-location $PSScriptRoot
 . .\helperfunctions.ps1
 # read the inifile
 if ($args.count -eq 0) {
-    $inifname='../TACKLEY_TC.ini'
+    write-output "ini file missing, can't continue"
+    exit 1
 }
-else {
-    $inifname = $args[0]
-}
+$inifname = $args[0]
+
 $ini=get-inicontent $inifname
 $hostname=$ini['camera']['hostname']
 $remotefolder=$ini['camera']['remotefolder']
@@ -24,6 +24,11 @@ $yymm=(get-date -uformat '%Y%m')
 $srcpath='\\'+$hostname+$remotefolder+'/'+$yy+'/'+$yymm
 $destpath=$localfolder+'/'+$yy+'/'+$yymm
 robocopy $srcpath $destpath /dcopy:DAT /tee /m /v /s /r:3 /mov
+
+$dt=(get-date).adddays(-1).tostring('yyyyMMdd')
+python CurateUFO.py $inifname $dt
+$dt=(get-date).tostring('yyyyMMdd')
+python CurateUFO.py $inifname $dt
 
 Set-location $UFOPATH
 $ufo=$UFOPATH+'/'+$UFOBINARY

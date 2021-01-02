@@ -1,0 +1,1 @@
+Ver,Y,M,D,h,m,s,Mag,Dur,Az1,Alt1,Az2,Alt2, Ra1, Dec1, Ra2, Dec2,ID,Long,Lat,Alt,Tz
