@@ -7,7 +7,7 @@ source ~/venvs/wmpl/bin/activate
 source ~/src/analysis/config.ini
 
 if [ $# -eq 0 ]; then
-    ym=202001
+    ym=$(date +%Y%m)
 else
     ym=$1
 fi

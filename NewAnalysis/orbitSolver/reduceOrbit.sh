@@ -130,7 +130,9 @@ if [ $numas -gt 1 ] ; then
                 mv $indir/*.mp4 $fulltarg 
                 chmod 644 $fulltarg/*.mp4
             fi
+            mkdir $outdir/../csv/ >/dev/null 2>&1
             cp $resultdir/*orbit.csv $outdir/../csv/
+            mkdir $outdir/../extracsv/ >/dev/null 2>&1
             cp $resultdir/*orbit_extras.csv $outdir/../extracsv/
             
             python $here/findJPGs.py $indir $fulltarg
