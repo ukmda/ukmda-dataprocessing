@@ -17,6 +17,7 @@ $remotefolder=$ini['camera']['remotefolder']
 $localfolder=$ini['camera']['localfolder']
 $UFOPATH=$ini['ufo']['UFOPATH']
 $UFOBINARY=$ini['ufo']['UFOBINARY']
+$UKMON_ENV=$ini['ukmon']['UKMON_Env']
 
 # copy the latest data from the source
 $yy=(get-date -uformat '%Y')
@@ -25,6 +26,7 @@ $srcpath='\\'+$hostname+$remotefolder+'/'+$yy+'/'+$yymm
 $destpath=$localfolder+'/'+$yy+'/'+$yymm
 robocopy $srcpath $destpath /dcopy:DAT /tee /m /v /s /r:3 /mov
 
+conda activate $UKMON_ENV
 $dt=(get-date).adddays(-1).tostring('yyyyMMdd')
 python CurateUFO.py $inifname $dt
 $dt=(get-date).tostring('yyyyMMdd')
