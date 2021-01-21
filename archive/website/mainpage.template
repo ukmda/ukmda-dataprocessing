@@ -1,0 +1,13 @@
+<div class="container">
+  <div class="row">
+    <div class="col-lg-12">
+      <div id="summary" class="table-responsive"></div>
+      <div id="planet-size"></div>
+    </div>
+    <!-- /.col-lg-12 -->
+  </div>
+  <!-- /.row -->
+
+  <script src="data/JupiterSize.js"></script>
+  <script src="data/planetpositions.js"></script>
+</div>
