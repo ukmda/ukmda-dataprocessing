@@ -68,7 +68,7 @@ if __name__ == '__main__':
         yr = sys.argv[2]
         fbcount = int(sys.argv[3])
         config = configparser.ConfigParser()
-        config.read("/home/ec2-user/src/analysis/config.ini")
+        config.read("/home/ec2-user/src/config/config.ini")
         root = config['config']['REPORTDIR']
 
         createTables(root, yr, shwr, fbcount)

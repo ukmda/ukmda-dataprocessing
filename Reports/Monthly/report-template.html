@@ -1,21 +1,4 @@
-<!DOCTYPE html>
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-
-<head>
-
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="author" content="UKMON" />
-    <!-- meta name="date" content="2016-11-27" / -->
-    <link rel="stylesheet" href="/data/mjmm-data/analysis/ukmon.css">
-
-    <title>Summary report __YEAR__</title>
-</head>
-
-<body>
-    <a href="/data/mjmm-data/analysis/"><img src="/data/mjmm-data/analysis/ukmon-logo.png"></a>
-    <h1>Summary report __YEAR__</h1>
+ <h1>Summary report __YEAR__</h1>
     <h2>UKMON</h2>
     <h3>Report Created: __REPDATE__</h3>
     <h2>Summary of Activity for __YEAR__</h2><br>
@@ -37,12 +20,18 @@
         A fireball is defined as a meteor event with an absolute magnitude of -4 or less.
         A breakdown by month and by shower is shown below.
     </p>
-    <a href="fireball_by_month.jpg"><img src="fireball_by_month.jpg" width="30%"></a>
-    <a href="fireball_by_stream.jpg"><img src="fireball_by_stream.jpg" width="30%"></a>
-    <p>
-        The brightest fireballs observed during __YEAR__ were:
-    </p>
-    <!--#include file="fireballtable.html" -->
+    <div id="fbgr-placeholder"></div>
+    <script> 
+    $(function(){
+        $("#fbgr-placeholder").load("fireballgraphs.html");
+      });
+    </script>  
+    <div id="fb-placeholder"></div>
+    <script> 
+    $(function(){
+        $("#fb-placeholder").load("fireballtable.html");
+      });
+    </script>  
     <br>
     <p>
         The absolute magnitude distribution and the variation of magnitude with start
@@ -98,7 +87,3 @@
     <br>
     Details of every matched event in __YEAR__ can be found
     <a href="../orbits/">on the Orbits page</a>
-
-</body>
-
-</html>

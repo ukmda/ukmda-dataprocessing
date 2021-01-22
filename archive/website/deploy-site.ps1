@@ -4,10 +4,22 @@
 
 ~/scripts/set-aws-creds.ps1 mark-creds
 
-get-content header.template, mainpage.template, footer.template | set-content index.html
-get-content header.template, about.template, footer.template | set-content about.html
+aws s3 sync .\static_content s3://mjmm-ukmonarchive.co.uk/
 
-aws s3 sync . s3://mjmm-ukmonarchive.co.uk --exclude "*.template"  --exclude "deploy*"
-
-Remove-Item .\index.html
-Remove-Item .\about.html
+# site layout
+# front page
+#  summary by year of data captured
+#   cameras, meteors, matches, fireballs
+#
+# Browse
+#   by date
+#       annual, monthly, weekly
+#   by shower
+#       each year
+#
+# Search
+#   single date enter date/time and range (+/- minutes/hours)
+#    get list of matches plus links to CSV orbit data
+#       allow user to select other files to download 
+#       create zip file 
+# 

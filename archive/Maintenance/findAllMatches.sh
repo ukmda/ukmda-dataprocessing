@@ -4,7 +4,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source ~/.ssh/ukmon-shared-keys
 source ~/venvs/wmpl/bin/activate
-source ~/src/analysis/config.ini
+source ~/src/config/config.ini
 
 if [ $# -eq 0 ]; then
     ym=$(date +%Y%m)

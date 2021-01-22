@@ -28,7 +28,8 @@ body {
 }
 .navbar-brand {
     background-color: #3f3939;
-    margin-left: 20px;
+    margin-left: 40px;
+    vertical-align:top;
 }
 .navbar-default {
 	background-color: #3f3939;
