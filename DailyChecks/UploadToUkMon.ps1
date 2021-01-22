@@ -50,7 +50,7 @@ if ($ismember -eq 'Yes')
         write-output "Syncing $srcpath"
         $targ= 's3://ukmon-shared/archive/' + $ukmoncam  + '/' + $yr+'/' + $ym2 + '/'
         if ($UFO -eq 0){
-            aws s3 sync $srcpath $targ --include * --exclude *.fits --exclude *.bin --exclude *.gif  --exclude *.bz2 
+            aws s3 sync $srcpath $targ --include * --exclude *.fits --exclude *.bin --exclude *.gif  --exclude *.bz2 --exclude UK*.mp4
         } else {
             aws s3 sync $srcpath $targ --exclude * --include *.csv --include *P.jpg --include *.txt --include *.xml --include *.json --exclude *detlog.csv
         }
