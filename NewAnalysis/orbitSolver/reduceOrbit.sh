@@ -11,6 +11,7 @@ export PYTHONPATH=$wmpl_loc
 pth=$1
 yr=${pth:0:4}
 ym=${pth:0:6}
+mth=${pth:4:2}
 
 force=0
 if [ $# -gt 1 ] ; then
@@ -139,13 +140,23 @@ if [ $numas -gt 1 ] ; then
             chmod 644 $fulltarg/*.jpg
 
             $here/createPageIndex.sh $targ
-            $here/createMonthlyOrbitIndex.sh $ym
+            $here/createOrbitIndex.sh $yr $mth
+            $here/createOrbitIndex.sh $yr
         else
             echo "$1 was not solvable - probably not a true match"
             echo "not solvable" > $indir/notsolvable.txt
         fi
     else
         echo 'Not reprocessing folder'
+        targ=`basename "$resultdir"`
+        fulltarg=$outdir/${targ}
+        echo $fulltarg
+        if [[ "$resultdir" != ""  &&  -d $resultdir ]] ; then
+            echo 'but refreshing indices'
+            $here/createPageIndex.sh $targ
+            $here/createOrbitIndex.sh $yr $mth
+            $here/createOrbitIndex.sh $yr
+        fi 
     fi 
 else
     echo "$1 contains only one source file so not possible to solve"
