@@ -94,6 +94,16 @@ body {
     left: auto;
 }
 
+.sticky {
+    position: fixed;
+    top: 0;
+    width: 100%;
+  }
+  
+.sticky + .content {
+    padding-top: 60px;
+  }
+  
 .sidebar .sidebar-nav.navbar-collapse {
     padding-right: 0;
     padding-left: 0;
@@ -356,3 +366,62 @@ table.dataTable thead .sorting:after {
 .panel-yellow a:hover {
     color: #df8a13;
 }
+
+nav ul {
+	padding: 0;
+	margin: 0;
+	list-style: none;
+	position: relative;
+}
+
+nav ul li:hover{
+    font-weight: 500;
+}
+	
+nav ul li {
+	background: #3f3939;
+	padding:-15px 0;
+}
+
+nav a {
+	padding:25px 10px;
+	font-size:15px;
+	text-decoration:none;
+}
+
+nav ul ul li:hover { 
+	background-color: #3f3939;
+	font-weight: 500;
+}
+
+/* Hide Dropdowns by Default */
+nav ul ul {
+	background-color: #3f3939;
+	display: none;
+	position: absolute; 
+	top: 25px; /* the height of the main nav */
+	padding: 25px 0;
+}
+	
+/* Display Dropdowns on Hover */
+nav ul li:hover > ul {
+	display:inherit;
+}
+	
+/* Fisrt Tier Dropdown */
+nav ul ul li {
+	/*width:170px;*/
+	float:none;
+	display:list-item;
+	position: relative;
+}
+
+/* Second, Third and more Tiers	*/
+nav ul ul ul li {
+	position: relative;
+	top:-55px; 
+	left:170px;
+}
+
+li > a:after { content:  ' +'; }
+li > a:only-child:after { content: ''; }
