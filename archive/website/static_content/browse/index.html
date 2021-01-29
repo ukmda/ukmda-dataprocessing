@@ -1,4 +1,5 @@
-<html xmlns="http://www.w3.org/1999/xhtml" >
+<html xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
   <title>UK Meteor Network Archive</title>
 
@@ -8,21 +9,21 @@
   <meta name="description" content="Meteor Observation Data">
   <meta name="author" content="Mark McIntyre">
 
-  <meta name="keywords" content="meteors,astronomy,space"/>
-    <!-- Bootstrap Core CSS -->
-    <link href="/css/bootstrap.min.css" rel="stylesheet">
+  <meta name="keywords" content="meteors,astronomy,space" />
+  <!-- Bootstrap Core CSS -->
+  <link href="/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- MetisMenu CSS -->
-    <link href="/css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
+  <!-- MetisMenu CSS -->
+  <link href="/css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
 
-    <!-- Custom CSS -->
-    <link href="/css/dragontail.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link href="/css/dragontail.css" rel="stylesheet">
 
-    <!-- Timeline CSS -->
-    <link href="/css/plugins/timeline.css" rel="stylesheet">
+  <!-- Timeline CSS -->
+  <link href="/css/plugins/timeline.css" rel="stylesheet">
 
-    <!-- Morris Charts CSS -->
-    <link href="/css/plugins/morris.css" rel="stylesheet">
+  <!-- Morris Charts CSS -->
+  <link href="/css/plugins/morris.css" rel="stylesheet">
 
 </head>
 
@@ -46,21 +47,36 @@
   <script src="/js/sb-admin-2.js"></script>
 
   <div id="nav-placeholder"></div>
-  <script> 
-  $(function(){
+  <script>
+    $(function () {
       $("#nav-placeholder").load("/templates/navbar.html");
     });
   </script>
 
-<div class="container">
-<h2>Browse the Archive.</h2>
-<p>Follow the links below to access downloadable datasets from our archive. </p>
-<hr>
-<p>All the data here is freely available to download. However if you use data in any research or 
-  publication, you must attribute it to the UK Meteor Network.</p>
-<hr>
-<div id="browselist"></div>
-<script src="/data/browselist.js"></script>
-</div>
+  <div class="container">
+    <h2>Browse the Archive.</h2>
+    <p>Follow the links below to access downloadable datasets from our archive. </p>
+    <hr>
+    <p>All the data here is freely available to download. However if you use data in any research or
+      publication, you must attribute it to the UK Meteor Network.</p>
+    <hr>
+    <li><a href="monthly/index.html">By Month</a></li>
+    <br>
+    <li><a href="showers/QUAindex.html">Quadrantids</a></li>
+    <li><a href="showers/LYRindex.html">Lyrids</a></li>
+    <li><a href="showers/PERindex.html">Perseids</a></li>
+    <li><a href="showers/GEMindex.html">Geminids</a></li>
+    <li><a href="showers/LEOindex.html">Leonids</a></li>
+
+    <div id="copyrite-placeholder"></div>
+    <script>
+      $(function () {
+        $("#copyrite-placeholder").load("/templates/copyright.html");
+      });
+    </script>
+  
+  </div>
+
 </body>
+
 </html>

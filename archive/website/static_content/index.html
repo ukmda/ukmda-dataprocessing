@@ -1,4 +1,5 @@
-<html xmlns="http://www.w3.org/1999/xhtml" >
+<html xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
   <title>UK Meteor Network Archive</title>
 
@@ -8,21 +9,21 @@
   <meta name="description" content="Meteor Observation Data">
   <meta name="author" content="Mark McIntyre">
 
-  <meta name="keywords" content="meteors,astronomy,space"/>
-    <!-- Bootstrap Core CSS -->
-    <link href="/css/bootstrap.min.css" rel="stylesheet">
+  <meta name="keywords" content="meteors,astronomy,space" />
+  <!-- Bootstrap Core CSS -->
+  <link href="/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- MetisMenu CSS -->
-    <link href="/css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
+  <!-- MetisMenu CSS -->
+  <link href="/css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
 
-    <!-- Custom CSS -->
-    <link href="/css/dragontail.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link href="/css/dragontail.css" rel="stylesheet">
 
-    <!-- Timeline CSS -->
-    <link href="/css/plugins/timeline.css" rel="stylesheet">
+  <!-- Timeline CSS -->
+  <link href="/css/plugins/timeline.css" rel="stylesheet">
 
-    <!-- Morris Charts CSS -->
-    <link href="/css/plugins/morris.css" rel="stylesheet">
+  <!-- Morris Charts CSS -->
+  <link href="/css/plugins/morris.css" rel="stylesheet">
 
 </head>
 
@@ -46,21 +47,38 @@
   <script src="/js/sb-admin-2.js"></script>
 
   <div id="nav-placeholder"></div>
-  <script> 
-  $(function(){
+  <script>
+    $(function () {
       $("#nav-placeholder").load("/templates/navbar.html");
     });
   </script>
 
-<div class="container">
-<h2>Welcome to the UKMON data archive.</h2>
-Please use the menus above to browse or search the archive for data of interest. 
-<br>
-All the data here is freely available to download. However if you use data in any research or 
-publication, you must attribute it to the UK Meteor Network.
-<hr>
-<div id="summarytable"></div>
-<script src="/data/summarytable.js"></script>
-</div>
+  <div class="container">
+    <h2>Welcome to the UKMON data archive.</h2>
+    <p>Please use the menus above to browse or search the archive for data of interest. </p>
+    <p>The <b>REPORTS</b> menu gives you access to annual and shower reports, as well as 
+      trajectory and orbit reports for all matched events.
+      You can also click on the year in the table below to go straight to an annual report
+      for that year.</p>
+    <p>The <b>DOWNLOAD</b> menu includes data on both detections and matches.
+      The data are in UFO compatible CSV format.</p>
+    <p>The <b>SEARCH</b> menu provides the ability to search by date. From the search results page 
+      you can download
+      all the data we have on each event including in formats other than UFO compatible CSV. 
+    </p>
+    <p>All the data here is freely available to download. However if you use data in any research or
+      publication, you must attribute it to the UK Meteor Network.</p>
+    <hr>
+    <div id="summarytable"></div>
+    <script src="/data/summarytable.js"></script>
+
+    <div id="copyrite-placeholder"></div>
+    <script>
+      $(function () {
+        $("#copyrite-placeholder").load("/templates/copyright.html");
+      });
+    </script>
+  </div>
 </body>
+
 </html>

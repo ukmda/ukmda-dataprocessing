@@ -3,7 +3,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $HOME/src/config/config.ini >/dev/null 2>&1
 
-cd ../analysis
+cd $here/../analysis
 echo "\$(function() {" > $here/data/summarytable.js
 echo "var table = document.createElement(\"table\");" >> $here/data/summarytable.js
 echo "table.className = \"table table-striped table-bordered table-hover table-condensed\";" >> $here/data/summarytable.js
@@ -21,7 +21,7 @@ until [ $yr -lt 2013 ]; do
     echo "var cell = row.insertCell(1);" >> $here/data/summarytable.js
     echo "cell.innerHTML = \"$detections\";" >> $here/data/summarytable.js
     echo "var cell = row.insertCell(2);" >> $here/data/summarytable.js
-    echo "cell.innerHTML = \"$matches\";" >> $here/data/summarytable.js
+    echo "cell.innerHTML = \"<a href="/reports/$yr/orbits/index.html">$matches</a>\";" >> $here/data/summarytable.js
     echo "var cell = row.insertCell(3);" >> $here/data/summarytable.js
     echo "cell.innerHTML = \"$fireballs\";" >> $here/data/summarytable.js
     ((yr=yr-1))
@@ -44,4 +44,5 @@ echo "var outer_div = document.getElementById(\"summarytable\");" >> $here/data/
 echo "outer_div.appendChild(table);" >> $here/data/summarytable.js
 echo "})" >> $here/data/summarytable.js
 
+source $WEBSITEKEY
 aws s3 cp $here/data/summarytable.js  $WEBSITEBUCKET/data/

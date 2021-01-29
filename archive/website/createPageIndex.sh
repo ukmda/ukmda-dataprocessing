@@ -52,7 +52,6 @@ echo "<a href=\"${pref}total_spatial_residuals_length_grav.png\"><img src=\"${pr
 echo "<a href=\"${pref}all_angular_residuals.png\"><img src=\"${pref}all_angular_residuals.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}all_spatial_total_residuals_height.png\"><img src=\"${pref}all_spatial_total_residuals_height.png\" width=\"20%\"></a>" >> $idxfile
 
-echo "</div>" >> $idxfile
 cat $TEMPLATES/footer.html >> $idxfile
 
 source $WEBSITEKEY
