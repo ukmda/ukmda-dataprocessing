@@ -22,7 +22,7 @@ else
         echo "gathering facts"
         if [ "$1" == "ALL" ]; then
             echo "processing $1"
-            cat $TEMPLATES/header.template $here/report-template.html $TEMPLATES/footer.template > $here/REPORTS/$2/$1/index.html
+            cat $TEMPLATES/header.html $here/report-template.html $TEMPLATES/footer.html > $here/REPORTS/$2/$1/index.html
             metcount=`cat $here/DATA/consolidated/M_${2}-unified.csv | wc -l`
             maxalt=`grep "_$2" $here/DATA/UKMON-all-matches.csv  | grep UNIFIED | awk -F, '{printf("%.1f\n",$44)}' | sort -n | tail -1`
             minalt=`grep "_$2" $here/DATA/UKMON-all-matches.csv  | grep UNIFIED | awk -F, '{printf("%.1f\n", $52)}' | sort -n | head -1`

@@ -4,7 +4,8 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # load the helper functions
-source $here/orbitsolver.ini > /dev/null 2>&1
+source ~/src/config/config.ini > /dev/null 2>&1
+
 source ~/venvs/$WMPL_ENV/bin/activate
 export PYTHONPATH=$wmpl_loc
 
@@ -20,8 +21,8 @@ if [ $# -gt 1 ] ; then
     fi
 fi
 
-outdir=$results/$yr/orbits/$ym
-indir=$inputs/$yr/$ym/$pth
+outdir=${REPORTDIR}/$yr/orbits/$ym
+indir=${MATCHDIR}/$yr/$ym/$pth
 mkdir -p $here/logs >/dev/null 2>&1
 
 cd $here
@@ -139,9 +140,9 @@ if [ $numas -gt 1 ] ; then
             python $here/findJPGs.py $indir $fulltarg
             chmod 644 $fulltarg/*.jpg
 
-            $here/createPageIndex.sh $targ
-            $here/createOrbitIndex.sh $yr $mth
-            $here/createOrbitIndex.sh $yr
+            ${SRC}/website/createPageIndex.sh $targ
+            ${SRC}/website/createOrbitIndex.sh $yr $mth
+            ${SRC}/website/createOrbitIndex.sh $yr
         else
             echo "$1 was not solvable - probably not a true match"
             echo "not solvable" > $indir/notsolvable.txt
@@ -153,9 +154,9 @@ if [ $numas -gt 1 ] ; then
         echo $fulltarg
         if [[ "$resultdir" != ""  &&  -d $resultdir ]] ; then
             echo 'but refreshing indices'
-            $here/createPageIndex.sh $targ
-            $here/createOrbitIndex.sh $yr $mth
-            $here/createOrbitIndex.sh $yr
+            ${SRC}/website/createPageIndex.sh $targ
+            ${SRC}/website/createOrbitIndex.sh $yr $mth
+            ${SRC}/website/createOrbitIndex.sh $yr
         fi 
     fi 
 else
