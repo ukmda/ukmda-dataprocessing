@@ -15,3 +15,6 @@ if [ $dom -lt 10 ] ; then
 else
     echo "create monthly report here"
 fi
+thisyr=`date '+%Y'`
+$here/../analysis/monthlyReports.sh ALL ${thisyr} force
+$here/../website/createSummaryTable.sh
