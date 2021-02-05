@@ -12,26 +12,31 @@ fi
 sitename=$1
 camname=$2
 ymd=$3
-yy=${ymd:0:4}
+yy=${ymd:0:4}   
 ym=${ymd:0:6}
 
-fpath=$ARCHDIR/$sitename/$camname/$yy/$ym/$ymd
-ftpfile=$(ls -1t $fpath/FTPdetect*.txt | grep -v backup | head -1) > /dev/null 2>&1
-assocfile=$(ls -1t $fpath/*assoc*.txt | head -1) > /dev/null 2>&1
+fpath="$ARCHDIR/$sitename/$camname/$yy/$ym/$ymd"
 
-if [ -z $ftpfile ] ; then 
-    echo ftpfile not found in $fpath
+ls -1t $fpath/FTPdetect*.txt > /dev/null 2>&1
+if [ $? -ne 0 ] ; then 
+    echo ftpfile not found
 else
+    ftpfile=$(ls -1t $fpath/FTPdetect*.txt | grep -v backup | head -1) > /dev/null 2>&1
     export PYTHONPATH=$RMS_LOC
     cd $RMS_LOC
-    echo "processing $ymd"
-    lati=$(grep $sitename $CAMINFO | grep $camname | awk -F, '{print $10}')
-    longi=$(grep $sitename $CAMINFO | grep $camname | awk -F, '{print $9}')
+    ls -1t $fpath/*assoc*.txt >/dev/null 2>&1
+    if [ $? -ne 0 ] ; then 
+        echo "processing $ymd"
+        lati=$(grep $sitename $CAMINFO | grep $camname | awk -F, '{print $10}')
+        longi=$(grep $sitename $CAMINFO | grep $camname | awk -F, '{print $9}')
 
-    python $here/ufoShowerAssoc.py $ftpfile -y $lati -z $longi
+        python $here/ufoShowerAssoc.py $ftpfile -y $lati -z $longi
 
-    assocfile=$(ls -1t $fpath/*assoc*.txt | head -1) > /dev/null 2>&1
-    if [ ! -z $assocfile ] ; then 
-        cp $assocfile $REPORTDIR/consolidated/A
+        assocfile=$(ls -1t $fpath/*assoc*.txt | head -1) > /dev/null 2>&1
+        if [ ! -z $assocfile ] ; then 
+            cp $assocfile $REPORTDIR/consolidated/A
+        fi
+    else
+        echo "skipping $ymd"
     fi
 fi
