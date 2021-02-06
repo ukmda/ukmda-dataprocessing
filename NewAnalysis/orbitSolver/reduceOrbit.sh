@@ -108,7 +108,7 @@ if [ $numas -gt 1 ] ; then
         echo "done, result was $res"
     else
         echo 'Not reprocessing folder'
-        res=2
+        res=99
     fi 
 else
     echo "$1 contains only one source file so not possible to solve"

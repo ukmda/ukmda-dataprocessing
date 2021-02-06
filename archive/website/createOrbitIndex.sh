@@ -51,3 +51,4 @@ echo "</div>" >> $idxfile
 cat $TEMPLATES/footer.html >> $idxfile
 
 aws s3 cp $idxfile $targ/index.html
+rm -f $idxfile

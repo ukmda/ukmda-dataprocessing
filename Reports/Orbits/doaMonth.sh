@@ -14,3 +14,5 @@ do
     indir=`basename $i`
     $here/doOneMatch.sh $indir $2
 done
+$src/website/createPageIndex.sh $ym
+

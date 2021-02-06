@@ -36,6 +36,10 @@ if [ $res -eq 0 ] ; then
     cp $resultdir/*orbit.csv $outdir/../csv/
     mkdir $outdir/../extracsv/ >/dev/null 2>&1
     cp $resultdir/*orbit_extras.csv $outdir/../extracsv/    
+
+    echo $(date +%Y%m%d-%H%M%S) $(basename $resultdir) >> $here/logs/success_list.txt
+elif [ $res -eq 99 ] ; then
+    echo "$1 skipped as already processed"
 else
     echo "$1 was not solvable - probably not a true match"
     echo "not solvable" > $indir/notsolvable.txt
