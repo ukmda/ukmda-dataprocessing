@@ -11,7 +11,7 @@ do
     do
         rc=$(grep _${yr}${mth} ./matches-${yr}.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp ../../../UO_header.txt $here/browse/monthly/${yr}${mth}-matches.csv
+            cp ../../../templates/UO_header.txt $here/browse/monthly/${yr}${mth}-matches.csv
             grep _${yr}${mth} ./matches-${yr}.csv >> $here/browse/monthly/${yr}${mth}-matches.csv
         fi
     done
@@ -24,7 +24,7 @@ do
     do
         rc=$(grep ",${yr}${mth}" ./M_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp ../../UA_header.txt $here/browse/monthly/${yr}${mth}-detections-ufo.csv
+            cp ../../templates/UA_header.txt $here/browse/monthly/${yr}${mth}-detections-ufo.csv
             grep ",${yr}${mth}" ./M_${yr}-unified.csv >> $here/browse/monthly/${yr}${mth}-detections-ufo.csv
         fi
     done
@@ -36,7 +36,7 @@ do
     do
         rc=$(grep ",${yr}, ${mth}" ./P_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp ../../RMS_header.txt $here/browse/monthly/${yr}0${mth}-detections-rms.csv
+            cp ../../templates/RMS_header.txt $here/browse/monthly/${yr}0${mth}-detections-rms.csv
             grep ",${yr}, ${mth}" ./P_${yr}-unified.csv >> $here/browse/monthly/${yr}0${mth}-detections-rms.csv
         fi
     done
@@ -44,7 +44,7 @@ do
     do
         rc=$(grep ",${yr},${mth}" ./P_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp ../../RMS_header.txt $here/browse/monthly/${yr}${mth}-detections-rms.csv
+            cp ../../templates/RMS_header.txt $here/browse/monthly/${yr}${mth}-detections-rms.csv
             grep ",${yr},${mth}" ./P_${yr}-unified.csv >> $here/browse/monthly/${yr}${mth}-detections-rms.csv
         fi
     done

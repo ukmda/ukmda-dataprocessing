@@ -12,7 +12,7 @@ do
     do
         rc=$(grep -i _$shwr ./matches-${yr}.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp ../../../UO_header.txt $here/browse/showers/${yr}-${shwr}-matches.csv
+            cp ../../../templates/UO_header.txt $here/browse/showers/${yr}-${shwr}-matches.csv
             grep -i _$shwr ./matches-${yr}.csv >> $here/browse/showers/${yr}-${shwr}-matches.csv
         fi
     done
@@ -25,7 +25,7 @@ do
     do
         rc=$(grep "_${shwr}" ./M_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp ../../UA_header.txt $here/browse/showers/${yr}-${shwr}-detections-ufo.csv
+            cp ../../templates/UA_header.txt $here/browse/showers/${yr}-${shwr}-detections-ufo.csv
             grep "_${shwr}" ./M_${yr}-unified.csv >> $here/browse/showers/${yr}-${shwr}-detections-ufo.csv
         fi
     done
