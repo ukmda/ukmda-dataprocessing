@@ -141,6 +141,8 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
             statlist = statlist + str(obs.station_id) + ';'
         csvf.write('{:d}, {:s}'.format(nO, statlist))
         csvf.write('\n')
+    print('done')
+    return 0
 
 
 class MeteorObservation(object):
@@ -882,112 +884,120 @@ if __name__ == "__main__":
     # Assume all entires in the FTPdetectinfo path should be used for one meteor
     meteor_proc_list = [meteor_list]
 
-    for meteor in meteor_proc_list:
+    try: 
+        for meteor in meteor_proc_list:
 
-        etv = True
-        outdir = os.path.join(dir_path, jd2Date(meteor[0].jdt_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f"))
-        # Run the trajectory solver
-        traj = solveTrajectoryCAMS(meteor, outdir, solver=cml_args.solver, max_toffset=max_toffset,
-            monte_carlo=(not cml_args.disablemc), mc_runs=cml_args.mcruns,
-            geometric_uncert=cml_args.uncertgeom, gravity_correction=(not cml_args.disablegravity),
-            plot_all_spatial_residuals=cml_args.plotallspatial, plot_file_type=cml_args.imgformat,
-            show_plots=(not cml_args.hideplots), v_init_part=velpart, v_init_ht=vinitht,
-            show_jacchia=cml_args.jacchia, estimate_timing_vel=etv, verbose=False,
-            save_results=(not cml_args.noplots))
+            etv = True
+            outdir = os.path.join(dir_path, jd2Date(meteor[0].jdt_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f"))
+            # Run the trajectory solver
+            traj = solveTrajectoryCAMS(meteor, outdir, solver=cml_args.solver, max_toffset=max_toffset,
+                monte_carlo=(not cml_args.disablemc), mc_runs=cml_args.mcruns,
+                geometric_uncert=cml_args.uncertgeom, gravity_correction=(not cml_args.disablegravity),
+                plot_all_spatial_residuals=cml_args.plotallspatial, plot_file_type=cml_args.imgformat,
+                show_plots=(not cml_args.hideplots), v_init_part=velpart, v_init_ht=vinitht,
+                show_jacchia=cml_args.jacchia, estimate_timing_vel=etv, verbose=False,
+                save_results=(not cml_args.noplots))
 
-    # ### PERFORM PHOTOMETRY
+        # ### PERFORM PHOTOMETRY
 
-        # # Override default DPI for saving from the interactive window
-        matplotlib.rcParams['savefig.dpi'] = 300
+            # # Override default DPI for saving from the interactive window
+            matplotlib.rcParams['savefig.dpi'] = 300
 
-        # # Compute absolute mangitudes
-        computeAbsoluteMagnitudes(traj, meteor)
+            # # Compute absolute mangitudes
+            computeAbsoluteMagnitudes(traj, meteor)
 
-        # # List of photometric uncertainties per station
-        photometry_stddevs = [0.3] * len(meteor)
+            # # List of photometric uncertainties per station
+            photometry_stddevs = [0.3] * len(meteor)
 
-        time_data_all = []
-        abs_mag_data_all = []
+            time_data_all = []
+            abs_mag_data_all = []
 
-        # # Plot absolute magnitudes for every station
-        for i, (meteor_obs, photometry_stddev) in enumerate(zip(meteor, photometry_stddevs)):
+            # # Plot absolute magnitudes for every station
+            for i, (meteor_obs, photometry_stddev) in enumerate(zip(meteor, photometry_stddevs)):
 
-            # Take only magnitudes that are not None
-            good_mag_indices = [j for j, abs_mag in enumerate(meteor_obs.abs_mag_data) if abs_mag is not None]
-            time_data = traj.observations[i].time_data[good_mag_indices]
-            abs_mag_data = np.array(meteor_obs.abs_mag_data)[good_mag_indices]
+                # Take only magnitudes that are not None
+                good_mag_indices = [j for j, abs_mag in enumerate(meteor_obs.abs_mag_data) if abs_mag is not None]
+                time_data = traj.observations[i].time_data[good_mag_indices]
+                abs_mag_data = np.array(meteor_obs.abs_mag_data)[good_mag_indices]
 
-            time_data_all += time_data.tolist()
-            abs_mag_data_all += abs_mag_data.tolist()
+                time_data_all += time_data.tolist()
+                abs_mag_data_all += abs_mag_data.tolist()
 
-        # Sort by time
-            temp_arr = np.c_[time_data, abs_mag_data]
-            temp_arr = temp_arr[np.argsort(temp_arr[:, 0])]
-            time_data, abs_mag_data = temp_arr.T
+            # Sort by time
+                temp_arr = np.c_[time_data, abs_mag_data]
+                temp_arr = temp_arr[np.argsort(temp_arr[:, 0])]
+                time_data, abs_mag_data = temp_arr.T
 
-    # # Sort by time
-    temp_arr = np.c_[time_data_all, abs_mag_data_all]
-    temp_arr = temp_arr[np.argsort(temp_arr[:, 0])]
-    time_data_all, abs_mag_data_all = temp_arr.T
+        # # Sort by time
+        temp_arr = np.c_[time_data_all, abs_mag_data_all]
+        temp_arr = temp_arr[np.argsort(temp_arr[:, 0])]
+        time_data_all, abs_mag_data_all = temp_arr.T
 
-    # # Average the close points
-    time_data_all, abs_mag_data_all = mergeClosePoints(time_data_all, abs_mag_data_all, 1 / (2 * 25))
+        # # Average the close points
+        time_data_all, abs_mag_data_all = mergeClosePoints(time_data_all, abs_mag_data_all, 1 / (2 * 25))
 
-    time_data_all = np.array(time_data_all)
-    abs_mag_data_all = np.array(abs_mag_data_all)
+        time_data_all = np.array(time_data_all)
+        abs_mag_data_all = np.array(abs_mag_data_all)
 
-    # # Compute the mass
-    mass = calcMass(time_data_all, abs_mag_data_all, traj.v_avg, P_0m=1210)
+        # # Compute the mass
+        mass = calcMass(time_data_all, abs_mag_data_all, traj.v_avg, P_0m=1210)
 
-    # create Summary report for webpage
-    summrpt = os.path.join(outdir, 'summary.html')
-    shower_obj = None  # initialise this
-    orb = traj.orbit
-    if orb.L_g is not None:
-        lg = np.degrees(orb.L_g)
-        bg = np.degrees(orb.B_g)
-        vg = orb.v_g
-        shower_obj = associateShower(orb.la_sun, orb.L_g, orb.B_g, orb.v_g)
-        if shower_obj is None:
+        # create Summary report for webpage
+        summrpt = os.path.join(outdir, 'summary.html')
+        shower_obj = None  # initialise this
+        orb = traj.orbit
+        if orb.L_g is not None:
+            lg = np.degrees(orb.L_g)
+            bg = np.degrees(orb.B_g)
+            vg = orb.v_g
+            shower_obj = associateShower(orb.la_sun, orb.L_g, orb.B_g, orb.v_g)
+            if shower_obj is None:
+                id = -1
+                cod = 'Spo'
+            else:
+                id = shower_obj.IAU_no
+                cod = shower_obj.IAU_code
+        else:
+            # no orbit was calculated
             id = -1
             cod = 'Spo'
-        else:
-            id = shower_obj.IAU_no
-            cod = shower_obj.IAU_code
-    else:
-        # no orbit was calculated
-        id = -1
-        cod = 'Spo'
 
-    amag = min(abs_mag_data_all)
+        amag = min(abs_mag_data_all)
 
-    if traj.save_results:
-        with open(summrpt, 'w', newline='') as f:
-            f.write('Summary for Event\n')
-            f.write('-----------------\n')
-            if orb is not None:
-                f.write('shower ID {:d} {:s}\n'.format(id, cod))
+        if traj.save_results:
+            with open(summrpt, 'w', newline='') as f:
+                f.write('Summary for Event\n')
+                f.write('-----------------\n')
+                if orb is not None:
+                    f.write('shower ID {:d} {:s}\n'.format(id, cod))
+                    if orb.L_g is not None:
+                        f.write('Lg {:.2f}&deg; Bg {:.2f}&deg; Vg {:.2f}km/s\n'.format(lg, bg, vg / 1000))
+
+                    f.write('mass {:.5f}g, abs. mag {:.1f}\n'.format(mass * 1000, amag))
+                else:
+                    f.write('unable to calculate realistic shower details\n')
+                f.write('Path Details\n')
+                f.write('------------\n')
+                f.write('start {:.2f}&deg; {:.2f}&deg; {:.2f}km\n'.format(np.degrees(traj.rbeg_lon), np.degrees(traj.rbeg_lat), traj.rbeg_ele / 1000))
+                f.write('end   {:.2f}&deg; {:.2f}&deg; {:.2f}km\n\n'.format(np.degrees(traj.rend_lon), np.degrees(traj.rend_lat), traj.rend_ele / 1000))
+                f.write('Orbit Details\n')
+                f.write('-------------\n')
                 if orb.L_g is not None:
-                    f.write('Lg {:.2f}&deg; Bg {:.2f}&deg; Vg {:.2f}km/s\n'.format(lg, bg, vg / 1000))
+                    f.write('Semimajor axis {:.2f}A.U., eccentricity {:.2f}, inclination {:.2f}&deg;, '.format(orb.a, orb.e, np.degrees(orb.i)))
+                    f.write('Period {:.2f}Y, LA Sun {:.2f}&deg;, '.format(orb.T, np.degrees(orb.la_sun)))
+                    if orb.last_perihelion is not None:
+                        f.write('last Perihelion {:s}'.format(orb.last_perihelion.strftime('%Y-%m-%d')))
+                    f.write('\n')
+                else:
+                    f.write('unable to calculate realistic orbit details\n')
+                f.write('\nFull details below\n')
 
-                f.write('mass {:.5f}g, abs. mag {:.1f}\n'.format(mass * 1000, amag))
-            else:
-                f.write('unable to calculate realistic shower details\n')
-            f.write('Path Details\n')
-            f.write('------------\n')
-            f.write('start {:.2f}&deg; {:.2f}&deg; {:.2f}km\n'.format(np.degrees(traj.rbeg_lon), np.degrees(traj.rbeg_lat), traj.rbeg_ele / 1000))
-            f.write('end   {:.2f}&deg; {:.2f}&deg; {:.2f}km\n\n'.format(np.degrees(traj.rend_lon), np.degrees(traj.rend_lat), traj.rend_ele / 1000))
-            f.write('Orbit Details\n')
-            f.write('-------------\n')
-            if orb.L_g is not None:
-                f.write('Semimajor axis {:.2f}A.U., eccentricity {:.2f}, inclination {:.2f}&deg;, '.format(orb.a, orb.e, np.degrees(orb.i)))
-                f.write('Period {:.2f}Y, LA Sun {:.2f}&deg;, '.format(orb.T, np.degrees(orb.la_sun)))
-                if orb.last_perihelion is not None:
-                    f.write('last Perihelion {:s}'.format(orb.last_perihelion.strftime('%Y-%m-%d')))
-                f.write('\n')
-            else:
-                f.write('unable to calculate realistic orbit details\n')
-            f.write('\nFull details below\n')
-
-    if orb is not None:
-        createUFOOrbitFile(traj, outdir, amag, mass, shower_obj)
+        if orb is not None:
+            createUFOOrbitFile(traj, outdir, amag, mass, shower_obj)
+            sys.exit(0)
+        else:
+            print('no orbit object')
+            sys.exit(1)
+    except Exception:
+        print('failed to solve')
+        sys.exit(2)

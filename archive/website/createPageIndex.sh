@@ -3,14 +3,14 @@
 # bash script to create index page for an individual orbit report
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-source $here/../config/config.ini > /dev/null 2>&1
+source $HOME/src/config/config.ini > /dev/null 2>&1
 
-ym=$1
+datadir=$1
+
+ym=$(basename $1)
 yr=${ym:0:4}
 mth=${ym:4:2}
-
-datadir=${REPORTDIR}/${yr}/orbits/${yr}${mth}/$1
-targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${yr}${mth}/$1/
+targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${yr}${mth}/$ym
 
 idxfile=${datadir}/index.html
 repf=`ls -1 ${datadir}/$yr*report.txt`
@@ -55,5 +55,5 @@ echo "<a href=\"${pref}all_spatial_total_residuals_height.png\"><img src=\"${pre
 cat $TEMPLATES/footer.html >> $idxfile
 
 source $WEBSITEKEY
-aws s3 sync ${datadir}/ $targ --include "*" 
+aws s3 sync ${datadir}/ ${targ}/ --include "*" 
 
