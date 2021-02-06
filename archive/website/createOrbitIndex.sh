@@ -10,14 +10,12 @@ mth=${ym:4:2}
 echo $ym $yr $mth
 
 if [ "$mth" != "" ] ; then
-    srcdir=${REPORTDIR}/${yr}/orbits/${yr}${mth}
     displstr=${yr}-${mth}
     msg="Click on an entry to see results of orbit analysis for the matched events"
     msg2="<a href=\"../index.html\">Back to annual index</a>" 
     targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${ym}
     orblist=$(aws s3 ls $targ/ | grep PRE | grep $mth | awk '{print $2}')
 else
-    srcdir=${REPORTDIR}/${yr}/orbits
     displstr=${yr}
     msg="Click to explore each month."
     msg2="<a href=\"../../index.html\">Back to reports index</a>" 

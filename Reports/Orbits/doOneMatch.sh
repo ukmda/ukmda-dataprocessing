@@ -11,7 +11,7 @@ source $HOME/src/config/config.ini > /dev/null 2>&1
 source $HOME/venvs/$WMPL_ENV/bin/activate
 export PYTHONPATH=$wmpl_loc
 
-outdir=${REPORTDIR}/$yr/orbits/$ym
+outdir=${REPORTDIR}/matches/$yr
 indir=${MATCHDIR}/$yr/$ym/$pth
 mkdir -p $here/logs >/dev/null 2>&1
 
@@ -32,10 +32,10 @@ if [ $res -eq 0 ] ; then
 
     ${SRC}/website/createPageIndex.sh $resultdir
 
-    mkdir $outdir/../csv/ >/dev/null 2>&1
-    cp $resultdir/*orbit.csv $outdir/../csv/
-    mkdir $outdir/../extracsv/ >/dev/null 2>&1
-    cp $resultdir/*orbit_extras.csv $outdir/../extracsv/    
+    mkdir $outdir/csv/ >/dev/null 2>&1
+    cp $resultdir/*orbit.csv $outdir/csv/
+    mkdir $outdir/extracsv/ >/dev/null 2>&1
+    cp $resultdir/*orbit_extras.csv $outdir/extracsv/    
 
     echo $(date +%Y%m%d-%H%M%S) $(basename $resultdir) >> $here/logs/success_list.txt
 elif [ $res -eq 99 ] ; then

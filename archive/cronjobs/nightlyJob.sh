@@ -27,6 +27,6 @@ else
     echo "create monthly report here"
 fi
 thisyr=`date '+%Y'`
+${SRC}/analysis/updateRMSShowerAssocs.sh ${thismth}
 ${SRC}/analysis/monthlyReports.sh ALL ${thisyr} force
 ${SRC}/website/createSummaryTable.sh
-${SRC}/analysis/updateRMSShowerAssocs.sh ${thismth}

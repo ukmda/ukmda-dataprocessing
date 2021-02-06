@@ -14,7 +14,6 @@ yr=${pth:0:4}
 ym=${pth:0:6}
 mth=${pth:4:2}
 
-outdir=${REPORTDIR}/$yr/orbits/$ym
 indir=${MATCHDIR}/$yr/$ym/$pth
 mkdir -p $here/logs >/dev/null 2>&1
 
@@ -80,12 +79,10 @@ if [ $numas -gt 1 ] ; then
             if [ -f $resultdir/*orbit.csv ] ; then 
                 orbfile=$(basename $(ls -1 $resultdir/*orbit.csv))
                 orbextras=$(basename $(ls -1 $resultdir/*orbit_extras.csv))
-                rm -f $outdir/../csv/${orbfile}
-                rm -f $outdir/../extracsv/${orbextras}
+                rm -f ${REPORTDIR}matches/$yr/csv/${orbfile}
+                rm -f ${REPORTDIR}matches/$yr/extracsv/${orbextras}
             fi 
-            outbase=$(basename $resultdir)
             rm -Rf $resultdir 
-            rm -Rf $outdir/$outbase
         fi
 
         echo "converting $pth to RMS/CAMS format"

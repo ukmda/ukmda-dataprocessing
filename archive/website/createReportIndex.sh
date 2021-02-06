@@ -3,7 +3,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $HOME/src/config/config.ini >/dev/null 2>&1
 
-cd $REPORTDIR
+cd ${SRC}/analysis/REPORTS
 echo "\$(function() {" > $here/data/reportindex.js
 echo "var table = document.createElement(\"table\");" >> $here/data/reportindex.js
 echo "table.className = \"table table-striped table-bordered table-hover table-condensed\";" >> $here/data/reportindex.js
