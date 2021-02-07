@@ -18,12 +18,12 @@ cat $CAMINFO | while read li ; do
             sitename=$(echo $li | awk -F, '{printf("%s", $1)}')
             camname=$(echo $li | awk -F, '{printf("%s", $2)}')
             echo $sitename $camname
-            if [ -z $mth ] ; then
+            if [ "$mth" == "" ] ; then
                 for j in {01,02,03,04,05,06,07,08,09,10,11,12}
                 do
                     ls -1 $ARCHDIR/$sitename/$camname/$yr/${yr}${j} | while read i
                     do 
-                        echo $here/addRMSShowerDets.sh $sitename $camname $i 
+                        $here/addRMSShowerDets.sh $sitename $camname $i 
                     done
                 done
             else

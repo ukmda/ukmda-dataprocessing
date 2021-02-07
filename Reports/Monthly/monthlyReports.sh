@@ -16,12 +16,12 @@ aws s3 sync s3://ukmon-shared/consolidated/ $here/DATA/consolidated --exclude 'c
 
 cd $here/DATA
 echo "Getting single detections and associations for $yr"
-cp consolidated/M_${yr}-unified.csv UKMON-all-single.csv
-cp consolidated/P_${yr}-unified.csv RMS_Merged_Files.csv
+cp consolidated/M_${yr}-unified.csv UFO-all-single.csv
+cp consolidated/P_${yr}-unified.csv RMS-all-single.csv
 
 echo "getting RMS single-station shower associations for $yr"
-echo "ID,Y,M,D,h,m,s,Shwr" > RMS_Single_Assocs.csv
-cat $REPORTDIR/consolidated/A/??????_${yr}* >> RMS_Single_Assocs.csv
+echo "ID,Y,M,D,h,m,s,Shwr" > RMS-assoc-single.csv
+cat $REPORTDIR/consolidated/A/??????_${yr}* >> RMS-assoc-single.csv
 
 echo "getting matched detections for $yr"
 cp $here/templates/UO_header.txt $here/DATA/matched/matches-$yr.csv
@@ -29,21 +29,24 @@ cat $REPORTDIR/matches/$yr/csv/$yr*.csv >> $here/DATA/matched/matches-$yr.csv
 
 if [ "$shwr" == "QUA" ] ; then
     echo "including previous year to catch early Quadrantids"
-    sed '1d' consolidated/M_${lastyr}-unified.csv >> UKMON-all-single.csv
-    sed '1d' consolidated/P_${lastyr}-unified.csv >> RMS_Merged_Files.csv
+    sed '1d' consolidated/M_${lastyr}-unified.csv >> UFO-all-single.csv
+    sed '1d' consolidated/P_${lastyr}-unified.csv >> RMS-all-single.csv
 
     echo "including prev year RMS single-station shower associations"
-    cat $REPORTDIR/consolidated/A/??????_${lastyr}* >> RMS_Single_Assocs.csv
+    cat $REPORTDIR/consolidated/A/??????_${lastyr}* >> RMS-assoc-single.csv
 
     echo "getting matched detections for $lastyr"
     cp $here/templates/UO_header.txt $here/DATA/matched/matches-$lastyr.csv
     cat $REPORTDIR/matches/$lastyr/csv/$lastyr*.csv >> $here/DATA/matched/matches-$lastyr.csv
 
 else
-    echo "" >> UKMON-all-single.csv
-    echo "" >> RMS_Merged_Files.csv
-    # not needed for these data echo "" >> RMS_Single_Assocs.csv
+    echo "" >> UFO-all-single.csv
+    echo "" >> RMS-all-single.csv
+    # not needed for these data echo "" >> RMS-assoc-single.csv
 fi 
+# temporary till i merge in the RMS data
+cp UFO-all-single.csv UKMON-all-single.csv
+
 echo "got relevant data"
 
 lc=$(wc -l $here/DATA/matched/matches-$yr.csv | awk '{print $1}')
