@@ -8,7 +8,7 @@ cd $here/../analysis/DATA/matched/pre2020
 echo "creating matched extracts"
 for yr in {2013,2014,2015,2016,2017,2018,2019}
 do
-    for shwr in {GEM,LYR,PER,QUA,LEO}
+    for shwr in {GEM,LYR,PER,QUA,LEO,NTA,STA,ETA,SDA}
     do
         rc=$(grep -i _$shwr ./matches-${yr}.csv | wc -l)
         if [ $rc -gt 0 ]; then
@@ -21,7 +21,7 @@ cd $here/../analysis/DATA/consolidated
 echo "creating UFO detections"
 for yr in {2012,2013,2014,2015,2016,2017,2018,2019}
 do
-    for shwr in {GEM,LYR,PER,QUA,LEO}
+    for shwr in {GEM,LYR,PER,QUA,LEO,NTA,STA,ETA,SDA}
     do
         rc=$(grep "_${shwr}" ./M_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
@@ -33,8 +33,10 @@ done
 
 echo "done gathering data, creating tables"
 
-for shwr in {GEM,LYR,PER,QUA,LEO}
+for shwr in {GEM,LYR,PER,QUA,LEO,NTA,STA,ETA,SDA}
 do 
+    cat $TEMPLATES/shwrcsvindex.html  | sed "s/XXXXX/${shwr}/g" > $here/browse/showers/${shwr}index.html
+
     idxfile=$here/browse/showers/${shwr}index.js
 
     echo "\$(function() {" > $idxfile
@@ -75,6 +77,7 @@ do
     echo "})" >> $idxfile
 done
 echo "js table created"
+
 
 source $WEBSITEKEY
 aws s3 sync $here/browse/showers/  $WEBSITEBUCKET/browse/showers/

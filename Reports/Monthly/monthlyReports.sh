@@ -4,6 +4,7 @@
 #
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $HOME/src/config/config.ini >/dev/null 2>&1
+source $HOME/venvs/RMS/bin/activate
 
 yr=$2
 shwr=$1
@@ -44,8 +45,10 @@ else
     echo "" >> RMS-all-single.csv
     # not needed for these data echo "" >> RMS-assoc-single.csv
 fi 
-# temporary till i merge in the RMS data
+# merge in the RMS data
 cp UFO-all-single.csv UKMON-all-single.csv
+python RMStoUFOA.py $SRC/config/config.ini RMS-all-single.csv RMS-assoc-single.csv RMS-UFOA-single.csv
+sed '1d' RMS-UFOA-single.csv >> UKMON-all-single.csv
 
 echo "got relevant data"
 
