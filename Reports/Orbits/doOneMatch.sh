@@ -11,19 +11,18 @@ source $HOME/src/config/config.ini > /dev/null 2>&1
 source $HOME/venvs/$WMPL_ENV/bin/activate
 export PYTHONPATH=$wmpl_loc
 
-outdir=${REPORTDIR}/matches/$yr
-indir=${MATCHDIR}/$yr/$ym/$pth
-mkdir -p $here/logs >/dev/null 2>&1
-
 pth=$1
 yr=${pth:0:4}
 ym=${pth:0:6}
 mth=${pth:4:2}
 
+mkdir -p $here/logs >/dev/null 2>&1
+
 ${SRC}/orbits/reduceOrbit.sh $pth $2
 res=$?
 
 if [ $res -eq 0 ] ; then
+    outdir=${REPORTDIR}/matches/$yr
     indir=${MATCHDIR}/$yr/$ym/$pth
     resultdir=$(ls -1trd $indir/${yr}* | grep -v .txt | tail -1)
 
@@ -32,9 +31,10 @@ if [ $res -eq 0 ] ; then
 
     ${SRC}/website/createPageIndex.sh $resultdir
 
-    mkdir $outdir/csv/ >/dev/null 2>&1
+    echo "copying the orbit CSV files"
+    mkdir -p $outdir/csv/ >/dev/null 2>&1
     cp $resultdir/*orbit.csv $outdir/csv/
-    mkdir $outdir/extracsv/ >/dev/null 2>&1
+    mkdir -p $outdir/extracsv/ >/dev/null 2>&1
     cp $resultdir/*orbit_extras.csv $outdir/extracsv/    
 
     echo $(date +%Y%m%d-%H%M%S) $(basename $resultdir) >> $here/logs/success_list.txt

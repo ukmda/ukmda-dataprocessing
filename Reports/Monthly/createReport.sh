@@ -18,7 +18,7 @@ else
     else
         sname=`grep $1 $CONFIG/streamnames.csv | awk -F, '{print $2}'`
     fi
-    if [ -d $REPORTDIR/$2/$1 ] ; then 
+    if [ -d $here/REPORTS/$2/$1 ] ; then 
         echo "gathering facts"
         if [ "$1" == "ALL" ]; then
             echo "processing $1"
@@ -35,7 +35,6 @@ else
         fi 
 
         cd $here/REPORTS/$2/$1
-        pwd 
 
         camcount=`cat TABLE_stream_counts_by_Station.csv | wc -l`
         yr=$2
@@ -55,12 +54,12 @@ else
             sed "s/__SHWR__/${sname}/g" | \
             sed "s/__MINALT__/${minalt}/g" > tmpidx.html
             mv tmpidx.html index.html
-        echo "copying files to website"
 
+        echo "copying files to website"
         source $WEBSITEKEY
         aws s3 sync . $WEBSITEBUCKET/reports/$2/$1
         echo "all done"
 
-        $here/../website/createReportIndex.sh
+        ${SRC}/website/createReportIndex.sh
     fi
 fi 
