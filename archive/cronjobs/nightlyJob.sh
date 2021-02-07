@@ -31,3 +31,4 @@ fi
 thisyr=`date '+%Y'`
 ${SRC}/analysis/monthlyReports.sh ALL ${thisyr} force
 ${SRC}/website/createSummaryTable.sh
+${SRC}/website/createMthlyAndShwrExtracts.sh
