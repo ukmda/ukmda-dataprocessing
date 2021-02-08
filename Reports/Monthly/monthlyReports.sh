@@ -47,8 +47,8 @@ else
 fi 
 # merge in the RMS data
 cp UFO-all-single.csv UKMON-all-single.csv
-python RMStoUFOA.py $SRC/config/config.ini RMS-all-single.csv RMS-assoc-single.csv RMS-UFOA-single.csv
-sed '1d' RMS-UFOA-single.csv >> UKMON-all-single.csv
+python ../RMStoUFOA.py $SRC/config/config.ini RMS-all-single.csv RMS-assoc-single.csv RMS-UFOA-single.csv ../templates/
+sed '2d' RMS-UFOA-single.csv >> UKMON-all-single.csv
 
 echo "got relevant data"
 
