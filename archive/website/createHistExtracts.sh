@@ -9,7 +9,7 @@ else
     source $HOME/src/config/config.ini >/dev/null 2>&1
 fi
 
-cd $here/../analysis/DATA/matched/pre2020
+cd ${RCODEDIR}/DATA/matched/pre2020
 echo "creating matched extracts"
 for yr in {2013,2014,2015,2016,2017,2018,2019}
 do
@@ -22,7 +22,7 @@ do
         fi
     done
 done
-cd $here/../analysis/DATA/consolidated
+cd ${RCODEDIR}/DATA/consolidated
 echo "creating UFO detections"
 for yr in {2012,2013,2014,2015,2016,2017,2018,2019}
 do
@@ -42,7 +42,7 @@ do
     do
         rc=$(grep ",${yr}, ${mth}" ./P_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp ../../templates/RMS_header.txt $here/browse/monthly/${yr}0${mth}-detections-rms.csv
+            cp $SRC/analysis/templates/RMS_header.txt $here/browse/monthly/${yr}0${mth}-detections-rms.csv
             grep ",${yr}, ${mth}" ./P_${yr}-unified.csv >> $here/browse/monthly/${yr}0${mth}-detections-rms.csv
         fi
     done
@@ -50,7 +50,7 @@ do
     do
         rc=$(grep ",${yr},${mth}" ./P_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp ../../templates/RMS_header.txt $here/browse/monthly/${yr}${mth}-detections-rms.csv
+            cp $SRC/analysis/templates/RMS_header.txt $here/browse/monthly/${yr}${mth}-detections-rms.csv
             grep ",${yr},${mth}" ./P_${yr}-unified.csv >> $here/browse/monthly/${yr}${mth}-detections-rms.csv
         fi
     done

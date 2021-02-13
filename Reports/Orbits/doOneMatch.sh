@@ -9,6 +9,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 if [[ "$here" == *"prod"* ]] ; then
     source $HOME/prod/config/config.ini >/dev/null 2>&1
 else
+    echo sourcing dev config
     source $HOME/src/config/config.ini >/dev/null 2>&1
 fi
 
@@ -27,7 +28,7 @@ res=$?
 indir=${MATCHDIR}/$yr/$ym/$pth
 
 if [ $res -eq 0 ] ; then
-    outdir=${REPORTDIR}/matches/$yr    
+    outdir=${RCODEDIR}/DATA/orbits/$yr
     resultdir=$(ls -1trd $indir/${yr}* | grep -v .txt | tail -1)
 
     python $here/findJPGs.py $indir $resultdir

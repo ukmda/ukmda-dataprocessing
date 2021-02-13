@@ -31,3 +31,13 @@
     - {src: '{{srcdir}}/website/templates/footer.html', dest: '{{destdir}}/website/templates/', mode: '644', backup: no }
     - {src: '{{srcdir}}/website/templates/shwrcsvindex.html', dest: '{{destdir}}/website/templates/', mode: '644', backup: no }
     - {src: '{{srcdir}}/cronjobs/nightlyJob.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
+
+  - name: Ensures {{destdir}}/website/browse/monthly exists
+    file: path={{destdir}}/website/browse/monthly state=directory
+    tags: [dev,prod]
+  - name: Ensures {{destdir}}/website/browse/showers exists
+    file: path={{destdir}}/website/browse/showers state=directory
+    tags: [dev,prod]
+  - name: Ensures {{destdir}}/website/data exists
+    file: path={{destdir}}/website/data state=directory
+    tags: [dev,prod]

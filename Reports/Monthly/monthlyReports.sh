@@ -29,11 +29,11 @@ cp consolidated/P_${yr}-unified.csv RMS-all-single.csv
 
 echo "getting RMS single-station shower associations for $yr"
 echo "ID,Y,M,D,h,m,s,Shwr" > RMS-assoc-single.csv
-cat $REPORTDIR/consolidated/A/??????_${yr}* >> RMS-assoc-single.csv
+cat ${RCODEDIR}/DATA/consolidated/A/??????_${yr}* >> RMS-assoc-single.csv
 
 echo "getting matched detections for $yr"
 cp $here/templates/UO_header.txt ${RCODEDIR}/DATA/matched/matches-$yr.csv
-cat $REPORTDIR/matches/$yr/csv/$yr*.csv >> ${RCODEDIR}/DATA/matched/matches-$yr.csv
+cat ${RCODEDIR}/DATA/orbits/$yr/csv/$yr*.csv >> ${RCODEDIR}/DATA/matched/matches-$yr.csv
 
 if [ "$shwr" == "QUA" ] ; then
     echo "including previous year to catch early Quadrantids"
@@ -41,11 +41,11 @@ if [ "$shwr" == "QUA" ] ; then
     sed '1d' consolidated/P_${lastyr}-unified.csv >> RMS-all-single.csv
 
     echo "including prev year RMS single-station shower associations"
-    cat $REPORTDIR/consolidated/A/??????_${lastyr}* >> RMS-assoc-single.csv
+    cat ${RCODEDIR}/DATA/consolidated/A/??????_${lastyr}* >> RMS-assoc-single.csv
 
     echo "getting matched detections for $lastyr"
     cp $here/templates/UO_header.txt ${RCODEDIR}/DATA/matched/matches-$lastyr.csv
-    cat $REPORTDIR/matches/$lastyr/csv/$lastyr*.csv >> ${RCODEDIR}/DATA/matched/matches-$lastyr.csv
+    cat ${RCODEDIR}/DATA/orbits/$lastyr/csv/$lastyr*.csv >> ${RCODEDIR}/DATA/matched/matches-$lastyr.csv
 
 else
     echo "" >> UFO-all-single.csv

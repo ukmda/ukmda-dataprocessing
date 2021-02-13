@@ -39,7 +39,8 @@ else
 
         assocfile=$(ls -1t $fpath/*assoc*.txt | head -1) > /dev/null 2>&1
         if [ ! -z $assocfile ] ; then 
-            cp $assocfile $REPORTDIR/consolidated/A
+            mkdir -p ${RCODEDIR}/DATA/consolidated/A > /dev/null 2>&1
+            cp $assocfile ${RCODEDIR}/DATA/consolidated/A
         fi
     else
         echo "skipping $ymd"

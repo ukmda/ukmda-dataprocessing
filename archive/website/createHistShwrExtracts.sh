@@ -8,7 +8,7 @@ else
 fi
 mkdir -p $here/browse/showers
 
-cd $here/../analysis/DATA/matched/pre2020
+cd ${RCODEDIR}/DATA/matched/pre2020
 echo "creating matched extracts"
 for yr in {2013,2014,2015,2016,2017,2018,2019}
 do
@@ -16,12 +16,12 @@ do
     do
         rc=$(grep -i _$shwr ./matches-${yr}.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp ../../../templates/UO_header.txt $here/browse/showers/${yr}-${shwr}-matches.csv
+            cp $SRC/analysis/templates/UO_header.txt $here/browse/showers/${yr}-${shwr}-matches.csv
             grep -i _$shwr ./matches-${yr}.csv >> $here/browse/showers/${yr}-${shwr}-matches.csv
         fi
     done
 done
-cd $here/../analysis/DATA/consolidated
+cd ${RCODEDIR}/DATA/consolidated
 echo "creating UFO detections"
 for yr in {2012,2013,2014,2015,2016,2017,2018,2019}
 do
@@ -29,7 +29,7 @@ do
     do
         rc=$(grep "_${shwr}" ./M_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp ../../templates/UA_header.txt $here/browse/showers/${yr}-${shwr}-detections-ufo.csv
+            cp $SRC/analysis/templates/UA_header.txt $here/browse/showers/${yr}-${shwr}-detections-ufo.csv
             grep "_${shwr}" ./M_${yr}-unified.csv >> $here/browse/showers/${yr}-${shwr}-detections-ufo.csv
         fi
     done
@@ -81,7 +81,6 @@ do
     echo "})" >> $idxfile
 done
 echo "js table created"
-
 
 source $WEBSITEKEY
 aws s3 sync $here/browse/showers/  $WEBSITEBUCKET/browse/showers/

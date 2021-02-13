@@ -1,14 +1,21 @@
 #!/bin/bash
 
 # script to reconsolidate the A.XML files for a whole year
-
+#!/bin/bash
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
+if [[ "$here" == *"prod"* ]] ; then
+    source $HOME/prod/config/config.ini >/dev/null 2>&1
+else
+    source $HOME/src/config/config.ini >/dev/null 2>&1
+fi
+
 source ~/.ssh/ukmon-shared-keys
-source ~/venvs/wmpl/bin/activate
+
+source ~/venvs/${WMPL_ENV}/bin/activate
 
 if [ $# -eq 0 ]; then
-    yr=2020
+    yr=$(date +%Y)
 else
     yr=$1
 fi
