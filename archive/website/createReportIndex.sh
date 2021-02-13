@@ -1,7 +1,13 @@
 #!/bin/bash
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
-source $HOME/src/config/config.ini >/dev/null 2>&1
+if [[ "$here" == *"prod"* ]] ; then
+    echo sourcing prod config
+    source $HOME/prod/config/config.ini >/dev/null 2>&1
+else
+    echo sourcing dev config
+    source $HOME/src/config/config.ini >/dev/null 2>&1
+fi
 
 cd ${SRC}/analysis/REPORTS
 echo "\$(function() {" > $here/data/reportindex.js
@@ -30,4 +36,5 @@ echo "var outer_div = document.getElementById(\"summary\");" >> $here/data/repor
 echo "outer_div.appendChild(table);" >> $here/data/reportindex.js
 echo "})" >> $here/data/reportindex.js
 
+source $WEBSITEKEY
 aws s3 cp $here/data/reportindex.js  $WEBSITEBUCKET/data/

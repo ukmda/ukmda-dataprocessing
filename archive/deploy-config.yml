@@ -1,0 +1,110 @@
+- hosts: ukmonhelper
+  vars:
+    srcdir: /mnt/e/dev/meteorhunting/UKMON-shared/archive
+  tasks:
+  - name: import dev variables 
+    include_vars: dev-vars.yml
+    tags: dev
+  - name: import prod variables
+    include_vars: prod-vars.yml
+    tags: prod
+  - name: Ensures {{destdir}} exists
+    file: path={{destdir}} state=directory  
+    tags: [dev,prod]
+
+  - name: Copy files
+    copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
+    tags: [dev,prod]
+    with_items:
+    - {src: '{{srcdir}}/config.ini', dest: '{{destdir}}/config/', mode: '644', backup: no }
+    
+  - name: update mail recip
+    lineinfile: 
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'MAILRECIP='
+      line: 'MAILRECIP=markmcintyre99@googlemail.com'
+    tags: [dev,prod]
+  - name: update id file
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'IDFILE='
+      line: 'IDFILE=$HOME/.ssh/mjmm-data.key'
+    tags: [dev,prod]
+  - name: update AWS host
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'HOST='
+      line: 'HOST=s3://mjmm-data'
+    tags: [dev,prod]
+  - name: update AWS user
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'USER='
+      line: 'USER=ec2-user'
+    tags: [dev,prod]
+  - name: update target folder
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'REPORTDIR='
+      line: 'REPORTDIR=/home/ec2-user/data/analysis'
+    tags: [dev,prod]
+  - name: set input folder  
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'MATCHDIR='
+      line: 'MATCHDIR=/home/ec2-user/ukmon-shared/matches'
+    tags: [dev,prod]
+  - name: update scripts folder
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'SRC='
+      line: 'SRC={{destdir}}'
+    tags: [dev,prod]
+  - name: update templates folder
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'TEMPLATES='
+      line: 'TEMPLATES={{destdir}}/website/templates'
+    tags: [dev,prod]
+  - name: update RMS loc
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'RMS_LOC='
+      line: 'RMS_LOC=/home/ec2-user/src/RMS'
+    tags: [dev,prod]
+  - name: update wmpl loc
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'WMPL_LOC='
+      line: 'wmpl_loc=/home/ec2-user/src/WesternMeteorPyLib'
+    tags: [dev,prod]
+  - name: update camera info file loc
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'CAMINFO='
+      line: 'CAMINFO=/home/ec2-user/ukmon-shared/consolidated/camera-details.csv'
+    tags: [dev,prod]
+  - name: update archive files loc
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'ARCHDIR='
+      line: 'ARCHDIR=/home/ec2-user/ukmon-shared/archive'
+    tags: [dev,prod]
+  - name: update website loc
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'WEBSITEBUCKET='
+      line: 'WEBSITEBUCKET={{websitebucket}}'
+    tags: [dev,prod]
+  - name: update website aws key
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'WEBSITEKEY='
+      line: 'WEBSITEKEY={{websitekey}}'
+    tags: [dev,prod]
+  - name: update config file loc
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'CONFIG='
+      line: 'CONFIG={{destdir}}/config'
+    tags: [dev,prod]

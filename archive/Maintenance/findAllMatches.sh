@@ -3,8 +3,15 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source ~/.ssh/ukmon-shared-keys
-source ~/venvs/wmpl/bin/activate
-source ~/src/config/config.ini
+source ~/venvs/${WMPL_ENV}/bin/activate
+
+if [[ "$here" == *"prod"* ]] ; then
+    echo sourcing prod config
+    source $HOME/prod/config/config.ini >/dev/null 2>&1
+else
+    echo sourcing dev config
+    source $HOME/src/config/config.ini >/dev/null 2>&1
+fi
 
 if [ $# -eq 0 ]; then
     ym=$(date +%Y%m)

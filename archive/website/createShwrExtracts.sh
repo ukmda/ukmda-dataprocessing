@@ -1,7 +1,13 @@
 #!/bin/bash
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
-source $HOME/src/config/config.ini >/dev/null 2>&1
+if [[ "$here" == *"prod"* ]] ; then
+    echo sourcing prod config
+    source $HOME/prod/config/config.ini >/dev/null 2>&1
+else
+    echo sourcing dev config
+    source $HOME/src/config/config.ini >/dev/null 2>&1
+fi
 mkdir -p $here/browse/showers
 
 cd $SRC/analysis/DATA/matched

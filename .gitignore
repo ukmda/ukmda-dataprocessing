@@ -531,8 +531,8 @@ StandaloneCurator/*.ini
 NewAnalysis/*.png
 NewAnalysis/*.pickle
 NewAnalysis/*.txt
-**/deploy*.yml
 mp4s
 StandaloneCurator/.installed
 NewAnalysis/orbitSolver/testing
 NewAnalysis/FormatConverters/testing
+*/test_data/*

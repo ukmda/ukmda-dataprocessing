@@ -1,0 +1,3 @@
+destdir: /home/ec2-user/src
+websitebucket: s3://mjmm-ukmonarchive.co.uk
+websitekey: ~/.ssh/marks-keys

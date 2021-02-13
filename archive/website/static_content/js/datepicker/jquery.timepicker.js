@@ -1,6 +1,6 @@
 /*!
- * jquery-timepicker v1.13.16 - A jQuery timepicker plugin inspired by Google Calendar. It supports both mouse and keyboard navigation.
- * Copyright (c) 2020 Jon Thornton - https://www.jonthornton.com/jquery-timepicker/
+ * jquery-timepicker v1.13.17 - A jQuery timepicker plugin inspired by Google Calendar. It supports both mouse and keyboard navigation.
+ * Copyright (c) 2021 Jon Thornton - https://www.jonthornton.com/jquery-timepicker/
  * License: MIT
  */
 (function () {
@@ -98,7 +98,7 @@
     if (typeof o === "string") return _arrayLikeToArray(o, minLen);
     var n = Object.prototype.toString.call(o).slice(8, -1);
     if (n === "Object" && o.constructor) n = o.constructor.name;
-    if (n === "Map" || n === "Set") return Array.from(n);
+    if (n === "Map" || n === "Set") return Array.from(o);
     if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
   }
 
@@ -110,9 +110,12 @@
     return arr2;
   }
 
-  function _createForOfIteratorHelper(o) {
+  function _createForOfIteratorHelper(o, allowArrayLike) {
+    var it;
+
     if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) {
-      if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) {
+      if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {
+        if (it) o = it;
         var i = 0;
 
         var F = function () {};
@@ -138,8 +141,7 @@
       throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
     }
 
-    var it,
-        normalCompletion = true,
+    var normalCompletion = true,
         didErr = false,
         err;
     return {
@@ -240,6 +242,12 @@
     hrs: "hrs"
   };
 
+  var EVENT_DEFAULTS = {
+    bubbles: true,
+    cancelable: false,
+    detail: null
+  };
+
   var Timepicker = /*#__PURE__*/function () {
     function Timepicker(targetEl) {
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -270,7 +278,7 @@
         }
 
         this.list.hide();
-        var hideTimepickerEvent = new CustomEvent('hideTimepicker');
+        var hideTimepickerEvent = new CustomEvent('hideTimepicker', EVENT_DEFAULTS);
         this.targetEl.dispatchEvent(hideTimepickerEvent);
       }
     }, {
@@ -288,9 +296,9 @@
         }
 
         this.list.find("li").each(function (i, obj) {
-          var parsed = Number.parseInt(obj.dataset.time);
+          var parsed = parseInt(obj.dataset.time);
 
-          if (Number.isNaN(parsed)) {
+          if (isNaN(parsed)) {
             return;
           }
 
@@ -322,14 +330,14 @@
           }
         }
 
-        var selectTimeEvent = new Event('selectTime');
+        var selectTimeEvent = new CustomEvent('selectTime', EVENT_DEFAULTS);
 
         if (this.selectedValue != value) {
           this.selectedValue = value;
-          var changeTimeEvent = new Event('changeTime');
-          var changeEvent = new CustomEvent('change', {
+          var changeTimeEvent = new CustomEvent('changeTime', EVENT_DEFAULTS);
+          var changeEvent = new CustomEvent('change', Object.assign(EVENT_DEFAULTS, {
             detail: 'timepicker'
-          });
+          }));
 
           if (source == "select") {
             this.targetEl.dispatchEvent(selectTimeEvent);
@@ -362,7 +370,7 @@
       key: "_selectValue",
       value: function _selectValue() {
         var tp = this;
-        var settings = tp.settings;
+        tp.settings;
         var list = tp.list;
         var cursor = list.find(".ui-timepicker-selected");
 
@@ -377,9 +385,9 @@
         var timeValue = cursor.get(0).dataset.time; // selected value found
 
         if (timeValue) {
-          var parsedTimeValue = Number.parseInt(timeValue);
+          var parsedTimeValue = parseInt(timeValue);
 
-          if (!Number.isNaN(parsedTimeValue)) {
+          if (!isNaN(parsedTimeValue)) {
             timeValue = parsedTimeValue;
           }
         }
@@ -712,7 +720,7 @@
             list.scrollTop(newScroll);
           }
 
-          var parsed = Number.parseInt(selected.dataset.time);
+          var parsed = parseInt(selected.dataset.time);
 
           if (this.settings.forceRoundTime || parsed === timeValue) {
             selected.classList.add('ui-timepicker-selected');
@@ -751,7 +759,7 @@
         var seconds = this.time2int(this.targetEl.value);
 
         if (seconds === null) {
-          var timeFormatErrorEvent = new CustomEvent('timeFormatError');
+          var timeFormatErrorEvent = new CustomEvent('timeFormatError', EVENT_DEFAULTS);
           this.targetEl.dispatchEvent(timeFormatErrorEvent);
           return;
         }
@@ -795,7 +803,7 @@
         if (rangeError) {
           this._setTimeValue(prettyTime);
 
-          var timeRangeErrorEvent = new CustomEvent('timeRangeError');
+          var timeRangeErrorEvent = new CustomEvent('timeRangeError', EVENT_DEFAULTS);
           this.targetEl.dispatchEvent(timeRangeErrorEvent);
         } else {
           this._setTimeValue(prettyTime, origin);
@@ -838,18 +846,22 @@
     }, {
       key: "_handleKeyUp",
       value: function _handleKeyUp(e) {
+        var _this2 = this;
+
         if (!this.list || !Timepicker.isVisible(this.list) || this.settings.disableTextInput) {
           return true;
         }
 
         if (e.type === "paste" || e.type === "cut") {
-          setTimeout(function () {
-            if (this.settings.typeaheadHighlight) {
-              this._setSelected();
+          var handler = function handler() {
+            if (_this2.settings.typeaheadHighlight) {
+              _this2._setSelected();
             } else {
-              this.list.hide();
+              _this2.list.hide();
             }
-          }, 0);
+          };
+
+          setTimeout(handler, 0);
           return;
         }
 
@@ -951,7 +963,25 @@
     }]);
 
     return Timepicker;
-  }();
+  }(); // IE9-11 polyfill for CustomEvent
+
+
+  (function () {
+    if (typeof window.CustomEvent === "function") return false;
+
+    function CustomEvent(event, params) {
+      if (!params) {
+        params = {};
+      }
+
+      params = Object.assign(EVENT_DEFAULTS, params);
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+      return evt;
+    }
+
+    window.CustomEvent = CustomEvent;
+  })();
 
   (function (factory) {
     if ((typeof exports === "undefined" ? "undefined" : _typeof(exports)) === "object" && exports && (typeof module === "undefined" ? "undefined" : _typeof(module)) === "object" && module && module.exports === exports) {
@@ -965,14 +995,13 @@
       factory(jQuery);
     }
   })(function ($) {
-    var _lang = {};
     var methods = {
       init: function init(options) {
         return this.each(function () {
           var self = $(this);
           var tp = new Timepicker(this, options);
           var settings = tp.settings;
-          _lang = settings.lang;
+          settings.lang;
           this.timepickerObj = tp;
           self.addClass("ui-timepicker-input");
 
@@ -1125,7 +1154,7 @@
 
 
         $(document).on("mousedown.ui-timepicker", _closeHandler);
-        $(window).on("resize.ui-timepicker", _closeHandler);
+        window.addEventListener('resize', _closeHandler);
 
         if (settings.closeOnWindowScroll) {
           $(document).on("scroll.ui-timepicker", _closeHandler);
@@ -1326,7 +1355,7 @@
       }
 
       if ((settings.minTime !== null || settings.durationTime !== null) && settings.showDuration) {
-        var stepval = typeof settings.step == "function" ? "function" : settings.step;
+        typeof settings.step == "function" ? "function" : settings.step;
         wrapped_list.addClass("ui-timepicker-with-duration");
         wrapped_list.addClass("ui-timepicker-step-" + settings.step);
       }
@@ -1476,7 +1505,7 @@
 
 
     function _closeHandler(e) {
-      if (e.target == window) {
+      if (e.type == 'focus' && e.target == window) {
         // mobile Chrome fires focus events against window for some reason
         return;
       }

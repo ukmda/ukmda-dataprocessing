@@ -1,7 +1,13 @@
 #!/bin/bash
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
-source $HOME/src/config/config.ini >/dev/null 2>&1
+if [[ "$here" == *"prod"* ]] ; then
+    echo sourcing prod config
+    source $HOME/prod/config/config.ini >/dev/null 2>&1
+else
+    echo sourcing dev config
+    source $HOME/src/config/config.ini >/dev/null 2>&1
+fi
 
 cd $here/../analysis
 echo "\$(function() {" > $here/data/summarytable.js
@@ -12,7 +18,11 @@ echo "header.className = \"h4\";" >> $here/data/summarytable.js
 
 yr=$(date +%Y)
 until [ $yr -lt 2013 ]; do
-    detections=`cat DATA/consolidated/M_${yr}-unified.csv | wc -l`
+    if [ $yr -gt 2019 ] ; then 
+        detections=$(grep "OTHER Matched" logs/ALL$yr.log | awk '{print $4}')
+    else
+        detections=`cat DATA/consolidated/M_${yr}-unified.csv | wc -l`
+    fi
     matches=`grep "UNIFIED Matched" logs/ALL${yr}.log  | awk '{print $4}'`
     fireballs=`tail -n +2 REPORTS/$yr/ALL/TABLE_Fireballs.csv |wc -l`
     echo "var row = table.insertRow(-1);" >> $here/data/summarytable.js

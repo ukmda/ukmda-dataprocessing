@@ -1,0 +1,3 @@
+destdir: /home/ec2-user/prod
+websitebucket: s3://ukmeteornetworkarchive
+websitekey: ~/.ssh/ukmonarchive-keys
