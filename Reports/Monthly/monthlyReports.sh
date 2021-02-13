@@ -3,8 +3,15 @@
 # monthly reporting for UKMON
 #
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-source $HOME/src/config/config.ini >/dev/null 2>&1
-source $HOME/venvs/RMS/bin/activate
+if [[ "$here" == *"prod"* ]] ; then
+    echo sourcing prod config
+    source $HOME/prod/config/config.ini >/dev/null 2>&1
+else
+    echo sourcing dev config
+    source $HOME/src/config/config.ini >/dev/null 2>&1
+fi
+
+source $HOME/venvs/${RMS_ENV}/bin/activate
 
 yr=$2
 shwr=$1

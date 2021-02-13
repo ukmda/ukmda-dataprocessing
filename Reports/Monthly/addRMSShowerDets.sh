@@ -2,8 +2,15 @@
 
 # script to create RMS shower association details if not already present
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-source $HOME/src/config/config.ini >/dev/null 2>&1
-source /home/ec2-user/venvs/RMS/bin/activate
+if [[ "$here" == *"prod"* ]] ; then
+    echo sourcing prod config
+    source $HOME/prod/config/config.ini >/dev/null 2>&1
+else
+    echo sourcing dev config
+    source $HOME/src/config/config.ini >/dev/null 2>&1
+fi
+
+source /home/ec2-user/venvs/${RMS_ENV}/bin/activate
 
 if [ $# -lt 3 ] ; then
     echo usage: addRMSShowerDets.sh sitename camname ymd

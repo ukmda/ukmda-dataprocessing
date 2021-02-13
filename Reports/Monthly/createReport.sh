@@ -1,12 +1,18 @@
 #!/bin/bash
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-source $HOME/src/config/config.ini >/dev/null 2>&1
+if [[ "$here" == *"prod"* ]] ; then
+    echo sourcing prod config
+    source $HOME/prod/config/config.ini >/dev/null 2>&1
+else
+    echo sourcing dev config
+    source $HOME/src/config/config.ini >/dev/null 2>&1
+fi
 
 if [ $# -lt 2 ] ; then
 	echo Usage: createReport.sh GEM 2017 {force}
 else
-    source /home/ec2-user/venvs/wmpl/bin/activate
+    source /home/ec2-user/venvs/${WMPL_ENV}/bin/activate
     if [[ ! -d $here/REPORTS/$2/$1 || "$3" == "force" ]] ; then
         echo "Running the analysis routines"
         cd $here
