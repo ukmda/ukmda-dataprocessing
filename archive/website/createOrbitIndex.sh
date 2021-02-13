@@ -9,6 +9,8 @@ else
     source $HOME/src/config/config.ini >/dev/null 2>&1
 fi
 
+source $WEBSITEKEY
+
 ym=$1
 yr=${ym:0:4}
 mth=${ym:4:2}
@@ -56,6 +58,7 @@ echo "</tr></table>" >> $idxfile
 echo "</div>" >> $idxfile
 
 cat $TEMPLATES/footer.html >> $idxfile
+
 source $WEBSITEKEY
 aws s3 cp $idxfile $targ/index.html
-rm -f $idxfile
+#rm -f $idxfile
