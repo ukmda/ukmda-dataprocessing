@@ -34,7 +34,7 @@ if [ $res -eq 0 ] ; then
     python $here/findJPGs.py $indir $resultdir
     chmod 644 $resultdir/*.jpg
 
-    ${SRC}/website/createPageIndex.sh $resultdir
+    ${SRC}/website/createPageIndex.sh $yr/$ym/$pth/$(basename $resultdir)
 
     echo "copying the orbit CSV files"
     mkdir -p $outdir/csv/ >/dev/null 2>&1
