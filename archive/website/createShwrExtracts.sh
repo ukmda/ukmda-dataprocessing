@@ -8,43 +8,51 @@ else
 fi
 mkdir -p $here/browse/showers
 
-cd $SRC/analysis/DATA/matched
+if [ $# -gt 0 ] ; then
+    ymd=$1
+    yrs=${ymd:0:4}   
+    mths=${ymd:4:2}
+    shwrs="GEM LYR PER QUA LEO NTA STA ETA SDA"
+else
+    yrs="2021 2020"
+    shwrs="GEM LYR PER QUA LEO NTA STA ETA SDA"
+fi 
+
+
+cd ${RCODEDIR}/DATA/matched
 echo "creating matched extracts"
-yr=$(date +%Y)
-while [ $yr -gt 2019 ]
+for yr in $yrs
 do
-    for shwr in {GEM,LYR,PER,QUA,LEO,NTA,STA,ETA,SDA}
+    for shwr in $shwrs
     do
         rc=$(grep $shwr ./matches-${yr}.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp ../../../templates/UO_header.txt $here/browse/showers/${yr}-${shwr}-matches.csv
+            cp $SRC/analysis/templates/UO_header.txt $here/browse/showers/${yr}-${shwr}-matches.csv
             grep $shwr ./matches-${yr}.csv >> $here/browse/showers/${yr}-${shwr}-matches.csv
         fi
     done
-    yr=$((yr-1))
 done
-cd $here/../analysis/DATA/consolidated
+cd ${$CODEDIR}/DATA/consolidated
 echo "creating UFO detections"
-yr=$(date +%Y)
-while [ $yr -gt 2019 ]
+for yr in $yrs
 do
-    for shwr in {GEM,LYR,PER,QUA,LEO,NTA,STA,ETA,SDA}
+    for shwr in $shwrs
     do
         rc=$(grep "_${shwr}" ./M_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp ../../templates/UA_header.txt $here/browse/showers/${yr}-${shwr}-detections-ufo.csv
+            cp $SRC/analysis/templates/UA_header.txt $here/browse/showers/${yr}-${shwr}-detections-ufo.csv
             grep "_${shwr}" ./M_${yr}-unified.csv >> $here/browse/showers/${yr}-${shwr}-detections-ufo.csv
         fi
     done
-    yr=$((yr-1))
 done
 
 echo "done gathering data, creating tables"
 
-for shwr in {GEM,LYR,PER,QUA,LEO,NTA,STA,ETA,SDA}
+for shwr in $shwrs
 do 
-    cat $TEMPLATES/shwrcsvindex.html  | sed "s/XXXXX/${shwr}/g" > $here/browse/showers/${shwr}index.html
-
+    if [ ! -f $here/browse/showers/${shwr}index.html ] ; then 
+        cat $TEMPLATES/shwrcsvindex.html  | sed "s/XXXXX/${shwr}/g" > $here/browse/showers/${shwr}index.html
+    fi 
     idxfile=$here/browse/showers/${shwr}index.js
 
     echo "\$(function() {" > $idxfile

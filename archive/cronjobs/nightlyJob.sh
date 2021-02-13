@@ -20,6 +20,10 @@ ${SRC}/orbits/doaMonth.sh ${thismth}
 ${SRC}/website/createOrbitIndex.sh ${thismth}
 ${SRC}/website/createOrbitIndex.sh ${thisyr}
 ${SRC}/analysis/updateRMSShowerAssocs.sh ${thismth}
+${SRC}/website/createMthlyExtracts.sh ${thismth}
+${SRC}/website/createShwrExtracts.sh ${thismth}
+
+${SRC}/analysis/monthlyReports.sh ALL ${thisyr} force
 
 dom=`date '+%d'`
 if [ $dom -lt 10 ] ; then 
@@ -31,11 +35,7 @@ if [ $dom -lt 10 ] ; then
     ${SRC}/website/createOrbitIndex.sh ${lastmth}
     ${SRC}/website/createOrbitIndex.sh ${lastyr}
     ${SRC}/analysis/updateRMSShowerAssocs.sh ${lastmth}
-else
-    echo "create monthly report here"
+    ${SRC}/website/createMthlyExtracts.sh ${lastmth}
+    ${SRC}/website/createShwrExtracts.sh ${lastmth}
 fi
-thisyr=`date '+%Y'`
-${SRC}/analysis/monthlyReports.sh ALL ${thisyr} force
 ${SRC}/website/createSummaryTable.sh
-${SRC}/website/createMthlyExtracts.sh
-${SRC}/website/createShwrExtracts.sh

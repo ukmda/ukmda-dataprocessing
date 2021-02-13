@@ -6,58 +6,65 @@ if [[ "$here" == *"prod"* ]] ; then
 else
     source $HOME/src/config/config.ini >/dev/null 2>&1
 fi
+if [ $# -gt 0 ] ; then
+    ymd=$1
+    yrs=${ymd:0:4}   
+    mths=${ymd:4:2}
+else
+    yrs="2021 2020"
+    mths="01 02 03 04 05 06 07 08 09 10 11 12"
+fi 
 
-cd $SRC/analysis/DATA/matched
+cd $RCODEDIR/DATA/matched
 echo "creating matched extracts"
-yr=$(date +%Y)
-while [ $yr -gt 2019 ]
+
+for yr in $yrs
 do
-    for mth in {01,02,03,04,05,06,07,08,09,10,11,12}
+    for mth in $mths
     do
         rc=$(grep _${yr}${mth} ./matches-${yr}.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp ../../templates/UO_header.txt $SRC/website/browse/monthly/${yr}${mth}-matches.csv
+            cp $SRC/analysis/templates/UO_header.txt $SRC/website/browse/monthly/${yr}${mth}-matches.csv
             grep _${yr}${mth} ./matches-${yr}.csv >> $SRC/website/browse/monthly/${yr}${mth}-matches.csv
         fi
     done
-    yr=$((yr-1))
 done
-cd $SRC/analysis/DATA/consolidated
+
+cd $RCODEDIR/DATA/consolidated
 echo "creating UFO detections"
-yr=$(date +%Y)
-while [ $yr -gt 2019 ]
+for yr in $yrs
 do
-    for mth in {01,02,03,04,05,06,07,08,09,10,11,12}
+    for mth in $mths
     do
         rc=$(grep ",${yr}${mth}" ./M_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp ../../templates/UA_header.txt $SRC/website/browse/monthly/${yr}${mth}-detections-ufo.csv
+            cp $SRC/analysis/templates/UA_header.txt $SRC/website/browse/monthly/${yr}${mth}-detections-ufo.csv
             grep ",${yr}${mth}" ./M_${yr}-unified.csv >> $SRC/website/browse/monthly/${yr}${mth}-detections-ufo.csv
         fi
     done
-    yr=$((yr-1))
 done
+
 echo "creating RMS detections"
-yr=$(date +%Y)
-while [ $yr -gt 2019 ]
+mths1="1 2 3 4 5 6 7 8 9"
+mths2="10 11 12"
+for yr in $yrs
 do
-    for mth in {1,2,3,4,5,6,7,8,9}
+    for mth in $mths1
     do
         rc=$(grep ",${yr}, ${mth}" ./P_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp ../../templates/RMS_header.txt $SRC/website/browse/monthly/${yr}0${mth}-detections-rms.csv
+            cp $SRC/analysis/templates/RMS_header.txt $SRC/website/browse/monthly/${yr}0${mth}-detections-rms.csv
             grep ",${yr}, ${mth}" ./P_${yr}-unified.csv >> $SRC/website/browse/monthly/${yr}0${mth}-detections-rms.csv
         fi
     done
-    for mth in {10,11,12}
+    for mth in $mths2
     do
         rc=$(grep ",${yr},${mth}" ./P_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp ../../templates/RMS_header.txt $SRC/website/browse/monthly/${yr}${mth}-detections-rms.csv
+            cp $SRC/analysis/templates/RMS_header.txt $SRC/website/browse/monthly/${yr}${mth}-detections-rms.csv
             grep ",${yr},${mth}" ./P_${yr}-unified.csv >> $SRC/website/browse/monthly/${yr}${mth}-detections-rms.csv
         fi
     done
-    yr=$((yr-1))
 done
 echo "done gathering data, creating table"
 
@@ -71,9 +78,10 @@ echo "header.className = \"h4\";" >> $idxfile
 
 cd $here/browse/monthly/
 yr=$(date +%Y)
+
 while [ $yr -gt 2012 ]
 do
-    for mth in {12,11,10,09,08,07,06,05,04,03,02,01}
+    for mth in {12,11,10,90,08,07,06,05,04,03,02,01}
     do
         ufodets=$(ls -1 $SRC/website/browse/monthly/${yr}${mth}-detections-ufo.csv)
         rmsdets=$(ls -1 $SRC/website/browse/monthly/${yr}${mth}-detections-rms.csv)

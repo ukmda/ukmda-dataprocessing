@@ -17,12 +17,12 @@ echo "header.className = \"h4\";" >> $here/data/summarytable.js
 yr=$(date +%Y)
 until [ $yr -lt 2013 ]; do
     if [ $yr -gt 2019 ] ; then 
-        detections=$(grep "OTHER Matched" logs/ALL$yr.log | awk '{print $4}')
+        detections=$(grep "OTHER Matched" $SRC/logs/ALL$yr.log | awk '{print $4}')
     else
-        detections=`cat DATA/consolidated/M_${yr}-unified.csv | wc -l`
+        detections=`cat $RCODEDIR/DATA/consolidated/M_${yr}-unified.csv | wc -l`
     fi
-    matches=`grep "UNIFIED Matched" logs/ALL${yr}.log  | awk '{print $4}'`
-    fireballs=`tail -n +2 REPORTS/$yr/ALL/TABLE_Fireballs.csv |wc -l`
+    matches=`grep "UNIFIED Matched" $SRC/logs/ALL${yr}.log  | awk '{print $4}'`
+    fireballs=`tail -n +2 $RCODEDIR/REPORTS/$yr/ALL/TABLE_Fireballs.csv |wc -l`
     echo "var row = table.insertRow(-1);" >> $here/data/summarytable.js
     echo "var cell = row.insertCell(0);" >> $here/data/summarytable.js
     echo "cell.innerHTML = \"<a href="/reports/$yr/ALL/index.html">$yr</a>\";" >> $here/data/summarytable.js
