@@ -30,7 +30,7 @@ $env:AWS_SECRET_ACCESS_KEY = $keys[1]
 
 if ($fbonly -eq 'False') 
 {
-    aws s3 sync $remotefolder $localfolder --exclude "*" --include "*.jpg" --include "*.xml" --exclude "*temp*"
+    aws s3 sync $remotefolder $localfolder --exclude "*" --include "*.jpg" --include "*.xml" --include "*.csv" --exclude "*temp*"
     aws s3 sync $remotebad $badfolder --exclude "*" --include "*.jpg" --include "*.xml" --exclude "*temp*"
     aws s3 sync $remotefolder $fbfolder --exclude "*" --include "*.mp4" --exclude "*temp*"
 }else {
