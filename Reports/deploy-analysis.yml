@@ -12,6 +12,12 @@
   - name: Ensures {{destdir}} exists
     file: path={{destdir}} state=directory  
     tags: [dev,prod]
+  - name: Ensures {{destdir}}/R exists
+    file: path={{destdir}}/R state=directory  
+    tags: [dev,prod]
+  - name: Ensures {{destdir}}/logs exists
+    file: path={{destdir}}/logs state=directory  
+    tags: [dev,prod]
   - name: Copy files
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     tags: [dev,prod]

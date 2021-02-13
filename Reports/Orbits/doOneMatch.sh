@@ -7,10 +7,8 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # load the helper functions
 if [[ "$here" == *"prod"* ]] ; then
-    echo sourcing prod config
     source $HOME/prod/config/config.ini >/dev/null 2>&1
 else
-    echo sourcing dev config
     source $HOME/src/config/config.ini >/dev/null 2>&1
 fi
 
@@ -22,14 +20,14 @@ yr=${pth:0:4}
 ym=${pth:0:6}
 mth=${pth:4:2}
 
-mkdir -p $here/logs >/dev/null 2>&1
+mkdir -p ${SRC}/logs >/dev/null 2>&1
 
 ${SRC}/orbits/reduceOrbit.sh $pth $2
 res=$?
+indir=${MATCHDIR}/$yr/$ym/$pth
 
 if [ $res -eq 0 ] ; then
-    outdir=${REPORTDIR}/matches/$yr
-    indir=${MATCHDIR}/$yr/$ym/$pth
+    outdir=${REPORTDIR}/matches/$yr    
     resultdir=$(ls -1trd $indir/${yr}* | grep -v .txt | tail -1)
 
     python $here/findJPGs.py $indir $resultdir
@@ -43,7 +41,7 @@ if [ $res -eq 0 ] ; then
     mkdir -p $outdir/extracsv/ >/dev/null 2>&1
     cp $resultdir/*orbit_extras.csv $outdir/extracsv/    
 
-    echo $(date +%Y%m%d-%H%M%S) $(basename $resultdir) >> $here/logs/success_list.txt
+    echo $(date +%Y%m%d-%H%M%S) $(basename $resultdir) >> ${SRC}/logs/success_list.txt
 elif [ $res -eq 99 ] ; then
     echo "$1 skipped as already processed"
 else

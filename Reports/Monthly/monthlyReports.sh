@@ -20,9 +20,9 @@ lastyr=$((yr-1))
 echo getting latest combined files
 
 source ~/.ssh/ukmon-shared-keys
-aws s3 sync s3://ukmon-shared/consolidated/ $here/DATA/consolidated --exclude 'consolidated/temp/*'
+aws s3 sync s3://ukmon-shared/consolidated/ ${RCODEDIR}/DATA/consolidated --exclude 'consolidated/temp/*'
 
-cd $here/DATA
+cd ${RCODEDIR}/DATA
 echo "Getting single detections and associations for $yr"
 cp consolidated/M_${yr}-unified.csv UFO-all-single.csv
 cp consolidated/P_${yr}-unified.csv RMS-all-single.csv
@@ -32,8 +32,8 @@ echo "ID,Y,M,D,h,m,s,Shwr" > RMS-assoc-single.csv
 cat $REPORTDIR/consolidated/A/??????_${yr}* >> RMS-assoc-single.csv
 
 echo "getting matched detections for $yr"
-cp $here/templates/UO_header.txt $here/DATA/matched/matches-$yr.csv
-cat $REPORTDIR/matches/$yr/csv/$yr*.csv >> $here/DATA/matched/matches-$yr.csv
+cp $here/templates/UO_header.txt ${RCODEDIR}/DATA/matched/matches-$yr.csv
+cat $REPORTDIR/matches/$yr/csv/$yr*.csv >> ${RCODEDIR}/DATA/matched/matches-$yr.csv
 
 if [ "$shwr" == "QUA" ] ; then
     echo "including previous year to catch early Quadrantids"
@@ -44,8 +44,8 @@ if [ "$shwr" == "QUA" ] ; then
     cat $REPORTDIR/consolidated/A/??????_${lastyr}* >> RMS-assoc-single.csv
 
     echo "getting matched detections for $lastyr"
-    cp $here/templates/UO_header.txt $here/DATA/matched/matches-$lastyr.csv
-    cat $REPORTDIR/matches/$lastyr/csv/$lastyr*.csv >> $here/DATA/matched/matches-$lastyr.csv
+    cp $here/templates/UO_header.txt ${RCODEDIR}/DATA/matched/matches-$lastyr.csv
+    cat $REPORTDIR/matches/$lastyr/csv/$lastyr*.csv >> ${RCODEDIR}/DATA/matched/matches-$lastyr.csv
 
 else
     echo "" >> UFO-all-single.csv
@@ -54,24 +54,24 @@ else
 fi 
 # merge in the RMS data
 cp UFO-all-single.csv UKMON-all-single.csv
-python ../RMStoUFOA.py $SRC/config/config.ini RMS-all-single.csv RMS-assoc-single.csv RMS-UFOA-single.csv ../templates/
+python $here/RMStoUFOA.py $SRC/config/config.ini RMS-all-single.csv RMS-assoc-single.csv RMS-UFOA-single.csv $SRC/analysis/templates/
 sed '2d' RMS-UFOA-single.csv >> UKMON-all-single.csv
 
 echo "got relevant data"
 
-lc=$(wc -l $here/DATA/matched/matches-$yr.csv | awk '{print $1}')
+lc=$(wc -l ${RCODEDIR}/DATA/matched/matches-$yr.csv | awk '{print $1}')
 if [ $lc -gt 1 ] ; then
-    cp $here/DATA/matched/matches-$yr.csv $here/DATA/UKMON-all-matches.csv
+    cp ${RCODEDIR}/DATA/matched/matches-$yr.csv ${RCODEDIR}/DATA/UKMON-all-matches.csv
 else
-    cp $here/DATA/matched/pre2020/matches-$yr.csv $here/DATA/UKMON-all-matches.csv
+    cp ${RCODEDIR}/DATA/matched/pre2020/matches-$yr.csv ${RCODEDIR}/DATA/UKMON-all-matches.csv
 fi 
 
 if [ "$shwr" == "QUA" ] ; then
-    lc=$(wc -l $here/DATA/matched/matches-$lastyr.csv | awk '{print $1}')
+    lc=$(wc -l ${RCODEDIR}/DATA/matched/matches-$lastyr.csv | awk '{print $1}')
     if [ $lc -gt 1 ] ; then
-        sed '1d' $here/DATA/matched/matches-$lastyr.csv >> $here/DATA/UKMON-all-matches.csv
+        sed '1d' ${RCODEDIR}/DATA/matched/matches-$lastyr.csv >> ${RCODEDIR}/DATA/UKMON-all-matches.csv
     else
-        sed '1d' $here/DATA/matched/pre2020/matches-$yr.csv >> $here/DATA/UKMON-all-matches.csv
+        sed '1d' ${RCODEDIR}/DATA/matched/pre2020/matches-$yr.csv >> ${RCODEDIR}/DATA/UKMON-all-matches.csv
     fi 
 fi 
 

@@ -13,7 +13,7 @@ else
 fi
 
 thismth=`date '+%Y%m'`
-thismth=`date '+%Y'`
+thisyr=`date '+%Y'`
 
 ${SRC}/matches/findAllMatches.sh ${thismth}
 ${SRC}/orbits/doaMonth.sh ${thismth}

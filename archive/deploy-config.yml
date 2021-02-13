@@ -66,6 +66,12 @@
       regexp: 'TEMPLATES='
       line: 'TEMPLATES={{destdir}}/website/templates'
     tags: [dev,prod]
+  - name: update R code folder
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'RCODEDIR='
+      line: 'RCODEDIR={{destdir}}/R'
+    tags: [dev,prod]
   - name: update RMS loc
     lineinfile:
       path: '{{destdir}}/config/config.ini'
