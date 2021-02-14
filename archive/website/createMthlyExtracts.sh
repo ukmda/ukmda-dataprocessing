@@ -120,3 +120,61 @@ echo "})" >> $idxfile
 echo "js table created"
 source $WEBSITEKEY
 aws s3 sync $SRC/website/browse/monthly/  $WEBSITEBUCKET/browse/monthly/
+
+
+echo "gathering annual data"
+cd $SRC/website/browse/annual/
+yr=$(date +%Y)
+cp -p ${RCODEDIR}/DATA/matched/pre2020/matches*.csv .
+cp -p ${RCODEDIR}/DATA/matched/matches-202*.csv .
+cp -p ${RCODEDIR}/DATA/matched/matches-203*.csv .
+cp -p ${RCODEDIR}/DATA/consolidated/M*.csv .
+cp -p ${RCODEDIR}/DATA/consolidated/P*.csv .
+
+echo "done gathering data, creating table"
+idxfile=$SRC/website/browse/annual/browselist.js
+
+echo "\$(function() {" > $idxfile
+echo "var table = document.createElement(\"table\");" >> $idxfile
+echo "table.className = \"table table-striped table-bordered table-hover table-condensed\";" >> $idxfile
+echo "var header = table.createTHead();" >> $idxfile
+echo "header.className = \"h4\";" >> $idxfile
+
+while [ $yr -gt 2012 ]
+do
+    ufodets=$(ls -1 $SRC/website/browse/annual/M_${yr}-unified.csv)
+    rmsdets=$(ls -1 $SRC/website/browse/annual/P_${yr}-unified.csv)
+    matches=$(ls -1 $SRC/website/browse/annual/matches-${yr}.csv)
+    if [[ "$ufodets" != "" ]] || [[ "$rmsdets" != "" ]] || [[ "$matches" != "" ]] ; then
+        ufobn=$(basename $ufodets)
+        rmsbn=$(basename $rmsdets)
+        matbn=$(basename $matches)
+        echo "var row = table.insertRow(-1);" >> $idxfile
+        echo "var cell = row.insertCell(0);" >> $idxfile
+        echo "cell.innerHTML = \"<a href="./$ufobn">$ufobn</a>\";" >> $idxfile
+        echo "var cell = row.insertCell(1);" >> $idxfile
+        echo "cell.innerHTML = \"<a href="./$rmsbn">$rmsbn</a>\";" >> $idxfile
+        echo "var cell = row.insertCell(2);" >> $idxfile
+        echo "cell.innerHTML = \"<a href="./$matbn">$matbn</a>\";" >> $idxfile
+    fi
+    yr=$((yr-1))
+done
+
+echo "var row = header.insertRow(0);" >> $idxfile
+echo "var cell = row.insertCell(0);" >> $idxfile
+echo "cell.innerHTML = \"Detected UFO\";" >> $idxfile
+echo "cell.className = \"small\";" >> $idxfile
+echo "var cell = row.insertCell(1);" >> $idxfile
+echo "cell.innerHTML = \"Detected RMS\";" >> $idxfile
+echo "cell.className = \"small\";" >> $idxfile
+echo "var cell = row.insertCell(2);" >> $idxfile
+echo "cell.innerHTML = \"Matches\";" >> $idxfile
+echo "cell.className = \"small\";" >> $idxfile
+
+echo "var outer_div = document.getElementById(\"browselist\");" >> $idxfile
+echo "outer_div.appendChild(table);" >> $idxfile
+echo "})" >> $idxfile
+
+echo "annual js table created"
+source $WEBSITEKEY
+aws s3 sync $SRC/website/browse/annual/  $WEBSITEBUCKET/browse/annual/

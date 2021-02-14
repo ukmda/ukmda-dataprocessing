@@ -12,10 +12,10 @@ if [ $# -gt 0 ] ; then
     ymd=$1
     yrs=${ymd:0:4}   
     mths=${ymd:4:2}
-    shwrs="GEM LYR PER QUA LEO NTA STA ETA SDA"
+    shwrs="GEM LYR PER QUA LEO NTA STA ETA SDA spo"
 else
     yrs="2021 2020"
-    shwrs="GEM LYR PER QUA LEO NTA STA ETA SDA"
+    shwrs="GEM LYR PER QUA LEO NTA STA ETA SDA spo"
 fi 
 
 
@@ -32,16 +32,29 @@ do
         fi
     done
 done
-cd ${$CODEDIR}/DATA/consolidated
+cd ${RCODEDIR}/DATA/consolidated
 echo "creating UFO detections"
 for yr in $yrs
 do
     for shwr in $shwrs
     do
-        rc=$(grep "_${shwr}" ./M_${yr}-unified.csv | wc -l)
+        rc=$(grep "${shwr}" ./M_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
             cp $SRC/analysis/templates/UA_header.txt $here/browse/showers/${yr}-${shwr}-detections-ufo.csv
-            grep "_${shwr}" ./M_${yr}-unified.csv >> $here/browse/showers/${yr}-${shwr}-detections-ufo.csv
+            grep "${shwr}" ./M_${yr}-unified.csv >> $here/browse/showers/${yr}-${shwr}-detections-ufo.csv
+        fi
+    done
+done
+cd ${RCODEDIR}/DATA/consolidated
+echo "creating RMS detections"
+for yr in $yrs
+do
+    for shwr in $shwrs
+    do
+        rc=$(grep "${shwr}" ./R_${yr}-unified.csv | wc -l)
+        if [ $rc -gt 0 ]; then
+            cp $SRC/analysis/templates/UA_header.txt $here/browse/showers/${yr}-${shwr}-detections-rms.csv
+            grep "_${shwr}" ./R_${yr}-unified.csv >> $here/browse/showers/${yr}-${shwr}-detections-rms.csv
         fi
     done
 done
@@ -65,17 +78,17 @@ do
     while [ $yr -gt 2012 ]
     do
         ufodets=$(ls -1 $here/browse/showers/${yr}-${shwr}-detections-ufo.csv)
-        #rmsdets=$(ls -1 $here/browse/showers/${yr}-${shwr}-detections-rms.csv)
+        rmsdets=$(ls -1 $here/browse/showers/${yr}-${shwr}-detections-rms.csv)
         matches=$(ls -1 $here/browse/showers/${yr}-${shwr}-matches.csv)
         ufobn=$(basename $ufodets)
-        #rmsbn=$(basename $rmsdets)
+        rmsbn=$(basename $rmsdets)
         matbn=$(basename $matches)
         echo "var row = table.insertRow(-1);" >> $idxfile
         echo "var cell = row.insertCell(0);" >> $idxfile
         echo "cell.innerHTML = \"<a href="./$ufobn">$ufobn</a>\";" >> $idxfile
-        #echo "var cell = row.insertCell(1);" >> $idxfile
-        #echo "cell.innerHTML = \"<a href="./$rmsbn">$rmsbn</a>\";" >> $idxfile
         echo "var cell = row.insertCell(1);" >> $idxfile
+        echo "cell.innerHTML = \"<a href="./$rmsbn">$rmsbn</a>\";" >> $idxfile
+        echo "var cell = row.insertCell(2);" >> $idxfile
         echo "cell.innerHTML = \"<a href="./$matbn">$matbn</a>\";" >> $idxfile
         yr=$((yr-1))
     done
@@ -83,10 +96,10 @@ do
     echo "var cell = row.insertCell(0);" >> $idxfile
     echo "cell.innerHTML = \"Detected UFO\";" >> $idxfile
     echo "cell.className = \"small\";" >> $idxfile
-    #echo "var cell = row.insertCell(1);" >> $idxfile
-    #echo "cell.innerHTML = \"Detected RMS\";" >> $idxfile
-    #echo "cell.className = \"small\";" >> $idxfile
     echo "var cell = row.insertCell(1);" >> $idxfile
+    echo "cell.innerHTML = \"Detected RMS\";" >> $idxfile
+    echo "cell.className = \"small\";" >> $idxfile
+    echo "var cell = row.insertCell(2);" >> $idxfile
     echo "cell.innerHTML = \"Matches\";" >> $idxfile
     echo "cell.className = \"small\";" >> $idxfile
 

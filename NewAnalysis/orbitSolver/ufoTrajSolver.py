@@ -27,7 +27,7 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
     orb = traj.orbit
     if shower_obj is None:
         shid = -1
-        shcod = 'Spo'
+        shcod = 'spo'
         shname = 'Sporadic'
     else:
         shid = shower_obj.IAU_no
@@ -953,14 +953,14 @@ if __name__ == "__main__":
             shower_obj = associateShower(orb.la_sun, orb.L_g, orb.B_g, orb.v_g)
             if shower_obj is None:
                 id = -1
-                cod = 'Spo'
+                cod = 'spo'
             else:
                 id = shower_obj.IAU_no
                 cod = shower_obj.IAU_code
         else:
             # no orbit was calculated
             id = -1
-            cod = 'Spo'
+            cod = 'spo'
 
         amag = min(abs_mag_data_all)
 

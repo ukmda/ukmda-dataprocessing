@@ -42,12 +42,6 @@
       regexp: 'USER='
       line: 'USER=ec2-user'
     tags: [dev,prod]
-  - name: update target folder
-    lineinfile:
-      path: '{{destdir}}/config/config.ini'
-      regexp: 'REPORTDIR='
-      line: 'REPORTDIR=/home/ec2-user/data/analysis'
-    tags: [dev,prod]
   - name: set input folder  
     lineinfile:
       path: '{{destdir}}/config/config.ini'
