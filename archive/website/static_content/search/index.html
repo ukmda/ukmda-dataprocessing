@@ -50,29 +50,18 @@
 
   <div class="container">
     <h2>Search the Archive.</h2>
-    <b>WORK IN PROGRESS.</b>
     <p>
-      Still under development!
-    </p>
-    <p>
-      If you are trying to find a specific event that occurred in the last week or so, 
-      a good place to start is  <a href="https://ukmeteornetwork.co.uk/live/#/">UKMON Live</a> 
-      where we live-stream events as they happen. This stream is unfiltered and so it may 
-      contain clouds and aircraft! 
-    </p>
-    <p>
-      If you are looking for an older event you can download the monthly or annual datasets
-      from the <a href="/browse/index.html">Download</a> page. Most of our stations only upload
-      data on a monthly basis.
-  </p>
-    <!-- p>
       This page allows you to search the archive for specific events. 
     </p>
     <p>
-      Note: only some of our cameras upload analytical information in near-realtime.
+      Note: only some of our cameras upload analytical information in near-realtime. 
+      Most camera only upload data on a monthly basis. 
+    </p>
+    <p>
       So if you're looking for a very recent event, you should start by checking our
-      live feed (link above) to see if we captured anything of interest. Then come back
-      here to see if we have more detailed data. If its not on the live feed, then it won't be here!
+      live feed (link above). If you find an event in the live feed you can also check
+      here to see if we have more detailed data but bear in mind that most of our cameras
+      only upload full data once a month.
     </p>
     <p>To search the archive, select a date and time range. During
       busy showers we often capture thousands of meteors across the network,
@@ -96,13 +85,6 @@
       <input type="text" class="date end" id="date2" /><br>
       <button type="submit">Search</button>
     </form>
-    <script>
-      var form = document.querySelector("form");
-      form.addEventListener("submit", function (event) {
-        console.log("Saving value", form.elements.value.value);
-        event.preventDefault();}
-        );
-    </script>
     <p id="statusfield"></p>
     <p id="datestart"></p>
     <p id="dateend"></p>
@@ -114,7 +96,7 @@
       $(function () {
         $("#copyrite-placeholder").load("/templates/copyright.html");
       });
-    </script -->
+    </script>
   </div>
 </body>
 
