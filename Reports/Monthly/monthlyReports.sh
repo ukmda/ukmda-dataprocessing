@@ -21,6 +21,7 @@ echo getting latest combined files
 
 source ~/.ssh/ukmon-shared-keys
 aws s3 sync s3://ukmon-shared/consolidated/ ${RCODEDIR}/DATA/consolidated --exclude 'consolidated/temp/*'
+aws s3 sync s3://ukmon-live/ ${RCODEDIR}/DATA/ukmonlive/ --exclude "*" --include "*.csv"
 
 cd ${RCODEDIR}/DATA
 echo "Getting single detections and associations for $yr"

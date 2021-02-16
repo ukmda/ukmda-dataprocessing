@@ -10,10 +10,6 @@ else
     source $HOME/src/config/config.ini >/dev/null 2>&1
 fi
 
-source ~/.ssh/ukmon-shared-keys
-
-source ~/venvs/${WMPL_ENV}/bin/activate
-
 if [ $# -eq 0 ]; then
     yr=$(date +%Y)
 else

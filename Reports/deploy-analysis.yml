@@ -47,4 +47,6 @@
     - {src: '{{srcdir}}/Reports/orbits/redoOneMatch.sh', dest: '{{destdir}}/orbits/', mode: '754', backup: no }
     - {src: '{{srcdir}}/Reports/orbits/doaMonth.sh', dest: '{{destdir}}/orbits/', mode: '754', backup: no }
     - {src: '{{srcdir}}/Reports/orbits/doaYear.sh', dest: '{{destdir}}/orbits/', mode: '754', backup: no }
-
+    - {src: '{{srcdir}}/archive/Maintenance/consolidateMatchedData.py', dest: '{{destdir}}/matches/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/archive/Maintenance/findAllMatches.sh', dest: '{{destdir}}/matches/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/archive/Maintenance/reconsolidateYearAXML.sh', dest: '{{destdir}}/matches/', mode: '754', backup: no }

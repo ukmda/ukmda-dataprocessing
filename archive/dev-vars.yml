@@ -1,3 +1,4 @@
-destdir: /home/ec2-user/src
-websitebucket: s3://mjmm-ukmonarchive.co.uk
+destdir: /home/ec2-user/dev
+websitebucket: mjmm-ukmonarchive.co.uk
 websitekey: ~/.ssh/marks-keys
+s3profile: default

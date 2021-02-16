@@ -94,7 +94,7 @@
     lineinfile:
       path: '{{destdir}}/config/config.ini'
       regexp: 'WEBSITEBUCKET='
-      line: 'WEBSITEBUCKET={{websitebucket}}'
+      line: 'WEBSITEBUCKET=s3://{{websitebucket}}'
     tags: [dev,prod]
   - name: update website aws key
     lineinfile:
