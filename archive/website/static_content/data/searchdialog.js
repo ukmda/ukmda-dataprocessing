@@ -40,12 +40,12 @@ var form = document.querySelector("form");
 form.addEventListener("submit", function (event) {
   //console.log("Saving value", form.elements.value.value);
   var d1 = document.getElementById("datestart").innerHTML;
-  var a = Date.parse(d1);
+  //var a = Date.toISOString(); //.parse(d1);
   var d2 = document.getElementById("dateend").innerHTML;
-  var b = Date.parse(d2);
+  //var b = Date.toISOString(); //.parse(d2);
   var op = "foo";
   //jQuery.support.cors = true;
-  payload = {"a":  a, "b": b, "op":  op };
+  payload = {"a":  d1, "b": d2, "op":  op };
   console.log(payload);
   $.ajax({
     url: apiurl, 
@@ -61,9 +61,11 @@ form.addEventListener("submit", function (event) {
   event.preventDefault();}
   );
 function myFunc(myObj) {
+    console.log(myObj);
     var x, txt = "";
     for (x in myObj) {
-      txt += myObj[x].name + "<br>";
+      console.log(myObj[x]);
+      txt += myObj[x] + "<br>";
     }
-    document.getElementById("dateend").innerHTML = txt;
+    document.getElementById("searchresults").innerHTML = txt;
 }
