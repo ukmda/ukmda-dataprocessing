@@ -4,7 +4,7 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # load the helper functions
-source $HOME/src/config/config.ini > /dev/null 2>&1
+source $here/../config/config.ini >/dev/null 2>&1
 
 source $HOME/venvs/$WMPL_ENV/bin/activate
 export PYTHONPATH=$wmpl_loc

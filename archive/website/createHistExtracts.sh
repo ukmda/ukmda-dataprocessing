@@ -1,13 +1,7 @@
 #!/bin/bash
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
-if [[ "$here" == *"prod"* ]] ; then
-    echo sourcing prod config
-    source $HOME/prod/config/config.ini >/dev/null 2>&1
-else
-    echo sourcing dev config
-    source $HOME/src/config/config.ini >/dev/null 2>&1
-fi
+source $here/../config/config.ini >/dev/null 2>&1
 
 cd ${RCODEDIR}/DATA/matched/pre2020
 echo "creating matched extracts"

@@ -1,11 +1,7 @@
 #!/bin/bash
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-if [[ "$here" == *"prod"* ]] ; then
-    source $HOME/prod/config/config.ini >/dev/null 2>&1
-else
-    source $HOME/src/config/config.ini >/dev/null 2>&1
-fi
+source $here/../config/config.ini >/dev/null 2>&1
 
 if [ $# -lt 2 ] ; then
 	echo Usage: createReport.sh GEM 2017 {force}

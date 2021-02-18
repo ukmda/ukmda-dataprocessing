@@ -3,13 +3,7 @@
 # monthly reporting for UKMON
 #
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-if [[ "$here" == *"prod"* ]] ; then
-    echo sourcing prod config
-    source $HOME/prod/config/config.ini >/dev/null 2>&1
-else
-    echo sourcing dev config
-    source $HOME/src/config/config.ini >/dev/null 2>&1
-fi
+source $here/../config/config.ini >/dev/null 2>&1
 
 source $HOME/venvs/${RMS_ENV}/bin/activate
 
@@ -56,8 +50,9 @@ fi
 # merge in the RMS data
 cp UFO-all-single.csv UKMON-all-single.csv
 python $here/RMStoUFOA.py $SRC/config/config.ini RMS-all-single.csv RMS-assoc-single.csv RMS-UFOA-single.csv $SRC/analysis/templates/
-sed '2d' RMS-UFOA-single.csv >> UKMON-all-single.csv
+sed '1d' RMS-UFOA-single.csv | sed '1d' >> UKMON-all-single.csv
 cp RMS-UFOA-single.csv consolidated/R_${yr}-unified.csv
+cp UKMON-all-single.csv consolidated/UKMON-${yr}-single.csv
 echo "got relevant data"
 
 lc=$(wc -l ${RCODEDIR}/DATA/matched/matches-$yr.csv | awk '{print $1}')
