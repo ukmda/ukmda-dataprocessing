@@ -57,4 +57,4 @@ cat $TEMPLATES/footer.html >> $idxfile
 
 source $WEBSITEKEY
 aws s3 cp $idxfile $targ/index.html
-#rm -f $idxfile
+rm -f $idxfile

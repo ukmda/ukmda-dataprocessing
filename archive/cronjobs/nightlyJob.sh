@@ -32,3 +32,5 @@ if [ $dom -lt 10 ] ; then
     ${SRC}/website/createShwrExtracts.sh ${lastmth}
 fi
 ${SRC}/website/createSummaryTable.sh
+
+find $SRC/logs -name "nightly*" -mtime +7 -exec rm -f {} \;

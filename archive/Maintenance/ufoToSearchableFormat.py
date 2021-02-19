@@ -11,10 +11,16 @@ import configparser as cfg
 import datetime 
 
 
-def UFOAToSrchable(year, rmsuafile, outdir):
-    # load the RMS data
+def UFOAToSrchable(configfile, year, outdir):
+    config=cfg.ConfigParser()
+    config.read(configfile)
+    
+    fname = 'UKMON-{:s}-single.csv'.format(year)
+    rmsuafile= os.path.join(config['config']['RCODEDIR'], 'DATA', 'consolidated', fname)
+
+    # load the data
     uadata = np.loadtxt(rmsuafile, delimiter=',', skiprows=1, dtype=uaf.UFOCSV)
-    uadata = np.unique(uadata)
+    uadata = np.unique(uadata, axis=0)
 
     # create array for source
     srcs=np.chararray(len(uadata), itemsize=8)
@@ -36,56 +42,58 @@ def UFOAToSrchable(year, rmsuafile, outdir):
 
         urls.append('https://somewhere')
 
-    hdr='timestamp,Source,Shower,Mag,Loc_Cam,url'
+    hdr='eventtime,source,shower,mag,loccam,url'
 
     # write out the converted data
-    UAdata = np.column_stack((dtstamps,srcs, uadata['Group'], uadata['Mag'], uadata['Loc_Cam'], urls))
+    outdata = np.column_stack((dtstamps,srcs, uadata['Group'], uadata['Mag'], uadata['Loc_Cam'], urls))
+    outdata = np.unique(outdata, axis=0)
     fmtstr = '%s,%s,%s,%s,%s,%s'
     outfile = os.path.join(outdir, '{:s}-singleevents.csv'.format(year))
-    np.savetxt(outfile, UAdata, fmt=fmtstr, header=hdr, comments='')
+    np.savetxt(outfile, outdata, fmt=fmtstr, header=hdr, comments='')
 
 
-def LiveToSrchable(year, rmsuafile, outdir):
-    # load the data
-    LIVEFMT=np.dtype([('ymd','U8'),('hms','U8'),('Loc_Cam','U16'),('SID','U8'),('Bri','f8')])
-    uadata = np.loadtxt(rmsuafile, delimiter=',', skiprows=0, dtype=LIVEFMT)
-    uadata = np.unique(uadata)
-
-    # create array for source
-    srcs=np.chararray(len(uadata), itemsize=8)
-    srcs[:]='Live'
-    srcs=srcs.decode('utf-8')
-
-    # create array for showers
-    shwrs=np.chararray(len(uadata), itemsize=8)
-    shwrs[:]='Unknown'
-    shwrs=shwrs.decode('utf-8')
+def LiveToSrchable(configfile, year, outdir):
+    config=cfg.ConfigParser()
+    config.read(configfile)
 
     dtstamps = []
     urls = []
-    loccam=[]
-    for li in uadata:
-        dtstr = li['ymd'] + '_' + li['hms']
-        ds = datetime.datetime.strptime(dtstr, '%Y%m%d_%H%M%S')
-        dtstamps.append(ds.timestamp())
+    loccam = []
+    srcs = []
+    shwrs = []
+    zeros = []
+    for q in range(1,5):
+        livef='idx{:s}{:02d}.csv'.format(year, q)
+        uafile = os.path.join(config['config']['RCODEDIR'], 'DATA', 'ukmonlive', livef)
+        if os.path.exists(uafile):
+            # load the data
+            LIVEFMT=np.dtype([('ymd','U8'),('hms','U8'),('Loc_Cam','U16'),('SID','U8'),('Bri','f8')])
+            uadata = np.loadtxt(uafile, delimiter=',', skiprows=0, dtype=LIVEFMT)
+            uadata = np.unique(uadata)
 
-        lc = li['Loc_Cam'] + '_' + li['SID']
-        loccam.append(lc)
+            for li in uadata:
+                dtstr = li['ymd'] + '_' + li['hms']
+                ds = datetime.datetime.strptime(dtstr, '%Y%m%d_%H%M%S')
+                dtstamps.append(ds.timestamp())
 
-        url='https://live.ukmeteornetwork.co.uk/M' + li['ymd'] + '_' + li['hms'] + '_' + lc + 'P.jpg'
+                lc = li['Loc_Cam'] + '_' + li['SID']
+                loccam.append(lc)
 
-        urls.append(url)
+                url='https://live.ukmeteornetwork.co.uk/M' + li['ymd'] + '_' + li['hms'] + '_' + lc + 'P.jpg'
 
-    # create arrays of zeros to put in the unused columns
-    zeros=np.zeros(len(uadata))
+                urls.append(url)
+                shwrs.append('Unknown')
+                srcs.append('Live')
+                zeros.append(0)
 
-    hdr='timestamp,Source,Shower,Mag,Loc_Cam,url'
+    hdr='eventtime,source,shower,mag,loccam,url'
 
     # write out the converted data
-    UAdata = np.column_stack((dtstamps,srcs, shwrs, zeros, loccam, urls))
+    outdata = np.column_stack((dtstamps,srcs, shwrs, zeros, loccam, urls))
+    outdata = np.unique(outdata, axis=0)
     fmtstr = '%s,%s,%s,%s,%s,%s'
     outfile = os.path.join(outdir, '{:s}-liveevents.csv'.format(year))
-    np.savetxt(outfile, UAdata, fmt=fmtstr, header=hdr, comments='')
+    np.savetxt(outfile, outdata, fmt=fmtstr, header=hdr, comments='')
 
 
 def MatchToSrchable(configfile, year, outdir):
@@ -103,7 +111,6 @@ def MatchToSrchable(configfile, year, outdir):
     srcs = []
     for entry in listOfFiles:
         orbname = entry[:22]
-        print(orbname)
         fname = os.path.join(config['config']['RCODEDIR'], 'DATA', 'orbits', year, 'csv', entry)
         with open(fname, 'r') as fi:
             dta = fi.readline()
@@ -126,10 +133,11 @@ def MatchToSrchable(configfile, year, outdir):
                 dtstamp = datetime.datetime.strptime(orbname, '%Y%m%d-%H%M%S.%f')
                 dtstamps.append(dtstamp.timestamp())
                 srcs.append('Matched')
-    matchhdr='timestamp,Source,Shower,Mag,Loc_Cam,url'
+    matchhdr='eventtime,source,shower,mag,loccam,url'
 
     # write out the converted data
     matchdata = np.column_stack((dtstamps, srcs, shwrs, mags, loccams, urls))
+    matchdata = np.unique(matchdata, axis=0)
     matchfmtstr = '%s,%s,%s,%s,%s,%s'
 
     outfile = os.path.join(outdir, '{:s}-matchedevents.csv'.format(year))
@@ -137,13 +145,12 @@ def MatchToSrchable(configfile, year, outdir):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 5:
-        print('usage: python UFOtoSearchableFormat.py configfile singlefile livefile dest')
+    if len(sys.argv) < 3:
+        print('usage: python UFOtoSearchableFormat.py configfile year dest')
         exit(1)
     else:
-        idxname = os.path.basename(sys.argv[3])
-        year = idxname[3:7]
+        year =sys.argv[2]
 
-        ret = UFOAToSrchable(year, sys.argv[2], sys.argv[4])
-        ret = LiveToSrchable(year, sys.argv[3], sys.argv[4])
-        ret = MatchToSrchable(sys.argv[1], year, sys.argv[4])
+        ret = UFOAToSrchable(sys.argv[1], year, sys.argv[3])
+        ret = LiveToSrchable(sys.argv[1], year, sys.argv[3])
+        ret = MatchToSrchable(sys.argv[1], year, sys.argv[3])
