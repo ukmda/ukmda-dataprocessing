@@ -536,3 +536,4 @@ StandaloneCurator/.installed
 NewAnalysis/orbitSolver/testing
 NewAnalysis/FormatConverters/testing
 */test_data/*
+archive/Maintenance/pytz*

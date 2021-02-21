@@ -108,3 +108,9 @@
       regexp: 'CONFIG='
       line: 'CONFIG={{destdir}}/config'
     tags: [dev,prod]
+  - name: update site URL
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'SITEURL='
+      line: 'SITEURL={{siteurl}}'
+    tags: [dev,prod]
