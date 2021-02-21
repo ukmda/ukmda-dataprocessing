@@ -40,9 +40,7 @@ var form = document.querySelector("form");
 form.addEventListener("submit", function (event) {
   //console.log("Saving value", form.elements.value.value);
   var d1 = document.getElementById("datestart").innerHTML;
-  //var a = Date.toISOString(); //.parse(d1);
   var d2 = document.getElementById("dateend").innerHTML;
-  //var b = Date.toISOString(); //.parse(d2);
   var op = "foo";
   //jQuery.support.cors = true;
   payload = {"a":  d1, "b": d2, "op":  op };
@@ -60,12 +58,33 @@ form.addEventListener("submit", function (event) {
   });
   event.preventDefault();}
   );
+
 function myFunc(myObj) {
     console.log(myObj);
     var x, txt = "";
+    txt = "<table class=\"table table-striped table-bordered table-hover table-condensed\">"
+    txt += "<tr><td><b>DateTime</b></td><td><b>Source</b></td><td><b>Shower</b></td>";
+    txt += "<td><b>Mag</b></td><td><b>Camera</b></td><td><b>Link</b></td></tr>";
     for (x in myObj) {
       console.log(myObj[x]);
-      txt += myObj[x] + "<br>";
+      var dtarr = myObj[x].split(',');
+      if (dtarr[0] > 0 ){
+        txt +='<tr><td>';
+        dt = new Date(dtarr[0]*1000);
+        txt += dt.toISOString();
+        txt += "</td><td>";
+        txt += dtarr[1];
+        txt += "</td><td>";
+        txt += dtarr[2];
+        txt += "</td><td>";
+        txt += dtarr[3];
+        txt += "</td><td>";
+        txt += dtarr[4];
+        txt += "</td><td>";
+        txt += "<a href=\"" + dtarr[5] + "\" target=\"_blank\"><img src=\"" + dtarr[6] + "\" alt=\"Image unavailable\" width=\"100\"></a>";
+        txt += "</tr>";
+      }
     }
+    txt += "</table>";
     document.getElementById("searchresults").innerHTML = txt;
 }

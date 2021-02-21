@@ -9,11 +9,13 @@ import numpy as np
 import Formats.UAFormats as uaf
 import configparser as cfg
 import datetime 
+import glob
 
 
 def UFOAToSrchable(configfile, year, outdir):
     config=cfg.ConfigParser()
     config.read(configfile)
+    weburl=config['config']['SITEURL']
     
     fname = 'UKMON-{:s}-single.csv'.format(year)
     rmsuafile= os.path.join(config['config']['RCODEDIR'], 'DATA', 'consolidated', fname)
@@ -29,6 +31,7 @@ def UFOAToSrchable(configfile, year, outdir):
 
     dtstamps = []
     urls = []
+    imgs = []
     for li in uadata:
         se = float(li['Sec'])
         ss = int(np.floor(se))
@@ -39,15 +42,19 @@ def UFOAToSrchable(configfile, year, outdir):
 
         ds = datetime.datetime(li['Yr'], li['Mth'], li['Day'], li['Hr'], li['Min'], ss, microsecond=us)
         dtstamps.append(np.round(ds.timestamp(),2))
+        ymd = '{:04d}{:02d}{:02d}'.format(li['Yr'], li['Mth'], li['Day'])
+        hms = '{:02d}{:02d}{:02d}'.format(li['Hr'], li['Min'], ss)
+        lc = li['Loc_Cam'].strip()
+        url = weburl + '/img/single/M' + ymd + '_' + hms + '_' + lc + 'P.jpg'
+        urls.append(url)
+        imgs.append(url)
 
-        urls.append('https://somewhere')
-
-    hdr='eventtime,source,shower,mag,loccam,url'
+    hdr='eventtime,source,shower,mag,loccam,url,img'
 
     # write out the converted data
-    outdata = np.column_stack((dtstamps,srcs, uadata['Group'], uadata['Mag'], uadata['Loc_Cam'], urls))
+    outdata = np.column_stack((dtstamps,srcs, uadata['Group'], uadata['Mag'], uadata['Loc_Cam'], urls, imgs))
     outdata = np.unique(outdata, axis=0)
-    fmtstr = '%s,%s,%s,%s,%s,%s'
+    fmtstr = '%s,%s,%s,%s,%s,%s,%s'
     outfile = os.path.join(outdir, '{:s}-singleevents.csv'.format(year))
     np.savetxt(outfile, outdata, fmt=fmtstr, header=hdr, comments='')
 
@@ -58,6 +65,7 @@ def LiveToSrchable(configfile, year, outdir):
 
     dtstamps = []
     urls = []
+    imgs = []
     loccam = []
     srcs = []
     shwrs = []
@@ -82,16 +90,17 @@ def LiveToSrchable(configfile, year, outdir):
                 url='https://live.ukmeteornetwork.co.uk/M' + li['ymd'] + '_' + li['hms'] + '_' + lc + 'P.jpg'
 
                 urls.append(url)
+                imgs.append(url)
                 shwrs.append('Unknown')
                 srcs.append('Live')
                 zeros.append(0)
 
-    hdr='eventtime,source,shower,mag,loccam,url'
+    hdr='eventtime,source,shower,mag,loccam,url,imgs'
 
     # write out the converted data
-    outdata = np.column_stack((dtstamps,srcs, shwrs, zeros, loccam, urls))
+    outdata = np.column_stack((dtstamps,srcs, shwrs, zeros, loccam, urls,imgs))
     outdata = np.unique(outdata, axis=0)
-    fmtstr = '%s,%s,%s,%s,%s,%s'
+    fmtstr = '%s,%s,%s,%s,%s,%s,%s'
     outfile = os.path.join(outdir, '{:s}-liveevents.csv'.format(year))
     np.savetxt(outfile, outdata, fmt=fmtstr, header=hdr, comments='')
 
@@ -99,46 +108,62 @@ def LiveToSrchable(configfile, year, outdir):
 def MatchToSrchable(configfile, year, outdir):
     config=cfg.ConfigParser()
     config.read(configfile)
+    weburl=config['config']['SITEURL']
     
-    path= os.path.join(config['config']['RCODEDIR'], 'DATA', 'orbits', year, 'csv')
+    path= os.path.join(config['config']['RCODEDIR'], 'DATA', 'orbits', year)
     listOfFiles = os.listdir(path)
 
     dtstamps = []
     urls = []
+    imgs = []
     shwrs = []
     mags = []
     loccams = []
     srcs = []
     for entry in listOfFiles:
-        orbname = entry[:22]
-        fname = os.path.join(config['config']['RCODEDIR'], 'DATA', 'orbits', year, 'csv', entry)
-        with open(fname, 'r') as fi:
-            dta = fi.readline()
-            if dta[:3] == 'RMS':
-                spls = dta.split(',')
-                dtval = spls[2][1:]
-                ym = dtval[:6]
-                sts = spls[5][1:]
-                mag = spls[7]
-                shwr = spls[25]
+        if 'csv' in entry:
+            continue
+        entry = os.path.join(path, entry)
+        with open(entry, 'r') as idxfile:
+            lis = idxfile.readlines()
+            for li in lis: 
+                orbname = li.rstrip()
+                csvname, _ = orbname.split('.')
+                csvname = csvname + '*.csv'
+                csvfname = os.path.join(config['config']['RCODEDIR'], 'DATA', 'orbits', year, 'csv', csvname)
+                csvfile = glob.glob(csvfname)
+                if len(csvfile) > 0:
+                    with open(csvfile[0], 'r') as fi:
+                        dta = fi.readline()
+                        if dta[:3] == 'RMS':
+                            spls = dta.split(',')
+                            dtval = spls[2][1:]
+                            ym = dtval[:6]
+                            sts = spls[5][1:]
+                            mag = spls[7]
+                            shwr = spls[25]
+#                            print(orbname, len(orbname), orbname[:len(orbname)-1])
+                            orbname = orbname[:len(orbname)-1]
+                            # reports/2021/orbits/202102/20210204-003908.447008/20210204_003916_orbit_top.png
+                            url = weburl + '/reports/' + year
+                            url1 = url + '/orbits/' + ym + '/' + orbname + '/index.html'
+                            url2 = url + '/orbits/' + ym + '/' + orbname + '/' + dtval + '_ground_track.png'
+                            shwrs.append(shwr)
+                            urls.append(url1)
+                            imgs.append(url2)
+                            loccams.append(sts)
+                            mags.append(mag)
 
-                # reports/2021/orbits/202102/20210204-003908.447008/20210204_003916_orbit_top.png
-                url = 'https://archive.ukmeteornetwork.co.uk/reports/' + year
-                url = url + '/orbits/' + ym + '/' + orbname + '/' + dtval + '_ground_track.png'
-                shwrs.append(shwr)
-                urls.append(url)
-                loccams.append(sts)
-                mags.append(mag)
+                            dtstamp = datetime.datetime.strptime(orbname, '%Y%m%d-%H%M%S.%f')
+                            dtstamps.append(dtstamp.timestamp())
+                            srcs.append('Matched')
 
-                dtstamp = datetime.datetime.strptime(orbname, '%Y%m%d-%H%M%S.%f')
-                dtstamps.append(dtstamp.timestamp())
-                srcs.append('Matched')
-    matchhdr='eventtime,source,shower,mag,loccam,url'
+    matchhdr='eventtime,source,shower,mag,loccam,url,img'
 
     # write out the converted data
-    matchdata = np.column_stack((dtstamps, srcs, shwrs, mags, loccams, urls))
+    matchdata = np.column_stack((dtstamps, srcs, shwrs, mags, loccams, urls, imgs))
     matchdata = np.unique(matchdata, axis=0)
-    matchfmtstr = '%s,%s,%s,%s,%s,%s'
+    matchfmtstr = '%s,%s,%s,%s,%s,%s,%s'
 
     outfile = os.path.join(outdir, '{:s}-matchedevents.csv'.format(year))
     np.savetxt(outfile, matchdata, fmt=matchfmtstr, header=matchhdr, comments='')

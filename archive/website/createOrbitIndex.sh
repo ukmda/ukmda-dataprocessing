@@ -18,12 +18,15 @@ if [ "$mth" != "" ] ; then
     msg2="<a href=\"../index.html\">Back to annual index</a>" 
     targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${ym}
     orblist=$(aws s3 ls $targ/ | grep PRE | grep $mth | awk '{print $2}')
+    domth=1
+    rm -f $RCODEDIR/DATA/orbits/$yr/$ym.txt
 else
     displstr=${yr}
     msg="Click to explore each month."
     msg2="<a href=\"../../index.html\">Back to reports index</a>" 
     targ=${WEBSITEBUCKET}/reports/${yr}/orbits
     orblist=$(aws s3 ls $targ/ | grep PRE | grep $yr | awk '{print $2}')
+    domth=0
 fi
 
 idxfile=/tmp/${ym}.html
@@ -47,7 +50,10 @@ else
         if [ $j == 6 ] ; then
             j=0
             echo "</tr>" >> $idxfile
-        fi 
+        fi
+        if [ $domth -eq 1 ] ; then
+            echo "$i" >> $RCODEDIR/DATA/orbits/$yr/$ym.txt
+        fi
     done
 fi
 echo "</tr></table>" >> $idxfile
