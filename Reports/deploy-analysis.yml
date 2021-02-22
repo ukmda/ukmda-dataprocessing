@@ -22,6 +22,9 @@
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     tags: [dev,prod]
     with_items:
+    - {src: '{{srcdir}}/archive/Maintenance/collectJpgs.sh', dest: '{{destdir}}/analysis/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/archive/Maintenance/initialGetAllJpgs.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/archive/Maintenance/consolidateJpgs.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
     - {src: '{{srcdir}}/archive/Maintenance/consolidateMatchedData.py', dest: '{{destdir}}/matches/', mode: '644', backup: no }
     - {src: '{{srcdir}}/archive/Maintenance/findAllMatches.sh', dest: '{{destdir}}/matches/', mode: '754', backup: no }
     - {src: '{{srcdir}}/archive/Maintenance/reconsolidateYearAXML.sh', dest: '{{destdir}}/matches/', mode: '754', backup: no }

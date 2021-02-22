@@ -15,10 +15,14 @@ cd $SRC/analysis
 python ufoToSearchableFormat.py $CONFIG/config.ini $yr /tmp
 
 mv /tmp/${yr}-singleevents.csv $RCODEDIR/DATA/searchidx/${yr}-allevents.csv
-sed '1d' /tmp/${yr}-matchedevents.csv >> $RCODEDIR/DATA/searchidx/${yr}-allevents.csv
+if [ -f /tmp/${yr}-matchedevents.csv ] ; then 
+    sed '1d' /tmp/${yr}-matchedevents.csv >> $RCODEDIR/DATA/searchidx/${yr}-allevents.csv
+fi 
 sed '1d' /tmp/${yr}-liveevents.csv >> $RCODEDIR/DATA/searchidx/${yr}-allevents.csv
 
-rm /tmp/${yr}-matchedevents.csv
+if [ -f /tmp/${yr}-matchedevents.csv ] ; then 
+    rm /tmp/${yr}-matchedevents.csv
+fi
 rm /tmp/${yr}-liveevents.csv
 
 source $WEBSITEKEY

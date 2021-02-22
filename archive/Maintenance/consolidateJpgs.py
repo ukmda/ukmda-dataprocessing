@@ -24,7 +24,7 @@ def copyJpgToArchive(s3bucket, s3object):
     s3object = unquote_plus(s3object)
     src = {'Bucket': s3bucket, 'Key': s3object}
     print(s3object, outf)
-    s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
+    s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src, ContentType="image/jpeg", MetadataDirective='REPLACE')
 
 
 def lambda_handler(event, context):
@@ -39,5 +39,10 @@ if __name__ == "__main__":
     s3bucket = 'ukmon-shared'
     s3object = 'archive/Cardiff/Cardiff_Camera_1/2015/201510/20151025/M20151026_030101_MC1_c1P.jpg'
     if len(sys.argv) > 0:
-        s3object = 'archive/' + sys.argv[1]
+        fname = sys.argv[1]
+        if './' in fname:
+            s3object = 'archive/' + fname[2:]
+        else:
+            s3object = 'archive/' + fname
+    #print(s3object)
     copyJpgToArchive(s3bucket, s3object)

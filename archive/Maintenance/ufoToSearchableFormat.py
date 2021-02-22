@@ -45,7 +45,9 @@ def UFOAToSrchable(configfile, year, outdir):
         ymd = '{:04d}{:02d}{:02d}'.format(li['Yr'], li['Mth'], li['Day'])
         hms = '{:02d}{:02d}{:02d}'.format(li['Hr'], li['Min'], ss)
         lc = li['Loc_Cam'].strip()
-        url = weburl + '/img/single/M' + ymd + '_' + hms + '_' + lc + 'P.jpg'
+        mth = '{:04d}{:02d}'.format(li['Yr'], li['Mth'])
+        fldr = '/img/single/{:04d}/{:s}/M{:s}_{:s}_{:s}P.jpg'.format(li['Yr'], mth, ymd, hms, lc)
+        url = weburl + fldr
         urls.append(url)
         imgs.append(url)
 
@@ -178,4 +180,5 @@ if __name__ == '__main__':
 
         ret = UFOAToSrchable(sys.argv[1], year, sys.argv[3])
         ret = LiveToSrchable(sys.argv[1], year, sys.argv[3])
-        ret = MatchToSrchable(sys.argv[1], year, sys.argv[3])
+        if int(year) > 2019:
+            ret = MatchToSrchable(sys.argv[1], year, sys.argv[3])

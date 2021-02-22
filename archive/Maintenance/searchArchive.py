@@ -76,7 +76,7 @@ def lambda_handler(event, context):
 
 
 def main():
-    a = '2021-01-25T20:20:00.000Z'
+    a = '2013-01-02T00:20:00.000Z'
     d1 = dateutil.parser.isoparse(a)
     d2 = d1 + datetime.timedelta(minutes=20)
     try:
