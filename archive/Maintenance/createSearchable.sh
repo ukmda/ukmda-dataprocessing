@@ -21,9 +21,14 @@ fi
 sed '1d' /tmp/${yr}-liveevents.csv >> $RCODEDIR/DATA/searchidx/${yr}-allevents.csv
 
 if [ -f /tmp/${yr}-matchedevents.csv ] ; then 
-    rm /tmp/${yr}-matchedevents.csv
+    rm -f /tmp/${yr}-matchedevents.csv
 fi
-rm /tmp/${yr}-liveevents.csv
+rm -f /tmp/${yr}-liveevents.csv
+
+grep -v "J8_TBC" $RCODEDIR/DATA/searchidx/${yr}-allevents.csv > /tmp/${yr}-allevents.csv
+
+cp /tmp/${yr}-allevents.csv $RCODEDIR/DATA/searchidx/${yr}-allevents.csv
+rm -f /tmp/${yr}-allevents.csv
 
 source $WEBSITEKEY
 aws s3 sync $RCODEDIR/DATA/searchidx/ $WEBSITEBUCKET/search/indexes/

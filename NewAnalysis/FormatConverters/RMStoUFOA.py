@@ -15,7 +15,8 @@ fmtstr='%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
 
 def matchShowerNames(UAdata, rmsshwr):
     i=0
-    for li in UAdata:
+    for i in range(len(UAdata)):
+        li = UAdata[i]
         yr = li[8].astype('i4')
         mo = li[9].astype('i4')
         dy = li[10].astype('i4')
@@ -24,7 +25,7 @@ def matchShowerNames(UAdata, rmsshwr):
         se = li[13].astype('f8')
         matchcond = np.logical_and(rmsshwr['Yr'] == yr, np.logical_and(rmsshwr['Mth'] == mo, 
             np.logical_and(rmsshwr['Day'] == dy, np.logical_and(rmsshwr['Hr'] ==hr, 
-            np.logical_and(rmsshwr['Min'] == mi, rmsshwr['Sec'] == se)))))
+            np.logical_and(rmsshwr['Min'] == mi, abs(rmsshwr['Sec'] - se) < 0.2)))))
         match=rmsshwr[matchcond]
         if len(match) > 0:
             ids=match['Shwr']
@@ -35,7 +36,6 @@ def matchShowerNames(UAdata, rmsshwr):
                 UAdata[i][1]='spo'
             else:
                 UAdata[i][1]='J8_'+ids[0]
-            i=i+1
     return
 
 

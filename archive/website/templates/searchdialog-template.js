@@ -35,7 +35,7 @@ $('#selectInterval').on('rangeSelected', function(){
     }
 });
       
-var apiurl = 'https://0zbnc358p0.execute-api.eu-west-1.amazonaws.com/test';
+var apiurl = '{{APIURL}}';
 var form = document.querySelector("form");
 form.addEventListener("submit", function (event) {
   //console.log("Saving value", form.elements.value.value);
@@ -89,4 +89,3 @@ function myFunc(myObj) {
     txt += "</table>";
     document.getElementById("searchresults").innerHTML = txt;
 }
-
