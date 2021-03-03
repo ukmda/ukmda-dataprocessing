@@ -37,13 +37,16 @@ $myf = $destpath + '\'+$path
 # Use the Python version of binviewer, or the compiled binary?
 if ($USE_EXE -eq 1){
     set-location $binviewer_exe_loc
-    & .\CMN_binviewer.exe $myf | out-null
+    & .\CMN_binviewer.exe $myf -c | out-null
 }
 else {
     conda activate $binviewer_env
     set-location $binviewer_pyt_loc
-    python CMN_BinViewer.py $myf
+    python CMN_BinViewer.py $myf -c
 }
+set-location $PSScriptRoot
+.\uploadToCmnRejected.ps1 $myf
+
 # switch RMS environment to do some post processing
 if ($RMS_INSTALLED -eq 1){
     # reprocess the ConfirmedFiles folder to generate JPGs, shower maps, etc

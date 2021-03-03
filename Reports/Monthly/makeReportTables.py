@@ -4,10 +4,9 @@
 import csv
 import os
 import sys
-import configparser
 
 
-def makeOrbitList(root, yr, shwr):
+def makeOrbitList(yr, shwr):
     of = open('listoforbits.html', 'w')
 
     of.write('<br><table id="tablestyle">\n')
@@ -15,7 +14,7 @@ def makeOrbitList(root, yr, shwr):
     of.close()
 
 
-def makeFBGraphs(root, yr, shwr, fbcount):
+def makeFBGraphs(yr):
     of = open('fireballgraphs.html', 'w')
     if fbcount > 0:
         of.write('<p>A breakdown is shown below. </p>')
@@ -28,12 +27,12 @@ def makeFBGraphs(root, yr, shwr, fbcount):
     of.close()
 
 
-def makeFBTable(root, yr, shwr, fbcount):
+def makeFBTable(fbcount):
     of = open('fireballtable.html', 'w')
     if fbcount > 0:
-        of.write('<br><table id="tablestyle">\n')
+        of.write('<br><table class="table table-striped table-bordered table-hover table-condensed" id="tablestyle">\n')
         of.write('<tr><td><b>DateTime</td><td><b>Magnitude</td><td><b>Stream</td><td><b>Station Matches</td></tr>\n')
-        fname = os.path.join(root, yr, shwr, 'TABLE_Fireballs.csv')
+        fname = os.path.join('TABLE_Fireballs.csv')
         with open(fname, 'r') as inf:
             data = csv.reader(inf, delimiter=',')
             _ = next(data)  # skip the header row
@@ -53,10 +52,10 @@ def makeFBTable(root, yr, shwr, fbcount):
     of.close()
 
 
-def createTables(root, yr, shwr, fbcount):
-    makeFBGraphs(root, yr, shwr, fbcount)
-    makeFBTable(root, yr, shwr, fbcount)
-    makeOrbitList(root, yr, shwr)
+def createTables(yr, shwr, fbcount):
+    makeFBGraphs(yr)
+    makeFBTable(fbcount)
+    makeOrbitList(yr, shwr)
 
 
 if __name__ == '__main__':
@@ -67,8 +66,5 @@ if __name__ == '__main__':
         shwr = sys.argv[1]
         yr = sys.argv[2]
         fbcount = int(sys.argv[3])
-        config = configparser.ConfigParser()
-        config.read("/home/ec2-user/src/analysis/config.ini")
-        root = config['config']['REPORTDIR']
 
-        createTables(root, yr, shwr, fbcount)
+        createTables(yr, shwr, fbcount)

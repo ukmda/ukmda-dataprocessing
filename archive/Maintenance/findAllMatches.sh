@@ -2,9 +2,10 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
+source $here/../config/config.ini >/dev/null 2>&1
+
 source ~/.ssh/ukmon-shared-keys
-source ~/venvs/wmpl/bin/activate
-source ~/src/analysis/config.ini
+source ~/venvs/${WMPL_ENV}/bin/activate
 
 if [ $# -eq 0 ]; then
     ym=$(date +%Y%m)
@@ -14,6 +15,6 @@ fi
 yr=${ym:0:4}
 mth=${ym:4:2}
 
-mkdir -p $here/logs > /dev/null 2>&1
+mkdir -p $SRC/logs/matches > /dev/null 2>&1
 
-python $here/consolidateMatchedData.py $yr $mth |tee $here/logs/$ym.log
+python $here/consolidateMatchedData.py $yr $mth |tee $SRC/logs/matches/$ym.log

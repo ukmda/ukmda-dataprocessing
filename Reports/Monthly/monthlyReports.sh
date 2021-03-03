@@ -3,39 +3,75 @@
 # monthly reporting for UKMON
 #
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+source $here/../config/config.ini >/dev/null 2>&1
 
+source $HOME/venvs/${RMS_ENV}/bin/activate
+
+yr=$2
+shwr=$1
+lastyr=$((yr-1))
 
 echo getting latest combined files
+
 source ~/.ssh/ukmon-shared-keys
-aws s3 sync s3://ukmon-shared/consolidated/ $here/DATA/consolidated --exclude 'consolidated/temp/*'
+aws s3 sync s3://ukmon-shared/consolidated/ ${RCODEDIR}/DATA/consolidated --exclude 'consolidated/temp/*'
+aws s3 sync s3://ukmon-live/ ${RCODEDIR}/DATA/ukmonlive/ --exclude "*" --include "*.csv"
 
-cd $here/DATA
-cp $here/UA_header.txt UKMON-all-single.csv
-ls -1 consolidated/M* | while read i 
-do
-    sed '1d' $i >> UKMON-all-single.csv
-    echo "" >> UKMON-all-single.csv
-done
-cp $here/RMS_header.txt RMS_Merged_Files.csv
-ls -1 consolidated/P* | while read i 
-do
-    sed '1d' $i >> RMS_Merged_Files.csv
-    echo "" >> RMS_Merged_Files.csv
-done
+cd ${RCODEDIR}/DATA
+echo "Getting single detections and associations for $yr"
+cp consolidated/M_${yr}-unified.csv UFO-all-single.csv
+cp consolidated/P_${yr}-unified.csv RMS-all-single.csv
 
-source $here/../orbits/orbitsolver.ini
-YR=$1
-if [ $# -gt 1 ] ; then
-    SHWR=$2
+echo "getting RMS single-station shower associations for $yr"
+echo "ID,Y,M,D,h,m,s,Shwr" > RMS-assoc-single.csv
+cat ${RCODEDIR}/DATA/consolidated/A/??????_${yr}* >> RMS-assoc-single.csv
+
+echo "getting matched detections for $yr"
+cp $here/templates/UO_header.txt ${RCODEDIR}/DATA/matched/matches-$yr.csv
+cat ${RCODEDIR}/DATA/orbits/$yr/csv/$yr*.csv >> ${RCODEDIR}/DATA/matched/matches-$yr.csv
+
+if [ "$shwr" == "QUA" ] ; then
+    echo "including previous year to catch early Quadrantids"
+    sed '1d' consolidated/M_${lastyr}-unified.csv >> UFO-all-single.csv
+    sed '1d' consolidated/P_${lastyr}-unified.csv >> RMS-all-single.csv
+
+    echo "including prev year RMS single-station shower associations"
+    cat ${RCODEDIR}/DATA/consolidated/A/??????_${lastyr}* >> RMS-assoc-single.csv
+
+    echo "getting matched detections for $lastyr"
+    cp $here/templates/UO_header.txt ${RCODEDIR}/DATA/matched/matches-$lastyr.csv
+    cat ${RCODEDIR}/DATA/orbits/$lastyr/csv/$lastyr*.csv >> ${RCODEDIR}/DATA/matched/matches-$lastyr.csv
+
 else
-    SHWR=ALL
+    echo "" >> UFO-all-single.csv
+    echo "" >> RMS-all-single.csv
+    # not needed for these data echo "" >> RMS-assoc-single.csv
+fi 
+# merge in the RMS data
+cp UFO-all-single.csv UKMON-all-single.csv
+python $here/RMStoUFOA.py $SRC/config/config.ini RMS-all-single.csv RMS-assoc-single.csv RMS-UFOA-single.csv $SRC/analysis/templates/
+sed '1d' RMS-UFOA-single.csv | sed '1d' >> UKMON-all-single.csv
+cp RMS-UFOA-single.csv consolidated/R_${yr}-unified.csv
+cp UKMON-all-single.csv consolidated/UKMON-${yr}-single.csv
+echo "got relevant data"
+
+lc=$(wc -l ${RCODEDIR}/DATA/matched/matches-$yr.csv | awk '{print $1}')
+if [ $lc -gt 1 ] ; then
+    cp ${RCODEDIR}/DATA/matched/matches-$yr.csv ${RCODEDIR}/DATA/UKMON-all-matches.csv
+else
+    cp ${RCODEDIR}/DATA/matched/pre2020/matches-$yr.csv ${RCODEDIR}/DATA/UKMON-all-matches.csv
 fi 
 
-cp $here/UO_header.txt $here/DATA/matched/matches-$YR.csv
-cat $results/$YR/orbits/csv/$YR*.csv >> $here/DATA/matched/matches-$YR.csv
-wc -l $here/DATA/matched/matches-$YR.csv
-cp $here/DATA/matched/matches-$YR.csv $here/DATA/UKMON-all-matches.csv
+if [ "$shwr" == "QUA" ] ; then
+    lc=$(wc -l ${RCODEDIR}/DATA/matched/matches-$lastyr.csv | awk '{print $1}')
+    if [ $lc -gt 1 ] ; then
+        sed '1d' ${RCODEDIR}/DATA/matched/matches-$lastyr.csv >> ${RCODEDIR}/DATA/UKMON-all-matches.csv
+    else
+        sed '1d' ${RCODEDIR}/DATA/matched/pre2020/matches-$yr.csv >> ${RCODEDIR}/DATA/UKMON-all-matches.csv
+    fi 
+fi 
 
 cd $here
-$here/createReport.sh $SHWR $YR $3
+echo "running $shwr report for $yr"
+$here/createReport.sh $shwr $yr $3
 

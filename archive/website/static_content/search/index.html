@@ -1,0 +1,94 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <title>UK Meteor Network Archive</title>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Meteor Observation Data">
+  <meta name="author" content="Mark McIntyre">
+  <meta name="keywords" content="meteors,astronomy,space" />
+
+  <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+  <!-- script src="https://www.jonthornton.com/jquery-timepicker/jquery.timepicker.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://www.jonthornton.com/jquery-timepicker/jquery.timepicker.css" -->
+  <script type="text/javascript" src="/js/datepicker/jquery.timepicker.js"></script>
+  <link rel="stylesheet" type="text/css" href="/css/datepicker/jquery.timepicker.css">
+
+  <!-- script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.5.0/js/bootstrap-datepicker.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.5.0/css/bootstrap-datepicker.standalone.css" -->
+  <script type="text/javascript" src="/js/datepicker/bootstrap-datepicker.js"></script>
+  <link rel="stylesheet" type="text/css" href="/css/datepicker/bootstrap-datepicker.standalone.css">
+
+  <link href="/css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
+  <link href="/css/dragontail.css" rel="stylesheet">
+  <link href="/css/plugins/timeline.css" rel="stylesheet">
+  <link href="/css/plugins/morris.css" rel="stylesheet">
+
+  <script src="/js/bootstrap.min.js"></script>
+  <script src="/js/plugins/metisMenu/metisMenu.min.js"></script>
+  <script src="/js/plugins/morris/raphael.min.js"></script>
+  <script src="/js/plugins/morris/morris.min.js"></script>
+  <script src="/js/constellation.js"></script>
+  <script src="/js/sb-admin-2.js"></script>
+
+  <script type="text/javascript" src="/js/datepicker/datepair.js"></script>
+</head>
+
+<body>
+
+  <div id="nav-placeholder"></div>
+  <script>
+    $(function () {
+      $("#nav-placeholder").load("/templates/navbar.html");
+    });
+  </script>
+
+  <div class="container">
+    <h2>Search the Archive.</h2>
+    <p>
+      This page allows you to search the archive for specific events. There are three datasources: <br>
+      <li>The live stream captured in realtime each night</li>
+      <li>Matched events, for which we've solved to determine the orbit and trajectory</li>
+      <li>Single detections.</li>
+      A detection may appear in all three datasets of course. Note however that many of our cameras
+      upload only upload analytical information on a monthly basis, so single and matched analysis is often
+      not available for some days or weeks. 
+    </p>
+    <p>NB: During meteor showers we often capture thousands of meteors across the network,
+      so we strongly suggest that initially you set the range quite tight!
+    </p>
+    <p>
+      The data here are released under the <a href= "https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> license, so if you are using the data 
+      whether for scientific or other purposes, your must reference this web site and UKMON 
+      in your work.
+    </p>
+    <hr>
+    <form id="selectInterval">
+      <input type="text" class="date start" id="date1" />
+      <input type="text" class="time start" id="time1" /> to 
+      <input type="text" class="time end" id="time2" />
+      <input type="text" class="date end" id="date2" /><br>
+      <button type="submit">Search</button>
+    </form>
+    <p> <div id="statusfield"></div></p>
+    <p> <h3>RESULTS</h3></p>
+    <p>Events in Date Range <div id="datestart"></div><div id="dateend"></div></p>
+    <p id="searchresults"></p>
+    <script src="/data/searchdialog.js"></script>
+
+    <hr>
+    <div id="copyrite-placeholder"></div>
+    <script>
+      $(function () {
+        $("#copyrite-placeholder").load("/templates/copyright.html");
+      });
+    </script>
+  </div>
+</body>
+
+</html>

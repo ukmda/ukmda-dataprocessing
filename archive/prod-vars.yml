@@ -1,0 +1,5 @@
+destdir: /home/ec2-user/prod
+websitebucket: ukmeteornetworkarchive
+websitekey: ~/.ssh/ukmonarchive-keys
+s3profile: ukmonarchive
+siteurl: https://archive.ukmeteornetwork.co.uk

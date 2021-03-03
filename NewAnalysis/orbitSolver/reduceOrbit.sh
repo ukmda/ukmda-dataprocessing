@@ -4,23 +4,17 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # load the helper functions
-source $here/orbitsolver.ini > /dev/null 2>&1
-source ~/venvs/$WMPL_ENV/bin/activate
+source $here/../config/config.ini >/dev/null 2>&1
+
+source $HOME/venvs/$WMPL_ENV/bin/activate
 export PYTHONPATH=$wmpl_loc
 
 pth=$1
 yr=${pth:0:4}
 ym=${pth:0:6}
+mth=${pth:4:2}
 
-force=0
-if [ $# -gt 1 ] ; then
-    if [ "$2" == "-f" ] ; then 
-        force=1
-    fi
-fi
-
-outdir=$results/$yr/orbits/$ym
-indir=$inputs/$yr/$ym/$pth
+indir=${MATCHDIR}/$yr/$ym/$pth
 mkdir -p $here/logs >/dev/null 2>&1
 
 cd $here
@@ -75,21 +69,20 @@ if [ $numas -gt 1 ] ; then
             fi 
         fi
     fi
-    if [ $force -eq 1 ] ; then
+    if [ "$2" == "force" ] ; then
         echo "forcing recalc"
+        rm -f $indir/notsolvable.txt >/dev/null 2>&1
     fi 
-    if [[ $dontprocess -eq 0 || $force -eq 1 ]] ; then
+    if [[ $dontprocess -eq 0 || "$2" == "force" ]] ; then
         if [[ $resultdir != "" &&  -d $resultdir ]] ; then 
             echo "removing previous results"
             if [ -f $resultdir/*orbit.csv ] ; then 
                 orbfile=$(basename $(ls -1 $resultdir/*orbit.csv))
                 orbextras=$(basename $(ls -1 $resultdir/*orbit_extras.csv))
-                rm -f $outdir/../csv/${orbfile}
-                rm -f $outdir/../extracsv/${orbextras}
+                rm -f ${RCODEDIR}/DATA/orbits/$yr/csv/${orbfile}
+                rm -f ${RCODEDIR}/DATA/orbits/$yr/extracsv/${orbextras}
             fi 
-            outbase=$(basename $resultdir)
             rm -Rf $resultdir 
-            rm -Rf $outdir/$outbase
         fi
 
         echo "converting $pth to RMS/CAMS format"
@@ -107,46 +100,15 @@ if [ $numas -gt 1 ] ; then
         #   -s solver (original or gural)
 
 #        python $here/ufoTrajSolver.py $indir/FTPdetectinfo_UFO.txt -x $plotallspatial -j -t $timing_offset $disablemc | tee $here/logs/$1.txt
-        python $here/ufoTrajSolver.py $indir/FTPdetectinfo_UFO.txt -x -l -j -t 5 -d 2>&1 | tee $here/logs/$1.txt
+        python $here/ufoTrajSolver.py $indir/FTPdetectinfo_UFO.txt -x -l -j -t 5 -d  # 2>&1 | tee $here/logs/$1.txt
         res=$?
         echo "done, result was $res"
-        # check if the process generated any output
-        resultdir=$(ls -1trd $indir/${yr}* | grep -v .txt | tail -1)
-        if [[ "$resultdir" != ""  &&  -d $resultdir ]] ; then
-            targ=`basename "$resultdir"`
-            fulltarg=$outdir/${targ}
-            rm -f $fulltarg >/dev/null 2>&1
-            mkdir -p $fulltarg >/dev/null 2>&1
-            echo "copying output files from $resultdir to $fulltarg"
-            cp -pr $resultdir/* $fulltarg
-
-            ls -1 $indir/*.jpg > /dev/null 2>&1 
-            if [ $? -eq 0 ] ; then 
-                mv $indir/*.jpg $fulltarg  
-                chmod 644 $fulltarg/*.jpg
-            fi
-            ls -1 $indir/*.mp4 > /dev/null 2>&1 
-            if [ $? -eq 0 ] ; then 
-                mv $indir/*.mp4 $fulltarg 
-                chmod 644 $fulltarg/*.mp4
-            fi
-            mkdir $outdir/../csv/ >/dev/null 2>&1
-            cp $resultdir/*orbit.csv $outdir/../csv/
-            mkdir $outdir/../extracsv/ >/dev/null 2>&1
-            cp $resultdir/*orbit_extras.csv $outdir/../extracsv/
-            
-            python $here/findJPGs.py $indir $fulltarg
-            chmod 644 $fulltarg/*.jpg
-
-            $here/createPageIndex.sh $targ
-            $here/createMonthlyOrbitIndex.sh $ym
-        else
-            echo "$1 was not solvable - probably not a true match"
-            echo "not solvable" > $indir/notsolvable.txt
-        fi
     else
         echo 'Not reprocessing folder'
+        res=99
     fi 
 else
     echo "$1 contains only one source file so not possible to solve"
+    res=1
 fi 
+exit $res

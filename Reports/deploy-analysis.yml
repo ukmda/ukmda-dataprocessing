@@ -1,0 +1,57 @@
+---
+- hosts: ukmonhelper
+  vars:
+    srcdir: /mnt/e/dev/meteorhunting/UKMON-shared
+  tasks:
+  - name: import dev variables 
+    include_vars: ../archive/dev-vars.yml
+    tags: dev
+  - name: import prod variables
+    include_vars: ../archive/prod-vars.yml
+    tags: prod
+  - name: Ensures {{destdir}} exists
+    file: path={{destdir}} state=directory  
+    tags: [dev,prod]
+  - name: Ensures {{destdir}}/R exists
+    file: path={{destdir}}/R state=directory  
+    tags: [dev,prod]
+  - name: Ensures {{destdir}}/logs exists
+    file: path={{destdir}}/logs state=directory  
+    tags: [dev,prod]
+  - name: Copy files
+    copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
+    tags: [dev,prod]
+    with_items:
+    - {src: '{{srcdir}}/archive/Maintenance/collectJpgs.sh', dest: '{{destdir}}/analysis/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/archive/Maintenance/initialGetAllJpgs.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/archive/Maintenance/consolidateJpgs.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/archive/Maintenance/consolidateMatchedData.py', dest: '{{destdir}}/matches/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/archive/Maintenance/findAllMatches.sh', dest: '{{destdir}}/matches/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/archive/Maintenance/reconsolidateYearAXML.sh', dest: '{{destdir}}/matches/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/archive/Maintenance/ufoToSearchableFormat.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/archive/Maintenance/createSearchable.sh', dest: '{{destdir}}/analysis/', mode: '755', backup: no }
+    - {src: '{{srcdir}}/Reports/Monthly/monthlyReports.sh', dest: '{{destdir}}/analysis/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/Reports/Monthly/analyse.sh', dest: '{{destdir}}/analysis/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/Reports/Monthly/createReport.sh', dest: '{{destdir}}/analysis/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/Reports/Monthly/reportYear.sh', dest: '{{destdir}}/analysis/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/Reports/Monthly/makeReportTables.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/Reports/Monthly/templates/UA_header.txt', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/Reports/Monthly/templates/UO_header.txt', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/Reports/Monthly/templates/RMS_header.txt', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/Reports/Monthly/templates/report-template.html', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/Reports/Monthly/templates/shower-report-template.html', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/Reports/Monthly/addRMSShowerDets.sh', dest: '{{destdir}}/analysis/', mode: '755', backup: no }
+    - {src: '{{srcdir}}/Reports/Monthly/updateRMSShowerAssocs.sh', dest: '{{destdir}}/analysis/', mode: '755', backup: no }
+    - {src: '{{srcdir}}/Reports/orbits/findJPGs.py', dest: '{{destdir}}/orbits/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/Reports/orbits/doOneMatch.sh', dest: '{{destdir}}/orbits/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/Reports/orbits/redoOneMatch.sh', dest: '{{destdir}}/orbits/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/Reports/orbits/doaMonth.sh', dest: '{{destdir}}/orbits/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/Reports/orbits/doaYear.sh', dest: '{{destdir}}/orbits/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/NewAnalysis/FormatConverters/RMStoUFOA.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/NewAnalysis/Formats/UAFormats.py', dest: '{{destdir}}/analysis/Formats/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/NewAnalysis/Formats/RMSFormats.py', dest: '{{destdir}}/analysis/Formats/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/NewAnalysis/ufoShowerAssoc.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/NewAnalysis/FormatConverters/UFOAtoFTPdetect.py', dest: '{{destdir}}/orbits/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/NewAnalysis/UFOHandler/ReadUFOAnalyzerXML.py', dest: '{{destdir}}/orbits/UFOHandler/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/NewAnalysis/orbitSolver/ufoTrajSolver.py', dest: '{{destdir}}/orbits/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/NewAnalysis/orbitSolver/reduceOrbit.sh', dest: '{{destdir}}/orbits/', mode: '754', backup: no }

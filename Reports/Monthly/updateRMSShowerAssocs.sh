@@ -1,25 +1,39 @@
 #!/bin/bash
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-source $here/config.ini >/dev/null 2>&1
+source $here/../config/config.ini >/dev/null 2>&1
 
-if [ $# -lt 3 ] ; then
-    echo usage: updateRMSShowerAssocs.sh sitename camname year
+if [ $# -lt 1 ] ; then
+    echo usage: updateRMSShowerAssocs.sh yearmth
     exit
 fi
+ym=$1
+yr=${ym:0:4}   
+mth=${ym:4:6}
 
-sitename=$1
-camname=$2
-yr=$3
+cat $CAMINFO | while read li ; do 
+    typ=$(echo $li | awk -F, '{printf("%s", $12)}') 
 
-ls -1 $ARCHDIR/$sitename/$camname/$yr/${yr}01 | while read i ; do $here/addRMSShowerDets.sh $sitename $camname $i ; done
-ls -1 $ARCHDIR/$sitename/$camname/$yr/${yr}02 | while read i ; do $here/addRMSShowerDets.sh $sitename $camname $i ; done
-ls -1 $ARCHDIR/$sitename/$camname/$yr/${yr}03 | while read i ; do $here/addRMSShowerDets.sh $sitename $camname $i ; done
-ls -1 $ARCHDIR/$sitename/$camname/$yr/${yr}04 | while read i ; do $here/addRMSShowerDets.sh $sitename $camname $i ; done
-ls -1 $ARCHDIR/$sitename/$camname/$yr/${yr}05 | while read i ; do $here/addRMSShowerDets.sh $sitename $camname $i ; done
-ls -1 $ARCHDIR/$sitename/$camname/$yr/${yr}06 | while read i ; do $here/addRMSShowerDets.sh $sitename $camname $i ; done
-ls -1 $ARCHDIR/$sitename/$camname/$yr/${yr}07 | while read i ; do $here/addRMSShowerDets.sh $sitename $camname $i ; done
-ls -1 $ARCHDIR/$sitename/$camname/$yr/${yr}08 | while read i ; do $here/addRMSShowerDets.sh $sitename $camname $i ; done
-ls -1 $ARCHDIR/$sitename/$camname/$yr/${yr}09 | while read i ; do $here/addRMSShowerDets.sh $sitename $camname $i ; done
-ls -1 $ARCHDIR/$sitename/$camname/$yr/${yr}10 | while read i ; do $here/addRMSShowerDets.sh $sitename $camname $i ; done
-ls -1 $ARCHDIR/$sitename/$camname/$yr/${yr}11 | while read i ; do $here/addRMSShowerDets.sh $sitename $camname $i ; done
-ls -1 $ARCHDIR/$sitename/$camname/$yr/${yr}12 | while read i ; do $here/addRMSShowerDets.sh $sitename $camname $i ; done
+    if [ "${li:0:1}" != "#" ] ; then
+        if [ ${typ:0:1} -eq 2 ] ; then 
+            sitename=$(echo $li | awk -F, '{printf("%s", $1)}')
+            camname=$(echo $li | awk -F, '{printf("%s", $2)}')
+            echo $sitename $camname
+            if [ "$mth" == "" ] ; then
+                for j in {01,02,03,04,05,06,07,08,09,10,11,12}
+                do
+                    ls -1 "$ARCHDIR/$sitename/$camname/$yr/${yr}${j}" | while read i
+                    do 
+                        $here/addRMSShowerDets.sh $sitename $camname $i 
+                    done
+                done
+            else
+                ls -1 "$ARCHDIR/$sitename/$camname/$yr/${yr}${mth}" | while read i
+                do 
+                    $here/addRMSShowerDets.sh $sitename $camname "$i" 
+                done
+            fi
+        fi 
+    fi
+done
+
+
