@@ -4,6 +4,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
 source ~/venvs/$RMS_ENV/bin/activate
+source $WEBSITEKEY
 if [ $# -lt 1 ] ; then
     yr=$(date +%Y)
 else
@@ -12,6 +13,7 @@ fi
 
 mkdir -p $RCODEDIR/DATA/searchidx
 cd $SRC/analysis
+echo "creating searchable format files"
 python ufoToSearchableFormat.py $CONFIG/config.ini $yr /tmp
 
 mv /tmp/${yr}-singleevents.csv $RCODEDIR/DATA/searchidx/${yr}-allevents.csv

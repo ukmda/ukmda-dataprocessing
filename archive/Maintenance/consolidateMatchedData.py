@@ -110,7 +110,7 @@ def getRMSIndexFile(yr, mth):
     alt1 = []
     ctyp = []
 
-    print('getting index file for ', yr, mth)
+    print('getting index file {:s} for'.format(idxfile), yr, mth)
     s3 = boto3.resource('s3')
     s3.meta.client.download_file('ukmon-shared', 'consolidated/' + idxfile, idxfile)
 
@@ -172,7 +172,7 @@ def getRMSIndexFile(yr, mth):
 
     # reload the meteor data into an ndarray so we can match[] on it
     meteors = numpy.loadtxt(sortedidx, delimiter=',', skiprows=1, dtype=sorteidxtype)
-    os.remove(sortedidx)
+    #os.remove(sortedidx)
     return meteors
 
 
@@ -189,7 +189,7 @@ def getUFOIndexFile(yr, mth):
     alt1 = []
     ctyp = []
 
-    print('getting index file for ', yr, mth)
+    print('getting index file {:s} for '.format(idxfile), yr, mth)
     s3 = boto3.resource('s3')
     s3.meta.client.download_file('ukmon-shared', 'consolidated/' + idxfile, idxfile)
 
@@ -412,12 +412,16 @@ def FindMatches(yr=None, mth=None):
         ts1 = (datetime.datetime(year=yr, month=mth, day=1) - datetime.timedelta(seconds=5)).timestamp()
         cond = meteors['tstamp'] > ts1
         meteors = meteors[cond]
-        from dateutil.relativedelta import relativedelta
 
-        ts2 = (datetime.datetime(year=yr, month=mth, day=1) + relativedelta(day=31) + datetime.timedelta(seconds=5)).timestamp()
+        tmpmth = mth+1
+        tmpyr = yr
+        if mth > 12:
+            tmpmth = 1
+            tmpyr = yr + 1
+        ts2 = (datetime.datetime(year=tmpyr, month=tmpmth, day=1) + datetime.timedelta(seconds=5)).timestamp()
         cond = meteors['tstamp'] < ts2
         meteors = meteors[cond]
-
+        print('daterange is', datetime.datetime.fromtimestamp(ts1), datetime.datetime.fromtimestamp(ts2))
     # search for matches
     lasttm = 0
 
@@ -431,23 +435,20 @@ def FindMatches(yr=None, mth=None):
         skipme = False
         nummatches = len(matchset)
         ignore = numpy.zeros(nummatches)
+        #print(tm, rw['loccam'], rw['localtime'], nummatches)
         if nummatches > 1:
             for i in range(nummatches):
-                # d = datetime.datetime.fromtimestamp(matchset[i]['tstamp']).strftime('%Y%m%d_%H%M%S')
-                # print(nummatches, matchset[i]['loccam'], ignore[i], d)
                 for j in range(i + 1, nummatches):
                     if matchset[i]['loccam'][:6].upper() == matchset[j]['loccam'][:6].upper():
+                        #print('same camera', matchset[i]['loccam'])
                         ignore[j] = 1
                     lat1, long1, _ = getCamLocation(matchset[i]['loccam'].decode('utf-8').strip(), cams, lati, longi, alti)
                     lat2, long2, _ = getCamLocation(matchset[j]['loccam'].decode('utf-8').strip(), cams, lati, longi, alti)
                     if abs(long1 - long2) < 0.01 and abs(lat1 - lat2) < 0.01:
+                        #print('same location', matchset[i]['loccam'], matchset[j]['loccam'])
                         ignore[j] = 1
-                    # if ignore[j] == 0:
-                        # d = datetime.datetime.fromtimestamp(matchset[j]['tstamp']).strftime('%Y%m%d_%H%M%S')
-                        # print('    ', matchset[j]['loccam'], ignore[j], d)
 
             if sum(ignore) > nummatches - 2:
-                # print('skipping ', nummatches, sum(ignore))
                 skipme = True
 
             # got at least a distinct pair and we're not rematching the last matches

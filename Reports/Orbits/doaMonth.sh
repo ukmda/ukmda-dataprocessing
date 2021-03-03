@@ -12,7 +12,7 @@ ls -1d ${MATCHDIR}/${yr}/${ym}/*  | while read i
 do
     indir=`basename $i`
     $here/doOneMatch.sh $indir $2
-    if [ $? == 0 ] ; then
-        $SRC/website/createPageIndex.sh $i
-    fi
+    #if [ $? == 0 ] ; then
+    #    $SRC/website/createPageIndex.sh $1
+    #fi
 done

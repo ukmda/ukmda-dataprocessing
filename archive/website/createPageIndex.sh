@@ -6,12 +6,12 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
 
-datadir=${MATCHDIR}/$1
-
 ym=$(basename $1)
 yr=${ym:0:4}
 mth=${ym:4:2}
 targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${yr}${mth}/$ym
+
+datadir=${MATCHDIR}/$1
 
 idxfile=${datadir}/index.html
 repf=`ls -1 ${datadir}/$yr*report.txt`
