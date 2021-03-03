@@ -100,7 +100,7 @@ def getCamLocation(c1, allcams, latis, longis, altis):
 def getRMSIndexFile(yr, mth):
     # fetch consolidated file and fetch out required details
     idxfile = 'P_{:04d}-unified.csv'.format(yr)
-    sortedidx = 'SP_{:04d}.csv'.format(yr)
+    sortedidx = '/tmp/SP_{:04d}.csv'.format(yr)
 
     grp = []
     localtime = []
@@ -172,7 +172,7 @@ def getRMSIndexFile(yr, mth):
 
     # reload the meteor data into an ndarray so we can match[] on it
     meteors = numpy.loadtxt(sortedidx, delimiter=',', skiprows=1, dtype=sorteidxtype)
-    #os.remove(sortedidx)
+    os.remove(sortedidx)
     return meteors
 
 
