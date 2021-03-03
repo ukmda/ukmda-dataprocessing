@@ -1,27 +1,35 @@
 # create a data type for UFO Analyser style CSV files
 import numpy
+import sys
 
 #defines the data content of a UFOAnalyser CSV file
-UFOCSV = numpy.dtype([('Ver','S8'),('Group','S8'),('LocalTime','S16'),
-    ('Mag','f8'),('Dur','f8'),('AV','f8'),('Loc_Cam','S16'),
+UFOCSV = numpy.dtype([('Ver','U8'),('Group','U8'),('LocalTime','U16'),
+    ('Mag','f8'),('Dur','f8'),('AV','f8'),('Loc_Cam','U16'),
     ('TZ','f8'),('Yr','i4'),('Mth','i4'),('Day','i4'),
     ('Hr','i4'),('Min','i4'),('Sec','f8'), ('Dir1','f8'), ('Alt1','f8'),
+    ('Ra1','f8'), ('Dec1','f8'), ('Ra2','f8'), ('Dec2','f8'),('alpha','f8'),
     # the remaining values are derived using UA's approximations and are unreliable
     # note also that UA uses -1$ and sometimes -1.#IND0 to indicate maths errors
-    ('Ra1','f8'), ('Dec1','f8'), ('Ra2','f8'), ('Dec2','f8'),('alpha','f8'),
-    ('delta','f8'),('','f8'), ('','f8'),('','f8'),('','f8') ,('','f8'),
-    ('io','S8'),('err1','S8'),('err2','S8'),('G1','S8'),('dd','S8'),
-    ('dr','S8'),('Vo','S8'),('dV','S8'),('ra_m','f8'),('dec_m','f8'),
+    # so although all these values are floats we have to read some in as unicode strings
+    ('delta','f8'),('','f8'), ('','f8'),('','f8'),('','f8'),('','f8'),
+    ('io','U8'),('err1','U8'),('err2','U8'),('G1','U8'),('dd','U8'),
+    ('dr','U8'),('Vo','U8'),('dV','U8'),('ra_m','f8'),('dec_m','f8'),
     ('refs','f8'),('errm','f8'),
     ('rat','f8'),('dct','f8'),('voo','f8'),('vooerr','f8'),('tmerr','f8'),
     ('sps','i4'),('sN','i4'),('drop','f8')])
 
+# format string for writing back out using numpy.savetxt
+UFOCSVfmt = '%s,%s,%s,%.4f,%.4f,%.4f,%s\
+    ,%d,%d,%d,%d,%d,%d,%.4f,%.6f,%.6f\
+    ,%.6f,%.6f,%.6f,%.6f,%.6f\
+    ,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\
+    ,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\
+    ,%.6f,%.6f,%.6f,%.6f,%.6f,%d,%d,%.6f'
 #-----------------------------------------------------------------------
-import sys
-import numpy
 
 # For testing.
 # example: python UAdata.py 2019
+
 
 def main():
     i=0
@@ -39,5 +47,3 @@ if __name__ == '__main__':
     main()
 
 #-----------------------------------------------------------------------
-
-
