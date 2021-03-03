@@ -536,3 +536,4 @@ NewAnalysis/orbitSolver/testing
 NewAnalysis/FormatConverters/testing
 */test_data/*
 archive/Maintenance/pytz*
+archive/website/static_content/data/searchdialog.js
