@@ -124,12 +124,12 @@ def MatchToSrchable(configfile, year, outdir, indexes):
     srcs = []
     for entry in indexes:
         splis = entry.split('/')
-        mthdir = splis[0]
+        #mthdir = splis[0]
         orbname = splis[1]
         csvfname = splis[2]
-        print(orbname, csvfname)
+        # print(orbname, csvfname)
         fn = os.path.join(path, 'csv', csvfname)
-        print(fn)
+        # print(fn)
         try: 
             with open(fn, 'r') as idxfile:
                 dta = idxfile.readline()
@@ -179,9 +179,9 @@ def createIndexOfOrbits(year):
             for obj in page['Contents']:
                 if 'orbit.csv' in obj['Key'] and 'csv/' not in obj['Key']:
                     dirname = obj['Key'][len(pathstr):]
-                    print(dirname)
+                    # print(dirname)
                     indexes.append(dirname)
-    print('-----')
+    # print('-----')
     return indexes
 
 

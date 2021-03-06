@@ -415,7 +415,7 @@ def FindMatches(yr=None, mth=None):
 
         tmpmth = mth+1
         tmpyr = yr
-        if mth > 12:
+        if tmpmth > 12:
             tmpmth = 1
             tmpyr = yr + 1
         ts2 = (datetime.datetime(year=tmpyr, month=tmpmth, day=1) + datetime.timedelta(seconds=5)).timestamp()
