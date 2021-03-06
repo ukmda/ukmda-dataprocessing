@@ -9,7 +9,8 @@ import numpy as np
 import Formats.UAFormats as uaf
 import configparser as cfg
 import datetime 
-import glob
+#import glob
+import boto3
 
 
 def UFOAToSrchable(configfile, year, outdir):
@@ -107,13 +108,12 @@ def LiveToSrchable(configfile, year, outdir):
     np.savetxt(outfile, outdata, fmt=fmtstr, header=hdr, comments='')
 
 
-def MatchToSrchable(configfile, year, outdir):
+def MatchToSrchable(configfile, year, outdir, indexes):
     config=cfg.ConfigParser()
     config.read(configfile)
     weburl=config['config']['SITEURL']
     
     path= os.path.join(config['config']['RCODEDIR'], 'DATA', 'orbits', year)
-    listOfFiles = os.listdir(path)
 
     dtstamps = []
     urls = []
@@ -122,44 +122,39 @@ def MatchToSrchable(configfile, year, outdir):
     mags = []
     loccams = []
     srcs = []
-    for entry in listOfFiles:
-        if 'csv' in entry:
+    for entry in indexes:
+        splis = entry.split('/')
+        mthdir = splis[0]
+        orbname = splis[1]
+        csvfname = splis[2]
+        print(orbname, csvfname)
+        fn = os.path.join(path, 'csv', csvfname)
+        print(fn)
+        try: 
+            with open(fn, 'r') as idxfile:
+                dta = idxfile.readline()
+                if dta[:3] == 'RMS':
+                    spls = dta.split(',')
+                    dtval = spls[2][1:]
+                    ym = dtval[:6]
+                    sts = spls[5][1:]
+                    mag = spls[7]
+                    shwr = spls[25]
+                    url = weburl + '/reports/' + year
+                    url1 = url + '/orbits/' + ym + '/' + orbname + '/index.html'
+                    url2 = url + '/orbits/' + ym + '/' + orbname + '/' + dtval + '_ground_track.png'
+                    shwrs.append(shwr)
+                    urls.append(url1)
+                    imgs.append(url2)
+                    loccams.append(sts)
+                    mags.append(mag)
+
+                    dtstamp = datetime.datetime.strptime(orbname, '%Y%m%d-%H%M%S.%f')
+                    dtstamps.append(dtstamp.timestamp())
+                    srcs.append('Matched')
+        except Exception:
+            print('broken')
             continue
-        entry = os.path.join(path, entry)
-        with open(entry, 'r') as idxfile:
-            lis = idxfile.readlines()
-            for li in lis: 
-                orbname = li.rstrip()
-                csvname, _ = orbname.split('.')
-                csvname = csvname + '*.csv'
-                csvfname = os.path.join(config['config']['RCODEDIR'], 'DATA', 'orbits', year, 'csv', csvname)
-                csvfile = glob.glob(csvfname)
-                if len(csvfile) > 0:
-                    with open(csvfile[0], 'r') as fi:
-                        dta = fi.readline()
-                        if dta[:3] == 'RMS':
-                            spls = dta.split(',')
-                            dtval = spls[2][1:]
-                            ym = dtval[:6]
-                            sts = spls[5][1:]
-                            mag = spls[7]
-                            shwr = spls[25]
-#                            print(orbname, len(orbname), orbname[:len(orbname)-1])
-                            orbname = orbname[:len(orbname)-1]
-                            # reports/2021/orbits/202102/20210204-003908.447008/20210204_003916_orbit_top.png
-                            url = weburl + '/reports/' + year
-                            url1 = url + '/orbits/' + ym + '/' + orbname + '/index.html'
-                            url2 = url + '/orbits/' + ym + '/' + orbname + '/' + dtval + '_ground_track.png'
-                            shwrs.append(shwr)
-                            urls.append(url1)
-                            imgs.append(url2)
-                            loccams.append(sts)
-                            mags.append(mag)
-
-                            dtstamp = datetime.datetime.strptime(orbname, '%Y%m%d-%H%M%S.%f')
-                            dtstamps.append(dtstamp.timestamp())
-                            srcs.append('Matched')
-
     matchhdr='eventtime,source,shower,mag,loccam,url,img'
 
     # write out the converted data
@@ -169,6 +164,25 @@ def MatchToSrchable(configfile, year, outdir):
 
     outfile = os.path.join(outdir, '{:s}-matchedevents.csv'.format(year))
     np.savetxt(outfile, matchdata, fmt=matchfmtstr, header=matchhdr, comments='')
+
+
+def createIndexOfOrbits(year):
+    indexes = []
+    print('-----')
+    s3 = boto3.client('s3')
+    buck = 'ukmeteornetworkarchive'
+    pathstr = 'reports/' + year +'/orbits/' 
+    paginator = s3.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=buck, Prefix=pathstr)
+    for page in pages:
+        if page.get('Contents',None):
+            for obj in page['Contents']:
+                if 'orbit.csv' in obj['Key'] and 'csv/' not in obj['Key']:
+                    dirname = obj['Key'][len(pathstr):]
+                    print(dirname)
+                    indexes.append(dirname)
+    print('-----')
+    return indexes
 
 
 if __name__ == '__main__':
@@ -181,4 +195,5 @@ if __name__ == '__main__':
         ret = UFOAToSrchable(sys.argv[1], year, sys.argv[3])
         ret = LiveToSrchable(sys.argv[1], year, sys.argv[3])
         if int(year) > 2019:
-            ret = MatchToSrchable(sys.argv[1], year, sys.argv[3])
+            indexes = createIndexOfOrbits(year)
+            ret = MatchToSrchable(sys.argv[1], year, sys.argv[3], indexes)

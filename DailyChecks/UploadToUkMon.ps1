@@ -31,9 +31,10 @@ if ($ismember -eq 'Yes')
     $keys=((Get-Content $keyfile)[1]).split(',')
     $Env:AWS_ACCESS_KEY_ID = $keys[0]
     $env:AWS_SECRET_ACCESS_KEY = $keys[1]
+
     $yr = (get-date).tostring("yyyy")
     $ym = (get-date).tostring("yyyyMM")
-    $ym2 = $ym = (get-date).adddays(-1).tostring("yyyyMM")
+    $ym2 = (get-date).addmonths(-1).tostring("yyyyMM")
 
     $srcpath=$localfolder+'/'+$yr+'/' + $ym + '/'
 
@@ -46,6 +47,7 @@ if ($ismember -eq 'Yes')
         aws s3 sync $srcpath $targ --exclude * --include *.csv --include *P.jpg --include *.txt --include *.xml --include *.json --exclude *detlog.csv
     }
     if ($ym2 -ne $ym){ 
+
         $srcpath=$localfolder+'/'+$yr+'/' + $ym2 + '/'
         write-output "Syncing $srcpath"
         $targ= 's3://ukmon-shared/archive/' + $ukmoncam  + '/' + $yr+'/' + $ym2 + '/'
