@@ -816,6 +816,32 @@ def computeAbsoluteMagnitudes(traj, meteor_list):
             meteor_obs.abs_mag_data.append(6)
 
 
+def draw3Dmap(traj, outdir):
+    orb = traj.orbit
+    dtstr = jd2Date(orb.jd_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
+
+    lats = []
+    lons = []
+    alts = []
+    # Go through observation from all stations
+    for obs in traj.observations:
+        # Go through all observed points
+        for i in range(obs.kmeas):
+            lats.append(np.degrees(obs.model_lat[i]))
+            lons.append(np.degrees(obs.model_lon[i]))
+            alts.append(obs.model_ht[i])
+    
+    print(lats)
+    print(outdir, dtstr)
+    csvname = os.path.join(outdir, dtstr + '_track.csv')
+    print(csvname)
+    with open(csvname, 'w') as outf:
+        outf.write('# lat, lon, alt\n#\n')
+        for i in range(len(lats)):
+            outf.write('{:15.4f}, {:15.4f}, {:15.4f}\n'.format(lats[i], lons[i], alts[i]))
+    return
+
+
 if __name__ == "__main__":
     # COMMAND LINE ARGUMENTS
 
@@ -903,6 +929,7 @@ if __name__ == "__main__":
             # # Override default DPI for saving from the interactive window
             matplotlib.rcParams['savefig.dpi'] = 300
 
+            print('about to calc abs mag')
             # # Compute absolute mangitudes
             computeAbsoluteMagnitudes(traj, meteor)
 
@@ -939,10 +966,12 @@ if __name__ == "__main__":
         time_data_all = np.array(time_data_all)
         abs_mag_data_all = np.array(abs_mag_data_all)
 
+        print('about to calc mass')
         # # Compute the mass
         mass = calcMass(time_data_all, abs_mag_data_all, traj.v_avg, P_0m=1210)
 
         # create Summary report for webpage
+        print('creating summary report')
         summrpt = os.path.join(outdir, 'summary.html')
         shower_obj = None  # initialise this
         orb = traj.orbit
@@ -992,12 +1021,18 @@ if __name__ == "__main__":
                     f.write('unable to calculate realistic orbit details\n')
                 f.write('\nFull details below\n')
 
-        if orb is not None:
-            createUFOOrbitFile(traj, outdir, amag, mass, shower_obj)
-            sys.exit(0)
-        else:
-            print('no orbit object')
-            sys.exit(1)
     except Exception:
         print('failed to solve')
         sys.exit(2)
+
+    if orb is not None:
+        try:
+            print(amag, mass, shower_obj)
+            createUFOOrbitFile(traj, outdir, amag, mass, shower_obj)
+        except Exception:
+            print('problem creating UFO style output')
+        draw3Dmap(traj, outdir)
+        sys.exit(0)
+    else:
+        print('no orbit object')
+        sys.exit(1)
