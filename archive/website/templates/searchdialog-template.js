@@ -6,7 +6,8 @@ $('#selectInterval .time').timepicker({
 
 $('#selectInterval .date').datepicker({
     'format': 'd/m/yyyy',
-    'autoclose': true
+    'autoclose': true,
+    'endDate': '0'
 });
 
 // initialize datepair
