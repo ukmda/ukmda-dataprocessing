@@ -59,6 +59,7 @@ def createIndex(doff=1):
         xmlname = key['Key']
         if xmlname[len(xmlname) - 3:] == 'xml':
             s3.download_file(target, xmlname, os.path.join(tmppth, xmlname))
+            print(xmlname)
             AddToIndex(xmlname, f, tmppth)
             os.remove(os.path.join(tmppth, xmlname))
 
