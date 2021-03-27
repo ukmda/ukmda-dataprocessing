@@ -27,6 +27,7 @@ $rms_env=$ini['rms']['rms_env']
 # copy the latest data from the Pi
 $srcpath='\\'+$hostname+'\RMS_share\ArchivedFiles'
 $destpath=$localfolder+'\ArchivedFiles'
+if ((test-path $destpath) -eq 0) { mkdir $destpath}
 $age=[int]$maxage
 robocopy $srcpath $destpath /dcopy:DAT /tee /v /s /r:3 /maxage:$age /xf *.bz2
 
@@ -96,7 +97,7 @@ if ($RMS_INSTALLED -eq 1){
         $ufo=$myf+'\*.csv'
         $isdone=(get-childitem $ufo).Name
         $ftpexists=test-path $ftpfil
-        if ($isdone.count -eq 0 -and $ftpexists -ne 0){
+        if ($ftpexists -ne 0){
             # generate the UFO-compatible CSV, shower association map 
             # convert fits to jpeg and create a stack
             python -m Utils.RMS2UFO $ftpfil $platepar
