@@ -42,6 +42,9 @@ body {
 .navbar-default {
 	background-color: #ED1C24;
 }
+.navbar-expand-lg {
+	background-color: #ED1C24;
+}
 
 .navbar-top-links {
     margin-right: 0;
@@ -439,6 +442,16 @@ nav ul ul ul li {
 	top:-55px; 
 	left:170px;
 }
+
+.navbar-toggler {
+    padding: .25rem .75rem;
+    font-size: 1.25rem;
+    line-height: 1;
+    background-color: #ffffff;
+    border: 1px solid transparent;
+    border-radius: .25rem;
+}
+
 
 li > a:after { content:  ' +'; }
 li > a:only-child:after { content: ''; }
