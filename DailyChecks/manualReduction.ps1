@@ -28,7 +28,7 @@ $ff=(Get-ChildItem $ffpath).fullname
 # run the manual reduction process
 set-location $RMSloc 
 conda activate $rmsenv
-# python -m Utils.ManualReduction $ff
+python -m Utils.ManualReduction $ff
 
 # find the new FTPfile and the original
 $ftppath=$localdir+'\FTPdetectinfo*manual.txt'
