@@ -8,6 +8,10 @@ source $here/../config/config.ini >/dev/null 2>&1
 thismth=`date '+%Y%m'`
 thisyr=`date '+%Y'`
 
+source ~/.ssh/ukmonarchive-keys
+export AWS_DEFAULT_REGION=eu-west-2
+aws lambda invoke --function-name ConsolidateCSVs out --log-type Tail
+
 ${SRC}/matches/findAllMatches.sh ${thismth}
 ${SRC}/orbits/doaMonth.sh ${thismth}
 ${SRC}/website/createOrbitIndex.sh ${thismth}

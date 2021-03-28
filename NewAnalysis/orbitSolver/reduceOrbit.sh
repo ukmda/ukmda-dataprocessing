@@ -82,7 +82,13 @@ if [ $numas -gt 1 ] ; then
                 rm -f ${RCODEDIR}/DATA/orbits/$yr/csv/${orbfile}
                 rm -f ${RCODEDIR}/DATA/orbits/$yr/extracsv/${orbextras}
             fi 
-            rm -Rf $resultdir 
+            rm -Rf $resultdir
+            s3dir=$(basename $resultdir)
+            echo $s3dir 
+            targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${yr}${mth}/$s3dir
+            echo $targ
+            source $WEBSITEKEY
+            aws s3 rm $targ --recursive
         fi
 
         echo "converting $pth to RMS/CAMS format"

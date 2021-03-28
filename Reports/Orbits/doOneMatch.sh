@@ -21,11 +21,19 @@ ${SRC}/orbits/reduceOrbit.sh $pth $2
 res=$?
 indir=${MATCHDIR}/$yr/$ym/$pth
 
+if [[ "$2" == "recopy" && $res -eq 99  && ! -f $indir/notsolvable.txt ]] ; then
+    res=0
+fi 
 if [ $res -eq 0 ] ; then
     outdir=${RCODEDIR}/DATA/orbits/$yr
     resultdir=$(ls -1trd $indir/${yr}* | grep -v .txt | tail -1)
 
+    echo "copying jpgs, videos and raw data"
     python $here/findJPGs.py $indir $resultdir
+    cp $indir/*.txt $resultdir > /dev/null 2>&1
+    cp $indir/*.jpg $resultdir > /dev/null 2>&1
+    cp $indir/*.XML $resultdir > /dev/null 2>&1
+    cp $indir/*.mp4 $resultdir > /dev/null 2>&1
     chmod 644 $resultdir/*.jpg
 
     ${SRC}/website/createPageIndex.sh $yr/$ym/$pth/$(basename $resultdir)
