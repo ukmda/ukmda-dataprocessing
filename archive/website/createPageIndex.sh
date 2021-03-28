@@ -18,11 +18,14 @@ repf=`ls -1 ${datadir}/$yr*report.txt`
 repfile=`basename $repf`
 pref=${repfile:0:16}
 
+fldr=$(basename $datadir)
+
 cp $TEMPLATES/header.html $idxfile
 echo "<div class=\"container\">" >> $idxfile
 echo "<h2>Orbital Analysis for matched events on $ym</h2>" >> $idxfile
-echo "<pre>" >>$idxfile
-cat ${datadir}/summary.html >>$idxfile
+echo "<pre>" >> $idxfile
+cat ${datadir}/summary.html >> $idxfile
+echo "Click <a href=\"./$fldr.zip\">here</a> to download a zip of the raw and processed data." >> $idxfile
 echo "</pre>" >>$idxfile
 echo "<h3>Click on an image to see a larger view</h3>" >> $idxfile
 
@@ -54,6 +57,11 @@ echo "<a href=\"${pref}all_angular_residuals.png\"><img src=\"${pref}all_angular
 echo "<a href=\"${pref}all_spatial_total_residuals_height.png\"><img src=\"${pref}all_spatial_total_residuals_height.png\" width=\"20%\"></a>" >> $idxfile
 
 cat $TEMPLATES/footer.html >> $idxfile
+
+pushd ${datadir}
+zip -r -9 /tmp/$fldr.zip . -x ./$fldr.zip
+cp /tmp/$fldr.zip ${datadir}/
+popd
 
 source $WEBSITEKEY
 aws s3 sync ${datadir}/ ${targ}/ --include "*" 

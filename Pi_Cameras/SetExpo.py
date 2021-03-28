@@ -8,10 +8,10 @@ from dvrip import DVRIPCam
 host_ip = sys.argv[1]
 
 # my camera 2 is a bit broken in colour mode
-if '30' in host_ip:
-    daycmode = '0x00000002'
-else:
-    daycmode = '0x00000001'
+#if '30' in host_ip:
+#    daycmode = '0x00000002'
+#else:
+daycmode = '0x00000001'
 
 daynight=sys.argv[2]
 if daynight == 'DAY':
@@ -22,7 +22,7 @@ if daynight == 'DAY':
     maxexp='0x00009C40'
 else:
     expo=100
-    gain=70
+    gain=60
     cmode='0x00000002'
     minexp='0x00009C40'
     maxexp='0x00009C40'

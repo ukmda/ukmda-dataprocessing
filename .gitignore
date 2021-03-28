@@ -521,7 +521,6 @@ ukmon-live/getlogs/.ukmoncreds
 *.rtf
 */deploy*.ps1
 UKMonCPPTools/stacker/test/*
-deploy_*.ps1
 NewAnalysis/deployToAWS.yml
 *.zip
 StandaloneCurator/CameraCurator/*
@@ -537,3 +536,4 @@ NewAnalysis/orbitSolver/testing
 NewAnalysis/FormatConverters/testing
 */test_data/*
 archive/Maintenance/pytz*
+archive/website/static_content/data/searchdialog.js

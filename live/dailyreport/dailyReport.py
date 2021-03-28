@@ -67,7 +67,7 @@ def AddRow(body, bodytext, ele):
 def LookForMatches(doff, idxfile, idxfile2=None):
     print('DailyCheck: looking for matches')
     bodytext = 'Daily notification of matches\n\n'
-    body = '<img src=\"https://ukmeteornetwork.co.uk/img/ukmon-logo.png\" alt=\"UKMON banner\"><br>'
+    body = '<img src=\"https://ukmeteornetwork.co.uk/assets/img/logo.svg\" alt=\"UKMON banner\"><br>'
     body, bodytext = AddHeader(body, bodytext)
 
     print('DailyCheck: opening csv file ', idxfile)
