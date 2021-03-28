@@ -8,7 +8,6 @@ $targ=$ini['camera']['localfolder']+'\..\scripts\'
 $targ=$targ.replace('/','\')
 
 xcopy /dy /exclude:exclude.rsp .\DailyChecks\*.ps1 $targ
-xcopy /dy /exclude:exclude.rsp .\DataCollection\*.ps1 $targ
 xcopy /dy /exclude:exclude.rsp *.ini $targ
 
 xcopy /dy /exclude:exclude.rsp .\NewAnalysis\*.py $targ
