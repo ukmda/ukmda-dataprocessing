@@ -18,3 +18,7 @@ mth=${ym:4:2}
 mkdir -p $SRC/logs/matches > /dev/null 2>&1
 
 python $here/consolidateMatchedData.py $yr $mth |tee $SRC/logs/matches/$ym.log
+
+cd $wmpl_loc
+source ~/venvs/${WMPL_ENV}/bin/activate
+python -m wmpl.Trajectory.CorrelateRMS ~/ukmon-shared/matches/RMSCorrelate/ -l
