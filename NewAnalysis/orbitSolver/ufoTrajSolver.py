@@ -950,12 +950,11 @@ def createAdditionalOutput(traj, outdir):
         except Exception:
             print('problem creating UFO style output')
         draw3Dmap(traj, outdir)
-        sys.exit(0)
     else:
         print('no orbit object')
         sys.exit(1)
 
-    return
+    return 
 
 
 if __name__ == "__main__":
@@ -1041,8 +1040,7 @@ if __name__ == "__main__":
             save_results=(not cml_args.noplots))
 
         createAdditionalOutput(traj, outdir)
-
-
+        sys.exit(0)
     except Exception:
         print('failed to solve')
         sys.exit(2)
