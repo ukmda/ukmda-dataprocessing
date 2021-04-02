@@ -11,7 +11,7 @@ import argparse
 import numpy as np
 import matplotlib
 
-from wmpl.Formats.GenericArgumentParser import addSolverOptions
+from wmpl.Formats.GenericFunctions import addSolverOptions
 from wmpl.Formats.Milig import StationData, writeMiligInputFile
 from wmpl.Utils.TrajConversions import J2000_JD, date2JD, equatorialCoordPrecession_vect, raDec2AltAz_vect, \
     jd2Date
@@ -831,14 +831,18 @@ def draw3Dmap(traj, outdir):
             lons.append(np.degrees(obs.model_lon[i]))
             alts.append(obs.model_ht[i])
     
-    print(lats)
-    print(outdir, dtstr)
+    # print(lats)
+    # print(outdir, dtstr)
     csvname = os.path.join(outdir, dtstr + '_track.csv')
     print(csvname)
     with open(csvname, 'w') as outf:
         outf.write('# lat, lon, alt\n#\n')
         for i in range(len(lats)):
             outf.write('{:15.4f}, {:15.4f}, {:15.4f}\n'.format(lats[i], lons[i], alts[i]))
+    return
+
+
+def createAdditionalOutput(traj):
     return
 
 
@@ -924,7 +928,7 @@ if __name__ == "__main__":
                 show_jacchia=cml_args.jacchia, estimate_timing_vel=etv, verbose=False,
                 save_results=(not cml_args.noplots))
 
-        # ### PERFORM PHOTOMETRY
+            createAdditionalOutput(traj)
 
             # # Override default DPI for saving from the interactive window
             matplotlib.rcParams['savefig.dpi'] = 300
