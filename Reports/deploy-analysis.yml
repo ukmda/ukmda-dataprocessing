@@ -22,6 +22,7 @@
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     tags: [dev,prod]
     with_items:
+    - {src: '{{srcdir}}/archive/Maintenance/reportOfLatestMatches.py', dest: '{{destdir}}/matches/', mode: '754', backup: no }
     - {src: '{{srcdir}}/NewAnalysis/orbitSolver/extraDataFiles.py', dest: '{{destdir}}/orbits/', mode: '644', backup: no }
     - {src: '{{srcdir}}/NewAnalysis/orbitSolver/ufoTrajSolver.py', dest: '{{destdir}}/orbits/', mode: '644', backup: no }
     - {src: '{{srcdir}}/NewAnalysis/orbitSolver/reduceOrbit.sh', dest: '{{destdir}}/orbits/', mode: '754', backup: no }
