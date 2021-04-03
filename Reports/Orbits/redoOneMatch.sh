@@ -9,6 +9,6 @@ source $here/../config/config.ini >/dev/null 2>&1
 ${SRC}/orbits/doOneMatch.sh $1 force
 
 ym=$(date +%Y%m)
-${SRC}/website/createPageIndex.sh $ym
+${SRC}/website/createOrbitIndex.sh $ym
 yr=$(date +%Y)
-${SRC}/website/createPageIndex.sh $yr
+${SRC}/website/createOrbitIndex.sh $yr

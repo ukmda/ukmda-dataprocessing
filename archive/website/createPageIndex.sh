@@ -6,12 +6,18 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
 
+cd $SRC/orbits
+source ~/venvs/$WMPL_ENV/bin/activate
+export PYTHONPATH=$wmpl_loc
+python extraDataFiles.py $1
+cd $here
+
 ym=$(basename $1)
 yr=${ym:0:4}
 mth=${ym:4:2}
 targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${yr}${mth}/$ym
 
-datadir=${MATCHDIR}/$1
+datadir=$1
 
 idxfile=${datadir}/index.html
 repf=`ls -1 ${datadir}/$yr*report.txt`

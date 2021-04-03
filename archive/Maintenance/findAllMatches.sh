@@ -17,8 +17,21 @@ mth=${ym:4:2}
 
 mkdir -p $SRC/logs/matches > /dev/null 2>&1
 
-python $here/consolidateMatchedData.py $yr $mth |tee $SRC/logs/matches/$ym.log
+#python $here/consolidateMatchedData.py $yr $mth |tee $SRC/logs/matches/$ym.log
 
 cd $wmpl_loc
 source ~/venvs/${WMPL_ENV}/bin/activate
-python -m wmpl.Trajectory.CorrelateRMS ~/ukmon-shared/matches/RMSCorrelate/ -l
+export PYTHONPATH=$wmpl_loc
+
+startdt=$(date --date='-2 months' '+%Y%m%d-000001')
+enddt=$(date '+%Y%m%d-%H%m%S')
+python -m wmpl.Trajectory.CorrelateRMS $MATCHDIR/RMSCorrelate/ -l -r "($startdt,$enddt)" |tee $SRC/logs/matches/$ym.log
+
+cd $here/../website
+find $MATCHDIR/RMSCorrelate/trajectories/ -name "*report*" -mtime -1 | while read i
+do
+    loc=$(dirname $i)
+    ./createPageIndex.sh $loc
+done
+./createOrbitIndex.sh ${yr}${mth}
+./createOrbitIndex.sh ${yr}

@@ -834,7 +834,7 @@ def draw3Dmap(traj, outdir):
     # print(lats)
     # print(outdir, dtstr)
     csvname = os.path.join(outdir, dtstr + '_track.csv')
-    print(csvname)
+    # print(csvname)
     with open(csvname, 'w') as outf:
         outf.write('# lat, lon, alt\n#\n')
         for i in range(len(lats)):
