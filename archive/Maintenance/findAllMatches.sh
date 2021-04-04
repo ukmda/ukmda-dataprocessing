@@ -30,6 +30,7 @@ enddt=$(date '+%Y%m%d-%H%m%S')
 python -m wmpl.Trajectory.CorrelateRMS $MATCHDIR/RMSCorrelate/ -l -r "($startdt,$enddt)" |tee $SRC/logs/matches/$ym.log
 
 # create text file containing most recent matches
+cd $here
 python reportOfLatestMatches.py $MATCHDIR/RMSCorrelate/trajectories
 
 # update the website 
