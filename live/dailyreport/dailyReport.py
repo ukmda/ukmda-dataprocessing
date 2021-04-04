@@ -9,9 +9,11 @@ import numpy
 import math
 import createIndex
 
-idxtype = numpy.dtype([('YMD', 'i4'), ('HMS', 'i4'), ('SID', 'S16'), ('LID', 'S6'),
-    ('Bri', 'i4')])
+
+#idxtype = numpy.dtype([('YMD', 'i4'), ('HMS', 'i4'), ('SID', 'S16'), ('LID', 'S6'),
+#    ('Bri', 'i4')])
 lnkpath = 'https://live.ukmeteornetwork.co.uk/M{:08d}_{:06d}_{:s}_{:s}P.jpg'
+lnkpathRMS = 'https://archive.ukmeteornetwork.co.uk/reports/{:s}/orbits/{:s}/{:s}/index.html'
 
 
 def MakeFileWritable(ymd, hms, sid, lid):
@@ -25,11 +27,13 @@ def MakeFileWritable(ymd, hms, sid, lid):
 
 
 def AddHeader(body, bodytext):
-    body = body + '\nThe following multiple detections were found in UKMON Live in the last 24 hour period.\n'
-    body = body + '<a href=\"https://ukmeteornetwork.co.uk/live/#/\">Click here</a> to see these events.\n'
+    body = body + '\nThe following matched detections were found in the last 24 hour period.\n'
+    body = body + 'Note that this may include older data for which a new match has been found.\n'
+    body = body + 'Click each link to see analysis of these events.\n'
     body = body + '<table border=\"0\">'
-    body = body + '<tr><td><b>Station</b></td><td><b>LID</b></td><td><b>Date/Time</b></td><td><b>Bright</b></td></tr>'
+    body = body + '<tr><td><b>Event</b></td><td><b>Stations</b></td></tr>'
     bodytext = bodytext + 'The following multiple detections were found in UKMON Live the last 24 hour period,\n'
+    bodytext = bodytext + 'Note that this may include older data for which a new match has been found.\n'
     return body, bodytext
 
 
@@ -40,11 +44,9 @@ def AddBlank(body, bodytext):
 
 
 def addFooter(body, bodytext):
-    brim = 'Bright = max brightness recorded by UFO '
-    pim = 'Note: Brightness not available for Pi cameras'
     fbm = 'Seen a fireball? <a href=https://ukmeteornetwork.co.uk/fireball-report/>Click here</a> to report it'
-    body = body + '</table><br><br>\n' + brim + '<br>' + pim + '<br><br>' + fbm + '<br>'
-    bodytext = bodytext + '\n' + brim + '\n' + '\n' + pim + '\n' + fbm + '\n'
+    body = body + '</table><br><br>\n' + fbm + '<br>'
+    bodytext = bodytext + '\n' + fbm + '\n'
     return body, bodytext
 
 
@@ -61,6 +63,23 @@ def AddRow(body, bodytext, ele):
     body = body + str1 + '\n'
     bodytext = bodytext + str2 + '\n'
     MakeFileWritable(ymd, hms, sid, lid)
+    return body, bodytext
+
+
+def AddRowRMS(body, bodytext, ele):
+    spls = ele.split(',')
+    pth = spls[1]
+    yr = pth[:4]
+    ym = pth[:6]
+    lnkstr = lnkpathRMS.format(yr, ym, pth)
+    stats='Match between '
+    for s in range(2,len(spls)):
+        stats = stats + spls[s] +' '
+
+    str1 = '<tr><td><a href="{:s}">{:s}</a></td><td>{:s}</td></tr>'.format(lnkstr, pth, stats)
+    body = body + str1
+    bodytext = bodytext + str1 + '\n'
+
     return body, bodytext
 
 
@@ -178,6 +197,32 @@ def LookForMatches(doff, idxfile, idxfile2=None):
     return domail, mailsubj, body, bodytext
 
 
+def LookForMatchesRMS(doff, dayfile):
+    print('DailyCheck: looking for matches')
+    bodytext = 'Daily notification of matches\n\n'
+    body = '<img src=\"https://ukmeteornetwork.co.uk/assets/img/logo.svg\" alt=\"UKMON banner\"><br>'
+    body, bodytext = AddHeader(body, bodytext)
+
+    # extract yesterday's data
+    yest = datetime.date.today() - datetime.timedelta(days=doff)
+
+
+    mailsubj = 'Daily UKMON matches for {:04d}-{:02d}-{:02d}'.format(yest.year, yest.month, yest.day)
+    domail = False
+    print('DailyCheck: ', mailsubj)
+
+    print('DailyCheck: opening csv file ', dayfile)
+    with open(dayfile, 'r') as csvfile:
+        lines = csvfile.readlines()
+        for li in lines:
+            domail = True
+            #body, bodytext = AddBlank(body, bodytext)
+            body, bodytext = AddRowRMS(body, bodytext, li)
+    
+    body, bodytext = addFooter(body, bodytext)
+    return domail, mailsubj, body, bodytext
+
+
 def sendMail(subj, body, bodytext):
     print(bodytext)
     client = boto3.client('sts')
@@ -269,8 +314,14 @@ def lambda_handler(event, context):
         s3.meta.client.download_file(target, tmpf2, idxfile2)
     else:
         idxfile2 = None
+    fullrep = 'matches/RMSCorrelate/dailyreports/'+ datetime.datetime.today().strftime('%Y%m%d.txt')
+    dailyreport = os.path.join(tmppth,'dailyreport.csv')
+    print(target, fullrep, dailyreport)
+    s3.meta.client.download_file('ukmon-shared', fullrep, dailyreport)
 
-    domail, mailsubj, body, bodytext = LookForMatches(doff, idxfile, idxfile2)
+    domail, mailsubj, body, bodytext = LookForMatchesRMS(doff,dailyreport)
+
+    #domail, mailsubj, body, bodytext = LookForMatches(doff, idxfile, idxfile2)
     os.remove(idxfile)
     if idxfile2 is not None:
         os.remove(idxfile2)
