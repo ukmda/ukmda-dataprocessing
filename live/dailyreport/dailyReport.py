@@ -5,15 +5,8 @@ import sys
 import datetime
 import boto3
 from botocore.exceptions import ClientError
-import numpy
 import math
 import createIndex
-
-
-#idxtype = numpy.dtype([('YMD', 'i4'), ('HMS', 'i4'), ('SID', 'S16'), ('LID', 'S6'),
-#    ('Bri', 'i4')])
-lnkpath = 'https://live.ukmeteornetwork.co.uk/M{:08d}_{:06d}_{:s}_{:s}P.jpg'
-lnkpathRMS = 'https://archive.ukmeteornetwork.co.uk/reports/{:s}/orbits/{:s}/{:s}/index.html'
 
 
 def MakeFileWritable(ymd, hms, sid, lid):
@@ -50,23 +43,8 @@ def addFooter(body, bodytext):
     return body, bodytext
 
 
-def AddRow(body, bodytext, ele):
-    ymd, hms = ele['YMD'], ele['HMS']
-    lid, sid = ele['LID'].decode('utf-8'), ele['SID'].decode('utf-8')
-    bri = ele['Bri']
-    lnkstr = lnkpath.format(ymd, hms, sid, lid)
-    hmss = '{:06d}'.format(hms)
-    ymds = str(ymd)[:4] + '-' + str(ymd)[4:6] + '-' + str(ymd)[6:8] + 'T' + hmss[:2] + ':' + hmss[2:4] + ':' + hmss[4:6] + 'Z'
-    str1 = '<tr><td>{:s}</td><td>{:s}</td><td><a href={:s}>{:s}</a></td><td>{:.1f}</td></tr>'.format(sid, lid,
-        lnkstr, ymds, bri)
-    str2 = '{:16s} {:6s} {:s} Bri={:.1f}'.format(sid, lid, ymds, bri)
-    body = body + str1 + '\n'
-    bodytext = bodytext + str2 + '\n'
-    MakeFileWritable(ymd, hms, sid, lid)
-    return body, bodytext
-
-
 def AddRowRMS(body, bodytext, ele):
+    lnkpathRMS = 'https://archive.ukmeteornetwork.co.uk/reports/{:s}/orbits/{:s}/{:s}/index.html'
     spls = ele.split(',')
     pth = spls[1]
     yr = pth[:4]
@@ -81,120 +59,6 @@ def AddRowRMS(body, bodytext, ele):
     bodytext = bodytext + str1 + '\n'
 
     return body, bodytext
-
-
-def LookForMatches(doff, idxfile, idxfile2=None):
-    print('DailyCheck: looking for matches')
-    bodytext = 'Daily notification of matches\n\n'
-    body = '<img src=\"https://ukmeteornetwork.co.uk/assets/img/logo.svg\" alt=\"UKMON banner\"><br>'
-    body, bodytext = AddHeader(body, bodytext)
-
-    print('DailyCheck: opening csv file ', idxfile)
-    csvfile = open(idxfile)
-    data = numpy.loadtxt(csvfile, delimiter=',', dtype=idxtype)
-
-    # extract yesterday's data
-    yest = datetime.date.today() - datetime.timedelta(days=doff)
-    ystr = (yest.year * 10000) + (yest.month * 100) + yest.day
-    reldata = data[data['YMD'] == ystr]
-
-    # correct RMS timestamps which are 2.4 seconds ahead
-    for rw in reldata:
-        lid = rw['LID']
-        if lid[:3] == 'UK0':
-            rw['HMS'] = rw['HMS'] - 2
-
-    mailsubj = 'Daily UKMON matches for {:04d}-{:02d}-{:02d}'.format(yest.year, yest.month, yest.day)
-    domail = False
-    print('DailyCheck: ', mailsubj)
-
-    # iterate looking for matches
-    print('checking for ', ystr)
-    lasttm = 0
-    for rw in reldata:
-        tm = rw['HMS']
-        cond = abs(reldata['HMS'] - tm) < 5
-        matchset = reldata[cond]
-        if len(matchset) > 1 and abs(lasttm - tm) > 4.9999 and tm > 120000:
-            lasttm = tm
-            numpy.sort(matchset)
-            print(len(matchset), ' matches')
-            if len(matchset) == 2:
-                m = matchset[0]
-                n = matchset[1]
-                sid1 = m['SID'].decode('utf-8')
-                sid2 = n['SID'].decode('utf-8')
-                if sid1 == 'EXETER1' or sid1 == 'Exeter2':
-                    sid1 = 'Exeter'
-                if sid2 == 'EXETER1' or sid2 == 'Exeter2':
-                    sid2 = 'Exeter'
-                if sid1 == 'Lockyer1':
-                    sid1 = 'Lockyer'
-                if sid2 == 'Lockyer2':
-                    sid2 = 'Lockyer'
-
-                if sid1 != sid2:
-                    domail = True
-                    body, bodytext = AddBlank(body, bodytext)
-                    body, bodytext = AddRow(body, bodytext, matchset[0])
-                    body, bodytext = AddRow(body, bodytext, matchset[1])
-            else:
-                domail = True
-                body, bodytext = AddBlank(body, bodytext)
-                for el in matchset:
-                    body, bodytext = AddRow(body, bodytext, el)
-    csvfile.close()
-    if idxfile2 is None:
-        idxfile2 = idxfile
-    csvfile = open(idxfile2)
-    data = numpy.loadtxt(csvfile, delimiter=',', dtype=idxtype)
-
-    # extract yesterday's data
-    yest = datetime.date.today() - datetime.timedelta(days=doff - 1)
-    ystr = (yest.year * 10000) + (yest.month * 100) + yest.day
-    reldata2 = data[data['YMD'] == ystr]
-    print('now checking for ', ystr)
-
-    # iterate looking for matches
-    lasttm = 0
-    # print(reldata)
-    for rw in reldata2:
-        tm = rw['HMS']
-        cond = abs(reldata2['HMS'] - tm) < 5
-        matchset = reldata2[cond]
-        # print(matchset)
-        if len(matchset) > 1 and abs(lasttm - tm) > 4.9999 and tm < 120000:
-            lasttm = tm
-            numpy.sort(matchset)
-            print(len(matchset), ' matches')
-            if len(matchset) == 2:
-                m = matchset[0]
-                n = matchset[1]
-                sid1 = m['SID'].decode('utf-8')
-                sid2 = n['SID'].decode('utf-8')
-                if sid1 == 'EXETER1' or sid1 == 'Exeter2':
-                    sid1 = 'Exeter'
-                if sid2 == 'EXETER1' or sid2 == 'Exeter2':
-                    sid2 = 'Exeter'
-                if sid1 == 'Lockyer1':
-                    sid1 = 'Lockyer'
-                if sid2 == 'Lockyer2':
-                    sid2 = 'Lockyer'
-
-                if sid1 != sid2:
-                    domail = True
-                    body, bodytext = AddBlank(body, bodytext)
-                    body, bodytext = AddRow(body, bodytext, matchset[0])
-                    body, bodytext = AddRow(body, bodytext, matchset[1])
-            else:
-                domail = True
-                body, bodytext = AddBlank(body, bodytext)
-                for el in matchset:
-                    print(el)
-                    body, bodytext = AddRow(body, bodytext, el)
-    csvfile.close()
-    body, bodytext = addFooter(body, bodytext)
-    return domail, mailsubj, body, bodytext
 
 
 def LookForMatchesRMS(doff, dayfile):
@@ -321,7 +185,6 @@ def lambda_handler(event, context):
 
     domail, mailsubj, body, bodytext = LookForMatchesRMS(doff,dailyreport)
 
-    #domail, mailsubj, body, bodytext = LookForMatches(doff, idxfile, idxfile2)
     os.remove(idxfile)
     if idxfile2 is not None:
         os.remove(idxfile2)
