@@ -39,6 +39,9 @@ find $MATCHDIR/RMSCorrelate/trajectories/ -type d -mtime -1 | while read i
 do
     loc=$(basename $i)
     ./createPageIndex.sh $i
+    # copy the orbit file for consoltion
+    # and reporting
+    cp $i/*orbit.csv ${RCODEDIR}/DATA/orbits/$yr/csv/
 done
 ./createOrbitIndex.sh ${yr}${mth}
 ./createOrbitIndex.sh ${yr}

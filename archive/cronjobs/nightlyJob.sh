@@ -12,16 +12,18 @@ source ~/.ssh/ukmonarchive-keys
 export AWS_DEFAULT_REGION=eu-west-2
 aws lambda invoke --function-name ConsolidateCSVs out --log-type Tail
 
+# run this only once as it scoops up all unprocessed data
 ${SRC}/matches/findAllMatches.sh ${thismth}
-#${SRC}/orbits/doaMonth.sh ${thismth}
-#${SRC}/website/createOrbitIndex.sh ${thismth}
-#${SRC}/website/createOrbitIndex.sh ${thisyr}
+
+# update shower associations, then create monthly and shower extracts for the website
 ${SRC}/analysis/updateRMSShowerAssocs.sh ${thismth}
 ${SRC}/website/createMthlyExtracts.sh ${thismth}
 ${SRC}/website/createShwrExtracts.sh ${thismth}
 
+# update the annual report for this year
 ${SRC}/analysis/monthlyReports.sh ALL ${thisyr} force
 
+# update the data for last month too, since some data comes in quite late
 dom=`date '+%d'`
 if [ $dom -lt 10 ] ; then 
     lastmth=`date --date='-1 month' '+%Y%m'`
@@ -31,6 +33,8 @@ if [ $dom -lt 10 ] ; then
     ${SRC}/website/createMthlyExtracts.sh ${lastmth}
     ${SRC}/website/createShwrExtracts.sh ${lastmth}
 fi
+
+# create the cover page for the website
 ${SRC}/website/createSummaryTable.sh
 
 find $SRC/logs -name "nightly*" -mtime +7 -exec rm -f {} \;

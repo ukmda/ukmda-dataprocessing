@@ -14,7 +14,6 @@ from wmpl.Utils.Pickling import loadPickle
 from wmpl.Utils.TrajConversions import jd2Date
 from datetime import datetime, timedelta
 
-
 from ufoTrajSolver import createAdditionalOutput
 
 
@@ -64,7 +63,7 @@ def generateExtraFiles(outdir):
 
 
 def fetchJpgsAndMp4s(traj, outdir):
-
+    archdir = os.getenv('ARCHDIR')
     print('getting camera details file')
     cams, fldrs, lati, longi, alti, camtyps, fullcams = getCameraDetails()
     for obs in traj.observations:
@@ -83,7 +82,7 @@ def fetchJpgsAndMp4s(traj, outdir):
         ymd = ym *100 + evtdate.day
 
         print('getting jpgs and mp4s')
-        srcpath = '/home/ec2-user/ukmon-shared/archive/{:s}/{:04d}/{:06d}/{:08d}/'.format(fldr, yr, ym, ymd)
+        srcpath = os.path.join(archdir, '/{:s}/{:04d}/{:06d}/{:08d}/'.format(fldr, yr, ym, ymd))
         flist = glob.glob1(srcpath, 'FF*.jpg')
         srcfil = None
         for fil in flist:
@@ -112,9 +111,15 @@ def fetchJpgsAndMp4s(traj, outdir):
             if ('FTPdetectinfo' in fil) and (file_ext == '.txt') and ('_original' not in file_name) and ('_uncal' not in file_name) and ('_backup' not in file_name):
                 srcfil = srcpath + fil
                 shutil.copy2(srcfil, outdir)
-            elif (file_ext == '.kml') or (file_ext == '.csv'):
+            elif file_ext == '.csv':
                 srcfil = srcpath + fil
                 shutil.copy2(srcfil, outdir)
+            elif file_ext == '.kml':
+                srcfil = srcpath + fil
+                shutil.copy2(srcfil, outdir)
+                kmldir = os.path.join(archdir, 'kmls')
+                shutil.copy2(srcfil, kmldir)
+
     return
 
 

@@ -6,9 +6,11 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
 
+# generate extra data files and copy other data of interest
 cd $SRC/orbits
 source ~/venvs/$WMPL_ENV/bin/activate
 export PYTHONPATH=$wmpl_loc
+export ARCHDIR # used by extraDataFiles.py
 python extraDataFiles.py $1
 cd $here
 
