@@ -18,7 +18,7 @@ def findNewMatches(dir_path):
     # get now and noon the previous day
     now = datetime.datetime.now()
     yday = now + datetime.timedelta(days=-1)
-    yday = yday.replace(hour=12, minute=0, second=0, microsecond=0)
+    yday = yday.replace(hour=9, minute=0, second=0, microsecond=0)
     yday = yday.timestamp()
 
     print('----------------------')
