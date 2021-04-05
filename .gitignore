@@ -497,8 +497,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-NewAnalysis/test_data/platepar/skyFit_latest.state
-NewAnalysis/test_data/platepar/skyFit_latest.state
+ananalysis/test_data/platepar/skyFit_latest.state
+ananalysis/test_data/platepar/skyFit_latest.state
 DailyChecks/UK000F.ini
 DailyChecks/tackley_tc.ini
 DailyChecks/UK0006.ini
@@ -513,27 +513,27 @@ live/curate/numpy.libs/**
 live/curate/UFOHandler/*
 live/curate/curateEngine*
 notshared/**
-NewAnalysis/test_data/platepar/platepar_cmn2010_ne.cal
-NewAnalysis/test_data/platepar/skyFit_latest.state
+analysis/test_data/platepar/platepar_cmn2010_ne.cal
+analysis/test_data/platepar/skyFit_latest.state
 ukmon-live/getlogs/.ukmoncreds
 *.retry
 *.bkp
 *.rtf
 */deploy*.ps1
 UKMonCPPTools/stacker/test/*
-NewAnalysis/deployToAWS.yml
+analysis/deployToAWS.yml
 *.zip
 StandaloneCurator/CameraCurator/*
 StandaloneCurator/UFOHandler/*
 StandaloneCurator/CurateUFO.py
 StandaloneCurator/*.ini
-NewAnalysis/*.png
-NewAnalysis/*.pickle
-NewAnalysis/*.txt
+analysis/*.png
+analysis/*.pickle
+analysis/*.txt
 mp4s
 StandaloneCurator/.installed
-NewAnalysis/orbitSolver/testing
-NewAnalysis/FormatConverters/testing
+analysis/orbitSolver/testing
+analysis/FormatConverters/testing
 */test_data/*
 archive/Maintenance/pytz*
 archive/website/static_content/data/searchdialog.js

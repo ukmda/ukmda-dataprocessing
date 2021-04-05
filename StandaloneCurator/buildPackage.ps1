@@ -1,9 +1,9 @@
 # powershell script to package the curator for non-windows
 
 Remove-Item .\ufoCurator.zip
-xcopy /dy ..\newanalysis\CameraCurator\*.py CameraCurator
-xcopy /dy ..\newanalysis\UFOHandler\*.py UFOHandler
-xcopy /dy ..\newanalysis\curateUFO.py .
+xcopy /dy ..\analysis\CameraCurator\*.py CameraCurator
+xcopy /dy ..\analysis\UFOHandler\*.py UFOHandler
+xcopy /dy ..\analysis\curateUFO.py .
 
 compress-archive -path .\curate.sh -destinationpath .\ufoCurator.zip -update
 compress-archive -path .\curate.ps1 -destinationpath .\ufoCurator.zip -update

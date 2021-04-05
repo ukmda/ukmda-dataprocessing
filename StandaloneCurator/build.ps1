@@ -1,8 +1,8 @@
 conda activate RMS
 
-xcopy /dy ..\newanalysis\CameraCurator\*.py CameraCurator
-xcopy /dy ..\newanalysis\UFOHandler\*.py UFOHandler
-xcopy /dy ..\newanalysis\curateUFO.py .
+xcopy /dy ..\analysis\CameraCurator\*.py CameraCurator
+xcopy /dy ..\analysis\UFOHandler\*.py UFOHandler
+xcopy /dy ..\analysis\curateUFO.py .
 xcopy /dy ..\testing.ini .
 
 
