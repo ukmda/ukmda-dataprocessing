@@ -48,5 +48,10 @@ echo "var outer_div = document.getElementById(\"summarytable\");" >> $here/data/
 echo "outer_div.appendChild(table);" >> $here/data/summarytable.js
 echo "})" >> $here/data/summarytable.js
 
+# create a coverage map from the kmls
+source ~/venvs/${RMS_ENV}/bin/activate
+python $SRC/analysis/makeCoverageMap.py $CONFIG/config.ini $ARCHDIR/kmls $here/data
+
 source $WEBSITEKEY
 aws s3 cp $here/data/summarytable.js  $WEBSITEBUCKET/data/
+aws s3 cp $here/data/coverage.html  $WEBSITEBUCKET/data/

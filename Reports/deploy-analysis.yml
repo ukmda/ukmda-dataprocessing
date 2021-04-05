@@ -22,6 +22,7 @@
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     tags: [dev,prod]
     with_items:
+    - {src: '{{srcdir}}/analysis/makeCoverageMap.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
     - {src: '{{srcdir}}/archive/Maintenance/reportOfLatestMatches.py', dest: '{{destdir}}/matches/', mode: '754', backup: no }
     - {src: '{{srcdir}}/analysis/orbitSolver/extraDataFiles.py', dest: '{{destdir}}/orbits/', mode: '644', backup: no }
     - {src: '{{srcdir}}/analysis/orbitSolver/ufoTrajSolver.py', dest: '{{destdir}}/orbits/', mode: '644', backup: no }
@@ -50,9 +51,9 @@
     - {src: '{{srcdir}}/Reports/orbits/redoOneMatch.sh', dest: '{{destdir}}/orbits/', mode: '754', backup: no }
     - {src: '{{srcdir}}/Reports/orbits/doaMonth.sh', dest: '{{destdir}}/orbits/', mode: '754', backup: no }
     - {src: '{{srcdir}}/Reports/orbits/doaYear.sh', dest: '{{destdir}}/orbits/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/ananalysis/FormatConverters/RMStoUFOA.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/ananalysis/Formats/UAFormats.py', dest: '{{destdir}}/analysis/Formats/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/ananalysis/Formats/RMSFormats.py', dest: '{{destdir}}/analysis/Formats/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/ananalysis/ufoShowerAssoc.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/ananalysis/FormatConverters/UFOAtoFTPdetect.py', dest: '{{destdir}}/orbits/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/ananalysis/UFOHandler/ReadUFOAnalyzerXML.py', dest: '{{destdir}}/orbits/UFOHandler/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/FormatConverters/RMStoUFOA.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/Formats/UAFormats.py', dest: '{{destdir}}/analysis/Formats/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/Formats/RMSFormats.py', dest: '{{destdir}}/analysis/Formats/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/ufoShowerAssoc.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/FormatConverters/UFOAtoFTPdetect.py', dest: '{{destdir}}/orbits/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/UFOHandler/ReadUFOAnalyzerXML.py', dest: '{{destdir}}/orbits/UFOHandler/', mode: '644', backup: no }

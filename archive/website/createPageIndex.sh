@@ -69,6 +69,7 @@ cat $TEMPLATES/footer.html >> $idxfile
 pushd ${datadir}
 zip -r -9 /tmp/$fldr.zip . -x ./$fldr.zip
 cp /tmp/$fldr.zip ${datadir}/
+rm -f /tmp/$fldr.zip
 popd
 
 source $WEBSITEKEY
