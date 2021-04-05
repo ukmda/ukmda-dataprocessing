@@ -41,7 +41,8 @@ if __name__ == '__main__':
     config.read(sys.argv[1])
     apikey = decodeApiKey(config['maps']['apikey'])
 
-    gmap = gmplot.GoogleMapPlotter(52, -1.0, 5, apikey=apikey, title='Camera Coverage')
+    gmap = gmplot.GoogleMapPlotter(52, -1.0, 5, apikey=apikey, 
+        title='Camera Coverage', map_type='satellite')
 
 
     for fn in glob.glob1(kmlsource, '*.kml'):
