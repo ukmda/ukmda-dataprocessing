@@ -26,6 +26,7 @@ def getCameraDetails():
     longi = []
     camtyp = []
     fullcams = []
+    dummyid = []
     camfile = 'camera-details.csv'
 
     s3 = boto3.resource('s3')
@@ -47,8 +48,9 @@ def getCameraDetails():
                 lati.append(float(row[9]))
                 alti.append(float(row[10]))
                 camtyp.append(int(row[11]))
+                dummyid.append(row[12])
     os.remove(camfile)
-    return cams, fldrs, lati, longi, alti, camtyp, fullcams
+    return cams, fldrs, lati, longi, alti, camtyp, fullcams, dummyid
 
 
 def generateExtraFiles(outdir):
@@ -68,12 +70,12 @@ def fetchJpgsAndMp4s(traj, outdir):
         archdir='/home/ec2-user/ukmon-shared/archive'
 
     print('getting camera details file')
-    cams, fldrs, lati, longi, alti, camtyps, fullcams = getCameraDetails()
+    _, fldrs, _, _, _, _, _, dummyid = getCameraDetails()
     for obs in traj.observations:
         statid = obs.station_id
-        ci = cams.index(statid)
+        ci = dummyid.index(statid)
         fldr = fldrs[ci]
-
+        print(statid, fldr)
         evtdate = jd2Date(obs.jdt_ref, dt_obj=True)
 
         print('station {} event {} '.format(statid, evtdate.strftime('%Y%m%d-%H%M%S')))
