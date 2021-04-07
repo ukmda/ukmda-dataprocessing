@@ -5,6 +5,10 @@ import xmltodict
 import datetime
 import math
 import numpy
+#try:
+from wmpl.Utils.TrajConversions import altAz2RADec, datetime2JD
+#except Exception:
+#    pass
 
 
 class UAXml:
@@ -292,6 +296,40 @@ class UAXml:
         return fno, tt, ra, dec, mag, fcount, alt, az, b, lsum
 
 
+    def makePlateParEntry(self, statid):
+        imgdt = self.getDateTime()
+        _, cx, cy, _ = self.getCameraDetails()
+        az, ev, _, fovh, yx, _, _, _ = self.getProfDetails()
+        _, lid, sid, lat, lng, alt = self.getStationDetails()
+
+        ff_name = 'FF_' + statid +'_'
+        ff_name = ff_name + imgdt.strftime('%Y%m%d_%H%M%S_') 
+        ff_name = ff_name + '{:.0f}'.format(imgdt.microsecond/1000) + '_0000000.fits'
+
+        fovv = fovh*(cx*yx/cy)
+
+        ref_jd = datetime2JD(imgdt)
+        ra_d, dec_d = altAz2RADec(numpy.radians(az), numpy.radians(ev), ref_jd, 
+            numpy.radians(lat), numpy.radians(lng))
+
+        pp = '"' + ff_name + '": {\n'
+        pp = pp + '    "lat": {:f},\n'.format(lat)
+        pp = pp + '    "lon": {:f},\n'.format(lng)
+        pp = pp + '    "elev": {:f},\n'.format(alt)
+        pp = pp + '    "X_res": {:d},\n'.format(int(cx))
+        pp = pp + '    "Y_res": {:d},\n'.format(int(cy))
+        pp = pp + '    "JD": {:.8f},\n'.format(ref_jd)
+        pp = pp + '    "RA_d": {:.8f},\n'.format(numpy.degrees(ra_d))
+        pp = pp + '    "dec_d": {:.8f},\n'.format(numpy.degrees(dec_d))
+        pp = pp + '    "fov_h": {:f},\n'.format(fovh)
+        pp = pp + '    "fov_v": {:f},\n'.format(fovv)
+        pp = pp + '    "station_code": "{:s}",\n'.format(statid)
+        pp = pp + '    "version": 2\n'
+        pp = pp + '}'
+
+        return pp
+
+
 if __name__ == '__main__':
     dd = UAXml(sys.argv[1])
 
@@ -307,19 +345,22 @@ if __name__ == '__main__':
     # az, ev, rot, fovh, yx, dx, dy, lnk = dd.getProfDetails()
     # print('profile', az, ev, rot, fovh, yx, dx, dy, lnk)
 
+    pp = dd.makePlateParEntry('XX0000')
+    print(pp)
     nobjs = dd.getObjectCount()
     for i in range(nobjs):
-        # sec, av, pix, bmax, mag, fcount = dd.getObjectBasics(i)
-        # ra1, dc1, h1, dist1, lng1, lat1, az1, ev1, fs  = dd.getObjectStart(i)
-        # ra2, dc2, h2, dist2, lng2, lat2, fe = dd.getObjectEnd(i)
-        # print(sec, ra1, dc1, h1, dist1, lng1, lat1, ra2, dc2, h2, dist2, lng2, lat2)
-        # print(fcount)
-        # print('fno', 'ra', 'dec', 'mag', 'az', 'ev', 'lsum', 'b')
-        # for j in range(fcount):
-        #     fno, ra, dec, mag, az, ev, lsum, b = dd.getObjectFrameDetails(i, j)
-        #     us = int(fno / fps * 1000000)
-        #     tt = dtim + datetime.timedelta(microseconds=us)
-        #     print(tt, fno, ra, dec, mag, az, ev, lsum, b)
-        fno, tt, ra, dec, fcount = dd.getPathVector(i)
+        sec, av, pix, bmax, mag, fcount = dd.getObjectBasics(i)
+        ra1, dc1, h1, dist1, lng1, lat1, az1, ev1, fs = dd.getObjectStart(i)
+        ra2, dc2, h2, dist2, lng2, lat2, fe = dd.getObjectEnd(i)
+        print(sec, ra1, dc1, h1, dist1, lng1, lat1, ra2, dc2, h2, dist2, lng2, lat2)
+        print(fcount)
+        print('fno', 'ra', 'dec', 'mag', 'az', 'ev', 'lsum', 'b')
+        for j in range(fcount):
+            fno, ra, dec, mag, az, ev, lsum, b = dd.getObjectFrameDetails(i, j)
+            us = int(fno / fps * 1000000)
+            tt = dtim + datetime.timedelta(microseconds=us)
+            print(tt, fno, ra, dec, mag, az, ev, lsum, b)
+        fno, tt, ra, dec, mag, fcount, alt, az, b, lsum = dd.getPathVector(i)
         for j in range(fcount):
             print(datetime.datetime.fromtimestamp(tt[j]), ra[j], dec[j], fno[j])
+    print('done')

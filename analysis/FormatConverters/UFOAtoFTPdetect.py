@@ -11,6 +11,7 @@ import shutil
 import fnmatch
 import datetime
 import UFOHandler.ReadUFOAnalyzerXML as UA
+import UfoFormats.CameraDetails as cdet
 
 CAMINFOFILE = 'CameraSites.txt'
 CAMOFFSETSFILE = 'CameraTimeOffsets.txt'
@@ -70,19 +71,21 @@ def writeFTPHeader(ftpf, metcount, stime, fldr):
     ftpf.write('Per segment:  Frame# Col Row RA Dec Azim Elev Inten Mag\n')
 
 
-def writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, alt, b, mag, lid):
+def writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, alt, b, mag):
     """
     Write one meteor event into the file in FTPDetectInfo style
     """
     ftpf.write('-------------------------------------------------------\n')
     ms = '{:03d}'.format(int(evttime.microsecond / 1000))
-    lid = lid.replace('_', '')
-    fname = 'FF_' + lid + '_' + evttime.strftime('%Y%m%d_%H%M%S_') + ms + '_0000000.fits\n'
+
+    fname = 'FF_' + sta + '_' + evttime.strftime('%Y%m%d_%H%M%S_') + ms + '_0000000.fits\n'
     ftpf.write(fname)
-    ftpf.write('UFO FRIPON DATA recalibrated on: ')
+
+    ftpf.write('UFO UKMON DATA recalibrated on: ')
     ftpf.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f UTC\n'))
     li = sta + ' 0001 {:04d} {:04.2f} '.format(fcount, fps) + '000.0 000.0  00.0 000.0 0000.0 0000.0\n'
     ftpf.write(li)
+
     for i in range(len(fno)):
         #    204.4909 0422.57 0353.46 262.3574 +16.6355 267.7148 +23.0996 000120 3.41
         li = '{:08.4f} {:07.2f} {:07.2f} '.format(fno[i] - fno[0], 0, 0)  # UFO is timestamped as at the first detection
@@ -133,6 +136,8 @@ def convertFolder(fldr):
             evttime = thisxml.getDateTime()
             sta, lid, sid, lat, lng, alt = thisxml.getStationDetails()
             fps, cx, cy, isintl = thisxml.getCameraDetails()
+            lid = lid + sid
+            lid = lid.replace('_','')
             createStationInfo(fldr, sta, lat, lng, alt)
             if isintl == 1:
                 fps *= 2
@@ -142,7 +147,7 @@ def convertFolder(fldr):
             for i in range(numobjs):
                 fno, tt, ra, dec, mag, fcount, alt, az, b, lsum = thisxml.getPathVector(i)
                 metno += 1
-                writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, alt, b, mag, lid)
+                writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, alt, b, mag)
                 # print(fno, tt, ra, dec, alt, az, b, mag)
 
     rmsdata, statfiles = loadRMSdata(fldr)
@@ -160,9 +165,59 @@ def convertFolder(fldr):
     return
 
 
+def convertUFOFolder(fldr, outfldr):
+    """
+    Read all the A.XML files and create an RMS-style ftpdetect file and platepars file
+    """
+    axmls, metcount, stime = loadAXMLs(fldr)
+
+    _, ymd = os.path.split(fldr)
+    _, lid, sid, _, _, _ = axmls[0].getStationDetails()
+
+    ci = cdet.SiteInfo('/home/ec2-user/ukmon-shared/consolidated/camera-details.csv')
+    statid = ci.getDummyCode(lid, sid)
+    if statid == 'Unknown':
+        statid = 'XX9999'
+
+    arcdir = statid + '_' + ymd + '_180000_000000'
+    ftpfile = 'FTPdetectinfo_' + arcdir + '.txt'
+
+    fulloutfldr = os.path.join(outfldr,statid, arcdir)
+    os.makedirs(fulloutfldr, exist_ok=True)
+
+    plateparfile = open(os.path.join(fulloutfldr, 'platepars_all_recalibrated.json'), 'w')
+    plateparfile.write('{\n')
+
+    # create and populate the ftpdetectinfo file
+    ftpfile = os.path.join(fulloutfldr, ftpfile)
+    with open(ftpfile, 'w') as ftpf:
+        writeFTPHeader(ftpf, metcount, stime, fldr)
+        metno = 1
+        for thisxml in axmls:
+            if metno > 1: 
+                plateparfile.write(',\n')
+            evttime = thisxml.getDateTime()
+            fps, cx, cy, isintl = thisxml.getCameraDetails()
+            if isintl == 1:
+                fps *= 2
+            numobjs = thisxml.getObjectCount()
+
+            for i in range(numobjs):
+                fno, tt, ra, dec, mag, fcount, alt, az, b, lsum = thisxml.getPathVector(i)
+                metno += 1
+                writeOneMeteor(ftpf, metno, statid, evttime, fcount, fps, fno, ra, dec, az, alt, b, mag)
+            
+            pp = thisxml.makePlateParEntry(statid)
+            plateparfile.write(pp)
+
+    plateparfile.write('\n}\n')
+    plateparfile.close()
+    return
+
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('Usage python UFOtoFTPdetect.py somefolder')
         print('  will convert all UFO A.xml files in somefolder to a single FTPDetectInfo file')
     else:
-        convertFolder(sys.argv[1])
+        convertUFOFolder(sys.argv[1], sys.argv[2])
