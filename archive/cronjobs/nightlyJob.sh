@@ -13,7 +13,8 @@ export AWS_DEFAULT_REGION=eu-west-2
 aws lambda invoke --function-name ConsolidateCSVs out --log-type Tail
 
 # run this only once as it scoops up all unprocessed data
-${SRC}/matches/findAllMatches.sh ${thismth}
+matchlog=matches-$(date +%Y%m%d-%H%M%S).log
+${SRC}/matches/findAllMatches.sh ${thismth} > ${SRC}/logs/matches/${matchlog} 2>&1
 
 # update shower associations, then create monthly and shower extracts for the website
 ${SRC}/analysis/updateRMSShowerAssocs.sh ${thismth}
