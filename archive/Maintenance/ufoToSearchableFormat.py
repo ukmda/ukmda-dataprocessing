@@ -33,6 +33,8 @@ def UFOAToSrchable(configfile, year, outdir):
     dtstamps = []
     urls = []
     imgs = []
+    grps = []
+    sts = []
     for li in uadata:
         se = float(li['Sec'])
         ss = int(np.floor(se))
@@ -51,11 +53,13 @@ def UFOAToSrchable(configfile, year, outdir):
         url = weburl + fldr
         urls.append(url)
         imgs.append(url)
+        grps.append(li['Group'].strip())
+        sts.append(li['Loc_Cam'].strip())
 
     hdr='eventtime,source,shower,mag,loccam,url,img'
 
     # write out the converted data
-    outdata = np.column_stack((dtstamps,srcs, uadata['Group'], uadata['Mag'], uadata['Loc_Cam'], urls, imgs))
+    outdata = np.column_stack((dtstamps, srcs, grps, uadata['Mag'], sts, urls, imgs))
     outdata = np.unique(outdata, axis=0)
     fmtstr = '%s,%s,%s,%s,%s,%s,%s'
     outfile = os.path.join(outdir, '{:s}-singleevents.csv'.format(year))
@@ -87,8 +91,11 @@ def LiveToSrchable(configfile, year, outdir):
                 ds = datetime.datetime.strptime(dtstr, '%Y%m%d_%H%M%S')
                 dtstamps.append(ds.timestamp())
 
-                lc = li['Loc_Cam'] + '_' + li['SID']
-                loccam.append(lc)
+                if li['SID'][:3] == 'UK0':
+                    lc = li['SID']
+                else:
+                    lc = li['Loc_Cam'] + '_' + li['SID']
+                loccam.append(lc.strip())
 
                 url='https://live.ukmeteornetwork.co.uk/M' + li['ymd'] + '_' + li['hms'] + '_' + lc + 'P.jpg'
 
@@ -136,7 +143,7 @@ def MatchToSrchable(configfile, year, outdir, indexes):
                     spls = dta.split(',')
                     dtval = spls[2][1:]
                     ym = dtval[:6]
-                    sts = spls[5][1:]
+                    sts = spls[5][1:].strip()
                     mag = spls[7]
                     shwr = spls[25]
                     url = weburl + '/reports/' + year
