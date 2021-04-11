@@ -15,11 +15,10 @@ def findNewMatches(dir_path, targdate):
     # Get their stats
     entries = ((os.stat(path), path) for path in entries)
 
-    # get now and noon the previous day
-#    now = datetime.datetime.now()
+    # set date range
     now = targdate
-    yday = now + datetime.timedelta(days=-1)
-    yday = yday.replace(hour=9, minute=0, second=0, microsecond=0)
+    yday = targdate + datetime.timedelta(days=-1)
+    yday = yday.replace(hour=7, minute=0, second=0, microsecond=0)
     yday = yday.timestamp()
 
     print('----------------------')
@@ -31,13 +30,24 @@ def findNewMatches(dir_path, targdate):
     with open(matchlist, 'w') as outf:
         for ee in entries:
             if ee[0] > yday:
-                ftplist =glob.glob1(os.path.join(dir_path, ee[1]), 'FTP*.txt')
+                replist = glob.glob1(os.path.join(dir_path, ee[1]), '*report*.txt')[0]
+                with open(os.path.join(dir_path, ee[1], replist), 'r') as repf:
+                    lis = repf.readlines()
+                stations=[]
+                for i in range(len(lis)):
+                    if "Timing offsets (from input data):" in lis[i]:
+                        while len(lis[i].strip()) > 0:
+                            i=i+1
+                            spls = lis[i].strip().split(':')
+                            stations.append(spls[0])
+
                 _,dname = os.path.split(ee[1])
                 outstr = '{},{:s}'.format(ee[0], dname)
-                for f in ftplist:
-                    spls = f.split('_')
-                    outstr = outstr + ',' +spls[1]
-                outstr = outstr 
+                for f in stations:
+                    if len(f) < 6:
+                        break
+                    outstr = outstr + ',' + f
+                outstr = outstr.strip()
                 print(outstr)
                 outf.write('{}\n'.format(outstr))
     return 

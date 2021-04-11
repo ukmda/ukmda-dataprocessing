@@ -6,7 +6,7 @@
 import sys
 import os
 import numpy as np
-import Formats.UAFormats as uaf
+import UfoFormats.UAFormats as uaf
 import configparser as cfg
 import datetime 
 #import glob
