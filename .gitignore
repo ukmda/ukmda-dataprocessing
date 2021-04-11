@@ -535,5 +535,5 @@ StandaloneCurator/.installed
 analysis/orbitSolver/testing
 analysis/FormatConverters/testing
 */test_data/*
-archive/Maintenance/pytz*
+archive/lambdas/pytz*
 archive/website/static_content/data/searchdialog.js
