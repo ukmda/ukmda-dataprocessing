@@ -149,6 +149,11 @@ def lambda_handler(event, context):
         target = 'mjmm-live'
     else:
         target = 'ukmon-shared'
+    try:
+        doff = int(os.environ['OFFSET']) 
+    except:
+        doff = 1
+
     tmppth = '/tmp'
     print('DailyCheck: getting daily report')
     s3 = boto3.resource('s3')
@@ -159,7 +164,7 @@ def lambda_handler(event, context):
         s3.meta.client.download_file(target, fullrep, dailyreport)
         domail, mailsubj, body, bodytext = LookForMatchesRMS(doff,dailyreport)
     except:
-        pass
+        domail = False
 
     if domail is True:
         sendMail(mailsubj, body, bodytext)
