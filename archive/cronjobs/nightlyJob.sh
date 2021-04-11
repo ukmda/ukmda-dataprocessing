@@ -16,6 +16,16 @@ aws lambda invoke --function-name ConsolidateCSVs out --log-type Tail
 matchlog=matches-$(date +%Y%m%d-%H%M%S).log
 ${SRC}/matches/findAllMatches.sh ${thismth} > ${SRC}/logs/matches/${matchlog} 2>&1
 
+# send daily report - only want to do this if in batch mode
+if [ "`tty`" != "not a tty" ]; then 
+    echo 'got a tty, not triggering report'
+else 
+    echo 'no tty, triggering report' 
+    source ~/.ssh/ukmonarchive-keys
+    export AWS_DEFAULT_REGION=eu-west-1
+    aws lambda invoke --function-name dailyReport out --log-type Tail
+fi
+
 # update shower associations, then create monthly and shower extracts for the website
 ${SRC}/analysis/updateRMSShowerAssocs.sh ${thismth}
 ${SRC}/website/createMthlyExtracts.sh ${thismth}
