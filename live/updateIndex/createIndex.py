@@ -4,9 +4,7 @@ import os
 import datetime
 import math
 import boto3
-# import numpy as np
 import ReadUFOCapXML
-# Polynomial = np.polynomial.Polynomial
 
 
 def AddToIndex(fname, idxfile, pth):
@@ -25,14 +23,7 @@ def AddToIndex(fname, idxfile, pth):
     return
 
 
-def createIndex(doff=1):
-    client = boto3.client('sts')
-    response = client.get_caller_identity()['Account']
-    if response == '317976261112':
-        target = 'mjmm-live'
-    else:
-        target = 'ukmon-live'
-
+def createIndex(target, doff=1):
     try:
         tmppth = os.environ['TMP']
     except:
@@ -77,17 +68,9 @@ def createIndex(doff=1):
     return
 
 
-def purgeOlderFiles():
+def purgeOlderFiles(target):
     print('purging older bad data')
-    # check which account we're in
-    client = boto3.client('sts')
-    response = client.get_caller_identity()['Account']
-    if response == '317976261112':
-        target = 'mjmm-live'
-    else:
-        target = 'ukmon-shared'
     s3 = boto3.client('s3')
-
     # get purge limit
     try:
         doff = int(os.environ['PURGE']) + 1
@@ -112,14 +95,25 @@ def purgeOlderFiles():
 
 
 def lambda_handler(event, context):
-    # get day offset to process
+    # check which account we're in
+    client = boto3.client('sts')
+    response = client.get_caller_identity()['Account']
+    if response == '317976261112':
+        livetarget = 'mjmm-live'
+        archtarget = 'mjmm-live'
+    else:
+        livetarget = 'ukmon-live'
+        archtarget = 'ukmon-shared'
     try:
-        offs = int(os.environ['OFFSET'])
+        doff = int(os.environ['OFFSET'])
     except:
-        offs = 1
+        doff = 1
+    # update index for requested date and today
+    print('DailyCheck: updating indexes')
+    createIndex(livetarget, doff)
+    createIndex(livetarget, doff - 1)
 
-    createIndex(offs)
-    purgeOlderFiles()
+    purgeOlderFiles(archtarget)
 
 
 if __name__ == '__main__':
