@@ -37,7 +37,11 @@ def loadAXMLs(fldr):
     Load all the A.xml files in the given folder
     """
     axmls = []
-    listOfFiles = os.listdir(fldr)
+    try:
+        listOfFiles = os.listdir(fldr)
+    except Exception:
+        print('not a folder')
+        return axmls, 0, 0
     pattern = '*A.XML'
     metcount = 0
     evttime = datetime.datetime.now()
@@ -170,6 +174,9 @@ def convertUFOFolder(fldr, outfldr):
     Read all the A.XML files and create an RMS-style ftpdetect file and platepars file
     """
     axmls, metcount, stime = loadAXMLs(fldr)
+    if len(axmls) == 0:
+        print('no a.xml files found')
+        return 
 
     _, ymd = os.path.split(fldr)
     _, lid, sid, _, _, _ = axmls[0].getStationDetails()
