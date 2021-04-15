@@ -59,29 +59,29 @@ if ($RMS_INSTALLED -eq 1){
     foreach ($path in $dlist) {
         $myf = $destpath + '\'+$path
         $ftpfil=$myf+'\FTPdetectinfo_'+$path+'.txt'
-        $platepar=$myf+ '\platepar_cmn2010.cal'
+        #$platepar=$myf+ '\platepar_cmn2010.cal'
 
-        $ufo=$myf+'\*.csv'
+        $ufo=$myf+'\*radiants.txt'
         $isdone=(get-childitem $ufo).Name
         $ftpexists=test-path $ftpfil
         if ($isdone.count -eq 0 -and $ftpexists -ne 0){
             # generate the UFO-compatible CSV, shower association map 
             # convert fits to jpeg and create a stack
-            python -m Utils.RMS2UFO $ftpfil $platepar
+            # python -m Utils.RMS2UFO $ftpfil $platepar
             python -m Utils.ShowerAssociation $ftpfil -x
-            python -m Utils.BatchFFtoImage $myf jpg
+            # python -m Utils.BatchFFtoImage $myf jpg
             #stack them if more than one to stack
-            $fits = $myf  + '\FF*.fits'
-            $nfits=(get-childitem $fits).count
-            if ($nfits -gt 1)
-            {
-                python -m Utils.StackFFs $myf jpg -s -b -x   
-            }
+            # $fits = $myf  + '\FF*.fits'
+            # $nfits=(get-childitem $fits).count
+            # if ($nfits -gt 1)
+            # {
+            #    python -m Utils.StackFFs $myf jpg -s -b -x   
+            # }
             # mp4 generation is not yet in the main RMS codebase
-            $mp4gen=$rms_loc+'/Utils/GenerateMP4s.py'
-            if (test-path $mp4gen ){
-                python -m Utils.GenerateMP4s $myf
-            }
+            # $mp4gen=$rms_loc+'/Utils/GenerateMP4s.py'
+            # if (test-path $mp4gen ){
+            #    python -m Utils.GenerateMP4s $myf
+            # }
         }
         else{
             write-output skipping' '$myf
@@ -92,29 +92,29 @@ if ($RMS_INSTALLED -eq 1){
     foreach ($path in $dlist) {
         $myf = $destpath + '\'+$path
         $ftpfil=$myf+'\FTPdetectinfo_'+$path+'.txt'
-        $platepar=$myf+ '\platepar_cmn2010.cal'
+        # $platepar=$myf+ '\platepar_cmn2010.cal'
 
-        $ufo=$myf+'\*.csv'
+        $ufo=$myf+'\*radiants.txt'
         $isdone=(get-childitem $ufo).Name
         $ftpexists=test-path $ftpfil
         if ($ftpexists -ne 0){
             # generate the UFO-compatible CSV, shower association map 
             # convert fits to jpeg and create a stack
-            python -m Utils.RMS2UFO $ftpfil $platepar
+            # python -m Utils.RMS2UFO $ftpfil $platepar
             python -m Utils.ShowerAssociation $ftpfil -x
-            python -m Utils.BatchFFtoImage $myf jpg
+            # python -m Utils.BatchFFtoImage $myf jpg
             #stack them if more than one to stack
-            $fits = $myf  + '\FF*.fits'
-            $nfits=(get-childitem $fits).count
-            if ($nfits -gt 1)
-            {
-                python -m Utils.StackFFs $myf jpg -s -b -x   
-            }
+            # $fits = $myf  + '\FF*.fits'
+            # $nfits=(get-childitem $fits).count
+            # if ($nfits -gt 1)
+            # {
+            #    python -m Utils.StackFFs $myf jpg -s -b -x   
+            # }
             # mp4 generation is not yet in the main RMS codebase
-            $mp4gen=$rms_loc+'\Utils\GenerateMP4s.py'
-            if (test-path $mp4gen ){
-                python -m Utils.GenerateMP4s $myf
-            }
+            # $mp4gen=$rms_loc+'\Utils\GenerateMP4s.py'
+            # if (test-path $mp4gen ){
+            #    python -m Utils.GenerateMP4s $myf
+            # }
             $allplates = $localfolder + '\ArchivedFiles\' + $path + '\platepars_all_recalibrated.json'
             copy-item $allplates $destpath
         }
@@ -124,6 +124,6 @@ if ($RMS_INSTALLED -eq 1){
     }    
 }
 set-location $PSScriptRoot
-.\reorgByYMD.ps1 $args[0]
-.\UploadToUkMon.ps1 $args[0]
+# .\reorgByYMD.ps1 $args[0]
+# .\UploadToUkMon.ps1 $args[0]
 

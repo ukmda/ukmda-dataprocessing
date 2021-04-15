@@ -6,7 +6,7 @@
 import sys
 import os
 import numpy as np
-import Formats.UAFormats as uaf
+import UfoFormats.UAFormats as uaf
 import configparser as cfg
 import datetime 
 #import glob
@@ -27,12 +27,14 @@ def UFOAToSrchable(configfile, year, outdir):
 
     # create array for source
     srcs=np.chararray(len(uadata), itemsize=8)
-    srcs[:]='Single'
+    srcs[:]='2Single'
     srcs=srcs.decode('utf-8')
 
     dtstamps = []
     urls = []
     imgs = []
+    grps = []
+    sts = []
     for li in uadata:
         se = float(li['Sec'])
         ss = int(np.floor(se))
@@ -51,11 +53,13 @@ def UFOAToSrchable(configfile, year, outdir):
         url = weburl + fldr
         urls.append(url)
         imgs.append(url)
+        grps.append(li['Group'].strip())
+        sts.append(li['Loc_Cam'].strip())
 
     hdr='eventtime,source,shower,mag,loccam,url,img'
 
     # write out the converted data
-    outdata = np.column_stack((dtstamps,srcs, uadata['Group'], uadata['Mag'], uadata['Loc_Cam'], urls, imgs))
+    outdata = np.column_stack((dtstamps, srcs, grps, uadata['Mag'], sts, urls, imgs))
     outdata = np.unique(outdata, axis=0)
     fmtstr = '%s,%s,%s,%s,%s,%s,%s'
     outfile = os.path.join(outdir, '{:s}-singleevents.csv'.format(year))
@@ -87,15 +91,18 @@ def LiveToSrchable(configfile, year, outdir):
                 ds = datetime.datetime.strptime(dtstr, '%Y%m%d_%H%M%S')
                 dtstamps.append(ds.timestamp())
 
-                lc = li['Loc_Cam'] + '_' + li['SID']
-                loccam.append(lc)
+                if li['SID'][:3] == 'UK0':
+                    lc = li['SID']
+                else:
+                    lc = li['Loc_Cam'] + '_' + li['SID']
+                loccam.append(lc.strip())
 
                 url='https://live.ukmeteornetwork.co.uk/M' + li['ymd'] + '_' + li['hms'] + '_' + lc + 'P.jpg'
 
                 urls.append(url)
                 imgs.append(url)
                 shwrs.append('Unknown')
-                srcs.append('Live')
+                srcs.append('3Live')
                 zeros.append(0)
 
     hdr='eventtime,source,shower,mag,loccam,url,imgs'
@@ -129,7 +136,6 @@ def MatchToSrchable(configfile, year, outdir, indexes):
         csvfname = splis[2]
         # print(orbname, csvfname)
         fn = os.path.join(path, 'csv', csvfname)
-        # print(fn)
         try: 
             with open(fn, 'r') as idxfile:
                 dta = idxfile.readline()
@@ -137,7 +143,7 @@ def MatchToSrchable(configfile, year, outdir, indexes):
                     spls = dta.split(',')
                     dtval = spls[2][1:]
                     ym = dtval[:6]
-                    sts = spls[5][1:]
+                    sts = spls[5][1:].strip()
                     mag = spls[7]
                     shwr = spls[25]
                     url = weburl + '/reports/' + year
@@ -148,12 +154,14 @@ def MatchToSrchable(configfile, year, outdir, indexes):
                     imgs.append(url2)
                     loccams.append(sts)
                     mags.append(mag)
-
-                    dtstamp = datetime.datetime.strptime(orbname, '%Y%m%d-%H%M%S.%f')
+                    orbname = orbname.replace('-','_')[:19]
+                    dtstamp = datetime.datetime.strptime(orbname, '%Y%m%d_%H%M%S.%f')
                     dtstamps.append(dtstamp.timestamp())
-                    srcs.append('Matched')
+                    srcs.append('1Matched')
+                else:
+                    print('seems not RMS processed')
         except Exception:
-            print('broken')
+            print('file missing {}'.format(fn))
             continue
     matchhdr='eventtime,source,shower,mag,loccam,url,img'
 

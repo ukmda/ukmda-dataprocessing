@@ -13,6 +13,6 @@ do
     indir=`basename $i`
     $here/doOneMatch.sh $indir $2
     #if [ $? == 0 ] ; then
-    #    $SRC/website/createPageIndex.sh $1
+    #    $SRC/website/createPageIndex.sh ${MATCHDIR}/$1
     #fi
 done

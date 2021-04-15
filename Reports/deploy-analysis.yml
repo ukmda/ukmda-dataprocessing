@@ -22,35 +22,41 @@
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     tags: [dev,prod]
     with_items:
-    - {src: '{{srcdir}}/NewAnalysis/orbitSolver/ufoTrajSolver.py', dest: '{{destdir}}/orbits/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/NewAnalysis/orbitSolver/reduceOrbit.sh', dest: '{{destdir}}/orbits/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/archive/Maintenance/collectJpgs.sh', dest: '{{destdir}}/analysis/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/archive/cronjobs/nightlyJob.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/archive/cronjobs/updateSearchIndex.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/analysis/sendAnEmail.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/FormatConverters/UFOAtoFTPdetect.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/UFOHandler/ReadUFOAnalyzerXML.py', dest: '{{destdir}}/analysis/UFOHandler/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/makeCoverageMap.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/archive/Maintenance/reportOfLatestMatches.py', dest: '{{destdir}}/matches/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/orbitSolver/extraDataFiles.py', dest: '{{destdir}}/orbits/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/orbitSolver/ufoTrajSolver.py', dest: '{{destdir}}/orbits/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/orbitSolver/reduceOrbit.sh', dest: '{{destdir}}/orbits/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/archive/Maintenance/collectJpgs.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
     - {src: '{{srcdir}}/archive/Maintenance/initialGetAllJpgs.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/archive/Maintenance/consolidateJpgs.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
     - {src: '{{srcdir}}/archive/Maintenance/consolidateMatchedData.py', dest: '{{destdir}}/matches/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/archive/Maintenance/findAllMatches.sh', dest: '{{destdir}}/matches/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/archive/Maintenance/reconsolidateYearAXML.sh', dest: '{{destdir}}/matches/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/archive/Maintenance/findAllMatches.sh', dest: '{{destdir}}/matches/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/archive/Maintenance/reconsolidateYearAXML.sh', dest: '{{destdir}}/matches/', mode: '744', backup: no }
     - {src: '{{srcdir}}/archive/Maintenance/ufoToSearchableFormat.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/archive/Maintenance/createSearchable.sh', dest: '{{destdir}}/analysis/', mode: '755', backup: no }
-    - {src: '{{srcdir}}/Reports/Monthly/monthlyReports.sh', dest: '{{destdir}}/analysis/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/Reports/Monthly/analyse.sh', dest: '{{destdir}}/analysis/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/Reports/Monthly/createReport.sh', dest: '{{destdir}}/analysis/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/Reports/Monthly/reportYear.sh', dest: '{{destdir}}/analysis/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/archive/Maintenance/createSearchable.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/Reports/Monthly/monthlyReports.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/Reports/Monthly/analyse.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/Reports/Monthly/createReport.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/Reports/Monthly/reportYear.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
     - {src: '{{srcdir}}/Reports/Monthly/makeReportTables.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
     - {src: '{{srcdir}}/Reports/Monthly/templates/UA_header.txt', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
     - {src: '{{srcdir}}/Reports/Monthly/templates/UO_header.txt', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
     - {src: '{{srcdir}}/Reports/Monthly/templates/RMS_header.txt', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
     - {src: '{{srcdir}}/Reports/Monthly/templates/report-template.html', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
     - {src: '{{srcdir}}/Reports/Monthly/templates/shower-report-template.html', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/Reports/Monthly/addRMSShowerDets.sh', dest: '{{destdir}}/analysis/', mode: '755', backup: no }
-    - {src: '{{srcdir}}/Reports/Monthly/updateRMSShowerAssocs.sh', dest: '{{destdir}}/analysis/', mode: '755', backup: no }
+    - {src: '{{srcdir}}/Reports/Monthly/addRMSShowerDets.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/Reports/Monthly/updateRMSShowerAssocs.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
     - {src: '{{srcdir}}/Reports/orbits/findJPGs.py', dest: '{{destdir}}/orbits/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/Reports/orbits/redoOneMatch.sh', dest: '{{destdir}}/orbits/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/Reports/orbits/doaMonth.sh', dest: '{{destdir}}/orbits/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/Reports/orbits/doaYear.sh', dest: '{{destdir}}/orbits/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/NewAnalysis/FormatConverters/RMStoUFOA.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/NewAnalysis/Formats/UAFormats.py', dest: '{{destdir}}/analysis/Formats/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/NewAnalysis/Formats/RMSFormats.py', dest: '{{destdir}}/analysis/Formats/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/NewAnalysis/ufoShowerAssoc.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/NewAnalysis/FormatConverters/UFOAtoFTPdetect.py', dest: '{{destdir}}/orbits/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/NewAnalysis/UFOHandler/ReadUFOAnalyzerXML.py', dest: '{{destdir}}/orbits/UFOHandler/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/Reports/orbits/redoOneMatch.sh', dest: '{{destdir}}/orbits/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/Reports/orbits/doaMonth.sh', dest: '{{destdir}}/orbits/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/Reports/orbits/doaYear.sh', dest: '{{destdir}}/orbits/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/analysis/FormatConverters/RMStoUFOA.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/Formats/UAFormats.py', dest: '{{destdir}}/analysis/UfoFormats/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/Formats/RMSFormats.py', dest: '{{destdir}}/analysis/UfoFormats/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/Formats/CameraDetails.py', dest: '{{destdir}}/analysis/UfoFormats/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/ufoShowerAssoc.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
