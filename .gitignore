@@ -523,10 +523,6 @@ ukmon-live/getlogs/.ukmoncreds
 UKMonCPPTools/stacker/test/*
 analysis/deployToAWS.yml
 *.zip
-StandaloneCurator/CameraCurator/*
-StandaloneCurator/UFOHandler/*
-StandaloneCurator/CurateUFO.py
-StandaloneCurator/*.ini
 analysis/*.png
 analysis/*.pickle
 analysis/*.txt
