@@ -1,8 +1,0 @@
-#
-# python requirements file
-#
-numpy
-astropy
-xmltodict
-boto3
-matplotlib

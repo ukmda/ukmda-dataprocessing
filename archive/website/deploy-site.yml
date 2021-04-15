@@ -31,24 +31,14 @@
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     tags: [dev,prod]
     with_items:
+    - {src: '{{srcdir}}/website/createOrbitIndex.sh', dest: '{{destdir}}/website/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/website/createPageIndex.sh', dest: '{{destdir}}/website/', mode: '754', backup: no }
     - {src: '{{srcdir}}/website/createShwrExtracts.sh', dest: '{{destdir}}/website/', mode: '754', backup: no }
     - {src: '{{srcdir}}/website/createMthlyExtracts.sh', dest: '{{destdir}}/website/', mode: '754', backup: no }
     - {src: '{{srcdir}}/website/createReportIndex.sh', dest: '{{destdir}}/website/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/website/createOrbitIndex.sh', dest: '{{destdir}}/website/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/website/createPageIndex.sh', dest: '{{destdir}}/website/', mode: '754', backup: no }
     - {src: '{{srcdir}}/website/createSummaryTable.sh', dest: '{{destdir}}/website/', mode: '754', backup: no }
     - {src: '{{srcdir}}/website/createHistExtracts.sh', dest: '{{destdir}}/website/', mode: '754', backup: no }
     - {src: '{{srcdir}}/website/createHistShwrExtracts.sh', dest: '{{destdir}}/website/', mode: '754', backup: no }
     - {src: '{{srcdir}}/website/templates/header.html', dest: '{{destdir}}/website/templates/', mode: '644', backup: no }
     - {src: '{{srcdir}}/website/templates/footer.html', dest: '{{destdir}}/website/templates/', mode: '644', backup: no }
     - {src: '{{srcdir}}/website/templates/shwrcsvindex.html', dest: '{{destdir}}/website/templates/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/cronjobs/nightlyJob.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/cronjobs/updateSearchIndex.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
-#  - name: test s3 
-#    tags: [dev,prod]
-#    amazon.aws.aws_s3:
-#      bucket: '{{websitebucket}}'
-#      mode: get
-#      object: about.html
-#      dest: /tmp/test.txt
-#      profile: '{{s3profile}}'

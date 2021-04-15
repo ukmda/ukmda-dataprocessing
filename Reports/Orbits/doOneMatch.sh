@@ -36,7 +36,7 @@ if [ $res -eq 0 ] ; then
     cp $indir/*.mp4 $resultdir > /dev/null 2>&1
     chmod 644 $resultdir/*.jpg
 
-    ${SRC}/website/createPageIndex.sh $yr/$ym/$pth/$(basename $resultdir)
+    ${SRC}/website/createPageIndex.sh ${MATCHDIR}/$yr/$ym/$pth/$(basename $resultdir)
 
     echo "copying the orbit CSV files"
     mkdir -p $outdir/csv/ >/dev/null 2>&1

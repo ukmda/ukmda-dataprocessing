@@ -51,10 +51,13 @@ form.addEventListener("submit", function (event) {
     type: "GET",
     data: payload,
     dataType: 'jsonp',
-    complete: function (xhr, status, ex) {
+    error: function (xhr, status, ex ) {
       if (status === 'error' ) {
-        alert(status + "," + ex );
+        alert("Too much data, try a narrower range");
+        console.log(xhr.status);
       }
+    },
+    complete: function (xhr, status) {
     }
   });
   event.preventDefault();}

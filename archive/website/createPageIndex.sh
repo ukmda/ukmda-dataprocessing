@@ -6,12 +6,20 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
 
+# generate extra data files and copy other data of interest
+cd $SRC/orbits
+source ~/venvs/$WMPL_ENV/bin/activate
+export PYTHONPATH=$wmpl_loc
+export ARCHDIR # used by extraDataFiles.py
+python extraDataFiles.py $1
+cd $here
+
 ym=$(basename $1)
 yr=${ym:0:4}
 mth=${ym:4:2}
 targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${yr}${mth}/$ym
 
-datadir=${MATCHDIR}/$1
+datadir=$1
 
 idxfile=${datadir}/index.html
 repf=`ls -1 ${datadir}/$yr*report.txt`
@@ -51,8 +59,8 @@ echo "<a href=\"${pref}lags_all.png\"><img src=\"${pref}lags_all.png\" width=\"2
 echo "<a href=\"${pref}abs_mag.png\"><img src=\"${pref}abs_mag.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}abs_mag_ht.png\"><img src=\"${pref}abs_mag_ht.png\" width=\"20%\"></a>" >> $idxfile
 echo "<br>">>$idxfile
-echo "<a href=\"${pref}all_spatial_residuals.png\"><img src=\"${pref}all_spatial_residuals.png\" width=\"20%\"></a>" >> $idxfile
-echo "<a href=\"${pref}total_spatial_residuals_length_grav.png\"><img src=\"${pref}total_spatial_residuals_length_grav.png\" width=\"20%\"></a>" >> $idxfile
+#echo "<a href=\"${pref}all_spatial_residuals.png\"><img src=\"${pref}all_spatial_residuals.png\" width=\"20%\"></a>" >> $idxfile
+#echo "<a href=\"${pref}total_spatial_residuals_length_grav.png\"><img src=\"${pref}total_spatial_residuals_length_grav.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}all_angular_residuals.png\"><img src=\"${pref}all_angular_residuals.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}all_spatial_total_residuals_height.png\"><img src=\"${pref}all_spatial_total_residuals_height.png\" width=\"20%\"></a>" >> $idxfile
 
@@ -61,6 +69,7 @@ cat $TEMPLATES/footer.html >> $idxfile
 pushd ${datadir}
 zip -r -9 /tmp/$fldr.zip . -x ./$fldr.zip
 cp /tmp/$fldr.zip ${datadir}/
+rm -f /tmp/$fldr.zip
 popd
 
 source $WEBSITEKEY
