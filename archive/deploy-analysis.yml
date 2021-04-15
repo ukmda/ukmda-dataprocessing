@@ -1,0 +1,54 @@
+---
+- hosts: ukmonhelper
+  vars:
+    srcdir: /mnt/e/dev/meteorhunting/UKMON-shared
+  tasks:
+  - name: import dev variables 
+    include_vars: ../archive/dev-vars.yml
+    tags: dev
+  - name: import prod variables
+    include_vars: ../archive/prod-vars.yml
+    tags: prod
+  - name: Ensures {{destdir}} exists
+    file: path={{destdir}} state=directory  
+    tags: [dev,prod]
+  - name: Ensures {{destdir}}/R exists
+    file: path={{destdir}}/R state=directory  
+    tags: [dev,prod]
+  - name: Ensures {{destdir}}/logs exists
+    file: path={{destdir}}/logs state=directory  
+    tags: [dev,prod]
+  - name: Copy files
+    copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
+    tags: [dev,prod]
+    with_items:
+    - {src: '{{srcdir}}/archive/cronjobs/nightlyJob.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/archive/cronjobs/updateSearchIndex.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/archive/maintenance/reportOfLatestMatches.py', dest: '{{destdir}}/matches/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/archive/maintenance/findAllMatches.sh', dest: '{{destdir}}/matches/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/archive/maintenance/ufoToSearchableFormat.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/archive/maintenance/createSearchable.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/archive/reports/monthlyReports.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/archive/reports/analyse.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/archive/reports/createReport.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/archive/reports/reportYear.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/archive/reports/makeReportTables.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/archive/reports/templates/UA_header.txt', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/archive/reports/templates/UO_header.txt', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/archive/reports/templates/RMS_header.txt', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/archive/reports/templates/report-template.html', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/archive/reports/templates/shower-report-template.html', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/archive/reports/addRMSShowerDets.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/archive/reports/updateRMSShowerAssocs.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/analysis/FormatConverters/RMStoUFOA.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/Formats/UAFormats.py', dest: '{{destdir}}/analysis/UfoFormats/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/Formats/RMSFormats.py', dest: '{{destdir}}/analysis/UfoFormats/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/Formats/CameraDetails.py', dest: '{{destdir}}/analysis/UfoFormats/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/ufoShowerAssoc.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/orbitSolver/ufoTrajSolver.py', dest: '{{destdir}}/orbits/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/orbitSolver/reduceOrbit.sh', dest: '{{destdir}}/orbits/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/analysis/sendAnEmail.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/FormatConverters/UFOAtoFTPdetect.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/UFOHandler/ReadUFOAnalyzerXML.py', dest: '{{destdir}}/analysis/UFOHandler/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/makeCoverageMap.py', dest: '{{destdir}}/analysis/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/orbitSolver/extraDataFiles.py', dest: '{{destdir}}/orbits/', mode: '644', backup: no }
