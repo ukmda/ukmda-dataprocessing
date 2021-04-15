@@ -30,18 +30,6 @@
       regexp: 'IDFILE='
       line: 'IDFILE=$HOME/.ssh/mjmm-data.key'
     tags: [dev,prod]
-  - name: update AWS host
-    lineinfile:
-      path: '{{destdir}}/config/config.ini'
-      regexp: 'HOST='
-      line: 'HOST=s3://mjmm-data'
-    tags: [dev,prod]
-  - name: update AWS user
-    lineinfile:
-      path: '{{destdir}}/config/config.ini'
-      regexp: 'USER='
-      line: 'USER=ec2-user'
-    tags: [dev,prod]
   - name: set input folder  
     lineinfile:
       path: '{{destdir}}/config/config.ini'
@@ -114,3 +102,23 @@
       regexp: 'SITEURL='
       line: 'SITEURL={{siteurl}}'
     tags: [dev,prod]
+  - name: update mail host
+    lineinfile: 
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'MAILHOST='
+      line: 'MAILHOST=smtp.gmail.com'
+  - name: update mail port
+    lineinfile: 
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'MAILPORT='
+      line: 'MAILPORT=587'
+  - name: update mail user
+    lineinfile: 
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'MAILUSER='
+      line: 'MAILUSER=mjmm456'
+  - name: update mail pwd
+    lineinfile: 
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'MAILPWD='
+      line: 'MAILPWD=~/.ssh/gmailpass'

@@ -43,8 +43,8 @@ success=$(grep "SOLVING RUN DONE" $logf)
 
 if [ "$success" == "" ]
 then
-
-    # email me an alert
+    export SRC
+    python $SRC/analysis/sendAnEmail.py markmcintyre99@googlemail.com "problem with matching" "Error"
     echo problems with solver
 fi
 echo "Solving run done"

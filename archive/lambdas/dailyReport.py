@@ -113,7 +113,7 @@ def sendMail(subj, body, bodytext):
         # Provide the contents of the email.
         response = client.send_email(
             Destination={
-                'ToAddresses': RECIPIENT,
+                'BccAddresses': RECIPIENT,
             },
             Message={
                 'Body': {
