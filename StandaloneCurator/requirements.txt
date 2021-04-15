@@ -3,4 +3,5 @@
 #
 xmltodict
 numpy
-six
+tk
+pillow
