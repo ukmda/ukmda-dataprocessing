@@ -18,9 +18,12 @@ class SiteInfo:
 
     def GetSiteLocation(self, camname):
         eles = camname.split(b'_')
-        lid = eles[0].strip()
+        if len(eles) > 2:
+            lid = eles[0].strip() + b'_' + eles[1].strip()
+        else:
+            lid = eles[0].strip()
         if len(eles) > 1:
-            sid = camname.split(b'_')[1].strip()
+            sid = camname.split(b'_')[len(eles)-1].strip()
             print(lid, sid)
             cam = numpy.where((self.camdets['LID'] == lid) & (self.camdets['SID'] == sid))
             if len(cam[0]) == 0:

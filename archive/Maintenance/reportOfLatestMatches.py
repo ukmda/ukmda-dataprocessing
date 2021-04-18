@@ -7,6 +7,7 @@ import sys
 import datetime
 import glob
 from stat import S_ISREG, ST_CTIME, ST_MODE
+import fileformats.CameraDetails as cd
 
 
 def findNewMatches(dir_path, targdate):
@@ -20,6 +21,9 @@ def findNewMatches(dir_path, targdate):
     yday = targdate + datetime.timedelta(days=-1)
     yday = yday.replace(hour=7, minute=0, second=0, microsecond=0)
     yday = yday.timestamp()
+
+    # load camera details
+    cinf = cd.SiteInfo('/home/ec2-user/ukmon-shared/consolidated/camera-details.csv')
 
     print('----------------------')
     # leave only regular files, insert creation date
@@ -39,12 +43,15 @@ def findNewMatches(dir_path, targdate):
                         while len(lis[i].strip()) > 0:
                             i=i+1
                             spls = lis[i].strip().split(':')
-                            stations.append(spls[0])
+                            if len(spls[0]) > 1:
+                                _,_,_,_,loc = cinf.GetSiteLocation(spls[0].encode('utf-8'))
+                                locbits = loc.split('/')
+                                stations.append(locbits[0])
 
                 _,dname = os.path.split(ee[1])
                 outstr = '{},{:s}'.format(ee[0], dname)
                 for f in stations:
-                    if len(f) < 6:
+                    if len(f) < 4:
                         break
                     outstr = outstr + ',' + f
                 outstr = outstr.strip()
