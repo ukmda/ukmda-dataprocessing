@@ -6,7 +6,7 @@
 import sys
 import os
 import numpy as np
-import UfoFormats.RMSFormats as rmsf
+import fileformats.RMSFormats as rmsf
 import configparser as cfg
 
 # for numpy.savetxt

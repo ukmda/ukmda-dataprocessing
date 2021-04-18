@@ -10,8 +10,8 @@ import sys
 import shutil
 import fnmatch
 import datetime
-import UFOHandler.ReadUFOAnalyzerXML as UA
-import UfoFormats.CameraDetails as cdet
+import fileformats.ReadUFOAnalyzerXML as UA
+import fileformats.CameraDetails as cdet
 
 CAMINFOFILE = 'CameraSites.txt'
 CAMOFFSETSFILE = 'CameraTimeOffsets.txt'
