@@ -15,7 +15,7 @@ mkdir -p $RCODEDIR/DATA/searchidx
 cd $SRC/analysis
 echo "creating searchable format files"
 
-python ufoToSearchableFormat.py $CONFIG/config.ini $yr /tmp
+python $PYLIB/reports/createSearchableFormat.py $CONFIG/config.ini $yr /tmp
 
 mv /tmp/${yr}-singleevents.csv $RCODEDIR/DATA/searchidx/${yr}-allevents.csv
 if [ -f /tmp/${yr}-matchedevents.csv ] ; then 

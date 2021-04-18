@@ -6,7 +6,7 @@
 import sys
 import os
 import numpy as np
-import UfoFormats.UAFormats as uaf
+import fileformats.UAFormats as uaf
 import configparser as cfg
 import datetime 
 #import glob
@@ -195,7 +195,7 @@ def createIndexOfOrbits(year):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print('usage: python UFOtoSearchableFormat.py configfile year dest')
+        print('usage: python createSearchableFormat.py configfile year dest')
         exit(1)
     else:
         year =sys.argv[2]

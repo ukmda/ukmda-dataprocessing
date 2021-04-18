@@ -28,7 +28,7 @@ mkdir -p $SRC/logs/matches > /dev/null 2>&1
 # load the WMPL environment for the matching engine
 cd $wmpl_loc
 source ~/venvs/${WMPL_ENV}/bin/activate
-export PYTHONPATH=$wmpl_loc
+export PYTHONPATH=$wmpl_loc:$PYLIB
 
 # set the date range for the solver
 startdt=$(date --date='-2 days' '+%Y%m%d-080000')
@@ -44,7 +44,7 @@ success=$(grep "SOLVING RUN DONE" $logf)
 if [ "$success" == "" ]
 then
     export SRC
-    python $SRC/analysis/sendAnEmail.py markmcintyre99@googlemail.com "problem with matching" "Error"
+    python $PYLIB/utils/sendAnEmail.py markmcintyre99@googlemail.com "problem with matching" "Error"
     echo problems with solver
 fi
 echo "Solving run done"
@@ -68,4 +68,4 @@ done
 
 # create text file containing most recent matches
 cd $here
-python reportOfLatestMatches.py $MATCHDIR/RMSCorrelate/trajectories
+python $PYLIB/traj/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate/trajectories

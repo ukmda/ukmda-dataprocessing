@@ -12,7 +12,7 @@ else
 
     if [[ ! -d REPORTS/$2/$1 || "$3" == "force" ]] ; then
         echo "Running the analysis routines"
-        $here/analyse.sh $1 $2  > ${SRC}/logs/$1$2.log
+        $here/runRAnalysis.sh $1 $2  > ${SRC}/logs/$1$2.log
         echo "done. Creating report"
     fi
     cd ${RCODEDIR}
@@ -32,7 +32,7 @@ else
         else
             echo "processing $2 $1"
             cat $TEMPLATES/header.html $here/templates/shower-report-template.html $TEMPLATES/footer.html > ${RCODEDIR}/REPORTS/$2/$1/index.html
-            metcount=$(sed "1d" $here/DATA/UKMON-all-single.csv | grep $1 | wc -l) 
+            metcount=$(sed "1d" ${RCODEDIR}/DATA/UKMON-all-single.csv | grep $1 | wc -l) 
             maxalt=$(grep $1 ${RCODEDIR}/DATA/UKMON-all-matches.csv  | grep UNIFIED | grep "_$2" | awk -F, '{printf("%.1f\n",$44)}' | sort -n | tail -1)
             minalt=$(grep $1 ${RCODEDIR}/DATA/UKMON-all-matches.csv  | grep UNIFIED | grep "_$2" | awk -F, '{printf("%.1f\n",$52)}' | sort -n | head -1)
         fi 
@@ -47,7 +47,7 @@ else
         fbcount=`tail -n +2 TABLE_Fireballs.csv |wc -l`
 
         echo "making tables"
-        python $here/makeReportTables.py $1 $2 $fbcount
+        python $PYLIB/reports/makeReportTables.py $1 $2 $fbcount
 
         echo "updating index file with facts"
         cat index.html | sed "s/__CAMCOUNT__/${camcount}/g" | sed "s/__YEAR__/${yr}/g" | \

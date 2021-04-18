@@ -23,7 +23,7 @@ if [ $? -ne 0 ] ; then
     echo ftpfile not found
 else
     ftpfile=$(ls -1t $fpath/FTPdetect*.txt | grep -v backup | head -1) > /dev/null 2>&1
-    export PYTHONPATH=$RMS_LOC
+    export PYTHONPATH=$RMS_LOC:$PYLIB
     cd $RMS_LOC
     ls -1t $fpath/*assoc*.txt >/dev/null 2>&1
     if [ $? -ne 0 ] ; then 
@@ -31,7 +31,7 @@ else
         lati=$(grep $sitename $CAMINFO | grep $camname | awk -F, '{print $10}')
         longi=$(grep $sitename $CAMINFO | grep $camname | awk -F, '{print $9}')
 
-        python $here/ufoShowerAssoc.py $ftpfile -y $lati -z $longi
+        python $PYLIB/traj/ufoShowerAssoc.py $ftpfile -y $lati -z $longi
 
         assocfile=$(ls -1t $fpath/*assoc*.txt | head -1) > /dev/null 2>&1
         if [ ! -z $assocfile ] ; then 
