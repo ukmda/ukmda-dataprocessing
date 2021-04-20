@@ -18,27 +18,34 @@ ym=${ymd:0:6}
 
 fpath="$ARCHDIR/$sitename/$camname/$yy/$ym/$ymd"
 
-ls -1t $fpath/FTPdetect*.txt > /dev/null 2>&1
-if [ $? -ne 0 ] ; then 
-    echo ftpfile not found
-else
-    ftpfile=$(ls -1t $fpath/FTPdetect*.txt | grep -v backup | head -1) > /dev/null 2>&1
+if compgen -G "$fpath/FTPdetect*.txt" > /dev/null ; then 
+    ftpfile=$(compgen -G "$fpath/FTPdetect*.txt" | grep -v backup | head -1) 
+
     export PYTHONPATH=$RMS_LOC:$PYLIB
     cd $RMS_LOC
-    ls -1t $fpath/*assoc*.txt >/dev/null 2>&1
-    if [ $? -ne 0 ] ; then 
+
+    # check if we already processed this folder (either the assoc or nometeors file will exist)
+    done=0
+    if compgen -G "$fpath/*assoc*.txt"  > /dev/null ; then done=1 ; fi
+    if compgen -G "$fpath/nometeors" > /dev/null ; then done=1 ; fi
+    
+    if [ $done -eq 0 ] ; then 
         echo "processing $ymd"
-        lati=$(grep $sitename $CAMINFO | grep $camname | awk -F, '{print $10}')
-        longi=$(grep $sitename $CAMINFO | grep $camname | awk -F, '{print $9}')
+        lati=$(egrep "$sitename" $CAMINFO | grep $camname | awk -F, '{print $10}')
+        longi=$(egrep "$sitename" $CAMINFO | grep $camname | awk -F, '{print $9}')
 
-        python $PYLIB/traj/ufoShowerAssoc.py $ftpfile -y $lati -z $longi
+        python $PYLIB/traj/ufoShowerAssoc.py "$ftpfile" -y $lati -z $longi
 
-        assocfile=$(ls -1t $fpath/*assoc*.txt | head -1) > /dev/null 2>&1
-        if [ ! -z $assocfile ] ; then 
-            mkdir -p ${RCODEDIR}/DATA/consolidated/A > /dev/null 2>&1
-            cp $assocfile ${RCODEDIR}/DATA/consolidated/A
+        if [ $? -eq 0 ] ; then 
+            if compgen -G "$fpath/*assoc*.txt"  > /dev/null ; then 
+                mkdir -p ${RCODEDIR}/DATA/consolidated/A > /dev/null 2>&1
+                assocfile=$(compgen -G "$fpath/*assoc*.txt")
+                cp "$assocfile" ${RCODEDIR}/DATA/consolidated/A
+            fi
         fi
     else
         echo "skipping $ymd"
     fi
+else
+    echo ftpfile not found
 fi

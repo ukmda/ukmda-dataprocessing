@@ -1,5 +1,6 @@
 #
-#
+#  Derive a single-station shower association for an event
+#  using functions in RMS
 #
 from __future__ import print_function, division, absolute_import
 
@@ -86,24 +87,31 @@ if __name__ == "__main__":
         print('No valid FTPdetectinfo files given!')
         sys.exit()
 
-    # Extract parent directory
-    dir_path = os.path.dirname(ftpdetectinfo_path_list[0])
+
+    # Extract parent directory and station ID from path
+    dir_path, ftpdetectinfo_name = os.path.split(ftpdetectinfo_path_list[0])
+    spls = ftpdetectinfo_name.split('_')
+    statID = spls[1]
 
     # Load the config file
-    config = cr.loadConfigFromDirectory(cml_args.config, dir_path)
+    config = cr.loadConfigFromDirectory('.config', dir_path)
 
-    # load the camera location details
-    lat, lon = getSiteInfo(ftpdetectinfo_path_list)
-    if lat is not None:
-        config.latitude = lat
-    if lon is not None:
-        config.longitude = lon
+    if config.stationID != statID:
+        # load the camera location details if needed
+        print('looking for StationInfo file')
+        lat, lon = getSiteInfo(ftpdetectinfo_path_list)
+        if lat is not None:
+            config.latitude = lat
+        if lon is not None:
+            config.longitude = lon
 
-    if cml_args.latitude is not None:
-        config.latitude = cml_args.latitude
-    if cml_args.longitude is not None:
-        config.longitude = cml_args.longitude
-
+        print('Checking commandline args')
+        if cml_args.latitude is not None:
+            config.latitude = cml_args.latitude
+        if cml_args.longitude is not None:
+            config.longitude = cml_args.longitude
+    else:
+        print('using location from config file')
     print('Setting station location to', config.latitude, config.longitude)
 
     tmppath = ftpdetectinfo_path_list
@@ -123,22 +131,23 @@ if __name__ == "__main__":
                 shower_name = shower.name
             print(shower_name, count)
 
-        dir_path, ftpdetectinfo_name = os.path.split(ftpdetectinfo_path_list[0])
         ftpdetectinfo_base_name = ftpdetectinfo_name.replace('FTPdetectinfo_', '').replace('.txt', '')
-        spls = ftpdetectinfo_base_name.split('_')
-        ID = spls[0]
         assoc_name = ftpdetectinfo_base_name + '_assocs.txt'
         print('Creating association file')
         with open(os.path.join(dir_path, assoc_name), 'w') as outf:
             for key in associations:
                 meteor_obj, shower = associations[key]
                 jdt = jd2Date(meteor_obj.jdt_ref, dt_obj=True)
-                outf.write('{:s},{:d},{:d},{:d},{:d},{:d},{:.2f},'.format(ID, jdt.year, jdt.month, jdt.day,
+                outf.write('{:s},{:d},{:d},{:d},{:d},{:d},{:.2f},'.format(statID, jdt.year, jdt.month, jdt.day,
                     jdt.hour, jdt.minute, jdt.second + jdt.microsecond / 1000000.0))
 
                 if shower is None:
                     outf.write('SPO\n')
                 else:
                     outf.write(shower.name + '\n')
+        exit(0)
     else:
         print("No meteors!")
+        with open(os.path.join(dir_path, 'nometeors'), 'w') as outf:
+            outf.write('no meteors\n')
+        exit(1)

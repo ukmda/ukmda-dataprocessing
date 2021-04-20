@@ -23,13 +23,13 @@ cat $CAMINFO | while read li ; do
                 do
                     ls -1 "$ARCHDIR/$sitename/$camname/$yr/${yr}${j}" | while read i
                     do 
-                        $here/addRMSShowerDets.sh $sitename $camname $i 
+                        $here/addRMSShowerDets.sh "$sitename" $camname $i 
                     done
                 done
             else
                 ls -1 "$ARCHDIR/$sitename/$camname/$yr/${yr}${mth}" | while read i
                 do 
-                    $here/addRMSShowerDets.sh $sitename $camname "$i" 
+                    $here/addRMSShowerDets.sh "$sitename" $camname "$i" 
                 done
             fi
         fi 
