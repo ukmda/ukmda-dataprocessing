@@ -1,6 +1,7 @@
 #
-# python module to read data in UFOA format and create a format that can be searched
-# with S3 sql statements
+# python module to read data in various formats and create a format that can be searched
+# with S3 SQL statements from a lambda function. The lambda is invoked from a REST API
+# via the Search page on the website. 
 #
 
 import sys

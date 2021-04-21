@@ -39,8 +39,9 @@
 
     - {src: '{{srcdir}}/archive/cronjobs/nightlyJob.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
     - {src: '{{srcdir}}/archive/cronjobs/updateSearchIndex.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/archive/maintenance/findAllMatches.sh', dest: '{{destdir}}/matches/', mode: '744', backup: no }
-    - {src: '{{srcdir}}/archive/maintenance/createSearchable.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/archive/reports/findAllMatches.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/archive/reports/createSearchable.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/archive/reports/convertUfoToRms.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
     - {src: '{{srcdir}}/archive/reports/monthlyReports.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
     - {src: '{{srcdir}}/archive/reports/runRAnalysis.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
     - {src: '{{srcdir}}/archive/reports/createReport.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }

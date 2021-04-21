@@ -14,7 +14,7 @@ aws lambda invoke --function-name ConsolidateCSVs out --log-type Tail
 
 # run this only once as it scoops up all unprocessed data
 matchlog=matches-$(date +%Y%m%d-%H%M%S).log
-${SRC}/matches/findAllMatches.sh ${thismth} > ${SRC}/logs/matches/${matchlog} 2>&1
+${SRC}/analysis/findAllMatches.sh ${thismth} > ${SRC}/logs/matches/${matchlog} 2>&1
 
 # send daily report - only want to do this if in batch mode
 if [ "`tty`" != "not a tty" ]; then 

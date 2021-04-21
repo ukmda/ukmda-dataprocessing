@@ -23,7 +23,13 @@ mth=${ym:4:2}
 mkdir -p $SRC/logs/matches > /dev/null 2>&1
 
 #python $here/consolidateMatchedData.py $yr $mth |tee $SRC/logs/matches/$ym.log
-
+# get all UFO data into the right format
+$SRC/analysis/convertUfoToRms.sh $ym
+dom=`date '+%d'`
+if [ $dom -lt 10 ] ; then 
+    lastmth=`date --date='-1 month' '+%Y%m'`
+    $SRC/analysis/convertUfoToRms.sh $lastmth
+fi
 
 # load the WMPL environment for the matching engine
 cd $wmpl_loc
@@ -56,16 +62,22 @@ cd $here/../website
 find $MATCHDIR/RMSCorrelate/trajectories/ -type d -mtime -1 | while read i
 do
     loc=$(basename $i)
-    ./createPageIndex.sh $i
+    $SRC/website/createPageIndex.sh $i
 
     # copy the orbit file for consolidation and reporting
     cp $i/*orbit.csv ${RCODEDIR}/DATA/orbits/$yr/csv/
 done
+# backup the solved trajectory data
+cp $MATCHDIR/RMSCorrelate/processed_trajectories.json $SRC/bkp/processed_trajectories.json.$(date +%Y%m%d)
+gzip $SRC/bkp/processed_trajectories.json.$(date +%Y%m%d)
 
 # update the Index page for the month and the year
-./createOrbitIndex.sh ${yr}${mth}
-./createOrbitIndex.sh ${yr}
+$SRC/website/createOrbitIndex.sh ${yr}${mth}
+$SRC/website/createOrbitIndex.sh ${yr}
 
 # create text file containing most recent matches
 cd $here
 python $PYLIB/traj/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate/trajectories
+
+# purge old logs
+find $SRC/logs/matches -name "matches*" -mtime +7 -exec rm -f {} \;

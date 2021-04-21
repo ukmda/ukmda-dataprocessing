@@ -94,7 +94,10 @@ if __name__ == "__main__":
     statID = spls[1]
 
     # Load the config file
-    config = cr.loadConfigFromDirectory('.config', dir_path)
+    if os.path.isfile(os.path.join(dir_path, '.config')):
+        config = cr.loadConfigFromDirectory('.config', dir_path)
+    else:
+        config = cr.loadConfigFromDirectory(cml_args.config, dir_path)
 
     if config.stationID != statID:
         # load the camera location details if needed
