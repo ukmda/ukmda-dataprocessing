@@ -9,12 +9,12 @@ import shutil
 
 import boto3
 
-from wmpl.Trajectory.Trajectory import Trajectory
+#from wmpl.Trajectory.Trajectory import Trajectory
 from wmpl.Utils.Pickling import loadPickle 
 from wmpl.Utils.TrajConversions import jd2Date
 from datetime import datetime, timedelta
 
-from ufoTrajSolver import createAdditionalOutput
+from traj.ufoTrajSolver import createAdditionalOutput
 
 
 def getCameraDetails():

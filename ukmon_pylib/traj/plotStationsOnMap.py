@@ -8,7 +8,7 @@ import sys
 import fnmatch
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
-from UFOHandler import ReadUFOAnalyzerXML as ua
+from fileformats import ReadUFOAnalyzerXML as ua
 
 
 def getBearingsForEvent(stns, fldr):
