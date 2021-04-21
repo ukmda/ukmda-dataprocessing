@@ -3,10 +3,10 @@
     srcdir: /mnt/e/dev/meteorhunting/UKMON-shared/archive
   tasks:
   - name: import dev variables 
-    include_vars: ../dev-vars.yml
+    include_vars: ./dev-vars.yml
     tags: dev
   - name: import prod variables
-    include_vars: ../prod-vars.yml
+    include_vars: ./prod-vars.yml
     tags: prod
   - name: Ensures {{destdir}} exists
     file: path={{destdir}} state=directory  

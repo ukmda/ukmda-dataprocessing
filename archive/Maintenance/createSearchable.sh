@@ -15,6 +15,7 @@ mkdir -p $RCODEDIR/DATA/searchidx
 cd $SRC/analysis
 echo "creating searchable format files"
 
+export PYTHONPATH=$wmpl_loc:$PYLIB
 python $PYLIB/reports/createSearchableFormat.py $CONFIG/config.ini $yr /tmp
 
 mv /tmp/${yr}-singleevents.csv $RCODEDIR/DATA/searchidx/${yr}-allevents.csv

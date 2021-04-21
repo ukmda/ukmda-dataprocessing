@@ -7,6 +7,7 @@ if [ $# -lt 2 ] ; then
 	echo Usage: createReport.sh GEM 2017 {force}
 else
     source /home/ec2-user/venvs/${WMPL_ENV}/bin/activate
+    export PYTHONPATH=$wmpl_loc:$PYLIB
 
     cd ${RCODEDIR}
 
