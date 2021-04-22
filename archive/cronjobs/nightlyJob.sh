@@ -34,6 +34,9 @@ ${SRC}/website/createShwrExtracts.sh ${thismth}
 # update the annual report for this year
 ${SRC}/analysis/monthlyReports.sh ALL ${thisyr} force
 
+# update other relevant showers
+$src/analysis/reportYear.sh ${thisyr}
+
 # update the data for last month too, since some data comes in quite late
 dom=`date '+%d'`
 if [ $dom -lt 10 ] ; then 
