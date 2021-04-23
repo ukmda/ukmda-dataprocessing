@@ -35,7 +35,7 @@ ${SRC}/website/createShwrExtracts.sh ${thismth}
 ${SRC}/analysis/monthlyReports.sh ALL ${thisyr} force
 
 # update other relevant showers
-$src/analysis/reportYear.sh ${thisyr}
+${SRC}/analysis/reportYear.sh ${thisyr}
 
 # update the data for last month too, since some data comes in quite late
 dom=`date '+%d'`

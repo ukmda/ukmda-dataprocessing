@@ -9,7 +9,7 @@ export PYTHONPATH=$RMS_LOC:$PYLIB
 if [ $# -eq 0 ]; then
     yr=$(date +%Y)
 else
-    ym=$1
+    yr=$1
 fi
 
 # get list of active showers
