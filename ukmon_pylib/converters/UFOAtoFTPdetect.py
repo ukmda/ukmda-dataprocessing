@@ -181,7 +181,7 @@ def convertUFOFolder(fldr, outfldr):
     _, ymd = os.path.split(fldr)
     _, lid, sid, _, _, _ = axmls[0].getStationDetails()
 
-    ci = cdet.SiteInfo('/home/ec2-user/ukmon-shared/consolidated/camera-details.csv')
+    ci = cdet.SiteInfo()
     statid = ci.getDummyCode(lid, sid)
     if statid == 'Unknown':
         statid = 'XX9999'

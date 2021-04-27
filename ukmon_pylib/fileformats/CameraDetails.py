@@ -99,10 +99,8 @@ class SiteInfo:
         return cams, fldrs
 
 
-def main(sitename, camfileloc):
-    fnam = os.path.join(camfileloc,'camera-details.csv')
-    #print(fnam)
-    ci = SiteInfo(fnam)
+def main(sitename):
+    ci = SiteInfo()
     spls = sitename.split('_')
     sid = spls[0]
     if len(spls) ==1:
@@ -116,4 +114,4 @@ def main(sitename, camfileloc):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2])
+    main(sys.argv[1])

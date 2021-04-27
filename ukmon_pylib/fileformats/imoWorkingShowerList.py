@@ -84,7 +84,7 @@ class IMOshowerList:
             if shwname == 'QUA':
                 yr = yr-1
             start = self.getStart(shwname, yr)
-            end = self.getEnd(shwname, yr) + datetime.timedelta(days=1)
+            end = self.getEnd(shwname, yr) + datetime.timedelta(days=3)
             if datetotest > start and datetotest < end:
                 if majonly is False or (majonly is True and shwname in majorlist):
                     activelist.append(shwname)
