@@ -15,7 +15,7 @@ else
 fi
 yr=${ym:0:4}
 
-export PYTHONPATH=$wmpl_loc:$PYLIB
+export PYTHONPATH=$PYLIB:$wmpl_loc
 
 cat $CAMINFO | while read li ; do 
     typ=$(echo $li | awk -F, '{printf("%s", $12)}') 

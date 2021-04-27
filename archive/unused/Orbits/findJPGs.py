@@ -6,30 +6,8 @@ import os
 import sys
 import shutil
 import fnmatch
-import csv
 import datetime
-
-
-def getCameraDetails(cfldr):
-    # fetch camera details from the CSV file
-    fldrs = []
-    cams = []
-    camfile = os.path.join(cfldr, 'camera-details.csv')
-
-    with open(camfile, 'r') as f:
-        r = csv.reader(f)
-        for row in r:
-            if row[0][:1] != '#':
-                # print(row)
-                if row[1] == '':
-                    fldrs.append(row[0])
-                else:
-                    fldrs.append(row[0] + '/' + row[1])
-                if int(row[11]) == 1:
-                    cams.append(row[2] + '_' + row[3])
-                else:
-                    cams.append(row[2] + '_')
-    return cams, fldrs
+import fileformats.CameraDetails as cdet
 
 
 def getListOfFiles(fldr, cams, camfldrs, srcpth):
@@ -65,10 +43,11 @@ def getListOfFiles(fldr, cams, camfldrs, srcpth):
 
 
 def collectJPGS(afldr, targpath):
-    campath = '/home/ec2-user/ukmon-shared/consolidated'
     srcpath = '/home/ec2-user/ukmon-shared/archive'
 
-    cams, camfldrs = getCameraDetails(campath)
+    cinfo = cdet.SiteInfo()
+    cams, camfldrs = cinfo.getAllCamsAndFolders()
+    
     jpgs, fullpaths, yr, ym, ymd = getListOfFiles(afldr, cams, camfldrs, srcpath)
     for fil, pth in zip(jpgs, fullpaths):
         print(pth, fil)

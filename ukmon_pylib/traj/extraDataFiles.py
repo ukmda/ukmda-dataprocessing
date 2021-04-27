@@ -4,53 +4,13 @@
 import os
 import sys
 import glob
-import csv
 import shutil
 
-import boto3
-
-#from wmpl.Trajectory.Trajectory import Trajectory
 from wmpl.Utils.Pickling import loadPickle 
 from wmpl.Utils.TrajConversions import jd2Date
 from datetime import datetime, timedelta
-
 from traj.ufoTrajSolver import createAdditionalOutput
-
-
-def getCameraDetails():
-    # fetch camera details from the CSV file
-    fldrs = []
-    cams = []
-    lati = []
-    alti = []
-    longi = []
-    camtyp = []
-    fullcams = []
-    dummyid = []
-    camfile = 'camera-details.csv'
-
-    s3 = boto3.resource('s3')
-    s3.meta.client.download_file('ukmon-shared', 'consolidated/' + camfile, camfile)
-    with open(camfile, 'r') as f:
-        r = csv.reader(f)
-        for row in r:
-            if row[0][:1] != '#':
-                if row[1] == '':
-                    fldrs.append(row[0])
-                else:
-                    fldrs.append(row[0] + '/' + row[1])
-                if int(row[11]) == 1:
-                    cams.append(row[2] + '_' + row[3])
-                else:
-                    cams.append(row[2])
-                fullcams.append(row[0] + '_' + row[3])
-                longi.append(float(row[8]))
-                lati.append(float(row[9]))
-                alti.append(float(row[10]))
-                camtyp.append(int(row[11]))
-                dummyid.append(row[12])
-    os.remove(camfile)
-    return cams, fldrs, lati, longi, alti, camtyp, fullcams, dummyid
+import fileformats.CameraDetails as cdet
 
 
 def generateExtraFiles(outdir):
@@ -70,11 +30,12 @@ def fetchJpgsAndMp4s(traj, outdir):
         archdir='/home/ec2-user/ukmon-shared/archive'
 
     print('getting camera details file')
-    _, fldrs, _, _, _, _, _, dummyid = getCameraDetails()
+    cinfo = cdet.SiteInfo()
+
+    _, fldrs, _, _, _, _, _, dummyid = cinfo.getAllDetails() 
     for obs in traj.observations:
         statid = obs.station_id
-        ci = dummyid.index(statid)
-        fldr = fldrs[ci]
+        fldr = cinfo.getFolder(statid)
         print(statid, fldr)
         evtdate = jd2Date(obs.jdt_ref, dt_obj=True)
 

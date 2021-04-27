@@ -12,7 +12,12 @@ CameraDetails = numpy.dtype([('Site', 'S32'), ('CamID', 'S32'), ('LID', 'S16'),
 
 
 class SiteInfo:
-    def __init__(self, fname):
+    def __init__(self, fname=None):
+        if fname is None:
+            fname = os.getenv('CAMINFO')
+            if len(fname) < 5:
+                fname = '/home/ec2-user/ukmon-shared/consolidated/camera-details.csv'
+
         self.camdets = numpy.loadtxt(fname, delimiter=',', skiprows=2, dtype=CameraDetails)
         #print(self.camdets)
 
@@ -48,7 +53,6 @@ class SiteInfo:
             return lati, longi, alti, tz, site + '/' + camid
 
     def getDummyCode(self, lid, sid):
-        #print(lid, sid)
         lid = lid.encode('utf-8')
         sid = sid.encode('utf-8')
         cam = numpy.where((self.camdets['LID'] == lid) & (self.camdets['SID'] == sid))   
@@ -61,6 +65,38 @@ class SiteInfo:
         else:
             c = cam[0][0]
             return self.camdets[c]['dummycode'].decode('utf-8').strip()
+
+    def getFolder(self, statid):
+        statid = statid.encode('utf-8')
+        cam = numpy.where(self.camdets['CamID'] == statid) 
+        if len(cam[0]) == 0:
+            statid = statid.upper()
+            cam = numpy.where(self.camdets['CamID'] == statid) 
+        if len(cam[0]) == 0:
+            return 'Unknown'
+        else:
+            c = cam[0][0]
+            site = self.camdets[c]['Site'].decode('utf-8').strip()
+            camid = self.camdets[c]['CamID'].decode('utf-8').strip()
+            return site + '/' + camid
+
+    def getAllCamsAndFolders(self):
+        # fetch camera details from the CSV file
+        fldrs = []
+        cams = []
+
+        for row in self.camdets:
+            if row[0][:1] != '#':
+                # print(row)
+                if row[1] == '':
+                    fldrs.append(row[0].decode('utf-8'))
+                else:
+                    fldrs.append(row[0].decode('utf-8') + '/' + row[1].decode('utf-8'))
+                if int(row[11]) == 1:
+                    cams.append(row[2].decode('utf-8') + '_' + row[3].decode('utf-8'))
+                else:
+                    cams.append(row[2].decode('utf-8') + '_')
+        return cams, fldrs
 
 
 def main(sitename, camfileloc):

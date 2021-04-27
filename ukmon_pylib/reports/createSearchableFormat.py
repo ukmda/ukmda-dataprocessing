@@ -10,11 +10,17 @@ import numpy as np
 import fileformats.UAFormats as uaf
 import configparser as cfg
 import datetime 
-#import glob
+import glob
 import boto3
+import fileformats.CameraDetails as cc
+# import shutil
 
 
 def UFOAToSrchable(configfile, year, outdir):
+    camdets = cc.SiteInfo()
+    s3 = boto3.resource('s3')
+    buck = 'ukmeteornetworkarchive'
+
     config=cfg.ConfigParser()
     config.read(configfile)
     weburl=config['config']['SITEURL']
@@ -50,7 +56,51 @@ def UFOAToSrchable(configfile, year, outdir):
         hms = '{:02d}{:02d}{:02d}'.format(li['Hr'], li['Min'], ss)
         lc = li['Loc_Cam'].strip()
         mth = '{:04d}{:02d}'.format(li['Yr'], li['Mth'])
-        fldr = '/img/single/{:04d}/{:s}/M{:s}_{:s}_{:s}P.jpg'.format(li['Yr'], mth, ymd, hms, lc)
+        # ufo cameras 
+        if lc[:3] != 'UK0': 
+            fname = 'M{:s}_{:s}_{:s}P.jpg'.format(ymd, hms, lc)
+            fldr = '/img/single/{:04d}/{:s}/{:s}'.format(li['Yr'], mth, fname)
+        else:
+            # RMS camera; remember to adjust for files after midnight being in prev days folder
+            _, _, _, _, site = camdets.GetSiteLocation(lc.encode('utf-8'))
+            dsadj = ds
+            if li['Hr'] < 12:
+                dsadj = ds + datetime.timedelta(days=-1)
+            yr2 = dsadj.strftime('%Y')
+            ym2 = dsadj.strftime('%Y%m')
+            ymd2 = dsadj.strftime('%Y%m%d')
+            hm = '{:02d}{:02d}'.format(li['Hr'], li['Min'])
+            srcloc = '/home/ec2-user/ukmon-shared/archive/{}/{}/{}/{}/'.format(site, yr2, ym2, ymd2)
+            fname = 'FF_' + lc + '_' + ymd + '_' + hm +'*.jpg'
+            # print(srcloc, fname)
+            flist = glob.glob1(srcloc, fname)
+            if len(flist) > 0:
+                fname = flist[0]
+                for fn in flist:
+                    # print(fn)
+                    splits = fn.split('_') 
+                    fymd = splits[2]
+                    fhms = splits[3]
+                    fms = splits[4]
+                    dtstr = '{}_{}.{}'.format(fymd, fhms, str(int(fms)*1000))
+                    fdate=datetime.datetime.strptime(dtstr, '%Y%m%d_%H%M%S.%f')
+                    if(ds - fdate).seconds < 10:
+                        fname = fn
+                        break
+                curr = os.path.join(srcloc, fname)
+                outf = 'img/single/{:s}/{:s}/{:s}'.format(yr2, ym2, fname) 
+                bucket = s3.Bucket(buck) 
+                obj = list(bucket.objects.filter(Prefix=outf))
+                if len(obj) == 0:
+                    s3.meta.client.upload_file(curr, buck, outf, ExtraArgs={"ContentType":"image/jpeg"})
+                    print(fname, outf)
+                else:
+                    print('not copying {}'.format(fname))
+                fldr = '/img/single/{:04d}/{:s}/{:s}'.format(li['Yr'], mth, fname)
+            else:
+                fldr = '/img/missing.png'
+
+        
         url = weburl + fldr
         urls.append(url)
         imgs.append(url)

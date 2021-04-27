@@ -37,8 +37,8 @@ source ~/venvs/${WMPL_ENV}/bin/activate
 export PYTHONPATH=$wmpl_loc:$PYLIB
 
 # set the date range for the solver
-startdt=$(date --date='-5 days' '+%Y%m%d-080000')
-enddt=$(date '+%Y%m%d-080000')
+startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
+enddt=$(date --date="-$MATCHEND days" '+%Y%m%d-080000')
 
 echo "solving for ${startdt} to ${enddt}"
 python -m wmpl.Trajectory.CorrelateRMS $MATCHDIR/RMSCorrelate/ -l -r "($startdt,$enddt)"

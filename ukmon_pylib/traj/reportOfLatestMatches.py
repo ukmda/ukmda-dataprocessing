@@ -23,7 +23,7 @@ def findNewMatches(dir_path, targdate):
     yday = yday.timestamp()
 
     # load camera details
-    cinf = cd.SiteInfo('/home/ec2-user/ukmon-shared/consolidated/camera-details.csv')
+    cinf = cd.SiteInfo()
 
     print('----------------------')
     # leave only regular files, insert creation date

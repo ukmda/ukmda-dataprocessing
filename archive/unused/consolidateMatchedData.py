@@ -7,6 +7,7 @@ import datetime
 import sys
 import os
 
+
 sorteidxtype = numpy.dtype([('tstamp', 'f8'), ('localtime', 'S16'),
     ('loccam', 'S16'), ('dir1', 'f8'), ('alt1', 'f8')])
 

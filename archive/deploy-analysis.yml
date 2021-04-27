@@ -22,6 +22,7 @@
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     tags: [dev,prod]
     with_items:
+    - {src: '{{srcdir}}/ukmon_pylib/reports/createSearchableFormat.py', dest: '{{destdir}}/ukmon_pylib/reports/', mode: '644', backup: no }
     - {src: '{{srcdir}}/ukmon_pylib/fileformats/imoWorkingShowerList.py', dest: '{{destdir}}/ukmon_pylib/fileformats/', mode: '644', backup: no }
     - {src: '{{srcdir}}/ukmon_pylib/fileformats/UAFormats.py', dest: '{{destdir}}/ukmon_pylib/fileformats/', mode: '644', backup: no }
     - {src: '{{srcdir}}/ukmon_pylib/fileformats/RMSFormats.py', dest: '{{destdir}}/ukmon_pylib/fileformats/', mode: '644', backup: no }
@@ -32,8 +33,8 @@
     - {src: '{{srcdir}}/ukmon_pylib/utils/sendAnEmail.py', dest: '{{destdir}}/ukmon_pylib/utils/', mode: '644', backup: no }
     - {src: '{{srcdir}}/ukmon_pylib/utils/getActiveShowers.py', dest: '{{destdir}}/ukmon_pylib/utils/', mode: '644', backup: no }
     - {src: '{{srcdir}}/ukmon_pylib/utils/makeCoverageMap.py', dest: '{{destdir}}/ukmon_pylib/utils/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/ukmon_pylib/reports/createSearchableFormat.py', dest: '{{destdir}}/ukmon_pylib/reports/', mode: '644', backup: no }
     - {src: '{{srcdir}}/ukmon_pylib/reports/makeReportTables.py', dest: '{{destdir}}/ukmon_pylib/reports/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/findFireballs.py', dest: '{{destdir}}/ukmon_pylib/reports/', mode: '644', backup: no }
     - {src: '{{srcdir}}/ukmon_pylib/traj/ufoShowerAssoc.py', dest: '{{destdir}}/ukmon_pylib/traj/', mode: '644', backup: no }
     - {src: '{{srcdir}}/ukmon_pylib/traj/ufoTrajSolver.py', dest: '{{destdir}}/ukmon_pylib/traj/', mode: '644', backup: no }
     - {src: '{{srcdir}}/ukmon_pylib/traj/reportOfLatestMatches.py', dest: '{{destdir}}/ukmon_pylib/traj/', mode: '644', backup: no }
