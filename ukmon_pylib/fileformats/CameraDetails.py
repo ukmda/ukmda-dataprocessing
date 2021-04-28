@@ -15,7 +15,7 @@ class SiteInfo:
     def __init__(self, fname=None):
         if fname is None:
             fname = os.getenv('CAMINFO')
-            if len(fname) < 5:
+            if fname is None:
                 fname = '/home/ec2-user/ukmon-shared/consolidated/camera-details.csv'
 
         self.camdets = numpy.loadtxt(fname, delimiter=',', skiprows=2, dtype=CameraDetails)

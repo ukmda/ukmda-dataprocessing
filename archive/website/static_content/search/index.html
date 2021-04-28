@@ -29,6 +29,7 @@
   <link href="/css/plugins/timeline.css" rel="stylesheet">
   <link href="/css/plugins/morris.css" rel="stylesheet">
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
   <script src="/js/bootstrap.min.js"></script>
   <script src="/js/plugins/metisMenu/metisMenu.min.js"></script>
   <script src="/js/plugins/morris/raphael.min.js"></script>
@@ -74,7 +75,34 @@
       <input type="text" class="date start" id="date1" />
       <input type="text" class="time start" id="time1" /> to 
       <input type="text" class="time end" id="time2" />
-      <input type="text" class="date end" id="date2" /><br>
+      <input type="text" class="date end" id="date2" />
+
+      <label class="form-check-label" for="matchesOnly">Matches Only</label>
+      <input class="form-check-input" type="checkbox" value="" id="matchesOnly"><br>
+
+      <label for="magselect">Magnitude</label>
+      <select class="bootstrap-select" id="magselect">
+        <option value="1" selected="selected">All Mags</option>
+        <option value="2">Mag 0 or brighter</option>
+        <option value="3">Fireballs</option>
+      </select>      
+
+      <label for="shwrselect">Shower</label>
+      <select class="bootstrap-select" id="shwrselect">
+        <option value="1" selected="selected">All</option>
+        <option value="2">QUA</option>
+        <option value="3">LYR</option>
+        <option value="3">ETA</option>
+        <option value="3">CAP</option>
+        <option value="3">PER</option>
+        <option value="3">DRA</option>
+        <option value="3">STA</option>
+        <option value="3">NTA</option>
+        <option value="3">LEO</option>
+        <option value="3">ORI</option>
+        <option value="3">GEM</option>
+      </select>      
+
       <button type="submit">Search</button>
     </form>
     <p> <div id="statusfield"></div></p>
