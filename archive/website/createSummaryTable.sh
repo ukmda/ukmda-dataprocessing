@@ -50,7 +50,7 @@ echo "})" >> $here/data/summarytable.js
 
 # create a coverage map from the kmls
 source ~/venvs/${RMS_ENV}/bin/activate
-python $SRC/analysis/makeCoverageMap.py $CONFIG/config.ini $ARCHDIR/kmls $here/data
+python $PYLIB/utils/makeCoverageMap.py $CONFIG/config.ini $ARCHDIR/kmls $here/data
 
 source $WEBSITEKEY
 aws s3 cp $here/data/summarytable.js  $WEBSITEBUCKET/data/
