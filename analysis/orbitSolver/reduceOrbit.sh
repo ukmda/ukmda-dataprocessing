@@ -7,7 +7,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 
 source $HOME/venvs/$WMPL_ENV/bin/activate
-export PYTHONPATH=$wmpl_loc
+export PYTHONPATH=$wmpl_loc:$PYLIB
 
 pth=$1
 yr=${pth:0:4}
@@ -92,7 +92,7 @@ if [ $numas -gt 1 ] ; then
         fi
 
         echo "converting $pth to RMS/CAMS format"
-        python $here/UFOAtoFTPdetect.py $indir
+        python $PYLIB/converters/UFOAtoFTPdetect.py $indir
 
         echo "solving $1 to determine the path and the orbit"
         # arguments 
@@ -106,7 +106,7 @@ if [ $numas -gt 1 ] ; then
         #   -s solver (original or gural)
 
 #        python $here/ufoTrajSolver.py $indir/FTPdetectinfo_UFO.txt -x $plotallspatial -j -t $timing_offset $disablemc | tee $here/logs/$1.txt
-        python $here/ufoTrajSolver.py $indir/FTPdetectinfo_UFO.txt -x -l -j -t 5 -d  # 2>&1 | tee $here/logs/$1.txt
+        python $PYLIB/traj/ufoTrajSolver.py $indir/FTPdetectinfo_UFO.txt -x -l -j -t 5 -d  # 2>&1 | tee $here/logs/$1.txt
         res=$?
         echo "done, result was $res"
     else

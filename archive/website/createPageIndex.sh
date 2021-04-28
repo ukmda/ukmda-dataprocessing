@@ -9,9 +9,9 @@ source $here/../config/config.ini >/dev/null 2>&1
 # generate extra data files and copy other data of interest
 cd $SRC/orbits
 source ~/venvs/$WMPL_ENV/bin/activate
-export PYTHONPATH=$wmpl_loc
+export PYTHONPATH=$wmpl_loc:$PYLIB
 export ARCHDIR # used by extraDataFiles.py
-python extraDataFiles.py $1
+python $PYLIB/traj/extraDataFiles.py $1
 cd $here
 
 ym=$(basename $1)
