@@ -32,7 +32,6 @@ def fetchJpgsAndMp4s(traj, outdir):
     print('getting camera details file')
     cinfo = cdet.SiteInfo()
 
-    _, fldrs, _, _, _, _, _, dummyid = cinfo.getAllDetails() 
     for obs in traj.observations:
         statid = obs.station_id
         fldr = cinfo.getFolder(statid)

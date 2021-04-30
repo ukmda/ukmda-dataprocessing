@@ -39,6 +39,7 @@ cat $CAMINFO | while read li ; do
                         # if the source is a folder, then process it
                         if [ -d "$fpath/$i" ] ; then 
                             echo "converting $i"
+                            export PYTHONPATH=$PYLIB:$wmpl_loc
                             python $PYLIB/converters/UFOAtoFTPdetect.py "$fpath/$i" $dest 
                         fi
                     else   
