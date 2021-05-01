@@ -95,8 +95,16 @@ class SiteInfo:
                 if int(row[11]) == 1:
                     cams.append(row[2].decode('utf-8') + '_' + row[3].decode('utf-8'))
                 else:
-                    cams.append(row[2].decode('utf-8') + '_')
+                    cams.append(row[2].decode('utf-8'))
         return cams, fldrs
+
+    def getAllCamsStr(self):
+        cams, _ = self.getAllCamsAndFolders()
+        cams.sort()
+        tmpcams = ''
+        for cam in cams:
+            tmpcams = tmpcams + cam + ' ' 
+        return tmpcams.strip()
 
 
 def main(sitename):

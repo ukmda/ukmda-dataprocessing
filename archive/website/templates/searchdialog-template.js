@@ -59,6 +59,12 @@ form.addEventListener("submit", function (event) {
     var strshwr = e.options[e.selectedIndex].text;
     op = op + "s:" + strshwr + "_";
   }
+  var statSelect = document.getElementById("statselect").value;
+  if (statSelect != 1 ) {
+    var e = document.getElementById("statselect");
+    var strstat = e.options[e.selectedIndex].text;
+    op = op + "l:" + strstat + "_";
+  }
   //jQuery.support.cors = true;
   payload = {"a":  d1, "b": d2, "op":  op };
   console.log(payload);

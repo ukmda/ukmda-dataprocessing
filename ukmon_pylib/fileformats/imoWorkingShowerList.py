@@ -6,7 +6,7 @@ import xmltodict
 import datetime
 
 majorlist = ['QUA', 'LYR', 'ETA', 'SDA', 'PER', 'ORI', 'NTA', 'STA', 'LEO', 'GEM', 'URS']
-minorlist=['CAP','AUR','SPE','OCT','DRA','EGE','MON']
+minorlist = ['CAP','AUR','SPE','OCT','DRA','EGE','MON']
 
 
 class IMOshowerList:
@@ -76,7 +76,7 @@ class IMOshowerList:
         shower = self.getShowerByCode(iaucode)
         return float(shower['RA']), float(shower['DE'])
 
-    def getActiveShowers(self, datetotest, majonly=False):
+    def getActiveShowers(self, datetotest, majorOnly=False, inclMinor=False):
         activelist = []
         for shower in self.showerlist:
             shwname = shower['IAU_code']
@@ -86,7 +86,9 @@ class IMOshowerList:
             start = self.getStart(shwname, yr)
             end = self.getEnd(shwname, yr) + datetime.timedelta(days=3)
             if datetotest > start and datetotest < end:
-                if majonly is False or (majonly is True and shwname in majorlist):
+                if majorOnly is False or (majorOnly is True and shwname in majorlist):
+                    activelist.append(shwname)
+                elif inclMinor is True and shwname in minorlist:
                     activelist.append(shwname)
         return activelist
 
