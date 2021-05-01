@@ -15,7 +15,7 @@ else
     yrs="2021 2020"
 fi 
 export PYTHONPATH=$PYLIB
-shwrs=$(python -c "from fileformats import imoWorkingShowerList as imo; sl = imo.IMOshowerList('/home/ec2-user/prod/share/IMO_Working_Meteor_Shower_List.xml');print(sl.getMajorShowers(True, True));")
+shwrs=$(python -c "from fileformats import imoWorkingShowerList as imo; sl = imo.IMOshowerList();print(sl.getMajorShowers(True, True));")
 
 
 cd ${RCODEDIR}/DATA/matched

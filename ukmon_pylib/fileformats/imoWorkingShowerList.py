@@ -5,13 +5,16 @@
 import xmltodict
 import datetime
 
+
 majorlist = ['QUA', 'LYR', 'ETA', 'SDA', 'PER', 'ORI', 'NTA', 'STA', 'LEO', 'GEM', 'URS']
 minorlist = ['CAP','AUR','SPE','OCT','DRA','EGE','MON']
 
 
 class IMOshowerList:
 
-    def __init__(self, fname):
+    def __init__(self, fname=None):
+        if fname is None:
+            fname = '/home/ec2-user/prod/share/IMO_Working_Meteor_Shower_List.xml'
         with open(fname) as fd:
             tmplist = xmltodict.parse(fd.read())
             self.showerlist = tmplist['meteor_shower_list']['shower']

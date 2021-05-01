@@ -1,15 +1,14 @@
 #
 # simple script to get the active shower list from the IMO working list
 
-import fileformats.imoWorkingShowerList as iwsl
+from fileformats import imoWorkingShowerList as iwsl
 import datetime
 import sys
 
-imofile = '/home/ec2-user/prod/share/IMO_Working_Meteor_Shower_List.xml'
 if len(sys.argv) > 1:
     imofile = sys.argv[1]
 
-sl = iwsl.IMOshowerList(imofile)
+sl = iwsl.IMOshowerList()
 p=sl.getActiveShowers(datetime.datetime.now(),True)
 for shwr in p:
     print(shwr)
