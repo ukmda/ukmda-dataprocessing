@@ -72,6 +72,8 @@
     </p>
     <hr>
     <form id="selectInterval">
+      <label for="date1">Select date range</label>
+      <br>
       <input type="text" class="date start" id="date1" />
       <input type="text" class="time start" id="time1" /> to 
       <input type="text" class="time end" id="time2" />
@@ -102,7 +104,13 @@
         <option value="3">ORI</option>
         <option value="3">GEM</option>
       </select>      
-
+      <div id="stationsplaceholder"></div>
+      <script>
+          $(function () {
+              $("#stationsplaceholder").load("/search/statopts.html");
+          });
+      </script>
+  
       <button type="submit">Search</button>
     </form>
     <p> <div id="statusfield"></div></p>

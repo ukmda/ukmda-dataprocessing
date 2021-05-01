@@ -5,8 +5,8 @@
 import xmltodict
 import datetime
 
-majorlist=['QUA','LYR','ETA','SDA','CAP','PER','AUR','SPE','OCT','DRA',
-    'EGE','ORI','STA','NTA','LEO','MON','GEM','URS']
+majorlist = ['QUA', 'LYR', 'ETA', 'SDA', 'PER', 'ORI', 'NTA', 'STA', 'LEO', 'GEM', 'URS']
+minorlist=['CAP','AUR','SPE','OCT','DRA','EGE','MON']
 
 
 class IMOshowerList:
@@ -89,3 +89,14 @@ class IMOshowerList:
                 if majonly is False or (majonly is True and shwname in majorlist):
                     activelist.append(shwname)
         return activelist
+
+    def getMajorShowers(self, includeSpo=False, stringFmt=False):
+        majlist = majorlist 
+        if includeSpo is True:
+            majlist.append('spo')
+        if stringFmt is True:
+            tmplist = ''
+            for shwr in majlist:
+                tmplist = tmplist + shwr + ' '
+            majlist = tmplist
+        return majlist

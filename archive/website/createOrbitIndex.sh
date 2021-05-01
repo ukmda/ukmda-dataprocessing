@@ -10,7 +10,8 @@ source $WEBSITEKEY
 ym=$1
 yr=${ym:0:4}
 mth=${ym:4:2}
-echo $ym $yr $mth
+
+logger -s -t createOrbitIndex "creating orbit index page for $yr $mth"
 
 if [ "$mth" != "" ] ; then
     displstr=${yr}-${mth}
@@ -61,6 +62,10 @@ echo "</div>" >> $idxfile
 
 cat $TEMPLATES/footer.html >> $idxfile
 
+logger -s -t createOrbitIndex "copying to website"
+
 source $WEBSITEKEY
 aws s3 cp $idxfile $targ/index.html
 rm -f $idxfile
+
+logger -s -t createOrbitIndex "finished"

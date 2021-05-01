@@ -12,9 +12,10 @@ else
     yr=$1
 fi
 
-# get list of active showers
+logger -s -t reportYear "get list of active showers"
 python $PYLIB/utils/getActiveShowers.py | while read i 
 do 
-    echo "processing $i for $yr"
+    logger -s -t reportYear "processing $i for $yr"
     $SRC/analysis/createReport.sh $i $yr force
 done
+logger -s -t reportYear "Finished"

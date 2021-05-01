@@ -3,6 +3,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
 
+logger -s -t createSummaryTable "starting"
 cd $here/../analysis
 echo "\$(function() {" > $here/data/summarytable.js
 echo "var table = document.createElement(\"table\");" >> $here/data/summarytable.js
@@ -48,10 +49,13 @@ echo "var outer_div = document.getElementById(\"summarytable\");" >> $here/data/
 echo "outer_div.appendChild(table);" >> $here/data/summarytable.js
 echo "})" >> $here/data/summarytable.js
 
-# create a coverage map from the kmls
+logger -s -t createSummaryTable "create a coverage map from the kmls"
 source ~/venvs/${RMS_ENV}/bin/activate
 python $PYLIB/utils/makeCoverageMap.py $CONFIG/config.ini $ARCHDIR/kmls $here/data
 
+logger -s -t createSummaryTable "copying to website"
 source $WEBSITEKEY
 aws s3 cp $here/data/summarytable.js  $WEBSITEBUCKET/data/
 aws s3 cp $here/data/coverage.html  $WEBSITEBUCKET/data/
+
+logger -s -t createSummaryTable "finished"

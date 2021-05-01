@@ -10,7 +10,7 @@ echo "creating matched extracts"
 for yr in {2013,2014,2015,2016,2017,2018,2019}
 do
     #for shwr in {GEM,LYR,PER,QUA,LEO,NTA,STA,ETA,SDA}
-    for shwr in {GEM,spo}
+    for shwr in {ORI,URS}
     do
         rc=$(grep -i _$shwr ./matches-${yr}.csv | wc -l)
         if [ $rc -gt 0 ]; then
@@ -24,7 +24,7 @@ echo "creating UFO detections"
 for yr in {2012,2013,2014,2015,2016,2017,2018,2019}
 do
     #for shwr in {GEM,LYR,PER,QUA,LEO,NTA,STA,ETA,SDA}
-    for shwr in {GEM,spo}
+    for shwr in {ORI,URS}
     do
         rc=$(grep "${shwr}" ./M_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
@@ -37,9 +37,10 @@ done
 echo "done gathering data, creating tables"
 
 #for shwr in {GEM,LYR,PER,QUA,LEO,NTA,STA,ETA,SDA,spo}
-for shwr in {GEM,spo}
+for shwr in {ORI,URS}
 do 
-    cat $TEMPLATES/shwrcsvindex.html  | sed "s/XXXXX/${shwr}/g" > $here/browse/showers/${shwr}index.html
+    now=$(date '+%Y-%m-%d %H:%M:%S')
+    cat $TEMPLATES/shwrcsvindex.html  | sed "s/XXXXX/${shwr}/;s/DDDDDDDD/${now}/g" > $here/browse/showers/${shwr}index.html
 
     idxfile=$here/browse/showers/${shwr}index.js
 

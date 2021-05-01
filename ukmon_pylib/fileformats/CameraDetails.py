@@ -29,7 +29,7 @@ class SiteInfo:
             lid = eles[0].strip()
         if len(eles) > 1:
             sid = camname.split(b'_')[len(eles)-1].strip()
-            print(lid, sid)
+            # print(lid, sid)
             cam = numpy.where((self.camdets['LID'] == lid) & (self.camdets['SID'] == sid))
             if len(cam[0]) == 0:
                 sid = sid.upper()

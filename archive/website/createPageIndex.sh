@@ -5,8 +5,8 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
-
-# generate extra data files and copy other data of interest
+logger -s -t createPageIndex "starting"
+logger -s -t createPageIndex "generate extra data files and copy other data of interest"
 cd $SRC/orbits
 source ~/venvs/$WMPL_ENV/bin/activate
 export PYTHONPATH=$wmpl_loc:$PYLIB
@@ -14,6 +14,7 @@ export ARCHDIR # used by extraDataFiles.py
 python $PYLIB/traj/extraDataFiles.py $1
 cd $here
 
+logger -s -t createPageIndex "generating orbit page index.html"
 ym=$(basename $1)
 yr=${ym:0:4}
 mth=${ym:4:2}
@@ -67,12 +68,15 @@ echo "</script>" >> $idxfile
 
 cat $TEMPLATES/footer.html >> $idxfile
 
+logger -s -t createPageIndex "adding zip file"
 pushd ${datadir}
 zip -r -9 /tmp/$fldr.zip . -x ./$fldr.zip
 cp /tmp/$fldr.zip ${datadir}/
 rm -f /tmp/$fldr.zip
 popd
 
+logger -s -t createPageIndex "copying to website"
 source $WEBSITEKEY
 aws s3 sync ${datadir}/ ${targ}/ --include "*" 
 
+logger -s -t createPageIndex "finished"

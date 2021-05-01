@@ -13,7 +13,7 @@ fi
 
 mkdir -p $RCODEDIR/DATA/searchidx
 cd $SRC/analysis
-echo "creating searchable format files"
+logger -s -t createSearchable "creating searchable format files"
 
 export PYTHONPATH=$wmpl_loc:$PYLIB
 python $PYLIB/reports/createSearchableFormat.py $CONFIG/config.ini $yr /tmp
@@ -34,7 +34,7 @@ grep -v "J8_TBC" $RCODEDIR/DATA/searchidx/${yr}-allevents.csv > /tmp/${yr}-allev
 cp /tmp/${yr}-allevents.csv $RCODEDIR/DATA/searchidx/${yr}-allevents.csv
 rm -f /tmp/${yr}-allevents.csv
 
-# create list of all cameras 
+logger -s -t createSearchable "create list of all cameras"
 cat ../R/DATA/searchidx/*-allevents.csv | awk -F, '{print $5}' | sort | sed 's/^ *//g' | uniq > $RCODEDIR/DATA/camlist.txt
 
 source $WEBSITEKEY
