@@ -61,29 +61,33 @@ logger -s -t findAllMatches "Solving run done"
 logger -s -t findAllMatches "================"
 
 logger -s -t findAllMatches "update the website loop over new matches, creating an index page and copying files"
+
+cd $here
+logger -s -t findAllMatches "create text file containing most recent matches"
+python $PYLIB/traj/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate/trajectories
+
+dailyrep=$(ls -1tr $MATCHDIR/RMSCorrelate/dailyreports | tail -1)
+trajlist=$(cat $MATCHDIR/RMSCorrelate/dailyreports/$dailyrep | awk -F, '{print $2}')
+
 cd $here/../website
-find $MATCHDIR/RMSCorrelate/trajectories/ -type d -mtime -1 | while read i
+for traj in $trajlist 
 do
-    loc=$(basename $i)
-    $SRC/website/createPageIndex.sh $i
+    $SRC/website/createPageIndex.sh $MATCHDIR/RMSCorrelate/trajectories/$traj
 
     # copy the orbit file for consolidation and reporting
-    cp $i/*orbit.csv ${RCODEDIR}/DATA/orbits/$yr/csv/
+    cp $MATCHDIR/RMSCorrelate/trajectories/$traj/*orbit.csv ${RCODEDIR}/DATA/orbits/$yr/csv/
 done
 logger -s -t findAllMatches "backup the solved trajectory data"
 
-cp $MATCHDIR/RMSCorrelate/processed_trajectories.json $SRC/bkp/processed_trajectories.json.$(date +%Y%m%d)
-gzip $SRC/bkp/processed_trajectories.json.$(date +%Y%m%d)
+lastjson=$(ls -1tr $SRC/bkp/| grep -v ".gz" | tail -1)
+thisjson=$MATCHDIR/RMSCorrelate/processed_trajectories.json
+cp $thisjson $SRC/bkp/processed_trajectories.json.$(date +%Y%m%d)
+gzip $lastjson
 
 logger -s -t findAllMatches "update the Index page for the month and the year"
 
 $SRC/website/createOrbitIndex.sh ${yr}${mth}
 $SRC/website/createOrbitIndex.sh ${yr}
-
-logger -s -t findAllMatches "create text file containing most recent matches"
-
-cd $here
-python $PYLIB/traj/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate/trajectories
 
 logger -s -t findAllMatches "purge old logs"
 find $SRC/logs/matches -name "matches*" -mtime +7 -exec rm -f {} \;

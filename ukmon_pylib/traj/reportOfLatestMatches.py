@@ -18,8 +18,8 @@ def findNewMatches(dir_path, targdate):
 
     # set date range
     now = targdate
-    yday = targdate + datetime.timedelta(days=-1)
-    yday = yday.replace(hour=7, minute=0, second=0, microsecond=0)
+    yday = targdate #  + datetime.timedelta(days=-1)
+    yday = yday.replace(hour=7, minute=30, second=0, microsecond=0)
     yday = yday.timestamp()
 
     # load camera details
