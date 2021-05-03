@@ -1,5 +1,5 @@
 #!/bin/bash
-# bash script to create monthly index page for orbit data
+# bash script to create monthly or annual index page for orbit data
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
@@ -59,6 +59,20 @@ else
 fi
 echo "</tr></table>" >> $idxfile
 echo "</div>" >> $idxfile
+
+if [ $domth -eq 0 ]
+then
+echo "<h2>Year to Date Density, Velocity and Solar Longitude</h2>" >> $idxfile
+echo "Click on the charts to see a larger gallery view" >> $idxfile
+echo "<div class=\"top-img-container\">" >> $idxfile
+echo "<a href=\"/reports/plots/scecliptic_density.png\"><img src=\"/reports/plots/scecliptic_density.png\" width=\"30%\"></a>" >> $idxfile
+echo "<a href=\"/reports/plots/scecliptic_sol.png\"><img src=\"/reports/plots/scecliptic_sol.png\" width=\"30%\"></a>" >> $idxfile
+echo "<a href=\"/reports/plots/scecliptic_vg.png\"><img src=\"/reports/plots/scecliptic_vg.png\" width=\"30%\"></a>" >> $idxfile
+echo "</div>" >> $idxfile
+echo "<script> \$('.top-img-container').magnificPopup({ " >> $idxfile
+echo "delegate: 'a', type: 'image', image:{verticalFit:false}, gallery:{enabled:true} }); " >> $idxfile
+echo "</script>" >> $idxfile
+fi
 
 cat $TEMPLATES/footer.html >> $idxfile
 

@@ -77,6 +77,15 @@ do
     # copy the orbit file for consolidation and reporting
     cp $MATCHDIR/RMSCorrelate/trajectories/$traj/*orbit.csv ${DATADIR}/orbits/$yr/csv/
 done
+
+logger -s -t findAllMatches "Create density and velocity plots by solar longitude"
+export PYTHONPATH=$wmpl_loc
+python -m wmpl.Trajectory.AggregateAndPlot $MATCHDIR/RMSCorrelate/
+mv -f $MATCHDIR/RMSCorrelate/*.png $MATCHDIR/RMSCorrelate/plots
+source $WEBSITEKEY
+aws s3 sync $MATCHDIR/RMSCorrelate/plots $WEBSITEBUCKET/reports/plots
+
+
 logger -s -t findAllMatches "backup the solved trajectory data"
 
 lastjson=$(ls -1tr $SRC/bkp/| grep -v ".gz" | tail -1)
