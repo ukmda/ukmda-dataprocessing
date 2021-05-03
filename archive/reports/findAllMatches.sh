@@ -75,7 +75,7 @@ do
     $SRC/website/createPageIndex.sh $MATCHDIR/RMSCorrelate/trajectories/$traj
 
     # copy the orbit file for consolidation and reporting
-    cp $MATCHDIR/RMSCorrelate/trajectories/$traj/*orbit.csv ${RCODEDIR}/DATA/orbits/$yr/csv/
+    cp $MATCHDIR/RMSCorrelate/trajectories/$traj/*orbit.csv ${DATADIR}/orbits/$yr/csv/
 done
 logger -s -t findAllMatches "backup the solved trajectory data"
 

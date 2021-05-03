@@ -54,6 +54,12 @@
       regexp: 'RCODEDIR='
       line: 'RCODEDIR={{destdir}}/R'
     tags: [dev,prod]
+  - name: update data folder
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'DATADIR='
+      line: 'DATADIR={{destdir}}/data'
+    tags: [dev,prod]
   - name: update RMS loc
     lineinfile:
       path: '{{destdir}}/config/config.ini'

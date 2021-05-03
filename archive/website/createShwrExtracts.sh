@@ -18,7 +18,7 @@ export PYTHONPATH=$PYLIB
 shwrs=$(python -c "from fileformats import imoWorkingShowerList as imo; sl = imo.IMOshowerList();print(sl.getMajorShowers(True, True));")
 
 
-cd ${RCODEDIR}/DATA/matched
+cd ${DATADIR}/matched
 logger -s -t createShwrExtracts "creating matched extracts"
 for yr in $yrs
 do
@@ -32,7 +32,7 @@ do
         fi
     done
 done
-cd ${RCODEDIR}/DATA/consolidated
+cd ${DATADIR}/consolidated
 logger -s -t createShwrExtracts "creating UFO detections"
 for yr in $yrs
 do
@@ -45,7 +45,7 @@ do
         fi
     done
 done
-cd ${RCODEDIR}/DATA/consolidated
+cd ${DATADIR}/consolidated
 logger -s -t createShwrExtracts "creating RMS detections"
 for yr in $yrs
 do

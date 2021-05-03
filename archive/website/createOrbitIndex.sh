@@ -20,7 +20,7 @@ if [ "$mth" != "" ] ; then
     targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${ym}
     orblist=$(aws s3 ls $targ/ | grep PRE | grep $mth | awk '{print $2}')
     domth=1
-    rm -f $RCODEDIR/DATA/orbits/$yr/$ym.txt
+    rm -f $DATADIR/orbits/$yr/$ym.txt
 else
     displstr=${yr}
     msg="Click to explore each month."
@@ -53,7 +53,7 @@ else
             echo "</tr>" >> $idxfile
         fi
         if [ $domth -eq 1 ] ; then
-            echo "$i" >> $RCODEDIR/DATA/orbits/$yr/$ym.txt
+            echo "$i" >> $DATADIR/orbits/$yr/$ym.txt
         fi
     done
 fi

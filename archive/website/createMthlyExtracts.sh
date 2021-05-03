@@ -14,7 +14,7 @@ fi
 
 logger -s -t createMthlyExtracts "starting"
 
-cd $RCODEDIR/DATA/matched
+cd $DATADIR/matched
 logger -s -t createMthlyExtracts "creating matched extracts"
 
 for yr in $yrs
@@ -29,7 +29,7 @@ do
     done
 done
 
-cd $RCODEDIR/DATA/consolidated
+cd $DATADIR/consolidated
 logger -s -t createMthlyExtracts "creating UFO detections"
 for yr in $yrs
 do
@@ -82,6 +82,9 @@ while [ $yr -gt 2012 ]
 do
     for mth in {12,11,10,90,08,07,06,05,04,03,02,01}
     do
+        ufobn=""
+        rmsbn=""
+        matbn=""
         if compgen -G "$SRC/website/browse/monthly/${yr}${mth}-detections-ufo.csv" > /dev/null ; then 
             ufodets=$(ls -1 $SRC/website/browse/monthly/${yr}${mth}-detections-ufo.csv)
             ufobn=$(basename $ufodets)
@@ -130,16 +133,16 @@ aws s3 sync $SRC/website/browse/monthly/  $WEBSITEBUCKET/browse/monthly/
 logger -s -t createMthlyExtracts "gathering annual data"
 cd $SRC/website/browse/annual/
 yr=$(date +%Y)
-cp -p ${RCODEDIR}/DATA/matched/pre2020/matches*.csv .
-cp -p ${RCODEDIR}/DATA/matched/matches-202*.csv .
-if compgen -G "${RCODEDIR}/DATA/matched/matches-203*.csv" ; then
-    cp -p ${RCODEDIR}/DATA/matched/matches-203*.csv .
+cp -p ${DATADIR}/matched/pre2020/matches*.csv .
+cp -p ${DATADIR}/matched/matches-202*.csv .
+if compgen -G "${DATADIR}/matched/matches-203*.csv" ; then
+    cp -p ${DATADIR}/matched/matches-203*.csv .
 fi
-if compgen -G "${RCODEDIR}/DATA/matched/matches-204*.csv" ; then
-    cp -p ${RCODEDIR}/DATA/matched/matches-204*.csv .
+if compgen -G "${DATADIR}/matched/matches-204*.csv" ; then
+    cp -p ${DATADIR}/matched/matches-204*.csv .
 fi
-cp -p ${RCODEDIR}/DATA/consolidated/M*.csv .
-cp -p ${RCODEDIR}/DATA/consolidated/P*.csv .
+cp -p ${DATADIR}/consolidated/M*.csv .
+cp -p ${DATADIR}/consolidated/P*.csv .
 
 logger -s -t createMthlyExtracts "done gathering data, creating table"
 idxfile=$SRC/website/browse/annual/browselist.js

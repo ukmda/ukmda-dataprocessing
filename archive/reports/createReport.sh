@@ -10,36 +10,36 @@ else
     source /home/ec2-user/venvs/${WMPL_ENV}/bin/activate
     export PYTHONPATH=$wmpl_loc:$PYLIB
 
-    cd ${RCODEDIR}
+    cd ${DATADIR}
 
-    if [[ ! -d REPORTS/$2/$1 || "$3" == "force" ]] ; then
+    if [[ ! -d reports/$2/$1 || "$3" == "force" ]] ; then
         logger -s -t createReport "Running the analysis routines"
         $here/runRAnalysis.sh $1 $2  > ${SRC}/logs/$1$2.log
         logger -s -t createReport "done, now reating report"
     fi
-    cd ${RCODEDIR}
+    cd ${DATADIR}
     if [ "$1" == "ALL" ]; then
         sname="All Data"
     else
         sname=`grep $1 ${RCODEDIR}/CONFIG/streamnames.csv | awk -F, '{print $2}'`
     fi
-    if [ -d REPORTS/$2/$1 ] ; then 
+    if [ -d reports/$2/$1 ] ; then 
         logger -s -t createReport "gathering facts"
         if [ "$1" == "ALL" ]; then
             logger -s -t createReport "processing $1"
-            cat $TEMPLATES/header.html $here/templates/report-template.html $TEMPLATES/footer.html > ${RCODEDIR}/REPORTS/$2/$1/index.html
+            cat $TEMPLATES/header.html $here/templates/report-template.html $TEMPLATES/footer.html > ${DATADIR}/reports/$2/$1/index.html
             metcount=$(grep "OTHER Matched" ${SRC}/logs/ALL$2.log | awk '{print $4}')
-            maxalt=$(grep "_$2" ${RCODEDIR}/DATA/UKMON-all-matches.csv  | grep UNIFIED | awk -F, '{printf("%.1f\n",$44)}' | sort -n | tail -1)
-            minalt=$(grep "_$2" ${RCODEDIR}/DATA/UKMON-all-matches.csv  | grep UNIFIED | awk -F, '{printf("%.1f\n", $52)}' | sort -n | head -1)
+            maxalt=$(grep "_$2" ${DATADIR}/UKMON-all-matches.csv  | grep UNIFIED | awk -F, '{printf("%.1f\n",$44)}' | sort -n | tail -1)
+            minalt=$(grep "_$2" ${DATADIR}/UKMON-all-matches.csv  | grep UNIFIED | awk -F, '{printf("%.1f\n", $52)}' | sort -n | head -1)
         else
             logger -s -t createReport "processing $2 $1"
-            cat $TEMPLATES/header.html $here/templates/shower-report-template.html $TEMPLATES/footer.html > ${RCODEDIR}/REPORTS/$2/$1/index.html
-            metcount=$(sed "1d" ${RCODEDIR}/DATA/UKMON-all-single.csv | grep $1 | wc -l) 
-            maxalt=$(grep $1 ${RCODEDIR}/DATA/UKMON-all-matches.csv  | grep UNIFIED | grep "_$2" | awk -F, '{printf("%.1f\n",$44)}' | sort -n | tail -1)
-            minalt=$(grep $1 ${RCODEDIR}/DATA/UKMON-all-matches.csv  | grep UNIFIED | grep "_$2" | awk -F, '{printf("%.1f\n",$52)}' | sort -n | head -1)
+            cat $TEMPLATES/header.html $here/templates/shower-report-template.html $TEMPLATES/footer.html > ${DATADIR}/reports/$2/$1/index.html
+            metcount=$(sed "1d" ${DATADIR}/UKMON-all-single.csv | grep $1 | wc -l) 
+            maxalt=$(grep $1 ${DATADIR}/UKMON-all-matches.csv  | grep UNIFIED | grep "_$2" | awk -F, '{printf("%.1f\n",$44)}' | sort -n | tail -1)
+            minalt=$(grep $1 ${DATADIR}/UKMON-all-matches.csv  | grep UNIFIED | grep "_$2" | awk -F, '{printf("%.1f\n",$52)}' | sort -n | head -1)
         fi 
 
-        cd REPORTS/$2/$1
+        cd reports/$2/$1
 
         camcount=`cat TABLE_stream_counts_by_Station.csv | wc -l`
         yr=$2

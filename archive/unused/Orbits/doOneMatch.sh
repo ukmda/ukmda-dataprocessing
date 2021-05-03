@@ -25,7 +25,7 @@ if [[ "$2" == "recopy" && $res -eq 99  && ! -f $indir/notsolvable.txt ]] ; then
     res=0
 fi 
 if [ $res -eq 0 ] ; then
-    outdir=${RCODEDIR}/DATA/orbits/$yr
+    outdir=${DATADIR}/orbits/$yr
     resultdir=$(ls -1trd $indir/${yr}* | grep -v .txt | tail -1)
 
     echo "copying jpgs, videos and raw data"

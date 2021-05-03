@@ -39,9 +39,9 @@ if compgen -G "$fpath/FTPdetect*.txt" > /dev/null ; then
 
         if [ $? -eq 0 ] ; then 
             if compgen -G "$fpath/*assoc*.txt"  > /dev/null ; then 
-                mkdir -p ${RCODEDIR}/DATA/consolidated/A > /dev/null 2>&1
+                mkdir -p ${DATADIR}/consolidated/A > /dev/null 2>&1
                 assocfile=$(compgen -G "$fpath/*assoc*.txt")
-                cp "$assocfile" ${RCODEDIR}/DATA/consolidated/A
+                cp "$assocfile" ${DATADIR}/consolidated/A
             fi
         fi
     else
