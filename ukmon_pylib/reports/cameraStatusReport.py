@@ -36,7 +36,7 @@ def getLastUpdateDate(pth, skipfldrs):
             if lateness > 3:
                 stati.append([loc, cam, lastdt, 'red'])
             elif lateness > 1:
-                stati.append([loc, cam, lastdt, 'orange'])
+                stati.append([loc, cam, lastdt, 'amber'])
             else:
                 stati.append([loc, cam, lastdt, 'green'])
     stati = numpy.vstack((stati))
@@ -44,7 +44,7 @@ def getLastUpdateDate(pth, skipfldrs):
     stati = stati[stati[:,0].argsort(kind='mergesort')]
     print('<style type="text/css">')
     print('table tr#REDROW  {background-color:red; color:white;}')
-    print('table tr#AMBERROW  {background-color:orange; color:white;}')
+    print('table tr#AMBERROW  {background-color:darkorange; color:white;}')
     print('</style><table border=\"1\">')
     for s in stati:
         if s[3] =='red':
