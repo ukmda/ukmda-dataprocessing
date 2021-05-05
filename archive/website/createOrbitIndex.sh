@@ -62,7 +62,7 @@ echo "</div>" >> $idxfile
 
 if [ $domth -eq 0 ]
 then
-echo "<h2>Year to Date Density, Velocity and Solar Longitude</h2>" >> $idxfile
+echo "<h3>Year to Date Density, Velocity and Solar Longitude</h3>" >> $idxfile
 echo "Click on the charts to see a larger gallery view" >> $idxfile
 echo "<div class=\"top-img-container\">" >> $idxfile
 echo "<a href=\"/reports/plots/scecliptic_density.png\"><img src=\"/reports/plots/scecliptic_density.png\" width=\"30%\"></a>" >> $idxfile

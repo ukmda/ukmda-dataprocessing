@@ -14,7 +14,7 @@ echo "<option value=\"1\" selected=\"selected\">All</option>" >> $siteidx
 
 rowid=2
 export PYTHONPATH=$PYLIB
-camlist=$(python -c "from fileformats import CameraDetails as cd; cinfo=cd.SiteInfo();ci=cinfo.getAllCamsStr();print(ci)")
+camlist=$(PYTHONPATH=$PYLIB python -c "from fileformats import CameraDetails as cd; cinfo=cd.SiteInfo();ci=cinfo.getAllCamsStr();print(ci)")
 
 for cam in $camlist
 do

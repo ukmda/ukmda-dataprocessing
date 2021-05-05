@@ -15,8 +15,6 @@ else
 fi
 yr=${ym:0:4}
 
-export PYTHONPATH=$PYLIB:$wmpl_loc
-
 logger -s -t convertUfoToRms "starting"
 cat $CAMINFO | while read li ; do 
     typ=$(echo $li | awk -F, '{printf("%s", $12)}') 
@@ -40,6 +38,7 @@ cat $CAMINFO | while read li ; do
                         # if the source is a folder, then process it
                         if [ -d "$fpath/$i" ] ; then 
                             logger -s -t convertUfoToRms "converting $i"
+                            export PYTHONPATH=$PYLIB:$wmpl_loc
                             python $PYLIB/converters/UFOAtoFTPdetect.py "$fpath/$i" $dest 
                         fi
                     else   
