@@ -53,6 +53,9 @@ fi
 logger -s -t nightlyJob "create the cover page for the website"
 ${SRC}/website/createSummaryTable.sh
 
+logger -s -t nightlyJob "station status report"
+${SRC}/website/cameraStatusReport.sh
+
 logger -s -t nightlyJob "clean up old logs"
 find $SRC/logs -name "nightly*" -mtime +7 -exec rm -f {} \;
 
