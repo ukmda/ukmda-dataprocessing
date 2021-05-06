@@ -9,7 +9,8 @@ source $here/../config/config.ini >/dev/null 2>&1
 
 export PYTHONPATH=$PYLIB
 cp $TEMPLATES/header.html /tmp/statrep.html
-python $PYLIB/reports/cameraStatusReport.py $MATCHDIR/RMSCorrelate >> /tmp/statrep.html
+cd $PYLIB
+python -m reports.cameraStatusReport $MATCHDIR/RMSCorrelate >> /tmp/statrep.html
 cat $TEMPLATES/footer.html >> /tmp/statrep.html
 
 source $WEBSITEKEY

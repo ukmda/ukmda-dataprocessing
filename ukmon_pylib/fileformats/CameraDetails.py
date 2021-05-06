@@ -8,7 +8,7 @@ import os
 CameraDetails = numpy.dtype([('Site', 'S32'), ('CamID', 'S32'), ('LID', 'S16'),
     ('SID', 'S8'), ('Camera', 'S16'), ('Lens', 'S16'), ('xh', 'i4'),
     ('yh', 'i4'), ('Longi', 'f8'), ('Lati', 'f8'), ('Alti', 'f8'), 
-    ('camtyp', 'i4'), ('dummycode','S6')])
+    ('camtyp', 'i4'), ('dummycode','S6'),('active','i4')])
 
 
 class SiteInfo:
@@ -73,12 +73,32 @@ class SiteInfo:
             statid = statid.upper()
             cam = numpy.where(self.camdets['CamID'] == statid) 
         if len(cam[0]) == 0:
+            cam = numpy.where(self.camdets['dummycode'] == statid) 
+        if len(cam[0]) == 0:
             return 'Unknown'
         else:
             c = cam[0][0]
             site = self.camdets[c]['Site'].decode('utf-8').strip()
             camid = self.camdets[c]['CamID'].decode('utf-8').strip()
             return site + '/' + camid
+
+    def checkCameraActive(self, statid):
+        statid = statid.encode('utf-8')
+        cam = numpy.where(self.camdets['CamID'] == statid) 
+        if len(cam[0]) == 0:
+            statid = statid.upper()
+            cam = numpy.where(self.camdets['CamID'] == statid) 
+        if len(cam[0]) == 0:
+            cam = numpy.where(self.camdets['dummycode'] == statid) 
+
+        # if we can't find the camera, assume its inactive
+        if len(cam[0]) == 0:
+            return False
+        else:
+            c = cam[0][0]
+            if self.camdets[c]['active'] == 0: 
+                return False
+            return True
 
     def getAllCamsAndFolders(self):
         # fetch camera details from the CSV file

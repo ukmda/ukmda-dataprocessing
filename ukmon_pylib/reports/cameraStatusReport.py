@@ -26,19 +26,20 @@ def getLastUpdateDate(pth, skipfldrs):
     now = datetime.datetime.now()
     for fldr in fldrlist:
         if fldr not in (skipfldrs):
-
-            info = camdets.getFolder(fldr)
-            flist = os.listdir(os.path.join(pth, fldr))
-            lastentry = sorted(flist, key=datesortkey)[-1]
-            loc, cam = info.split('/')
-            lastdt = datetime.datetime.strptime(lastentry[7:22],'%Y%m%d_%H%M%S')
-            lateness = (now - lastdt).days
-            if lateness > 3:
-                stati.append([loc, cam, lastdt, 'red'])
-            elif lateness > 1:
-                stati.append([loc, cam, lastdt, 'amber'])
-            else:
-                stati.append([loc, cam, lastdt, 'green'])
+            isactive = camdets.checkCameraActive(fldr)
+            if isactive is True:
+                info = camdets.getFolder(fldr)
+                flist = os.listdir(os.path.join(pth, fldr))
+                lastentry = sorted(flist, key=datesortkey)[-1]
+                loc, cam = info.split('/')
+                lastdt = datetime.datetime.strptime(lastentry[7:22],'%Y%m%d_%H%M%S')
+                lateness = (now - lastdt).days
+                if lateness > 3:
+                    stati.append([loc, cam, lastdt, 'red'])
+                elif lateness > 1:
+                    stati.append([loc, cam, lastdt, 'amber'])
+                else:
+                    stati.append([loc, cam, lastdt, 'green'])
     stati = numpy.vstack((stati))
     stati = stati[stati[:,1].argsort()]
     stati = stati[stati[:,0].argsort(kind='mergesort')]
