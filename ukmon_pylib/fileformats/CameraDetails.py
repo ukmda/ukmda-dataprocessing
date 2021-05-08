@@ -21,6 +21,22 @@ class SiteInfo:
         self.camdets = numpy.loadtxt(fname, delimiter=',', skiprows=2, dtype=CameraDetails)
         #print(self.camdets)
 
+    def getCameraOffset(self, statid):
+        statid = statid.encode('utf-8')
+        cam = numpy.where(self.camdets['CamID'] == statid) 
+        if len(cam[0]) == 0:
+            statid = statid.upper()
+            cam = numpy.where(self.camdets['CamID'] == statid) 
+        if len(cam[0]) == 0:
+            cam = numpy.where(self.camdets['dummycode'] == statid) 
+
+        # if we can't find the camera, assume its inactive
+        if len(cam[0]) == 0:
+            return -1
+        else:
+            c = cam[0][0]
+            return c
+
     def GetSiteLocation(self, camname):
         eles = camname.split(b'_')
         if len(eles) > 2:
@@ -67,38 +83,29 @@ class SiteInfo:
             return self.camdets[c]['dummycode'].decode('utf-8').strip()
 
     def getFolder(self, statid):
-        statid = statid.encode('utf-8')
-        cam = numpy.where(self.camdets['CamID'] == statid) 
-        if len(cam[0]) == 0:
-            statid = statid.upper()
-            cam = numpy.where(self.camdets['CamID'] == statid) 
-        if len(cam[0]) == 0:
-            cam = numpy.where(self.camdets['dummycode'] == statid) 
-        if len(cam[0]) == 0:
+        c = self.getCameraOffset(statid)
+        if c < 0:
             return 'Unknown'
         else:
-            c = cam[0][0]
             site = self.camdets[c]['Site'].decode('utf-8').strip()
             camid = self.camdets[c]['CamID'].decode('utf-8').strip()
             return site + '/' + camid
 
     def checkCameraActive(self, statid):
-        statid = statid.encode('utf-8')
-        cam = numpy.where(self.camdets['CamID'] == statid) 
-        if len(cam[0]) == 0:
-            statid = statid.upper()
-            cam = numpy.where(self.camdets['CamID'] == statid) 
-        if len(cam[0]) == 0:
-            cam = numpy.where(self.camdets['dummycode'] == statid) 
-
-        # if we can't find the camera, assume its inactive
-        if len(cam[0]) == 0:
-            return False
+        c = self.getCameraOffset(statid)
+        if c < 0:
+            return 'Unknown'
         else:
-            c = cam[0][0]
             if self.camdets[c]['active'] == 0: 
                 return False
             return True
+
+    def getCameraType(self, statid):
+        c = self.getCameraOffset(statid)
+        if c < 0:
+            return -1
+        else:
+            return self.camdets[c]['camtyp'] 
 
     def getAllCamsAndFolders(self):
         # fetch camera details from the CSV file

@@ -29,14 +29,22 @@ def getLastUpdateDate(pth, skipfldrs):
             isactive = camdets.checkCameraActive(fldr)
             if isactive is True:
                 info = camdets.getFolder(fldr)
+                camtype = camdets.getCameraType(fldr)
                 flist = os.listdir(os.path.join(pth, fldr))
                 lastentry = sorted(flist, key=datesortkey)[-1]
                 loc, cam = info.split('/')
                 lastdt = datetime.datetime.strptime(lastentry[7:22],'%Y%m%d_%H%M%S')
                 lateness = (now - lastdt).days
-                if lateness > 3:
+                if camtype == 1:
+                    redthresh = 14
+                    amberthresh=7
+                else:
+                    redthresh = 3
+                    amberthresh=1
+
+                if lateness > redthresh:
                     stati.append([loc, cam, lastdt, 'red'])
-                elif lateness > 1:
+                elif lateness > amberthresh:
                     stati.append([loc, cam, lastdt, 'amber'])
                 else:
                     stati.append([loc, cam, lastdt, 'green'])

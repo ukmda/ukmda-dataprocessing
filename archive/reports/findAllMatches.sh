@@ -24,6 +24,11 @@ mkdir -p $SRC/logs/matches > /dev/null 2>&1
 
 #python $here/consolidateMatchedData.py $yr $mth |tee $SRC/logs/matches/$ym.log
 
+logger -s -t findAllMatches "load the WMPL environment and set PYTHONPATH for the matching engine"
+
+source ~/venvs/${WMPL_ENV}/bin/activate
+export PYTHONPATH=$wmpl_loc:$PYLIB
+
 logger -s -t findAllMatches "get all UFO data into the right format"
 $SRC/analysis/convertUfoToRms.sh $ym
 dom=`date '+%d'`
@@ -32,13 +37,8 @@ if [ $dom -lt 10 ] ; then
     $SRC/analysis/convertUfoToRms.sh $lastmth
 fi
 
-logger -s -t findAllMatches "load the WMPL environment and set PYTHONPATH for the matching engine"
-
-cd $wmpl_loc
-source ~/venvs/${WMPL_ENV}/bin/activate
-export PYTHONPATH=$wmpl_loc:$PYLIB
-
 logger -s -t findAllMatches "set the date range for the solver"
+cd $wmpl_loc
 
 startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
 enddt=$(date --date="-$MATCHEND days" '+%Y%m%d-080000')
