@@ -6,6 +6,8 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # load the configuration
 source $here/../config/config.ini >/dev/null 2>&1
+source ~/venvs/${WMPL_ENV}/bin/activate
+export PYTHONPATH=$PYLIB:$wmpl_loc
 
 # get the date to operate for
 if [ $# -eq 0 ]; then
@@ -38,7 +40,6 @@ cat $CAMINFO | while read li ; do
                         # if the source is a folder, then process it
                         if [ -d "$fpath/$i" ] ; then 
                             logger -s -t convertUfoToRms "converting $i"
-                            export PYTHONPATH=$PYLIB:$wmpl_loc
                             python $PYLIB/converters/UFOAtoFTPdetect.py "$fpath/$i" $dest 
                         fi
                     else   
