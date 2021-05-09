@@ -113,18 +113,22 @@
       path: '{{destdir}}/config/config.ini'
       regexp: 'MAILHOST='
       line: 'MAILHOST=smtp.gmail.com'
+    tags: [dev,prod]
   - name: update mail port
     lineinfile: 
       path: '{{destdir}}/config/config.ini'
       regexp: 'MAILPORT='
       line: 'MAILPORT=587'
+    tags: [dev,prod]
   - name: update mail user
     lineinfile: 
       path: '{{destdir}}/config/config.ini'
       regexp: 'MAILUSER='
       line: 'MAILUSER=mjmm456'
+    tags: [dev,prod]
   - name: update mail pwd
     lineinfile: 
       path: '{{destdir}}/config/config.ini'
       regexp: 'MAILPWD='
       line: 'MAILPWD=~/.ssh/gmailpass'
+    tags: [dev,prod]
