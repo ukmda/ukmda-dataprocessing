@@ -95,14 +95,14 @@ def UFOAToSrchable(configfile, year, outdir):
                 curr = os.path.join(srcloc, fname)
                 outf = 'img/single/{:s}/{:s}/{:s}'.format(yr2, ym2, fname) 
                 # avoid rechecking old data
-                if (nowdt - ds).days < 45:
+                if (nowdt - ds).days < 15:
                     bucket = s3.Bucket(buck) 
                     obj = list(bucket.objects.filter(Prefix=outf))
                     if len(obj) == 0:
                         s3.meta.client.upload_file(curr, buck, outf, ExtraArgs={"ContentType":"image/jpeg"})
                         print(fname, outf)
-                    else:
-                        print('not copying {}'.format(fname))
+                    #else:
+                    #    print('not copying {}'.format(fname))
                 fldr = '/img/single/{:04d}/{:s}/{:s}'.format(li['Yr'], mth, fname)
             else:
                 fldr = '/img/missing.png'

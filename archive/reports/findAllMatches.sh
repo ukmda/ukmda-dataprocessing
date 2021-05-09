@@ -61,12 +61,11 @@ fi
 logger -s -t findAllMatches "Solving run done"
 logger -s -t findAllMatches "================"
 
-logger -s -t findAllMatches "update the website loop over new matches, creating an index page and copying files"
-
 cd $here
 logger -s -t findAllMatches "create text file containing most recent matches"
 python $PYLIB/traj/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate/trajectories
 
+logger -s -t findAllMatches "update the website loop over new matches, creating an index page and copying files"
 dailyrep=$(ls -1tr $MATCHDIR/RMSCorrelate/dailyreports | tail -1)
 trajlist=$(cat $MATCHDIR/RMSCorrelate/dailyreports/$dailyrep | awk -F, '{print $2}')
 

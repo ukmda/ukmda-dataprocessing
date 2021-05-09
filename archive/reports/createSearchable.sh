@@ -16,6 +16,7 @@ cd $SRC/analysis
 logger -s -t createSearchable "creating searchable format files"
 
 export PYTHONPATH=$wmpl_loc:$PYLIB
+export WEBSITEBUCKET
 python $PYLIB/reports/createSearchableFormat.py $CONFIG/config.ini $yr /tmp
 
 mv /tmp/${yr}-singleevents.csv $DATADIR/searchidx/${yr}-allevents.csv
