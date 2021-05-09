@@ -80,7 +80,7 @@ done
 
 logger -s -t findAllMatches "Create density and velocity plots by solar longitude"
 export PYTHONPATH=$wmpl_loc
-python -m wmpl.Trajectory.AggregateAndPlot $MATCHDIR/RMSCorrelate/
+python -m wmpl.Trajectory.AggregateAndPlot $MATCHDIR/RMSCorrelate/ -p
 mv -f $MATCHDIR/RMSCorrelate/*.png $MATCHDIR/RMSCorrelate/plots
 source $WEBSITEKEY
 aws s3 sync $MATCHDIR/RMSCorrelate/plots $WEBSITEBUCKET/reports/plots
