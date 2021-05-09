@@ -42,10 +42,11 @@ cd $wmpl_loc
 
 startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
 enddt=$(date --date="-$MATCHEND days" '+%Y%m%d-080000')
-
 logger -s -t findAllMatches "solving for ${startdt} to ${enddt}"
 
-python -m wmpl.Trajectory.CorrelateRMS $MATCHDIR/RMSCorrelate/ -l -r "($startdt,$enddt)"
+$SRC/analysis/runMatching.sh
+
+#python -m wmpl.Trajectory.CorrelateRMS $MATCHDIR/RMSCorrelate/ -l -r "($startdt,$enddt)"
 
 logger -s -t findAllMatches "check if the solver had some sort of failiure"
 logf=$(ls -1tr $SRC/logs/matches/matches*.log | tail -1)
@@ -89,9 +90,11 @@ aws s3 sync $MATCHDIR/RMSCorrelate/plots $WEBSITEBUCKET/reports/plots
 logger -s -t findAllMatches "backup the solved trajectory data"
 
 lastjson=$(ls -1tr $SRC/bkp/| grep -v ".gz" | tail -1)
-thisjson=$MATCHDIR/RMSCorrelate/processed_trajectories.json
-cp $thisjson $SRC/bkp/processed_trajectories.json.$(date +%Y%m%d)
-gzip $lastjson
+#thisjson=$MATCHDIR/RMSCorrelate/processed_trajectories.json
+#cp $thisjson $SRC/bkp/processed_trajectories.json.$(date +%Y%m%d)
+thisjson=$MATCHDIR/RMSCorrelate/processed_trajectories.json.bigserver
+cp $thisjson $SRC/bkp/processed_trajectories.json.$(date +%Y%m%d).bigserver
+gzip $SRC/bkp/$lastjson
 
 logger -s -t findAllMatches "update the Index page for the month and the year"
 
