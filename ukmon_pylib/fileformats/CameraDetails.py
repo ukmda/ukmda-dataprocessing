@@ -8,18 +8,34 @@ import os
 CameraDetails = numpy.dtype([('Site', 'S32'), ('CamID', 'S32'), ('LID', 'S16'),
     ('SID', 'S8'), ('Camera', 'S16'), ('Lens', 'S16'), ('xh', 'i4'),
     ('yh', 'i4'), ('Longi', 'f8'), ('Lati', 'f8'), ('Alti', 'f8'), 
-    ('camtyp', 'i4'), ('dummycode','S6')])
+    ('camtyp', 'i4'), ('dummycode','S6'),('active','i4')])
 
 
 class SiteInfo:
     def __init__(self, fname=None):
         if fname is None:
             fname = os.getenv('CAMINFO')
-            if len(fname) < 5:
+            if fname is None:
                 fname = '/home/ec2-user/ukmon-shared/consolidated/camera-details.csv'
 
         self.camdets = numpy.loadtxt(fname, delimiter=',', skiprows=2, dtype=CameraDetails)
         #print(self.camdets)
+
+    def getCameraOffset(self, statid):
+        statid = statid.encode('utf-8')
+        cam = numpy.where(self.camdets['CamID'] == statid) 
+        if len(cam[0]) == 0:
+            statid = statid.upper()
+            cam = numpy.where(self.camdets['CamID'] == statid) 
+        if len(cam[0]) == 0:
+            cam = numpy.where(self.camdets['dummycode'] == statid) 
+
+        # if we can't find the camera, assume its inactive
+        if len(cam[0]) == 0:
+            return -1
+        else:
+            c = cam[0][0]
+            return c
 
     def GetSiteLocation(self, camname):
         eles = camname.split(b'_')
@@ -29,7 +45,7 @@ class SiteInfo:
             lid = eles[0].strip()
         if len(eles) > 1:
             sid = camname.split(b'_')[len(eles)-1].strip()
-            print(lid, sid)
+            # print(lid, sid)
             cam = numpy.where((self.camdets['LID'] == lid) & (self.camdets['SID'] == sid))
             if len(cam[0]) == 0:
                 sid = sid.upper()
@@ -67,18 +83,29 @@ class SiteInfo:
             return self.camdets[c]['dummycode'].decode('utf-8').strip()
 
     def getFolder(self, statid):
-        statid = statid.encode('utf-8')
-        cam = numpy.where(self.camdets['CamID'] == statid) 
-        if len(cam[0]) == 0:
-            statid = statid.upper()
-            cam = numpy.where(self.camdets['CamID'] == statid) 
-        if len(cam[0]) == 0:
+        c = self.getCameraOffset(statid)
+        if c < 0:
             return 'Unknown'
         else:
-            c = cam[0][0]
             site = self.camdets[c]['Site'].decode('utf-8').strip()
             camid = self.camdets[c]['CamID'].decode('utf-8').strip()
             return site + '/' + camid
+
+    def checkCameraActive(self, statid):
+        c = self.getCameraOffset(statid)
+        if c < 0:
+            return 'Unknown'
+        else:
+            if self.camdets[c]['active'] == 0: 
+                return False
+            return True
+
+    def getCameraType(self, statid):
+        c = self.getCameraOffset(statid)
+        if c < 0:
+            return -1
+        else:
+            return self.camdets[c]['camtyp'] 
 
     def getAllCamsAndFolders(self):
         # fetch camera details from the CSV file
@@ -95,8 +122,16 @@ class SiteInfo:
                 if int(row[11]) == 1:
                     cams.append(row[2].decode('utf-8') + '_' + row[3].decode('utf-8'))
                 else:
-                    cams.append(row[2].decode('utf-8') + '_')
+                    cams.append(row[2].decode('utf-8'))
         return cams, fldrs
+
+    def getAllCamsStr(self):
+        cams, _ = self.getAllCamsAndFolders()
+        cams.sort()
+        tmpcams = ''
+        for cam in cams:
+            tmpcams = tmpcams + cam + ' ' 
+        return tmpcams.strip()
 
 
 def main(sitename):

@@ -3,6 +3,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
 
+logger -s -t createSummaryTable "starting"
 cd $here/../analysis
 echo "\$(function() {" > $here/data/summarytable.js
 echo "var table = document.createElement(\"table\");" >> $here/data/summarytable.js
@@ -15,10 +16,10 @@ until [ $yr -lt 2013 ]; do
     if [ $yr -gt 2019 ] ; then 
         detections=$(grep "OTHER Matched" $SRC/logs/ALL$yr.log | awk '{print $4}')
     else
-        detections=`cat $RCODEDIR/DATA/consolidated/M_${yr}-unified.csv | wc -l`
+        detections=`cat $DATADIR/consolidated/M_${yr}-unified.csv | wc -l`
     fi
     matches=`grep "UNIFIED Matched" $SRC/logs/ALL${yr}.log  | awk '{print $4}'`
-    fireballs=`tail -n +2 $RCODEDIR/REPORTS/$yr/ALL/TABLE_Fireballs.csv |wc -l`
+    fireballs=`tail -n +2 $DATADIR/reports/$yr/ALL/TABLE_Fireballs.csv |wc -l`
     echo "var row = table.insertRow(-1);" >> $here/data/summarytable.js
     echo "var cell = row.insertCell(0);" >> $here/data/summarytable.js
     echo "cell.innerHTML = \"<a href="/reports/$yr/ALL/index.html">$yr</a>\";" >> $here/data/summarytable.js
@@ -48,10 +49,13 @@ echo "var outer_div = document.getElementById(\"summarytable\");" >> $here/data/
 echo "outer_div.appendChild(table);" >> $here/data/summarytable.js
 echo "})" >> $here/data/summarytable.js
 
-# create a coverage map from the kmls
+logger -s -t createSummaryTable "create a coverage map from the kmls"
 source ~/venvs/${RMS_ENV}/bin/activate
 python $PYLIB/utils/makeCoverageMap.py $CONFIG/config.ini $ARCHDIR/kmls $here/data
 
+logger -s -t createSummaryTable "copying to website"
 source $WEBSITEKEY
 aws s3 cp $here/data/summarytable.js  $WEBSITEBUCKET/data/
 aws s3 cp $here/data/coverage.html  $WEBSITEBUCKET/data/
+
+logger -s -t createSummaryTable "finished"

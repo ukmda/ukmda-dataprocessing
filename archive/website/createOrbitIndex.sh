@@ -1,5 +1,5 @@
 #!/bin/bash
-# bash script to create monthly index page for orbit data
+# bash script to create monthly or annual index page for orbit data
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
@@ -10,7 +10,8 @@ source $WEBSITEKEY
 ym=$1
 yr=${ym:0:4}
 mth=${ym:4:2}
-echo $ym $yr $mth
+
+logger -s -t createOrbitIndex "creating orbit index page for $yr $mth"
 
 if [ "$mth" != "" ] ; then
     displstr=${yr}-${mth}
@@ -19,7 +20,7 @@ if [ "$mth" != "" ] ; then
     targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${ym}
     orblist=$(aws s3 ls $targ/ | grep PRE | grep $mth | awk '{print $2}')
     domth=1
-    rm -f $RCODEDIR/DATA/orbits/$yr/$ym.txt
+    rm -f $DATADIR/orbits/$yr/$ym.txt
 else
     displstr=${yr}
     msg="Click to explore each month."
@@ -52,15 +53,33 @@ else
             echo "</tr>" >> $idxfile
         fi
         if [ $domth -eq 1 ] ; then
-            echo "$i" >> $RCODEDIR/DATA/orbits/$yr/$ym.txt
+            echo "$i" >> $DATADIR/orbits/$yr/$ym.txt
         fi
     done
 fi
 echo "</tr></table>" >> $idxfile
 echo "</div>" >> $idxfile
 
+if [ $domth -eq 0 ]
+then
+echo "<h3>Year to Date Density, Velocity and Solar Longitude</h3>" >> $idxfile
+echo "Click on the charts to see a larger gallery view" >> $idxfile
+echo "<div class=\"top-img-container\">" >> $idxfile
+echo "<a href=\"/reports/plots/scecliptic_density.png\"><img src=\"/reports/plots/scecliptic_density.png\" width=\"30%\"></a>" >> $idxfile
+echo "<a href=\"/reports/plots/scecliptic_sol.png\"><img src=\"/reports/plots/scecliptic_sol.png\" width=\"30%\"></a>" >> $idxfile
+echo "<a href=\"/reports/plots/scecliptic_vg.png\"><img src=\"/reports/plots/scecliptic_vg.png\" width=\"30%\"></a>" >> $idxfile
+echo "</div>" >> $idxfile
+echo "<script> \$('.top-img-container').magnificPopup({ " >> $idxfile
+echo "delegate: 'a', type: 'image', image:{verticalFit:false}, gallery:{enabled:true} }); " >> $idxfile
+echo "</script>" >> $idxfile
+fi
+
 cat $TEMPLATES/footer.html >> $idxfile
+
+logger -s -t createOrbitIndex "copying to website"
 
 source $WEBSITEKEY
 aws s3 cp $idxfile $targ/index.html
 rm -f $idxfile
+
+logger -s -t createOrbitIndex "finished"

@@ -19,15 +19,19 @@ import fileformats.CameraDetails as cc
 def UFOAToSrchable(configfile, year, outdir):
     camdets = cc.SiteInfo()
     s3 = boto3.resource('s3')
-    buck = 'ukmeteornetworkarchive'
+    try:
+        buck = os.environ['WEBSITEBUCKET']
+        buck = buck[5:]
+    except Exception:
+        buck = 'mjmm-ukmonarchive.co.uk'
 
     config=cfg.ConfigParser()
     config.read(configfile)
     weburl=config['config']['SITEURL']
     
     fname = 'UKMON-{:s}-single.csv'.format(year)
-    rmsuafile= os.path.join(config['config']['RCODEDIR'], 'DATA', 'consolidated', fname)
-
+    rmsuafile= os.path.join(config['config']['DATADIR'], 'consolidated', fname)
+    print(rmsuafile)
     # load the data
     uadata = np.loadtxt(rmsuafile, delimiter=',', skiprows=1, dtype=uaf.UFOCSV)
     uadata = np.unique(uadata, axis=0)
@@ -37,6 +41,7 @@ def UFOAToSrchable(configfile, year, outdir):
     srcs[:]='2Single'
     srcs=srcs.decode('utf-8')
 
+    nowdt = datetime.datetime.now()
     dtstamps = []
     urls = []
     imgs = []
@@ -89,13 +94,15 @@ def UFOAToSrchable(configfile, year, outdir):
                         break
                 curr = os.path.join(srcloc, fname)
                 outf = 'img/single/{:s}/{:s}/{:s}'.format(yr2, ym2, fname) 
-                bucket = s3.Bucket(buck) 
-                obj = list(bucket.objects.filter(Prefix=outf))
-                if len(obj) == 0:
-                    s3.meta.client.upload_file(curr, buck, outf, ExtraArgs={"ContentType":"image/jpeg"})
-                    print(fname, outf)
-                else:
-                    print('not copying {}'.format(fname))
+                # avoid rechecking old data
+                if (nowdt - ds).days < 15:
+                    bucket = s3.Bucket(buck) 
+                    obj = list(bucket.objects.filter(Prefix=outf))
+                    if len(obj) == 0:
+                        s3.meta.client.upload_file(curr, buck, outf, ExtraArgs={"ContentType":"image/jpeg"})
+                        print(fname, outf)
+                    #else:
+                    #    print('not copying {}'.format(fname))
                 fldr = '/img/single/{:04d}/{:s}/{:s}'.format(li['Yr'], mth, fname)
             else:
                 fldr = '/img/missing.png'
@@ -130,7 +137,7 @@ def LiveToSrchable(configfile, year, outdir):
     zeros = []
     for q in range(1,5):
         livef='idx{:s}{:02d}.csv'.format(year, q)
-        uafile = os.path.join(config['config']['RCODEDIR'], 'DATA', 'ukmonlive', livef)
+        uafile = os.path.join(config['config']['DATADIR'], 'ukmonlive', livef)
         if os.path.exists(uafile):
             # load the data
             LIVEFMT=np.dtype([('ymd','U8'),('hms','U8'),('Loc_Cam','U16'),('SID','U8'),('Bri','f8')])
@@ -171,7 +178,7 @@ def MatchToSrchable(configfile, year, outdir, indexes):
     config.read(configfile)
     weburl=config['config']['SITEURL']
     
-    path= os.path.join(config['config']['RCODEDIR'], 'DATA', 'orbits', year)
+    path= os.path.join(config['config']['DATADIR'], 'orbits', year)
 
     dtstamps = []
     urls = []
@@ -229,7 +236,13 @@ def createIndexOfOrbits(year):
     indexes = []
     print('-----')
     s3 = boto3.client('s3')
-    buck = 'ukmeteornetworkarchive'
+
+    try:
+        buck = os.environ['WEBSITEBUCKET']
+        buck = buck[5:]
+    except Exception:
+        buck = 'mjmm-ukmonarchive.co.uk'
+
     pathstr = 'reports/' + year +'/orbits/' 
     paginator = s3.get_paginator('list_objects_v2')
     pages = paginator.paginate(Bucket=buck, Prefix=pathstr)

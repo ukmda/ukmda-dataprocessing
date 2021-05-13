@@ -42,7 +42,29 @@ form.addEventListener("submit", function (event) {
   //console.log("Saving value", form.elements.value.value);
   var d1 = document.getElementById("datestart").innerHTML;
   var d2 = document.getElementById("dateend").innerHTML;
-  var op = "foo";
+  var matchOnly = document.getElementById("matchesOnly").checked;
+  console.log(matchOnly)
+  var op = "";
+  if (matchOnly == true ) {
+    op = op + "t:_";
+  }
+  var magSelect = document.getElementById("magselect").value;
+  if (magSelect != 1 ) {
+    if(magSelect == 2) {op = op + "m:0_"}
+    if(magSelect == 3) {op = op + "m:-4_"}
+  }
+  var shwrSelect = document.getElementById("shwrselect").value;
+  if (shwrSelect != 1 ) {
+    var e = document.getElementById("shwrselect");
+    var strshwr = e.options[e.selectedIndex].text;
+    op = op + "s:" + strshwr + "_";
+  }
+  var statSelect = document.getElementById("statselect").value;
+  if (statSelect != 1 ) {
+    var e = document.getElementById("statselect");
+    var strstat = e.options[e.selectedIndex].text;
+    op = op + "l:" + strstat + "_";
+  }
   //jQuery.support.cors = true;
   payload = {"a":  d1, "b": d2, "op":  op };
   console.log(payload);

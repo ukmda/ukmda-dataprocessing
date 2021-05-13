@@ -18,19 +18,20 @@ ym=${ymd:0:6}
 
 fpath="$ARCHDIR/$sitename/$camname/$yy/$ym/$ymd"
 
+logger -s -t addRMSShowerDets "starting"
 if compgen -G "$fpath/FTPdetect*.txt" > /dev/null ; then 
     ftpfile=$(compgen -G "$fpath/FTPdetect*.txt" | grep -v backup | head -1) 
 
     export PYTHONPATH=$RMS_LOC:$PYLIB
     cd $RMS_LOC
 
-    # check if we already processed this folder (either the assoc or nometeors file will exist)
+    logger -s -t addRMSShowerDets "check if we already processed this folder" 
     done=0
     if compgen -G "$fpath/*assoc*.txt"  > /dev/null ; then done=1 ; fi
     if compgen -G "$fpath/nometeors" > /dev/null ; then done=1 ; fi
     
     if [ $done -eq 0 ] ; then 
-        echo "processing $ymd"
+        logger -s -t addRMSShowerDets "processing $ymd"
         lati=$(egrep "$sitename" $CAMINFO | grep $camname | awk -F, '{print $10}')
         longi=$(egrep "$sitename" $CAMINFO | grep $camname | awk -F, '{print $9}')
 
@@ -38,14 +39,15 @@ if compgen -G "$fpath/FTPdetect*.txt" > /dev/null ; then
 
         if [ $? -eq 0 ] ; then 
             if compgen -G "$fpath/*assoc*.txt"  > /dev/null ; then 
-                mkdir -p ${RCODEDIR}/DATA/consolidated/A > /dev/null 2>&1
+                mkdir -p ${DATADIR}/consolidated/A > /dev/null 2>&1
                 assocfile=$(compgen -G "$fpath/*assoc*.txt")
-                cp "$assocfile" ${RCODEDIR}/DATA/consolidated/A
+                cp "$assocfile" ${DATADIR}/consolidated/A
             fi
         fi
     else
-        echo "skipping $ymd"
+        logger -s -t addRMSShowerDets "skipping $ymd"
     fi
 else
-    echo ftpfile not found
+    logger -s -t addRMSShowerDets "ftpfile not found in $fpath"
 fi
+logger -s -t addRMSShowerDets "finished"

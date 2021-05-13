@@ -3,7 +3,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
 
-cd ${RCODEDIR}/DATA/matched/pre2020
+cd ${DATADIR}/matched/pre2020
 echo "creating matched extracts"
 for yr in {2013,2014,2015,2016,2017,2018,2019}
 do
@@ -16,7 +16,7 @@ do
         fi
     done
 done
-cd ${RCODEDIR}/DATA/consolidated
+cd ${DATADIR}/consolidated
 echo "creating UFO detections"
 for yr in {2012,2013,2014,2015,2016,2017,2018,2019}
 do

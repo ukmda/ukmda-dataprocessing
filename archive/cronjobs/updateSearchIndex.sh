@@ -7,10 +7,14 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 
 source $WEBSITEKEY
-echo "getting latest livefeed CSV files"
-aws s3 sync s3://ukmon-live/ ${RCODEDIR}/DATA/ukmonlive/ --exclude "*" --include "*.csv"
+logger -s -t updateSearchIndex "getting latest livefeed CSV files"
+aws s3 sync s3://ukmon-live/ ${DATADIR}/ukmonlive/ --exclude "*" --include "*.csv"
 
-echo "creating searchable indices"
+logger -s -t updateSearchIndex "creating searchable indices"
 $SRC/analysis/createSearchable.sh
 
+logger -s -t updateSearchIndex "creating station list"
+$src/website/createStationList.sh
+
 find $SRC/logs -name "updateSearchIndex*" -mtime +7 -exec rm -f {} \;
+logger -s -t updateSearchIndex "finished"

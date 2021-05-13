@@ -30,7 +30,9 @@ def getListOfFiles(fldr, cams, camfldrs, srcpth):
             yr = ymd[1:5]
             ym = ymd[1:7]
             ymd = ymd[1:]
-            loccam = bits[2] + '_'
+            loccam = bits[2]
+            if loccam[:3] !='UK0' and loccam[:3] != 'IE0':
+                loccam = loccam + '_'
             if len(bits) == 4:
                 loccam = loccam + bits[3]
             try:
