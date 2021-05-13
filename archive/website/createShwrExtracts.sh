@@ -14,6 +14,7 @@ if [ $# -gt 0 ] ; then
 else
     yrs="2021 2020"
 fi 
+source ~/venvs/$WMPL_ENV/bin/activate
 export PYTHONPATH=$PYLIB
 shwrs=$(PYTHONPATH=$PYLIB python -c "from fileformats import imoWorkingShowerList as imo; sl = imo.IMOshowerList();print(sl.getMajorShowers(True, True));")
 

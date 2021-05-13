@@ -6,7 +6,7 @@ import os
 import sys
 import datetime
 import glob
-from stat import S_ISREG, ST_CTIME, ST_MODE
+from stat import S_ISREG, ST_MTIME, ST_MODE
 import fileformats.CameraDetails as cd
 
 
@@ -27,7 +27,7 @@ def findNewMatches(dir_path, targdate):
 
     print('----------------------')
     # leave only regular files, insert creation date
-    entries = ((stat[ST_CTIME], path)
+    entries = ((stat[ST_MTIME], path)
             for stat, path in entries if not S_ISREG(stat[ST_MODE]))
 
     matchlist = os.path.join(dir_path, '../dailyreports/' + now.strftime('%Y%m%d.txt'))    

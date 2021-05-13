@@ -27,8 +27,11 @@ sleep 20
 # create the script to run the matching process
 # could store this on the server permanently but this allows me to more readily
 # make changes
-
 execMatchingsh=/tmp/execMatching.sh
+thisip=$(curl --silent http://169.254.169.254/latest/meta-data/local-ipv4) 
+startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
+enddt=$(date --date="-$MATCHEND days" '+%Y%m%d-080000')
+
 echo '#\!/bin/bash' > $execMatchingsh
 echo "source /home/ec2-user/venvs/wmpl/bin/activate" >> $execMatchingsh
 echo "export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib/" >> $execMatchingsh
@@ -36,13 +39,11 @@ echo "cd /home/ec2-user/data/RMSCorrelate" >> $execMatchingsh
 echo "source ~/.ssh/ukmon-shared-keys" >> $execMatchingsh
 echo 'aws s3 sync s3://ukmon-shared/matches/RMSCorrelate/ . --exclude "*" --include "UK*"' >> $execMatchingsh
 echo "cd /home/ec2-user/src/WesternMeteorPyLib/" >> $execMatchingsh
-echo "startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')" >> $execMatchingsh
-echo "enddt=$(date --date="-$MATCHEND days" '+%Y%m%d-080000')" >> $execMatchingsh
-echo "time python -m wmpl.Trajectory.CorrelateRMS /home/ec2-user/data/RMSCorrelate/ -l -r \"(\$startdt,\$enddt)\"" >> $execMatchingsh
+echo "time python -m wmpl.Trajectory.CorrelateRMS /home/ec2-user/data/RMSCorrelate/ -l -r \"($startdt,$enddt)\"" >> $execMatchingsh
 echo "source ~/.ssh/ukmon-shared-keys" >> $execMatchingsh
 echo "cd /home/ec2-user/data/RMSCorrelate" >> $execMatchingsh
-echo " aws s3 sync trajectories/ s3://ukmon-shared/matches/RMSCorrelate/trajectories/" >> $execMatchingsh
-echo " aws s3 cp processed_trajectories.json s3://ukmon-shared/matches/RMSCorrelate/processed_trajectories.json.bigserver" >> $execMatchingsh
+echo "rsync -cavz trajectories/ $thisip:ukmon-shared/matches/RMSCorrelate/trajectories/" >> $execMatchingsh
+echo "scp processed_trajectories.json $thisip:ukmon-shared/matches/RMSCorrelate/processed_trajectories.json.bigserver" >> $execMatchingsh
 chmod +x $execMatchingsh
 
 # get the private IP of the server
