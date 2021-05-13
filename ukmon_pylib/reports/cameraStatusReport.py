@@ -43,26 +43,40 @@ def getLastUpdateDate(pth, skipfldrs):
                     amberthresh=1
 
                 if lateness > redthresh:
-                    stati.append([loc, cam, lastdt, 'red'])
+                    stati.append([loc, cam, lastdt, 'lightcoral'])
                 elif lateness > amberthresh:
-                    stati.append([loc, cam, lastdt, 'amber'])
+                    stati.append([loc, cam, lastdt, 'darkorange'])
                 else:
-                    stati.append([loc, cam, lastdt, 'green'])
+                    stati.append([loc, cam, lastdt, 'white'])
     stati = numpy.vstack((stati))
     stati = stati[stati[:,1].argsort()]
     stati = stati[stati[:,0].argsort(kind='mergesort')]
-    print('<style type="text/css">')
-    print('table tr#REDROW  {background-color:red; color:white;}')
-    print('table tr#AMBERROW  {background-color:darkorange; color:white;}')
-    print('</style><table border=\"1\">')
+    print('$(function() {')
+    print('var table = document.createElement("table");')
+    print('table.className="table table-striped table-bordered table-hover table-condensed";')
+    print('var header = table.createTHead();')
+    print('header.className = "h4";')
+
     for s in stati:
-        if s[3] =='red':
-            print('<tr id=\'REDROW\'><td>{}</td><td>{}</td><td>{}</td></tr>'.format(s[0], s[1], s[2].strftime('%Y-%m-%d')))
-        elif s[3] =='amber':
-            print('<tr id=\'AMBERROW\'><td>{}</td><td>{}</td><td>{}</td></tr>'.format(s[0], s[1], s[2].strftime('%Y-%m-%d')))
-        else:
-            print('<tr><td>{}</td><td>{}</td><td>{}</td></tr>'.format(s[0], s[1], s[2].strftime('%Y-%m-%d')))
-    print('</table>')
+        print('var row = table.insertRow(-1);')
+        print('row.style.backgroundColor="{}";'.format(s[3])) 
+        print('var cell = row.insertCell(0);')
+        print('cell.innerHTML = "{}";'.format(s[0]))
+        print('var cell = row.insertCell(1);')
+        print('cell.innerHTML = "{}";'.format(s[1]))
+        print('var cell = row.insertCell(2);')
+        print('cell.innerHTML = "{}";'.format(s[2].strftime('%Y-%m-%d')))
+
+    print('var row = table.insertRow(0);')
+    print('var cell = row.insertCell(0);')
+    print('cell.innerHTML = "Location";')
+    print('var cell = row.insertCell(1);')
+    print('cell.innerHTML = "Cam";')
+    print('var cell = row.insertCell(2);')
+    print('cell.innerHTML = "Date";')
+    print('var outer_div = document.getElementById("camrep");')
+    print('outer_div.appendChild(table);')
+    print('})')
 
 
 if __name__ == '__main__':
