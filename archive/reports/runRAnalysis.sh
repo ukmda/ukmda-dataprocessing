@@ -2,6 +2,7 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 
+logger -s -t runRAnalysis "starting"
 if [ $# -lt 2 ] ; then
 	echo Usage: analyse.sh GEM 2017
 else
@@ -11,4 +12,5 @@ else
     cd $here
 	echo done
 fi
+logger -s -t runRAnalysis "finished"
 

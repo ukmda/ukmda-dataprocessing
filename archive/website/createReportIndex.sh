@@ -3,7 +3,9 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
 
-cd ${RCODEDIR}/REPORTS
+logger -s -t createReportIndex "starting"
+
+cd ${DATADIR}/reports
 echo "\$(function() {" > $here/data/reportindex.js
 echo "var table = document.createElement(\"table\");" >> $here/data/reportindex.js
 echo "table.className = \"table table-striped table-bordered table-hover table-condensed\";" >> $here/data/reportindex.js
@@ -30,5 +32,8 @@ echo "var outer_div = document.getElementById(\"summary\");" >> $here/data/repor
 echo "outer_div.appendChild(table);" >> $here/data/reportindex.js
 echo "})" >> $here/data/reportindex.js
 
+logger -s -t createPageIndex "done, sending to website"
 source $WEBSITEKEY
 aws s3 cp $here/data/reportindex.js  $WEBSITEBUCKET/data/
+
+logger -s -t createPageIndex "finished"

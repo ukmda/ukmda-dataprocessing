@@ -18,10 +18,14 @@
   - name: Ensures {{destdir}}/logs exists
     file: path={{destdir}}/logs state=directory  
     tags: [dev,prod]
+  - name: Ensures {{destdir}}/data/reports/ exists
+    file: path={{destdir}}/data/reports/ state=directory  
+    tags: [dev,prod]
   - name: Copy files
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     tags: [dev,prod]
     with_items:
+    - {src: '{{srcdir}}/ukmon_pylib/reports/cameraStatusReport.py', dest: '{{destdir}}/ukmon_pylib/reports/', mode: '644', backup: no }
     - {src: '{{srcdir}}/ukmon_pylib/reports/createSearchableFormat.py', dest: '{{destdir}}/ukmon_pylib/reports/', mode: '644', backup: no }
     - {src: '{{srcdir}}/ukmon_pylib/fileformats/imoWorkingShowerList.py', dest: '{{destdir}}/ukmon_pylib/fileformats/', mode: '644', backup: no }
     - {src: '{{srcdir}}/ukmon_pylib/fileformats/UAFormats.py', dest: '{{destdir}}/ukmon_pylib/fileformats/', mode: '644', backup: no }
@@ -40,6 +44,7 @@
     - {src: '{{srcdir}}/ukmon_pylib/traj/reportOfLatestMatches.py', dest: '{{destdir}}/ukmon_pylib/traj/', mode: '644', backup: no }
     - {src: '{{srcdir}}/ukmon_pylib/traj/extraDataFiles.py', dest: '{{destdir}}/ukmon_pylib/traj/', mode: '644', backup: no }
 
+    - {src: '{{srcdir}}/archive/reports/runMatching.sh', dest: '{{destdir}}/analysis/', mode: '754', backup: no }
     - {src: '{{srcdir}}/archive/cronjobs/nightlyJob.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
     - {src: '{{srcdir}}/archive/cronjobs/getImoWSfile.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
     - {src: '{{srcdir}}/archive/cronjobs/updateSearchIndex.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }

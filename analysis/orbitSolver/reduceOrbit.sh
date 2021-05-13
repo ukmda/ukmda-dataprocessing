@@ -79,8 +79,8 @@ if [ $numas -gt 1 ] ; then
             if [ -f $resultdir/*orbit.csv ] ; then 
                 orbfile=$(basename $(ls -1 $resultdir/*orbit.csv))
                 orbextras=$(basename $(ls -1 $resultdir/*orbit_extras.csv))
-                rm -f ${RCODEDIR}/DATA/orbits/$yr/csv/${orbfile}
-                rm -f ${RCODEDIR}/DATA/orbits/$yr/extracsv/${orbextras}
+                rm -f ${DATADIR}/orbits/$yr/csv/${orbfile}
+                rm -f ${DATADIR}/orbits/$yr/extracsv/${orbextras}
             fi 
             rm -Rf $resultdir
             s3dir=$(basename $resultdir)

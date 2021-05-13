@@ -5,13 +5,16 @@
 import xmltodict
 import datetime
 
-majorlist=['QUA','LYR','ETA','SDA','CAP','PER','AUR','SPE','OCT','DRA',
-    'EGE','ORI','STA','NTA','LEO','MON','GEM','URS']
+
+majorlist = ['QUA', 'LYR', 'ETA', 'SDA', 'PER', 'ORI', 'NTA', 'STA', 'LEO', 'GEM', 'URS']
+minorlist = ['CAP','AUR','SPE','OCT','DRA','EGE','MON']
 
 
 class IMOshowerList:
 
-    def __init__(self, fname):
+    def __init__(self, fname=None):
+        if fname is None:
+            fname = '/home/ec2-user/prod/share/IMO_Working_Meteor_Shower_List.xml'
         with open(fname) as fd:
             tmplist = xmltodict.parse(fd.read())
             self.showerlist = tmplist['meteor_shower_list']['shower']
@@ -76,7 +79,7 @@ class IMOshowerList:
         shower = self.getShowerByCode(iaucode)
         return float(shower['RA']), float(shower['DE'])
 
-    def getActiveShowers(self, datetotest, majonly=False):
+    def getActiveShowers(self, datetotest, majorOnly=False, inclMinor=False):
         activelist = []
         for shower in self.showerlist:
             shwname = shower['IAU_code']
@@ -86,6 +89,19 @@ class IMOshowerList:
             start = self.getStart(shwname, yr)
             end = self.getEnd(shwname, yr) + datetime.timedelta(days=3)
             if datetotest > start and datetotest < end:
-                if majonly is False or (majonly is True and shwname in majorlist):
+                if majorOnly is False or (majorOnly is True and shwname in majorlist):
+                    activelist.append(shwname)
+                elif inclMinor is True and shwname in minorlist:
                     activelist.append(shwname)
         return activelist
+
+    def getMajorShowers(self, includeSpo=False, stringFmt=False):
+        majlist = majorlist 
+        if includeSpo is True:
+            majlist.append('spo')
+        if stringFmt is True:
+            tmplist = ''
+            for shwr in majlist:
+                tmplist = tmplist + shwr + ' '
+            majlist = tmplist
+        return majlist

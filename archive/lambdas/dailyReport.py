@@ -70,16 +70,20 @@ def LookForMatchesRMS(doff, dayfile):
 
 
     mailsubj = 'Daily UKMON matches for {:04d}-{:02d}-{:02d}'.format(yest.year, yest.month, yest.day)
-    domail = False
+    domail = True
     print('DailyCheck: ', mailsubj)
 
     print('DailyCheck: opening csv file ', dayfile)
     with open(dayfile, 'r') as csvfile:
         lines = csvfile.readlines()
         for li in lines:
-            domail = True
+            # domail = True
             #body, bodytext = AddBlank(body, bodytext)
             body, bodytext = AddRowRMS(body, bodytext, li)
+        if len(lines) == 0:
+            body = '<tr><td>No matches today</td></tr>'
+            bodytext = 'No matches today'
+            # domail = True
     
     body, bodytext = addFooter(body, bodytext)
     return domail, mailsubj, body, bodytext
