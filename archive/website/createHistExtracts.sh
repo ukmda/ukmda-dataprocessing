@@ -97,4 +97,4 @@ echo "})" >> $idxfile
 
 echo "js table created"
 source $WEBSITEKEY
-aws s3 sync $here/browse/monthly/  $WEBSITEBUCKET/browse/monthly/
+aws s3 sync $here/browse/monthly/  $WEBSITEBUCKET/browse/monthly/ --quiet

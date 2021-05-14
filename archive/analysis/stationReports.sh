@@ -13,6 +13,6 @@ cd $RCODEDIR
 ./STATION_SUMMARY_MASTER.r $yr
 
 source $WEBSITEKEY
-aws s3 sync $SRC/data/reports/stations/  s3://ukmeteornetworkarchive/reports/stations/
+aws s3 sync $SRC/data/reports/stations/  s3://ukmeteornetworkarchive/reports/stations/ --quiet
 logger -s -t stationReports "shower report done"
 

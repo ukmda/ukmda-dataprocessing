@@ -77,6 +77,6 @@ popd
 
 logger -s -t createPageIndex "copying to website"
 source $WEBSITEKEY
-aws s3 sync ${datadir}/ ${targ}/ --include "*" 
+aws s3 sync ${datadir}/ ${targ}/ --include "*"  --quiet
 
 logger -s -t createPageIndex "finished"

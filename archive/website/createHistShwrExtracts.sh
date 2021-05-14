@@ -84,4 +84,4 @@ done
 echo "js table created"
 
 source $WEBSITEKEY
-aws s3 sync $here/browse/showers/  $WEBSITEBUCKET/browse/showers/
+aws s3 sync $here/browse/showers/  $WEBSITEBUCKET/browse/showers/ --quiet

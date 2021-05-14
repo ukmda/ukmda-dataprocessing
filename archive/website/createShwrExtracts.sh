@@ -121,6 +121,6 @@ done
 
 logger -s -t createShwrExtracts "sending to website"
 source $WEBSITEKEY
-aws s3 sync $here/browse/showers/  $WEBSITEBUCKET/browse/showers/
+aws s3 sync $here/browse/showers/  $WEBSITEBUCKET/browse/showers/ --quiet
 
 logger -s -t createShwrExtracts "finished"

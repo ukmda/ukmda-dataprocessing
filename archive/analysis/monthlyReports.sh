@@ -15,8 +15,8 @@ lastyr=$((yr-1))
 logger -s -t monthlyReports "getting latest combined files"
 
 source ~/.ssh/ukmon-shared-keys
-aws s3 sync s3://ukmon-shared/consolidated/ ${DATADIR}/consolidated --exclude 'consolidated/temp/*'
-aws s3 sync s3://ukmon-live/ ${DATADIR}/ukmonlive/ --exclude "*" --include "*.csv"
+aws s3 sync s3://ukmon-shared/consolidated/ ${DATADIR}/consolidated --exclude 'consolidated/temp/*' --quiet
+aws s3 sync s3://ukmon-live/ ${DATADIR}/ukmonlive/ --exclude "*" --include "*.csv" --quiet
 
 cd ${DATADIR}
 logger -s -t monthlyReports "Getting single detections and associations for $yr"

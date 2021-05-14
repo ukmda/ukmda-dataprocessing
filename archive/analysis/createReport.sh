@@ -62,7 +62,7 @@ else
 
         logger -s -t createReport "copying files to website"
         source $WEBSITEKEY
-        aws s3 sync . $WEBSITEBUCKET/reports/$2/$1
+        aws s3 sync . $WEBSITEBUCKET/reports/$2/$1 --quiet
         logger -s -t createReport "all done"
 
         ${SRC}/website/createReportIndex.sh

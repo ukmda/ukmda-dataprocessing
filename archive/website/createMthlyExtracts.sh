@@ -127,7 +127,7 @@ echo "})" >> $idxfile
 
 logger -s -t createMthlyExtracts "js table created, copying to website"
 source $WEBSITEKEY
-aws s3 sync $SRC/website/browse/monthly/  $WEBSITEBUCKET/browse/monthly/
+aws s3 sync $SRC/website/browse/monthly/  $WEBSITEBUCKET/browse/monthly/ --quiet
 
 
 logger -s -t createMthlyExtracts "gathering annual data"
@@ -199,6 +199,6 @@ echo "})" >> $idxfile
 
 logger -s -t createMthlyExtracts "annual js table created, copying to website"
 source $WEBSITEKEY
-aws s3 sync $SRC/website/browse/annual/  $WEBSITEBUCKET/browse/annual/
+aws s3 sync $SRC/website/browse/annual/  $WEBSITEBUCKET/browse/annual/ --quiet
 
 logger -s -t createMthlyExtracts "finished"

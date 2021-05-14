@@ -34,6 +34,6 @@ echo "})" >> $here/data/reportindex.js
 
 logger -s -t createPageIndex "done, sending to website"
 source $WEBSITEKEY
-aws s3 cp $here/data/reportindex.js  $WEBSITEBUCKET/data/
+aws s3 cp $here/data/reportindex.js  $WEBSITEBUCKET/data/ --quiet
 
 logger -s -t createPageIndex "finished"

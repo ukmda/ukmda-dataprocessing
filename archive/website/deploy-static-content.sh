@@ -26,6 +26,6 @@ else
     echo "updating searchdialog.js for $1"
     cat $bsjs | sed "s/{{APIURL}}/$newurl/g" > $newf
     echo "syncing to $targbuck"
-    aws s3 sync $here/static_content/ $targbuck
+    aws s3 sync $here/static_content/ $targbuck 
     echo "done"
 fi
