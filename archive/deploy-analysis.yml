@@ -25,6 +25,7 @@
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     tags: [dev,prod]
     with_items:
+    - {src: '{{srcdir}}/ukmon_pylib/reports/createSummaryTable.py', dest: '{{destdir}}/ukmon_pylib/reports/', mode: '644', backup: no }
     - {src: '{{srcdir}}/ukmon_pylib/reports/cameraStatusReport.py', dest: '{{destdir}}/ukmon_pylib/reports/', mode: '644', backup: no }
     - {src: '{{srcdir}}/ukmon_pylib/reports/createSearchableFormat.py', dest: '{{destdir}}/ukmon_pylib/reports/', mode: '644', backup: no }
     - {src: '{{srcdir}}/ukmon_pylib/fileformats/imoWorkingShowerList.py', dest: '{{destdir}}/ukmon_pylib/fileformats/', mode: '644', backup: no }
