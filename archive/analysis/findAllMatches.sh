@@ -8,7 +8,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # load the configuration and website keys
 source $here/../config/config.ini >/dev/null 2>&1
-source ~/.ssh/ukmon-shared-keys
+source $UKMONSHAREDKEY
 
 # get the date to operate for
 if [ $# -eq 0 ]; then

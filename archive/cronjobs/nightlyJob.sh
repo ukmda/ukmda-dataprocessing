@@ -8,7 +8,7 @@ source $here/../config/config.ini >/dev/null 2>&1
 thismth=`date '+%Y%m'`
 thisyr=`date '+%Y'`
 
-source ~/.ssh/ukmonarchive-keys
+source $WEBSITEKEY
 export AWS_DEFAULT_REGION=eu-west-2
 aws lambda invoke --function-name ConsolidateCSVs --log-type Tail $SRC/logs/ConsolidateCSVs.log
 
@@ -22,7 +22,7 @@ if [ "`tty`" != "not a tty" ]; then
     logger -s -t nightlyJob 'got a tty, not triggering report'
 else 
     logger -s -t nightlyJob 'no tty, triggering report' 
-    source ~/.ssh/ukmonarchive-keys
+    source $WEBSITEKEY
     export AWS_DEFAULT_REGION=eu-west-1
     aws lambda invoke --function-name dailyReport --log-type Tail $SRC/logs/dailyReport.log
 fi
