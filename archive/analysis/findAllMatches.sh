@@ -83,7 +83,7 @@ export PYTHONPATH=$wmpl_loc
 python -m wmpl.Trajectory.AggregateAndPlot $MATCHDIR/RMSCorrelate/ -p
 mv -f $MATCHDIR/RMSCorrelate/*.png $MATCHDIR/RMSCorrelate/plots
 source $WEBSITEKEY
-aws s3 sync $MATCHDIR/RMSCorrelate/plots $WEBSITEBUCKET/reports/plots
+aws s3 sync $MATCHDIR/RMSCorrelate/plots $WEBSITEBUCKET/reports/plots --quiet
 
 
 logger -s -t findAllMatches "backup the solved trajectory data"
