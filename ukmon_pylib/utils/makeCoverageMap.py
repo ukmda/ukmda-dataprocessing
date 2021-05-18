@@ -27,7 +27,7 @@ def munchKML(fname):
 
 
 def decodeApiKey(enckey):
-    key = open(os.path.expanduser("~/.ssh/gmap.key"), "rb").read()
+    key = open(os.path.expanduser('~/.ssh/gmap.key'), 'rb').read()
     f = Fernet(key)
     apikey = f.decrypt(enckey.encode('utf-8'))
     return apikey.decode('utf-8')
