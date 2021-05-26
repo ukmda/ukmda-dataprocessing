@@ -18,6 +18,14 @@ def statsortkey(x):
 
 
 def getLastUpdateDate(pth, skipfldrs):
+    """ Create a status report showing the last update date of each camera that
+    is providing data
+
+    Args:
+        pth (str): path containing the camera data folders
+        skipfldrs (list): list of folders to ignore eg ['trajectories','dailyreports']
+        
+    """
     camdets = cc.SiteInfo()
 
     fldrlist = next(os.walk(pth))[1]

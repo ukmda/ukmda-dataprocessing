@@ -10,6 +10,7 @@ export PYTHONPATH=$PYLIB
 export SRC 
 export DATADIR
 yr=$(date +%Y)
+source ~/venvs/${WMPL_ENV}/bin/activate
 python $PYLIB/reports/createSummaryTable.py $here/data/summarytable.js $yr
 
 logger -s -t createSummaryTable "create a coverage map from the kmls"

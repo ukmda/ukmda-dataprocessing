@@ -17,6 +17,14 @@ import fileformats.CameraDetails as cc
 
 
 def UFOAToSrchable(configfile, year, outdir):
+    """ Convert UFO Analyser records to searchable format
+
+    Args:
+        configfile (str): name of the local config file
+        year (int): the year to process
+        outdir (str): where to save the file
+
+    """
     camdets = cc.SiteInfo()
     s3 = boto3.resource('s3')
     try:
@@ -125,6 +133,14 @@ def UFOAToSrchable(configfile, year, outdir):
 
 
 def LiveToSrchable(configfile, year, outdir):
+    """ Convert ukmon-live records to searchable format
+
+    Args:
+        configfile (str): name of the local config file
+        year (int): the year to process
+        outdir (str): where to save the file
+        
+    """
     config=cfg.ConfigParser()
     config.read(configfile)
 
@@ -174,6 +190,15 @@ def LiveToSrchable(configfile, year, outdir):
 
 
 def MatchToSrchable(configfile, year, outdir, indexes):
+    """ Convert matched data records to searchable format
+
+    Args:
+        configfile (str): name of the local config file
+        year (int): the year to process
+        outdir (str): where to save the file
+        indexes (str): list of index files
+        
+    """
     config=cfg.ConfigParser()
     config.read(configfile)
     weburl=config['config']['SITEURL']
@@ -233,6 +258,15 @@ def MatchToSrchable(configfile, year, outdir, indexes):
 
 
 def createIndexOfOrbits(year):
+    """ Create a list of orbit data for a whole year
+
+    Args:
+        year (int): the year to process
+
+    Returns:
+        indexes (list): a list containing the IDs of the orbits
+        
+    """
     indexes = []
     print('-----')
     s3 = boto3.client('s3')
