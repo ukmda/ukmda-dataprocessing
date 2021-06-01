@@ -5,9 +5,10 @@
 import os
 import sys
 import datetime
-import glob
+# import glob
 from stat import S_ISREG, ST_MTIME, ST_MODE
 import fileformats.CameraDetails as cd
+from traj.extraDataFiles import getVMagCodeAndStations
 
 
 def findNewMatches(dir_path, targdate):
@@ -34,22 +35,15 @@ def findNewMatches(dir_path, targdate):
     with open(matchlist, 'w') as outf:
         for ee in entries:
             if ee[0] > yday:
-                replist = glob.glob1(os.path.join(dir_path, ee[1]), '*report*.txt')[0]
-                with open(os.path.join(dir_path, ee[1], replist), 'r') as repf:
-                    lis = repf.readlines()
+                bestvmag, shwr, stationids = getVMagCodeAndStations(os.path.join(dir_path, ee[1]))
                 stations=[]
-                for i in range(len(lis)):
-                    if "Timing offsets (from input data):" in lis[i]:
-                        while len(lis[i].strip()) > 0:
-                            i=i+1
-                            spls = lis[i].strip().split(':')
-                            if len(spls[0]) > 1:
-                                _,_,_,_,loc = cinf.GetSiteLocation(spls[0].encode('utf-8'))
-                                locbits = loc.split('/')
-                                stations.append(locbits[0])
+                for statid in stationids:
+                    _,_,_,_,loc = cinf.GetSiteLocation(statid.encode('utf-8'))
+                    locbits = loc.split('/')
+                    stations.append(locbits[0])
 
                 _,dname = os.path.split(ee[1])
-                outstr = '{},{:s}'.format(ee[0], dname)
+                outstr = '{},{:s},{:s},{:.1f}'.format(ee[0], dname, shwr, bestvmag)
                 for f in stations:
                     if len(f) < 4:
                         break

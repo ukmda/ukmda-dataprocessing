@@ -842,16 +842,18 @@ def draw3Dmap(traj, outdir):
     return
 
 
-def createAdditionalOutput(traj, outdir):
-    # # Override default DPI for saving from the interactive window
-    matplotlib.rcParams['savefig.dpi'] = 300
-
-    print('about to calc abs mag')
+def calcAdditionalValues(traj):
+    # print('about to calc abs mag')
     # # Compute absolute mangitudes
     magdata=[]
+    stations = []
+    bestvmag = 99
     for obs in traj.observations:
         magdata.append(MeteorObservation(0,'',0,0,0,0,''))
         magdata[0].mag_data = obs.magnitudes
+        vmag = min(obs.magnitudes)
+        bestvmag = min(vmag, bestvmag)
+        stations.append(obs.station_id)
 
     computeAbsoluteMagnitudes(traj, magdata)
 
@@ -888,13 +890,10 @@ def createAdditionalOutput(traj, outdir):
     time_data_all = np.array(time_data_all)
     abs_mag_data_all = np.array(abs_mag_data_all)
 
-    print('about to calc mass')
+    # print('about to calc mass')
     # # Compute the mass
     mass = calcMass(time_data_all, abs_mag_data_all, traj.v_avg, P_0m=1210)
 
-    # create Summary report for webpage
-    print('creating summary report')
-    summrpt = os.path.join(outdir, 'summary.html')
     shower_obj = None  # initialise this
     orb = traj.orbit
     if orb.L_g is not None:
@@ -914,6 +913,19 @@ def createAdditionalOutput(traj, outdir):
         cod = 'spo'
 
     amag = min(abs_mag_data_all)
+    return amag, bestvmag, mass, id, cod, orb, shower_obj, lg, bg, vg, stations
+
+
+def createAdditionalOutput(traj, outdir):
+    # # Override default DPI for saving from the interactive window
+    matplotlib.rcParams['savefig.dpi'] = 300
+
+    # calculate the values
+    amag, _, mass, id, cod, orb, shower_obj, lg, bg, vg, _ = calcAdditionalValues(traj)
+
+    # create Summary report for webpage
+    print('creating summary report')
+    summrpt = os.path.join(outdir, 'summary.html')
 
     if traj.save_results:
         with open(summrpt, 'w', newline='') as f:
@@ -945,7 +957,7 @@ def createAdditionalOutput(traj, outdir):
 
     if orb is not None:
         try:
-            print(amag, mass, shower_obj)
+            # print(amag, mass, shower_obj)
             createUFOOrbitFile(traj, outdir, amag, mass, shower_obj)
         except Exception:
             print('problem creating UFO style output')

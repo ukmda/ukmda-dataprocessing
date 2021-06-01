@@ -22,7 +22,7 @@ def AddHeader(body, bodytext):
     body = body + 'Note that this may include older data for which a new match has been found.\n'
     body = body + 'Click each link to see analysis of these events.\n'
     body = body + '<table border=\"0\">'
-    body = body + '<tr><td><b>Event</b></td><td><b>Stations</b></td></tr>'
+    body = body + '<tr><td><b>Event</b></td><td><b>Shwr</b></td><td><b>V Mag</b></td><td><b>Stations</b></td></tr>'
     bodytext = bodytext + 'The following multiple detections were found in UKMON Live the last 24 hour period,\n'
     bodytext = bodytext + 'Note that this may include older data for which a new match has been found.\n'
     return body, bodytext
@@ -48,11 +48,13 @@ def AddRowRMS(body, bodytext, ele):
     yr = pth[:4]
     ym = pth[:6]
     lnkstr = lnkpathRMS.format(yr, ym, pth)
-    stats='Match between '
-    for s in range(2,len(spls)):
+    shwr = spls[2]
+    mag = spls[3]
+    stats=''
+    for s in range(4,len(spls)):
         stats = stats + spls[s] +' '
 
-    str1 = '<tr><td><a href="{:s}">{:s}</a></td><td>{:s}</td></tr>'.format(lnkstr, pth, stats)
+    str1 = '<tr><td><a href="{:s}">{:s}</a></td><td>{:s}</td><td>{:s}</td><td>{:s}</td></tr>'.format(lnkstr, pth, shwr, mag, stats)
     body = body + str1
     bodytext = bodytext + str1 + '\n'
 
@@ -60,7 +62,6 @@ def AddRowRMS(body, bodytext, ele):
 
 
 def LookForMatchesRMS(doff, dayfile):
-    print('DailyCheck: looking for matches')
     bodytext = 'Daily notification of matches\n\n'
     body = '<img src=\"https://ukmeteornetwork.co.uk/assets/img/logo.svg\" alt=\"UKMON banner\"><br>'
     body, bodytext = AddHeader(body, bodytext)
