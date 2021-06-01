@@ -6,6 +6,7 @@
 #
 
 compress-archive -path .\dailyReport.py -destinationpath .\dailyReport.zip -update
+
 $env:AWS_DEFAULT_REGION="eu-west-1"
 aws lambda update-function-code --function-name dailyReport --zip-file fileb://dailyReport.zip
 
