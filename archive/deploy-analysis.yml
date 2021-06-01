@@ -48,6 +48,7 @@
     - {src: '{{srcdir}}/archive/analysis/runMatching.sh', dest: '{{destdir}}/analysis/', mode: '754', backup: no }
     - {src: '{{srcdir}}/archive/cronjobs/nightlyJob.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
     - {src: '{{srcdir}}/archive/cronjobs/getImoWSfile.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/archive/cronjobs/backupUkmonShared.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
     - {src: '{{srcdir}}/archive/cronjobs/updateSearchIndex.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
     - {src: '{{srcdir}}/archive/analysis/findAllMatches.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
     - {src: '{{srcdir}}/archive/analysis/createSearchable.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
