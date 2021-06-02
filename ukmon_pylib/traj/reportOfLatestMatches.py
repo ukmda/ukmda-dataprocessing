@@ -5,7 +5,8 @@
 import os
 import sys
 import datetime
-# import glob
+import numpy
+import csv
 from stat import S_ISREG, ST_MTIME, ST_MODE
 import fileformats.CameraDetails as cd
 from traj.extraDataFiles import getVMagCodeAndStations
@@ -51,7 +52,23 @@ def findNewMatches(dir_path, targdate):
                 outstr = outstr.strip()
                 print(outstr)
                 outf.write('{}\n'.format(outstr))
-    return 
+
+    # sort the data by magnitude
+    with open(matchlist,'r') as f:
+        iter=csv.reader(f, delimiter=',')
+        data = [data for data in iter]
+        data_array=numpy.asarray(data)
+        sarr = sorted(data_array, key=lambda a_entry: float(a_entry[3]))
+    with open(matchlist, 'w') as outf:
+        for li in sarr:
+            lastfld = li[len(li)-1]
+            for fld in li:
+                outf.write('{}'.format(fld))
+                if fld != lastfld:
+                    outf.write(',')
+            outf.write('\n')
+
+        return 
 
 
 if __name__ == '__main__':
