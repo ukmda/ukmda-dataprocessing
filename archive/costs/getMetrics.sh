@@ -10,7 +10,7 @@ thisyr=`date '+%Y'`
 
 source $WEBSITEKEY
 source ${RMS_LOC}/bin/activate
-export AWS_DEFAULT_REGION=eu-west-2
+export AWS_DEFAULT_REGION=eu-west-1
 
 cd $SRC/metrics
 export PYTHONPATH=$wmpl_loc:$PYLIB

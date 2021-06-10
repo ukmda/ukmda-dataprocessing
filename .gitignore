@@ -534,3 +534,5 @@ analysis/FormatConverters/testing
 archive/lambdas/pytz*
 archive/website/static_content/data/searchdialog.js
 ToDo*
+archive/costs/**/*.csv
+archive/costs/**/*.json
