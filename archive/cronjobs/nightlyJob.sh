@@ -33,6 +33,13 @@ ${SRC}/analysis/updateRMSShowerAssocs.sh ${thismth}
 ${SRC}/website/createMthlyExtracts.sh ${thismth}
 ${SRC}/website/createShwrExtracts.sh ${thismth}
 
+logger -s -t nightlyJob "update the R version of the camera info file"
+python << EOD
+import fileformats.CameraDetails as cc
+s = cc.SiteInfo()
+s.saveAsR('${RCODEDIR}/CONFIG/StationList.r')
+EOD
+
 logger -s -t nightlyJob "update the annual report for this year"
 ${SRC}/analysis/monthlyReports.sh ALL ${thisyr} force
 
