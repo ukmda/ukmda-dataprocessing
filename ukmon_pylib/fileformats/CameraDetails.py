@@ -100,6 +100,9 @@ class SiteInfo:
                 return False
             return True
 
+    def getActiveCameras(self):
+        return self.camdets[self.camdets['active']==1]
+
     def getCameraType(self, statid):
         c = self.getCameraOffset(statid)
         if c < 0:

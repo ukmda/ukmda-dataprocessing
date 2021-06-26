@@ -1,6 +1,9 @@
 # create a data type for UFO Analyser style CSV files
 import numpy
 import sys
+import datetime
+import numpy.lib.recfunctions as rfn
+
 
 #defines the data content of a UFOAnalyser CSV file
 UFOCSV = numpy.dtype([('Ver','U8'),('Group','U8'),('LocalTime','U16'),
@@ -25,8 +28,83 @@ UFOCSVfmt = '%s,%s,%s,%.4f,%.4f,%.4f,%s\
     ,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\
     ,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\
     ,%.6f,%.6f,%.6f,%.6f,%.6f,%d,%d,%.6f'
-#-----------------------------------------------------------------------
 
+
+#-----------------------------------------------------------------------
+class DetectedCsv:
+    def __init__(self, fname):
+        """Construct the object from a filename
+
+        Arguments:
+            fname string -- The full path and filename to the CSV file
+        """
+        # load from file
+        rawdata = numpy.loadtxt(fname, delimiter=',',skiprows=1, dtype=UFOCSV)
+        # append field for timestamp
+        self.rawdata = rfn.append_fields(rawdata,'timestamp', numpy.zeros(rawdata.shape[0], dtype='f8'), dtypes='f8')
+        # fill in timestamp field
+        for i in range(0, len(rawdata)):
+            li = rawdata[i]
+            sec = li['Sec']
+            intsec = int(sec)
+            us = int((sec -intsec) * 1000000)
+            dt = datetime.datetime(li['Yr'],li['Mth'], li['Day'], 
+                li['Hr'], li['Min'], intsec, us)
+            self.rawdata[i]['timestamp']=dt.timestamp()
+
+    def selectByMag(self, minMag=100, maxMag=-50):
+        """ get data by magnitude
+
+        """
+        tmpa1 = self.rawdata[self.rawdata['Mag'] >= minMag]
+        tmpa2 = tmpa1[tmpa1['Mag'] <= maxMag]
+        return tmpa2
+
+    def selectByShwr(self, shwr):
+        """ Get data by shower ID eg LYR or spo 
+        """
+        if shwr != 'spo':
+            tmpshwr = ' J8_' + shwr
+        else:
+            tmpshwr = shwr
+        return self.rawdata[self.rawdata['Group']==tmpshwr]
+
+    def selectByDate(self, sDate=datetime.datetime.now()):
+        """ Get data for a specific 24 hour period 
+            starting at noon on the date provided
+        """
+        sDate.replace(hour = 12, minute = 0, second = 0, microsecond=0)
+        eDate = sDate+ datetime.timedelta(days=1)
+        return self.selectByDateRange(sDate, eDate)
+
+    def selectByDateRange(self, sDate=datetime.datetime.now(), eDate=datetime.datetime.now()):
+        """ Get data for a specified time range. 
+            Note that this uses the exact range supplied. 
+        """
+        f1 = self.rawdata[self.rawdata['timestamp'] >= sDate.timestamp()]
+        return f1[f1['timestamp'] <= eDate.timestamp()]
+
+    def getExchangeData(self, sDate=datetime.datetime.now()):
+        """ get minimal data for exchange with other networks
+        """
+        fltrset = self.selectByDate(sDate)
+        outarr = []
+        cam = fltrset['Loc_Cam']
+        ts = fltrset['timestamp']
+        if len(cam) > 0:
+            for i in range(0,len(cam)):
+                outarr.append((cam[i],datetime.datetime.fromtimestamp(ts[i].round(0)).strftime('%Y-%m-%dT%H:%M:%S')))
+
+            # make the data unique, sort it by timestamp, then reverse the sort order
+            outarr = numpy.unique(outarr, axis=0)
+            outarr = outarr[outarr[:,1].argsort()]
+            outarr = outarr[::-1]
+            
+            return outarr
+        else:
+            return None
+
+#-----------------------------------------------------------------------
 # For testing.
 # example: python UAdata.py 2019
 

@@ -25,7 +25,7 @@ if compgen -G "$fpath/FTPdetect*.txt" > /dev/null ; then
     export PYTHONPATH=$RMS_LOC:$PYLIB
     cd $RMS_LOC
 
-    logger -s -t addRMSShowerDets "check if we already processed this folder" 
+    logger -s -t addRMSShowerDets "check if we already processed ${sitename} ${camname}" 
     done=0
     if compgen -G "$fpath/*assoc*.txt"  > /dev/null ; then done=1 ; fi
     if compgen -G "$fpath/nometeors" > /dev/null ; then done=1 ; fi

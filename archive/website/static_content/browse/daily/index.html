@@ -54,32 +54,15 @@
   </script>
 
   <div class="container">
-    <h2>Browse the Archive.</h2>
-    <p>Follow the links below to access downloadable datasets from our archive. </p>
-    <hr>
     <p>
-      The data are released under the <a href= "https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> license, so if you are using the data 
+      The data here are released under the <a href= "https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> license, so if you are using the data 
       whether for scientific or other purposes, your must reference this web site and UKMON 
       in your work.
     </p>
     <hr>
-    <li><a href="annual/index.html">By Year</a></li>
-    <li><a href="monthly/index.html">By Month</a></li>
-    <li><a href="daily/index.html">Daily</a></li>
-    <br>
-    <li><a href="showers/QUAindex.html">Quadrantids</a></li>
-    <li><a href="showers/LYRindex.html">Lyrids</a></li>
-    <li><a href="showers/ETAindex.html">Eta Aquariids</a></li>
-    <li><a href="showers/SDAindex.html">Southern Delta Aquariids</a></li>
-    <li><a href="showers/PERindex.html">Perseids</a></li>
-    <li><a href="showers/ORIindex.html">Orionids</a></li>
-    <li><a href="showers/LEOindex.html">Leonids</a></li>
-    <li><a href="showers/NTAindex.html">Northern Taurids</a></li>
-    <li><a href="showers/STAindex.html">Southern Taurids</a></li>
-    <li><a href="showers/GEMindex.html">Geminids</a></li>
-    <li><a href="showers/URSindex.html">Ursids</a></li>
-    <li><a href="showers/spoindex.html">Unclassified and Sporadic meteors</a></li>
-  
+
+    <div id="browselist"></div>
+    <script src="./browselist.js"></script>
 
     <div id="copyrite-placeholder"></div>
     <script>
@@ -87,7 +70,6 @@
         $("#copyrite-placeholder").load("/templates/copyright.html");
       });
     </script>
-  
   </div>
 
 </body>
