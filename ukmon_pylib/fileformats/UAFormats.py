@@ -74,7 +74,7 @@ class DetectedCsv:
             starting at noon on the date provided
         """
         sDate.replace(hour = 12, minute = 0, second = 0, microsecond=0)
-        eDate = sDate+ datetime.timedelta(days=1)
+        eDate = sDate + datetime.timedelta(days=1)
         return self.selectByDateRange(sDate, eDate)
 
     def selectByDateRange(self, sDate=datetime.datetime.now(), eDate=datetime.datetime.now()):
@@ -84,10 +84,11 @@ class DetectedCsv:
         f1 = self.rawdata[self.rawdata['timestamp'] >= sDate.timestamp()]
         return f1[f1['timestamp'] <= eDate.timestamp()]
 
-    def getExchangeData(self, sDate=datetime.datetime.now()):
+    def getExchangeData(self, eDate=datetime.datetime.now(), daysreq=3):
         """ get minimal data for exchange with other networks
         """
-        fltrset = self.selectByDate(sDate)
+        sDate = eDate + datetime.timedelta(days = -daysreq)
+        fltrset = self.selectByDateRange(sDate, eDate)
         outarr = []
         cam = fltrset['Loc_Cam']
         ts = fltrset['timestamp']
@@ -99,7 +100,7 @@ class DetectedCsv:
             outarr = numpy.unique(outarr, axis=0)
             outarr = outarr[outarr[:,1].argsort()]
             outarr = outarr[::-1]
-            
+
             return outarr
         else:
             return None

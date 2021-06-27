@@ -5,6 +5,9 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 
+# so i can import the config file into python functions
+export CONFIG
+
 thismth=`date '+%Y%m'`
 thisyr=`date '+%Y'`
 
@@ -60,8 +63,12 @@ fi
 logger -s -t nightlyJob "create the cover page for the website"
 ${SRC}/website/createSummaryTable.sh
 
-logger -s -t nightlyJob "station status report"
+logger -s -t nightlyJob "create station status report"
 ${SRC}/website/cameraStatusReport.sh
+
+logger -s -t nightlyJob "create event log for other networks"
+export PYTHONPATH=$PYLIB
+python $SRC/ukmon_pylib/reports/createExchangeFiles.py
 
 logger -s -t nightlyJob "clean up old logs"
 find $SRC/logs -name "nightly*" -mtime +7 -exec rm -f {} \;
