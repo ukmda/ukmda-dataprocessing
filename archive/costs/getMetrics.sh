@@ -8,11 +8,12 @@ source $here/../config/config.ini >/dev/null 2>&1
 thismth=`date '+%Y%m'`
 thisyr=`date '+%Y'`
 
-source $WEBSITEKEY
-source ${RMS_LOC}/bin/activate
+source /home/ec2-user/venvs/${RMS_ENV}/bin/activate
+export PYTHONPATH=$wmpl_loc:$PYLIB
 export AWS_DEFAULT_REGION=eu-west-1
 
 cd $SRC/metrics
-export PYTHONPATH=$wmpl_loc:$PYLIB
 
-python $PYLIB/metrics/getMetrics.py
+source ~/.ssh/marks-keys
+python $PYLIB/metrics/getMetrics.py $here eu-west-1
+#python $PYLIB/metrics/getMetrics.py $here eu-west-2

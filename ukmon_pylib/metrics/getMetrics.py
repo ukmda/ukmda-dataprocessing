@@ -4,8 +4,60 @@ import datetime
 import json 
 import boto3
 from botocore.config import Config
+import matplotlib.pyplot as plt
+import numpy as np
 
 PRICEPERGBSEC = 0.00001667
+
+csvdtype = np.dtype([('dt', 'S10'), ('tag', 'S32'), ('cost', '<f8'), ('amt', '<f8')])
+
+
+def drawBarChart(outdir, accountid, regionid, mthdate):
+    fldr = os.path.join(outdir, '{}'.format(accountid), regionid)
+    fname = os.path.join(fldr, '{}-{}.csv'.format('ec2', mthdate))
+    ec2data = np.genfromtxt(fname, delimiter=',', dtype=csvdtype)
+    fltr=np.logical_or(ec2data['tag']==b'billingtag$ukmon',ec2data['tag']==b'billingtag$ukmonstuff')
+    ec2fdata = ec2data[fltr]
+    labels = ec2fdata['dt']
+    ec2cost = ec2fdata['cost']
+    s3cost = np.zeros(len(ec2cost))
+
+    fname = os.path.join(fldr, '{}-{}.csv'.format('s3', mthdate))
+    s3data = np.genfromtxt(fname, delimiter=',', dtype=csvdtype)
+    fltr=np.logical_or(s3data['tag']==b'billingtag$ukmon',s3data['tag']==b'billingtag$ukmonstuff')
+    s3fdata = s3data[fltr]
+    s3labels = s3fdata['dt']
+    tmps3cost = s3fdata['cost']
+    for i in range(len(tmps3cost)):
+        dt = s3labels[i]
+        idx = np.where(labels==dt)
+        if len(idx) > 1:
+            idx = idx[0]
+        s3cost[idx] = tmps3cost[i]
+
+    width = 0.35       # the width of the bars: can also be len(x) sequence
+    labs = []
+    for lab in labels:
+        labs.append(lab[8:10])
+
+    # print(mth, labs)
+    fig, ax = plt.subplots()
+    maxy = np.ceil(max(s3cost)+max(ec2cost))
+    totcost = np.round(sum(s3cost) + sum(ec2cost),2)
+
+    ax.bar(labs, s3cost, width, label='S3')
+    ax.bar(labs, ec2cost, width, bottom=s3cost, label='EC2')
+
+    ax.set_ylabel('Cost ($)')
+    ax.set_xlabel('Day of Month')
+    ax.set_title('Cost for month starting {}: total ${:.2f}'.format(mthdate, totcost))
+    ax.legend()
+    plt.ylim(0,maxy)
+
+    #plt.show()
+    os.makedirs(os.path.join(outdir, 'plots'), exist_ok=True)
+    fname = os.path.join(outdir, 'plots','{}-{}'.format(accountid, mthdate))
+    plt.savefig(fname)
 
 
 def getBillingData(ceclient, service, abbrv, dtwanted, endwanted, fldr):
@@ -44,63 +96,6 @@ def interpretCostData(srcdata, mthdate, abbrv, fldr):
     return
 
 
-def getLambdaBillingData(client, dtwanted, logname):
-    loggroup = '/aws/lambda/{}'.format(logname)
-
-    yyyy = dtwanted.year
-    mm = dtwanted.month
-    dd = dtwanted.day
-    logstreampref = '{:04d}/{:02d}/{:02d}/[$LATEST]'.format(yyyy, mm, dd)
-    bilog = '{}-{:04d}-{:02d}.log'.format(logname, yyyy, mm)
-    g = open(bilog, 'a+')
-    totgbs = 0
-
-    response = client.describe_log_streams(
-        logGroupName=loggroup,
-        logStreamNamePrefix=logstreampref,
-        orderBy='LogStreamName',
-        descending=False,
-        # nextToken='string',
-        # limit=123
-    )
-    print('got {:d} logstreams'.format(len(response['logStreams'])))
-
-    stime = datetime.datetime(yyyy, mm, dd, 12, 0, 0)
-    etime = stime + datetime.timedelta(days=1)
-
-    for s in response['logStreams']:
-        # times  expressed as the number of milliseconds after Jan 1, 1970 00:00:00 UTC
-        sname = s['logStreamName']
-        resp2 = client.get_log_events(
-            logGroupName=loggroup,
-            logStreamName=sname,
-            startTime=int(stime.timestamp()*1000),
-            endTime=int(etime.timestamp()*1000),
-            # nextToken='string',
-            # limit=123,
-            startFromHead=True
-        )
-        for ev in resp2['events']:
-            msg = ev['message']
-            ts = int(ev['timestamp']) / 1000
-            evdt = datetime.datetime.fromtimestamp(ts)
-            if msg[:6] == 'REPORT':
-                flds = msg.split(' ')
-                #print(flds)
-                interesting = flds[6] + ',' + flds[9] + '\n'
-                gbsecs = float(flds[6]) * float(flds[9]) / 1000 / 1024
-                totgbs = totgbs + gbsecs
-                g.write(str(evdt) + ',' + interesting)
-    g.close()
-
-    sumlog = '{}-daily-{:04d}-{:02d}.log'.format(logname, yyyy, mm)
-
-    cost = totgbs * PRICEPERGBSEC
-    with open(sumlog, 'a+') as outf:
-        outf.write('{} ${:.5f}\n'.format(stime, cost))
-    return
-
-
 if __name__ == '__main__':
     if len(sys.argv) < 3:
         print('usage python getMetrics.py outdir regionId')
@@ -112,20 +107,10 @@ if __name__ == '__main__':
     dtwanted = datetime.date.today() - datetime.timedelta(days=doff)
 
     stscli = boto3.client("sts")
-    account_id = stscli.get_caller_identity()["Account"]
-    fldr = os.path.join(outdir, '{}'.format(account_id), regionid)
+    accountid = stscli.get_caller_identity()["Account"]
+    fldr = os.path.join(outdir, '{}'.format(accountid), regionid)
 
     os.makedirs(fldr, exist_ok=True)
-
-    #print('getting MonitorLiveFeed logs for ', dtwanted)
-    #myconfig = Config(region_name='eu-west-1')
-    #client = boto3.client('logs', config=myconfig)
-    #getLambdaBillingData(client, dtwanted, 'MonitorLiveFeed')
-
-    #print('getting CSVTrigger logs for ', dtwanted)
-    #myconfig = Config(region_name='eu-west-2')
-    #client = boto3.client('logs', config=myconfig)
-    #getLambdaBillingData(client, dtwanted, 'CSVTrigger')
 
     dtwanted=datetime.date.today()
     dtwanted = dtwanted.replace(day=1)
@@ -144,3 +129,5 @@ if __name__ == '__main__':
 
     service = 'AWS Lambda'
     getBillingData(ceclient, service, 'lambda', dtwanted, endwanted, fldr)
+
+    drawBarChart(outdir, accountid, regionid, dtwanted)
