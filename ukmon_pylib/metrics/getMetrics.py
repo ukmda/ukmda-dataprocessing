@@ -98,12 +98,15 @@ def interpretCostData(srcdata, mthdate, abbrv, fldr):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print('usage python getMetrics.py outdir regionId')
+        print('usage python getMetrics.py outdir regionId {daysback}')
         print('note: you must set the AWS credentials before invoking the code')
         exit(0)
     outdir = sys.argv[1]
     regionid = sys.argv[2]
-    doff = 1
+    if len(sys.argv)> 3:
+        doff = int(sys.argv[3])
+    else:
+        doff = 1
     dtwanted = datetime.date.today() - datetime.timedelta(days=doff)
 
     stscli = boto3.client("sts")
@@ -112,7 +115,7 @@ if __name__ == '__main__':
 
     os.makedirs(fldr, exist_ok=True)
 
-    dtwanted=datetime.date.today()
+    # dtwanted=datetime.date.today()
     dtwanted = dtwanted.replace(day=1)
 
     #endwanted = datetime.datetime(2021,6,1)
