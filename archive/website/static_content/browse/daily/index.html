@@ -26,24 +26,25 @@
   <link href="/css/plugins/morris.css" rel="stylesheet">
 
   <style>
-  * {
-    box-sizing: border-box;
-  }
-  
-  /* Create two equal columns that floats next to each other */
-  .column {
-    float: left;
-    width: 50%;
-    padding: 10px;
-    height: 300px; /* Should be removed. Only for demonstration */
-  }
-  
-  /* Clear floats after the columns */
-  .row:after {
-    content: "";
-    display: table;
-    clear: both;
-  }
+    * {
+      box-sizing: border-box;
+    }
+
+    /* Create two equal columns that floats next to each other */
+    .column {
+      float: left;
+      width: 50%;
+      padding: 10px;
+      height: 300px;
+      /* Should be removed. Only for demonstration */
+    }
+
+    /* Clear floats after the columns */
+    .row:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
   </style>
 
 </head>
@@ -82,12 +83,13 @@
       precision to estimate if there could be a field of view overlap.
     </p>
     <p>
-      If you've found an interesting match with another network please contact us via 
-      <a href="mailto:ukmeteornetwork@gmail.com">ukmeteornetwork@gmail.com</a> so that 
-      we can exchange data with you. 
+      If you've found an interesting match with another network please contact us via
+      <a href="mailto:ukmeteornetwork@gmail.com">ukmeteornetwork@gmail.com</a> so that
+      we can exchange data with you.
     </p>
     <p>
-      The data here are released under the <a href= "https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> license, so if you are using the data 
+      The data here are released under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> license,
+      so if you are using the data
       whether for scientific or other purposes, your must reference this web site and UKMON in your work.
     </p>
 
@@ -95,24 +97,26 @@
 
     <div id="browselist"></div>
     <script src="./browselist.js"></script>
-    <div class="row">
-      <div class="column">
-        Last Thirty Detections
-        <div id="eventlist"></div>
-        <script src="./eventlist.js"></script>
-      </div>
-      <div class="column">
-        Last Thirty Matches
-        <div id="matchlist"></div>
-        <script src="./matchlist.js"></script>
+    <div>
+      <div class="row">
+        <div class="column">
+          Last 72 Hours' Detections
+          <div id="eventlist"></div>
+          <script src="./eventlist.js"></script>
+        </div>
+        <div class="column">
+          Last Day's Matches
+          <div id="matchlist"></div>
+          <script src="./matchlist.js"></script>
+        </div>
       </div>
     </div>
-    <div id="copyrite-placeholder"></div>
+    <!-- div id="copyrite-placeholder"></div>
     <script>
       $(function () {
         $("#copyrite-placeholder").load("/templates/copyright.html");
       });
-    </script>
+    </script -->
   </div>
 
 </body>
