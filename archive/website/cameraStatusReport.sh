@@ -23,3 +23,4 @@ python -m reports.cameraStatusReport $MATCHDIR/RMSCorrelate > /tmp/camrep.js
 source $WEBSITEKEY
 aws s3 cp /tmp/statrep.html $WEBSITEBUCKET/reports/ --quiet
 aws s3 cp /tmp/camrep.js $WEBSITEBUCKET/reports/ --quiet
+rm -f /tmp/statrep.html /tmp/camrep.js
