@@ -32,9 +32,18 @@ def copyFiles(s3bucket, s3object, target):
     plap = pth +'/platepars_all_recalibrated.json'
     outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/platepars_all_recalibrated.json'
     src = {'Bucket': s3bucket, 'Key': plap}
-    print(plap)
-    print(outf)
     s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
+
+    s3c = boto3.client('s3')
+    plap = pth +'/platepar_cmn2010.cal'
+    response = s3c.head_object(Bucket=s3bucket, Key=plap)
+    if response['ContentLength'] > 100: 
+        outf = 'consolidated/platepars/' + bits[1] + '.json'
+        src = {'Bucket': s3bucket, 'Key': plap}
+        print(plap)
+        print(outf)
+        s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
+
     return 0
 
 
