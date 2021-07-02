@@ -536,3 +536,4 @@ archive/website/static_content/data/searchdialog.js
 ToDo*
 archive/costs/**/*.csv
 archive/costs/**/*.json
+archive/costs/plots/*.png
