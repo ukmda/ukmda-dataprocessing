@@ -3,7 +3,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
 
-mkdir -p $here/browse/showers
+mkdir -p $DATADIR/browse/showers
 
 logger -s -t createShwrExtracts "starting"
 
@@ -28,8 +28,8 @@ do
         rc=$(grep $shwr ./matches-${yr}.csv | wc -l)
         if [ $rc -gt 0 ]; then
             logger -s -t createShwrExtracts "doing $yr $shwr"
-            cp $SRC/analysis/templates/UO_header.txt $here/browse/showers/${yr}-${shwr}-matches.csv
-            grep $shwr ./matches-${yr}.csv >> $here/browse/showers/${yr}-${shwr}-matches.csv
+            cp $SRC/analysis/templates/UO_header.txt $DATADIR/browse/showers/${yr}-${shwr}-matches.csv
+            grep $shwr ./matches-${yr}.csv >> $DATADIR/browse/showers/${yr}-${shwr}-matches.csv
         fi
     done
 done
@@ -41,8 +41,8 @@ do
     do
         rc=$(grep "${shwr}" ./M_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp $SRC/analysis/templates/UA_header.txt $here/browse/showers/${yr}-${shwr}-detections-ufo.csv
-            grep "${shwr}" ./M_${yr}-unified.csv >> $here/browse/showers/${yr}-${shwr}-detections-ufo.csv
+            cp $SRC/analysis/templates/UA_header.txt $DATADIR/browse/showers/${yr}-${shwr}-detections-ufo.csv
+            grep "${shwr}" ./M_${yr}-unified.csv >> $DATADIR/browse/showers/${yr}-${shwr}-detections-ufo.csv
         fi
     done
 done
@@ -54,8 +54,8 @@ do
     do
         rc=$(grep "${shwr}" ./R_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp $SRC/analysis/templates/UA_header.txt $here/browse/showers/${yr}-${shwr}-detections-rms.csv
-            grep "_${shwr}" ./R_${yr}-unified.csv >> $here/browse/showers/${yr}-${shwr}-detections-rms.csv
+            cp $SRC/analysis/templates/UA_header.txt $DATADIR/browse/showers/${yr}-${shwr}-detections-rms.csv
+            grep "_${shwr}" ./R_${yr}-unified.csv >> $DATADIR/browse/showers/${yr}-${shwr}-detections-rms.csv
         fi
     done
 done
@@ -65,9 +65,9 @@ logger -s -t createShwrExtracts "done gathering data, creating tables"
 for shwr in $shwrs
 do 
     now=$(date '+%Y-%m-%d %H:%M:%S')
-    cat $TEMPLATES/shwrcsvindex.html  | sed "s/XXXXX/${shwr}/;s/DDDDDDDD/${now}/g" > $here/browse/showers/${shwr}index.html
+    cat $TEMPLATES/shwrcsvindex.html  | sed "s/XXXXX/${shwr}/;s/DDDDDDDD/${now}/g" > $DATADIR/browse/showers/${shwr}index.html
 
-    idxfile=$here/browse/showers/${shwr}index.js
+    idxfile=$DATADIR/browse/showers/${shwr}index.js
 
     echo "\$(function() {" > $idxfile
     echo "var table = document.createElement(\"table\");" >> $idxfile
@@ -81,16 +81,16 @@ do
         ufobn=""
         rmsbn=""
         matbn=""
-        if compgen -G "$here/browse/showers/${yr}-${shwr}-detections-ufo.csv" > /dev/null ; then 
-            ufodets=$(ls -1 $here/browse/showers/${yr}-${shwr}-detections-ufo.csv)
+        if compgen -G "$DATADIR/browse/showers/${yr}-${shwr}-detections-ufo.csv" > /dev/null ; then 
+            ufodets=$(ls -1 $DATADIR/browse/showers/${yr}-${shwr}-detections-ufo.csv)
             ufobn=$(basename $ufodets)
         fi
-        if compgen -G "$here/browse/showers/${yr}-${shwr}-detections-rms.csv" > /dev/null ; then 
-            rmsdets=$(ls -1 $here/browse/showers/${yr}-${shwr}-detections-rms.csv)
+        if compgen -G "$DATADIR/browse/showers/${yr}-${shwr}-detections-rms.csv" > /dev/null ; then 
+            rmsdets=$(ls -1 $DATADIR/browse/showers/${yr}-${shwr}-detections-rms.csv)
             rmsbn=$(basename $rmsdets)
         fi
-        if compgen -G "$here/browse/showers/${yr}-${shwr}-matches.csv" > /dev/null ; then 
-            matches=$(ls -1 $here/browse/showers/${yr}-${shwr}-matches.csv)
+        if compgen -G "$DATADIR/browse/showers/${yr}-${shwr}-matches.csv" > /dev/null ; then 
+            matches=$(ls -1 $DATADIR/browse/showers/${yr}-${shwr}-matches.csv)
             matbn=$(basename $matches)
         fi
         echo "var row = table.insertRow(-1);" >> $idxfile
@@ -121,6 +121,6 @@ done
 
 logger -s -t createShwrExtracts "sending to website"
 source $WEBSITEKEY
-aws s3 sync $here/browse/showers/  $WEBSITEBUCKET/browse/showers/ --quiet
+aws s3 sync $DATADIR/browse/showers/  $WEBSITEBUCKET/browse/showers/ --quiet
 
 logger -s -t createShwrExtracts "finished"
