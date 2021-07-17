@@ -35,3 +35,4 @@
     - {src: '{{srcdir}}/website/templates/header.html', dest: '{{destdir}}/website/templates/', mode: '644', backup: no }
     - {src: '{{srcdir}}/website/templates/footer.html', dest: '{{destdir}}/website/templates/', mode: '644', backup: no }
     - {src: '{{srcdir}}/website/templates/shwrcsvindex.html', dest: '{{destdir}}/website/templates/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/website/templates/statreportindex.html', dest: '{{destdir}}/website/templates/', mode: '644', backup: no }
