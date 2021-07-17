@@ -4,9 +4,13 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
+source ~/venvs/$WMPL_ENV/bin/activate
 
 # so i can import the config file into python functions
-export CONFIG PYLIB
+export CONFIG
+
+# to run various python processes
+export PYTHONPATH=$PYLIB:$wmpl_loc
 
 thismth=`date '+%Y%m'`
 thisyr=`date '+%Y'`
@@ -67,8 +71,6 @@ logger -s -t nightlyJob "create station status report"
 ${SRC}/website/cameraStatusReport.sh
 
 logger -s -t nightlyJob "create event log for other networks"
-PYTHONPATH=$PYLIB
-export PYLIB CONFIG PYTHONPATH
 python $SRC/ukmon_pylib/reports/createExchangeFiles.py
 
 logger -s -t nightlyJob "clean up old logs"
