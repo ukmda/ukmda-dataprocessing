@@ -74,7 +74,7 @@ do
     echo "table.className = \"table table-striped table-bordered table-hover table-condensed\";" >> $idxfile
     echo "var header = table.createTHead();" >> $idxfile
     echo "header.className = \"h4\";" >> $idxfile
-    cd $here/browse/showers/
+    cd $DATADIR/browse/showers/
     yr=$(date +%Y)
     while [ $yr -gt 2012 ]
     do
