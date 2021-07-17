@@ -18,6 +18,8 @@ do
     echo "cell.innerHTML = \"<a href="$i/ALL/index.html">$i Full Year</a>\";" >> $here/data/reportindex.js
     echo "var cell = row.insertCell(1);" >> $here/data/reportindex.js
     echo "cell.innerHTML = \"<a href="$i/orbits/index.html">Orbits</a>\";" >> $here/data/reportindex.js
+    echo "var cell = row.insertCell(2);" >> $here/data/reportindex.js
+    echo "cell.innerHTML = \"<a href="$i/stations/index.html">Stations</a>\";" >> $here/data/reportindex.js
 
     ls -1 $i | egrep -v "ALL|orbits" | while read j
     do
@@ -26,6 +28,7 @@ do
         echo "var cell = row.insertCell(1);" >> $here/data/reportindex.js
         sname=`grep $j ${RCODEDIR}/CONFIG/streamnames.csv | awk -F, '{print $2}'`
         echo "cell.innerHTML = \"<a href="$i/$j/index.html">$sname</a>\";" >> $here/data/reportindex.js
+        echo "var cell = row.insertCell(2);" >> $here/data/reportindex.js
     done
 done
 echo "var outer_div = document.getElementById(\"summary\");" >> $here/data/reportindex.js
