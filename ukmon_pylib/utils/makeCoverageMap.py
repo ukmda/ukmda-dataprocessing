@@ -40,12 +40,13 @@ if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read(sys.argv[1])
     apikey = decodeApiKey(config['maps']['apikey'])
+    kmltempl = config['maps']['kmltemplate']
 
     gmap = gmplot.GoogleMapPlotter(52, -1.0, 5, apikey=apikey, 
         title='Camera Coverage', map_type='satellite')
 
 
-    for fn in glob.glob1(kmlsource, '*.kml'):
+    for fn in glob.glob1(kmlsource, kmltempl):
         cn, lats, lngs = munchKML(os.path.join(kmlsource,fn))
         gmap.polygon(lats, lngs, color='cornflowerblue', edge_width=1)
 
