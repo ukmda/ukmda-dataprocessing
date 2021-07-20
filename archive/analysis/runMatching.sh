@@ -34,7 +34,7 @@ thisip=$(curl --silent http://169.254.169.254/latest/meta-data/local-ipv4)
 startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
 enddt=$(date --date="-$MATCHEND days" '+%Y%m%d-080000')
 
-echo '#\!/bin/bash' > $execMatchingsh
+echo '#!/bin/bash' > $execMatchingsh
 echo "source /home/ec2-user/venvs/wmpl/bin/activate" >> $execMatchingsh
 echo "export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib/" >> $execMatchingsh
 echo "cd /home/ec2-user/data/RMSCorrelate" >> $execMatchingsh
