@@ -78,6 +78,16 @@ do
     cp $MATCHDIR/RMSCorrelate/trajectories/$traj/*orbit.csv ${DATADIR}/orbits/$yr/csv/
 done
 
+logger -s -t findAllMatches "gather some stats"
+matchlog=${SRC}/logs/matches/matches-$(date +%Y%m%d-07)*.log
+p1=$(awk '/PROCESSING TIME BIN/{print NR; exit}' $matchlog)
+p2=$(awk '/RUNNING TRAJ/{print NR; exit}' $matchlog)
+evts=$((p2-p1-6))
+trajs=$(grep SOLVING $matchlog| grep TRAJECTORIES | awk '{print $2}')
+matches=$(wc -l $MATCHDIR/RMSCorrelate/dailyreports/$dailyrep | awk '{print $1}')
+runtime=$(grep "Total run time" $matchlog | awk '{print $4}')
+echo $dailyrep $evts $trajs $matches $rtim >>  $MATCHDIR/RMSCorrelate/dailyreports/stats.txt
+
 logger -s -t findAllMatches "Create density and velocity plots by solar longitude"
 export PYTHONPATH=$wmpl_loc
 python -m wmpl.Trajectory.AggregateAndPlot $MATCHDIR/RMSCorrelate/ -p

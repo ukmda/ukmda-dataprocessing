@@ -17,12 +17,15 @@ def MakeFileWritable(ymd, hms, sid, lid):
         MetadataDirective='REPLACE', CopySource=bucket_name + '/' + key)
 
 
-def AddHeader(body, bodytext):
-    body = body + '\nThe following matched detections were found in the last 24 hour period.\n'
-    body = body + 'Note that this may include older data for which a new match has been found.\n'
-    body = body + 'Click each link to see analysis of these events.\n'
+def AddHeader(body, bodytext, stats):
+    rtstr = datetime.datetime.strptime(stats[4], '%H:%M:%S.%f').strftime('%H:%M')
+    body = body + '<br>Today we examined {} detections, found {} potential matches and confirmed {} in {}h.<br>'.format(stats[1], stats[2], stats[3], rtstr)
+    body = body + 'The list of matched events is shown below. '
+    body = body + 'Note that this may include older data for which a new match has been found.<br>'
+    body = body + 'Click each link to see analysis of these events.<br>'
     body = body + '<table border=\"0\">'
-    body = body + '<tr><td><b>Event</b></td><td><b>Shwr</b></td><td><b>V Mag</b></td><td><b>Stations</b></td></tr>'
+    body = body + '<tr><td><b>Event</b></td><td><b>Shwr</b></td><td><b>Vis Mag</b></td><td><b>Stations</b></td></tr>'
+    bodytext = bodytext + 'Events: {}, Trajectories: {}. Matches {}'.format(stats[1], stats[2], stats[3])
     bodytext = bodytext + 'The following multiple detections were found in UKMON Live the last 24 hour period,\n'
     bodytext = bodytext + 'Note that this may include older data for which a new match has been found.\n'
     return body, bodytext
@@ -61,10 +64,15 @@ def AddRowRMS(body, bodytext, ele):
     return body, bodytext
 
 
-def LookForMatchesRMS(doff, dayfile):
+def LookForMatchesRMS(doff, dayfile, statsfile):
+    # get stats
+    with open(statsfile, 'r') as inf:
+        lis = inf.readlines()
+    stats = lis[-1].strip().split(' ')
+
     bodytext = 'Daily notification of matches\n\n'
     body = '<img src=\"https://ukmeteornetwork.co.uk/assets/img/logo.svg\" alt=\"UKMON banner\"><br>'
-    body, bodytext = AddHeader(body, bodytext)
+    body, bodytext = AddHeader(body, bodytext, stats)
 
     # extract yesterday's data
     yest = datetime.date.today() - datetime.timedelta(days=doff)
@@ -167,7 +175,14 @@ def lambda_handler(event, context):
     print(target, fullrep, dailyreport)
     try:
         s3.meta.client.download_file(target, fullrep, dailyreport)
-        domail, mailsubj, body, bodytext = LookForMatchesRMS(doff,dailyreport)
+        
+        statfile = 'stats.txt'
+        fullstat ='matches/RMSCorrelate/dailyreports/' + statfile
+        statfile = os.path.join(tmppth, statfile)
+        print(statfile, fullstat)
+        s3.meta.client.download_file(target, fullstat, statfile)
+
+        domail, mailsubj, body, bodytext = LookForMatchesRMS(doff, dailyreport, statfile)
     except:
         domail = False
 
