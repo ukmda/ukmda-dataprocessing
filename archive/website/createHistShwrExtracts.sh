@@ -3,7 +3,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
 
-mkdir -p $here/browse/showers
+mkdir -p $DATADIR/browse/showers
 
 cd ${DATADIR}/matched/pre2020
 echo "creating matched extracts"
@@ -14,8 +14,8 @@ do
     do
         rc=$(grep -i _$shwr ./matches-${yr}.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp $SRC/analysis/templates/UO_header.txt $here/browse/showers/${yr}-${shwr}-matches.csv
-            grep -i _$shwr ./matches-${yr}.csv >> $here/browse/showers/${yr}-${shwr}-matches.csv
+            cp $SRC/analysis/templates/UO_header.txt $DATADIR/browse/showers/${yr}-${shwr}-matches.csv
+            grep -i _$shwr ./matches-${yr}.csv >> $DATADIR/browse/showers/${yr}-${shwr}-matches.csv
         fi
     done
 done
@@ -28,8 +28,8 @@ do
     do
         rc=$(grep "${shwr}" ./M_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp $SRC/analysis/templates/UA_header.txt $here/browse/showers/${yr}-${shwr}-detections-ufo.csv
-            grep "${shwr}" ./M_${yr}-unified.csv >> $here/browse/showers/${yr}-${shwr}-detections-ufo.csv
+            cp $SRC/analysis/templates/UA_header.txt $DATADIR/browse/showers/${yr}-${shwr}-detections-ufo.csv
+            grep "${shwr}" ./M_${yr}-unified.csv >> $DATADIR/browse/showers/${yr}-${shwr}-detections-ufo.csv
         fi
     done
 done
@@ -40,21 +40,21 @@ echo "done gathering data, creating tables"
 for shwr in {ORI,URS}
 do 
     now=$(date '+%Y-%m-%d %H:%M:%S')
-    cat $TEMPLATES/shwrcsvindex.html  | sed "s/XXXXX/${shwr}/;s/DDDDDDDD/${now}/g" > $here/browse/showers/${shwr}index.html
+    cat $TEMPLATES/shwrcsvindex.html  | sed "s/XXXXX/${shwr}/;s/DDDDDDDD/${now}/g" > $DATADIR/browse/showers/${shwr}index.html
 
-    idxfile=$here/browse/showers/${shwr}index.js
+    idxfile=$DATADIR/browse/showers/${shwr}index.js
 
     echo "\$(function() {" > $idxfile
     echo "var table = document.createElement(\"table\");" >> $idxfile
     echo "table.className = \"table table-striped table-bordered table-hover table-condensed\";" >> $idxfile
     echo "var header = table.createTHead();" >> $idxfile
     echo "header.className = \"h4\";" >> $idxfile
-    cd $here/browse/showers/
+    cd $DATADIR/browse/showers/
     for yr in {2019,2018,2017,2016,2015,2014,2013,2012}
     do
-        ufodets=$(ls -1 $here/browse/showers/${yr}-${shwr}-detections-ufo.csv)
-        rmsdets=$(ls -1 $here/browse/showers/${yr}-${shwr}-detections-rms.csv)
-        matches=$(ls -1 $here/browse/showers/${yr}-${shwr}-matches.csv)
+        ufodets=$(ls -1 $DATADIR/browse/showers/${yr}-${shwr}-detections-ufo.csv)
+        rmsdets=$(ls -1 $DATADIR/browse/showers/${yr}-${shwr}-detections-rms.csv)
+        matches=$(ls -1 $DATADIR/browse/showers/${yr}-${shwr}-matches.csv)
         ufobn=$(basename $ufodets)
         rmsbn=$(basename $rmsdets)
         matbn=$(basename $matches)
@@ -84,4 +84,4 @@ done
 echo "js table created"
 
 source $WEBSITEKEY
-aws s3 sync $here/browse/showers/  $WEBSITEBUCKET/browse/showers/
+aws s3 sync $DATADIR/browse/showers/  $WEBSITEBUCKET/browse/showers/ --quiet

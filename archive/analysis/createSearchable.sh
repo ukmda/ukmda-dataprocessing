@@ -39,4 +39,4 @@ logger -s -t createSearchable "create list of all cameras"
 cat $DATADIR/searchidx/*-allevents.csv | awk -F, '{print $5}' | sort | sed 's/^ *//g' | uniq > $DATADIR/camlist.txt
 
 source $WEBSITEKEY
-aws s3 sync $DATADIR/searchidx/ $WEBSITEBUCKET/search/indexes/
+aws s3 sync $DATADIR/searchidx/ $WEBSITEBUCKET/search/indexes/ --quiet

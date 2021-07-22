@@ -20,19 +20,19 @@ yr=${ym:0:4}
 mth=${ym:4:2}
 targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${yr}${mth}/$ym
 
-datadir=$1
+srcdata=$1
 
-idxfile=${datadir}/index.html
-repf=`ls -1 ${datadir}/$yr*report.txt`
+idxfile=${srcdata}/index.html
+repf=`ls -1 ${srcdata}/$yr*report.txt`
 repfile=`basename $repf`
 pref=${repfile:0:16}
 
-fldr=$(basename $datadir)
+fldr=$(basename $srcdata)
 
 cp $TEMPLATES/header.html $idxfile
 echo "<h2>Orbital Analysis for matched events on $ym</h2>" >> $idxfile
 echo "<pre>" >> $idxfile
-cat ${datadir}/summary.html >> $idxfile
+cat ${srcdata}/summary.html >> $idxfile
 echo "Click <a href=\"./$fldr.zip\">here</a> to download a zip of the raw and processed data." >> $idxfile
 echo "</pre>" >>$idxfile
 echo "<p><b>Detailed report below graphs</b></p>" >>$idxfile
@@ -44,7 +44,7 @@ echo "<a href=\"${pref}orbit_side.png\"><img src=\"${pref}orbit_side.png\" width
 echo "<a href=\"${pref}ground_track.png\"><img src=\"${pref}ground_track.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}velocities.png\"><img src=\"${pref}velocities.png\" width=\"20%\"></a>" >> $idxfile
 echo "<br>">>$idxfile
-ls -1 ${datadir}/*.jpg | while read jpg 
+ls -1 ${srcdata}/*.jpg | while read jpg 
 do
     jpgbn=`basename $jpg`
     echo "<a href=\"$jpgbn\"><img src=\"$jpgbn\" width=\"20%\"></a>" >> $idxfile
@@ -69,14 +69,14 @@ echo "</script>" >> $idxfile
 cat $TEMPLATES/footer.html >> $idxfile
 
 logger -s -t createPageIndex "adding zip file"
-pushd ${datadir}
+pushd ${srcdata}
 zip -r -9 /tmp/$fldr.zip . -x ./$fldr.zip
-cp /tmp/$fldr.zip ${datadir}/
+cp /tmp/$fldr.zip ${srcdata}/
 rm -f /tmp/$fldr.zip
 popd
 
 logger -s -t createPageIndex "copying to website"
 source $WEBSITEKEY
-aws s3 sync ${datadir}/ ${targ}/ --include "*" 
+aws s3 sync ${srcdata}/ ${targ}/ --include "*"  --quiet
 
 logger -s -t createPageIndex "finished"

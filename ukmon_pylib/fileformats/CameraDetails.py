@@ -18,7 +18,7 @@ class SiteInfo:
             if fname is None:
                 fname = '/home/ec2-user/ukmon-shared/consolidated/camera-details.csv'
 
-        self.camdets = numpy.loadtxt(fname, delimiter=',', skiprows=2, dtype=CameraDetails)
+        self.camdets = numpy.loadtxt(fname, delimiter=',', skiprows=1, dtype=CameraDetails)
         #print(self.camdets)
 
     def getCameraOffset(self, statid):
@@ -100,6 +100,9 @@ class SiteInfo:
                 return False
             return True
 
+    def getActiveCameras(self):
+        return self.camdets[self.camdets['active']==1]
+
     def getCameraType(self, statid):
         c = self.getCameraOffset(statid)
         if c < 0:
@@ -132,6 +135,28 @@ class SiteInfo:
         for cam in cams:
             tmpcams = tmpcams + cam + ' ' 
         return tmpcams.strip()
+
+    def saveAsR(self, outfname):
+        with open(outfname, 'w') as outf:
+            outf.write('stations <- list(\n')
+            cams = numpy.unique(self.camdets['Site'])
+            for cam in cams:
+                outf.write('"{}",c('.format(cam.decode('utf-8')))
+                rws = self.camdets[self.camdets['Site'] == cam]
+                for rw in rws:
+                    if rw['camtyp'] == 1:
+                        outf.write('"{}_{}"'.format(rw['LID'].decode('utf-8'), rw['SID'].decode('utf-8')))
+                    else:
+                        outf.write('"{}"'.format(rw['LID'].decode('utf-8')))
+                    if rw != rws[-1]:
+                        outf.write(',')
+                    else:
+                        outf.write(')')
+                if cam != cams[-1]:
+                    outf.write(',\n')
+                else:
+                    outf.write('\n)')
+
 
 
 def main(sitename):

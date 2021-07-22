@@ -79,7 +79,7 @@ cat $TEMPLATES/footer.html >> $idxfile
 logger -s -t createOrbitIndex "copying to website"
 
 source $WEBSITEKEY
-aws s3 cp $idxfile $targ/index.html
+aws s3 cp $idxfile $targ/index.html --quiet
 rm -f $idxfile
 
 logger -s -t createOrbitIndex "finished"

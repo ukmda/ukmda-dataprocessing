@@ -53,6 +53,15 @@ def makeFBTable(fbcount):
 
 
 def createTables(yr, shwr, fbcount):
+    """Creates html to include fireball tables and graphs in the index page for a solved
+    trajectory. 
+
+    Args:
+        yr (int): the period to process
+        shwr (str): not currently used
+        fbcound (int): the number of fireballs detected in the period
+
+    """
     makeFBGraphs(yr)
     makeFBTable(fbcount)
     makeOrbitList(yr, shwr)
