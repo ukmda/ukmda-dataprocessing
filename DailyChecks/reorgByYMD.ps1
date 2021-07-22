@@ -72,7 +72,7 @@ foreach ($dname in $dlist)
     copy-item $src $pth
 
     # if an all-night timelapse exists on the Pi, copy that too
-    $remotepath='\\'+$hostname+'\RMS_share\ArchivedFiles\'
+    $remotepath='\\'+$hostname+'\RMS_data\ArchivedFiles\'
     $src = $remotepath+$dname+'\UK*.mp4'
     $exists = test-path $src
     $dest = $pth+'\UK*.mp4'

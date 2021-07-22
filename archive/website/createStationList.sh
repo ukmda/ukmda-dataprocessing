@@ -25,5 +25,5 @@ done
 echo "</select>" >> $siteidx
 
 source $WEBSITEKEY
-aws s3 cp $siteidx $WEBSITEBUCKET/search/
+aws s3 cp $siteidx $WEBSITEBUCKET/search/ --quiet
 

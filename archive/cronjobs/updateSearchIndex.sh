@@ -8,7 +8,7 @@ source $here/../config/config.ini >/dev/null 2>&1
 
 source $WEBSITEKEY
 logger -s -t updateSearchIndex "getting latest livefeed CSV files"
-aws s3 sync s3://ukmon-live/ ${DATADIR}/ukmonlive/ --exclude "*" --include "*.csv"
+aws s3 sync s3://ukmon-live/ ${DATADIR}/ukmonlive/ --exclude "*" --include "*.csv" --quiet
 
 logger -s -t updateSearchIndex "creating searchable indices"
 $SRC/analysis/createSearchable.sh

@@ -23,8 +23,8 @@ do
     do
         rc=$(grep _${yr}${mth} ./matches-${yr}.csv | egrep -v "_${yr}${mth}," | wc -l)
         if [ $rc -gt 0 ]; then
-            cp $SRC/analysis/templates/UO_header.txt $SRC/website/browse/monthly/${yr}${mth}-matches.csv
-            grep _${yr}${mth} ./matches-${yr}.csv >> $SRC/website/browse/monthly/${yr}${mth}-matches.csv
+            cp $SRC/analysis/templates/UO_header.txt $DATADIR/browse/monthly/${yr}${mth}-matches.csv
+            grep _${yr}${mth} ./matches-${yr}.csv >> $DATADIR/browse/monthly/${yr}${mth}-matches.csv
         fi
     done
 done
@@ -37,8 +37,8 @@ do
     do
         rc=$(grep ",${yr}${mth}" ./M_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp $SRC/analysis/templates/UA_header.txt $SRC/website/browse/monthly/${yr}${mth}-detections-ufo.csv
-            grep ",${yr}${mth}" ./M_${yr}-unified.csv >> $SRC/website/browse/monthly/${yr}${mth}-detections-ufo.csv
+            cp $SRC/analysis/templates/UA_header.txt $DATADIR/browse/monthly/${yr}${mth}-detections-ufo.csv
+            grep ",${yr}${mth}" ./M_${yr}-unified.csv >> $DATADIR/browse/monthly/${yr}${mth}-detections-ufo.csv
         fi
     done
 done
@@ -52,22 +52,22 @@ do
     do
         rc=$(grep ",${yr}, ${mth}" ./P_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp $SRC/analysis/templates/RMS_header.txt $SRC/website/browse/monthly/${yr}0${mth}-detections-rms.csv
-            grep ",${yr}, ${mth}" ./P_${yr}-unified.csv >> $SRC/website/browse/monthly/${yr}0${mth}-detections-rms.csv
+            cp $SRC/analysis/templates/RMS_header.txt $DATADIR/browse/monthly/${yr}0${mth}-detections-rms.csv
+            grep ",${yr}, ${mth}" ./P_${yr}-unified.csv >> $DATADIR/browse/monthly/${yr}0${mth}-detections-rms.csv
         fi
     done
     for mth in $mths2
     do
         rc=$(grep ",${yr},${mth}" ./P_${yr}-unified.csv | wc -l)
         if [ $rc -gt 0 ]; then
-            cp $SRC/analysis/templates/RMS_header.txt $SRC/website/browse/monthly/${yr}${mth}-detections-rms.csv
-            grep ",${yr},${mth}" ./P_${yr}-unified.csv >> $SRC/website/browse/monthly/${yr}${mth}-detections-rms.csv
+            cp $SRC/analysis/templates/RMS_header.txt $DATADIR/browse/monthly/${yr}${mth}-detections-rms.csv
+            grep ",${yr},${mth}" ./P_${yr}-unified.csv >> $DATADIR/browse/monthly/${yr}${mth}-detections-rms.csv
         fi
     done
 done
 logger -s -t createMthlyExtracts "done gathering data, creating table"
 
-idxfile=$SRC/website/browse/monthly/browselist.js
+idxfile=$DATADIR/browse/monthly/browselist.js
 
 echo "\$(function() {" > $idxfile
 echo "var table = document.createElement(\"table\");" >> $idxfile
@@ -75,7 +75,7 @@ echo "table.className = \"table table-striped table-bordered table-hover table-c
 echo "var header = table.createTHead();" >> $idxfile
 echo "header.className = \"h4\";" >> $idxfile
 
-cd $here/browse/monthly/
+cd $DATADIR/browse/monthly/
 yr=$(date +%Y)
 
 while [ $yr -gt 2012 ]
@@ -85,16 +85,16 @@ do
         ufobn=""
         rmsbn=""
         matbn=""
-        if compgen -G "$SRC/website/browse/monthly/${yr}${mth}-detections-ufo.csv" > /dev/null ; then 
-            ufodets=$(ls -1 $SRC/website/browse/monthly/${yr}${mth}-detections-ufo.csv)
+        if compgen -G "$DATADIR/browse/monthly/${yr}${mth}-detections-ufo.csv" > /dev/null ; then 
+            ufodets=$(ls -1 $DATADIR/browse/monthly/${yr}${mth}-detections-ufo.csv)
             ufobn=$(basename $ufodets)
         fi
-        if compgen -G "$SRC/website/browse/monthly/${yr}${mth}-detections-rms.csv" > /dev/null ; then 
-            rmsdets=$(ls -1 $SRC/website/browse/monthly/${yr}${mth}-detections-rms.csv)
+        if compgen -G "$DATADIR/browse/monthly/${yr}${mth}-detections-rms.csv" > /dev/null ; then 
+            rmsdets=$(ls -1 $DATADIR/browse/monthly/${yr}${mth}-detections-rms.csv)
             rmsbn=$(basename $rmsdets)
         fi
-        if compgen -G "$SRC/website/browse/monthly/${yr}${mth}-matches.csv" > /dev/null ; then 
-            matches=$(ls -1 $here/browse/monthly/${yr}${mth}-matches.csv)
+        if compgen -G "$DATADIR/browse/monthly/${yr}${mth}-matches.csv" > /dev/null ; then 
+            matches=$(ls -1 $DATADIR/browse/monthly/${yr}${mth}-matches.csv)
             matbn=$(basename $matches)
         fi
         if [[ "$ufodets" != "" ]] || [[ "$rmsdets" != "" ]] || [[ "$matches" != "" ]] ; then
@@ -127,11 +127,11 @@ echo "})" >> $idxfile
 
 logger -s -t createMthlyExtracts "js table created, copying to website"
 source $WEBSITEKEY
-aws s3 sync $SRC/website/browse/monthly/  $WEBSITEBUCKET/browse/monthly/
+aws s3 sync $DATADIR/browse/monthly/  $WEBSITEBUCKET/browse/monthly/ --quiet
 
 
 logger -s -t createMthlyExtracts "gathering annual data"
-cd $SRC/website/browse/annual/
+cd $DATADIR/browse/annual/
 yr=$(date +%Y)
 cp -p ${DATADIR}/matched/pre2020/matches*.csv .
 cp -p ${DATADIR}/matched/matches-202*.csv .
@@ -145,7 +145,7 @@ cp -p ${DATADIR}/consolidated/M*.csv .
 cp -p ${DATADIR}/consolidated/P*.csv .
 
 logger -s -t createMthlyExtracts "done gathering data, creating table"
-idxfile=$SRC/website/browse/annual/browselist.js
+idxfile=$DATADIR/browse/annual/browselist.js
 
 echo "\$(function() {" > $idxfile
 echo "var table = document.createElement(\"table\");" >> $idxfile
@@ -158,16 +158,16 @@ do
     ufobn=""
     rmsbn=""
     matbn=""
-    if compgen -G "$SRC/website/browse/annual/M_${yr}-unified.csv" > /dev/null ; then 
-        ufodets=$(ls -1 $SRC/website/browse/annual/M_${yr}-unified.csv)
+    if compgen -G "$DATADIR/browse/annual/M_${yr}-unified.csv" > /dev/null ; then 
+        ufodets=$(ls -1 $DATADIR/browse/annual/M_${yr}-unified.csv)
         ufobn=$(basename $ufodets)
     fi
-    if compgen -G "$SRC/website/browse/annual/P_${yr}-unified.csv" > /dev/null ; then 
-        rmsdets=$(ls -1 $SRC/website/browse/annual/P_${yr}-unified.csv)
+    if compgen -G "$DATADIR/browse/annual/P_${yr}-unified.csv" > /dev/null ; then 
+        rmsdets=$(ls -1 $DATADIR/browse/annual/P_${yr}-unified.csv)
         rmsbn=$(basename $rmsdets)
     fi
-    if compgen -G "$SRC/website/browse/annual/matches-${yr}.csv" > /dev/null ; then 
-        matches=$(ls -1 $SRC/website/browse/annual/matches-${yr}.csv)
+    if compgen -G "$DATADIR/browse/annual/matches-${yr}.csv" > /dev/null ; then 
+        matches=$(ls -1 $DATADIR/browse/annual/matches-${yr}.csv)
         matbn=$(basename $matches)
     fi
     if [[ "$ufodets" != "" ]] || [[ "$rmsdets" != "" ]] || [[ "$matches" != "" ]] ; then
@@ -199,6 +199,6 @@ echo "})" >> $idxfile
 
 logger -s -t createMthlyExtracts "annual js table created, copying to website"
 source $WEBSITEKEY
-aws s3 sync $SRC/website/browse/annual/  $WEBSITEBUCKET/browse/annual/
+aws s3 sync $DATADIR/browse/annual/  $WEBSITEBUCKET/browse/annual/ --quiet
 
 logger -s -t createMthlyExtracts "finished"

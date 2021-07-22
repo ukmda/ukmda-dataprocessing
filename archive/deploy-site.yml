@@ -14,15 +14,6 @@
   - name: Ensures {{destdir}}/logs exists
     file: path={{destdir}}/logs state=directory  
     tags: [dev,prod]
-  - name: Ensures {{destdir}}/website/browse/monthly exists
-    file: path={{destdir}}/website/browse/monthly state=directory
-    tags: [dev,prod]
-  - name: Ensures {{destdir}}/website/browse/annual exists
-    file: path={{destdir}}/website/browse/annual state=directory
-    tags: [dev,prod]
-  - name: Ensures {{destdir}}/website/browse/showers exists
-    file: path={{destdir}}/website/browse/showers state=directory
-    tags: [dev,prod]
   - name: Ensures {{destdir}}/website/data exists
     file: path={{destdir}}/website/data state=directory
     tags: [dev,prod]
@@ -44,3 +35,4 @@
     - {src: '{{srcdir}}/website/templates/header.html', dest: '{{destdir}}/website/templates/', mode: '644', backup: no }
     - {src: '{{srcdir}}/website/templates/footer.html', dest: '{{destdir}}/website/templates/', mode: '644', backup: no }
     - {src: '{{srcdir}}/website/templates/shwrcsvindex.html', dest: '{{destdir}}/website/templates/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/website/templates/statreportindex.html', dest: '{{destdir}}/website/templates/', mode: '644', backup: no }

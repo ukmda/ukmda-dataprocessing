@@ -9,7 +9,7 @@ import shutil
 from wmpl.Utils.Pickling import loadPickle 
 from wmpl.Utils.TrajConversions import jd2Date
 from datetime import datetime, timedelta
-from traj.ufoTrajSolver import createAdditionalOutput
+from traj.ufoTrajSolver import createAdditionalOutput, calcAdditionalValues
 import fileformats.CameraDetails as cdet
 
 
@@ -22,6 +22,14 @@ def generateExtraFiles(outdir):
     createAdditionalOutput(traj, outdir)
     fetchJpgsAndMp4s(traj, outdir)
     return
+
+
+def getVMagCodeAndStations(outdir):
+
+    picklefile = glob.glob1(outdir, '*.pickle')[0]
+    traj = loadPickle(outdir, picklefile)
+    amag, bestvmag, mass, id, cod, orb, shower_obj, lg, bg, vg, stations = calcAdditionalValues(traj)
+    return bestvmag, cod, stations
 
 
 def fetchJpgsAndMp4s(traj, outdir):

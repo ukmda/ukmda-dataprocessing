@@ -4,11 +4,18 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
+source ~/venvs/$WMPL_ENV/bin/activate
+
+# so i can import the config file into python functions
+export CONFIG
+
+# to run various python processes
+export PYTHONPATH=$PYLIB:$wmpl_loc
 
 thismth=`date '+%Y%m'`
 thisyr=`date '+%Y'`
 
-source ~/.ssh/ukmonarchive-keys
+source $WEBSITEKEY
 export AWS_DEFAULT_REGION=eu-west-2
 aws lambda invoke --function-name ConsolidateCSVs --log-type Tail $SRC/logs/ConsolidateCSVs.log
 
@@ -22,7 +29,7 @@ if [ "`tty`" != "not a tty" ]; then
     logger -s -t nightlyJob 'got a tty, not triggering report'
 else 
     logger -s -t nightlyJob 'no tty, triggering report' 
-    source ~/.ssh/ukmonarchive-keys
+    source $WEBSITEKEY
     export AWS_DEFAULT_REGION=eu-west-1
     aws lambda invoke --function-name dailyReport --log-type Tail $SRC/logs/dailyReport.log
 fi
@@ -32,6 +39,13 @@ logger -s -t nightlyJob "update shower associations, then create monthly and sho
 ${SRC}/analysis/updateRMSShowerAssocs.sh ${thismth}
 ${SRC}/website/createMthlyExtracts.sh ${thismth}
 ${SRC}/website/createShwrExtracts.sh ${thismth}
+
+logger -s -t nightlyJob "update the R version of the camera info file"
+python << EOD
+import fileformats.CameraDetails as cc
+s = cc.SiteInfo()
+s.saveAsR('${RCODEDIR}/CONFIG/StationList.r')
+EOD
 
 logger -s -t nightlyJob "update the annual report for this year"
 ${SRC}/analysis/monthlyReports.sh ALL ${thisyr} force
@@ -53,8 +67,11 @@ fi
 logger -s -t nightlyJob "create the cover page for the website"
 ${SRC}/website/createSummaryTable.sh
 
-logger -s -t nightlyJob "station status report"
+logger -s -t nightlyJob "create station status report"
 ${SRC}/website/cameraStatusReport.sh
+
+logger -s -t nightlyJob "create event log for other networks"
+python $SRC/ukmon_pylib/reports/createExchangeFiles.py
 
 logger -s -t nightlyJob "clean up old logs"
 find $SRC/logs -name "nightly*" -mtime +7 -exec rm -f {} \;

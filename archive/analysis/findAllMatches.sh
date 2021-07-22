@@ -8,7 +8,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # load the configuration and website keys
 source $here/../config/config.ini >/dev/null 2>&1
-source ~/.ssh/ukmon-shared-keys
+source $UKMONSHAREDKEY
 
 # get the date to operate for
 if [ $# -eq 0 ]; then
@@ -78,12 +78,22 @@ do
     cp $MATCHDIR/RMSCorrelate/trajectories/$traj/*orbit.csv ${DATADIR}/orbits/$yr/csv/
 done
 
+logger -s -t findAllMatches "gather some stats"
+matchlog=${SRC}/logs/matches/matches-$(date +%Y%m%d-07)*.log
+p1=$(awk '/PROCESSING TIME BIN/{print NR; exit}' $matchlog)
+p2=$(awk '/RUNNING TRAJ/{print NR; exit}' $matchlog)
+evts=$((p2-p1-6))
+trajs=$(grep SOLVING $matchlog| grep TRAJECTORIES | awk '{print $2}')
+matches=$(wc -l $MATCHDIR/RMSCorrelate/dailyreports/$dailyrep | awk '{print $1}')
+rtim=$(grep "Total run time" $matchlog | awk '{print $4}')
+echo $dailyrep $evts $trajs $matches $rtim >>  $MATCHDIR/RMSCorrelate/dailyreports/stats.txt
+
 logger -s -t findAllMatches "Create density and velocity plots by solar longitude"
 export PYTHONPATH=$wmpl_loc
 python -m wmpl.Trajectory.AggregateAndPlot $MATCHDIR/RMSCorrelate/ -p
 mv -f $MATCHDIR/RMSCorrelate/*.png $MATCHDIR/RMSCorrelate/plots
 source $WEBSITEKEY
-aws s3 sync $MATCHDIR/RMSCorrelate/plots $WEBSITEBUCKET/reports/plots
+aws s3 sync $MATCHDIR/RMSCorrelate/plots $WEBSITEBUCKET/reports/plots --quiet
 
 
 logger -s -t findAllMatches "backup the solved trajectory data"

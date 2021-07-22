@@ -27,7 +27,7 @@ def munchKML(fname):
 
 
 def decodeApiKey(enckey):
-    key = open(os.path.expanduser("~/.ssh/gmap.key"), "rb").read()
+    key = open(os.path.expanduser('~/.ssh/gmap.key'), 'rb').read()
     f = Fernet(key)
     apikey = f.decrypt(enckey.encode('utf-8'))
     return apikey.decode('utf-8')
@@ -40,12 +40,13 @@ if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read(sys.argv[1])
     apikey = decodeApiKey(config['maps']['apikey'])
+    kmltempl = config['maps']['kmltemplate']
 
     gmap = gmplot.GoogleMapPlotter(52, -1.0, 5, apikey=apikey, 
         title='Camera Coverage', map_type='satellite')
 
 
-    for fn in glob.glob1(kmlsource, '*.kml'):
+    for fn in glob.glob1(kmlsource, kmltempl):
         cn, lats, lngs = munchKML(os.path.join(kmlsource,fn))
         gmap.polygon(lats, lngs, color='cornflowerblue', edge_width=1)
 
