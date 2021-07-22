@@ -20,8 +20,8 @@ class MatchesCsv:
         """ get data by magnitude
 
         """
-        tmpa1 = self.rawdata[self.rawdata['_amag'] >= minMag]
-        tmpa2 = tmpa1[tmpa1['_amag'] <= maxMag]
+        tmpa1 = self.rawdata[self.rawdata['_amag'] <= minMag]
+        tmpa2 = tmpa1[tmpa1['_amag'] >= maxMag]
         return tmpa2
 
     def selectByShwr(self, shwr):
@@ -42,14 +42,14 @@ class MatchesCsv:
         """ Get data for a specified time range. 
             Note that this uses the exact range supplied. 
         """
-        sjd = date2JD(sDate.year, sDate.month, sDate.day, 12,0,0)
-        ejd = date2JD(eDate.year, eDate.month, eDate.day, 12,0,0)
+        sjd = date2JD(sDate.year, sDate.month, sDate.day, 12,0,0) - 2400000.5
+        ejd = date2JD(eDate.year, eDate.month, eDate.day, 12,0,0) - 2400000.5
         f1 = self.rawdata[self.rawdata['_mjd'] >= sjd]
         return f1[f1['_mjd'] <= ejd]
 
 #-----------------------------------------------------------------------
 # For testing.
-# example: python UAdata.py 2019
+# example: python UOFormat.py 
 
 
 def main():

@@ -85,7 +85,7 @@ p2=$(awk '/RUNNING TRAJ/{print NR; exit}' $matchlog)
 evts=$((p2-p1-6))
 trajs=$(grep SOLVING $matchlog| grep TRAJECTORIES | awk '{print $2}')
 matches=$(wc -l $MATCHDIR/RMSCorrelate/dailyreports/$dailyrep | awk '{print $1}')
-runtime=$(grep "Total run time" $matchlog | awk '{print $4}')
+rtim=$(grep "Total run time" $matchlog | awk '{print $4}')
 echo $dailyrep $evts $trajs $matches $rtim >>  $MATCHDIR/RMSCorrelate/dailyreports/stats.txt
 
 logger -s -t findAllMatches "Create density and velocity plots by solar longitude"
