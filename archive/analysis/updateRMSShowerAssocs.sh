@@ -3,12 +3,13 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 
 if [ $# -lt 1 ] ; then
-    echo usage: updateRMSShowerAssocs.sh yearmth
+    echo usage: updateRMSShowerAssocs.sh yearmth force
     exit
 fi
 ym=$1
 yr=${ym:0:4}   
 mth=${ym:4:6}
+force=$2
 
 logger -s -t updateRMSShowerAssocs "starting"
 
@@ -25,7 +26,7 @@ cat $CAMINFO | while read li ; do
                     if compgen -G ""$ARCHDIR/$sitename/$camname/$yr/${yr}${j}"/*" > /dev/null ; then 
                         ls -1 "$ARCHDIR/$sitename/$camname/$yr/${yr}${j}" | while read i
                         do 
-                            $here/addRMSShowerDets.sh "$sitename" $camname $i 
+                            $here/addRMSShowerDets.sh "$sitename" $camname $i $force
                         done
                     fi
                 done
@@ -33,7 +34,7 @@ cat $CAMINFO | while read li ; do
                 if compgen -G ""$ARCHDIR/$sitename/$camname/$yr/${yr}${mth}"/*" > /dev/null ; then 
                     ls -1 "$ARCHDIR/$sitename/$camname/$yr/${yr}${mth}" | while read i
                     do 
-                        $here/addRMSShowerDets.sh "$sitename" $camname "$i" 
+                        $here/addRMSShowerDets.sh "$sitename" $camname "$i" $force
                     done
                 fi
             fi
