@@ -43,27 +43,9 @@
     tags: [dev,prod]
     with_items:
     - {src: '{{srcdir}}/ukmon_pylib/', dest: '{{destdir}}/ukmon_pylib/', mode: '644', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/archive/analysis/', dest: '{{destdir}}/analysis/', mode: '754', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/archive/cronjobs/', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no, directory_mode: yes }
 
-    - {src: '{{srcdir}}/archive/analysis/runMatching.sh', dest: '{{destdir}}/analysis/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/archive/cronjobs/nightlyJob.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/archive/cronjobs/getImoWSfile.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/archive/cronjobs/backupUkmonShared.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/archive/cronjobs/updateSearchIndex.sh', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no }
     - {src: '{{srcdir}}/archive/costs/getMetrics.sh', dest: '{{destdir}}/costs/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/archive/analysis/findAllMatches.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
-    - {src: '{{srcdir}}/archive/analysis/createSearchable.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
-    - {src: '{{srcdir}}/archive/analysis/convertUfoToRms.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
-    - {src: '{{srcdir}}/archive/analysis/monthlyReports.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
-    - {src: '{{srcdir}}/archive/analysis/runRAnalysis.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
-    - {src: '{{srcdir}}/archive/analysis/createReport.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
-    - {src: '{{srcdir}}/archive/analysis/reportYear.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
-    - {src: '{{srcdir}}/archive/analysis/templates/UA_header.txt', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/archive/analysis/templates/UO_header.txt', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/archive/analysis/templates/RMS_header.txt', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/archive/analysis/templates/report-template.html', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/archive/analysis/templates/shower-report-template.html', dest: '{{destdir}}/analysis/templates/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/archive/analysis/addRMSShowerDets.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
-    - {src: '{{srcdir}}/archive/analysis/updateRMSShowerAssocs.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
-    - {src: '{{srcdir}}/archive/analysis/stationReports.sh', dest: '{{destdir}}/analysis/', mode: '744', backup: no }
     - {src: '{{srcdir}}/analysis/orbitSolver/reduceOrbit.sh', dest: '{{destdir}}/orbits/', mode: '744', backup: no }
     
