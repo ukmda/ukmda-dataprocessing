@@ -14,7 +14,7 @@ logger -s -t updateSearchIndex "creating searchable indices"
 $SRC/analysis/createSearchable.sh
 
 logger -s -t updateSearchIndex "creating station list"
-$src/website/createStationList.sh
+$SRC/website/createStationList.sh
 
 find $SRC/logs -name "updateSearchIndex*" -mtime +7 -exec rm -f {} \;
 logger -s -t updateSearchIndex "finished"

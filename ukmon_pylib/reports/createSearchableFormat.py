@@ -33,6 +33,7 @@ def UFOAToSrchable(configfile, year, outdir):
     except Exception:
         buck = 'mjmm-ukmonarchive.co.uk'
 
+    print('ufoa to searchable format')
     config=cfg.ConfigParser()
     config.read(configfile)
     weburl=config['config']['SITEURL']
@@ -85,36 +86,36 @@ def UFOAToSrchable(configfile, year, outdir):
             hm = '{:02d}{:02d}'.format(li['Hr'], li['Min'])
             srcloc = '/home/ec2-user/ukmon-shared/archive/{}/{}/{}/{}/'.format(site, yr2, ym2, ymd2)
             fname = 'FF_' + lc + '_' + ymd + '_' + hm +'*.jpg'
-            # print(srcloc, fname)
-            flist = glob.glob1(srcloc, fname)
-            if len(flist) > 0:
-                fname = flist[0]
-                for fn in flist:
-                    # print(fn)
-                    splits = fn.split('_') 
-                    fymd = splits[2]
-                    fhms = splits[3]
-                    fms = splits[4]
-                    dtstr = '{}_{}.{}'.format(fymd, fhms, str(int(fms)*1000))
-                    fdate=datetime.datetime.strptime(dtstr, '%Y%m%d_%H%M%S.%f')
-                    if(ds - fdate).seconds < 10:
-                        fname = fn
-                        break
-                curr = os.path.join(srcloc, fname)
-                outf = 'img/single/{:s}/{:s}/{:s}'.format(yr2, ym2, fname) 
-                # avoid rechecking old data
-                if (nowdt - ds).days < 15:
-                    bucket = s3.Bucket(buck) 
-                    obj = list(bucket.objects.filter(Prefix=outf))
-                    if len(obj) == 0:
-                        s3.meta.client.upload_file(curr, buck, outf, ExtraArgs={"ContentType":"image/jpeg"})
-                        print(fname, outf)
-                    #else:
-                    #    print('not copying {}'.format(fname))
-                fldr = '/img/single/{:04d}/{:s}/{:s}'.format(li['Yr'], mth, fname)
-            else:
-                fldr = '/img/missing.png'
-
+            fldr = '/img/single/{:04d}/{:s}/{:s}'.format(li['Yr'], mth, fname)
+            print(srcloc, fname)
+            # regather JPGs from the last couple of weeks
+            # not needed, done by lambda function
+            #if (nowdt - ds).days < 15: 
+            #    flist = glob.glob1(srcloc, fname)
+            #    if len(flist) > 0:
+            #        fname = flist[0]
+            #        for fn in flist:
+            #            # print(fn)
+            #            splits = fn.split('_') 
+            #            fymd = splits[2]
+            #            fhms = splits[3]
+            #            fms = splits[4]
+            #            dtstr = '{}_{}.{}'.format(fymd, fhms, str(int(fms)*1000))
+            #            fdate=datetime.datetime.strptime(dtstr, '%Y%m%d_%H%M%S.%f')
+            #            if(ds - fdate).seconds < 10:
+            #                fname = fn
+            #                break
+            #        curr = os.path.join(srcloc, fname)
+            #        outf = 'img/single/{:s}/{:s}/{:s}'.format(yr2, ym2, fname) 
+            #        # avoid rechecking old data
+            #        bucket = s3.Bucket(buck) 
+            #        obj = list(bucket.objects.filter(Prefix=outf))
+            #        if len(obj) == 0:
+            #            s3.meta.client.upload_file(curr, buck, outf, ExtraArgs={"ContentType":"image/jpeg"})
+            #            print(fname, outf)
+            #        fldr = '/img/single/{:04d}/{:s}/{:s}'.format(li['Yr'], mth, fname)
+            #    else:
+            #        fldr = '/img/missing.png'
         
         url = weburl + fldr
         urls.append(url)
@@ -144,6 +145,7 @@ def LiveToSrchable(configfile, year, outdir):
     config=cfg.ConfigParser()
     config.read(configfile)
 
+    print('live to searchable')
     dtstamps = []
     urls = []
     imgs = []
@@ -203,6 +205,7 @@ def MatchToSrchable(configfile, year, outdir, indexes):
     config.read(configfile)
     weburl=config['config']['SITEURL']
     
+    print('match to searchable')
     path= os.path.join(config['config']['DATADIR'], 'orbits', year)
 
     dtstamps = []
