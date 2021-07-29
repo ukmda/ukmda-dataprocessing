@@ -59,11 +59,9 @@ def UFOAToSrchable(configfile, year, outdir):
         dtstamp = datetime.datetime.strptime(dtstr,'%Y%m%d_%H%M%S').timestamp()
 
         dtstamps.append(dtstamp)
-        url = weburl + li.strip()
+        url = weburl + '/' + li.strip()
         urls.append(url)
         imgs.append(url)
-        grps.append('Spo')
-        mags.append(99)
         sts.append(camid)
 
         # add shower ID if available
@@ -71,10 +69,14 @@ def UFOAToSrchable(configfile, year, outdir):
         evts = evts[evts['Group']!='spo']  # default is sporadic
         evts = evts[evts['Group']!='J8_TBC']  # leave unknown as sporadics
         if len(evts) > 0:
-            grps.append(evts.iloc[0].Group[4:])
+            grps.append(evts.iloc[0].Group[3:])
             mags.append(evts.iloc[0].Mag)
+        else:
+            grps.append('spo')
+            mags.append('99')
             
     # create array for source
+    print('add source column')
     srcs=np.chararray(len(dtstamps), itemsize=8)
     srcs[:]='2Single'
     srcs=srcs.decode('utf-8')
@@ -82,8 +84,9 @@ def UFOAToSrchable(configfile, year, outdir):
     hdr='eventtime,source,shower,mag,loccam,url,img'
 
     # write out the converted data
-    print(len(dtstamps), len(srcs), len(grps), len(mags), len(sts))
+    # print(len(dtstamps), len(srcs), len(grps), len(mags), len(sts))
 
+    print('stack data and save')
     outdata = np.column_stack((dtstamps, srcs, grps, mags, sts, urls, imgs))
     outdata = np.unique(outdata, axis=0)
     fmtstr = '%s,%s,%s,%s,%s,%s,%s'
