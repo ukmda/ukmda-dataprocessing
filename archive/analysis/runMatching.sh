@@ -39,13 +39,13 @@ echo "source /home/ec2-user/venvs/wmpl/bin/activate" >> $execMatchingsh
 echo "export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib/" >> $execMatchingsh
 echo "cd /home/ec2-user/data/RMSCorrelate" >> $execMatchingsh
 echo "source $UKMONSHAREDKEY" >> $execMatchingsh
-echo 'aws s3 sync s3://ukmon-shared/matches/RMSCorrelate/ . --exclude "*" --include "UK*"' --quiet >> $execMatchingsh
+echo 'aws s3 sync s3://ukmon-shared/matches/RMSCorrelate/ . --exclude "*" --include "UK*" --quiet'  >> $execMatchingsh
 #echo 'aws s3 cp s3://ukmon-shared/matches/RMSCorrelate/processed_trajectories.json.bigserver ./processed_trajectories.json' --quiet >> $execMatchingsh
 echo "cd /home/ec2-user/src/WesternMeteorPyLib/" >> $execMatchingsh
 echo "time python -m wmpl.Trajectory.CorrelateRMS /home/ec2-user/data/RMSCorrelate/ -l -r \"($startdt,$enddt)\"" >> $execMatchingsh
 echo "source $UKMONSHAREDKEY" >> $execMatchingsh
 echo "cd /home/ec2-user/data/RMSCorrelate" >> $execMatchingsh
-echo 'aws s3 sync trajectories/ s3://ukmon-shared/matches/RMSCorrelate/trajectories/' --quiet >> $execMatchingsh
+echo "aws s3 sync trajectories/ s3://ukmon-shared/matches/RMSCorrelate/trajectories/ --quiet" >> $execMatchingsh
 echo "aws s3 cp processed_trajectories.json s3://ukmon-shared/matches/RMSCorrelate/processed_trajectories.json.bigserver" >> $execMatchingsh
 #echo "rsync -cavz trajectories/ $thisip:ukmon-shared/matches/RMSCorrelate/trajectories/" >> $execMatchingsh
 #echo "scp processed_trajectories.json $thisip:ukmon-shared/matches/RMSCorrelate/processed_trajectories.json.bigserver" >> $execMatchingsh

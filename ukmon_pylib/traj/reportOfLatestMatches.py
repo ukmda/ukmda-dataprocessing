@@ -10,6 +10,7 @@ import csv
 from stat import S_ISREG, ST_MTIME, ST_MODE
 import fileformats.CameraDetails as cd
 from traj.extraDataFiles import getVMagCodeAndStations
+from pathlib import Path
 
 
 def findNewMatches(dir_path, targdate):
@@ -35,7 +36,8 @@ def findNewMatches(dir_path, targdate):
     matchlist = os.path.join(dir_path, '../dailyreports/' + now.strftime('%Y%m%d.txt'))    
     with open(matchlist, 'w') as outf:
         for ee in entries:
-            if ee[0] > yday:
+            # newly synced folders will have datestamp == 0
+            if ee[0] == 0:
                 bestvmag, shwr, stationids = getVMagCodeAndStations(os.path.join(dir_path, ee[1]))
                 stations=[]
                 for statid in stationids:
@@ -52,6 +54,8 @@ def findNewMatches(dir_path, targdate):
                 outstr = outstr.strip()
                 print(outstr)
                 outf.write('{}\n'.format(outstr))
+                # update timestamp so we don't reprocess it again
+                Path(os.path.join(dir_path, ee[1])).touch()
 
     # sort the data by magnitude
     with open(matchlist,'r') as f:
