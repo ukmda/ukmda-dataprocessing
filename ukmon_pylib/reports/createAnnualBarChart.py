@@ -11,7 +11,7 @@ from wmpl.Utils.TrajConversions import jd2Date
 
 
 def createBarChart(fname):
-    matches = uof.MatchesCsv(fname)
+    matches = uof.MatchedCsv(fname)
     v1=int(matches.rawdata['_mjd'][0])
     v2=int(matches.rawdata['_mjd'][len(matches.rawdata)-1])
     ranges=list(range(v1,v2))
