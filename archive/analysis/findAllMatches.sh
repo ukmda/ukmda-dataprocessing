@@ -76,6 +76,7 @@ do
 
     # copy the orbit file for consolidation and reporting
     cp $MATCHDIR/RMSCorrelate/trajectories/$traj/*orbit.csv ${DATADIR}/orbits/$yr/csv/
+    cp $MATCHDIR/RMSCorrelate/trajectories/$traj/*orbit_extras.csv ${DATADIR}/orbits/$yr/extracsv/
 done
 
 logger -s -t findAllMatches "gather some stats"
