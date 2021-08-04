@@ -98,7 +98,7 @@ def LookForMatchesRMS(doff, dayfile, statsfile):
     return domail, mailsubj, body, bodytext
 
 
-def sendMail(subj, body, bodytext):
+def sendMail(subj, body, bodytext, target, tmppth):
     print(bodytext)
     client = boto3.client('sts')
     response = client.get_caller_identity()['Account']
@@ -110,13 +110,22 @@ def sendMail(subj, body, bodytext):
         AWS_REGION = 'eu-west-1'
     CHARSET = "UTF-8"
 
+    s3 = boto3.resource('s3')
+
     deb = os.environ['DEBUG']
     if deb in ['True', 'TRUE', 'true']:
         RECIPIENT = ['mark.jm.mcintyre@cesmail.net', 'mjmm456@gmail.com']
     else:
         try:
-            recs = os.environ['RECIPS']
-            RECIPIENT = recs.split(';')
+            # recs = os.environ['RECIPS']
+            # RECIPIENT = recs.split(';')
+            memblist = os.path.join(tmppth,'dailyReportRecips.txt')
+            s3.meta.client.download_file(target, 'admin/dailyReportRecips.txt', memblist)
+            with open(memblist, 'r') as inf:
+                recs = inf.readlines()
+                for i in range(len(recs)):
+                    recs[i] = recs[i].strip()
+            RECIPIENT = recs
             print('DailyCheck: ', RECIPIENT)
         except:
             RECIPIENT = ['mark.jm.mcintyre@cesmail.net', 'mjmm456@gmail.com']
@@ -187,7 +196,7 @@ def lambda_handler(event, context):
         domail = False
 
     if domail is True:
-        sendMail(mailsubj, body, bodytext)
+        sendMail(mailsubj, body, bodytext, target, tmppth)
     else:
         print('DailyCheck: no matches today')
 

@@ -45,10 +45,12 @@ if __name__ == '__main__':
     gmap = gmplot.GoogleMapPlotter(52, -1.0, 5, apikey=apikey, 
         title='Camera Coverage', map_type='satellite')
 
-
-    for fn in glob.glob1(kmlsource, kmltempl):
+    flist = glob.glob1(kmlsource, kmltempl)
+    cols = list(gmplot.color._HTML_COLOR_CODES.keys())
+    i=0
+    for col, fn in zip(cols,flist):
         cn, lats, lngs = munchKML(os.path.join(kmlsource,fn))
-        gmap.polygon(lats, lngs, color='cornflowerblue', edge_width=1)
+        gmap.polygon(lats, lngs, color=col, edge_width=1)
 
     # Draw the map to an HTML file:
     gmap.draw(os.path.join(outdir, 'coverage.html'))
