@@ -7,12 +7,13 @@ source $here/../config/config.ini >/dev/null 2>&1
 source /home/ec2-user/venvs/${RMS_ENV}/bin/activate
 
 if [ $# -lt 3 ] ; then
-    echo usage: addRMSShowerDets.sh sitename camname ymd
+    echo usage: addRMSShowerDets.sh sitename camname ymd force
     exit
 fi
 sitename=$1
 camname=$2
 ymd=$3
+force=$4
 yy=${ymd:0:4}   
 ym=${ymd:0:6}
 
@@ -29,6 +30,7 @@ if compgen -G "$fpath/FTPdetect*.txt" > /dev/null ; then
     done=0
     if compgen -G "$fpath/*assoc*.txt"  > /dev/null ; then done=1 ; fi
     if compgen -G "$fpath/nometeors" > /dev/null ; then done=1 ; fi
+    if [ "$force" == "force" ] ; then done=0 ; fi
     
     if [ $done -eq 0 ] ; then 
         logger -s -t addRMSShowerDets "processing $ymd"

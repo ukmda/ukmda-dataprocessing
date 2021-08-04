@@ -173,6 +173,7 @@ def convertUFOFolder(fldr, outfldr):
     """
     Read all the A.XML files and create an RMS-style ftpdetect file and platepars file
     """
+    print('reading from', fldr)
     axmls, metcount, stime = loadAXMLs(fldr)
     if len(axmls) == 0:
         print('no a.xml files found')
@@ -190,6 +191,7 @@ def convertUFOFolder(fldr, outfldr):
     ftpfile = 'FTPdetectinfo_' + arcdir + '.txt'
 
     fulloutfldr = os.path.join(outfldr,statid, arcdir)
+    print('writing to', fulloutfldr)
     os.makedirs(fulloutfldr, exist_ok=True)
 
     plateparfile = open(os.path.join(fulloutfldr, 'platepars_all_recalibrated.json'), 'w')
@@ -224,7 +226,7 @@ def convertUFOFolder(fldr, outfldr):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print('Usage python UFOtoFTPdetect.py somefolder')
-        print('  will convert all UFO A.xml files in somefolder to a single FTPDetectInfo file')
+        print('Usage python UFOtoFTPdetect.py srcfolder targfolder')
+        print('  will convert all UFO A.xml files in srcfolder to a single FTPDetectInfo file in targfolder')
     else:
         convertUFOFolder(sys.argv[1], sys.argv[2])

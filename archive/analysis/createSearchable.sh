@@ -3,7 +3,7 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
-source ~/venvs/$RMS_ENV/bin/activate
+source ~/venvs/$WMPL_ENV/bin/activate
 source $WEBSITEKEY
 if [ $# -lt 1 ] ; then
     yr=$(date +%Y)
@@ -14,6 +14,9 @@ fi
 mkdir -p $DATADIR/searchidx
 cd $SRC/analysis
 logger -s -t createSearchable "creating searchable format files"
+
+source $WEBSITEKEY
+aws s3 ls $WEBSITEBUCKET/img/single/$yr/ --recursive | awk '{print $4}' > /tmp/single.csv
 
 export PYTHONPATH=$wmpl_loc:$PYLIB
 export WEBSITEBUCKET

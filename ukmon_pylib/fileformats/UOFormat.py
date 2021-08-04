@@ -1,4 +1,4 @@
-# create a data type for UFO Analyser style CSV files
+# create a data type for UFO Orbit style CSV files
 import sys
 import datetime
 import pandas as pd
@@ -6,7 +6,7 @@ from wmpl.Utils.TrajConversions import date2JD
 
 
 #-----------------------------------------------------------------------
-class MatchesCsv:
+class MatchedCsv:
     def __init__(self, fname):
         """Construct the object from a filename
 
@@ -54,7 +54,7 @@ class MatchesCsv:
 
 def main():
     fnam = sys.argv[1]
-    mydata = MatchesCsv(fnam)
+    mydata = MatchedCsv(fnam)
     shwdata = mydata.selectByShwr('LYR')
     print(shwdata)
 
