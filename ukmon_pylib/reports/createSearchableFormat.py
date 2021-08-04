@@ -7,13 +7,10 @@
 import sys
 import os
 import numpy as np
-import fileformats.UAFormats as uaf
+import pandas as pd
 import configparser as cfg
 import datetime 
-import glob
 import boto3
-import fileformats.CameraDetails as cc
-# import shutil
 
 
 def UFOAToSrchable(configfile, year, outdir):
@@ -25,107 +22,72 @@ def UFOAToSrchable(configfile, year, outdir):
         outdir (str): where to save the file
 
     """
-    camdets = cc.SiteInfo()
-    s3 = boto3.resource('s3')
-    try:
-        buck = os.environ['WEBSITEBUCKET']
-        buck = buck[5:]
-    except Exception:
-        buck = 'mjmm-ukmonarchive.co.uk'
-
+    print('ufoa to searchable format')
     config=cfg.ConfigParser()
     config.read(configfile)
     weburl=config['config']['SITEURL']
-    
+
     fname = 'UKMON-{:s}-single.csv'.format(year)
     rmsuafile= os.path.join(config['config']['DATADIR'], 'consolidated', fname)
-    print(rmsuafile)
+    # print(rmsuafile)
     # load the data
-    uadata = np.loadtxt(rmsuafile, delimiter=',', skiprows=1, dtype=uaf.UFOCSV)
-    uadata = np.unique(uadata, axis=0)
+    print('read single file to get shower and mag')
+    uadata = pd.read_csv(rmsuafile, delimiter=',')
 
-    # create array for source
-    srcs=np.chararray(len(uadata), itemsize=8)
-    srcs[:]='2Single'
-    srcs=srcs.decode('utf-8')
+    print('read list of available jpgs')
+    fname = os.path.join(outdir, 'single.csv')
+    with open(fname, 'r') as inf:
+        dta = inf.readlines()
 
-    nowdt = datetime.datetime.now()
     dtstamps = []
     urls = []
     imgs = []
     grps = []
     sts = []
-    for li in uadata:
-        se = float(li['Sec'])
-        ss = int(np.floor(se))
-        us = int((se -ss)*1000000)
-        if ss == 60:
-            ss = 59
-            us = 999999
+    mags = []
 
-        ds = datetime.datetime(li['Yr'], li['Mth'], li['Day'], li['Hr'], li['Min'], ss, microsecond=us)
-        dtstamps.append(np.round(ds.timestamp(),2))
-        ymd = '{:04d}{:02d}{:02d}'.format(li['Yr'], li['Mth'], li['Day'])
-        hms = '{:02d}{:02d}{:02d}'.format(li['Hr'], li['Min'], ss)
-        lc = li['Loc_Cam'].strip()
-        mth = '{:04d}{:02d}'.format(li['Yr'], li['Mth'])
-        # ufo cameras 
-        if lc[:3] != 'UK0': 
-            fname = 'M{:s}_{:s}_{:s}P.jpg'.format(ymd, hms, lc)
-            fldr = '/img/single/{:04d}/{:s}/{:s}'.format(li['Yr'], mth, fname)
-        else:
-            # RMS camera; remember to adjust for files after midnight being in prev days folder
-            _, _, _, _, site = camdets.GetSiteLocation(lc.encode('utf-8'))
-            dsadj = ds
-            if li['Hr'] < 12:
-                dsadj = ds + datetime.timedelta(days=-1)
-            yr2 = dsadj.strftime('%Y')
-            ym2 = dsadj.strftime('%Y%m')
-            ymd2 = dsadj.strftime('%Y%m%d')
-            hm = '{:02d}{:02d}'.format(li['Hr'], li['Min'])
-            srcloc = '/home/ec2-user/ukmon-shared/archive/{}/{}/{}/{}/'.format(site, yr2, ym2, ymd2)
-            fname = 'FF_' + lc + '_' + ymd + '_' + hm +'*.jpg'
-            # print(srcloc, fname)
-            flist = glob.glob1(srcloc, fname)
-            if len(flist) > 0:
-                fname = flist[0]
-                for fn in flist:
-                    # print(fn)
-                    splits = fn.split('_') 
-                    fymd = splits[2]
-                    fhms = splits[3]
-                    fms = splits[4]
-                    dtstr = '{}_{}.{}'.format(fymd, fhms, str(int(fms)*1000))
-                    fdate=datetime.datetime.strptime(dtstr, '%Y%m%d_%H%M%S.%f')
-                    if(ds - fdate).seconds < 10:
-                        fname = fn
-                        break
-                curr = os.path.join(srcloc, fname)
-                outf = 'img/single/{:s}/{:s}/{:s}'.format(yr2, ym2, fname) 
-                # avoid rechecking old data
-                if (nowdt - ds).days < 15:
-                    bucket = s3.Bucket(buck) 
-                    obj = list(bucket.objects.filter(Prefix=outf))
-                    if len(obj) == 0:
-                        s3.meta.client.upload_file(curr, buck, outf, ExtraArgs={"ContentType":"image/jpeg"})
-                        print(fname, outf)
-                    #else:
-                    #    print('not copying {}'.format(fname))
-                fldr = '/img/single/{:04d}/{:s}/{:s}'.format(li['Yr'], mth, fname)
-            else:
-                fldr = '/img/missing.png'
+    for li in dta:
+        spls = li.split('/')
+        fname = spls[4].strip()
+        #print(fname)
+        if fname[0] == 'M':  # UFO data
+            dtstr=fname[1:16]
+            camid=fname[17:-5]
+        else:  # RMS data
+            dtstr=fname[10:25]
+            camid = fname[3:9]
+        dtstamp = datetime.datetime.strptime(dtstr,'%Y%m%d_%H%M%S').timestamp()
 
-        
-        url = weburl + fldr
+        dtstamps.append(dtstamp)
+        url = weburl + '/' + li.strip()
         urls.append(url)
         imgs.append(url)
-        grps.append(li['Group'].strip())
-        sts.append(li['Loc_Cam'].strip())
+        sts.append(camid)
+
+        # add shower ID if available
+        evts = uadata[uadata['LocalTime']==dtstr]
+        evts = evts[evts['Group']!='spo']  # default is sporadic
+        evts = evts[evts['Group']!='J8_TBC']  # leave unknown as sporadics
+        if len(evts) > 0:
+            grps.append(evts.iloc[0].Group[3:])
+            mags.append(evts.iloc[0].Mag)
+        else:
+            grps.append('spo')
+            mags.append('99')
+            
+    # create array for source
+    print('add source column')
+    srcs=np.chararray(len(dtstamps), itemsize=8)
+    srcs[:]='2Single'
+    srcs=srcs.decode('utf-8')
 
     hdr='eventtime,source,shower,mag,loccam,url,img'
 
     # write out the converted data
-    outdata = np.column_stack((dtstamps, srcs, grps, uadata['Mag'], sts, urls, imgs))
+    # print(len(dtstamps), len(srcs), len(grps), len(mags), len(sts))
+
+    print('stack data and save')
+    outdata = np.column_stack((dtstamps, srcs, grps, mags, sts, urls, imgs))
     outdata = np.unique(outdata, axis=0)
     fmtstr = '%s,%s,%s,%s,%s,%s,%s'
     outfile = os.path.join(outdir, '{:s}-singleevents.csv'.format(year))
@@ -144,6 +106,7 @@ def LiveToSrchable(configfile, year, outdir):
     config=cfg.ConfigParser()
     config.read(configfile)
 
+    print('live to searchable')
     dtstamps = []
     urls = []
     imgs = []
@@ -203,6 +166,7 @@ def MatchToSrchable(configfile, year, outdir, indexes):
     config.read(configfile)
     weburl=config['config']['SITEURL']
     
+    print('match to searchable')
     path= os.path.join(config['config']['DATADIR'], 'orbits', year)
 
     dtstamps = []
