@@ -13,6 +13,7 @@ cp $TEMPLATES/header.html /tmp/statrep.html
 echo "<h3>Camera status report for the network.</h3> <p>This page provides a status report " >> /tmp/statrep.html
 echo "on the feed of daily data from cameras in the network. RMS cameras are reported red if more than three days " >> /tmp/statrep.html
 echo "late. UFO cameras are reported red if more than 14 days late." >> /tmp/statrep.html
+echo "</p><p>The exact upload time of each camera is available <a href="./stationlogins.txt">here</a>" >> /tmp/statrep.html
 echo "</p><p>Note that ukmonlive data is not included in this report.</p>" >> /tmp/statrep.html
 echo "<div id=\"camrep\" class=\"table-responsive\"></div>" >> /tmp/statrep.html
 echo "<script src=\"./camrep.js\"></script>" >> /tmp/statrep.html
