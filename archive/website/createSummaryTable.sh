@@ -14,7 +14,6 @@ source ~/venvs/${WMPL_ENV}/bin/activate
 python $PYLIB/reports/createSummaryTable.py $here/data/summarytable.js $yr
 
 logger -s -t createSummaryTable "create a coverage map from the kmls"
-source ~/venvs/${RMS_ENV}/bin/activate
 python $PYLIB/utils/makeCoverageMap.py $CONFIG/config.ini $ARCHDIR/kmls $here/data
 
 logger -s -t createSummaryTable "create year-to-date barchart"
