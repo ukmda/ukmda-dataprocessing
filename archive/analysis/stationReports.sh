@@ -35,11 +35,11 @@ echo "})" >> reportindex.js
 cp $TEMPLATES/statreportindex.html index.html
 
 logger -s -t stationReports "create list of connected stations"
-sudo grep publickey /var/log/secure | grep -v ec2-user | grep "$(date "+%b %d")" | awk '{printf("%s, %s\n", $3,$9)}' > /tmp/stationlogins.txt
+sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s, %s\n", $3,$9)}' > $DATADIR/stationlogins.txt
 
 source $WEBSITEKEY
 aws s3 sync $SRC/data/reports/$yr/stations/  $WEBSITEBUCKET/reports/$yr/stations/ --quiet
-aws s3 cp /tmp/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt
+aws s3 cp $DATADIR/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt
 
 logger -s -t stationReports "finished"
 
