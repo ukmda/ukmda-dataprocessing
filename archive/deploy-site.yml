@@ -22,6 +22,7 @@
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     tags: [dev,prod]
     with_items:
+    - {src: '{{srcdir}}/website/createLatestTable.sh', dest: '{{destdir}}/website/', mode: '754', backup: no }
     - {src: '{{srcdir}}/website/cameraStatusReport.sh', dest: '{{destdir}}/website/', mode: '744', backup: no }
     - {src: '{{srcdir}}/website/createStationList.sh', dest: '{{destdir}}/website/', mode: '754', backup: no }
     - {src: '{{srcdir}}/website/createOrbitIndex.sh', dest: '{{destdir}}/website/', mode: '754', backup: no }
