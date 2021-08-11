@@ -6,7 +6,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
 
-siteidx=$SRC/website/data/statopts.html
+siteidx=$DATADIR/statopts.html
 
 echo "<label for=\"statselect\">Station</label>" > $siteidx
 echo "<select class=\"bootstrap-select\" id=\"statselect\">" >> $siteidx
