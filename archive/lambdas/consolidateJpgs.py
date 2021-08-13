@@ -20,8 +20,19 @@ def copyJpgToArchive(s3bucket, s3object):
     if x == -1: 
         y = s3object.find('FF_')
         if y == -1:
-            # its not an interesting file
-            return 
+            y = s3object.find('_stack_')
+            if y == -1:
+                # its not an interesting file
+                return 
+            else:
+                # its the stack file
+                statid = os.path.basename(s3object)[0:6]
+                outf = 'latest/{:s}.jpg'.format(statid)
+                s3object = unquote_plus(s3object)
+                src = {'Bucket': s3bucket, 'Key': s3object}
+                print(s3object, outf)
+                s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src, ContentType="image/jpg", MetadataDirective='REPLACE')
+                return 
         else:
             # its an RMS file probably
             yr = s3object[y+10:y+14]
