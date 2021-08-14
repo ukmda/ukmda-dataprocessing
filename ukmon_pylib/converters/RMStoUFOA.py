@@ -6,52 +6,50 @@
 import sys
 import os
 import numpy as np
+import pandas
 import fileformats.RMSFormats as rmsf
-import configparser as cfg
 
 # for numpy.savetxt
 fmtstr='%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s'
 
 
 def matchShowerNames(UAdata, rmsshwr):
-    i=0
-    for i in range(len(UAdata)):
-        li = UAdata[i]
-        yr = li[8].astype('i4')
-        mo = li[9].astype('i4')
-        dy = li[10].astype('i4')
-        hr = li[11].astype('i4')
-        mi = li[12].astype('i4')
-        se = li[13].astype('f8')
-        matchcond = np.logical_and(rmsshwr['Yr'] == yr, np.logical_and(rmsshwr['Mth'] == mo, 
-            np.logical_and(rmsshwr['Day'] == dy, np.logical_and(rmsshwr['Hr'] ==hr, 
-            np.logical_and(rmsshwr['Min'] == mi, abs(rmsshwr['Sec'] - se) < 0.2)))))
-        match=rmsshwr[matchcond]
-        if len(match) > 0:
-            ids=match['Shwr']
-            #if len(match)>1:
-            #    print(len(match), 'matches')
-            #    print(ids)
-            if ids[0] == 'SPO':
-                UAdata[i][1]='spo'
-            else:
-                UAdata[i][1]='J8_'+ids[0]
+    # this is VERY slow, need a better approach than iteration
+    for i in range(len(rmsshwr)):
+        shwr = rmsshwr[i]['Shwr']
+        if shwr == 'SPO':
+            shwr = 'spo'
+        else:
+            shwr = 'J8_' + shwr
+        UAd=UAdata[(UAdata['Y(UT)']==rmsshwr[i]['Yr']) &
+            (UAdata['M(UT)']==rmsshwr[i]['Mth']) &
+            (UAdata['D(UT)']==rmsshwr[i]['Day']) &
+            (UAdata['H(UT)']==rmsshwr[i]['Hr']) &
+            (UAdata['M']==rmsshwr[i]['Min']) &
+            (UAdata['S']==rmsshwr[i]['Sec']) &
+            (UAdata['Loc_Cam']==rmsshwr[i]['ID'])]
+        if len(UAd) > 0:
+            UAdata.at[UAd.index[0],'Group'] = shwr
+            print('shower is', UAdata.at[UAd.index[0],'Group'])
+        else:
+            print('no match')
     return
 
 
-def RMStoUFOA(configfile, rmssingle, rmsassoc, rmsuafile, templatedir):
-    config=cfg.ConfigParser()
-    config.read(configfile)
+def RMStoUFOA(rmssingle, rmsassoc, rmsuafile, templatedir):
     
     # load the RMS data
+    print('loading the data')
     rmsdata = np.loadtxt(rmssingle, delimiter=',', skiprows=1, dtype=rmsf.R90CSV)
     rmsshwr = np.loadtxt(rmsassoc, delimiter=',', skiprows=1, dtype=rmsf.assocCSV)
+    print('uniquifying and sorting it')
     rmsdata = np.unique(rmsdata)
     rmsshwr = np.unique(rmsshwr)
     rmsdata.sort(order=['Yr', 'Mth', 'Day', 'Hr', 'Min', 'Sec', 'Loc_Cam'])
     rmsshwr.sort(order=['Yr', 'Mth', 'Day', 'Hr', 'Min', 'Sec', 'ID'])
 
     # create arrays of zeros to put in the unused columns
+    print('create array of zeros')
     zeros=np.zeros(len(rmsdata))
 
     # create array for shower names
@@ -69,31 +67,54 @@ def RMStoUFOA(configfile, rmssingle, rmsassoc, rmsuafile, templatedir):
     hms = (rmsdata['Hr']*10000+rmsdata['Min']*100+rmsdata['Sec'])
     hms =np.floor(hms).astype('i4').astype('U8')
     timestr=[]
+    print('creating the timestr array')
     for v in hms:
         timestr.append(v.zfill(6))
     localtime = np.core.defchararray.add(ymd, uscore)
     localtime = np.core.defchararray.add(localtime, timestr)
 
     # read the header in
+    print('reading the header')
     tmpl = os.path.join(templatedir, 'UA_header.txt')
     with open(tmpl, 'r') as f:
         hdr = f.readline()
 
+    hdrlst=hdr.strip().split(',')
     # write out the converted data
-    UAdata = np.column_stack((rmsdata['Ver'],shwr, localtime, rmsdata['Mag'], rmsdata['Dur'], zeros,
-        rmsdata['Loc_Cam'], rmsdata['TZ'], rmsdata['Yr'], rmsdata['Mth'], rmsdata['Day'],
-        rmsdata['Hr'], rmsdata['Min'], rmsdata['Sec'],
-        rmsdata['Dir1'], rmsdata['Alt1'], rmsdata['Ra1'],rmsdata['Dec1'],
-        rmsdata['Ra2'],rmsdata['Dec2'],
-        zeros, zeros, zeros, zeros, zeros, zeros, zeros, zeros, zeros, zeros, zeros, zeros,
-        zeros, zeros, zeros, zeros, zeros, zeros, zeros, zeros, zeros, zeros, zeros, zeros, 
-        zeros, zeros, zeros))
+    print('create output array')
+    UAdata = pandas.DataFrame({hdrlst[0]: rmsdata['Ver']})
+    UAdata[hdrlst[1]] = shwr
+    UAdata[hdrlst[2]] = localtime
+    UAdata[hdrlst[3]] = rmsdata['Mag']
+    UAdata[hdrlst[4]] = rmsdata['Dur']
+    UAdata[hdrlst[5]] = zeros # AV not available from RMS
+    UAdata[hdrlst[6]] = rmsdata['Loc_Cam']
+    UAdata[hdrlst[7]] = rmsdata['TZ']
+    UAdata[hdrlst[8]] = rmsdata['Yr']
+    UAdata[hdrlst[9]] = rmsdata['Mth']
+    UAdata[hdrlst[10]] = rmsdata['Day']
+    UAdata[hdrlst[11]] = rmsdata['Hr']
+    UAdata[hdrlst[12]] = rmsdata['Min']
+    UAdata[hdrlst[13]] = rmsdata['Sec']
+    UAdata[hdrlst[14]] = rmsdata['Dir1']
+    UAdata[hdrlst[15]] = rmsdata['Alt1']
+    UAdata[hdrlst[16]] = rmsdata['Ra1']
+    UAdata[hdrlst[17]] = rmsdata['Dec1']
+    UAdata[hdrlst[18]] = rmsdata['Ra2']
+    UAdata[hdrlst[19]] = rmsdata['Dec2']
+    # remaining values are UFO-specific and not used by RMS/WMPL
+    for i in range(19,47):
+        if hdrlst[i]==' ': 
+            hdrlst[i]='Fld'+str(i)
+        UAdata[hdrlst[i]] = zeros
 
     # fill in shower names
+    print('find matching shower names')
     matchShowerNames(UAdata, rmsshwr)
 
-    np.savetxt(rmsuafile, 
-        UAdata, fmt=fmtstr, header=hdr, comments='')
+    print('save back to file')
+    UAdata.to_csv(rmsuafile, index=False)
+
     return 0
 
 
@@ -102,5 +123,9 @@ if __name__ == '__main__':
         print('usage: python RMStoUFOA.py configfile RMS-singles RMS-assocs RMS-UA-singles templatedir')
         exit(1)
     else:
-        ret = RMStoUFOA(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+        rmssingles = sys.argv[1]
+        rmsassocs = sys.argv[2]
+        rmsuafile = sys.argv[3]
+        templatedir = sys.argv[4]
+        ret = RMStoUFOA(rmssingles, rmsassocs, rmsuafile, templatedir)
         exit(ret)

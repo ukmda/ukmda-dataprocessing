@@ -47,8 +47,7 @@ def UFOAToSrchable(configfile, year, outdir):
     mags = []
 
     for li in dta:
-        spls = li.split('/')
-        fname = spls[4].strip()
+        fname = os.path.basename(li).strip()
         #print(fname)
         if fname[0] == 'M':  # UFO data
             dtstr=fname[1:16]

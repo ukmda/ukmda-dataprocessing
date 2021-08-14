@@ -48,6 +48,12 @@ if compgen -G "$fpath/FTPdetect*.txt" > /dev/null ; then
         fi
     else
         logger -s -t addRMSShowerDets "skipping $ymd"
+        if compgen -G "$fpath/*assoc*.txt"  > /dev/null ; then
+            assocfile=$(compgen -G "$fpath/*assoc*.txt")
+            basassoc=$(basename $assocfile)
+            logger -s -t addRMSShowerDets "copying $basassoc"
+            cp "$assocfile" ${DATADIR}/consolidated/A
+        fi
     fi
 else
     logger -s -t addRMSShowerDets "ftpfile not found in $fpath"

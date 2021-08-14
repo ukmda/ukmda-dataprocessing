@@ -51,7 +51,7 @@ fi
 logger -s -t monthlyReports "merge in the RMS data"
 
 cp UFO-all-single.csv UKMON-all-single.csv
-python $PYLIB/converters/RMStoUFOA.py $SRC/config/config.ini RMS-all-single.csv RMS-assoc-single.csv RMS-UFOA-single.csv $SRC/analysis/templates/
+python $PYLIB/converters/RMStoUFOA.py RMS-all-single.csv RMS-assoc-single.csv RMS-UFOA-single.csv $SRC/analysis/templates/
 sed '1d' RMS-UFOA-single.csv | sed '1d' >> UKMON-all-single.csv
 cp RMS-UFOA-single.csv consolidated/R_${yr}-unified.csv
 cp UKMON-all-single.csv consolidated/UKMON-${yr}-single.csv
