@@ -65,13 +65,16 @@ def UFOAToSrchable(configfile, year, outdir):
 
         # add shower ID if available
         evts = uadata[uadata['LocalTime']==dtstr]
-        evts = evts[evts['Group']!='spo']  # default is sporadic
+        #evts = evts[evts['Group']!='spo']  # default is sporadic
         evts = evts[evts['Group']!='J8_TBC']  # leave unknown as sporadics
         if len(evts) > 0:
-            grps.append(evts.iloc[0].Group[3:])
+            if evts.iloc[0].Group != 'spo':
+                grps.append(evts.iloc[0].Group[3:])
+            else:
+                grps.append('spo')
             mags.append(evts.iloc[0].Mag)
         else:
-            grps.append('spo')
+            grps.append('UNK')
             mags.append('99')
             
     # create array for source

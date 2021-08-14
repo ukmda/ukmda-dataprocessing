@@ -9,9 +9,6 @@ import numpy as np
 import pandas
 import fileformats.RMSFormats as rmsf
 
-# for numpy.savetxt
-fmtstr='%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s'
-
 
 def matchShowerNames(UAdata, rmsshwr):
     # this is VERY slow, need a better approach than iteration
@@ -30,9 +27,9 @@ def matchShowerNames(UAdata, rmsshwr):
             (UAdata['Loc_Cam']==rmsshwr[i]['ID'])]
         if len(UAd) > 0:
             UAdata.at[UAd.index[0],'Group'] = shwr
-            print('shower is', UAdata.at[UAd.index[0],'Group'])
-        else:
-            print('no match')
+            #print('shower is', UAdata.at[UAd.index[0],'Group'])
+        #else:
+            #print('no match')
     return
 
 
@@ -64,6 +61,7 @@ def RMStoUFOA(rmssingle, rmsassoc, rmsuafile, templatedir):
 
     # create a localtime in the required format
     ymd = (rmsdata['Yr']*10000+rmsdata['Mth']*100+rmsdata['Day']).astype('U8')
+
     hms = (rmsdata['Hr']*10000+rmsdata['Min']*100+rmsdata['Sec'])
     hms =np.floor(hms).astype('i4').astype('U8')
     timestr=[]
@@ -111,6 +109,12 @@ def RMStoUFOA(rmssingle, rmsassoc, rmsuafile, templatedir):
     # fill in shower names
     print('find matching shower names')
     matchShowerNames(UAdata, rmsshwr)
+
+    # deal with cases where secs > 59.99 and got rounded up to 60
+    # bit of a hack, needs fixed properly #FIXME
+    u=UAdata[UAdata['S']>59.99]
+    lt = UAdata.at[u.index[0],'LocalTime']
+    UAdata.at[u.index[0],'LocalTime'] = lt[:-2] + '59'
 
     print('save back to file')
     UAdata.to_csv(rmsuafile, index=False)

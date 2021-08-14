@@ -5,7 +5,7 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 
-source $HOME/venvs/${RMS_ENV}/bin/activate
+source $HOME/venvs/${WMPL_ENV}/bin/activate
 export PYTHONPATH=$RMS_LOC:$wmpl_loc:$PYLIB
 
 yr=$2
@@ -20,10 +20,13 @@ aws s3 sync s3://ukmon-live/ ${DATADIR}/ukmonlive/ --exclude "*" --include "*.cs
 
 cd ${DATADIR}
 logger -s -t monthlyReports "Getting single detections and associations for $yr"
+cp UFO-all-single.csv prv-UFO-all-single.csv
 cp consolidated/M_${yr}-unified.csv UFO-all-single.csv
+cp RMS-all-single.csv prv-RMS-all-single.csv
 cp consolidated/P_${yr}-unified.csv RMS-all-single.csv
 
 logger -s -t monthlyReports "getting RMS single-station shower associations for $yr"
+cp RMS-assoc-single.csv prv-RMS-assoc-single.csv
 echo "ID,Y,M,D,h,m,s,Shwr" > RMS-assoc-single.csv
 cat ${DATADIR}/consolidated/A/??????_${yr}* >> RMS-assoc-single.csv
 
@@ -50,6 +53,7 @@ else
 fi 
 logger -s -t monthlyReports "merge in the RMS data"
 
+cp UKMON-all-single.csv prv-UKMON-all-single.csv
 cp UFO-all-single.csv UKMON-all-single.csv
 python $PYLIB/converters/RMStoUFOA.py RMS-all-single.csv RMS-assoc-single.csv RMS-UFOA-single.csv $SRC/analysis/templates/
 sed '1d' RMS-UFOA-single.csv | sed '1d' >> UKMON-all-single.csv

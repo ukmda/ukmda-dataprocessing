@@ -100,8 +100,6 @@ aws s3 sync $MATCHDIR/RMSCorrelate/plots $WEBSITEBUCKET/reports/plots --quiet
 logger -s -t findAllMatches "backup the solved trajectory data"
 
 lastjson=$(ls -1tr $SRC/bkp/| grep -v ".gz" | tail -1)
-#thisjson=$MATCHDIR/RMSCorrelate/processed_trajectories.json
-#cp $thisjson $SRC/bkp/processed_trajectories.json.$(date +%Y%m%d)
 thisjson=$MATCHDIR/RMSCorrelate/processed_trajectories.json.bigserver
 cp $thisjson $SRC/bkp/processed_trajectories.json.$(date +%Y%m%d).bigserver
 gzip $SRC/bkp/$lastjson
