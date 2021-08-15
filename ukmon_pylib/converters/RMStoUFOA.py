@@ -23,13 +23,13 @@ def matchShowerNames(UAdata, rmsshwr):
             (UAdata['D(UT)']==rmsshwr[i]['Day']) &
             (UAdata['H(UT)']==rmsshwr[i]['Hr']) &
             (UAdata['M']==rmsshwr[i]['Min']) &
-            (UAdata['S']==rmsshwr[i]['Sec']) &
+            (abs(UAdata['S']-rmsshwr[i]['Sec']) < 0.01) &
             (UAdata['Loc_Cam']==rmsshwr[i]['ID'])]
         if len(UAd) > 0:
             UAdata.at[UAd.index[0],'Group'] = shwr
-            #print('shower is', UAdata.at[UAd.index[0],'Group'])
-        #else:
-            #print('no match')
+            print('shower is', UAdata.at[UAd.index[0],'Group'])
+        else:
+            print('no match')
     return
 
 
@@ -113,8 +113,9 @@ def RMStoUFOA(rmssingle, rmsassoc, rmsuafile, templatedir):
     # deal with cases where secs > 59.99 and got rounded up to 60
     # bit of a hack, needs fixed properly #FIXME
     u=UAdata[UAdata['S']>59.99]
-    lt = UAdata.at[u.index[0],'LocalTime']
-    UAdata.at[u.index[0],'LocalTime'] = lt[:-2] + '59'
+    if len(u)>0:
+        lt = UAdata.at[u.index[0],'LocalTime']
+        UAdata.at[u.index[0],'LocalTime'] = lt[:-2] + '59'
 
     print('save back to file')
     UAdata.to_csv(rmsuafile, index=False)
@@ -131,5 +132,6 @@ if __name__ == '__main__':
         rmsassocs = sys.argv[2]
         rmsuafile = sys.argv[3]
         templatedir = sys.argv[4]
+        
         ret = RMStoUFOA(rmssingles, rmsassocs, rmsuafile, templatedir)
         exit(ret)

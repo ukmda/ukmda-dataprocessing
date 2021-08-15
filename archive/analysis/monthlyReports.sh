@@ -16,49 +16,49 @@ logger -s -t monthlyReports "getting latest combined files"
 
 source $UKMONSHAREDKEY
 aws s3 sync s3://ukmon-shared/consolidated/ ${DATADIR}/consolidated --exclude 'consolidated/temp/*' --quiet
-aws s3 sync s3://ukmon-live/ ${DATADIR}/ukmonlive/ --exclude "*" --include "*.csv" --quiet
+aws s3 cp s3://ukmon-live/ ${DATADIR}/ukmonlive/ --exclude "*" --include "*.csv" --recursive --quiet
 
 cd ${DATADIR}
 logger -s -t monthlyReports "Getting single detections and associations for $yr"
+
+# save previous data, then extract the changes 
 cp UFO-all-single.csv prv-UFO-all-single.csv
-cp consolidated/M_${yr}-unified.csv UFO-all-single.csv
 cp RMS-all-single.csv prv-RMS-all-single.csv
+cp RMS-assoc-single.csv prv-RMS-assoc-single.csv
+cp RMS-UFOA-single.csv prv-RMS-UFOA-single.csv
+cp UKMON-all-single.csv prv-UKMON-all-single.csv
+
+cp consolidated/M_${yr}-unified.csv UFO-all-single.csv
+comm -1 -3 prv-UFO-all-single.csv UFO-all-single.csv > new-UFO-all-single.csv
+
 cp consolidated/P_${yr}-unified.csv RMS-all-single.csv
+comm -1 -3 prv-RMS-all-single.csv RMS-all-single.csv > new-RMS-all-single.csv
 
 logger -s -t monthlyReports "getting RMS single-station shower associations for $yr"
-cp RMS-assoc-single.csv prv-RMS-assoc-single.csv
 echo "ID,Y,M,D,h,m,s,Shwr" > RMS-assoc-single.csv
 cat ${DATADIR}/consolidated/A/??????_${yr}* >> RMS-assoc-single.csv
+comm -1 -3 prv-RMS-assoc-single.csv RMS-assoc-single.csv > new-RMS-assoc-single.csv
+
 
 logger -s -t monthlyReports "getting matched detections for $yr"
 cp $here/templates/UO_header.txt ${DATADIR}/matched/matches-$yr.csv
 cat ${DATADIR}/orbits/$yr/csv/$yr*.csv >> ${DATADIR}/matched/matches-$yr.csv
 
-if [ "$shwr" == "QUA" ] ; then
-    logger -s -t monthlyReports "including previous year to catch early Quadrantids"
-    sed '1d' consolidated/M_${lastyr}-unified.csv >> UFO-all-single.csv
-    sed '1d' consolidated/P_${lastyr}-unified.csv >> RMS-all-single.csv
+echo "" >> UFO-all-single.csv
+echo "" >> RMS-all-single.csv
 
-    logger -s -t monthlyReports "including prev year RMS single-station shower associations"
-    cat ${DATADIR}/consolidated/A/??????_${lastyr}* >> RMS-assoc-single.csv
-
-    logger -s -t monthlyReports "getting matched detections for $lastyr"
-    cp $here/templates/UO_header.txt ${DATADIR}/matched/matches-$lastyr.csv
-    cat ${DATADIR}/orbits/$lastyr/csv/$lastyr*.csv >> ${DATADIR}/matched/matches-$lastyr.csv
-
-else
-    echo "" >> UFO-all-single.csv
-    echo "" >> RMS-all-single.csv
-    # not needed for these data echo "" >> RMS-assoc-single.csv
-fi 
 logger -s -t monthlyReports "merge in the RMS data"
+l1=$(wc -l new-RMS-all-single.csv | awk '{print $1}')
+l2=$(wc -l new-RMS-assoc-single.csv | awk '{print $1}')
 
-cp UKMON-all-single.csv prv-UKMON-all-single.csv
-cp UFO-all-single.csv UKMON-all-single.csv
-python $PYLIB/converters/RMStoUFOA.py RMS-all-single.csv RMS-assoc-single.csv RMS-UFOA-single.csv $SRC/analysis/templates/
-sed '1d' RMS-UFOA-single.csv | sed '1d' >> UKMON-all-single.csv
-cp RMS-UFOA-single.csv consolidated/R_${yr}-unified.csv
-cp UKMON-all-single.csv consolidated/UKMON-${yr}-single.csv
+if [[ l1 -gt 0  && l2 -gt 0 ]] ; then
+    python $PYLIB/converters/RMStoUFOA.py new-RMS-all-single.csv new-RMS-assoc-single.csv new-RMS-UFOA-single.csv $SRC/analysis/templates/
+    sed '1d' new-RMS-UFOA-single.csv >> UKMON-all-single.csv
+    cp UKMON-all-single.csv consolidated/UKMON-${yr}-single.csv
+
+    sed '1d' new-RMS-UFOA-single.csv >> RMS-UFOA-single.csv
+    cp RMS-UFOA-single.csv consolidated/R_${yr}-unified.csv
+fi
 
 logger -s -t monthlyReports "got relevant data, copying to target"
 
@@ -69,14 +69,14 @@ else
     cp ${DATADIR}/matched/pre2020/matches-$yr.csv ${DATADIR}/UKMON-all-matches.csv
 fi 
 
-if [ "$shwr" == "QUA" ] ; then
-    lc=$(wc -l ${DATADIR}/matched/matches-$lastyr.csv | awk '{print $1}')
-    if [ $lc -gt 1 ] ; then
-        sed '1d' ${DATADIR}/matched/matches-$lastyr.csv >> ${DATADIR}/UKMON-all-matches.csv
-    else
-        sed '1d' ${DATADIR}/matched/pre2020/matches-$yr.csv >> ${DATADIR}/UKMON-all-matches.csv
-    fi 
-fi 
+#if [ "$shwr" == "QUA" ] ; then
+#    lc=$(wc -l ${DATADIR}/matched/matches-$lastyr.csv | awk '{print $1}')
+#    if [ $lc -gt 1 ] ; then
+#        sed '1d' ${DATADIR}/matched/matches-$lastyr.csv >> ${DATADIR}/UKMON-all-matches.csv
+#    else
+#        sed '1d' ${DATADIR}/matched/pre2020/matches-$yr.csv >> ${DATADIR}/UKMON-all-matches.csv
+#    fi 
+#fi 
 
 cd $here
 logger -s -t monthlyReports "running $shwr report for $yr"
