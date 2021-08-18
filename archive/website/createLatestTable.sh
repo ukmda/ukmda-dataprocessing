@@ -15,12 +15,17 @@ echo "var header = table.createTHead();" >> reportindex.js
 echo "header.className = \"h4\";" >> reportindex.js 
 
 source $WEBSITEKEY
-aws s3 ls $WEBSITEBUCKET/latest/ | grep jpg | awk '{print $4}' | while read i
+aws s3 ls $WEBSITEBUCKET/latest/ | grep jpg | while read i
 do
-    fname=$(basename $i .jpg)
+    fn=$(echo $i | awk '{print $4}')
+    dt=$(echo $i | awk '{print $1}')
+    tm=$(echo $i | awk '{print $2}')
+    fname=$(basename $fn .jpg)
+    loc=$(grep $fname ~/ukmon-shared/admin/stationdetails.csv  | awk -F, '{print $2}')
     echo "var row = table.insertRow(-1);" >> reportindex.js
     echo "var cell = row.insertCell(0);" >> reportindex.js
-    echo "cell.innerHTML = \"$fname\";" >> reportindex.js
+    cellstr="$fname<br>$loc<br>$dt<br>$tm"
+    echo "cell.innerHTML = \"$cellstr\";" >> reportindex.js
     echo "var cell = row.insertCell(1);" >> reportindex.js
     echo "cell.innerHTML = \"<img src=./$fname.jpg width=100%>\";" >> reportindex.js
     echo "var cell = row.insertCell(2);" >> reportindex.js
