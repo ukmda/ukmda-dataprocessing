@@ -68,8 +68,8 @@ def UFOAToSrchable(configfile, year, outdir):
         #evts = evts[evts['Group']!='spo']  # default is sporadic
         evts = evts[evts['Group']!='J8_TBC']  # leave unknown as sporadics
         if len(evts) > 0:
-            if evts.iloc[0].Group != 'spo':
-                grps.append(evts.iloc[0].Group[3:])
+            if evts.iloc[0].Group.strip() != 'spo':
+                grps.append(evts.iloc[0].Group.strip()[3:])
             else:
                 grps.append('spo')
             mags.append(evts.iloc[0].Mag)
