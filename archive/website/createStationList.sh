@@ -6,15 +6,24 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
 
-siteidx=$SRC/website/data/statopts.html
+siteidx=$DATADIR/statopts.html
 
 echo "<label for=\"statselect\">Station</label>" > $siteidx
 echo "<select class=\"bootstrap-select\" id=\"statselect\">" >> $siteidx
 echo "<option value=\"1\" selected=\"selected\">All</option>" >> $siteidx
 
 rowid=2
-export PYTHONPATH=$PYLIB
-camlist=$(PYTHONPATH=$PYLIB python -c "from fileformats import CameraDetails as cd; cinfo=cd.SiteInfo();ci=cinfo.getAllCamsStr();print(ci)")
+
+source ~/venvs/$WMPL_ENV/bin/activate
+export PYTHONPATH=$PYLIB:$wmpl_loc
+python << EOD >/tmp/camlist.txt
+from fileformats import CameraDetails as cd
+cinfo=cd.SiteInfo()
+ci=cinfo.getAllCamsStr()
+print(ci)
+EOD
+camlist=$(cat /tmp/camlist.txt)
+rm -f /tmp/camlist.txt  
 
 for cam in $camlist
 do

@@ -20,6 +20,8 @@ def copyFiles(s3bucket, s3object, target):
     bits = ftpname.split('_')
     mus = bits[4][:6]
     outdir = bits[1] + '_' + bits[2] + '_' + bits[3] + '_' + mus
+    if bits[-1] == 'manual.txt':
+        outdir = outdir + '_man'
     outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/' + ftpname
     
     s3object = unquote_plus(s3object)

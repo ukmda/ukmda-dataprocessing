@@ -33,14 +33,16 @@ class DetectedCsv:
     def selectByMag(self, minMag=100, maxMag=-50):
         """ get data by magnitude
         """
-        tmpa1 = self.rawdata[self.rawdata['Mag'] >= minMag]
-        tmpa2 = tmpa1[tmpa1['Mag'] <= maxMag]
+        tmpa1 = self.rawdata[self.rawdata['Mag'] <= minMag]
+        tmpa2 = tmpa1[tmpa1['Mag'] >= maxMag]
+        tmpa2 = tmpa2[tmpa2['AV(deg/s)']!=0]  # exclude events with no angular velocity
         return tmpa2
 
     def selectByStation(self, stationid):
         """ get data by station ID
         """
-        return self.rawdata[self.rawdata['Loc_Cam'] == stationid]
+        tmpa2 = self.rawdata[self.rawdata['Loc_Cam'] == stationid]
+        return tmpa2
 
     def selectByShwr(self, shwr):
         """ Get data by shower ID eg LYR or spo 
@@ -73,11 +75,11 @@ class DetectedCsv:
         sDate = eDate + datetime.timedelta(days = -daysreq)
         fltrset = self.selectByDateRange(sDate, eDate)
         outarr = []
-        cam = fltrset['Loc_Cam']
-        ts = fltrset['timestamp']
-        if len(cam) > 0:
-            for i in range(0,len(cam)):
-                outarr.append((cam[i],datetime.datetime.fromtimestamp(ts[i].round(0)).strftime('%Y-%m-%dT%H:%M:%S')))
+        cams = fltrset['Loc_Cam']
+        tss = fltrset['timestamp']
+        if len(cams) > 0:
+            for cam, ts in zip(cams,tss):
+                outarr.append((cam, datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%dT%H:%M:%S')))
 
             # make the data unique, sort it by timestamp, then reverse the sort order
             outarr = numpy.unique(outarr, axis=0)

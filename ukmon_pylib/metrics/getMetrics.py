@@ -98,28 +98,29 @@ def interpretCostData(srcdata, mthdate, abbrv, fldr):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print('usage python getMetrics.py outdir regionId {daysback}')
+        print('usage python getMetrics.py outdir regionId {month}')
         print('note: you must set the AWS credentials before invoking the code')
         exit(0)
     outdir = sys.argv[1]
     regionid = sys.argv[2]
     if len(sys.argv)> 3:
-        doff = int(sys.argv[3])
+        mthwanted = int(sys.argv[3])
+        curdt = datetime.date.today()
+        dtwanted = curdt.replace(month=mthwanted).replace(day=1)
+        if mthwanted == 12:
+            dtwanted = dtwanted.replace(year = curdt.year-1).replace(month=12)
+            mthwanted = 0
+        endwanted = dtwanted.replace(year=curdt.year).replace(month=mthwanted+1) + datetime.timedelta(days=-1)
+        
     else:
-        doff = 1
-    dtwanted = datetime.date.today() - datetime.timedelta(days=doff)
+        endwanted = datetime.date.today() - datetime.timedelta(days=1)
+        dtwanted = endwanted.replace(day=1)
 
     stscli = boto3.client("sts")
     accountid = stscli.get_caller_identity()["Account"]
     fldr = os.path.join(outdir, '{}'.format(accountid), regionid)
 
     os.makedirs(fldr, exist_ok=True)
-
-    # dtwanted=datetime.date.today()
-    dtwanted = dtwanted.replace(day=1)
-
-    #endwanted = datetime.datetime(2021,6,1)
-    endwanted = None
 
     myconfig = Config(region_name=regionid)
     ceclient = boto3.client('ce', config=myconfig)
