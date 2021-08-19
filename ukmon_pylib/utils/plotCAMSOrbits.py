@@ -30,8 +30,8 @@ def processFile(inf, outdir):
 
     # plot and save the orbits
     plotOrbits(orb_elements, evttime, color_scheme='light')
-    plt.show()
     plt.savefig(os.path.join(outdir, evttime.strftime('%Y%m%d')+'.png'))
+    plt.show()
 
     return 
 
