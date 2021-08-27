@@ -9,7 +9,7 @@ source $here/../config/config.ini >/dev/null 2>&1
 
 source ~/venvs/$WMPL_ENV/bin/activate
 export PYTHONPATH=$PYLIB
-cp $TEMPLATES/header.html $DATADIR/reports/reports/statrep.html
+cp $TEMPLATES/header.html $DATADIR/reports/statrep.html
 echo "<h3>Camera status report for the network.</h3> <p>This page provides a status report " >> $DATADIR/reports/statrep.html
 echo "on the feed of daily data from cameras in the network. RMS cameras are reported red if more than three days " >> $DATADIR/reports/statrep.html
 echo "late. UFO cameras are reported red if more than 14 days late." >> $DATADIR/reports/statrep.html
@@ -24,3 +24,5 @@ python -m reports.cameraStatusReport $MATCHDIR/RMSCorrelate > $DATADIR/reports/c
 source $WEBSITEKEY
 aws s3 cp $DATADIR/reports/statrep.html $WEBSITEBUCKET/reports/ --quiet
 aws s3 cp $DATADIR/reports/camrep.js $WEBSITEBUCKET/reports/ --quiet
+
+$here/createLatestTable.sh
