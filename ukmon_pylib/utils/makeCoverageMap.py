@@ -36,6 +36,10 @@ def decodeApiKey(enckey):
 if __name__ == '__main__':
     kmlsource = sys.argv[2]
     outdir = sys.argv[3]
+    if len(sys.argv) > 4:
+        showMarker=True
+    else:
+        showMarker=False
 
     config = configparser.ConfigParser()
     config.read(sys.argv[1])
@@ -50,7 +54,10 @@ if __name__ == '__main__':
     i=0
     for col, fn in zip(cols,flist):
         cn, lats, lngs = munchKML(os.path.join(kmlsource,fn))
+        print(cn, fn)
         gmap.polygon(lats, lngs, color=col, edge_width=1)
+        if showMarker is True:
+            gmap.text((max(lats)+min(lats))/2, (max(lngs)+min(lngs))/2, cn)
 
     # Draw the map to an HTML file:
     gmap.draw(os.path.join(outdir, 'coverage.html'))
