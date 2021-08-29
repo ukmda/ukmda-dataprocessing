@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>UK Meteor Network Archive Station Maps</title>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Meteor Observation Data">
+    <meta name="author" content="Mark McIntyre">
+
+    <meta name="keywords" content="meteors,astronomy,space" />
+    <!-- Bootstrap Core CSS -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="/css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="/css/dragontail.css" rel="stylesheet">
+
+    <!-- Timeline CSS -->
+    <link href="/css/plugins/timeline.css" rel="stylesheet">
+
+    <!-- Morris Charts CSS -->
+    <link href="/css/plugins/morris.css" rel="stylesheet">
+
+    <style>
+        html,
+        body {
+            height: 510px;
+            padding: 0;
+            margin: 0;
+        }
+
+        #map {
+            height: 500px;
+            width: 500px;
+            overflow: hidden;
+            float: left;
+            border: thin solid #333;
+        }
+
+        #capture {
+            height: 500px;
+            width: 200px;
+            overflow: hidden;
+            float: left;
+            background-color: #ECECFB;
+            border: thin solid #333;
+            border-left: none;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- jQuery -->
+    <script src="/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="/js/bootstrap.min.js"></script>
+
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="/js/plugins/metisMenu/metisMenu.min.js"></script>
+
+    <!-- Morris Charts JavaScript -->
+    <script src="/js/plugins/morris/raphael.min.js"></script>
+    <script src="/js/plugins/morris/morris.min.js"></script>
+
+    <script src="/js/constellation.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="/js/sb-admin-2.js"></script>
+
+    <div id="nav-placeholder"></div>
+    <script>
+        $(function () {
+            $("#nav-placeholder").load("/templates/navbar.html");
+        });
+    </script>
+
+    <div class="container">
+        <form id="selectInterval">
+            <div id="stationsplaceholder"></div>
+            <script>
+                $(function () {
+                    $("#stationsplaceholder").load("/search/statopts.html");
+                });
+            </script>
+            <button type="submit">Search</button>
+        </form>
+        <div id="map"></div>
+        <div id="capture"></div>
+        <script>
+            var map;
+            var src1 = 'https://archive.ukmeteornetwork.co.uk/img/kmls/UK0006-100km.kml';
+            var src2 = 'https://archive.ukmeteornetwork.co.uk/img/kmls/UK000F-100km.kml';
+            var src3 = 'https://archive.ukmeteornetwork.co.uk/img/kmls/UK001L-100km.kml';
+            var src4 = 'https://archive.ukmeteornetwork.co.uk/img/kmls/UK002F-100km.kml';
+
+            function initMap() {
+                map = new google.maps.Map(document.getElementById('map'), {
+                    center: new google.maps.LatLng(54.0, 1.5),
+                    zoom: 2,
+                    mapTypeId: 'terrain'
+                });
+
+                var kmlLayer = new google.maps.KmlLayer(src1, {
+                    suppressInfoWindows: true,
+                    preserveViewport: false,
+                    map: map
+                });
+                kmlLayer.addListener('click', function (event) {
+                    var content = event.featureData.infoWindowHtml;
+                    var testimonial = document.getElementById('capture');
+                    testimonial.innerHTML = content;
+                });
+                var kmlLayer2 = new google.maps.KmlLayer(src2, {
+                    suppressInfoWindows: true,
+                    preserveViewport: false,
+                    map: map
+                });
+                kmlLayer2.addListener('click', function (event) {
+                    var content = event.featureData.infoWindowHtml;
+                    var testimonial = document.getElementById('capture');
+                    testimonial.innerHTML = content;
+                });
+                var kmlLayer3 = new google.maps.KmlLayer(src3, {
+                    suppressInfoWindows: true,
+                    preserveViewport: false,
+                    map: map
+                });
+                kmlLayer3.addListener('click', function (event) {
+                    var content = event.featureData.infoWindowHtml;
+                    var testimonial = document.getElementById('capture');
+                    testimonial.innerHTML = content;
+                });
+                var kmlLayer4 = new google.maps.KmlLayer(src4, {
+                    suppressInfoWindows: true,
+                    preserveViewport: false,
+                    map: map
+                });
+                kmlLayer4.addListener('click', function (event) {
+                    var content = event.featureData.infoWindowHtml;
+                    var testimonial = document.getElementById('capture');
+                    testimonial.innerHTML = content;
+                });
+            }
+        </script>
+        <script async
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZlZmJY76LmDZ2Qy7AcmM84MavYoqJIQk&callback=initMap">
+        </script>
+    </div>
+</body>
+
+</html>
