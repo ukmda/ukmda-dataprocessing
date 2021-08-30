@@ -143,6 +143,11 @@ class SiteInfo:
                 cname = cam['CamID'].decode('utf-8')
                 if ' ' not in cname:
                     tmpcams = tmpcams + cname + ' ' 
+            tcc = tmpcams.split()
+            tcc.sort()
+            tmpcams = ''
+            for cname in tcc:
+                tmpcams = tmpcams + cname + ' ' 
             return tmpcams.strip()
 
 
