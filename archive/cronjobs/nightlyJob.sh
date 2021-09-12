@@ -73,6 +73,9 @@ ${SRC}/website/cameraStatusReport.sh
 logger -s -t nightlyJob "create event log for other networks"
 python $SRC/ukmon_pylib/reports/createExchangeFiles.py
 
+logger -s -t nightlyJob "Create density and velocity plots by solar longitude"
+$SRC/analysis/createDensityPlots.sh
+
 logger -s -t nightlyJob "clean up old logs"
 find $SRC/logs -name "nightly*" -mtime +7 -exec rm -f {} \;
 

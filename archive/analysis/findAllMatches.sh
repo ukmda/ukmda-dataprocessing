@@ -89,14 +89,6 @@ matches=$(wc -l $MATCHDIR/RMSCorrelate/dailyreports/$dailyrep | awk '{print $1}'
 rtim=$(grep "Total run time" $matchlog | awk '{print $4}')
 echo $dailyrep $evts $trajs $matches $rtim >>  $MATCHDIR/RMSCorrelate/dailyreports/stats.txt
 
-logger -s -t findAllMatches "Create density and velocity plots by solar longitude"
-export PYTHONPATH=$wmpl_loc
-python -m wmpl.Trajectory.AggregateAndPlot $MATCHDIR/RMSCorrelate/ -p
-mv -f $MATCHDIR/RMSCorrelate/*.png $MATCHDIR/RMSCorrelate/plots
-source $WEBSITEKEY
-aws s3 sync $MATCHDIR/RMSCorrelate/plots $WEBSITEBUCKET/reports/plots --quiet
-
-
 logger -s -t findAllMatches "backup the solved trajectory data"
 
 lastjson=$(ls -1tr $SRC/bkp/| grep -v ".gz" | tail -1)
