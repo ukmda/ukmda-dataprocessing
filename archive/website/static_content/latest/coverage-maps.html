@@ -83,30 +83,66 @@
     </script>
 
     <div class="container">
-        <form id="selectInterval">
+        <form id="selectStation" onsubmit="return formSubmit()">
             <div id="stationsplaceholder"></div>
+            <label for="statselect">Station</label>
+            <select class="bootstrap-select" id="statselect" name="statselect">
             <script>
                 $(function () {
-                    $("#stationsplaceholder").load("/search/statopts.html");
+                    $("#statselect").load("/search/activestatopts.html");
                 });
             </script>
-            <button type="submit">Search</button>
+            </select>            
+            <label for="heightsel">Height</label>
+            <select class="bootstrap-select" id="heightsel" name="heightsel">
+                <option value="25km" selected="selected">25km</option>
+                <option value="70km">70km</option>
+                <option value="100km">100km</option>
+            </select>
+            <button type="submit">Show</button>
         </form>
         <div id="map"></div>
         <div id="capture"></div>
         <script>
-            var map;
-            var src1 = 'https://archive.ukmeteornetwork.co.uk/img/kmls/UK0006-100km.kml';
-            var src2 = 'https://archive.ukmeteornetwork.co.uk/img/kmls/UK000F-100km.kml';
-            var src3 = 'https://archive.ukmeteornetwork.co.uk/img/kmls/UK001L-100km.kml';
-            var src4 = 'https://archive.ukmeteornetwork.co.uk/img/kmls/UK002F-100km.kml';
+            var strstat;
+            var height;
+            function formSubmit() {
+                console.log('in formSubmit')
+                var e = document.getElementById('statselect');
+                strstat = e.options[e.selectedIndex].text;
+                var e = document.getElementById('heightsel');
+                height = e.options[e.selectedIndex].text;
+                console.log('station is', strstat, 'height ', height)
+                initMap();
+                return false;
+            }
+            function getParameterByName(name, url) {
+                if (!url) url = window.location.href;
+                name = name.replace(/[\[\]]/g, '\\$&');
+                var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                    results = regex.exec(url);
+                if (!results) return null;
+                if (!results[2]) return '';
+                return decodeURIComponent(results[2].replace(/\+/g, ' '));
+            }
 
             function initMap() {
+                var sn = getParameterByName('statselect');
+                var map;
                 map = new google.maps.Map(document.getElementById('map'), {
                     center: new google.maps.LatLng(54.0, 1.5),
                     zoom: 2,
                     mapTypeId: 'terrain'
                 });
+                //var strstat;
+                //if (sn != 1 ) {
+                //    var e = document.getElementById('statselect');
+                //    console.log('selectedIndex data ', e.options);
+                //    //strstat = e.options[e.selectedIndex].text;
+                //    strstat = e.options[sn-1].value;
+                //}
+                var src1 = 'https://archive.ukmeteornetwork.co.uk/img/kmls/' + strstat + '-' + height + '.kml';
+                console.log(src1);
 
                 var kmlLayer = new google.maps.KmlLayer(src1, {
                     suppressInfoWindows: true,
@@ -118,6 +154,7 @@
                     var testimonial = document.getElementById('capture');
                     testimonial.innerHTML = content;
                 });
+                /*
                 var kmlLayer2 = new google.maps.KmlLayer(src2, {
                     suppressInfoWindows: true,
                     preserveViewport: false,
@@ -148,6 +185,7 @@
                     var testimonial = document.getElementById('capture');
                     testimonial.innerHTML = content;
                 });
+                */
             }
         </script>
         <script async

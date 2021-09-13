@@ -39,9 +39,7 @@ aws s3 cp $siteidx $WEBSITEBUCKET/search/ --quiet
 # active-only
 siteidx=$DATADIR/activestatopts.html
 
-echo "<label for=\"statselect\">Station</label>" > $siteidx
-echo "<select class=\"bootstrap-select\" id=\"statselect\">" >> $siteidx
-echo "<option value=\"1\" selected=\"selected\">All</option>" >> $siteidx
+echo "<option value=\"1\" selected=\"selected\">All</option>" > $siteidx
 
 rowid=2
 
