@@ -44,6 +44,9 @@ startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
 enddt=$(date --date="-$MATCHEND days" '+%Y%m%d-080000')
 logger -s -t findAllMatches "solving for ${startdt} to ${enddt}"
 
+thisjson=$MATCHDIR/RMSCorrelate/processed_trajectories.json.bigserver
+cp $thisjson $MATCHDIR/RMSCorrelate/prev_processed_trajectories.json.bigserver
+
 $SRC/analysis/runMatching.sh
 
 #python -m wmpl.Trajectory.CorrelateRMS $MATCHDIR/RMSCorrelate/ -l -r "($startdt,$enddt)"
@@ -80,7 +83,7 @@ do
 done
 
 logger -s -t findAllMatches "gather some stats"
-matchlog=${SRC}/logs/matches/matches-$(date +%Y%m%d-07)*.log
+matchlog=$( ls -1 ${SRC}/logs/matches/matches-*.log | tail -1)
 p1=$(awk '/PROCESSING TIME BIN/{print NR; exit}' $matchlog)
 p2=$(awk '/RUNNING TRAJ/{print NR; exit}' $matchlog)
 evts=$((p2-p1-6))

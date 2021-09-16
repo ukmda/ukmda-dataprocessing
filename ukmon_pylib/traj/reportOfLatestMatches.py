@@ -7,55 +7,60 @@ import sys
 import datetime
 import numpy
 import csv
-from stat import S_ISREG, ST_MTIME, ST_MODE
 import fileformats.CameraDetails as cd
 from traj.extraDataFiles import getVMagCodeAndStations
-from pathlib import Path
+import json
+
+
+def getTrajPaths(trajdict):
+    trajpaths=[]
+    fullnames=[]
+    for traj in trajdict:
+        fullnames.append(trajdict[traj]['traj_file_path'])
+        pth, _ = os.path.split(trajdict[traj]['traj_file_path'])
+        trajpaths.append(pth)
+    return trajpaths, fullnames
+
+
+def getListOfNewMatches(dir_path, tfile = 'processed_trajectories.json', prevtfile = 'prev_processed_trajectories.json'):
+    with open(os.path.join(dir_path, tfile), 'r') as inf:
+        trajs = json.load(inf)
+    with open(os.path.join(dir_path, prevtfile), 'r') as inf:
+        ptrajs = json.load(inf)
+    
+    newtrajs = {k:v for k,v in trajs['trajectories'].items() if k not in ptrajs['trajectories']}
+    print(len(newtrajs))
+    newdirs, _ = getTrajPaths(newtrajs)  
+    return newdirs
 
 
 def findNewMatches(dir_path, targdate):
-    # get all entries in the directory
-    entries = (os.path.join(dir_path, file_name) for file_name in os.listdir(dir_path))
-    # Get their stats
-    entries = ((os.stat(path), path) for path in entries)
-
-    # set date range
-    now = targdate
-    yday = targdate #  + datetime.timedelta(days=-1)
-    yday = yday.replace(hour=7, minute=30, second=0, microsecond=0)
-    yday = yday.timestamp()
-
+    newdirs = getListOfNewMatches(dir_path, 'processed_trajectories.json.bigserver', 'prev_processed_trajectories.json.bigserver')
     # load camera details
     cinf = cd.SiteInfo()
 
-    print('----------------------')
-    # leave only regular files, insert creation date
-    entries = ((stat[ST_MTIME], path)
-            for stat, path in entries if not S_ISREG(stat[ST_MODE]))
-
-    matchlist = os.path.join(dir_path, '../dailyreports/' + now.strftime('%Y%m%d.txt'))    
+    matchlist = os.path.join(dir_path, 'dailyreports', datetime.datetime.now().strftime('%Y%m%d-v2.txt'))
     with open(matchlist, 'w') as outf:
-        for ee in entries:
-            # newly synced folders will have datestamp == 0
-            if ee[0] == 0:
-                bestvmag, shwr, stationids = getVMagCodeAndStations(os.path.join(dir_path, ee[1]))
-                stations=[]
-                for statid in stationids:
-                    _,_,_,_,loc = cinf.GetSiteLocation(statid.encode('utf-8'))
-                    locbits = loc.split('/')
-                    stations.append(locbits[0])
+        for trajdir in newdirs:
+            trajdir = trajdir.replace('/data/','/ukmon-shared/matches/')
+            bestvmag, shwr, stationids = getVMagCodeAndStations(trajdir)
+            stations=[]
+            for statid in stationids:
+                _,_,_,_,loc = cinf.GetSiteLocation(statid.encode('utf-8'))
+                locbits = loc.split('/')
+                stations.append(locbits[0])
 
-                _,dname = os.path.split(ee[1])
-                outstr = '{},{:s},{:s},{:.1f}'.format(ee[0], dname, shwr, bestvmag)
-                for f in stations:
-                    if len(f) < 4:
-                        break
-                    outstr = outstr + ',' + f
-                outstr = outstr.strip()
-                print(outstr)
-                outf.write('{}\n'.format(outstr))
-                # update timestamp so we don't reprocess it again
-                Path(os.path.join(dir_path, ee[1])).touch()
+            _, dname = os.path.split(trajdir)
+            tstamp = datetime.datetime.strptime(dname[:15],'%Y%m%d_%H%M%S').timestamp()
+            outstr = '{},{:s},{:s},{:.1f}'.format(int(tstamp), dname, shwr, bestvmag)
+
+            for f in stations:
+                if len(f) < 4:
+                    break
+                outstr = outstr + ',' + f
+            outstr = outstr.strip()
+            print(outstr)
+            outf.write('{}\n'.format(outstr))
 
     # sort the data by magnitude
     with open(matchlist,'r') as f:
@@ -63,6 +68,7 @@ def findNewMatches(dir_path, targdate):
         data = [data for data in iter]
         data_array=numpy.asarray(data)
         sarr = sorted(data_array, key=lambda a_entry: float(a_entry[3]))
+
     with open(matchlist, 'w') as outf:
         for li in sarr:
             lastfld = li[len(li)-1]
@@ -71,7 +77,7 @@ def findNewMatches(dir_path, targdate):
                 if fld != lastfld:
                     outf.write(',')
             outf.write('\n')
-
+            
         return 
 
 
