@@ -39,7 +39,7 @@ def findNewMatches(dir_path, targdate):
     # load camera details
     cinf = cd.SiteInfo()
 
-    matchlist = os.path.join(dir_path, 'dailyreports', datetime.datetime.now().strftime('%Y%m%d-v2.txt'))
+    matchlist = os.path.join(dir_path, 'dailyreports', datetime.datetime.now().strftime('%Y%m%d.txt'))
     with open(matchlist, 'w') as outf:
         for trajdir in newdirs:
             trajdir = trajdir.replace('/data/','/ukmon-shared/matches/')

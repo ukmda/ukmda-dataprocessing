@@ -66,15 +66,16 @@ logger -s -t findAllMatches "================"
 
 cd $here
 logger -s -t findAllMatches "create text file containing most recent matches"
-python $PYLIB/traj/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate/trajectories
+python $PYLIB/traj/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate
 
 logger -s -t findAllMatches "update the website loop over new matches, creating an index page and copying files"
-dailyrep=$(ls -1tr $MATCHDIR/RMSCorrelate/dailyreports | tail -1)
-trajlist=$(cat $MATCHDIR/RMSCorrelate/dailyreports/$dailyrep | awk -F, '{print $2}')
+dailyrep=$(ls -1tr $MATCHDIR/RMSCorrelate/dailyreports/20* | tail -1)
+trajlist=$(cat $dailyrep | awk -F, '{print $2}')
 
 cd $here/../website
 for traj in $trajlist 
 do
+    yy=${traj:0:4}
     $SRC/website/createPageIndex.sh $MATCHDIR/RMSCorrelate/trajectories/$traj
 
     # copy the orbit file for consolidation and reporting
@@ -88,9 +89,9 @@ p1=$(awk '/PROCESSING TIME BIN/{print NR; exit}' $matchlog)
 p2=$(awk '/RUNNING TRAJ/{print NR; exit}' $matchlog)
 evts=$((p2-p1-6))
 trajs=$(grep SOLVING $matchlog| grep TRAJECTORIES | awk '{print $2}')
-matches=$(wc -l $MATCHDIR/RMSCorrelate/dailyreports/$dailyrep | awk '{print $1}')
+matches=$(wc -l $dailyrep | awk '{print $1}')
 rtim=$(grep "Total run time" $matchlog | awk '{print $4}')
-echo $dailyrep $evts $trajs $matches $rtim >>  $MATCHDIR/RMSCorrelate/dailyreports/stats.txt
+echo $(basename $dailyrep) $evts $trajs $matches $rtim >>  $MATCHDIR/RMSCorrelate/dailyreports/stats.txt
 
 logger -s -t findAllMatches "backup the solved trajectory data"
 
