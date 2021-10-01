@@ -47,9 +47,10 @@ def addFooter(body, bodytext):
 def AddRowRMS(body, bodytext, ele):
     lnkpathRMS = 'https://archive.ukmeteornetwork.co.uk/reports/{:s}/orbits/{:s}/{:s}/index.html'
     spls = ele.split(',')
-    pth = spls[1]
+    _, pth = os.path.split(spls[1])
     yr = pth[:4]
     ym = pth[:6]
+    ymd = pth[:8]
     lnkstr = lnkpathRMS.format(yr, ym, pth)
     shwr = spls[2]
     mag = spls[3]

@@ -50,10 +50,9 @@ def findNewMatches(dir_path, out_path):
                 locbits = loc.split('/')
                 stations.append(locbits[0])
 
-            # _, dname = os.path.split(trajdir)
-            dname = trajdir
+            _, dname = os.path.split(trajdir)
             tstamp = datetime.datetime.strptime(dname[:15],'%Y%m%d_%H%M%S').timestamp()
-            outstr = '{},{:s},{:s},{:.1f}'.format(int(tstamp), dname, shwr, bestvmag)
+            outstr = '{},{:s},{:s},{:.1f}'.format(int(tstamp), trajdir, shwr, bestvmag)
 
             for f in stations:
                 if len(f) < 4:
