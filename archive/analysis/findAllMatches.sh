@@ -66,10 +66,10 @@ logger -s -t findAllMatches "================"
 
 cd $here
 logger -s -t findAllMatches "create text file containing most recent matches"
-python $PYLIB/traj/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate
+python $PYLIB/traj/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate $DATADIR
 
 logger -s -t findAllMatches "update the website loop over new matches, creating an index page and copying files"
-dailyrep=$(ls -1tr $MATCHDIR/RMSCorrelate/dailyreports/20* | tail -1)
+dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
 trajlist=$(cat $dailyrep | awk -F, '{print $2}')
 
 cd $here/../website
@@ -91,7 +91,12 @@ evts=$((p2-p1-6))
 trajs=$(grep SOLVING $matchlog| grep TRAJECTORIES | awk '{print $2}')
 matches=$(wc -l $dailyrep | awk '{print $1}')
 rtim=$(grep "Total run time" $matchlog | awk '{print $4}')
-echo $(basename $dailyrep) $evts $trajs $matches $rtim >>  $MATCHDIR/RMSCorrelate/dailyreports/stats.txt
+echo $(basename $dailyrep) $evts $trajs $matches $rtim >>  $DATADIR/dailyreports/stats.txt
+
+if [ "$RUNTIME_ENV" == "PROD" ] ; then 
+    # copy back so the daily report can run
+    rsync -avz $DATADIR/dailyreports/ $MATCHDIR/RMSCorrelate/dailyreports/
+fi 
 
 logger -s -t findAllMatches "backup the solved trajectory data"
 

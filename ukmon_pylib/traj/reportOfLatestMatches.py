@@ -34,12 +34,12 @@ def getListOfNewMatches(dir_path, tfile = 'processed_trajectories.json', prevtfi
     return newdirs
 
 
-def findNewMatches(dir_path, targdate):
+def findNewMatches(dir_path, out_path):
     newdirs = getListOfNewMatches(dir_path, 'processed_trajectories.json.bigserver', 'prev_processed_trajectories.json.bigserver')
     # load camera details
     cinf = cd.SiteInfo()
 
-    matchlist = os.path.join(dir_path, 'dailyreports', datetime.datetime.now().strftime('%Y%m%d.txt'))
+    matchlist = os.path.join(out_path, 'dailyreports', datetime.datetime.now().strftime('%Y%m%d.txt'))
     with open(matchlist, 'w') as outf:
         for trajdir in newdirs:
             trajdir = trajdir.replace('/data/','/ukmon-shared/matches/')
@@ -50,7 +50,8 @@ def findNewMatches(dir_path, targdate):
                 locbits = loc.split('/')
                 stations.append(locbits[0])
 
-            _, dname = os.path.split(trajdir)
+            # _, dname = os.path.split(trajdir)
+            dname = trajdir
             tstamp = datetime.datetime.strptime(dname[:15],'%Y%m%d_%H%M%S').timestamp()
             outstr = '{},{:s},{:s},{:.1f}'.format(int(tstamp), dname, shwr, bestvmag)
 
@@ -82,8 +83,4 @@ def findNewMatches(dir_path, targdate):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) > 2:
-        targdate = datetime.datetime.strptime(sys.argv[2],'%Y%m%d')
-    else:
-        targdate = datetime.datetime.now()
-    findNewMatches(sys.argv[1], targdate)
+    findNewMatches(sys.argv[1], sys.argv[2])
