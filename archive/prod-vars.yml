@@ -3,3 +3,4 @@ websitebucket: ukmeteornetworkarchive
 websitekey: ~/.ssh/ukmonarchive-keys
 s3profile: ukmonarchive
 siteurl: https://archive.ukmeteornetwork.co.uk
+env: PROD
