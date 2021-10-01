@@ -27,6 +27,8 @@ def copyJpgToArchive(s3bucket, s3object):
             else:
                 # its the stack file
                 statid = os.path.basename(s3object)[0:6]
+                if statid[0] == '.': 
+                    statid = os.path.basename(s3object)[2:8]
                 outf = 'latest/{:s}.jpg'.format(statid)
                 s3object = unquote_plus(s3object)
                 src = {'Bucket': s3bucket, 'Key': s3object}
