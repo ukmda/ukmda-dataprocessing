@@ -21,7 +21,7 @@ do
     dt=$(echo $i | awk '{print $1}')
     tm=$(echo $i | awk '{print $2}')
     fname=$(basename $fn .jpg)
-    loc=$(grep $fname ~/ukmon-shared/admin/stationdetails.csv  | awk -F, '{print $2}')
+    loc=$(grep $fname ~/ukmon-shared/consolidated/camera-details.csv  | awk -F, '{printf("%s_%s\n",$1 , $4)}')
     echo "var row = table.insertRow(-1);" >> reportindex.js
     echo "var cell = row.insertCell(0);" >> reportindex.js
     cellstr="$fname<br>$loc<br>$dt<br>$tm"
