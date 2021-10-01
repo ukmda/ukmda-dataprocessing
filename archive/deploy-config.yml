@@ -18,6 +18,12 @@
     with_items:
     - {src: '{{srcdir}}/config.ini', dest: '{{destdir}}/config/', mode: '644', backup: no }
     
+  - name: update environment name
+    lineinfile: 
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'RUNTIME_ENV='
+      line: 'RUNTIME_ENV={{env}}'
+    tags: [dev,prod]
   - name: update mail recip
     lineinfile: 
       path: '{{destdir}}/config/config.ini'
