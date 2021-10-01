@@ -17,8 +17,9 @@ cd $here
 logger -s -t createPageIndex "generating orbit page index.html"
 ym=$(basename $1)
 yr=${ym:0:4}
-mth=${ym:4:2}
-targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${yr}${mth}/$ym
+mth=${ym:0:6}
+ymd=${ym:0:8}
+targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${mth}/${ymd}/$ym
 
 srcdata=$1
 

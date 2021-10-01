@@ -192,12 +192,17 @@ def MatchToSrchable(configfile, year, outdir, indexes):
                     spls = dta.split(',')
                     dtval = spls[2][1:]
                     ym = dtval[:6]
+                    ymd = dtval[:8]
                     sts = spls[5][1:].strip()
                     mag = spls[7]
                     shwr = spls[25]
                     url = weburl + '/reports/' + year
-                    url1 = url + '/orbits/' + ym + '/' + orbname + '/index.html'
-                    url2 = url + '/orbits/' + ym + '/' + orbname + '/' + dtval + '_ground_track.png'
+                    if int(ym) < 202110:
+                        url1 = url + '/orbits/' + ym + '/' + orbname + '/index.html'
+                        url2 = url + '/orbits/' + ym + '/' + orbname + '/' + dtval + '_ground_track.png'
+                    else:
+                        url1 = url + '/orbits/' + ym + '/' + ymd + '/' + orbname + '/index.html'
+                        url2 = url + '/orbits/' + ym + '/' + ymd + '/' + orbname + '/' + dtval + '_ground_track.png'
                     shwrs.append(shwr)
                     urls.append(url1)
                     imgs.append(url2)

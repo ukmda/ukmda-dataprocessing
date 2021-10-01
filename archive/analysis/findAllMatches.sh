@@ -75,12 +75,11 @@ trajlist=$(cat $dailyrep | awk -F, '{print $2}')
 cd $here/../website
 for traj in $trajlist 
 do
-    yy=${traj:0:4}
-    $SRC/website/createPageIndex.sh $MATCHDIR/RMSCorrelate/trajectories/$traj
+    $SRC/website/createPageIndex.sh $traj
 
     # copy the orbit file for consolidation and reporting
-    cp $MATCHDIR/RMSCorrelate/trajectories/$traj/*orbit.csv ${DATADIR}/orbits/$yr/csv/
-    cp $MATCHDIR/RMSCorrelate/trajectories/$traj/*orbit_extras.csv ${DATADIR}/orbits/$yr/extracsv/
+    cp $traj/*orbit.csv ${DATADIR}/orbits/$yr/csv/
+    cp $traj/*orbit_extras.csv ${DATADIR}/orbits/$yr/extracsv/
 done
 
 logger -s -t findAllMatches "gather some stats"
@@ -107,7 +106,22 @@ gzip $SRC/bkp/$lastjson
 
 logger -s -t findAllMatches "update the Index page for the month and the year"
 
-$SRC/website/createOrbitIndex.sh ${yr}${mth}
+for traj in $trajlist ; do bn=$(basename $traj); echo ${bn:0:8} >> /tmp/days.txt ; done
+daystodo=$(cat /tmp/days.txt | sort | uniq)
+for dtd in $daystodo
+do
+    $SRC/website/createOrbitIndex.sh ${dtd}
+done
+rm /tmp/days.txt
+
+for traj in $trajlist ; do bn=$(basename $traj); echo ${bn:0:6} >> /tmp/days.txt ; done
+daystodo=$(cat /tmp/days.txt | sort | uniq)
+for dtd in $daystodo
+do
+    $SRC/website/createOrbitIndex.sh ${dtd}
+done
+rm /tmp/days.txt
+
 $SRC/website/createOrbitIndex.sh ${yr}
 
 logger -s -t findAllMatches "purge old logs"
