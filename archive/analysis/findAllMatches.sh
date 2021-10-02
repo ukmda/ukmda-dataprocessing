@@ -66,7 +66,7 @@ logger -s -t findAllMatches "================"
 
 cd $here
 logger -s -t findAllMatches "create text file containing most recent matches"
-python $PYLIB/traj/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate $DATADIR
+python $PYLIB/reports/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate $DATADIR
 
 logger -s -t findAllMatches "update the website loop over new matches, creating an index page and copying files"
 dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
