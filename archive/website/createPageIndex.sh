@@ -32,6 +32,7 @@ fldr=$(basename $srcdata)
 
 cp $TEMPLATES/header.html $idxfile
 echo "<h2>Orbital Analysis for matched events on $ym</h2>" >> $idxfile
+echo "<a href=\"../index.html\">Back to daily index</a><hr>" >> $idxfile
 echo "<pre>" >> $idxfile
 cat ${srcdata}/summary.html >> $idxfile
 echo "Click <a href=\"./$fldr.zip\">here</a> to download a zip of the raw and processed data." >> $idxfile
