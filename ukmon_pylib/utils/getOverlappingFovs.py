@@ -5,7 +5,7 @@
 import os
 import sys
 import glob
-import shutil
+
 
 from utils.makeCoverageMap import munchKML
 

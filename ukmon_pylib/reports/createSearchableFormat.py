@@ -22,7 +22,7 @@ def UFOAToSrchable(configfile, year, outdir):
         outdir (str): where to save the file
 
     """
-    print('ufoa to searchable format')
+    print(datetime.datetime.now(), 'ufoa to searchable format')
     config=cfg.ConfigParser()
     config.read(configfile)
     weburl=config['config']['SITEURL']
@@ -31,10 +31,10 @@ def UFOAToSrchable(configfile, year, outdir):
     rmsuafile= os.path.join(config['config']['DATADIR'], 'consolidated', fname)
     # print(rmsuafile)
     # load the data
-    print('read single file to get shower and mag')
+    print(datetime.datetime.now(), 'read single file to get shower and mag')
     uadata = pd.read_csv(rmsuafile, delimiter=',')
 
-    print('read list of available jpgs')
+    print(datetime.datetime.now(), 'read list of available jpgs')
     fname = os.path.join(outdir, 'single.csv')
     with open(fname, 'r') as inf:
         dta = inf.readlines()
@@ -46,6 +46,7 @@ def UFOAToSrchable(configfile, year, outdir):
     sts = []
     mags = []
 
+    print(datetime.datetime.now(), 'loop through jpgs populating arrays')
     for li in dta:
         fname = os.path.basename(li).strip()
         #print(fname)
@@ -78,7 +79,7 @@ def UFOAToSrchable(configfile, year, outdir):
             mags.append('99')
             
     # create array for source
-    print('add source column')
+    print(datetime.datetime.now(), 'add source column')
     srcs=np.chararray(len(dtstamps), itemsize=8)
     srcs[:]='2Single'
     srcs=srcs.decode('utf-8')
@@ -88,7 +89,7 @@ def UFOAToSrchable(configfile, year, outdir):
     # write out the converted data
     # print(len(dtstamps), len(srcs), len(grps), len(mags), len(sts))
 
-    print('stack data and save')
+    print(datetime.datetime.now(), 'stack data and save')
     outdata = np.column_stack((dtstamps, srcs, grps, mags, sts, urls, imgs))
     outdata = np.unique(outdata, axis=0)
     fmtstr = '%s,%s,%s,%s,%s,%s,%s'
@@ -108,7 +109,7 @@ def LiveToSrchable(configfile, year, outdir):
     config=cfg.ConfigParser()
     config.read(configfile)
 
-    print('live to searchable')
+    print(datetime.datetime.now(), 'live to searchable')
     dtstamps = []
     urls = []
     imgs = []
@@ -168,7 +169,7 @@ def MatchToSrchable(configfile, year, outdir, indexes):
     config.read(configfile)
     weburl=config['config']['SITEURL']
     
-    print('match to searchable')
+    print(datetime.datetime.now(), 'match to searchable')
     path= os.path.join(config['config']['DATADIR'], 'orbits', year)
 
     dtstamps = []
@@ -197,7 +198,7 @@ def MatchToSrchable(configfile, year, outdir, indexes):
                     mag = spls[7]
                     shwr = spls[25]
                     url = weburl + '/reports/' + year
-                    if int(ym) < 202110:
+                    if int(year) < 2021:
                         url1 = url + '/orbits/' + ym + '/' + orbname + '/index.html'
                         url2 = url + '/orbits/' + ym + '/' + orbname + '/' + dtval + '_ground_track.png'
                     else:
@@ -215,7 +216,7 @@ def MatchToSrchable(configfile, year, outdir, indexes):
                 else:
                     print('seems not RMS processed')
         except Exception:
-            print('file missing {}'.format(fn))
+            print(datetime.datetime.now(), 'file missing {}'.format(fn))
             continue
     matchhdr='eventtime,source,shower,mag,loccam,url,img'
 
@@ -239,7 +240,7 @@ def createIndexOfOrbits(year):
         
     """
     indexes = []
-    print('-----')
+    print(datetime.datetime.now(), '-----')
     s3 = boto3.client('s3')
 
     try:
