@@ -16,7 +16,9 @@
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     tags: [dev,prod]
     with_items:
-    - {src: '{{srcdir}}/config.ini', dest: '{{destdir}}/config/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/config.ini', dest: '{{destdir}}/config/', mode: '644', backup: yes }
+    - {src: '{{srcdir}}/.bashrc', dest: '/home/ec2-user', mode: '644', backup: yes }
+    - {src: '{{srcdir}}/.bash_aliases', dest: '/home/ec2-user', mode: '644', backup: no }
     
   - name: update environment name
     lineinfile: 
