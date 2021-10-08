@@ -44,6 +44,9 @@ ${SRC}/analysis/updateRMSShowerAssocs.sh $daysback
 ${SRC}/website/createMthlyExtracts.sh ${thismth}
 ${SRC}/website/createShwrExtracts.sh ${thismth}
 
+logger -s -t nightlyJob "update search index"
+${SRC}/analysis/updateSearchIndex.sh
+
 logger -s -t nightlyJob "update the R version of the camera info file"
 python << EOD
 import fileformats.CameraDetails as cc
