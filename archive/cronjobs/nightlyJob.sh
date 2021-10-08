@@ -6,6 +6,9 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 source ~/venvs/$WMPL_ENV/bin/activate
 
+# to avoid other processes running alongside
+echo "1" > $SRC/data/.nightly_running
+
 # so i can import the config file into python functions
 export CONFIG
 
@@ -36,7 +39,8 @@ fi
 
 logger -s -t nightlyJob "update shower associations, then create monthly and shower extracts for the website"
 
-${SRC}/analysis/updateRMSShowerAssocs.sh ${thismth}
+daysback=4
+${SRC}/analysis/updateRMSShowerAssocs.sh $daysback
 ${SRC}/website/createMthlyExtracts.sh ${thismth}
 ${SRC}/website/createShwrExtracts.sh ${thismth}
 
@@ -53,16 +57,16 @@ ${SRC}/analysis/monthlyReports.sh ALL ${thisyr} force
 logger -s -t nightlyJob "update other relevant showers"
 ${SRC}/analysis/reportYear.sh ${thisyr}
 
-logger -s -t nightlyJob  "update the data for last month too, since some data comes in quite late"
-dom=`date '+%d'`
-if [ $dom -lt 10 ] ; then 
-    lastmth=`date --date='-1 month' '+%Y%m'`
-    lastyr=`date --date='-1 month' '+%Y'`
+#logger -s -t nightlyJob  "update the data for last month too, since some data comes in quite late"
+# commented out since RMS data is near-realtime
+#dom=`date '+%d'`
+#if [ $dom -lt 10 ] ; then 
+#    lastmth=`date --date='-1 month' '+%Y%m'`
+#    lastyr=`date --date='-1 month' '+%Y'`
 
-    ${SRC}/analysis/updateRMSShowerAssocs.sh ${lastmth}
-    ${SRC}/website/createMthlyExtracts.sh ${lastmth}
-    ${SRC}/website/createShwrExtracts.sh ${lastmth}
-fi
+#    ${SRC}/website/createMthlyExtracts.sh ${lastmth}
+#    ${SRC}/website/createShwrExtracts.sh ${lastmth}
+#fi
 
 logger -s -t nightlyJob "create the cover page for the website"
 ${SRC}/website/createSummaryTable.sh
@@ -81,3 +85,4 @@ logger -s -t nightlyJob "clean up old logs"
 find $SRC/logs -name "nightly*" -mtime +7 -exec rm -f {} \;
 
 logger -s -t nightlyJob "Finished"
+rm -f $SRC/data/.nightly_running
