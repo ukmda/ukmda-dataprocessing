@@ -29,14 +29,14 @@ def copyFiles(s3bucket, s3object, target, target2):
     print(s3object)
     print(outf)
     s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
-    s3.meta.client.copy_object(Bucket=target2, Key=outf, CopySource=src)
+    #s3.meta.client.copy_object(Bucket=target2, Key=outf, CopySource=src)
 
     pth, _ = os.path.split(s3object)
     plap = pth +'/platepars_all_recalibrated.json'
     outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/platepars_all_recalibrated.json'
     src = {'Bucket': s3bucket, 'Key': plap}
     s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
-    s3.meta.client.copy_object(Bucket=target2, Key=outf, CopySource=src)
+    #s3.meta.client.copy_object(Bucket=target2, Key=outf, CopySource=src)
 
     s3c = boto3.client('s3')
     plap = pth +'/platepar_cmn2010.cal'
