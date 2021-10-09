@@ -12,16 +12,34 @@ class platepar:
             self.jsd = json.load(pp)
             try: 
                 self.id = self.jsd['station_code']
-                self.altcentre = self.jsd['alt_centre']
-                self.azcentre = self.jsd['az_centre']
+                # field of view details
+                self.alt_centre = self.jsd['alt_centre']
+                self.az_centre = self.jsd['az_centre']
+                self.Ho = self.jsd['Ho']
                 self.fov_h = self.jsd['fov_h']
                 self.fov_v = self.jsd['fov_v']
-                self.rot = self.jsd['rotation_from_horiz']
+                self.rotation_from_horiz = self.jsd['rotation_from_horiz']
+                self.RA_d = self.jsd['RA_d']
+                self.dec_d = self.jsd['dec_d']
+                self.pos_angle_ref = self.jsd['pos_angle_ref']
+
+                # camera location
                 self.lat = self.jsd['lat']
                 self.lon = self.jsd['lon']
                 self.elev = self.jsd['elev']
-                self.xres = self.jsd['X_res']
-                self.yres = self.jsd['Y_res']
+
+                # camera resolution
+                self.X_res = self.jsd['X_res']
+                self.Y_res = self.jsd['Y_res']
+
+                # Reference time and date
+                self.time = 0
+                self.JD = self.jsd['JD']
+                self.UT_corr =self.jsd['UT_corr']
+
+                # FOV scale (px/deg)
+                self.F_scale = self.jsd['F_scale']
+
             except:
                 print('invalid json file')
 

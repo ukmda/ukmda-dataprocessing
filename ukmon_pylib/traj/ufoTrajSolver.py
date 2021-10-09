@@ -810,7 +810,7 @@ def computeAbsoluteMagnitudes(traj, meteor_list):
 
                 else:
                     abs_mag = None
-
+                # print(mag, abs_mag, dist)
                 meteor_obs.abs_mag_data.append(abs_mag)
         else:
             meteor_obs.abs_mag_data.append(6)
@@ -849,12 +849,14 @@ def calcAdditionalValues(traj):
     stations = []
     bestvmag = 99
     for obs in traj.observations:
-        magdata.append(MeteorObservation(0,'',0,0,0,0,''))
-        magdata[0].mag_data = obs.magnitudes
+        thisobs = MeteorObservation(0,'',0,0,0,0,'')
+        thisobs.mag_data = obs.magnitudes
+        magdata.append(thisobs)
         vmag = min(obs.magnitudes)
         bestvmag = min(vmag, bestvmag)
         stations.append(obs.station_id)
 
+    # print(magdata)
     computeAbsoluteMagnitudes(traj, magdata)
 
     # # List of photometric uncertainties per station

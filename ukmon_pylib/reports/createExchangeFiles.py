@@ -58,12 +58,11 @@ def createEventList(datadir, data):
 
 def createMatchesFile(sDate, config):
     # read and process the daily matches file
-    matchdir = config['config']['matchdir']
-    matchf = os.path.join(matchdir, 'RMSCorrelate/dailyreports/{}.txt'.format(sDate.strftime('%Y%m%d')))
+    datadir = config['config']['datadir']
+    matchf = os.path.join(datadir, 'dailyreports/{}.txt'.format(sDate.strftime('%Y%m%d')))
     with open(matchf, 'r') as inf:
         data = csv.reader(inf, delimiter=',')
 
-        datadir = config['config']['datadir']
         outfname = os.path.join(datadir, 'browse/daily/matchlist.js')
         with open(outfname, 'w') as outf:
             outf.write('$(function() {\n')
@@ -73,9 +72,10 @@ def createMatchesFile(sDate, config):
             outf.write('header.className = "h4";\n')
             if data is not None: 
                 for li in data:
+                    _, pth = os.path.split(li[1])
                     outf.write('var row = table.insertRow(-1);\n')
                     outf.write('var cell = row.insertCell(0);\n')
-                    outf.write('cell.innerHTML = "{}";\n'.format(li[1]))
+                    outf.write('cell.innerHTML = "{}";\n'.format(pth))
                     outf.write('var cell = row.insertCell(1);\n')
                     outf.write('cell.innerHTML = "{}";\n'.format(li[2]))
                     outf.write('var cell = row.insertCell(2);\n')

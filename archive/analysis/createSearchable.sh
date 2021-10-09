@@ -15,9 +15,6 @@ mkdir -p $DATADIR/searchidx
 cd $SRC/analysis
 logger -s -t createSearchable "creating searchable format files"
 
-source $WEBSITEKEY
-aws s3 ls $WEBSITEBUCKET/img/single/$yr/ --recursive | awk '{print $4}' > /tmp/single.csv
-
 export PYTHONPATH=$wmpl_loc:$PYLIB
 export WEBSITEBUCKET
 python $PYLIB/reports/createSearchableFormat.py $CONFIG/config.ini $yr /tmp
