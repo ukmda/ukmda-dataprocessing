@@ -78,7 +78,7 @@
     lineinfile:
       path: '{{destdir}}/config/config.ini'
       regexp: 'WMPL_LOC='
-      line: 'wmpl_loc=/home/ec2-user/src/WesternMeteorPyLib'
+      line: 'wmpl_loc={{wmplhome}}'
     tags: [dev,prod]
   - name: update camera info file loc
     lineinfile:

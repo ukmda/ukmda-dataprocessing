@@ -4,3 +4,4 @@ websitekey: ~/.ssh/marks-keys
 s3profile: default
 siteurl: http://mjmm-ukmonarchive.co.uk.s3-website.eu-west-2.amazonaws.com
 env: DEV
+wmplhome: /home/ec2-user/src/wmpl-dev
