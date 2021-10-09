@@ -10,12 +10,21 @@ source $WEBSITEKEY
 ym=$1
 yr=${ym:0:4}
 mth=${ym:4:2}
+dy=${ym:6:2}
 
-logger -s -t createOrbitIndex "creating orbit index page for $yr $mth"
+logger -s -t createOrbitIndex "creating orbit index page for $yr $mth $dy"
 
-if [ "$mth" != "" ] ; then
-    displstr=${yr}-${mth}
+if [ "$dy" != "" ] ; then
+    displstr=${yr}-${mth}-${dy}
     msg="Click on an entry to see results of analysis for the matched event."
+    msg2="<a href=\"../index.html\">Back to monthly index</a>" 
+    targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${yr}${mth}/${ym}
+    orblist=$(aws s3 ls $targ/ | grep PRE | grep $mth | awk '{print $2}')
+    domth=1
+    rm -f $DATADIR/orbits/$yr/$ym.txt
+elif [ "$mth" != "" ] ; then
+    displstr=${yr}-${mth}
+    msg="Click to explore the selected day."
     msg2="<a href=\"../index.html\">Back to annual index</a>" 
     targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${ym}
     orblist=$(aws s3 ls $targ/ | grep PRE | grep $mth | awk '{print $2}')
@@ -23,7 +32,7 @@ if [ "$mth" != "" ] ; then
     rm -f $DATADIR/orbits/$yr/$ym.txt
 else
     displstr=${yr}
-    msg="Click to explore each month."
+    msg="Click to explore the selected month."
     msg2="<a href=\"../../index.html\">Back to reports index</a>" 
     targ=${WEBSITEBUCKET}/reports/${yr}/orbits
     orblist=$(aws s3 ls $targ/ | grep PRE | grep $yr | awk '{print $2}')

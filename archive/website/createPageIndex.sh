@@ -17,8 +17,9 @@ cd $here
 logger -s -t createPageIndex "generating orbit page index.html"
 ym=$(basename $1)
 yr=${ym:0:4}
-mth=${ym:4:2}
-targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${yr}${mth}/$ym
+mth=${ym:0:6}
+ymd=${ym:0:8}
+targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${mth}/${ymd}/$ym
 
 srcdata=$1
 
@@ -31,6 +32,7 @@ fldr=$(basename $srcdata)
 
 cp $TEMPLATES/header.html $idxfile
 echo "<h2>Orbital Analysis for matched events on $ym</h2>" >> $idxfile
+echo "<a href=\"../index.html\">Back to daily index</a><hr>" >> $idxfile
 echo "<pre>" >> $idxfile
 cat ${srcdata}/summary.html >> $idxfile
 echo "Click <a href=\"./$fldr.zip\">here</a> to download a zip of the raw and processed data." >> $idxfile

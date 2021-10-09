@@ -128,13 +128,28 @@ class SiteInfo:
                     cams.append(row[2].decode('utf-8'))
         return cams, fldrs
 
-    def getAllCamsStr(self):
-        cams, _ = self.getAllCamsAndFolders()
-        cams.sort()
-        tmpcams = ''
-        for cam in cams:
-            tmpcams = tmpcams + cam + ' ' 
-        return tmpcams.strip()
+    def getAllCamsStr(self, onlyActive=False):
+        if onlyActive is False:
+            cams, _ = self.getAllCamsAndFolders()
+            cams.sort()
+            tmpcams = ''
+            for cam in cams:
+                tmpcams = tmpcams + cam + ' ' 
+            return tmpcams.strip()
+        else:
+            cams = self.getActiveCameras()
+            tmpcams = ''
+            for cam in cams:
+                cname = cam['CamID'].decode('utf-8')
+                if ' ' not in cname:
+                    tmpcams = tmpcams + cname + ' ' 
+            tcc = tmpcams.split()
+            tcc.sort()
+            tmpcams = ''
+            for cname in tcc:
+                tmpcams = tmpcams + cname + ' ' 
+            return tmpcams.strip()
+
 
     def saveAsR(self, outfname):
         with open(outfname, 'w') as outf:

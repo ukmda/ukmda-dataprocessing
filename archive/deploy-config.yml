@@ -16,8 +16,16 @@
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     tags: [dev,prod]
     with_items:
-    - {src: '{{srcdir}}/config.ini', dest: '{{destdir}}/config/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/config.ini', dest: '{{destdir}}/config/', mode: '644', backup: yes }
+    - {src: '{{srcdir}}/.bashrc', dest: '/home/ec2-user', mode: '644', backup: yes }
+    - {src: '{{srcdir}}/.bash_aliases', dest: '/home/ec2-user', mode: '644', backup: no }
     
+  - name: update environment name
+    lineinfile: 
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'RUNTIME_ENV='
+      line: 'RUNTIME_ENV={{env}}'
+    tags: [dev,prod]
   - name: update mail recip
     lineinfile: 
       path: '{{destdir}}/config/config.ini'
@@ -70,7 +78,7 @@
     lineinfile:
       path: '{{destdir}}/config/config.ini'
       regexp: 'WMPL_LOC='
-      line: 'wmpl_loc=/home/ec2-user/src/WesternMeteorPyLib'
+      line: 'wmpl_loc={{wmplhome}}'
     tags: [dev,prod]
   - name: update camera info file loc
     lineinfile:
