@@ -6,8 +6,8 @@ source $here/../config/config.ini >/dev/null 2>&1
 source ~/venvs/$WMPL_ENV/bin/activate
 
 if [ $# -lt 1 ] ; then
-    yr=$(date +%Y)
-    mth=$(date +%m)
+    yr=$(date --date="1 week ago" +%Y)
+    mth=$(date --date="1 week ago" +%m)
     numreq=100
 else
     yr=$1
@@ -25,7 +25,7 @@ export PYTHONPATH=$wmpl_loc:$PYLIB
 tlist=$(python $PYLIB/reports/findBestMp4s.py $yr $mth $numreq)
 for t in $tlist 
 do 
-    cp $MATCHDIR/RMSCorrelate/trajectories/$t*/*.mp4 $outdir
+    cp -p $MATCHDIR/RMSCorrelate/trajectories/$t*/*.mp4 $outdir
     gotcount=$(ls -1 $outdir/*.mp4 | wc -l)
     if [ $gotcount -gt $numreq ] ; then
         break
