@@ -21,11 +21,14 @@ mth=${ym:0:6}
 ymd=${ym:0:8}
 targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${mth}/${ymd}/$ym
 
+#Examples of arg1
+#/home/ec2-user/ukmon-shared/matches/RMSCorrelate/trajectories/20211009_043016.566_UK
+#/home/ec2-user/ukmon-shared/matches/RMSCorrelate/trajectories/2021/202101/20210131/20210131_052556.356_UK
 srcdata=$1
 
 idxfile=${srcdata}/index.html
-repf=`ls -1 ${srcdata}/$yr*report.txt`
-repfile=`basename $repf`
+repf=$(ls -1 ${srcdata}/$yr*report.txt)
+repfile=$(basename $repf)
 pref=${repfile:0:16}
 
 fldr=$(basename $srcdata)
