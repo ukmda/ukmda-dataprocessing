@@ -7,7 +7,7 @@ import os
 from urllib.parse import unquote_plus
 
 
-def copyFiles(s3bucket, s3object, target):
+def copyFiles(s3bucket, s3object, target, target2):
     s3 = boto3.resource('s3')
     x = s3object.find('FTPdetect')
     y = s3object.find('backup')
@@ -29,12 +29,14 @@ def copyFiles(s3bucket, s3object, target):
     print(s3object)
     print(outf)
     s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
+    s3.meta.client.copy_object(Bucket=target2, Key=outf, CopySource=src)
 
     pth, _ = os.path.split(s3object)
     plap = pth +'/platepars_all_recalibrated.json'
     outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/platepars_all_recalibrated.json'
     src = {'Bucket': s3bucket, 'Key': plap}
     s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
+    s3.meta.client.copy_object(Bucket=target2, Key=outf, CopySource=src)
 
     s3c = boto3.client('s3')
     plap = pth +'/platepar_cmn2010.cal'
@@ -55,6 +57,7 @@ def lambda_handler(event, context):
     s3bucket = record['s3']['bucket']['name']
     s3object = record['s3']['object']['key']
     target = 'ukmon-shared'
+    target2 = 'ukmeteornetworkarchive'
 
-    copyFiles(s3bucket, s3object, target)
+    copyFiles(s3bucket, s3object, target, target2)
     return 0
