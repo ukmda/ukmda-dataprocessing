@@ -17,19 +17,29 @@ do
     echo "var cell = row.insertCell(0);" >> ./reportindex.js
     echo "cell.innerHTML = \"<a href="$i/ALL/index.html">$i Full Year</a>\";" >> ./reportindex.js
     echo "var cell = row.insertCell(1);" >> ./reportindex.js
-    echo "cell.innerHTML = \"<a href="$i/orbits/index.html">Orbits</a>\";" >> ./reportindex.js
+    echo "cell.innerHTML = \"<a href="$i/orbits/index.html">Trajectories and Orbits</a>\";" >> ./reportindex.js
     echo "var cell = row.insertCell(2);" >> ./reportindex.js
     echo "cell.innerHTML = \"<a href="$i/stations/index.html">Stations</a>\";" >> ./reportindex.js
 
-    ls -1 $i | egrep -v "ALL|orbits" | while read j
+    if [ -f ./tmp.txt ] ; then rm -f ./tmp.txt ; fi
+    ls -1 $i | egrep -v "ALL|orbits|stations" | while read j
+    do 
+        python $PYLIB/utils/getShowerDates.py $j >> ./tmp.txt
+    done
+    sort -n ./tmp.txt > ./shwrs.txt
+    rm -f ./tmp.txt
+    cat ./shwrs.txt | while read j 
     do
+        dt=$(echo $j | awk -F, '{print $2}')
+        nam=$(echo $j | awk -F, '{print $3}')
+        abbrv=$(echo $j | awk -F, '{print $4}')
         echo "var row = table.insertRow(-1);">> ./reportindex.js
         echo "var cell = row.insertCell(0);" >> ./reportindex.js
         echo "var cell = row.insertCell(1);" >> ./reportindex.js
-        sname=`grep $j ${RCODEDIR}/CONFIG/streamnames.csv | awk -F, '{print $2}'`
-        echo "cell.innerHTML = \"<a href="$i/$j/index.html">$sname</a>\";" >> ./reportindex.js
+        echo "cell.innerHTML = \"<a href="$i/$abbrv/index.html">$dt $nam</a>\";" >> ./reportindex.js
         echo "var cell = row.insertCell(2);" >> ./reportindex.js
     done
+    rm -f ./shwrs.txt
 done
 echo "var outer_div = document.getElementById(\"summary\");" >> ./reportindex.js
 echo "outer_div.appendChild(table);" >> ./reportindex.js

@@ -5,7 +5,11 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 
-yr=$1
+if [ $# -eq 0 ]; then
+    yr=$(date +%Y)
+else
+    yr=$1
+fi
 
 logger -s -t stationReports "running Stations report for $yr"
 
