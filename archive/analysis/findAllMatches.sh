@@ -84,10 +84,9 @@ done
 
 logger -s -t findAllMatches "gather some stats"
 matchlog=$( ls -1 ${SRC}/logs/matches/matches-*.log | tail -1)
-p1=$(awk '/PROCESSING TIME BIN/{print NR; exit}' $matchlog)
-p2=$(awk '/RUNNING TRAJ/{print NR; exit}' $matchlog)
-evts=$((p2-p1-6))
-trajs=$(grep SOLVING $matchlog| grep TRAJECTORIES | awk '{print $2}')
+vals=$(python $SRC/ukmon_pylib/utils/getMatchStats.py $matchlog )
+evts=$(echo $vals | awk '{print $2}')
+trajs=$(echo $vals | awk '{print $6}')
 matches=$(wc -l $dailyrep | awk '{print $1}')
 rtim=$(grep "Total run time" $matchlog | awk '{print $4}')
 echo $(basename $dailyrep) $evts $trajs $matches $rtim >>  $DATADIR/dailyreports/stats.txt
