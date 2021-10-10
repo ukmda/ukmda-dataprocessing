@@ -27,9 +27,9 @@ do
     cellstr="$fname<br>$loc<br>$dt<br>$tm"
     echo "cell.innerHTML = \"$cellstr\";" >> reportindex.js
     echo "var cell = row.insertCell(1);" >> reportindex.js
-    echo "cell.innerHTML = \"<img src=./$fname.jpg width=100%>\";" >> reportindex.js
+    echo "cell.innerHTML = \"<a href=./$fname.jpg><img src=./$fname.jpg width=100%></a>\";" >> reportindex.js
     echo "var cell = row.insertCell(2);" >> reportindex.js
-    echo "cell.innerHTML = \"<img src=./$fname.png width=100%>\";" >> reportindex.js
+    echo "cell.innerHTML = \"<a href=./$fname.png><img src=./$fname.png width=100%></a>\";" >> reportindex.js
 
 done
 echo "var outer_div = document.getElementById(\"summary\");" >> reportindex.js
