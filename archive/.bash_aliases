@@ -12,3 +12,4 @@ alias mltail='tail -f $(ls -1 $SRC/logs/matches/matc*.log | tail -1)'
 alias njtail='tail -f $(ls -1 $SRC/logs/nigh*.log | tail -1)'
 
 alias stats='tail $DATADIR/dailyreports/stats.txt'
+alias bigserver='ssh 172.31.34.152'

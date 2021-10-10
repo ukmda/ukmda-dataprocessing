@@ -44,8 +44,13 @@ ${SRC}/analysis/updateRMSShowerAssocs.sh $daysback
 ${SRC}/website/createMthlyExtracts.sh ${thismth}
 ${SRC}/website/createShwrExtracts.sh ${thismth}
 
+# need to remove this to let the search index run
+rm -f $SRC/data/.nightly_running
+
 logger -s -t nightlyJob "update search index"
 ${SRC}/analysis/updateSearchIndex.sh
+# and create it again after
+echo "1" > $SRC/data/.nightly_running
 
 logger -s -t nightlyJob "update the R version of the camera info file"
 python << EOD

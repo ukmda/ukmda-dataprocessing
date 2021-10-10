@@ -35,8 +35,8 @@ echo "var outer_div = document.getElementById(\"summary\");" >> ./reportindex.js
 echo "outer_div.appendChild(table);" >> ./reportindex.js
 echo "})" >> ./reportindex.js
 
-logger -s -t createPageIndex "done, sending to website"
+logger -s -t createReportIndex "done, sending to website"
 source $WEBSITEKEY
 aws s3 cp ./reportindex.js  $WEBSITEBUCKET/data/ --quiet
 
-logger -s -t createPageIndex "finished"
+logger -s -t createReportIndex "finished"

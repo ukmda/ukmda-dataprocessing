@@ -15,7 +15,7 @@ else
     if [[ ! -d reports/$2/$1 || "$3" == "force" ]] ; then
         logger -s -t createReport "Running the analysis routines"
         $here/runRAnalysis.sh $1 $2  > ${SRC}/logs/$1$2.log
-        logger -s -t createReport "done, now reating report"
+        logger -s -t createReport "done, now creating report"
     fi
     cd ${DATADIR}
     if [ "$1" == "ALL" ]; then

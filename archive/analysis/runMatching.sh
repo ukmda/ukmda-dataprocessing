@@ -54,7 +54,7 @@ chmod +x $execMatchingsh
 logger -s -t runMatching "get server details"
 privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
 
-l`ogger -s -t runMatching "deploy the script to the server and run it"
+logger -s -t runMatching "deploy the script to the server and run it"
 
 scp -i $SERVERSSHKEY $execMatchingsh ec2-user@$privip:/tmp
 while [ $? -eq 255 ] ; do
@@ -62,7 +62,7 @@ while [ $? -eq 255 ] ; do
     scp -i $SERVERSSHKEY $execMatchingsh ec2-user@$privip:/tmp
 done 
 ssh -i $SERVERSSHKEY ec2-user@$privip $execMatchingsh
-`
+
 logger -s -t runMatching "job run, stop the server again"
 aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 
