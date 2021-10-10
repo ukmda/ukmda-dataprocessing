@@ -9,7 +9,7 @@ def getMatchStats(logf):
     with open(logf) as inf:
         loglines = inf.readlines()
     
-    addlines = [line.strip() for line in loglines if 'Added' in line]
+    addlines = [line.strip() for line in loglines if 'Added' in line and 'observations' in line]
     nocallines = [line.strip() for line in loglines if 'Skipping' in line and 'recalibrated' in line]
     misdflines = [line.strip() for line in loglines if 'Skipping' in line and 'missing data' in line]
     uncal = len(nocallines)
@@ -35,3 +35,4 @@ def getMatchStats(logf):
 
 if __name__ == '__main__':
     tot, added, uncal, missdf, nonphys, trajs = getMatchStats(sys.argv[1])
+    print(tot, added, uncal, missdf, nonphys, trajs)
