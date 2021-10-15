@@ -26,7 +26,7 @@ logger -s -t createSummaryTable "Add last nights log file to the website"
 cp $TEMPLATES/header.html $DATADIR/lastlog.html
 echo "<pre>" >> $DATADIR/lastlog.html
 lastlog=$(ls -1tr $DATADIR/../logs/matches | tail -1)
-cat $DATADIR/../logs/matches/$lastlog >> $DATADIR/lastlog.html
+egrep -v "BOUNDS|WARNING|RuntimeWarning|OptimizeWarning|DeprecationWarning|ABNORMAL|Unsuccessful timing" $DATADIR/../logs/matches/$lastlog >> $DATADIR/lastlog.html
 echo "</pre>" >> $DATADIR/lastlog.html
 cat $TEMPLATES/footer.html >> $DATADIR/lastlog.html
 

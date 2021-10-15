@@ -30,7 +30,7 @@ def UFOAtoSrchable(configfile, year, outdir):
 
     # Load the list of single-camera jpgs that are available.
     print(datetime.datetime.now(), 'read list of available jpgs')
-    singlesname = os.path.join(outdir, 'single.csv')
+    singlesname = os.path.join(config['config']['DATADIR'], 'singleJpgs.csv')
     ####
     # singlesname = 'c:/temp/srchidx/single.csv'
     with open(singlesname, 'r') as inf:

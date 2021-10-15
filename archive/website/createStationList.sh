@@ -59,7 +59,7 @@ do
     echo "<option value=\"${rowid}\">${cam}</option>" >> $siteidx
     rowid=$((rowid+1))
 done
-echo "</select>" >> $siteidx
+#echo "</select>" >> $siteidx
 
 source $WEBSITEKEY
 aws s3 cp $siteidx $WEBSITEBUCKET/search/ --quiet
