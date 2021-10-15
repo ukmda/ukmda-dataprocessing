@@ -43,7 +43,7 @@ else
 fi
 
 logger -s -t nightlyJob "update shower associations then create monthly and shower extracts for the website"
-daysback=4
+daysback=$MATCHSTART
 ${SRC}/analysis/updateRMSShowerAssocs.sh $daysback
 ${SRC}/website/createMthlyExtracts.sh ${thismth}
 ${SRC}/website/createShwrExtracts.sh ${thismth}

@@ -49,11 +49,15 @@ echo "<a href=\"${pref}orbit_side.png\"><img src=\"${pref}orbit_side.png\" width
 echo "<a href=\"${pref}ground_track.png\"><img src=\"${pref}ground_track.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}velocities.png\"><img src=\"${pref}velocities.png\" width=\"20%\"></a>" >> $idxfile
 echo "<br>">>$idxfile
-ls -1 ${srcdata}/*.jpg | while read jpg 
-do
-    jpgbn=`basename $jpg`
-    echo "<a href=\"$jpgbn\"><img src=\"$jpgbn\" width=\"20%\"></a>" >> $idxfile
-done
+\rm ${srcdata}/available_jpgs.txt
+if [ -f ${srcdata}/jpgs.lst ] ; then
+    cat ${srcdata}/jpgs.lst | while read i 
+    do
+        echo "<a href=\"/$i\"><img src=\"/$i\" width=\"20%\"></a>" >> $idxfile
+        echo "https://archive.ukmeteornetwork.co.uk/$i" >> ${srcdata}/available_jpgs.txt
+    done
+fi
+\rm ${srcdata}/jpgs.lst
 echo "<a href=\"${pref}lengths.png\"><img src=\"${pref}lengths.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}lags_all.png\"><img src=\"${pref}lags_all.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}abs_mag.png\"><img src=\"${pref}abs_mag.png\" width=\"20%\"></a>" >> $idxfile
@@ -75,7 +79,7 @@ cat $TEMPLATES/footer.html >> $idxfile
 
 logger -s -t createPageIndex "adding zip file"
 pushd ${srcdata}
-zip -r -9 /tmp/$fldr.zip . -x ./$fldr.zip
+zip -r -9 /tmp/$fldr.zip . -x ./$fldr.zip --quiet
 cp /tmp/$fldr.zip ${srcdata}/
 rm -f /tmp/$fldr.zip
 popd

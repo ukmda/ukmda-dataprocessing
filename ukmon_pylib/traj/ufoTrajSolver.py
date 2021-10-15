@@ -23,7 +23,7 @@ from wmpl.Utils.ShowerAssociation import associateShower
 
 
 def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
-    print('Creating UFO Orbit style output file')
+    #print('Creating UFO Orbit style output file')
     orb = traj.orbit
     if shower_obj is None:
         shid = -1
@@ -141,7 +141,7 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
             statlist = statlist + str(obs.station_id) + ';'
         csvf.write('{:d}, {:s}'.format(nO, statlist))
         csvf.write('\n')
-    print('done')
+    #print('done')
     return 0
 
 
@@ -926,7 +926,7 @@ def createAdditionalOutput(traj, outdir):
     amag, vmag, mass, id, cod, orb, shower_obj, lg, bg, vg, _ = calcAdditionalValues(traj)
 
     # create Summary report for webpage
-    print('creating summary report')
+    #print('creating summary report')
     summrpt = os.path.join(outdir, 'summary.html')
 
     if traj.save_results:
