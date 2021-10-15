@@ -923,7 +923,7 @@ def createAdditionalOutput(traj, outdir):
     matplotlib.rcParams['savefig.dpi'] = 300
 
     # calculate the values
-    amag, _, mass, id, cod, orb, shower_obj, lg, bg, vg, _ = calcAdditionalValues(traj)
+    amag, vmag, mass, id, cod, orb, shower_obj, lg, bg, vg, _ = calcAdditionalValues(traj)
 
     # create Summary report for webpage
     print('creating summary report')
@@ -938,7 +938,7 @@ def createAdditionalOutput(traj, outdir):
                 if orb.L_g is not None:
                     f.write('Lg {:.2f}&deg; Bg {:.2f}&deg; Vg {:.2f}km/s\n'.format(lg, bg, vg / 1000))
 
-                f.write('mass {:.5f}g, abs. mag {:.1f}\n'.format(mass * 1000, amag))
+                f.write('mass {:.5f}g, abs. mag {:.1f}\nbest visual mag {:.1f}\n'.format(mass * 1000, amag, vmag))
             else:
                 f.write('unable to calculate realistic shower details\n')
             f.write('Path Details\n')
