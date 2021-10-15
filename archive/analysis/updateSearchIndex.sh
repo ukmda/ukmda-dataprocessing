@@ -25,10 +25,8 @@ lq=$(((mth - 1 ) / 3 ))
 aws s3 cp s3://ukmon-live/idx${yr}0${cq}.csv ${DATADIR}/ukmonlive/
 aws s3 cp s3://ukmon-live/idx${yr}0${lq}.csv ${DATADIR}/ukmonlive/
 
-# aws s3 sync s3://ukmon-live/ ${DATADIR}/ukmonlive/ --exclude "*" --include "*.csv" --quiet
-
 logger -s -t updateSearchIndex "getting list of single jpg files"
-aws s3 ls $WEBSITEBUCKET/img/single/$yr/ --recursive | awk '{print $4}' > /tmp/single.csv
+aws s3 ls $WEBSITEBUCKET/img/single/$yr/ --recursive | awk '{print $4}' > $DATADIR/singleJpgs.csv
 
 logger -s -t updateSearchIndex "creating searchable indices"
 $SRC/analysis/createSearchable.sh

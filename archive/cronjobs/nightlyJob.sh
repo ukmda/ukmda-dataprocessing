@@ -18,9 +18,14 @@ export PYTHONPATH=$PYLIB:$wmpl_loc
 thismth=`date '+%Y%m'`
 thisyr=`date '+%Y'`
 
+# force-consolidate any outstanding new data 
 source $WEBSITEKEY
 export AWS_DEFAULT_REGION=eu-west-2
 aws lambda invoke --function-name ConsolidateCSVs --log-type Tail $SRC/logs/ConsolidateCSVs.log
+
+# get a list of all jpgs from single station events for later use
+logger -s -t nightlyJon "getting list of single jpg files"
+aws s3 ls $WEBSITEBUCKET/img/single/$yr/ --recursive | awk '{print $4}' > $DATADIR/singleJpgs.csv
 
 # run this only once as it scoops up all unprocessed data
 logger -s -t nightlyJob "looking for matching events and solving their trajectories"
@@ -37,8 +42,7 @@ else
     aws lambda invoke --function-name dailyReport --log-type Tail $SRC/logs/dailyReport.log
 fi
 
-logger -s -t nightlyJob "update shower associations, then create monthly and shower extracts for the website"
-
+logger -s -t nightlyJob "update shower associations then create monthly and shower extracts for the website"
 daysback=4
 ${SRC}/analysis/updateRMSShowerAssocs.sh $daysback
 ${SRC}/website/createMthlyExtracts.sh ${thismth}
@@ -90,7 +94,16 @@ logger -s -t nightlyJob "Create density and velocity plots by solar longitude"
 # $SRC/analysis/createDensityPlots.sh
 
 logger -s -t nightlyJob "clean up old logs"
-find $SRC/logs -name "nightly*" -mtime +7 -exec rm -f {} \;
+find $SRC/logs -name "nightly*.gz" -mtime +90 -exec rm -f {} \;
+find $SRC/logs -name "nightly*.log" -mtime +7 -exec gzip {} \;
 
 logger -s -t nightlyJob "Finished"
 rm -f $SRC/data/.nightly_running
+
+# create performance metrics
+cd $SRC/logs
+matchlog=$( ls -1 ${SRC}/logs/matches/matches-*.log | tail -1)
+python $SRC/ukmon_pylib/metrics/timingMetrics.py $matchlog 'M' >> $SRC/logs/perfMatching.csv
+
+nightlog=$( ls -1 ${SRC}/logs/nightlyJob-*.log | tail -1)
+python $SRC/ukmon_pylib/metrics/timingMetrics.py $nightlog 'N' >> $SRC/logs/perfNightly.csv

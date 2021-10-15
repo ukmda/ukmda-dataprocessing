@@ -49,8 +49,6 @@ cp $thisjson $MATCHDIR/RMSCorrelate/prev_processed_trajectories.json.bigserver
 
 $SRC/analysis/runMatching.sh
 
-#python -m wmpl.Trajectory.CorrelateRMS $MATCHDIR/RMSCorrelate/ -l -r "($startdt,$enddt)"
-
 logger -s -t findAllMatches "check if the solver had some sort of failiure"
 logf=$(ls -1tr $SRC/logs/matches/matches*.log | tail -1)
 success=$(grep "SOLVING RUN DONE" $logf)
@@ -68,7 +66,7 @@ cd $here
 logger -s -t findAllMatches "create text file containing most recent matches"
 python $PYLIB/reports/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate $DATADIR
 
-logger -s -t findAllMatches "update the website loop over new matches, creating an index page and copying files"
+logger -s -t findAllMatches "update the website loop over new matches creating an index page and copying files"
 dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
 trajlist=$(cat $dailyrep | awk -F, '{print $2}')
 
@@ -124,6 +122,7 @@ rm /tmp/days.txt
 $SRC/website/createOrbitIndex.sh ${yr}
 
 logger -s -t findAllMatches "purge old logs"
-find $SRC/logs/matches -name "matches*" -mtime +7 -exec rm -f {} \;
+find $SRC/logs/matches -name "matches*" -mtime +7 -exec gzip {} \;
+find $SRC/logs/matches -name "matches*" -mtime +90 -exec rm -f {} \;
 
 logger -s -t findAllMatches "Matching process finished"
