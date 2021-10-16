@@ -3,9 +3,13 @@
 #
 import sys
 import os
+import datetime
+import matplotlib.pyplot as plt
 
 
 njstrs = ['nightlyJob: looking for matching',
+    'nightlyJob: starting',
+    "nightlyJob: getting list of single jpg files"
     'nightlyJob: update shower associations',
     'createMthlyExtracts: starting',
     'createMthlyExtracts: finished',
@@ -36,6 +40,38 @@ mlstrs=[
 #    'createOrbitIndex: finished',
     'findAllMatches: Matching process finished'
 ]
+
+
+def graphOfData(logf, typ):
+    if typ == 'M':
+        with open(logf,'r') as inf:
+            loglines = inf.readlines()
+        times = []
+        events = []
+        elapsed = []
+        cumul = 0
+        daystart=0
+        for li in loglines:
+            spls = li.split(',')
+            dtstamp = datetime.datetime.strptime(spls[0]+'_'+spls[1], '%Y%m%d_%H:%M:%S')
+            times.append(dtstamp)
+            events.append(spls[2].strip())
+            if 'nightlyJob: starting' in li:
+                print('resetting at ', dtstamp)
+                cumul = 0
+                daystart = dtstamp
+            evttime = (dtstamp - daystart).seconds
+            elapsed.append(evttime)
+        #fig, ax = plt.subplots()
+        l = len(times)
+        t1 = times[l-16:]
+        e1 = elapsed[l-16:]
+        print(t1, e1)
+        plt.plot(t1, e1)    
+        plt.show()    
+        plt.savefig('./timings.jpg')
+        #return times, events, elapsed 
+
 
 
 def getLogStats(logf, typ):

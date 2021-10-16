@@ -7,6 +7,7 @@ source $here/../config/config.ini >/dev/null 2>&1
 source ~/venvs/$WMPL_ENV/bin/activate
 
 # to avoid other processes running alongside
+logger -s -t nightlyJob "starting"
 echo "1" > $SRC/data/.nightly_running
 
 # so i can import the config file into python functions
@@ -24,7 +25,7 @@ export AWS_DEFAULT_REGION=eu-west-2
 aws lambda invoke --function-name ConsolidateCSVs --log-type Tail $SRC/logs/ConsolidateCSVs.log
 
 # get a list of all jpgs from single station events for later use
-logger -s -t nightlyJon "getting list of single jpg files"
+logger -s -t nightlyJob "getting list of single jpg files"
 aws s3 ls $WEBSITEBUCKET/img/single/$yr/ --recursive | awk '{print $4}' > $DATADIR/singleJpgs.csv
 
 # run this only once as it scoops up all unprocessed data
