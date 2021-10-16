@@ -133,4 +133,12 @@ def fetchJpgsAndMp4s(traj, outdir):
 
 
 if __name__ == '__main__':
-    generateExtraFiles(sys.argv[1])
+    fl = sys.argv[1]
+    if os.path.isdir(fl):
+        generateExtraFiles(fl)
+    else:
+        with open(fl,'r') as inf:
+            dirs = inf.readlines()
+            for li in dirs:
+                fl = li.split(',')[1]
+                generateExtraFiles(fl)
