@@ -70,6 +70,11 @@ logger -s -t findAllMatches "update the website loop over new matches creating a
 dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
 trajlist=$(cat $dailyrep | awk -F, '{print $2}')
 
+# create extra datafiles
+export DATADIR # used by extraDatafiles
+python $PYLIB/traj/extraDataFiles.py $dailyrep
+
+# now create page indexes and update website
 cd $here/../website
 for traj in $trajlist 
 do
