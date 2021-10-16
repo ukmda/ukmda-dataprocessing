@@ -17,6 +17,7 @@ cd $RCODEDIR
 ./STATION_SUMMARY_MASTER.r $yr
 logger -s -t stationReports "shower report done creating index"
 
+mkdir -p $DATADIR/reports/$yr/stations > /dev/null 2>&1
 cd $DATADIR/reports/$yr/stations
 
 echo "\$(function() {" > reportindex.js

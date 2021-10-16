@@ -30,7 +30,5 @@
     - {src: '{{srcdir}}/website/createSummaryTable.sh', dest: '{{destdir}}/website/', mode: '754', backup: no }
     - {src: '{{srcdir}}/website/createHistExtracts.sh', dest: '{{destdir}}/website/', mode: '754', backup: no }
     - {src: '{{srcdir}}/website/createHistShwrExtracts.sh', dest: '{{destdir}}/website/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/website/templates/header.html', dest: '{{destdir}}/website/templates/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/website/templates/footer.html', dest: '{{destdir}}/website/templates/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/website/templates/shwrcsvindex.html', dest: '{{destdir}}/website/templates/', mode: '644', backup: no }
-    - {src: '{{srcdir}}/website/templates/statreportindex.html', dest: '{{destdir}}/website/templates/', mode: '644', backup: no }
+    - {src: '{{srcdir}}/website/createFireballPage.sh', dest: '{{destdir}}/website/', mode: '754', backup: no }
+    - {src: '{{srcdir}}/website/templates/', dest: '{{destdir}}/website/templates/', mode: '644', backup: no,  directory_mode: yes }

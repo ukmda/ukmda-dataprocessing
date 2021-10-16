@@ -59,7 +59,7 @@ def createSummaryTable(fname, curryr):
             f.write('var cell = row.insertCell(2);\n')
             f.write('cell.innerHTML = "<a href=/reports/{}/orbits/index.html>{}</a>";\n'.format(yr, matches))
             f.write('var cell = row.insertCell(3);\n')
-            f.write('cell.innerHTML = "{}";\n'.format(fireballs))
+            f.write('cell.innerHTML = "<a href=/reports/{}/fireballs/index.html>{}</a>";\n'.format(yr,fireballs))
 
         f.write('var row = header.insertRow(0);\n')
         f.write('var cell = row.insertCell(0);\n')

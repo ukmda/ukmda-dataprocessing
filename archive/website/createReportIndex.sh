@@ -19,10 +19,12 @@ do
     echo "var cell = row.insertCell(1);" >> ./reportindex.js
     echo "cell.innerHTML = \"<a href="$i/orbits/index.html">Trajectories and Orbits</a>\";" >> ./reportindex.js
     echo "var cell = row.insertCell(2);" >> ./reportindex.js
+    echo "cell.innerHTML = \"<a href="$i/fireballs/index.html">Fireballs</a>\";" >> ./reportindex.js
+    echo "var cell = row.insertCell(3);" >> ./reportindex.js
     echo "cell.innerHTML = \"<a href="$i/stations/index.html">Stations</a>\";" >> ./reportindex.js
 
     if [ -f ./tmp.txt ] ; then rm -f ./tmp.txt ; fi
-    ls -1 $i | egrep -v "ALL|orbits|stations" | while read j
+    ls -1 $i | egrep -v "ALL|orbits|stations|fireballs" | while read j
     do 
         python $PYLIB/utils/getShowerDates.py $j >> ./tmp.txt
     done
@@ -37,7 +39,7 @@ do
         echo "var cell = row.insertCell(0);" >> ./reportindex.js
         echo "var cell = row.insertCell(1);" >> ./reportindex.js
         echo "cell.innerHTML = \"<a href="$i/$abbrv/index.html">$dt $nam</a>\";" >> ./reportindex.js
-        echo "var cell = row.insertCell(2);" >> ./reportindex.js
+        #echo "var cell = row.insertCell(2);" >> ./reportindex.js
     done
     rm -f ./shwrs.txt
 done
