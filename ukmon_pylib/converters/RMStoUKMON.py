@@ -65,7 +65,8 @@ class PlateparDummy:
         """ This class takes a platepar dictionary and converts it into an object. """
 
         self.__dict__.update(entries)
-
+        if not hasattr(self, 'UT_corr'):
+            self.UT_corr = 0
 
 def writeUkmonCsv(dir_path, file_name, data):
     """ Write the a Ukmon specific CSV file for single-station data. 
@@ -131,7 +132,12 @@ def FTPdetectinfo2UkmonCsv(dir_path, out_path):
         return 
 
     with open(ppfilename) as f:
-        platepars_recalibrated_dict = json.load(f)   
+        try:
+            platepars_recalibrated_dict = json.load(f)
+        except:
+            print('malformed platepar file - cannot continue')
+            return 
+
 
     # Load the FTPdetectinfo file
     meteor_list = FTPdetectinfo.readFTPdetectinfo(dir_path, ftpdetectinfo_name)

@@ -17,6 +17,13 @@ else
 fi
 yr=${ym:0:4}
 
+if [ "$2" == "force" ]; then
+    force=1
+else
+    force=0
+fi
+echo "force is $force"
+
 logger -s -t convertUfoToRms "starting"
 cat $CAMINFO | while read li ; do 
     typ=$(echo $li | awk -F, '{printf("%s", $12)}') 
@@ -42,8 +49,16 @@ cat $CAMINFO | while read li ; do
                             logger -s -t convertUfoToRms "converting $i"
                             python $PYLIB/converters/UFOAtoFTPdetect.py "$fpath/$i" $dest 
                         fi
-                    else   
-                        logger -s -t convertUfoToRms "already processed $dest/$dummyname for $i"
+                    else 
+                        if [ $force -eq 1 ] ; then 
+                        # if the source is a folder, then process it
+                            if [ -d "$fpath/$i" ] ; then 
+                                logger -s -t convertUfoToRms "converting $i"
+                                python $PYLIB/converters/UFOAtoFTPdetect.py "$fpath/$i" $dest 
+                            fi
+                        else 
+                            logger -s -t convertUfoToRms "already processed $dest/$dummyname for $i"
+                        fi 
                     fi 
                 done
             fi
