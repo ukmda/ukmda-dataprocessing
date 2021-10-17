@@ -181,6 +181,8 @@ def convertUFOFolder(fldr, outfldr):
 
     _, ymd = os.path.split(fldr)
     _, lid, sid, _, _, _ = axmls[0].getStationDetails()
+    if lid == 'Blackfield' and sid == '':
+        sid = 'c1'
 
     ci = cdet.SiteInfo()
     statid = ci.getDummyCode(lid, sid)
