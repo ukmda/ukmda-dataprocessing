@@ -1,4 +1,4 @@
-""" Convert the FTPdetectinfo format to UFOorbit input CSV. """
+""" Convert the FTPdetectinfo format to UKMON CSV. """
 
 from __future__ import print_function, division, absolute_import
 
@@ -7,6 +7,7 @@ import argparse
 import datetime
 import json
 import numpy as np
+import re
 
 import RMS.Astrometry.ApplyAstrometry
 from RMS.Astrometry.Conversions import datetime2JD, altAz2RADec
@@ -18,6 +19,45 @@ from RMS import Math
 import Utils.ShowerAssociation as sa
 import RMS.ConfigReader as cr
 from RMS.Routines import GreatCircle
+
+
+def findUnprocessedFolders(dir_path, station_list, db):
+    """ Go through directories and find folders with unprocessed data. """
+    processing_list = []
+
+    # Go through all station directories
+    for station_name in station_list:
+
+        station_path = os.path.join(dir_path, station_name)
+
+        # Go through all directories in stations
+        for night_name in os.listdir(station_path):
+
+            night_path = os.path.join(station_path, night_name)
+
+            if night_path not in db: 
+                print('adding', night_path)
+                processing_list.append(night_path)                
+
+    return processing_list
+
+
+def loadStations(dir_path):
+    """ Load the station names in the processing folder. """
+
+    station_list = []
+
+    for dir_name in os.listdir(dir_path):
+
+        # Check if the dir name matches the station name pattern
+        if os.path.isdir(os.path.join(dir_path, dir_name)):
+            if re.match("^[A-Z]{2}[A-Z0-9]{4}$", dir_name):
+                # print("Using station:", dir_name)
+                station_list.append(dir_name)
+            else:
+                print("Skipping directory:", dir_name)
+
+    return station_list
 
 
 class PlateparDummy:
@@ -81,23 +121,39 @@ def FTPdetectinfo2UkmonCsv(dir_path, out_path):
             (not "backup" in name) and (not "uncalibrated" in name):
             ftpdetectinfo_name = name
             break
+    if ftpdetectinfo_name is None:
+        print('no ftpdetect file - cannot continue')
+        return 
 
-    with open(os.path.join(dir_path, "platepars_all_recalibrated.json")) as f:
+    ppfilename = os.path.join(dir_path, 'platepars_all_recalibrated.json')
+    if not os.path.isfile(ppfilename):
+        print('no platepar file - cannot continue')
+        return 
+
+    with open(ppfilename) as f:
         platepars_recalibrated_dict = json.load(f)   
 
     # Load the FTPdetectinfo file
     meteor_list = FTPdetectinfo.readFTPdetectinfo(dir_path, ftpdetectinfo_name)
+    if len(meteor_list) == 0:
+        print('no meteors')
+        return
     
-    # load a config object
-    ff1 = list(platepars_recalibrated_dict.keys())[0]
-    pp1=platepars_recalibrated_dict[ff1]
-    config = cr.loadConfigFromDirectory('.config', dir_path)
-    config.latitude = pp1['lat']
-    config.longitude = pp1['lon']
-    config.elevation = pp1['elev']
+    # load a default config file then overwrite the bits of importance
+    config = cr.loadConfigFromDirectory('.config', '.')
 
-    shwrs, _ = sa.showerAssociation(config, [os.path.join(dir_path,ftpdetectinfo_name)])
-
+    fflst = list(platepars_recalibrated_dict.keys())
+    if len(fflst) > 0: 
+        ff1 = fflst[0]
+        pp1 = platepars_recalibrated_dict[ff1]
+        config.latitude = pp1['lat']
+        config.longitude = pp1['lon']
+        config.elevation = pp1['elev']
+        # get the shower associations
+        shwrs, _ = sa.showerAssociation(config, [os.path.join(dir_path,ftpdetectinfo_name)])
+    else:
+        print('platepar file empty')
+        return 
     # Init the UFO format list
     ufo_meteor_list = []
 
@@ -194,6 +250,23 @@ def FTPdetectinfo2UkmonCsv(dir_path, out_path):
     writeUkmonCsv(out_path, ufo_file_name, ufo_meteor_list)
 
 
+def processManyFolders(in_dir, out_dir):
+    stations = loadStations(in_dir)
+    dbfile = os.path.join(in_dir, 'processed_single.txt')
+    if not os.path.isfile(dbfile):
+        open(dbfile, 'w').close()
+    with open(dbfile, 'r', newline=None) as inf:
+        db = inf.readlines()
+    db = [ li.strip() for li in db]
+    processing_list = findUnprocessedFolders(in_dir, stations, db)
+    for fldr in processing_list:
+        print(fldr)
+        FTPdetectinfo2UkmonCsv(fldr, out_dir)
+        with open(dbfile, 'a+') as outf:
+            outf.write('{:s}\n'.format(fldr))
+
+    return
+
 if __name__ == "__main__":
 
     # Init the command line arguments parser
@@ -208,9 +281,5 @@ if __name__ == "__main__":
     # Parse the command line arguments
     cml_args = arg_parser.parse_args()
 
-    FTPdetectinfo2UkmonCsv(cml_args.file_path[0], cml_args.out_path[0])
-            
-
-
-
-
+    # FTPdetectinfo2UkmonCsv(cml_args.file_path[0], cml_args.out_path[0])
+    processManyFolders(cml_args.file_path[0], cml_args.out_path[0])

@@ -23,6 +23,9 @@
   - name: Ensures {{destdir}}/data/reports/ exists
     file: path={{destdir}}/data/reports/ state=directory  
     tags: [dev,prod]
+  - name: Ensures {{destdir}}/data/single/ exists
+    file: path={{destdir}}/data/single/ state=directory  
+    tags: [dev,prod]
   - name: Ensures {{destdir}}/data/browse/ exists
     file: path={{destdir}}/data/browse/ state=directory  
     tags: [dev,prod]
