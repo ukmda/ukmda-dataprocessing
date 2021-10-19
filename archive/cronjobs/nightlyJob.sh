@@ -51,9 +51,14 @@ else
     aws lambda invoke --function-name dailyReport --log-type Tail $SRC/logs/dailyReport.log
 fi
 
-logger -s -t nightlyJob "update shower associations then create monthly and shower extracts for the website"
+logger -s -t nightlyJob "update shower associations"
 daysback=$MATCHSTART
 ${SRC}/analysis/updateRMSShowerAssocs.sh $daysback
+
+logger -s -t nightlyJob "consolidate the resulting data "
+$SRC/analysis/consolidateOutput.sh ${yr}
+
+logger -s -t nightlyJob "create monthly and shower extracts for the website"
 ${SRC}/website/createMthlyExtracts.sh ${mth}
 ${SRC}/website/createShwrExtracts.sh ${mth}
 
@@ -68,7 +73,7 @@ s.saveAsR('${RCODEDIR}/CONFIG/StationList.r')
 EOD
 
 logger -s -t nightlyJob "update the annual report for this year"
-${SRC}/analysis/monthlyReports.sh ALL ${yr} force
+$SRC/analysis/createReport.sh ALL $yr force
 
 logger -s -t nightlyJob "update other relevant showers"
 ${SRC}/analysis/reportYear.sh ${yr}
