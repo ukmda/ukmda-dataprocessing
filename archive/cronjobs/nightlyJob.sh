@@ -10,12 +10,12 @@ export PYTHONPATH=$PYLIB:$wmpl_loc
 
 # to avoid other processes running alongside
 logger -s -t nightlyJob "starting"
-echo "1" > $SRC/data/.nightly_running
 
 mth=`date '+%Y%m'`
 yr=`date '+%Y'`
 
 # force-consolidate any outstanding new data 
+logger -s -t nightlyJob "forcing consolidation of anything pending"
 source $WEBSITEKEY
 export AWS_DEFAULT_REGION=eu-west-2
 aws lambda invoke --function-name ConsolidateCSVs --log-type Tail $SRC/logs/ConsolidateCSVs.log
@@ -23,6 +23,18 @@ aws lambda invoke --function-name ConsolidateCSVs --log-type Tail $SRC/logs/Cons
 # get a list of all jpgs from single station events for later use
 logger -s -t nightlyJob "getting list of single jpg files"
 aws s3 ls $WEBSITEBUCKET/img/single/$yr/ --recursive | awk '{print $4}' > $DATADIR/singleJpgs.csv
+
+logger -s -t nightlyJob "getting latest consolidated information"
+source $UKMONSHAREDKEY
+aws s3 sync s3://ukmon-shared/consolidated/ ${DATADIR}/consolidated --exclude 'consolidated/temp/*' --quiet
+
+logger -s -t updateSearchIndex "getting latest livefeed CSV files"
+yr=$(date +%Y)
+mth=$(date +%m)
+cq=$(((mth - 1 ) / 3 + 1))
+lq=$(((mth - 1 ) / 3 ))
+aws s3 cp s3://ukmon-live/idx${yr}0${cq}.csv ${DATADIR}/ukmonlive/
+aws s3 cp s3://ukmon-live/idx${yr}0${lq}.csv ${DATADIR}/ukmonlive/
 
 # run this only once as it scoops up all unprocessed data
 logger -s -t nightlyJob "looking for matching events and solving their trajectories"
@@ -45,13 +57,8 @@ ${SRC}/analysis/updateRMSShowerAssocs.sh $daysback
 ${SRC}/website/createMthlyExtracts.sh ${mth}
 ${SRC}/website/createShwrExtracts.sh ${mth}
 
-# need to remove this to let the search index run
-rm -f $SRC/data/.nightly_running
-
 logger -s -t nightlyJob "update search index"
 ${SRC}/analysis/updateSearchIndex.sh
-# and create it again after
-echo "1" > $SRC/data/.nightly_running
 
 logger -s -t nightlyJob "update the R version of the camera info file"
 python << EOD
