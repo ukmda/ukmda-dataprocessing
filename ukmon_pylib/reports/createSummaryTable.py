@@ -4,6 +4,7 @@
 import sys
 import os
 import subprocess
+import configparser as cfg
 
 
 def createSummaryTable(fname, curryr):
@@ -15,6 +16,10 @@ def createSummaryTable(fname, curryr):
         curryr (str): current year
 
     """
+    srcdir = os.getenv('SRC')
+    config = cfg.ConfigParser()
+    config.read(os.path.join(srcdir, 'config', 'config.ini'))
+    datadir = config['config']['datadir']
     with open(fname, 'w') as f:
         f.write('$(function() {\n')
         f.write('var table = document.createElement("table");\n')
@@ -22,12 +27,10 @@ def createSummaryTable(fname, curryr):
         f.write('var header = table.createTHead();\n')
         f.write('header.className = "h4";\n')
 
-        srcpath = os.getenv('SRC')
-        datadir = os.getenv('DATADIR')
         for yr in range(int(curryr), 2012, -1):
 
             if yr > 2019:
-                srchfile = os.path.join(srcpath, 'logs', 'ALL{}.log'.format(yr))
+                srchfile = os.path.join(srcdir, 'logs', 'ALL{}.log'.format(yr))
                 cmd = ['grep', 'OTHER Matched', srchfile]
                 dets = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
                 detections = dets.split(' ')[3]
@@ -37,7 +40,7 @@ def createSummaryTable(fname, curryr):
                 dets = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
                 detections = dets.split(' ')[0]
 
-            srchfile = os.path.join(srcpath, 'logs', 'ALL{}.log'.format(yr))
+            srchfile = os.path.join(srcdir, 'logs', 'ALL{}.log'.format(yr))
             cmd = ['grep', 'UNIFIED Matched', srchfile]
             dets = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
             matches = dets.split(' ')[3]

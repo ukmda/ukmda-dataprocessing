@@ -158,9 +158,9 @@ def uploadFiles(config):
 
 
 if __name__ == '__main__':
-    cfgdir = os.getenv('CONFIG')
+    srcdir = os.getenv('SRC')
     config = cfg.ConfigParser()
-    config.read(os.path.join(cfgdir, 'config.ini'))
+    config.read(os.path.join(srcdir, 'config', 'config.ini'))
     datadir = config['config']['datadir']
     if len(sys.argv) > 1:
         targdate = datetime.datetime.strptime(sys.argv[1], '%Y%m%d')
