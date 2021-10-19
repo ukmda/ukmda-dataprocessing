@@ -5,7 +5,7 @@ source $here/../config/config.ini >/dev/null 2>&1
 
 mkdir -p $DATADIR/browse/showers
 
-cd ${DATADIR}/matched/pre2020
+cd ${DATADIR}/matched/
 echo "creating matched extracts"
 for yr in {2013,2014,2015,2016,2017,2018,2019}
 do

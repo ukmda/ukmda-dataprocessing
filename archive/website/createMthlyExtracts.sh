@@ -14,6 +14,13 @@ fi
 
 logger -s -t createMthlyExtracts "starting"
 
+logger -s -t createMthlyExtracts "gathering annual data"
+cd $DATADIR/browse/annual/
+yr=$(date +%Y)
+rsync -avz ${DATADIR}/matched/matches*.csv .
+rsync -avz ${DATADIR}/consolidated/M*.csv .
+rsync -avz ${DATADIR}/consolidated/P*.csv .
+
 cd $DATADIR/matched
 logger -s -t createMthlyExtracts "creating matched extracts"
 
@@ -128,21 +135,6 @@ echo "})" >> $idxfile
 logger -s -t createMthlyExtracts "js table created, copying to website"
 source $WEBSITEKEY
 aws s3 sync $DATADIR/browse/monthly/  $WEBSITEBUCKET/browse/monthly/ --quiet
-
-
-logger -s -t createMthlyExtracts "gathering annual data"
-cd $DATADIR/browse/annual/
-yr=$(date +%Y)
-cp -p ${DATADIR}/matched/pre2020/matches*.csv .
-cp -p ${DATADIR}/matched/matches-202*.csv .
-if compgen -G "${DATADIR}/matched/matches-203*.csv" ; then
-    cp -p ${DATADIR}/matched/matches-203*.csv .
-fi
-if compgen -G "${DATADIR}/matched/matches-204*.csv" ; then
-    cp -p ${DATADIR}/matched/matches-204*.csv .
-fi
-cp -p ${DATADIR}/consolidated/M*.csv .
-cp -p ${DATADIR}/consolidated/P*.csv .
 
 logger -s -t createMthlyExtracts "done gathering data, creating table"
 idxfile=$DATADIR/browse/annual/browselist.js
