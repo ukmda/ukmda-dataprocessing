@@ -13,10 +13,8 @@ import datetime
 import boto3
 
 
-def UFOAtoSrchable(configfile, year, outdir):
+def UFOAtoSrchable(config, year, outdir):
     print(datetime.datetime.now(), 'single-detection searchable index start')
-    config=cfg.ConfigParser()
-    config.read(configfile)
     weburl=config['config']['SITEURL']
 
     fname = 'UKMON-{:s}-single.csv'.format(year)
@@ -120,7 +118,7 @@ def UFOAtoSrchable(configfile, year, outdir):
     return 
 
 
-def LiveToSrchable(configfile, year, outdir):
+def LiveToSrchable(config, year, outdir):
     """ Convert ukmon-live records to searchable format
 
     Args:
@@ -129,9 +127,6 @@ def LiveToSrchable(configfile, year, outdir):
         outdir (str): where to save the file
         
     """
-    config=cfg.ConfigParser()
-    config.read(configfile)
-
     print(datetime.datetime.now(), 'live to searchable')
     dtstamps = []
     urls = []
@@ -178,7 +173,7 @@ def LiveToSrchable(configfile, year, outdir):
     np.savetxt(outfile, outdata, fmt=fmtstr, header=hdr, comments='')
 
 
-def MatchToSrchable(configfile, year, outdir, indexes):
+def MatchToSrchable(config, year, outdir, indexes):
     """ Convert matched data records to searchable format
 
     Args:
@@ -188,8 +183,6 @@ def MatchToSrchable(configfile, year, outdir, indexes):
         indexes (str): list of index files
         
     """
-    config=cfg.ConfigParser()
-    config.read(configfile)
     weburl=config['config']['SITEURL']
     
     print(datetime.datetime.now(), 'match to searchable')
@@ -287,14 +280,18 @@ def createIndexOfOrbits(year):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print('usage: python createSearchableFormat.py configfile year dest')
+    if len(sys.argv) < 2:
+        print('usage: python createSearchableFormat.py year dest')
         exit(1)
     else:
-        year =sys.argv[2]
+        srcdir = os.getenv('SRC')
+        config = cfg.ConfigParser()
+        config.read(os.path.join(srcdir, 'config', 'config.ini'))
 
-        ret = UFOAtoSrchable(sys.argv[1], year, sys.argv[3])
-        ret = LiveToSrchable(sys.argv[1], year, sys.argv[3])
+        year =sys.argv[1]
+
+        ret = UFOAtoSrchable(config, year, sys.argv[2])
+        ret = LiveToSrchable(config, year, sys.argv[2])
         if int(year) > 2019:
             indexes = createIndexOfOrbits(year)
-            ret = MatchToSrchable(sys.argv[1], year, sys.argv[3], indexes)
+            ret = MatchToSrchable(config, year, sys.argv[2], indexes)
