@@ -4,20 +4,16 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
+export SRC
 source ~/venvs/$WMPL_ENV/bin/activate
+export PYTHONPATH=$PYLIB:$wmpl_loc
 
 # to avoid other processes running alongside
 logger -s -t nightlyJob "starting"
 echo "1" > $SRC/data/.nightly_running
 
-# so i can import the config file into python functions
-export CONFIG
-
-# to run various python processes
-export PYTHONPATH=$PYLIB:$wmpl_loc
-
-thismth=`date '+%Y%m'`
-thisyr=`date '+%Y'`
+mth=`date '+%Y%m'`
+yr=`date '+%Y'`
 
 # force-consolidate any outstanding new data 
 source $WEBSITEKEY
@@ -31,7 +27,7 @@ aws s3 ls $WEBSITEBUCKET/img/single/$yr/ --recursive | awk '{print $4}' > $DATAD
 # run this only once as it scoops up all unprocessed data
 logger -s -t nightlyJob "looking for matching events and solving their trajectories"
 matchlog=matches-$(date +%Y%m%d-%H%M%S).log
-${SRC}/analysis/findAllMatches.sh ${thismth} > ${SRC}/logs/matches/${matchlog} 2>&1
+${SRC}/analysis/findAllMatches.sh ${mth} > ${SRC}/logs/matches/${matchlog} 2>&1
 
 # send daily report - only want to do this if in batch mode
 if [ "`tty`" != "not a tty" ]; then 
@@ -46,8 +42,8 @@ fi
 logger -s -t nightlyJob "update shower associations then create monthly and shower extracts for the website"
 daysback=$MATCHSTART
 ${SRC}/analysis/updateRMSShowerAssocs.sh $daysback
-${SRC}/website/createMthlyExtracts.sh ${thismth}
-${SRC}/website/createShwrExtracts.sh ${thismth}
+${SRC}/website/createMthlyExtracts.sh ${mth}
+${SRC}/website/createShwrExtracts.sh ${mth}
 
 # need to remove this to let the search index run
 rm -f $SRC/data/.nightly_running
@@ -65,21 +61,10 @@ s.saveAsR('${RCODEDIR}/CONFIG/StationList.r')
 EOD
 
 logger -s -t nightlyJob "update the annual report for this year"
-${SRC}/analysis/monthlyReports.sh ALL ${thisyr} force
+${SRC}/analysis/monthlyReports.sh ALL ${yr} force
 
 logger -s -t nightlyJob "update other relevant showers"
-${SRC}/analysis/reportYear.sh ${thisyr}
-
-#logger -s -t nightlyJob  "update the data for last month too, since some data comes in quite late"
-# commented out since RMS data is near-realtime
-#dom=`date '+%d'`
-#if [ $dom -lt 10 ] ; then 
-#    lastmth=`date --date='-1 month' '+%Y%m'`
-#    lastyr=`date --date='-1 month' '+%Y'`
-
-#    ${SRC}/website/createMthlyExtracts.sh ${lastmth}
-#    ${SRC}/website/createShwrExtracts.sh ${lastmth}
-#fi
+${SRC}/analysis/reportYear.sh ${yr}
 
 logger -s -t nightlyJob "create the cover page for the website"
 ${SRC}/website/createSummaryTable.sh
