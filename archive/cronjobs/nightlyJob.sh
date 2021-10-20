@@ -8,9 +8,9 @@ export SRC
 source ~/venvs/$WMPL_ENV/bin/activate
 export PYTHONPATH=$PYLIB:$wmpl_loc
 
-# to avoid other processes running alongside
 logger -s -t nightlyJob "starting"
 
+# dates to process for
 mth=`date '+%Y%m'`
 yr=`date '+%Y'`
 
@@ -29,17 +29,16 @@ source $UKMONSHAREDKEY
 aws s3 sync s3://ukmon-shared/consolidated/ ${DATADIR}/consolidated --exclude 'consolidated/temp/*' --quiet
 
 logger -s -t updateSearchIndex "getting latest livefeed CSV files"
-yr=$(date +%Y)
-mth=$(date +%m)
-cq=$(((mth - 1 ) / 3 + 1))
-lq=$(((mth - 1 ) / 3 ))
+qmth=$(date +%m)
+cq=$(((qmth - 1 ) / 3 + 1))
+lq=$(((qmth - 1 ) / 3 ))
 aws s3 cp s3://ukmon-live/idx${yr}0${cq}.csv ${DATADIR}/ukmonlive/
 aws s3 cp s3://ukmon-live/idx${yr}0${lq}.csv ${DATADIR}/ukmonlive/
 
 # run this only once as it scoops up all unprocessed data
 logger -s -t nightlyJob "looking for matching events and solving their trajectories"
 matchlog=matches-$(date +%Y%m%d-%H%M%S).log
-${SRC}/analysis/findAllMatches.sh ${mth} > ${SRC}/logs/matches/${matchlog} 2>&1
+${SRC}/analysis/findAllMatches.sh > ${SRC}/logs/matches/${matchlog} 2>&1
 
 # send daily report - only want to do this if in batch mode
 if [ "`tty`" != "not a tty" ]; then 

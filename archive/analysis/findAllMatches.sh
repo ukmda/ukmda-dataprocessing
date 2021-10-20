@@ -10,19 +10,8 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 source $UKMONSHAREDKEY
 
-# get the date to operate for
-if [ $# -eq 0 ]; then
-    ym=$(date +%Y%m)
-else
-    ym=$1
-fi
-yr=${ym:0:4}
-mth=${ym:4:2}
-
 # folder for logs
 mkdir -p $SRC/logs/matches > /dev/null 2>&1
-
-#python $here/consolidateMatchedData.py $yr $mth |tee $SRC/logs/matches/$ym.log
 
 logger -s -t findAllMatches "load the WMPL environment and set PYTHONPATH for the matching engine"
 
@@ -30,7 +19,7 @@ source ~/venvs/${WMPL_ENV}/bin/activate
 export PYTHONPATH=$wmpl_loc:$PYLIB
 
 logger -s -t findAllMatches "get all UFO data into the right format"
-$SRC/analysis/convertUfoToRms.sh $ym
+$SRC/analysis/convertUfoToRms.sh
 dom=`date '+%d'`
 if [ $dom -lt 10 ] ; then 
     lastmth=`date --date='-1 month' '+%Y%m'`
@@ -126,7 +115,13 @@ do
 done
 rm /tmp/days.txt
 
-$SRC/website/createOrbitIndex.sh ${yr}
+for traj in $trajlist ; do bn=$(basename $traj); echo ${bn:0:4} >> /tmp/days.txt ; done
+daystodo=$(cat /tmp/days.txt | sort | uniq)
+for ytd in $daystodo
+do
+    $SRC/website/createOrbitIndex.sh ${ytd}
+done
+rm /tmp/days.txt
 
 logger -s -t findAllMatches "purge old logs"
 find $SRC/logs/matches -name "matches*" -mtime +7 -exec gzip {} \;
