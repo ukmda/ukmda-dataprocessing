@@ -13,8 +13,6 @@ fi
 
 logger -s -t createFireballPage "creating fireball page for $yr"
 
-logger -s -t createFireballPage "fb report done creating index"
-
 mkdir -p $DATADIR/reports/$yr/fireballs > /dev/null 2>&1
 cd $DATADIR/reports/$yr/fireballs
 

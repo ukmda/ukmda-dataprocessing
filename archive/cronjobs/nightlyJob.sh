@@ -61,6 +61,7 @@ $SRC/analysis/consolidateOutput.sh ${yr}
 logger -s -t nightlyJob "create monthly and shower extracts for the website"
 ${SRC}/website/createMthlyExtracts.sh ${mth}
 ${SRC}/website/createShwrExtracts.sh ${mth}
+${SRC}/website/createFireballPage.sh
 
 logger -s -t nightlyJob "update search index"
 ${SRC}/analysis/updateSearchIndex.sh
