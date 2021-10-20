@@ -73,7 +73,7 @@ s.saveAsR('${RCODEDIR}/CONFIG/StationList.r')
 EOD
 
 logger -s -t nightlyJob "update the annual report for this year"
-$SRC/analysis/createReport.sh ALL $yr force
+$SRC/analysis/showerReport.sh ALL $yr force
 
 logger -s -t nightlyJob "update other relevant showers"
 ${SRC}/analysis/reportYear.sh ${yr}

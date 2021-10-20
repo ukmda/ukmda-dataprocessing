@@ -22,7 +22,7 @@ cd $DATADIR/reports/$yr/stations
 
 echo "\$(function() {" > reportindex.js
 echo "var table = document.createElement(\"table\");" >> reportindex.js
-echo "table.className = \"table table-striped table-bordered table-hover table-condensed\";" >> $here/data/reportindex.js
+echo "table.className = \"table table-striped table-bordered table-hover table-condensed\";" >> reportindex.js
 echo "var header = table.createTHead();" >> reportindex.js
 echo "header.className = \"h4\";" >> reportindex.js
 echo "var row = table.insertRow(-1);" >> reportindex.js

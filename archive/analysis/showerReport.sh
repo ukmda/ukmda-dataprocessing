@@ -4,18 +4,18 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 
 if [ $# -lt 2 ] ; then
-	echo Usage: createReport.sh GEM 2017 {force}
+	echo Usage: showerReport.sh GEM 2017 {force}
 else
-    logger -s -t createReport "starting"
+    logger -s -t showerReport "starting"
     source /home/ec2-user/venvs/${WMPL_ENV}/bin/activate
     export PYTHONPATH=$wmpl_loc:$PYLIB
 
     cd ${DATADIR}
 
     if [[ ! -d reports/$2/$1 || "$3" == "force" ]] ; then
-        logger -s -t createReport "Running the analysis routines"
+        logger -s -t showerReport "Running the analysis routines"
         $here/runRAnalysis.sh $1 $2  > ${SRC}/logs/$1$2.log
-        logger -s -t createReport "done, now creating report"
+        logger -s -t showerReport "done, now creating report"
     fi
     cd ${DATADIR}
     if [ "$1" == "ALL" ]; then
@@ -24,15 +24,15 @@ else
         sname=`grep $1 ${RCODEDIR}/CONFIG/streamnames.csv | awk -F, '{print $2}'`
     fi
     if [ -d reports/$2/$1 ] ; then 
-        logger -s -t createReport "gathering facts"
+        logger -s -t showerReport "gathering facts"
         if [ "$1" == "ALL" ]; then
-            logger -s -t createReport "processing $1"
+            logger -s -t showerReport "processing $1"
             cat $TEMPLATES/header.html $here/templates/report-template.html $TEMPLATES/footer.html > ${DATADIR}/reports/$2/$1/index.html
             metcount=$(grep "OTHER Matched" ${SRC}/logs/ALL$2.log | awk '{print $4}')
             maxalt=$(grep "_$2" ${DATADIR}/UKMON-all-matches.csv  | grep UNIFIED | awk -F, '{printf("%.1f\n",$44)}' | sort -n | tail -1)
             minalt=$(grep "_$2" ${DATADIR}/UKMON-all-matches.csv  | grep UNIFIED | awk -F, '{printf("%.1f\n", $52)}' | sort -n | head -1)
         else
-            logger -s -t createReport "processing $2 $1"
+            logger -s -t showerReport "processing $2 $1"
             cat $TEMPLATES/header.html $here/templates/shower-report-template.html $TEMPLATES/footer.html > ${DATADIR}/reports/$2/$1/index.html
             metcount=$(sed "1d" ${DATADIR}/UKMON-all-single.csv | grep $1 | wc -l) 
             maxalt=$(grep $1 ${DATADIR}/UKMON-all-matches.csv  | grep UNIFIED | grep "_$2" | awk -F, '{printf("%.1f\n",$44)}' | sort -n | tail -1)
@@ -48,10 +48,10 @@ else
         unifrac=`echo "scale=1;$pairs*100/$metcount" | bc`
         fbcount=`tail -n +2 TABLE_Fireballs.csv |wc -l`
 
-        logger -s -t createReport "making tables"
+        logger -s -t showerReport "making tables"
         python $PYLIB/reports/makeReportTables.py $1 $2 $fbcount
 
-        logger -s -t createReport "updating index file with facts"
+        logger -s -t showerReport "updating index file with facts"
         cat index.html | sed "s/__CAMCOUNT__/${camcount}/g" | sed "s/__YEAR__/${yr}/g" | \
             sed "s/__REPDATE__/${repdate}/g" | sed "s/__METCOUNT__/${metcount}/g" | \
             sed "s/__PAIRS__/${pairs}/g" | sed "s/__UNIFRAC__/${unifrac}/g" | \
@@ -60,12 +60,12 @@ else
             sed "s/__MINALT__/${minalt}/g" > tmpidx.html
             mv tmpidx.html index.html
 
-        logger -s -t createReport "copying files to website"
+        logger -s -t showerReport "copying files to website"
         source $WEBSITEKEY
         aws s3 sync . $WEBSITEBUCKET/reports/$2/$1 --quiet
-        logger -s -t createReport "all done"
+        logger -s -t showerReport "all done"
 
         ${SRC}/website/createReportIndex.sh
     fi
-    logger -s -t createReport "finished"    
+    logger -s -t showerReport "finished"    
 fi 
