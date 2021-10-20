@@ -22,19 +22,21 @@ cp UKMON-all-single.csv prv-UKMON-all-single.csv
 
 logger -s -t consolidateOutput "Fetching latest data"
 cp consolidated/M_${yr}-unified.csv UFO-all-single.csv
-comm -1 -3 prv-UFO-all-single.csv UFO-all-single.csv > new-UFO-all-single.csv
-
 cp consolidated/P_${yr}-unified.csv RMS-all-single.csv
-comm -1 -3 prv-RMS-all-single.csv RMS-all-single.csv > new-RMS-all-single.csv
-
-logger -s -t consolidateOutput "getting RMS single-station shower associations for $yr"
 echo "ID,Y,M,D,h,m,s,Shwr" > RMS-assoc-single.csv
 cat ${DATADIR}/consolidated/A/??????_${yr}* >> RMS-assoc-single.csv
-comm -1 -3 prv-RMS-assoc-single.csv RMS-assoc-single.csv > new-RMS-assoc-single.csv
 
 logger -s -t consolidateOutput "getting matched detections for $yr"
 cp $here/templates/UO_header.txt ${DATADIR}/matched/matches-$yr.csv
 cat ${DATADIR}/orbits/$yr/csv/$yr*.csv >> ${DATADIR}/matched/matches-$yr.csv
+
+logger -s -t consolidateOutput "identify new UFO data and add it on"
+comm -1 -3 prv-UFO-all-single.csv UFO-all-single.csv > new-UFO-all-single.csv
+cat new-UFO-all-single.csv >> UKMON-all-single.csv
+
+logger -s -t consolidateOutput "identify new RMS data"
+comm -1 -3 prv-RMS-all-single.csv RMS-all-single.csv > new-RMS-all-single.csv
+comm -1 -3 prv-RMS-assoc-single.csv RMS-assoc-single.csv > new-RMS-assoc-single.csv
 
 echo "" >> UFO-all-single.csv
 echo "" >> RMS-all-single.csv
