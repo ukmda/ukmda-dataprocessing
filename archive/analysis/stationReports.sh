@@ -28,9 +28,13 @@ echo "header.className = \"h4\";" >> reportindex.js
 echo "var row = table.insertRow(-1);" >> reportindex.js
 echo "var cell = row.insertCell(0);" >> reportindex.js
 echo "cell.innerHTML = \"Station Reports\";" >> reportindex.js
+j=0
+k=1
 ls -1 *.html | grep -v index | while read i ; do
-    echo "var row = table.insertRow(-1);">> reportindex.js
-    echo "var cell = row.insertCell(0);" >> reportindex.js
+    if [ $j -eq 0 ] ; then echo "var row = table.insertRow($k);">> reportindex.js ; fi
+    echo "var cell = row.insertCell(-1);" >> reportindex.js
+    j=$((j+1))
+    if [ $j -eq 3 ] ; then j=0 ; k=$((k+1)); fi
     bn=$(basename $i .html)
     echo "cell.innerHTML = \"<a href="./$i">$bn</a>\";" >> reportindex.js
 done
