@@ -34,8 +34,8 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
         shcod = shower_obj.IAU_code
         shname = shower_obj.IAU_name
 
-    dtstr = jd2Date(orb.jd_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
-    dt = jd2Date(orb.jd_ref, dt_obj=True)
+    dt = jd2Date(traj.jdt_ref, dt_obj=True)
+    dtstr = jd2Date(traj.jdt_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
     secs = dt.second + dt.microsecond / 1000000
     nO = len(traj.observations)
     id = '_(UNIFIED_' + str(nO) + ')'
@@ -91,7 +91,7 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
     csvname = os.path.join(outdir, dtstr + '_orbit.csv')
     with open(csvname, 'w', newline='') as csvf:
         csvf.write('RMS,0,')
-        csvf.write('{:s}, {:.6f}, {:.6f}, {:s}, {:s}, {:.6f}, '.format(dt.strftime('_%Y%m%d_%H%M%S'), orb.jd_ref - 2400000.5, lasun, id, '_', amag))
+        csvf.write('{:s}, {:.6f}, {:.6f}, {:s}, {:s}, {:.6f}, '.format(dt.strftime('_%Y%m%d_%H%M%S'), traj.jdt_ref - 2400000.5, lasun, id, '_', amag))
         csvf.write('{:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(rao, dco, rat, dct))
         csvf.write('{:.6f}, {:.6f}, {:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(lg, bg, vo, vi, vg, vh))
         csvf.write('{:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(orb.a, orb.q, orb.e, orb.T))
@@ -125,7 +125,7 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
     csvname = os.path.join(outdir, dtstr + '_orbit_extras.csv')
     with open(csvname, 'w', newline='') as csvf:
         csvf.write('# date, mjd,id,iau,name,mass,pi,Q,true_anom,EA,MA,Tj,T,last_peri,jacchia1,Jacchia2,numstats,stations\n#\n')
-        csvf.write('{:s}, {:.6f}, {:s}, '.format(dt.strftime('%Y%m%d_%H%M%S'), orb.jd_ref - 2400000.5, id))
+        csvf.write('{:s}, {:.6f}, {:s}, '.format(dt.strftime('%Y%m%d_%H%M%S'), traj.jdt_ref - 2400000.5, id))
         csvf.write('{:d}, {:s}, {:.6f}, '.format(shid, shname, mass))
         csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(orb.pi), orb.Q, np.degrees(orb.true_anomaly)))
         csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(orb.eccentric_anomaly), np.degrees(orb.mean_anomaly), orb.Tj))
@@ -818,7 +818,7 @@ def computeAbsoluteMagnitudes(traj, meteor_list):
 
 def draw3Dmap(traj, outdir):
     orb = traj.orbit
-    dtstr = jd2Date(orb.jd_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
+    dtstr = jd2Date(traj.jdt_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
 
     lats = []
     lons = []
