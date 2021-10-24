@@ -67,6 +67,7 @@ python $PYLIB/traj/extraDataFiles.py $dailyrep
 
 # now create page indexes and update website
 cd $here/../website
+yr=$(date +%Y)
 for traj in $trajlist 
 do
     $SRC/website/createPageIndex.sh $traj
