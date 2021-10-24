@@ -30,6 +30,16 @@ logger -s -t consolidateOutput "getting matched detections for $yr"
 cp $here/templates/UO_header.txt ${DATADIR}/matched/matches-$yr.csv
 cat ${DATADIR}/orbits/$yr/csv/$yr*.csv >> ${DATADIR}/matched/matches-$yr.csv
 
+logger -s -t consolidateOutput "getting extra orbit data for $yr"
+if [ ! -f ${DATADIR}/matched/matches-extras-$yr.csv ] ; then 
+    cp $here/templates/extracsv.txt ${DATADIR}/matched/matches-extras-$yr.csv
+    mkdir ${DATADIR}/orbits/2021/extracsv/processed > /dev/null 2>&1
+fi
+ls -1 ${DATADIR}/orbits/2021/extracsv/*.csv | while read i ; do 
+    sed '1d;2d' $i >> ${DATADIR}/matched/matches-extras-$yr.csv
+    mv $i ${DATADIR}/orbits/$yr/extracsv/processed
+done
+
 logger -s -t consolidateOutput "identify new UFO data and add it on"
 comm -1 -3 prv-UFO-all-single.csv UFO-all-single.csv > new-UFO-all-single.csv
 cat new-UFO-all-single.csv >> UKMON-all-single.csv
