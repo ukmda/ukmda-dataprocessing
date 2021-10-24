@@ -17,7 +17,7 @@ python $SRC/ukmon_pylib/converters/RMStoUKMON.py $indir $outdir
 yr=$(date +%Y)
 mrgfile=$DATADIR/single/singles-${yr}.csv
 if [ ! -f $mrgfile ] ; then 
-    echo "Ver,Y,M,D,h,m,s,Mag,Dur,Az1,Alt1,Az2,Alt2,Ra1,Dec1,Ra2,Dec2,ID,Long,Lat,Alt,Tz,AngVel,Shwr,Filename" > $mrgfile
+    echo "Ver,Y,M,D,h,m,s,Mag,Dur,Az1,Alt1,Az2,Alt2,Ra1,Dec1,Ra2,Dec2,ID,Long,Lat,Alt,Tz,AngVel,Shwr,Filename,Dtstamp" > $mrgfile
 fi 
 ls -1 $outdir/*.csv | while read i
 do
