@@ -2,6 +2,7 @@
 import numpy
 import sys
 import os
+import numpy as np
 
 
 # defines the data content of a UFOAnalyser CSV file
@@ -184,6 +185,13 @@ class SiteInfo:
             else:
                 idlist.append(rw['LID'].decode('utf-8'))
         return idlist
+
+    def getSites(self, onlyactive=True):
+        sites=[]
+        silist=self.camdets['Site']
+        silist = np.unique(silist)
+        sites = [si.decode('utf-8') for si in silist ]
+        return sites    
 
 
 
