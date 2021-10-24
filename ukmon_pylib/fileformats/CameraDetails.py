@@ -171,6 +171,19 @@ class SiteInfo:
                     outf.write(',\n')
                 else:
                     outf.write('\n)')
+    
+    def getStationsAtSite(self, sitename, onlyactive=False):
+        idlist = []
+        bsite = sitename.encode('utf-8')
+        fltred = self.camdets[self.camdets['Site'] == bsite]
+        if onlyactive is True:
+            fltred = fltred[fltred['active']==1]
+        for rw in fltred:
+            if int(rw['camtyp']) == 1:
+                idlist.append(rw['LID'].decode('utf-8') + '_' + rw['SID'].decode('utf-8'))
+            else:
+                idlist.append(rw['LID'].decode('utf-8'))
+        return idlist
 
 
 
