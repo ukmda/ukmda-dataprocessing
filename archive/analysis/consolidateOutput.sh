@@ -27,13 +27,17 @@ echo "ID,Y,M,D,h,m,s,Shwr" > RMS-assoc-single.csv
 cat ${DATADIR}/consolidated/A/??????_${yr}* >> RMS-assoc-single.csv
 
 logger -s -t consolidateOutput "getting matched detections for $yr"
-cp $here/templates/UO_header.txt ${DATADIR}/matched/matches-$yr.csv
+if [ ! -f ${DATADIR}/matched/matches-$yr.csv ] ; then 
+    cp $here/templates/UO_header.txt ${DATADIR}/matched/matches-$yr.csv
+    mkdir ${DATADIR}/orbits/${yr}/csv/processed > /dev/null 2>&1
+fi
 cat ${DATADIR}/orbits/$yr/csv/$yr*.csv >> ${DATADIR}/matched/matches-$yr.csv
+mv ${DATADIR}/orbits/$yr/csv/$yr*.csv ${DATADIR}/orbits/${yr}/csv/processed
 
 logger -s -t consolidateOutput "getting extra orbit data for $yr"
 if [ ! -f ${DATADIR}/matched/matches-extras-$yr.csv ] ; then 
     cp $here/templates/extracsv.txt ${DATADIR}/matched/matches-extras-$yr.csv
-    mkdir ${DATADIR}/orbits/2021/extracsv/processed > /dev/null 2>&1
+    mkdir ${DATADIR}/orbits/${yr}/extracsv/processed > /dev/null 2>&1
 fi
 ls -1 ${DATADIR}/orbits/2021/extracsv/*.csv | while read i ; do 
     sed '1d;2d' $i >> ${DATADIR}/matched/matches-extras-$yr.csv
