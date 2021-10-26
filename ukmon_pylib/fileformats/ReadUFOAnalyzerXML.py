@@ -325,6 +325,7 @@ class UAXml:
         pp = pp + '    "fov_h": {:f},\n'.format(fovh)
         pp = pp + '    "fov_v": {:f},\n'.format(fovv)
         pp = pp + '    "station_code": "{:s}",\n'.format(statid)
+        pp = pp + '    "auto_recalibrated": true,\n'
         pp = pp + '    "version": 2\n'
         pp = pp + '}'
 
