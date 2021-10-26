@@ -191,7 +191,16 @@ class SiteInfo:
         silist=self.camdets['Site']
         silist = np.unique(silist)
         sites = [si.decode('utf-8') for si in silist ]
-        return sites    
+        return sites
+
+    def getUFOCameras(self, onlyactive=False):
+        camlist=[]
+        ufo=self.camdets[self.camdets['camtyp']==1]
+        if onlyactive is True:
+            ufo = ufo[ufo['active'] == 1]
+        for rw in ufo:
+            camlist.append({'Site':rw['Site'].decode('utf-8'), 'CamID':rw['CamID'].decode('utf-8'), 'dummycode':rw['dummycode'].decode('utf-8')})
+        return camlist
 
 
 
