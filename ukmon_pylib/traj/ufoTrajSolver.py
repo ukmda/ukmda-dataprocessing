@@ -124,7 +124,7 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
     # create CSV extras file
     csvname = os.path.join(outdir, dtstr + '_orbit_extras.csv')
     with open(csvname, 'w', newline='') as csvf:
-        csvf.write('# date, mjd,id,iau,name,mass,pi,Q,true_anom,EA,MA,Tj,T,last_peri,jacchia1,Jacchia2,numstats,stations\n#\n')
+        #csvf.write('# date, mjd,id,iau,name,mass,pi,Q,true_anom,EA,MA,Tj,T,last_peri,jacchia1,Jacchia2,numstats,stations\n#\n')
         csvf.write('{:s}, {:.10f}, {:s}, '.format(dt.strftime('%Y%m%d_%H%M%S'), traj.jdt_ref-2400000.5, id))
         csvf.write('{:d}, {:s}, {:.6f}, '.format(shid, shname, mass))
         csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(orb.pi), orb.Q, np.degrees(orb.true_anomaly)))

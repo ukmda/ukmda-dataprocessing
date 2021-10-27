@@ -39,10 +39,8 @@ if [ ! -f ${DATADIR}/matched/matches-extras-$yr.csv ] ; then
     cp $here/templates/extracsv.txt ${DATADIR}/matched/matches-extras-$yr.csv
     mkdir ${DATADIR}/orbits/${yr}/extracsv/processed > /dev/null 2>&1
 fi
-ls -1 ${DATADIR}/orbits/2021/extracsv/*.csv | while read i ; do 
-    sed '1d;2d' $i >> ${DATADIR}/matched/matches-extras-$yr.csv
-    mv $i ${DATADIR}/orbits/$yr/extracsv/processed
-done
+cat ${DATADIR}/orbits/$yr/extracsv/$yr*.csv >> ${DATADIR}/matched/matches-extras-$yr.csv
+mv ${DATADIR}/orbits/$yr/extracsv/$yr*.csv ${DATADIR}/orbits/${yr}/extracsv/processed
 
 logger -s -t consolidateOutput "identify new UFO data and add it on"
 comm -1 -3 prv-UFO-all-single.csv UFO-all-single.csv > new-UFO-all-single.csv
