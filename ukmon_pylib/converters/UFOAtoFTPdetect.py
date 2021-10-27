@@ -263,7 +263,10 @@ if __name__ == '__main__':
                         inpth = os.path.join(inroot, d)
                         fils = glob.glob1(inpth, "*.*")
                         if len(fils) > 0: 
-                            convertUFOFolder(inpth, outroot)
+                            try:
+                                convertUFOFolder(inpth, outroot)
+                            except:
+                                continue
                 else:
                     inpth = os.path.join(archdir,site, camid, yr, ym, ymd)
                     convertUFOFolder(inpth, outroot)
