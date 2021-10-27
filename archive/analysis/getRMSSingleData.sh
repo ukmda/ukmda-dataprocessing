@@ -8,7 +8,7 @@ source /home/ec2-user/venvs/${RMS_ENV}/bin/activate
 
 cd $RMS_LOC
 logger -s -t getRMSSingleData "starting"
-indir=~/ukmon-shared/matches/RMSCorrelate
+indir=$MATCHDIR/RMSCorrelate
 outdir=$SRC/data/tmpsingle
 mkdir -p $outdir/processed > /dev/null 2>&1 
 
