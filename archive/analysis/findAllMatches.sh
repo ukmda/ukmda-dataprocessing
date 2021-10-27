@@ -25,7 +25,7 @@ if [ $dom -lt 10 ] ; then
     lastmth=`date --date='-1 month' '+%Y%m'`
     $SRC/analysis/convertUfoToRms.sh $lastmth
 fi
-logger -s -t findAllMatches "create ukmon=specific merged single-station data file"
+logger -s -t findAllMatches "create ukmon-specific merged single-station data file"
 $SRC/analysis/getRMSSingleData.sh
 
 logger -s -t findAllMatches "set the date range for the solver"
@@ -55,7 +55,7 @@ logger -s -t findAllMatches "================"
 
 cd $here
 logger -s -t findAllMatches "create text file containing most recent matches"
-python $PYLIB/reports/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate $DATADIR
+python $PYLIB/reports/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate $DATADIR $MATCHEND
 
 logger -s -t findAllMatches "update the website loop over new matches creating an index page and copying files"
 dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
