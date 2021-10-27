@@ -19,7 +19,7 @@ python $PYLIB/utils/makeCoverageMap.py $CONFIG/config.ini $ARCHDIR/kmls $DATADIR
 
 logger -s -t createSummaryTable "create year-to-date barchart"
 pushd $DATADIR
-python $PYLIB/reports/createAnnualBarChart.py  $DATADIR/UKMON-all-matches.csv
+python $PYLIB/reports/createAnnualBarChart.py  $DATADIR/matched/matches-${yr}.csv
 popd
 
 logger -s -t createSummaryTable "Add last nights log file to the website"
