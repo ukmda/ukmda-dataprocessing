@@ -19,9 +19,7 @@ def UFOAtoSrchable(config, year, outdir):
 
     fname = 'UKMON-{:s}-single.csv'.format(year)
     rmsuafile = os.path.join(config['config']['DATADIR'], 'consolidated', fname)
-    ####
-    # rmsuafile = 'c:/temp/srchidx/UKMON-all-single.csv'
-    # load the data
+
     print(datetime.datetime.now(), 'read single file to get shower and mag')
     uadata = pd.read_csv(rmsuafile, delimiter=',')
     uadata=uadata.applymap(lambda x: x.strip() if isinstance(x, str) else x)
@@ -30,7 +28,6 @@ def UFOAtoSrchable(config, year, outdir):
     print(datetime.datetime.now(), 'read list of available jpgs')
     singlesname = os.path.join(config['config']['DATADIR'], 'singleJpgs.csv')
     ####
-    # singlesname = 'c:/temp/srchidx/single.csv'
     with open(singlesname, 'r') as inf:
         lis = inf.readlines()
     fnames = [x[23:-1] for x in lis]
