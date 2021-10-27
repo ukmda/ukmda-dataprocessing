@@ -39,6 +39,7 @@ class SiteInfo:
             return c
 
     def GetSiteLocation(self, camname):
+        camname = camname.encode('utf-8')
         eles = camname.split(b'_')
         if len(eles) > 2:
             lid = eles[0].strip() + b'_' + eles[1].strip()
@@ -56,7 +57,10 @@ class SiteInfo:
         else:
             cam = numpy.where((self.camdets['LID'] == lid))
         if len(cam[0]) == 0:
-            return 0, 0, 0, 0, 'Unknown'
+            cam = numpy.where((self.camdets['dummycode'] == lid))
+            if len(cam[0]) == 0:
+                return 0, 0, 0, 0, 'Unknown'
+        print(cam)
         c = cam[0][0]
         longi = self.camdets[c]['Longi']
         lati = self.camdets[c]['Lati']
