@@ -216,13 +216,13 @@ def reportOneSite(ym, loc):
         tgname = None
         sgname = None
     nummatch = len(xtrafltr)
-    outf.write('{} of the detections matched with other stations and orbit and trajectory '.format(nummatch))
-    outf.write('solutions were calculated. \n')
+    outf.write('{} of the detections matched with other stations. '.format(nummatch))
     if nummatch > 0:
+        outf.write(' Orbit and trajectory solutions were calculated for these matches. \n')
         fbs = getBrightest(mtch, xtrafltr, loc, outdir, when)
-    outf.write('The brighest ten confirmed matches are shown below.<br>\n')
-    outf.write('<div id="fbtable" class="table-responsive"></div>')
-    outf.write('<script src="./fbtable.js"></script><hr>\n')
+        outf.write('The brighest up to ten confirmed matches are shown below.<br>\n')
+        outf.write('<div id="fbtable" class="table-responsive"></div>')
+        outf.write('<script src="./fbtable.js"></script><hr>\n')
 
     if tgname is not None:
         outf.write('<a href=./{}><img src=./{} width=40%></a>\n'.format(tgname, tgname))
