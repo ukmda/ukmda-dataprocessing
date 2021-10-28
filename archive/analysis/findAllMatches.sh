@@ -10,6 +10,21 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 source $UKMONSHAREDKEY
 
+# read start/end dates from commandline if rerunning for historical date
+if [ $# -gt 0 ] ; then
+    if [ "$1" != "" ] ; then
+        echo "selecting range"
+        MATCHSTART=$1
+    fi
+    if [ "$2" != "" ] ; then
+        MATCHEND=$(( $MATCHSTART - $2 ))
+    else
+        echo "matchend was not supplied, using 2"
+        MATCHEND=$(( $MATCHSTART - 2 ))
+    fi
+fi
+
+
 # folder for logs
 mkdir -p $SRC/logs/matches > /dev/null 2>&1
 
