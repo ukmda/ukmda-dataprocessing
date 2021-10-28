@@ -12,6 +12,15 @@ import configparser as cfg
 import datetime 
 import boto3
 
+from wmpl.Utils.TrajConversions import jd2Date
+
+
+def fixStrm(s):
+    if len(s) > 3:
+        return s[3:]
+    else:
+        return s
+
 
 def UFOAtoSrchable(config, year, outdir):
     print(datetime.datetime.now(), 'single-detection searchable index start')
@@ -23,6 +32,7 @@ def UFOAtoSrchable(config, year, outdir):
     print(datetime.datetime.now(), 'read single file to get shower and mag')
     uadata = pd.read_csv(rmsuafile, delimiter=',')
     uadata=uadata.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+    uadata['Group']=[fixStrm(x) for x in uadata['Group']]
 
     # Load the list of single-camera jpgs that are available.
     print(datetime.datetime.now(), 'read list of available jpgs')
@@ -85,7 +95,7 @@ def UFOAtoSrchable(config, year, outdir):
     got = mrg.loc[mrg.Group.notnull()]
     print('matched', len(got))
 
-    for i in range(1, 11):
+    for i in range(0, 12):
         print(datetime.datetime.now(), 'try adding ', i, ' secs on')
         mis1 = mrg.loc[mrg.Group.isnull(), ['eventtime','source','loccam','url','imgs']]
         print('missed', len(mis1))
@@ -168,6 +178,35 @@ def LiveToSrchable(config, year, outdir):
     fmtstr = '%s,%s,%s,%s,%s,%s,%s'
     outfile = os.path.join(outdir, '{:s}-liveevents.csv'.format(year))
     np.savetxt(outfile, outdata, fmt=fmtstr, header=hdr, comments='')
+
+
+def newMatchToSrchable(config, year, outdir):
+    weburl=config['config']['SITEURL'] + '/reports/' + year + '/orbits/'
+
+    matchfile  = os.path.join(config['config']['DATADIR'], 'matched', 'matches-{}.csv'.format(year))
+    extrafile  = os.path.join(config['config']['DATADIR'], 'matched', 'matches-extras-{}.csv'.format(year))
+    mtch = pd.read_csv(matchfile, skipinitialspace=True)
+    xtra = pd.read_csv(extrafile, skipinitialspace=True)
+
+    # add datestamp and source arrays, then construct required arrays
+    mtch['dtstamp'] = [jd2Date(x+2400000.5, dt_obj=True).timestamp() for x in mtch['_mjd']]
+    mtch['src'] = ['1Matched' for x in mtch['_mjd']]
+    mtch['orbname'] = [datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d_%H%M%S.%f')[:19]+'_UK' for ts in mtch['dtstamp']]
+    mths = [x[1:7]+'/'+x[1:9]  for x in mtch['_localtime']]
+    gtnames = [ '/' + x[1:] + '_ground_track.png' for x in mtch['_localtime']]
+    mtch['url'] = [weburl + y + '/' + x + '/index.html' for x,y in zip(mtch['orbname'], mths)]
+    mtch['img'] = [weburl + y + '/' + x + g for x,y,g in zip(mtch['orbname'], mths, gtnames)]
+
+    mtch.set_index(['_mjd'])
+    xtra.set_index(['mjd'])
+    newm = mtch.join(xtra)
+
+    # matchdata = np.column_stack((dtstamps, srcs, shwrs, mags, loccams, urls, imgs))
+    outdf = pd.concat([newm['dtstamp'], newm['src'], newm['_stream'], newm['_mag'], newm['stations'], newm['url'], newm['img']], 
+        axis=1, keys=['eventtime','source','shower','mag','loccam','url','img'])
+    outfile = os.path.join(outdir, '{:s}-matchedevents.csv'.format(year))
+    outdf.to_csv(outfile, index=False)
+    return 
 
 
 def MatchToSrchable(config, year, outdir, indexes):
@@ -290,5 +329,5 @@ if __name__ == '__main__':
         ret = UFOAtoSrchable(config, year, sys.argv[2])
         ret = LiveToSrchable(config, year, sys.argv[2])
         if int(year) > 2019:
-            indexes = createIndexOfOrbits(year)
-            ret = MatchToSrchable(config, year, sys.argv[2], indexes)
+            #indexes = createIndexOfOrbits(year)
+            ret = newMatchToSrchable(config, year, sys.argv[2])

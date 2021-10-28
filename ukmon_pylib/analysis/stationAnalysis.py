@@ -188,6 +188,7 @@ def reportOneSite(ym, loc):
     sngl = pd.read_csv(singleFile)
     mtch = pd.read_csv(matchfile, skipinitialspace=True)
     xtra = pd.read_csv(extrafile, skipinitialspace=True)
+    xtra = xtra.dropna(subset=['stations'])
 
     cifile = os.getenv('CAMINFO')
     if cifile is None:
@@ -277,9 +278,15 @@ def reportAllSites(ym):
 
 
 if __name__ == '__main__':
+    datadir = os.getenv('DATADIR')
+    if datadir is None:
+        print('define DATADIR first')
+        exit(1)
+
     if len(sys.argv) < 1:
         print('usage: python stationAnalysis.py 201710 {site}')
         exit(0)
+        
     ym=sys.argv[1]
     if len(sys.argv) == 2:
         reportAllSites(ym)
