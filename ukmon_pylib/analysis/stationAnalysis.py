@@ -288,7 +288,7 @@ if __name__ == '__main__':
         exit(0)
         
     ym=sys.argv[1]
-    if len(sys.argv) == 2:
+    if len(sys.argv) < 3:
         reportAllSites(ym)
     else:
         loc = sys.argv[2]

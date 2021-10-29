@@ -11,10 +11,15 @@ else
     ym=$1
 fi
 yr=${ym:0:4}
+if [ "$2" != "" ] ; then
+    loc=$2
+    logger -s -t stationReports "running station reports for $ym for $loc"
+else
+    logger -s -t stationReports "running station reports for $ym for all stations"
+fi
 
-logger -s -t stationReports "running station reports for $ym"
-python $SRC/ukmon_pylib/analysis/stationAnalysis.py $ym
-python $SRC/ukmon_pylib/analysis/stationAnalysis.py $yr
+python $SRC/ukmon_pylib/analysis/stationAnalysis.py $ym $loc
+python $SRC/ukmon_pylib/analysis/stationAnalysis.py $yr $loc
 
 #cd $RCODEDIR
 #./STATION_SUMMARY_MASTER.r $yr
