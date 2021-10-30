@@ -22,7 +22,7 @@ def fixStrm(s):
         return s
 
 
-def UFOAtoSrchable(config, year, outdir):
+def convertUFOAtoSrchable(config, year, outdir):
     print(datetime.datetime.now(), 'single-detection searchable index start')
     weburl=config['config']['SITEURL']
 
@@ -95,7 +95,7 @@ def UFOAtoSrchable(config, year, outdir):
     got = mrg.loc[mrg.Group.notnull()]
     print('matched', len(got))
 
-    for i in range(0, 12):
+    for i in range(1, 13):
         print(datetime.datetime.now(), 'try adding ', i, ' secs on')
         mis1 = mrg.loc[mrg.Group.isnull(), ['eventtime','source','loccam','url','imgs']]
         print('missed', len(mis1))
@@ -117,6 +117,8 @@ def UFOAtoSrchable(config, year, outdir):
 
     got = got[['eventtime','source','Group','Mag','loccam','url','imgs']]
 
+    got = got.rename(columns={'Group':'shower'})
+
     print(datetime.datetime.now(), 'save data')
     outfile = os.path.join(outdir, '{:s}-singleevents.csv'.format(year))
     # outfile = 'c:/temp/srchidx/got.csv'
@@ -125,7 +127,7 @@ def UFOAtoSrchable(config, year, outdir):
     return 
 
 
-def LiveToSrchable(config, year, outdir):
+def convertLiveToSrchable(config, year, outdir):
     """ Convert ukmon-live records to searchable format
 
     Args:
@@ -180,7 +182,39 @@ def LiveToSrchable(config, year, outdir):
     np.savetxt(outfile, outdata, fmt=fmtstr, header=hdr, comments='')
 
 
-def newMatchToSrchable(config, year, outdir):
+def createMergedMatchFile(config, year, outdir):
+    """ Convert matched data records to searchable format
+
+    Args:
+        configfile (str): name of the local config file
+        year (int): the year to process
+        outdir (str): where to save the file
+        
+    """
+    matchfile  = os.path.join(config['config']['DATADIR'], 'matched', 'matches-{}.csv'.format(year))
+    extrafile  = os.path.join(config['config']['DATADIR'], 'matched', 'matches-extras-{}.csv'.format(year))
+    mtch = pd.read_csv(matchfile, skipinitialspace=True)
+    xtra = pd.read_csv(extrafile, skipinitialspace=True)
+
+    # add datestamp and source arrays, then construct required arrays
+    mtch['dtstamp'] = [jd2Date(x+2400000.5, dt_obj=True).timestamp() for x in mtch['_mjd']]
+    mtch['orbname'] = [datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d_%H%M%S.%f')[:19]+'_UK' for ts in mtch['dtstamp']]
+
+    mtch.set_index(['_mjd'])
+    xtra.set_index(['mjd'])
+    newm = mtch.join(xtra)
+    return newm
+
+
+def convertMatchToSrchable(config, year, outdir):
+    """ Convert matched data records to searchable format
+
+    Args:
+        configfile (str): name of the local config file
+        year (int): the year to process
+        outdir (str): where to save the file
+        
+    """
     weburl=config['config']['SITEURL'] + '/reports/' + year + '/orbits/'
 
     matchfile  = os.path.join(config['config']['DATADIR'], 'matched', 'matches-{}.csv'.format(year))
@@ -190,8 +224,9 @@ def newMatchToSrchable(config, year, outdir):
 
     # add datestamp and source arrays, then construct required arrays
     mtch['dtstamp'] = [jd2Date(x+2400000.5, dt_obj=True).timestamp() for x in mtch['_mjd']]
-    mtch['src'] = ['1Matched' for x in mtch['_mjd']]
     mtch['orbname'] = [datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d_%H%M%S.%f')[:19]+'_UK' for ts in mtch['dtstamp']]
+
+    mtch['src'] = ['1Matched' for x in mtch['_mjd']]
     mths = [x[1:7]+'/'+x[1:9]  for x in mtch['_localtime']]
     gtnames = [ '/' + x[1:] + '_ground_track.png' for x in mtch['_localtime']]
     mtch['url'] = [weburl + y + '/' + x + '/index.html' for x,y in zip(mtch['orbname'], mths)]
@@ -207,78 +242,6 @@ def newMatchToSrchable(config, year, outdir):
     outfile = os.path.join(outdir, '{:s}-matchedevents.csv'.format(year))
     outdf.to_csv(outfile, index=False)
     return 
-
-
-def MatchToSrchable(config, year, outdir, indexes):
-    """ Convert matched data records to searchable format
-
-    Args:
-        configfile (str): name of the local config file
-        year (int): the year to process
-        outdir (str): where to save the file
-        indexes (str): list of index files
-        
-    """
-    weburl=config['config']['SITEURL']
-    
-    print(datetime.datetime.now(), 'match to searchable')
-    path= os.path.join(config['config']['DATADIR'], 'orbits', year)
-
-    dtstamps = []
-    urls = []
-    imgs = []
-    shwrs = []
-    mags = []
-    loccams = []
-    srcs = []
-    for entry in indexes:
-        splis = entry.split('/')
-        #mthdir = splis[0]
-        orbname = splis[-2]
-        csvfname = splis[-1]
-        # print(orbname, csvfname)
-        fn = os.path.join(path, 'csv', csvfname)
-        try: 
-            with open(fn, 'r') as idxfile:
-                dta = idxfile.readline()
-                if dta[:3] == 'RMS':
-                    spls = dta.split(',')
-                    dtval = spls[2][1:]
-                    ym = dtval[:6]
-                    ymd = dtval[:8]
-                    sts = spls[5][1:].strip()
-                    mag = spls[7]
-                    shwr = spls[25]
-                    url = weburl + '/reports/' + year
-                    if int(year) < 2021:
-                        url1 = url + '/orbits/' + ym + '/' + orbname + '/index.html'
-                        url2 = url + '/orbits/' + ym + '/' + orbname + '/' + dtval + '_ground_track.png'
-                    else:
-                        url1 = url + '/orbits/' + ym + '/' + ymd + '/' + orbname + '/index.html'
-                        url2 = url + '/orbits/' + ym + '/' + ymd + '/' + orbname + '/' + dtval + '_ground_track.png'
-                    shwrs.append(shwr)
-                    urls.append(url1)
-                    imgs.append(url2)
-                    loccams.append(sts)
-                    mags.append(mag)
-                    orbname = orbname.replace('-','_')[:19]
-                    dtstamp = datetime.datetime.strptime(orbname, '%Y%m%d_%H%M%S.%f')
-                    dtstamps.append(dtstamp.timestamp())
-                    srcs.append('1Matched')
-                else:
-                    print('seems not RMS processed')
-        except Exception:
-            print(datetime.datetime.now(), 'file missing {}'.format(fn))
-            continue
-    matchhdr='eventtime,source,shower,mag,loccam,url,img'
-
-    # write out the converted data
-    matchdata = np.column_stack((dtstamps, srcs, shwrs, mags, loccams, urls, imgs))
-    matchdata = np.unique(matchdata, axis=0)
-    matchfmtstr = '%s,%s,%s,%s,%s,%s,%s'
-
-    outfile = os.path.join(outdir, '{:s}-matchedevents.csv'.format(year))
-    np.savetxt(outfile, matchdata, fmt=matchfmtstr, header=matchhdr, comments='')
 
 
 def createIndexOfOrbits(year):
@@ -326,8 +289,7 @@ if __name__ == '__main__':
 
         year =sys.argv[1]
 
-        ret = UFOAtoSrchable(config, year, sys.argv[2])
-        ret = LiveToSrchable(config, year, sys.argv[2])
+        ret = convertUFOAtoSrchable(config, year, sys.argv[2])
+        ret = convertLiveToSrchable(config, year, sys.argv[2])
         if int(year) > 2019:
-            #indexes = createIndexOfOrbits(year)
-            ret = newMatchToSrchable(config, year, sys.argv[2])
+            ret = convertMatchToSrchable(config, year, sys.argv[2])

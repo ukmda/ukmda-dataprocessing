@@ -27,7 +27,7 @@ def FindMatch(bucket, csvfile, d1, d2, op):
                 continue
             if spl[:2] == 's:':
                 shwr = 'J8_' + spl[2:]
-                expr = expr + "and (s.shower = '" + shwr + "' or s.shower = ' " + spl[2:] + "') "
+                expr = expr + "and (s.shower = '" + shwr + "' or s.shower = ' " + spl[2:] + "' or s.shower = '" + spl[2:] + "') "
             if spl[:2] == 'm:':
                 expr = expr + "and cast(s.mag as float) <= " + spl[2:] + " "
             if spl[:2] == 'l:':
