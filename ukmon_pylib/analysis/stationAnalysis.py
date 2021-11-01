@@ -9,6 +9,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import shutil
 import glob
+import datetime
 
 from wmpl.Utils.TrajConversions import jd2Date
 
@@ -180,6 +181,7 @@ def reportOneSite(ym, loc):
         outf.write('<a href=../index.html>back to Station index</a>\n')
 
     outf.write('<h2>Station report for {} for {}</h2>\n'.format(loc, when))
+    outf.write('Last updated: {}\br'.format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
     singleFile = os.path.join(datadir, 'single', 'singles-{}.csv'.format(yr))
     matchfile = os.path.join(datadir, 'matched', 'matches-{}.csv'.format(yr))
     extrafile = os.path.join(datadir, 'matched', 'matches-extras-{}.csv'.format(yr))

@@ -23,7 +23,7 @@ python $SRC/ukmon_pylib/analysis/stationAnalysis.py $yr $loc
 
 #cd $RCODEDIR
 #./STATION_SUMMARY_MASTER.r $yr
-logger -s -t stationReports "station reporrs done creating index"
+logger -s -t stationReports "station reports done creating index"
 
 mkdir -p $DATADIR/reports/$yr/stations > /dev/null 2>&1
 cd $DATADIR/reports/$yr/stations
