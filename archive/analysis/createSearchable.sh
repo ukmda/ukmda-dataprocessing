@@ -26,6 +26,7 @@ fi
 sed '1d' /tmp/${yr}-liveevents.csv >> $DATADIR/searchidx/${yr}-allevents.csv
 
 if [ -f /tmp/${yr}-matchedevents.csv ] ; then 
+    mv -f /tmp/matches-full-${yr}.csv $DATADIR/matched/
     rm -f /tmp/${yr}-matchedevents.csv
 fi
 rm -f /tmp/${yr}-liveevents.csv

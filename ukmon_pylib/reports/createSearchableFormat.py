@@ -236,6 +236,9 @@ def convertMatchToSrchable(config, year, outdir):
     xtra.set_index(['mjd'])
     newm = mtch.join(xtra)
 
+    outfile = os.path.join(outdir, 'matches-full-{}.csv'.format(year))
+    newm.to_csv(outfile, index=False)
+
     # matchdata = np.column_stack((dtstamps, srcs, shwrs, mags, loccams, urls, imgs))
     outdf = pd.concat([newm['dtstamp'], newm['src'], newm['_stream'], newm['_mag'], newm['stations'], newm['url'], newm['img']], 
         axis=1, keys=['eventtime','source','shower','mag','loccam','url','img'])
