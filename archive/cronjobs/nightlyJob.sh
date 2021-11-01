@@ -88,8 +88,7 @@ logger -s -t nightlyJob "create event log for other networks"
 python $SRC/ukmon_pylib/reports/createExchangeFiles.py
 
 logger -s -t nightlyJob "Create density and velocity plots by solar longitude"
-# too slow for now commented out
-# $SRC/analysis/createDensityPlots.sh
+$SRC/analysis/createDensityPlots.sh ${mth}
 
 logger -s -t nightlyJob "clean up old logs"
 find $SRC/logs -name "nightly*.gz" -mtime +90 -exec rm -f {} \;
