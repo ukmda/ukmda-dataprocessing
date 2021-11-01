@@ -31,7 +31,7 @@ def FindMatch(bucket, csvfile, d1, d2, op):
             if spl[:2] == 'm:':
                 expr = expr + "and cast(s.mag as float) <= " + spl[2:] + " "
             if spl[:2] == 'l:':
-                expr = expr + "and loccam =  '" + spl[2:] + "' "
+                expr = expr + "and loccam like  '%" + spl[2:] + "%' "
             if spl[:2] == 't:':
                 expr = expr + "and s.source =  '1Matched' "
 
