@@ -25,7 +25,9 @@ export PYTHONPATH=$wmpl_loc:$PYLIB
 tlist=$(python $PYLIB/reports/findBestMp4s.py $yr $mth $numreq)
 for t in $tlist 
 do 
-    cp -p $MATCHDIR/RMSCorrelate/trajectories/$t*/*.mp4 $outdir
+    ym=$yr$mth
+    ymd=${$t:0:8}
+    cp -p $MATCHDIR/RMSCorrelate/trajectories/$yr/$ym/$ymd/$t*/*.mp4 $outdir
     gotcount=$(ls -1 $outdir/*.mp4 | wc -l)
     if [ $gotcount -gt $numreq ] ; then
         break
