@@ -16,24 +16,37 @@ logger -s -t createFireballPage "creating fireball page for $yr"
 mkdir -p $DATADIR/reports/$yr/fireballs > /dev/null 2>&1
 cd $DATADIR/reports/$yr/fireballs
 
+export DATADIR
+python $PYLIB/reports/findFireballs.py ${yr} $DATADIR/reports/$yr/fireballs
+
 echo "\$(function() {" > reportindex.js
 echo "var table = document.createElement(\"table\");" >> reportindex.js
-echo "table.className = \"table table-striped table-bordered table-hover table-condensed\";" >> $here/data/reportindex.js
+echo "table.className = \"table table-striped table-bordered table-hover table-condensed\";" >> reportindex.js
 echo "var header = table.createTHead();" >> reportindex.js
 echo "header.className = \"h4\";" >> reportindex.js
 echo "var row = table.insertRow(-1);" >> reportindex.js
 echo "var cell = row.insertCell(0);" >> reportindex.js
 echo "cell.innerHTML = \"Fireball Reports\";" >> reportindex.js
 
-cat ./fblist.txt | while read i ; do
-    echo "var row = table.insertRow(-1);">> reportindex.js
-    echo "var cell = row.insertCell(0);" >> reportindex.js
-    fldr=$(echo $i | awk -F, '{print $1}')
-    mag=$(echo $i | awk -F, '{print $2}')
-    shwr=$(echo $i | awk -F, '{print $3}')
-    bn=$(basename $fldr)
-    echo "cell.innerHTML = \"<a href="/$fldr/index.html">$bn</a> Mag $mag $shwr\";" >> reportindex.js
-done
+if [ -f ./fblist.txt ] ; then 
+    cat ./fblist.txt | while read i ; do
+        echo "var row = table.insertRow(-1);">> reportindex.js
+        echo "var cell = row.insertCell(0);" >> reportindex.js
+        fldr=$(echo $i | awk -F, '{print $1}')
+        mag=$(echo $i | awk -F, '{print $2}')
+        shwr=$(echo $i | awk -F, '{print $3}')
+        bn=$(basename $(dirname $fldr))
+        echo "cell.innerHTML = \"<a href="$fldr">$bn</a>\";" >> reportindex.js
+        echo "var cell = row.insertCell(1);" >> reportindex.js
+        echo "cell.innerHTML = \"$mag\";" >> reportindex.js
+        echo "var cell = row.insertCell(2);" >> reportindex.js
+        echo "cell.innerHTML = \"$shwr\";" >> reportindex.js
+    done
+else
+        echo "var row = table.insertRow(-1);">> reportindex.js
+        echo "var cell = row.insertCell(0);" >> reportindex.js
+        echo "cell.innerHTML = \"Data unavailable";" >> reportindex.js
+fi 
 echo "var outer_div = document.getElementById(\"summary\");" >> reportindex.js
 echo "outer_div.appendChild(table);" >> reportindex.js
 echo "})" >> reportindex.js
