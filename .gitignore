@@ -537,3 +537,4 @@ ToDo*
 archive/costs/**/*.csv
 archive/costs/**/*.json
 archive/costs/plots/*.png
+archive/lambdas/.aws-sam/build.toml
