@@ -1,0 +1,11 @@
+# SAM build file for searchArchive
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Resources:
+  searchArchive:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: searchArchive.lambda_handler
+      Runtime: python3.7
+    Metadata:
+      BuildMethod: python3.7
