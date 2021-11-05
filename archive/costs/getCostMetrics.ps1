@@ -9,8 +9,8 @@ $env:AWS_DEFAULT_REGION="eu-west-1"
 
 . ~/.ssh/mark-creds.ps1
 if ($args.count -eq 0) {
-    python $PYLIB/metrics/getMetrics.py . eu-west-1
+    python $PYLIB/metrics/costMetrics.py . eu-west-1
 }else{
-    python $PYLIB/metrics/getMetrics.py . eu-west-1 $args[0]
+    python $PYLIB/metrics/costMetrics.py . eu-west-1 $args[0]
 }
 
