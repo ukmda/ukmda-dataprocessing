@@ -5,6 +5,7 @@
 import sys
 import pandas as pd
 import matplotlib.pyplot as plt
+import datetime
 
 import fileformats.UOFormat as uof 
 from wmpl.Utils.TrajConversions import jd2Date
@@ -24,9 +25,10 @@ def createBarChart(fname):
 
     fig, ax = plt.subplots()
     width = 0.35       
+    nowdt=datetime.datetime.now()
     ax.set_ylabel('# matches')
     ax.set_xlabel('Date')
-    ax.set_title('Number of matched events per day')
+    ax.set_title('Number of matched events per day. Lat updated {}'.format(nowdt.strftime('%Y-%m-%d %H:%M:%S')))
 
     li.append(0) # comes up one short
     ax.bar(dts, li, width, label='Events')
