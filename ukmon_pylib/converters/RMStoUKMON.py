@@ -1,4 +1,7 @@
-""" Convert the FTPdetectinfo format to UKMON CSV. """
+""" 
+Convert the FTPdetectinfo format to ukmon-specific CSV file containing data 
+about single station detections 
+"""
 
 from __future__ import print_function, division, absolute_import
 
@@ -9,12 +12,12 @@ import json
 import numpy as np
 import re
 
-import RMS.Astrometry.ApplyAstrometry
+#import RMS.Astrometry.ApplyAstrometry
 from RMS.Astrometry.Conversions import datetime2JD, altAz2RADec
 from RMS.Formats import FTPdetectinfo
 from RMS.Formats import FFfile
-import RMS.Formats.Platepar
-from RMS.Formats import UFOOrbit
+#import RMS.Formats.Platepar
+#from RMS.Formats import UFOOrbit
 from RMS import Math
 import Utils.ShowerAssociation as sa
 import RMS.ConfigReader as cr
@@ -68,6 +71,7 @@ class PlateparDummy:
         if not hasattr(self, 'UT_corr'):
             self.UT_corr = 0
 
+
 def writeUkmonCsv(dir_path, file_name, data):
     """ Write the a Ukmon specific CSV file for single-station data. 
 
@@ -89,8 +93,8 @@ def writeUkmonCsv(dir_path, file_name, data):
                 elev, UT_corr, shwr, fname, angvel = line
 
             # Convert azimuths to the astronomical system (+W of due S)
-            azim1 = (azim1 - 180)%360
-            azim2 = (azim2 - 180)%360
+            azim1 = (azim1 - 180) % 360
+            azim2 = (azim2 - 180) % 360
 
             # cater for the possibility that secs+microsecs > 59.99 and would round up to 60
             # causing an invalid time to be written eg 20,55,60.00, instead of 20,56,0.00
@@ -101,9 +105,9 @@ def writeUkmonCsv(dir_path, file_name, data):
                 dt = tmpdt + datetime.timedelta(seconds = secs)
             dtstamp = dt.timestamp()
 
-            f.write('{:s},{:4d},{:2d},{:2d},{:2d},{:2d},{:4.2f},{:.2f},{:.3f},{:.7f},{:.7f},{:.7f},{:.7f},{:.7f},{:.7f},{:.7f},{:.7f},{:s},{:.6f},{:.6f},{:.1f},{:.1f},{:7f},{:s},{:s},{:.6f}\n'.format(\
-                'UM1', dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second + dt.microsecond/1000000, \
-                peak_mag, duration, azim1, alt1, azim2, alt2, ra1, dec1, ra2, dec2, cam_code, lon, lat, \
+            f.write('{:s},{:4d},{:2d},{:2d},{:2d},{:2d},{:4.2f},{:.2f},{:.3f},{:.7f},{:.7f},{:.7f},{:.7f},{:.7f},{:.7f},{:.7f},{:.7f},{:s},{:.6f},{:.6f},{:.1f},{:.1f},{:7f},{:s},{:s},{:.6f}\n'.format(
+                'UM1', dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second + dt.microsecond/1000000, 
+                peak_mag, duration, azim1, alt1, azim2, alt2, ra1, dec1, ra2, dec2, cam_code, lon, lat, 
                 elev, UT_corr, angvel, shwr, fname, dtstamp))
 
 
@@ -120,7 +124,7 @@ def FTPdetectinfo2UkmonCsv(dir_path, out_path):
     for name in os.listdir(dir_path):
         # Find FTPdetectinfo
         if name.startswith("FTPdetectinfo") and name.endswith('.txt') and \
-            (not "backup" in name) and (not "uncalibrated" in name):
+                ("backup" not in name) and ("uncalibrated" not in name):
             ftpdetectinfo_name = name
             break
     if ftpdetectinfo_name is None:
@@ -212,30 +216,30 @@ def FTPdetectinfo2UkmonCsv(dir_path, out_path):
         dt2 = dt + datetime.timedelta(seconds=last_frame/fps)
 
         
-        ### Fit a great circle to Az/Alt measurements and compute model beg/end RA and Dec ###
+        # Fit a great circle to Az/Alt measurements and compute model beg/end RA and Dec ###
 
         # Convert the measurement Az/Alt to cartesian coordinates
         # NOTE: All values that are used for Great Circle computation are:
         #   theta - the zenith angle (90 deg - altitude)
         #   phi - azimuth +N of due E, which is (90 deg - azim)
-        x, y, z = Math.polarToCartesian(np.radians((90 - azim)%360), np.radians(90 - elev))
+        x, y, z = Math.polarToCartesian(np.radians((90 - azim) % 360), np.radians(90 - elev))
 
         # Fit a great circle
         C, theta0, phi0 = GreatCircle.fitGreatCircle(x, y, z)
 
         # Get the first point on the great circle
-        phase1 = GreatCircle.greatCirclePhase(np.radians(90 - elev[0]), np.radians((90 - azim[0])%360), \
+        phase1 = GreatCircle.greatCirclePhase(np.radians(90 - elev[0]), np.radians((90 - azim[0]) % 360), 
             theta0, phi0)
         alt1, azim1 = Math.cartesianToPolar(*GreatCircle.greatCircle(phase1, theta0, phi0))
         alt1 = 90 - np.degrees(alt1)
-        azim1 = (90 - np.degrees(azim1))%360
+        azim1 = (90 - np.degrees(azim1)) % 360
 
         # Get the last point on the great circle
-        phase2 = GreatCircle.greatCirclePhase(np.radians(90 - elev[-1]), np.radians((90 - azim[-1])%360),\
+        phase2 = GreatCircle.greatCirclePhase(np.radians(90 - elev[-1]), np.radians((90 - azim[-1]) % 360),
             theta0, phi0)
         alt2, azim2 = Math.cartesianToPolar(*GreatCircle.greatCircle(phase2, theta0, phi0))
         alt2 = 90 - np.degrees(alt2)
-        azim2 = (90 - np.degrees(azim2))%360
+        azim2 = (90 - np.degrees(azim2)) % 360
 
         # Compute RA/Dec from Alt/Az
         ra1, dec1 = altAz2RADec(azim1, alt1, datetime2JD(dt1), pp.lat, pp.lon)
@@ -244,7 +248,7 @@ def FTPdetectinfo2UkmonCsv(dir_path, out_path):
         angLength = Math.angularSeparation(np.radians(ra1), np.radians(dec1), np.radians(ra2), np.radians(dec2))
         angVel = np.degrees(angLength)/duration
 
-        ufo_meteor_list.append([dt1, peak_mag, duration, azim1[0], alt1[0], azim2[0], alt2[0], \
+        ufo_meteor_list.append([dt1, peak_mag, duration, azim1[0], alt1[0], azim2[0], alt2[0], 
             ra1[0], dec1[0], ra2[0], dec2[0], cam_code, pp.lon, pp.lat, pp.elev, pp.UT_corr, 
             shwr, ff_name, angVel[0]])
 
@@ -264,7 +268,7 @@ def processManyFolders(in_dir, out_dir):
         open(dbfile, 'w').close()
     with open(dbfile, 'r', newline=None) as inf:
         db = inf.readlines()
-    db = [ li.strip() for li in db]
+    db = [li.strip() for li in db]
     processing_list = findUnprocessedFolders(in_dir, stations, db)
     for fldr in processing_list:
         print(fldr)
@@ -274,19 +278,19 @@ def processManyFolders(in_dir, out_dir):
 
     return
 
+
 if __name__ == "__main__":
 
     # Init the command line arguments parser
-    arg_parser = argparse.ArgumentParser(description="Converts the given FTPdetectinfo file into UFOorbit input format.")
+    arg_parser = argparse.ArgumentParser(description="Converts the given FTPdetectinfo file into a ukmon-specific data format.")
 
-    arg_parser.add_argument('file_path', nargs='+', metavar='FILE_PATH', type=str, \
+    arg_parser.add_argument('file_path', nargs='+', metavar='FILE_PATH', type=str, 
         help='Path to one or more FTPdetectinfo files.')
 
-    arg_parser.add_argument('out_path', nargs='+', metavar='OUT_PATH', type=str, \
+    arg_parser.add_argument('out_path', nargs='+', metavar='OUT_PATH', type=str, 
         help='Where to save the output.')
 
     # Parse the command line arguments
     cml_args = arg_parser.parse_args()
 
-    # FTPdetectinfo2UkmonCsv(cml_args.file_path[0], cml_args.out_path[0])
     processManyFolders(cml_args.file_path[0], cml_args.out_path[0])

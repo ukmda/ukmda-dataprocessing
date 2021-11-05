@@ -6,8 +6,8 @@
 import sys
 import os
 import pandas as pd
-from fileformats import UOFormat as uof
-from fileformats import UAFormats as uaf
+#from fileformats import UOFormat as uof
+#from fileformats import UAFormats as uaf
 
 
 def findMatchedFireballs(df, outdir = None, mag=-4):
@@ -33,7 +33,7 @@ if __name__ == '__main__':
         with open(fname) as inf:
             df = pd.read_csv(inf)
     else:
-         exit(0)
+        exit(0)
     
     outdir = sys.argv[2]
     if len(sys.argv) > 3:
