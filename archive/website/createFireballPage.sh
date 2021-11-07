@@ -45,7 +45,7 @@ if [ -f ./fblist.txt ] ; then
 else
         echo "var row = table.insertRow(-1);">> reportindex.js
         echo "var cell = row.insertCell(0);" >> reportindex.js
-        echo "cell.innerHTML = \"Data unavailable";" >> reportindex.js
+        echo "cell.innerHTML = \"Data unavailable\";" >> reportindex.js
 fi 
 echo "var outer_div = document.getElementById(\"summary\");" >> reportindex.js
 echo "outer_div.appendChild(table);" >> reportindex.js
