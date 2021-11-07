@@ -26,7 +26,7 @@ aws s3 ls $WEBSITEBUCKET/img/single/$yr/ --recursive | awk '{print $4}' > $DATAD
 
 logger -s -t nightlyJob "getting latest consolidated information"
 source $UKMONSHAREDKEY
-aws s3 sync s3://ukmon-shared/consolidated/ ${DATADIR}/consolidated --exclude 'consolidated/temp/*' --quiet
+aws s3 sync s3://ukmon-shared/consolidated/ ${DATADIR}/consolidated --exclude 'temp/*' --quiet
 
 logger -s -t updateSearchIndex "getting latest livefeed CSV files"
 qmth=$(date +%m)
