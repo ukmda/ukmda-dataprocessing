@@ -925,7 +925,7 @@ def createAdditionalOutput(traj, outdir):
     matplotlib.rcParams['savefig.dpi'] = 300
 
     # calculate the values
-    amag, vmag, mass, id, cod, orb, shower_obj, lg, bg, vg, _, _ = calcAdditionalValues(traj)
+    amag, vmag, mass, id, cod, orb, shower_obj, lg, bg, vg, _ = calcAdditionalValues(traj)
 
     # create Summary report for webpage
     #print('creating summary report')
