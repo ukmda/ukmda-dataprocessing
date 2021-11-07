@@ -817,7 +817,7 @@ def computeAbsoluteMagnitudes(traj, meteor_list):
 
 
 def draw3Dmap(traj, outdir):
-    orb = traj.orbit
+    #orb = traj.orbit
     dtstr = jd2Date(traj.jdt_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
 
     lats = []
@@ -842,22 +842,24 @@ def draw3Dmap(traj, outdir):
     return
 
 
-def calcAdditionalValues(traj):
-    # print('about to calc abs mag')
-    # # Compute absolute mangitudes
+def loadMagData(traj):
     magdata=[]
     stations = []
-    bestvmag = 99
+    vmags = []
     for obs in traj.observations:
         thisobs = MeteorObservation(0,'',0,0,0,0,'')
         thisobs.mag_data = obs.magnitudes
         magdata.append(thisobs)
-        vmag = min(obs.magnitudes)
-        bestvmag = min(vmag, bestvmag)
+        vmags.append(min(obs.magnitudes))
         stations.append(obs.station_id)
+    return magdata, stations, vmags
 
-    # print(magdata)
+
+def calcAdditionalValues(traj):
+    # # Compute  mangitudes
+    magdata, stations, vmags = loadMagData(traj)
     computeAbsoluteMagnitudes(traj, magdata)
+    bestvmag = min(vmags)
 
     # # List of photometric uncertainties per station
     photometry_stddevs = [0.3] * len(magdata)
@@ -923,7 +925,7 @@ def createAdditionalOutput(traj, outdir):
     matplotlib.rcParams['savefig.dpi'] = 300
 
     # calculate the values
-    amag, vmag, mass, id, cod, orb, shower_obj, lg, bg, vg, _ = calcAdditionalValues(traj)
+    amag, vmag, mass, id, cod, orb, shower_obj, lg, bg, vg, _, _ = calcAdditionalValues(traj)
 
     # create Summary report for webpage
     #print('creating summary report')
