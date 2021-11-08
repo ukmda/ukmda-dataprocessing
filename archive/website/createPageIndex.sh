@@ -62,8 +62,11 @@ echo "<br>">>$idxfile
 if [ -f ${srcdata}/jpgs.lst ] ; then
     cat ${srcdata}/jpgs.lst | while read i 
     do
-        echo "<a href=\"/$i\"><img src=\"/$i\" width=\"20%\"></a>" >> $idxfile
-        echo "https://archive.ukmeteornetwork.co.uk/$i" >> ${srcdata}/available_jpgs.txt
+        ext=${i##*.}
+        if [ "$ext" == "jpg" ] ; then 
+            echo "<a href=\"/$i\"><img src=\"/$i\" width=\"20%\"></a>" >> $idxfile
+            echo "https://archive.ukmeteornetwork.co.uk/$i" >> ${srcdata}/available_jpgs.txt
+        fi
     done
 fi
 
@@ -73,6 +76,18 @@ echo "<a href=\"${pref}abs_mag.png\"><img src=\"${pref}abs_mag.png\" width=\"20%
 echo "<a href=\"${pref}abs_mag_ht.png\"><img src=\"${pref}abs_mag_ht.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}all_angular_residuals.png\"><img src=\"${pref}all_angular_residuals.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}all_spatial_total_residuals_height.png\"><img src=\"${pref}all_spatial_total_residuals_height.png\" width=\"20%\"></a>" >> $idxfile
+echo "</div>" >> $idxfile
+echo "<div>" >> $idxfile
+if [ -f ${srcdata}/jpgs.lst ] ; then
+    cat ${srcdata}/jpgs.lst | while read i 
+    do
+        ext=${i##*.}
+        if [ "$ext" == "mp4" ] ; then 
+            echo "<a href=\"/$i\"><video width=\"20%\"><source src=\"/$i\" type=\"video/mp4\"></video></a>" >> $idxfile
+            echo "https://archive.ukmeteornetwork.co.uk/$i" >> ${srcdata}/available_jpgs.txt
+        fi
+    done
+fi
 echo "</div>" >> $idxfile
 
 echo "<pre>" >>$idxfile 
@@ -95,6 +110,6 @@ popd
 
 logger -s -t createPageIndex "copying to website"
 source $WEBSITEKEY
-aws s3 sync ${srcdata}/ ${targ}/ --include "*"  --quiet
+aws s3 sync ${srcdata}/ ${targ}/ --include "*" --quiet
 
 logger -s -t createPageIndex "finished"
