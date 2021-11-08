@@ -23,6 +23,7 @@ class SiteInfo:
         #print(self.camdets)
 
     def getCameraOffset(self, statid):
+        spls=statid.split('_')
         statid = statid.encode('utf-8')
         cam = numpy.where(self.camdets['CamID'] == statid) 
         if len(cam[0]) == 0:
@@ -30,6 +31,8 @@ class SiteInfo:
             cam = numpy.where(self.camdets['CamID'] == statid) 
         if len(cam[0]) == 0:
             cam = numpy.where(self.camdets['dummycode'] == statid) 
+        if len(cam[0]) ==0:
+            cam = numpy.where(numpy.logical_and(self.camdets['LID']==spls[0].encode('utf-8'), self.camdets['SID']==spls[1].encode('utf-8')))
 
         # if we can't find the camera, assume its inactive
         if len(cam[0]) == 0:
@@ -194,7 +197,7 @@ class SiteInfo:
         sites=[]
         silist=self.camdets['Site']
         silist = np.unique(silist)
-        sites = [si.decode('utf-8') for si in silist ]
+        sites = [si.decode('utf-8') for si in silist]
         return sites
 
     def getUFOCameras(self, onlyactive=False):
