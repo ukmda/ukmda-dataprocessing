@@ -10,20 +10,34 @@ $ini=get-inicontent analysis.ini
 
 $stationdetails=$ini['fireballs']['stationdets']
 $fbfldr=$ini['fireballs']['localfolder']
+$env:PYLIB=$ini['pylib']['pylib']
 
 # set up paths
 $targpth = $fbfldr + '\' + $args[0]
 set-location $targpth
 
 conda activate $ini['wmpl']['wmpl_env']
-$env:PYTHONPATH=$ini['wmpl']['wmpl_loc']
+$env:PYTHONPATH="$ini['wmpl']['wmpl_loc'];$env:PYLIB"
 
 $solver = read-host -prompt "ECSV or RMS solver? (E/R)"
 if ($solver -eq 'E') {
-    python -m wmpl.Formats.ECSV  -l -x -w
+    python -m wmpl.Formats.ECSV . -l -x -w $args[1]
+    $d=(dir 20210808*).fullname
+    if ($d.length -gt 0 )
+    {
+        python $env:PYLIB/traj/extraDataFiles.py $d
+    }
 }
 else {
     python -m wmpl.Trajectory.CorrelateRMS . -l 
+    if (test-path ".\processed_trajectories.json")
+    {
+        $json=(get-content ".\processed_trajectories.json" | convertfrom-json)
+        $json.trajectories.psobject.properties.name |foreach-object { 
+            $picklepath=(split-path $json.trajectories.$_.traj_file_path)
+            python $env:PYLIB/traj/extraDataFiles.py $picklepath
+        }
+    }
 }
 set-location $loc
 

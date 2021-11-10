@@ -16,6 +16,7 @@
     - {src: '{{srcdir}}/analysis/analysis.ini', dest: '{{destdir}}/', mode: '644', backup: no, directory_mode: no }
     - {src: '{{srcdir}}/analysis/helperfunctions.ps1', dest: '{{destdir}}/', mode: '755', backup: no, directory_mode: no }
     - {src: '{{srcdir}}/analysis/getFireballFiles.ps1', dest: '{{destdir}}/', mode: '755', backup: no, directory_mode: no }
+    - {src: '{{srcdir}}/analysis/manualReduction.ps1', dest: '{{destdir}}/', mode: '755', backup: no, directory_mode: no }
     - {src: '{{srcdir}}/analysis/fireballAnalyser.ps1', dest: '{{destdir}}/', mode: '755', backup: no, directory_mode: no }
     - {src: '{{srcdir}}/analysis/uploadImprovedFBFiles.ps1', dest: '{{destdir}}/', mode: '755', backup: no, directory_mode: no }
     - {src: '{{srcdir}}/analysis/makePPallFromPP.ps1', dest: '{{destdir}}/', mode: '755', backup: no, directory_mode: no }
