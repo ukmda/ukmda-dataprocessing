@@ -279,6 +279,11 @@ def loadFTPDetectInfo(ftpdetectinfo_file_name, time_offsets=None,
 
 
 if __name__ == '__main__':
+    if len(sys.argv) < 1:
+        print('usage: python ftpDetectInfo.py ftpfile')
+        print('note: requires .config and platepar to be in the same folder')
+        exit(0)
+        
     ftpname = sys.argv[1]
     metlist = loadFTPDetectInfo(sys.argv[1])
     m1 = metlist[0]
