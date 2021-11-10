@@ -5,6 +5,7 @@ import os
 import sys
 import glob
 import shutil
+import platform
 
 from wmpl.Utils.Pickling import loadPickle 
 from wmpl.Utils.TrajConversions import jd2Date
@@ -13,15 +14,16 @@ from traj.ufoTrajSolver import createAdditionalOutput, calcAdditionalValues, loa
 from fileformats import CameraDetails as cdet
 
 
-def generateExtraFiles(outdir):
+def generateExtraFiles(outdir, skipimgs = False):
     outdir=os.path.normpath(outdir)
     picklefile = glob.glob1(outdir, '*.pickle')[0]
     traj = loadPickle(outdir, picklefile)
     traj.save_results = True
 
     createAdditionalOutput(traj, outdir)
-    findMatchingJpgs(traj, outdir)
-    findMatchingMp4s(traj, outdir)
+    if skipimgs is False:
+        findMatchingJpgs(traj, outdir)
+        findMatchingMp4s(traj, outdir)
     return
 
 
@@ -166,11 +168,15 @@ def findMatchingMp4s(traj, outdir):
 
 if __name__ == '__main__':
     fl = sys.argv[1]
+    skipimgs = False
+    if platform.system() == 'Windows':
+        skipimgs = True
+
     if os.path.isdir(fl):
-        generateExtraFiles(fl)
+        generateExtraFiles(fl, skipimgs=skipimgs)
     else:
         with open(fl,'r') as inf:
             dirs = inf.readlines()
             for li in dirs:
                 fl = li.split(',')[1]
-                generateExtraFiles(fl)
+                generateExtraFiles(fl, skipimgs=skipimgs)
