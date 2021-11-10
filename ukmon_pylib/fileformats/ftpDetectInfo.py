@@ -1,5 +1,5 @@
 #
-# Load an FTPdetectInfo file
+# Load an FTPdetectInfo file - copied from RMS
 #
 
 import sys
@@ -12,7 +12,7 @@ from wmpl.Formats.GenericFunctions import MeteorObservation
 from wmpl.Utils.Math import angleBetweenSphericalCoords
 
 
-def loadFTPDetectInfo(ftpdetectinfo_file_name, stations, time_offsets=None,
+def loadFTPDetectInfo(ftpdetectinfo_file_name, time_offsets=None,
         join_broken_meteors=True):
     """
 
@@ -34,6 +34,17 @@ def loadFTPDetectInfo(ftpdetectinfo_file_name, stations, time_offsets=None,
         meteor_list: [list] A list of MeteorObservation objects filled with data from the FTPdetectinfo file.
 
     """
+    dirname, fname = os.path.split(ftpdetectinfo_file_name)
+    cfgfile = os.path.join(dirname, '.config')    
+    cfg = crp.ConfigParser()
+    cfg.read(cfgfile)
+    lat = float(cfg['System']['latitude'].split()[0])
+    lon = float(cfg['System']['longitude'].split()[0])
+    height = float(cfg['System']['elevation'].split()[0])
+    statid= fname.split('_')[1]
+    stations={}
+    stations[statid] = [np.radians(lat), np.radians(lon), height*1000]
+
     meteor_list = []
 
     with open(ftpdetectinfo_file_name) as f:
@@ -269,17 +280,8 @@ def loadFTPDetectInfo(ftpdetectinfo_file_name, stations, time_offsets=None,
 
 if __name__ == '__main__':
     ftpname = sys.argv[1]
-    dirname, fname = os.path.split(ftpname)
-    cfgfile = os.path.join(dirname, '.config')    
-    cfg = crp.ConfigParser()
-    cfg.read(cfgfile)
-    lat = float(cfg['System']['latitude'].split()[0])
-    lon = float(cfg['System']['longitude'].split()[0])
-    height = float(cfg['System']['elevation'].split()[0])
-    statid= fname.split('_')[1]
-    station={}
-    station[statid] = [np.radians(lat), np.radians(lon), height*1000]
-
-    metlist = loadFTPDetectInfo(sys.argv[1], station)
+    metlist = loadFTPDetectInfo(sys.argv[1])
     m1 = metlist[0]
     print(m1.jdt_ref, m1.ff_name)
+    for f,t,r,d,a,e,x,y,m in zip(m1.frames,m1.time_data, m1.ra_data, m1.dec_data, m1.azim_data, m1.elev_data, m1.x_data, m1.y_data, m1.mag_data):
+        print(f,t,r,d,a,e,x,y,m)
