@@ -1,10 +1,11 @@
 #
-# analyse a UFO dataset using RMS
+# analyse a UFO dataset using RMS - well, a start at it anyway ! 
 #
-import sys, os, argparse
-sys.path.append('c:/users/mark/documents/projects/meteorhunting/RMS/')
+import os
+import argparse
 import RMS.ConfigReader as cr
 from RMS.DetectStarsAndMeteors import detectStarsAndMeteors
+
 
 def AnalyseUFOwithRMS(config, ff_directory, ff_name):
     """
@@ -16,16 +17,17 @@ def AnalyseUFOwithRMS(config, ff_directory, ff_name):
 
     print(star_list)
     print(meteor_list)
-    
+
+   
 if __name__ == '__main__':
-    ### COMMAND LINE ARGUMENTS
+    # COMMAND LINE ARGUMENTS
     # Init the command line arguments parser
     arg_parser = argparse.ArgumentParser(description="Analyses a UFO avi with RMS.")
 
-    arg_parser.add_argument('ff_path', nargs='+', metavar='FILE_PATH', type=str, \
+    arg_parser.add_argument('ff_path', nargs='+', metavar='FILE_PATH', type=str,
         help='Full path and name of the file to analyse')
 
-    arg_parser.add_argument('-c', '--config', nargs=1, metavar='CONFIG_PATH', type=str, \
+    arg_parser.add_argument('-c', '--config', nargs=1, metavar='CONFIG_PATH', type=str,
         help="Path to a config file which will be used instead of the default one.")
     
     # Parse the command line arguments

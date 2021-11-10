@@ -11,8 +11,8 @@ An example config file is shown below
 import sys
 import os
 import six
-from CameraCurator import curateFolder
-from CameraCurator import curateCamera
+from ufoutils import curateFolder
+from ufoutils import curateCamera
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:

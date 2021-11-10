@@ -30,7 +30,10 @@ $env:AWS_DEFAULT_REGION='eu-west-2'
 #aws lambda update-function-code --function-name consolidateKmls --zip-file fileb://packages/consolidateKmls.zip
 
 $env:AWS_DEFAULT_REGION='eu-west-2'
-sam build -t searchArchive/template.yml
-compress-archive -path  .\.aws-sam\build\searchArchive\* -destinationpath packages\searchArchive.zip -update
-aws lambda update-function-code --function-name searchUKmon --zip-file fileb://packages/searchArchive.zip
-Set-Location ..
+#sam build -t searchArchive/template.yml
+#compress-archive -path  .\.aws-sam\build\searchArchive\* -destinationpath packages\searchArchive.zip -update
+#aws lambda update-function-code --function-name searchUKmon --zip-file fileb://packages/searchArchive.zip
+
+#sam build -t testFovs/template.yml
+#compress-archive -path  .\.aws-sam\build\testFovs\* -destinationpath packages\testFovs.zip -update
+#aws lambda update-function-code --function-name testFovs --zip-file fileb://packages/testFovs.zip

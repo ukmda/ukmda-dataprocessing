@@ -3,7 +3,7 @@
 
 import os
 import numpy as np
-from UFOHandler import ReadUFOCapXML
+from fileformats import ReadUFOCapXML
 Polynomial = np.polynomial.Polynomial
 
 badfilepath = ''

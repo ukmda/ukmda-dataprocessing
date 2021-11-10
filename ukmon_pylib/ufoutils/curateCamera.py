@@ -11,8 +11,7 @@ import glob
 
 import configparser as cfg
 
-import CameraCurator  # noqa: F401
-from CameraCurator import curateEngine as ce
+from ufoutils import curateEngine as ce
 
 
 def valid_date(s):

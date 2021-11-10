@@ -6,9 +6,8 @@ import os
 import sys
 import configparser as cfg
 
-import CameraCurator  # noqa: F401
-from CameraCurator import curateCamera as cc
-from CameraCurator import curateEngine as ce
+from ufoutils import curateCamera as cc
+from ufoutils import curateEngine as ce
 
 
 def main(path, altfolder=None, badfolder=None):
