@@ -21,6 +21,8 @@ from wmpl.Utils.Math import mergeClosePoints, angleBetweenSphericalCoords
 from wmpl.Utils.Physics import calcMass
 from wmpl.Utils.ShowerAssociation import associateShower
 
+from utils.getShowerDates import getShowerDets
+
 
 def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
     #print('Creating UFO Orbit style output file')
@@ -908,16 +910,19 @@ def calcAdditionalValues(traj):
         if shower_obj is None:
             id = -1
             cod = 'spo'
+            shwrname=''
         else:
             id = shower_obj.IAU_no
             cod = shower_obj.IAU_code
+            _, shwrname, _, _ = getShowerDets(cod)
     else:
         # no orbit was calculated
         id = -1
         cod = 'spo'
+        shwrname=''
 
     amag = min(abs_mag_data_all)
-    return amag, bestvmag, mass, id, cod, orb, shower_obj, lg, bg, vg, stations
+    return amag, bestvmag, mass, id, cod, shwrname, orb, shower_obj, lg, bg, vg, stations
 
 
 def createAdditionalOutput(traj, outdir):
@@ -925,7 +930,7 @@ def createAdditionalOutput(traj, outdir):
     matplotlib.rcParams['savefig.dpi'] = 300
 
     # calculate the values
-    amag, vmag, mass, id, cod, orb, shower_obj, lg, bg, vg, _ = calcAdditionalValues(traj)
+    amag, vmag, mass, id, cod, shwrname, orb, shower_obj, lg, bg, vg, _ = calcAdditionalValues(traj)
 
     # create Summary report for webpage
     #print('creating summary report')
@@ -936,7 +941,7 @@ def createAdditionalOutput(traj, outdir):
             f.write('Summary for Event\n')
             f.write('-----------------\n')
             if orb is not None:
-                f.write('shower ID {:d} {:s}\n'.format(id, cod))
+                f.write('shower ID {:d} {:s} ({:s})\n'.format(id, cod, shwrname))
                 if orb.L_g is not None:
                     f.write('Lg {:.2f}&deg; Bg {:.2f}&deg; Vg {:.2f}km/s\n'.format(lg, bg, vg / 1000))
 

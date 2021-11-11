@@ -55,7 +55,7 @@ def getVMagCodeAndStations(outdir):
 
     picklefile = glob.glob1(outdir, '*.pickle')[0]
     traj = loadPickle(outdir, picklefile)
-    amag, bestvmag, mass, id, cod, orb, shower_obj, lg, bg, vg, stations = calcAdditionalValues(traj)
+    _, bestvmag, _, _, cod, _, _, _, _, _, _, stations = calcAdditionalValues(traj)
     return bestvmag, cod, stations
 
 
