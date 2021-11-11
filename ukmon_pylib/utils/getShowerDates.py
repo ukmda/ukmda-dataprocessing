@@ -37,8 +37,8 @@ def loadDataFile(typ, pth=None):
 
 def getShowerDets(shwr):
     sfd = loadFullData()
-    shwr = sfd[sfd[:,3] == sys.argv[1]]
-    mtch = [sh for sh in shwr if sh[6] != '-2']
+    sfdfltr = sfd[sfd[:,3] == shwr]
+    mtch = [sh for sh in sfdfltr if sh[6] != '-2']
     id = int(mtch[-1][1])
     nam = mtch[-1][4].strip()
     pksollong = float(mtch[-1][7])
