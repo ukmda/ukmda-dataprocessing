@@ -17,12 +17,16 @@ $targpth = $fbfldr + '\' + $args[0]
 set-location $targpth
 
 conda activate $ini['wmpl']['wmpl_env']
-$env:PYTHONPATH="$ini['wmpl']['wmpl_loc'];$env:PYLIB"
+$wmplloc=$ini['wmpl']['wmpl_loc']
+$env:pythonpath="$wmplloc;$env:pylib"
+
+Write-Output $env:pythonpath
 
 $solver = read-host -prompt "ECSV or RMS solver? (E/R)"
 if ($solver -eq 'E') {
     python -m wmpl.Formats.ECSV . -l -x -w $args[1]
-    $d=(dir 20210808*).fullname
+    $trajoutdir=$args[0] + '*'
+    $d=(Get-ChildItem $trajoutdir).fullname
     if ($d.length -gt 0 )
     {
         python $env:PYLIB/traj/extraDataFiles.py $d
