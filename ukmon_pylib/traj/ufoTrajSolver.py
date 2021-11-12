@@ -910,7 +910,7 @@ def calcAdditionalValues(traj):
         if shower_obj is None:
             id = -1
             cod = 'spo'
-            shwrname=''
+            shwrname='Sporadic'
         else:
             id = shower_obj.IAU_no
             cod = shower_obj.IAU_code
@@ -919,7 +919,7 @@ def calcAdditionalValues(traj):
         # no orbit was calculated
         id = -1
         cod = 'spo'
-        shwrname=''
+        shwrname='Sporadic'
 
     amag = min(abs_mag_data_all)
     return amag, bestvmag, mass, id, cod, shwrname, orb, shower_obj, lg, bg, vg, stations

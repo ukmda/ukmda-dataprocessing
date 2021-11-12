@@ -54,5 +54,5 @@
     - {src: '{{srcdir}}/archive/utils/', dest: '{{destdir}}/utils/', mode: '754', backup: no, directory_mode: yes }
 
     - {src: '{{srcdir}}/archive/costs/getCostMetrics.sh', dest: '{{destdir}}/costs/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/analysis/orbitSolver/reduceOrbit.sh', dest: '{{destdir}}/orbits/', mode: '744', backup: no }
+#    - {src: '{{srcdir}}/analysis/orbitSolver/reduceOrbit.sh', dest: '{{destdir}}/orbits/', mode: '744', backup: no }
     

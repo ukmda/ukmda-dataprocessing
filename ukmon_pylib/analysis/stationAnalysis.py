@@ -5,7 +5,6 @@
 import sys
 import os
 import pandas as pd
-import numpy as np
 from matplotlib import pyplot as plt
 import shutil
 import glob
@@ -13,7 +12,6 @@ import datetime
 
 from wmpl.Utils.TrajConversions import jd2Date
 
-from utils import getShowerDates as sd
 from fileformats import CameraDetails as cd
 
 SMALL_SIZE = 8
@@ -22,7 +20,7 @@ BIGGER_SIZE = 12
 
 
 def getBrightest(mtch, xtra, loc, outdir, when):
-    brightest = mtch[mtch['_mjd'].isin (list(xtra['mjd']))].nsmallest(10, ['_mag'])
+    brightest = mtch[mtch['_mjd'].isin(list(xtra['mjd']))].nsmallest(10, ['_mag'])
     fbs = []
     fname = os.path.join(outdir, 'fbtable.js')
     with open(fname, 'w') as fbf:
@@ -199,7 +197,7 @@ def reportOneSite(ym, loc):
         si = cd.SiteInfo(cifile)
     idlist = si.getStationsAtSite(loc)
     # select the required data
-    statfltr = sngl[sngl['ID'].isin( idlist)]
+    statfltr = sngl[sngl['ID'].isin(idlist)]
     xtrafltr = pd.DataFrame()
     for id in idlist:
         xtmp = xtra[xtra['stations'].str.contains(id)]    
@@ -222,7 +220,7 @@ def reportOneSite(ym, loc):
     outf.write('{} of the detections matched with other stations. '.format(nummatch))
     if nummatch > 0:
         outf.write(' Orbit and trajectory solutions were calculated for these matches. \n')
-        fbs = getBrightest(mtch, xtrafltr, loc, outdir, when)
+        _ = getBrightest(mtch, xtrafltr, loc, outdir, when)
         outf.write('The brighest up to ten confirmed matches are shown below.<br>\n')
         outf.write('<div id="fbtable" class="table-responsive"></div>')
         outf.write('<script src="./fbtable.js"></script><hr>\n')
@@ -296,5 +294,3 @@ if __name__ == '__main__':
         loc = sys.argv[2]
         numsngl, nummatch = reportOneSite(ym, loc)
         print(numsngl, nummatch)
-
-
