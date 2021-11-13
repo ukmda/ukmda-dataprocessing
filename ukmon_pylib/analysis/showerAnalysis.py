@@ -48,6 +48,10 @@ def stationGraph(dta, shwrname, outdir, maxStats=20):
 
 def timeGraph(dta, shwrname, outdir, binmins=10):
     print('Creating single station binned graph')
+    fname = os.path.join(outdir, '02_stream_plot_timeline_single.jpg')
+    if shwrname == "All Showers":
+        # we already have this graph
+        return len(dta)
     # set paper size so fonts look good
     plt.clf()
     fig = plt.gcf()
@@ -76,7 +80,6 @@ def timeGraph(dta, shwrname, outdir, binmins=10):
     ax.set_xticklabels(x_labels)
     ax.set(xlabel="Date", ylabel="Count")
 
-    fname = os.path.join(outdir, '02_stream_plot_timeline_single.jpg')
     plt.title('Observed stream activity {}min intervals ({})'.format(binmins, shwrname))
     plt.tight_layout()
     plt.savefig(fname)
@@ -457,15 +460,19 @@ if __name__ == '__main__':
         bestvmag = magDistributionVis(shwrfltr, shwrname, outdir)
         pass
     if len(mtchfltr) > 0:
-        nummatch, nummatched = matchesGraphs(mtchfltr, shwrname, outdir, 60)
+        if shwr == 'ALL':
+            binsize = 1440
+        else:
+            binsize = 60
+        nummatch, nummatched = matchesGraphs(mtchfltr, shwrname, outdir, binsize)
         bestamag, bestvmag = magDistributionAbs(mtchfltr, shwrname, outdir)
         velDistribution(mtchfltr, shwrname, outdir, 'vg')
         velDistribution(mtchfltr, shwrname, outdir, 'vs')
         longest = distanceDistribution(mtchfltr, shwrname, outdir)
         slowest = durationDistribution(mtchfltr, shwrname, outdir)
         lowest = ablationDistribution(mtchfltr, shwrname, outdir)
-        semimajorDistribution(mtchfltr, shwrname, outdir)
         if shwr != 'ALL':
+            semimajorDistribution(mtchfltr, shwrname, outdir)
             radiantDistribution(mtchfltr, shwrname, outdir)
     
     outfname = os.path.join(outdir, 'statistics.txt')

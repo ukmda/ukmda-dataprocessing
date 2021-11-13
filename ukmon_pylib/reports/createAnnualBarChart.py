@@ -11,7 +11,7 @@ import fileformats.UOFormat as uof
 from wmpl.Utils.TrajConversions import jd2Date
 
 
-def createBarChart(fname):
+def createBarChart(fname, yr):
     matches = uof.MatchedCsv(fname)
     v1=int(matches.rawdata['_mjd'][0])
     v2=int(matches.rawdata['_mjd'][len(matches.rawdata)-1])+2
@@ -36,7 +36,7 @@ def createBarChart(fname):
     fig.set_size_inches(12, 5)
     fig.tight_layout()
 
-    plt.savefig('YearToDate.png', dpi=100)
+    plt.savefig('Annual-{}.jpg'.format(yr), dpi=100)
 
     return matches
 
@@ -44,7 +44,9 @@ def createBarChart(fname):
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         fname = sys.argv[1]
+        yr = sys.argv[2]
     else:
         fname = 'f:/videos/meteorcam/ukmondata/UKMON-all-matches.csv'
-    m = createBarChart(fname)
+        yr=2021
+    m = createBarChart(fname, yr)
 #    print(m.selectByMag(minMag=-2))

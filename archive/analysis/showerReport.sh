@@ -70,6 +70,9 @@ else
     echo "The graphs and histograms below show more information about the velocity, magnitude " >> $idxfile
     echo "start and end altitude and other parameters. Click for larger view. " >>$idxfile
 
+    if [ "$1" == "ALL" ] ; then
+        cp $DATADIR/Annual-$2.jpg ./02_stream_plot_timeline_single.jpg
+    fi
     jpglist=$(ls -1 *.jpg)
     echo "<div class=\"top-img-container\">" >> $idxfile
     for j in $jpglist; do
@@ -78,7 +81,8 @@ else
     echo "</div>" >> $idxfile
 
     echo "<script> \$('.top-img-container').magnificPopup({ " >> $idxfile
-    echo "delegate: 'a', type: 'image', image:{verticalFit:false}, gallery:{enabled:true} }); " >> $idxfile
+    echo "delegate: 'a', type: 'image', image:{verticalFit:false}, g
+    allery:{enabled:true} }); " >> $idxfile
     echo "</script>" >> $idxfile
 
     cat $TEMPLATES/footer.html >> $idxfile

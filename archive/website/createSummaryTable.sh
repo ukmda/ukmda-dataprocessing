@@ -19,7 +19,7 @@ python $PYLIB/utils/makeCoverageMap.py $CONFIG/config.ini $ARCHDIR/kmls $DATADIR
 
 logger -s -t createSummaryTable "create year-to-date barchart"
 pushd $DATADIR
-python $PYLIB/reports/createAnnualBarChart.py  $DATADIR/matched/matches-${yr}.csv
+python $PYLIB/reports/createAnnualBarChart.py  $DATADIR/matched/matches-${yr}.csv ${yr}
 popd
 
 logger -s -t createSummaryTable "Add last nights log file to the website"
@@ -35,6 +35,6 @@ source $WEBSITEKEY
 aws s3 cp $DATADIR/summarytable.js  $WEBSITEBUCKET/data/ --quiet
 aws s3 cp $DATADIR/coverage.html  $WEBSITEBUCKET/data/ --quiet
 aws s3 cp $DATADIR/lastlog.html  $WEBSITEBUCKET/reports/ --quiet
-aws s3 cp $DATADIR/YearToDate.png $WEBSITEBUCKET/ --quiet
+aws s3 cp $DATADIR/Annual-${yr}.jpg $WEBSITEBUCKET/YearToDate.jpg --quiet
 
 logger -s -t createSummaryTable "finished"
