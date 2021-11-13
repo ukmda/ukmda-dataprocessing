@@ -41,7 +41,7 @@ def createMDFiles(fbs, outdir, matchdir):
 
 
 def findMatchedFireballs(df, outdir = None, mag=-4):
-    fbs = df[df['_mag'] < -3.999]
+    fbs = df[df['_mag'] < mag]
     fbs = fbs.sort_values(by='_mag')
     newm=pd.concat([fbs['url'],fbs['_mag'], fbs['_stream'], fbs['_vg'], fbs['mass'], fbs['_mjd']], axis=1, keys=['url','mag','shower','vg','mass','mjd'])
     if len(newm) > 0: 
@@ -65,6 +65,7 @@ if __name__ == '__main__':
         with open(fname) as inf:
             df = pd.read_csv(inf)
     else:
+        print('unable to load datafile')
         exit(0)
     
     outdir = sys.argv[2]
@@ -74,9 +75,8 @@ if __name__ == '__main__':
     else:
         mag = -4
 
-
     if shwr != 'ALL':
         df = df[df['_stream']==shwr]
     fbs = findMatchedFireballs(df, outdir, mag)
-    if shwr is None:
+    if shwr == 'ALL':
         createMDFiles(fbs, outdir, '/home/ec2-user/ukmon-shared/matches/')
