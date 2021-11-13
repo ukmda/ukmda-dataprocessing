@@ -63,7 +63,7 @@ class SiteInfo:
             cam = numpy.where((self.camdets['dummycode'] == lid))
             if len(cam[0]) == 0:
                 return 0, 0, 0, 0, 'Unknown'
-        print(cam)
+        #print(cam)
         c = cam[0][0]
         longi = self.camdets[c]['Longi']
         lati = self.camdets[c]['Lati']
