@@ -17,7 +17,7 @@ mkdir -p $DATADIR/reports/$yr/fireballs > /dev/null 2>&1
 cd $DATADIR/reports/$yr/fireballs
 
 export DATADIR
-python $PYLIB/reports/findFireballs.py ${yr} $DATADIR/reports/$yr/fireballs
+python $PYLIB/reports/findFireballs.py ${yr} $DATADIR/reports/$yr/fireballs ALL
 
 echo "\$(function() {" > reportindex.js
 echo "var table = document.createElement(\"table\");" >> reportindex.js
@@ -27,6 +27,10 @@ echo "header.className = \"h4\";" >> reportindex.js
 echo "var row = table.insertRow(-1);" >> reportindex.js
 echo "var cell = row.insertCell(0);" >> reportindex.js
 echo "cell.innerHTML = \"Fireball Reports\";" >> reportindex.js
+echo "var cell = row.insertCell(1);" >> reportindex.js
+echo "cell.innerHTML = \"Vis Mag\";" >> reportindex.js
+echo "var cell = row.insertCell(2);" >> reportindex.js
+echo "cell.innerHTML = \"Shower\";" >> reportindex.js
 
 if [ -f ./fblist.txt ] ; then 
     cat ./fblist.txt | while read i ; do

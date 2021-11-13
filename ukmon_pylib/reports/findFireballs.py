@@ -44,9 +44,11 @@ def findMatchedFireballs(df, outdir = None, mag=-4):
     fbs = df[df['_mag'] < -3.999]
     fbs = fbs.sort_values(by='_mag')
     newm=pd.concat([fbs['url'],fbs['_mag'], fbs['_stream'], fbs['_vg'], fbs['mass'], fbs['_mjd']], axis=1, keys=['url','mag','shower','vg','mass','mjd'])
-    if outdir is not None:
-        outf = os.path.join(outdir, 'fblist.txt')
-        newm.to_csv(outf, index=False, header=False, columns=['url','mag','shower'])
+    if len(newm) > 0: 
+        if outdir is not None:
+            os.makedirs(outdir, exist_ok=True)
+            outf = os.path.join(outdir, 'fblist.txt')
+            newm.to_csv(outf, index=False, header=False, columns=['url','mag','shower'])
     return newm
 
 
@@ -66,9 +68,15 @@ if __name__ == '__main__':
         exit(0)
     
     outdir = sys.argv[2]
-    if len(sys.argv) > 3:
-        mag = float(sys.argv[3])
+    shwr = sys.argv[3]
+    if len(sys.argv) > 4:
+        mag = float(sys.argv[4])
     else:
         mag = -4
+
+
+    if shwr != 'ALL':
+        df = df[df['_stream']==shwr]
     fbs = findMatchedFireballs(df, outdir, mag)
-    createMDFiles(fbs, outdir, '/home/ec2-user/ukmon-shared/matches/')
+    if shwr is None:
+        createMDFiles(fbs, outdir, '/home/ec2-user/ukmon-shared/matches/')

@@ -29,7 +29,7 @@ def getListOfNewMatches(dir_path, tfile = 'processed_trajectories.json', prevtfi
         ptrajs = json.load(inf)
     
     newtrajs = {k:v for k,v in trajs['trajectories'].items() if k not in ptrajs['trajectories']}
-    print(len(newtrajs))
+    #print(len(newtrajs))
     newdirs, _ = getTrajPaths(newtrajs)  
     return newdirs
 
