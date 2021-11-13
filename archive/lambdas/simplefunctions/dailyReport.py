@@ -20,7 +20,7 @@ def MakeFileWritable(ymd, hms, sid, lid):
 def AddHeader(body, bodytext, stats):
     rtstr = datetime.datetime.strptime(stats[4], '%H:%M:%S.%f').strftime('%H:%M')
     body = body + '<br>Today we examined {} detections, found {} potential matches and confirmed {} in {}h.<br>'.format(stats[1], stats[2], stats[3], rtstr)
-    body = body + 'The list of matched events is shown below. '
+    body = body + 'Up to the 100 brightest matched events are shown below. '
     body = body + 'Note that this may include older data for which a new match has been found.<br>'
     body = body + 'Click each link to see analysis of these events.<br>'
     body = body + '<table border=\"0\">'
@@ -85,7 +85,12 @@ def LookForMatchesRMS(doff, dayfile, statsfile):
 
     print('DailyCheck: opening csv file ', dayfile)
     with open(dayfile, 'r') as csvfile:
-        lines = csvfile.readlines()
+        try: # top 100 matches
+            lines = [next(csvfile) for x in range(100)]
+        except: # less than 100 so display them all
+            csvfile.seek(0)
+            lines = csvfile.readlines()
+
         for li in lines:
             # domail = True
             #body, bodytext = AddBlank(body, bodytext)

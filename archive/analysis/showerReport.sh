@@ -81,8 +81,7 @@ else
     echo "</div>" >> $idxfile
 
     echo "<script> \$('.top-img-container').magnificPopup({ " >> $idxfile
-    echo "delegate: 'a', type: 'image', image:{verticalFit:false}, g
-    allery:{enabled:true} }); " >> $idxfile
+    echo "delegate: 'a', type: 'image', image:{verticalFit:false}, gallery:{enabled:true} }); " >> $idxfile
     echo "</script>" >> $idxfile
 
     cat $TEMPLATES/footer.html >> $idxfile
