@@ -17,7 +17,7 @@ if [ "$2" != "" ] ; then
 else
     logger -s -t stationReports "running station reports for $ym for all stations"
 fi
-
+export DATADIR
 python $SRC/ukmon_pylib/analysis/stationAnalysis.py $ym $loc
 python $SRC/ukmon_pylib/analysis/stationAnalysis.py $yr $loc
 
