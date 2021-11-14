@@ -28,7 +28,7 @@ def createBarChart(fname, yr):
     nowdt=datetime.datetime.now()
     ax.set_ylabel('# matches')
     ax.set_xlabel('Date')
-    ax.set_title('Number of matched events per day. Lat updated {}'.format(nowdt.strftime('%Y-%m-%d %H:%M:%S')))
+    ax.set_title('Number of matched events per day. Last updated {}'.format(nowdt.strftime('%Y-%m-%d %H:%M:%S')))
 
     li.append(0) # comes up one short
     ax.bar(dts, li, width, label='Events')
