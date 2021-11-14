@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 #from matplotlib import dates as mdates
-#import datetime
+import datetime
 
 from utils import getShowerDates as sd
 
@@ -478,7 +478,8 @@ if __name__ == '__main__':
     outfname = os.path.join(outdir, 'statistics.txt')
     with open(outfname,'w') as outf:
         outf.write('Summary Statistics for {} {}\n'.format(shwrname, str(yr)))
-        outf.write('=======================================\n\n')
+        outf.write('=======================================\n')
+        outf.write('Report created: {}\n\n'.format(datetime.datetime.now().strftime('%Y-%m-%dZ%H:%M:%S')))
         if shwr != 'ALL':
             outf.write('Shower ID and Code:                {} {}\n'.format(id, shwr))
             outf.write('Date of peak:                      {}-{}\n'.format(yr, dt))
@@ -503,8 +504,9 @@ if __name__ == '__main__':
         outf.write('trajectory and orbit. Total matched detections is the number of single station detections \n')
         outf.write('that could be matched. Since two or more cameras are required for a match, the number \n')
         outf.write('of solved trajectories is always less than half the total matched detections.\n\n')
-        outf.write('Note that its possible for no single station detections to be classified, but \n')
-        outf.write('for the matching engine to identify previously missed shower members.\n\n')
+        outf.write('Note that its possible for Matched Detectionsto be larger than Single Detections because \n')
+        outf.write('single-station classifications rely on 2-dimensional analysis and are not reliable.\n')
+        outf.write('However the matching engine works in 3-D and identifies meteors missed in single-station.\n\n')
         outf.write('Events with a lowest altitude below about 30km are potential meteorite droppers\n')
 
 # to possibly add : 
