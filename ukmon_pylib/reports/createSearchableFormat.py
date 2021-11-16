@@ -191,8 +191,8 @@ def createMergedMatchFile(config, year, outdir):
         outdir (str): where to save the file
         
     """
-    matchfile  = os.path.join(config['config']['DATADIR'], 'matched', 'matches-{}.csv'.format(year))
-    extrafile  = os.path.join(config['config']['DATADIR'], 'matched', 'matches-extras-{}.csv'.format(year))
+    matchfile = os.path.join(config['config']['DATADIR'], 'matched', 'matches-{}.csv'.format(year))
+    extrafile = os.path.join(config['config']['DATADIR'], 'matched', 'matches-extras-{}.csv'.format(year))
     mtch = pd.read_csv(matchfile, skipinitialspace=True)
     xtra = pd.read_csv(extrafile, skipinitialspace=True)
 
@@ -217,8 +217,8 @@ def convertMatchToSrchable(config, year, outdir):
     """
     weburl=config['config']['SITEURL'] + '/reports/' + year + '/orbits/'
 
-    matchfile  = os.path.join(config['config']['DATADIR'], 'matched', 'matches-{}.csv'.format(year))
-    extrafile  = os.path.join(config['config']['DATADIR'], 'matched', 'matches-extras-{}.csv'.format(year))
+    matchfile = os.path.join(config['config']['DATADIR'], 'matched', 'matches-{}.csv'.format(year))
+    extrafile = os.path.join(config['config']['DATADIR'], 'matched', 'matches-extras-{}.csv'.format(year))
     mtch = pd.read_csv(matchfile, skipinitialspace=True)
     xtra = pd.read_csv(extrafile, skipinitialspace=True)
 
@@ -227,8 +227,8 @@ def convertMatchToSrchable(config, year, outdir):
     mtch['orbname'] = [datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d_%H%M%S.%f')[:19]+'_UK' for ts in mtch['dtstamp']]
 
     mtch['src'] = ['1Matched' for x in mtch['_mjd']]
-    mths = [x[1:7]+'/'+x[1:9]  for x in mtch['_localtime']]
-    gtnames = [ '/' + x[1:] + '_ground_track.png' for x in mtch['_localtime']]
+    mths = [x[1:7]+'/'+x[1:9] for x in mtch['_localtime']]
+    gtnames = ['/' + x[1:] + '_ground_track.png' for x in mtch['_localtime']]
     mtch['url'] = [weburl + y + '/' + x + '/index.html' for x,y in zip(mtch['orbname'], mths)]
     mtch['img'] = [weburl + y + '/' + x + g for x,y,g in zip(mtch['orbname'], mths, gtnames)]
 
