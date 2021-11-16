@@ -99,7 +99,7 @@ def saveECSV(ftpFile):
         out_str += "datetime,ra,dec,azimuth,altitude,mag_data,x_image,y_image\n"
 
         # Add the data
-        for f, t, ra, dec, alt, azim, x, y, mag in zip(met.frames,met.time_data, met.ra_data, 
+        for f, t, ra, dec, azim, alt, x, y, mag in zip(met.frames,met.time_data, met.ra_data, 
                 met.dec_data, met.azim_data, met.elev_data, met.x_data, met.y_data, met.mag_data):
 
             musadj = t*1e6
