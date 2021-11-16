@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# 
+# One-off script to create the historical data extracts
+#
+
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1

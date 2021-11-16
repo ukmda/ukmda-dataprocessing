@@ -1,6 +1,9 @@
 #!/bin/bash
 
+#
 # bash script to create index page for an individual orbit report
+#
+
 if [ $# -lt 1 ] ; then
     echo "usage: createPageIndex.sh /full/path/to/folder {force}"
     echo "optionally force recalc of extra data files"

@@ -1,4 +1,9 @@
 #!/bin/bash
+
+#
+# Creates a report of camera status with images showing latest uploads
+# 
+
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1

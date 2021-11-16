@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#
+# Creates a report for each currently active shower in a particular year
+#
+
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 source ~/venvs/$RMS_ENV/bin/activate

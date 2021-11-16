@@ -1,4 +1,11 @@
 #!/bin/bash
+
+#
+# Creates extracts of raw and matched data for each meteor shower in the selected year
+#
+# Note that the raw data is sourced from the consolidated raw UFO and RMS CSV files
+#
+
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1

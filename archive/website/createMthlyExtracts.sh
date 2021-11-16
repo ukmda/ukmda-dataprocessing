@@ -1,4 +1,12 @@
 #!/bin/bash
+
+#
+# Create extracts for sharing on the website.
+#
+# NOTE this process uses the "consolidated" CSV files from UFOAnalyser (R05B25 format) and RMS (R90)
+# that can be directly ingested by UFOOrbit. 
+#
+
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
