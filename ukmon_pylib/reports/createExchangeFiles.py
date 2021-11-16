@@ -1,26 +1,30 @@
-import fileformats.UAFormats as uaf 
-#import fileformats.CameraDetails as cdd
 import datetime
 import os
 import sys
 import csv
+import pandas as pd
 import configparser as cfg
+
 from fileformats.platepar import loadPlatepars
 
 
-def createDetectionsFile(sDate, datadir):
-    # read and process the daily event data
-    dets=uaf.DetectedCsv(os.path.join(datadir,'UKMON-all-single.csv'))
-    data = dets.getExchangeData(sDate)
-    
+def createDetectionsFile(eDate, datadir):
+    yr = datetime.datetime.now().year
+    df = pd.read_csv(os.path.join(datadir, 'single','singles-{}.csv'.format(yr)))
+    sDate = eDate + datetime.timedelta(days = -3)
+    df = df[df.Dtstamp >= sDate.timestamp()]
+    df = df[df.Dtstamp <= eDate.timestamp()]
+    outdf = pd.concat([df.ID, df.Dtstamp],keys=['camera_id','Dtstamp'], axis=1)
+    outdf = outdf.assign(ts = pd.to_datetime(outdf['Dtstamp'], unit='s'))
+    outdf['datetime'] = [ts.strftime('%Y-%m-%dT%H:%M:%S') for ts in outdf.ts]
+    outdf = outdf.assign(image_URL='')
+    outdf.sort_values(by=['Dtstamp'], inplace=True, ascending=False)
+    outdf = outdf.drop(columns=['Dtstamp', 'ts'])
+    outdf = outdf.drop_duplicates()
+
     outfname = os.path.join(datadir, 'browse/daily/ukmon-latest.csv')
-    with open(outfname,'w') as outf:
-        outf.write('camera_id,datetime,image_URL\n')
-        if data is not None:
-            for li in data:
-                outf.write(li[0] + ',' + li[1] + ',\n')
-    createEventList(datadir, data)    
-    return
+    outdf.to_csv(outfname, index=False)
+    return 
 
 
 def createEventList(datadir, data):
@@ -56,9 +60,8 @@ def createEventList(datadir, data):
     return
 
 
-def createMatchesFile(sDate, config):
+def createMatchesFile(sDate, datadir):
     # read and process the daily matches file
-    datadir = config['config']['datadir']
     matchf = os.path.join(datadir, 'dailyreports/{}.txt'.format(sDate.strftime('%Y%m%d')))
     with open(matchf, 'r') as inf:
         data = csv.reader(inf, delimiter=',')
@@ -169,6 +172,6 @@ if __name__ == '__main__':
         createCameraFile(config)
     
     createDetectionsFile(targdate, datadir)
-    createMatchesFile(targdate, config)
+    createMatchesFile(targdate, datadir)
     createWebpage(datadir)
     uploadFiles(config)
