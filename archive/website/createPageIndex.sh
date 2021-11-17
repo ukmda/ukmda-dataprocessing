@@ -3,6 +3,17 @@
 #
 # bash script to create index page for an individual orbit report
 #
+# Parameters
+#   full path to the folder to create an index for
+#   (optional) "force" to compel the script to recreate the index
+#
+# Consumes
+#   The ftpdetect and platepar files, to create the csv and extracsv files
+#
+# Produces
+#   Website index.html for the event, along with any images, videos and graphs
+#     all synced to the website
+
 
 if [ $# -lt 1 ] ; then
     echo "usage: createPageIndex.sh /full/path/to/folder {force}"

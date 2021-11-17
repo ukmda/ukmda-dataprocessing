@@ -1,5 +1,15 @@
 #!/bin/bash
-# bash script to create monthly or annual index page for orbit data
+# bash script to create daily, monthly or annual index page for orbit data
+#
+# Parameters
+#   yyyymmdd to run for (or yyyymm or yyyy)
+#
+# Consumes
+#   If doing daily index, scans website for solutions to include in the index. 
+#   If doing monthly or annual index, scans site for days or months to include. 
+#
+# Produces
+#   Website index pages for the day, month or year, synced to the website
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 

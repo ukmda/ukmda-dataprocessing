@@ -3,9 +3,16 @@
 #
 # Create extracts for sharing on the website.
 #
-# NOTE this process uses the "consolidated" CSV files from UFOAnalyser (R05B25 format) and RMS (R90)
-# that can be directly ingested by UFOOrbit. 
+# Parameters
+#   yyyymm to run for
 #
+# Consumes
+#   consolidated/* and matched/*
+#
+# Produces
+#   annual and monthly CSV files of UFO, RMS and matched data
+#   Website index pages for the above
+#   synced to the website
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
@@ -146,6 +153,7 @@ aws s3 sync $DATADIR/browse/monthly/  $WEBSITEBUCKET/browse/monthly/ --quiet
 
 logger -s -t createMthlyExtracts "done gathering data, creating table"
 idxfile=$DATADIR/browse/annual/browselist.js
+yr=$(date +%Y)
 
 echo "\$(function() {" > $idxfile
 echo "var table = document.createElement(\"table\");" >> $idxfile
@@ -153,8 +161,7 @@ echo "table.className = \"table table-striped table-bordered table-hover table-c
 echo "var header = table.createTHead();" >> $idxfile
 echo "header.className = \"h4\";" >> $idxfile
 
-while [ $yr -gt 2012 ]
-do
+while [ $yr -gt 2012 ] ; do
     ufobn=""
     rmsbn=""
     matbn=""
