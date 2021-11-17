@@ -206,7 +206,8 @@ class SiteInfo:
         if onlyactive is True:
             ufo = ufo[ufo['active'] == 1]
         for rw in ufo:
-            camlist.append({'Site':rw['Site'].decode('utf-8'), 'CamID':rw['CamID'].decode('utf-8'), 'dummycode':rw['dummycode'].decode('utf-8')})
+            ufoname = rw['LID'].decode('utf-8') + '_' + rw['SID'].decode('utf-8') 
+            camlist.append({'Site':rw['Site'].decode('utf-8'), 'CamID':rw['CamID'].decode('utf-8'), 'dummycode':rw['dummycode'].decode('utf-8'), 'ufoid':ufoname})
         return camlist
 
 
