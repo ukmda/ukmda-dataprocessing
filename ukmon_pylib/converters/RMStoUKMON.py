@@ -11,6 +11,7 @@ import datetime
 import json
 import numpy as np
 import re
+import pytz
 
 #import RMS.Astrometry.ApplyAstrometry
 from RMS.Astrometry.Conversions import datetime2JD, altAz2RADec
@@ -100,7 +101,8 @@ def writeUkmonCsv(dir_path, file_name, data):
             # causing an invalid time to be written eg 20,55,60.00, instead of 20,56,0.00
             secs = round(dt.second + dt.microsecond / 1000000, 2)
             if secs > 59.99: 
-                tmpdt = datetime.datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, 0)
+                tmpdt = datetime.datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, 0, 
+                    tzinfo=pytz.UTC) 
                 # add 60 seconds on to the datetime
                 dt = tmpdt + datetime.timedelta(seconds = secs)
             dtstamp = dt.timestamp()
