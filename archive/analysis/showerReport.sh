@@ -3,6 +3,15 @@
 #
 # Create a report for the named shower and year
 #
+# Parameters
+#   shower 3-letter code SSS and year in yyyy format
+#
+# Consumes
+#   All single-station and matched data from $DATADIR/single and $DATADIR/matched
+#
+# Produces
+#   A report for the named shower, in $DATADIR/reports/yyyy/SSS
+#   Which is then synced to the website
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1

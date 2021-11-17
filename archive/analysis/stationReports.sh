@@ -2,6 +2,17 @@
 #
 # monthly reporting for UKMON stations
 #
+# Parameters
+#   year and month in yyyymm format
+#
+# Consumes
+#   All single-station and matched data from $DATADIR/single and $DATADIR/matched
+#
+# Produces
+#   A report for each station for each month in the year and for the whole year
+#    in $DATADIR/reports/yyyy/stations which is then synced to the website
+#   A list of stations that have uploaded and the last connection time. 
+
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 

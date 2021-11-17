@@ -1,6 +1,16 @@
 #!/bin/bash
 #
 # script to update match data each night and then recalc any necessary orbits
+#
+# Parameters
+#   none
+#
+# Consumes
+#   single-station, matched and live data  in $DATADIR/single, $DATADIR/matched and $DATADIR/ukmonlive
+#
+# Produces
+#   a single searchable file in $DATADIR/searchidx
+#   a list of stations that are in the search file, in a javascript form
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 

@@ -3,6 +3,15 @@
 #
 # Create a single searchable index file for matched, single and live data
 #
+# Parameters:
+#   date to process in yyyy format
+#
+# Consumes:
+#   The ukmon single-yyyy.csv, matches-full-yyyy.csv and live yyyyqq.csv files
+#
+# Produces:
+#   searchidx/yyyy-allevents.txt - a searchable file 
+#   camlist.txt - a list of cameras that provided data 
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
@@ -26,14 +35,16 @@ python $PYLIB/reports/createSearchableFormat.py $yr /tmp
 mv /tmp/${yr}-singleevents.csv $DATADIR/searchidx/${yr}-allevents.csv
 if [ -f /tmp/${yr}-matchedevents.csv ] ; then 
     sed '1d' /tmp/${yr}-matchedevents.csv >> $DATADIR/searchidx/${yr}-allevents.csv
-fi 
-sed '1d' /tmp/${yr}-liveevents.csv >> $DATADIR/searchidx/${yr}-allevents.csv
-
-if [ -f /tmp/${yr}-matchedevents.csv ] ; then 
-    mv -f /tmp/matches-full-${yr}.csv $DATADIR/matched/
     rm -f /tmp/${yr}-matchedevents.csv
+fi 
+if [ -f /tmp/${yr}-liveevents.csv ] ; then 
+    sed '1d' /tmp/${yr}-liveevents.csv >> $DATADIR/searchidx/${yr}-allevents.csv
+    rm -f /tmp/${yr}-liveevents.csv
 fi
-rm -f /tmp/${yr}-liveevents.csv
+
+if [ -f /tmp/matches-full-${yr}.csv ] ; then 
+    mv -f /tmp/matches-full-${yr}.csv $DATADIR/matched/
+fi
 
 grep -v "J8_TBC" $DATADIR/searchidx/${yr}-allevents.csv > /tmp/${yr}-allevents.csv
 

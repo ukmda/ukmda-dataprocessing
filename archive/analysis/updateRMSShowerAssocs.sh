@@ -3,6 +3,15 @@
 #
 # Examines new RMS data and generates a shower association map if its missing
 #
+# Parameters
+#   year and month in yyyymm format OR days back to scan
+#    (optional) "force" to make the reprocessing happen even if already done
+#
+# Consumes
+#   All single-station archive data in $ARCHDIR
+#
+# Produces
+#   new shower association data in $ARCHDIR
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1

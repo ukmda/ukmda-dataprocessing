@@ -1,4 +1,15 @@
 #!/bin/bash
+#
+# Collect monthly videos for making into a youtube post
+#
+# Parameters
+#   the month to process in yyyymm format
+#
+# Consumes
+#   MP4s from the archive
+#
+# Produces
+#   MP4s in $DATADIR/videos, synced to the website
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 

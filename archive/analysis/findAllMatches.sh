@@ -2,7 +2,20 @@
 #
 # Script to find correlated events, solve for their trajectories and orbits,
 # then copy the results to the Archive website. 
+# Parameters:
+#   optional start and end days back to process. 
+#   If not supplied, the environment variables MATCHSTART and MATCHEND are used
 #
+# Consumes:
+#   All UFO and RMS single-station data (ftpdetect, platepars_all and A.xml files)
+#
+# Produces:
+#   new and updated orbit solutions in $MATCHDIR/RMSCorrelate/trajectories 
+#   csv and extracsv files in $DATADIR/orbits/yyyy/csv and extracsv
+#   daily report of matches and statistics, in $DATADIR/dailyreports
+#   an email sent out via a lambda fn
+#   updated orbit page, monthly and annual indexes for the website
+
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 

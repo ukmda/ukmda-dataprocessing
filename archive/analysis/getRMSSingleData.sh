@@ -2,6 +2,16 @@
 
 # script to create single-station file for all RMS data
 #
+# Parameters
+#   none
+#
+# Consumes
+#   all RMS-format ftpdetect and platepars_all files
+#
+# Produces
+#   a consolidated list of single-station detections in $DATADIR/single
+#   Note: this uses a proprietary format extending both RMS and UFO
+
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 

@@ -2,6 +2,17 @@
 # start a big EC2 server to run the matching engine more quickly
 # should process ~ 100 events in an hour on an 8-core server
 #
+# Parameters
+#   none
+#
+# Consumes
+#   All single-station data
+#
+# Produces
+#   Solved trajectories
+#
+# NOTE: this script executes on the target instance, not on the ukmonhelper instance
+
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 

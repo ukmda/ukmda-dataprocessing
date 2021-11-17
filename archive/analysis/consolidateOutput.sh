@@ -2,6 +2,20 @@
 #
 # consolidate the raw RMS and UFO data. 
 #
+# Parameters:
+#   year to process
+#
+# Consumes:
+#   RMS and UFO consolidated CSV files, uploaded by camera operators in R05B25 and R91 format
+#   showerassociation CSV files in consolidated/A created by addRMSShowerDets.sh
+#   csv and extracsv files created by the matching engine 
+#
+# Produces:
+#   Updated consolidated ukmon single-event CSV file in standard UFO R91 format
+#   Updated matched data files (matches-{yr} and matches-extras-{yr})
+#   
+# NOTE: the single-event CSV file is not used for any other processing. I may disable it later. 
+
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 
@@ -23,6 +37,7 @@ cp UKMON-all-single.csv prv-UKMON-all-single.csv
 logger -s -t consolidateOutput "Fetching latest data"
 cp consolidated/M_${yr}-unified.csv UFO-all-single.csv
 cp consolidated/P_${yr}-unified.csv RMS-all-single.csv
+
 echo "ID,Y,M,D,h,m,s,Shwr" > RMS-assoc-single.csv
 cat ${DATADIR}/consolidated/A/??????_${yr}* >> RMS-assoc-single.csv
 

@@ -1,6 +1,15 @@
 #
-# python to create density plots of meteor data
+# Create density plots of meteor data
 #
+# Parameters:
+#   date to process in yyyymm or yyyy format
+#
+# Consumes:
+#   RMS-format FTPdetect and platepars_all files for the date range chosen
+#
+# Produces:
+#   A set of density plots in png format, and a text file summary
+#     which are then synce to the website
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
