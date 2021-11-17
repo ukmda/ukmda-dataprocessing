@@ -22,7 +22,7 @@ aws lambda invoke --function-name ConsolidateCSVs --log-type Tail $SRC/logs/Cons
 
 # get a list of all jpgs from single station events for later use
 logger -s -t nightlyJob "getting list of single jpg files"
-aws s3 ls $WEBSITEBUCKET/img/single/$yr/ --recursive | awk '{print $4}' > $DATADIR/singleJpgs.csv
+aws s3 ls $WEBSITEBUCKET/img/single/$yr/ --recursive | awk '{print $4}' > $DATADIR/singleJpgs-$yr.csv
 
 logger -s -t nightlyJob "getting latest consolidated information"
 source $UKMONSHAREDKEY
