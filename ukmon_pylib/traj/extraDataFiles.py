@@ -64,13 +64,15 @@ def findMatchingJpgs(traj, outdir):
         datadir = os.getenv('DATADIR')
     except Exception:
         datadir='/home/ec2-user/prod/data'
-    with open(os.path.join(datadir, 'singleJpgs.csv')) as inf:
-        jpgs = inf.readlines()
 
+    jpgs = None
     with open(os.path.join(outdir, 'jpgs.lst'), 'w') as outf:
         for obs in traj.observations:
             statid = obs.station_id
             evtdate = jd2Date(obs.jdt_ref, dt_obj=True)
+            if jpgs is None:
+                with open(os.path.join(datadir, 'singleJpgs-{}.csv'.format(evtdate.year))) as inf:
+                    jpgs = inf.readlines()
             compstr = statid + '_' + evtdate.strftime('%Y%m%d_%H%M%S')
             mtch=[line.strip() for line in jpgs if compstr[:-1] in line]
             if len(mtch) > 1: 
