@@ -1,6 +1,15 @@
 #!/bin/bash
-
 # create report of camera statuses
+#
+# Parameters
+#   none
+# 
+# Consumes
+#   stacks and allsky maps from individual cameras, plus the timestamp of upload
+#
+# Produces
+#   a webpage showing the latest stack and map from each camera
+#
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 

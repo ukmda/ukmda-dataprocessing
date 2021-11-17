@@ -1,9 +1,20 @@
 #!/bin/bash
-
-#
 # Creates extracts of raw and matched data for each meteor shower in the selected year
 #
 # Note that the raw data is sourced from the consolidated raw UFO and RMS CSV files
+#
+# Parameters
+#   date in yyyymm format
+# 
+# Consumes
+#   IMO working shower list
+#   matched/matches-yyyy.csv
+#   consolidated/M_yyyy_unified.csv
+#   consolidated/R_yyyy_unified.csv
+#
+# Produces
+#   csv extracts of detections and matches for each shower
+#   an index page, all synced to the website
 #
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"

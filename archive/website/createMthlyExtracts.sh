@@ -1,6 +1,4 @@
 #!/bin/bash
-
-#
 # Create extracts for sharing on the website.
 #
 # Parameters

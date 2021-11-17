@@ -1,6 +1,15 @@
 #!/bin/bash
-
 # bash script to create station list option HTML for the search page
+#
+# Parameters
+#   none
+# 
+# Consumes
+#   the camera-details file
+#
+# Produces
+#   an html file containing a list of stations as options for the search page
+#
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 

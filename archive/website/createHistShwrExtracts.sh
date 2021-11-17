@@ -1,8 +1,16 @@
 #!/bin/bash
-
 # 
 # One-off script to create the historical shower extracts
 #
+# Parameters
+#   none
+# 
+# Consumes
+#   historical matched/matches-yyyy.csv files
+#
+# Produces
+#   a webpage and javascript table of the historical shower data
+#     synced to the website
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 

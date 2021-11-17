@@ -1,8 +1,18 @@
 #!/bin/bash
-
-#
 # Creates the table and bar chart that appear on the website homepage. 
 # Also creates the coverage map, and copies the logfile to the site. 
+#
+# Parameters
+#   none
+# 
+# Consumes
+#   the single station and matched station data files in $DATADIR/single and $DATADIR/matched
+#   the most recent match run logfile
+#
+# Produces
+#   a webpage showing the current summary  - the site homepage
+#   the annual barchart of matches
+#   a copy of the matching run logfile
 #
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"

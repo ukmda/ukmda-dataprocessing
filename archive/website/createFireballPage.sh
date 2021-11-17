@@ -1,13 +1,21 @@
 #!/bin/bash
-#
 # Fireballs page
-#
-here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-source $here/../config/config.ini >/dev/null 2>&1
-
 #
 # Obtain a list of fireballs and create the page with links
 #
+# Parameters
+#   yyyy year to process
+# 
+# Consumes
+#   matched/matches-full-yyyy.csv, looking for confirmed fireballs
+#
+# Produces
+#   a webpage and javascript table with links to the events
+#    synced to the website
+#
+
+here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+source $here/../config/config.ini >/dev/null 2>&1
 
 if [ $# -eq 0 ]; then
     yr=$(date +%Y)

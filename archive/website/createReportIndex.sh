@@ -1,6 +1,14 @@
 #!/bin/bash
-#
 # Creates an the reports page index.
+#
+# Parameters
+#   none
+# 
+# Consumes
+#   creates an index of the reports page on the website
+#
+# Produces
+#   index.html for the reports page, synced to the website
 #
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"

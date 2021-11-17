@@ -1,7 +1,13 @@
 #!/bin/bash
-
+# Parameters
+#   none
 # 
-# One-off script to create the historical data extracts
+# Consumes
+#   historical matched/matches-yyyy.csv data
+#
+# Produces
+#   a webpage and javascript of the historical data extracts
+#     synced to the website
 #
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"

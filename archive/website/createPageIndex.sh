@@ -1,6 +1,4 @@
 #!/bin/bash
-
-#
 # bash script to create index page for an individual orbit report
 #
 # Parameters
