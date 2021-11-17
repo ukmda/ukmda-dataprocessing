@@ -3,6 +3,7 @@
 #
 
 import sys
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import datetime
@@ -46,7 +47,9 @@ if __name__ == '__main__':
         fname = sys.argv[1]
         yr = sys.argv[2]
     else:
-        fname = 'f:/videos/meteorcam/ukmondata/UKMON-all-matches.csv'
         yr=2021
+        datadir=os.getenv('DATADIR')
+        fname = os.path.join(datadir, 'matched', 'matches-{}.csv'.format(yr))
+        
     m = createBarChart(fname, yr)
 #    print(m.selectByMag(minMag=-2))
