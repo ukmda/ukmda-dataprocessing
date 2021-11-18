@@ -114,7 +114,7 @@ def writeUkmonCsv(dir_path, file_name, data):
 
 
 def FTPdetectinfo2UkmonCsv(dir_path, out_path):
-    """ Convert the FTPdetectinfo file into a ukmon-specific CSV file. 
+    """ Convert the FTPdetectinfo file into a ukmon specific CSV file. 
         
     Arguments:
         dir_path: [str] Path of the directory which contains the FTPdetectinfo file.

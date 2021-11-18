@@ -5,7 +5,7 @@
 #   date to process in yyyymm or yyyy format
 #
 # Consumes:
-#   RMS-format FTPdetect and platepars_all files for the date range chosen
+#   RMS format FTPdetect and platepars_all files for the date range chosen
 #
 # Produces:
 #   A set of density plots in png format, and a text file summary

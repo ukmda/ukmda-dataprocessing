@@ -6,7 +6,7 @@
 #   none
 #
 # Consumes
-#   all RMS-format ftpdetect and platepars_all files
+#   all RMS format ftpdetect and platepars_all files
 #
 # Produces
 #   a consolidated list of single-station detections in $DATADIR/single

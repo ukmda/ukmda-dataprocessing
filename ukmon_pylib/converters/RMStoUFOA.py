@@ -100,7 +100,7 @@ def RMStoUFOA(rmssingle, rmsassoc, rmsuafile, templatedir):
     UAdata[hdrlst[17]] = rmsdata['Dec1']
     UAdata[hdrlst[18]] = rmsdata['Ra2']
     UAdata[hdrlst[19]] = rmsdata['Dec2']
-    # remaining values are UFO-specific and not used by RMS/WMPL
+    # remaining values are UFO specific and not used by RMS/WMPL
     for i in range(20,47):
         if hdrlst[i]==' ': 
             hdrlst[i]='Fld'+str(i)

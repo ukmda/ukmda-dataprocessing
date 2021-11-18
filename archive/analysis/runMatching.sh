@@ -51,7 +51,6 @@ echo "export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib/" >> $execMatching
 echo "cd /home/ec2-user/data/RMSCorrelate" >> $execMatchingsh
 echo "source $UKMONSHAREDKEY" >> $execMatchingsh
 echo 'aws s3 sync s3://ukmon-shared/matches/RMSCorrelate/ . --exclude "*" --include "UK*" --quiet'  >> $execMatchingsh
-#echo 'aws s3 cp s3://ukmon-shared/matches/RMSCorrelate/processed_trajectories.json.bigserver ./processed_trajectories.json' --quiet >> $execMatchingsh
 echo "cd /home/ec2-user/src/WesternMeteorPyLib/" >> $execMatchingsh
 echo "logger -s -t runMatching starting correlator" >> $execMatchingsh
 echo "time python -m wmpl.Trajectory.CorrelateRMS /home/ec2-user/data/RMSCorrelate/ -l -r \"($startdt,$enddt)\"" >> $execMatchingsh

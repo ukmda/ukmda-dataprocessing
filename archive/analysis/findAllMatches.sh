@@ -53,7 +53,7 @@ if [ $dom -lt 10 ] ; then
     lastmth=`date --date='-1 month' '+%Y%m'`
     $SRC/analysis/convertUfoToRms.sh $lastmth
 fi
-logger -s -t findAllMatches "create ukmon-specific merged single-station data file"
+logger -s -t findAllMatches "create ukmon specific merged single-station data file"
 $SRC/analysis/getRMSSingleData.sh
 
 logger -s -t findAllMatches "set the date range for the solver"

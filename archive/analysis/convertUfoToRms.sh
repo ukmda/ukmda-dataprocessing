@@ -5,10 +5,10 @@
 #   month to process in yyyymm format
 #
 # Consumes:
-#   UFO-format data A.xml files
+#   UFO format data A.xml files
 #
 # Produces:
-#   RMS-format FTPdetect and platepars_all files, one per day
+#   RMS format FTPdetect and platepars_all files, one per day
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
