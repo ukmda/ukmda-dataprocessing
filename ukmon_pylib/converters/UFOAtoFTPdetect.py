@@ -124,8 +124,8 @@ def createStationInfo(fldr, sta, lat, lng, alt):
 
 def convertFolder(fldr):
     """
-    Read all the A.XML files and create an RMS-style ftpdetect file plus station info file
-    Then check for RMS-style data and append it onto the files
+    Read all the A.XML files and create an RMS ftpdetect file plus station info file
+    Then check for any RMS data and append it onto the files
     """
     axmls, metcount, stime = loadAXMLs(fldr)
 
@@ -172,7 +172,7 @@ def convertFolder(fldr):
 
 def convertUFOFolder(fldr, outfldr):
     """
-    Read all the A.XML files and create an RMS-style ftpdetect file and platepars file
+    Read all the A.XML files and create an RMS ftpdetect file and platepars file
     """
     print('reading from', fldr)
     axmls, metcount, stime = loadAXMLs(fldr)
