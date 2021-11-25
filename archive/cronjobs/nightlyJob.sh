@@ -104,3 +104,7 @@ python $SRC/ukmon_pylib/metrics/timingMetrics.py $matchlog 'M' >> $SRC/logs/perf
 
 nightlog=$( ls -1 ${SRC}/logs/nightlyJob-*.log | tail -1)
 python $SRC/ukmon_pylib/metrics/timingMetrics.py $nightlog 'N' >> $SRC/logs/perfNightly.csv
+
+# check for bad stations
+$SRC/analysis/getBadStations.sh
+
