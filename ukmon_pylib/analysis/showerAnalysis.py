@@ -46,6 +46,30 @@ def stationGraph(dta, shwrname, outdir, maxStats=20):
     return len(grps)
 
 
+def showerGraph(dta, s_or_m, outdir, maxshwrs=30):
+    print('creating {} count by shower'.format(s_or_m))
+    # set paper size so fonts look good
+    plt.clf()
+    fig = plt.gcf()
+    fig.set_size_inches(11.6, 8.26)
+
+    if s_or_m == 'observed':
+        dta = dta[dta.Shwr !='spo']
+        grps = dta.groupby('Shwr').size()
+    else:
+        dta = dta[dta._stream !='spo']
+        grps = dta.groupby('_stream').size()
+
+    ax=grps.sort_values(ascending=False).head(maxshwrs).plot.barh()
+    for lab in ax.get_xticklabels():
+        lab.set_fontsize(SMALL_SIZE)
+
+    fname = os.path.join(outdir, '01_streamcounts_plot_shower_{}.jpg'.format(s_or_m))
+    plt.title('Top {} showers - {} events ({})'.format(maxshwrs, s_or_m, shwrname))
+    plt.savefig(fname)
+    return len(grps)
+
+
 def timeGraph(dta, shwrname, outdir, binmins=10):
     print('Creating single station binned graph')
     fname = os.path.join(outdir, '02_stream_plot_timeline_single.jpg')
@@ -426,6 +450,14 @@ if __name__ == '__main__':
 
     # set up paths, files etc
     outdir = os.path.join(datadir, 'reports', str(yr), shwr)
+    # check if month was passed in
+    mth = None
+    if yr > 9999:
+        ym = sys.argv[2]
+        yr = int(ym[:4])
+        mth = ym[4:6]
+        outdir = os.path.join(datadir, 'reports', str(yr), shwr, mth)
+
     os.makedirs(outdir, exist_ok=True)
 
     singleFile = os.path.join(datadir, 'single', 'singles-{}.csv'.format(yr))
@@ -445,6 +477,13 @@ if __name__ == '__main__':
         shwrfltr = sngl
         mtchfltr = mtch
 
+    if mth is not None:
+        tmpdt = datetime.datetime.strptime(mth, '%m')
+        mthname = tmpdt.strftime('%B')
+        shwrname = 'All Showers, {}'.format(mthname)
+        shwrfltr = shwrfltr[shwrfltr['M']==int(mth)]
+        mtchfltr = mtchfltr[mtchfltr['_M_ut']==int(mth)]
+
     numsngl = 0
     numcams = 0
     nummatch = 0
@@ -458,6 +497,8 @@ if __name__ == '__main__':
         numsngl = timeGraph(shwrfltr, shwrname, outdir, 10)
         numcams = stationGraph(shwrfltr, shwrname, outdir, 20)
         bestvmag = magDistributionVis(shwrfltr, shwrname, outdir)
+        if shwr == 'ALL':
+            showerGraph(shwrfltr, 'observed', outdir)
         pass
     if len(mtchfltr) > 0:
         if shwr == 'ALL':
@@ -474,6 +515,8 @@ if __name__ == '__main__':
         if shwr != 'ALL':
             semimajorDistribution(mtchfltr, shwrname, outdir)
             radiantDistribution(mtchfltr, shwrname, outdir)
+        else:
+            showerGraph(mtchfltr, 'matched', outdir)
     
     outfname = os.path.join(outdir, 'statistics.txt')
     with open(outfname,'w') as outf:

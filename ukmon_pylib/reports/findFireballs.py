@@ -54,7 +54,14 @@ if __name__ == '__main__':
         exit(1)
 
     yr = int(sys.argv[1])
-    #print(yr)
+
+    # check if month was passed in
+    mth = None
+    if yr > 9999:
+        ym = sys.argv[1]
+        yr = int(ym[:4])
+        mth = int(ym[4:6])
+
     fname = os.path.join(datadir, 'matched','matches-full-{}.csv'.format(yr))
     if os.path.isfile(fname):
         with open(fname) as inf:
@@ -72,6 +79,9 @@ if __name__ == '__main__':
 
     if shwr != 'ALL':
         df = df[df['_stream']==shwr]
+    if mth is not None:
+        df = df[df['_M_ut']==mth]
+
     fbs = findMatchedFireballs(df, outdir, mag)
 
     if len(fbs) > 0: 
