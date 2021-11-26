@@ -105,13 +105,13 @@ else
         echo "<table class=\"table table-striped table-bordered table-hover table-condensed\"><tr>" >> $idxfile
         for i in 01 02 03 04 05 06  ; do
             if [ -d $DATADIR/$outdir/$i ] ; then 
-                echo "<td><a href=\"./$i\">$i</a></td>" >> $idxfile
+                echo "<td><a href=\"./$i/index.html\">$i</a></td>" >> $idxfile
             fi        
         done 
         echo "</tr><tr>" >> $idxfile
         for i in 07 08 09 10 11 12 ; do
             if [ -d $DATADIR/$outdir/$i ] ; then 
-                echo "<td><a href=\"./$i\">$i</a></td>" >> $idxfile
+                echo "<td><a href=\"./$i/index.html\">$i</a></td>" >> $idxfile
             fi        
         done
         echo "</tr></table>" >> $idxfile
