@@ -41,7 +41,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "aws_proxy",
           "httpMethod" : "POST",
           "uri" : "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:822069317839:function:searchUKmon/invocations",
           "responses" : {
@@ -53,7 +52,8 @@
             }
           },
           "passthroughBehavior" : "when_no_match",
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws_proxy"
         }
       },
       "options" : {
@@ -79,7 +79,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "mock",
           "responses" : {
             "default" : {
               "statusCode" : "200",
@@ -93,7 +92,8 @@
           "requestTemplates" : {
             "application/json" : "{\"statusCode\": 200}"
           },
-          "passthroughBehavior" : "when_no_match"
+          "passthroughBehavior" : "when_no_match",
+          "type" : "mock"
         }
       }
     }
