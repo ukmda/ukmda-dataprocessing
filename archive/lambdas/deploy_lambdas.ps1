@@ -29,6 +29,9 @@ $env:AWS_DEFAULT_REGION='eu-west-2'
 #compress-archive -path simplefunctions\consolidateKmls.py -destinationpath packages\consolidateKmls.zip -update
 #aws lambda update-function-code --function-name consolidateKmls --zip-file fileb://packages/consolidateKmls.zip
 
+compress-archive -path simplefunctions\matchDataApiHandler.py -destinationpath packages\matchDataApiHandler.zip -update
+aws lambda update-function-code --function-name matchDataApiHandler --zip-file fileb://packages/matchDataApiHandler.zip
+
 $env:AWS_DEFAULT_REGION='eu-west-2'
 #sam build -t searchArchive/template.yml
 #compress-archive -path  .\.aws-sam\build\searchArchive\* -destinationpath packages\searchArchive.zip -update
