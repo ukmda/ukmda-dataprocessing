@@ -1,10 +1,11 @@
 {
   "swagger" : "2.0",
   "info" : {
+    "description" : "return info about daily matches",
     "version" : "2021-02-15T19:23:10Z",
-    "title" : "ukmonSearcher"
+    "title" : "ukmonMatchApi"
   },
-  "host" : "lx6dt0krxj.execute-api.eu-west-1.amazonaws.com",
+  "host" : "oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com",
   "basePath" : "/prod",
   "schemes" : [ "https" ],
   "paths" : {
@@ -12,19 +13,14 @@
       "get" : {
         "produces" : [ "application/json" ],
         "parameters" : [ {
-          "name" : "op",
+          "name" : "reqval",
           "in" : "query",
-          "required" : false,
+          "required" : true,
           "type" : "string"
         }, {
-          "name" : "a",
+          "name" : "reqtyp",
           "in" : "query",
-          "required" : false,
-          "type" : "string"
-        }, {
-          "name" : "b",
-          "in" : "query",
-          "required" : false,
+          "required" : true,
           "type" : "string"
         } ],
         "responses" : {
@@ -40,10 +36,10 @@
             }
           }
         },
+        "x-amazon-apigateway-request-validator" : "Validate body, query string parameters, and headers",
         "x-amazon-apigateway-integration" : {
-          "type" : "aws_proxy",
           "httpMethod" : "POST",
-          "uri" : "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:822069317839:function:searchUKmon/invocations",
+          "uri" : "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:822069317839:function:matchDataApiHandler/invocations",
           "responses" : {
             "default" : {
               "statusCode" : "200",
@@ -53,7 +49,8 @@
             }
           },
           "passthroughBehavior" : "when_no_match",
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws_proxy"
         }
       },
       "options" : {
@@ -79,7 +76,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "mock",
           "responses" : {
             "default" : {
               "statusCode" : "200",
@@ -93,7 +89,8 @@
           "requestTemplates" : {
             "application/json" : "{\"statusCode\": 200}"
           },
-          "passthroughBehavior" : "when_no_match"
+          "passthroughBehavior" : "when_no_match",
+          "type" : "mock"
         }
       }
     }
@@ -102,6 +99,12 @@
     "Empty" : {
       "type" : "object",
       "title" : "Empty Schema"
+    }
+  },
+  "x-amazon-apigateway-request-validators" : {
+    "Validate body, query string parameters, and headers" : {
+      "validateRequestParameters" : true,
+      "validateRequestBody" : true
     }
   }
 }
