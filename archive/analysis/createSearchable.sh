@@ -56,3 +56,5 @@ cat $DATADIR/searchidx/*-allevents.csv | awk -F, '{print $5}' | sort | sed 's/^ 
 
 source $WEBSITEKEY
 aws s3 sync $DATADIR/searchidx/ $WEBSITEBUCKET/search/indexes/ --quiet
+source $UKMONSHAREDKEY
+aws s3 sync $DATADIR/matched $UKMONSHAREDBUCKET/matches/matched
