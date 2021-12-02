@@ -88,10 +88,13 @@ ${SRC}/website/cameraStatusReport.sh
 logger -s -t nightlyJob "create event log for other networks"
 python $SRC/ukmon_pylib/reports/createExchangeFiles.py
 
-logger -s -t stationReports "create list of connected stations"
+logger -s -t stationReports "create list of connected stations and map of stations"
 sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s, %s\n", $3,$9)}' > $DATADIR/reports/stationlogins.txt
+python /home/ec2-user/prod/ukmon_pylib/traj/plotStationsOnMap.py $CAMINFO
+
 source $WEBSITEKEY
 aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt
+aws s3 cp stations.png $WEBSITEBUCKET/
 
 logger -s -t nightlyJob "Create density and velocity plots by solar longitude"
 $SRC/analysis/createDensityPlots.sh ${mth}
