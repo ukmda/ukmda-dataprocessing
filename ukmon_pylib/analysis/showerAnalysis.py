@@ -87,6 +87,7 @@ def timeGraph(dta, shwrname, outdir, binmins=10):
     dta = dta.set_index('dt')
     #select just the shower ID col
     countcol = dta['Shwr']
+
     # resample it 
     binned = countcol.resample('{}min'.format(binmins)).count()
     binned.plot(kind='bar')
@@ -98,14 +99,13 @@ def timeGraph(dta, shwrname, outdir, binmins=10):
     ax = plt.gca()
     for lab in ax.get_xticklabels():
         lab.set_fontsize(SMALL_SIZE)
-        
     # format x-axes
     x_labels = binned.index.strftime('%b-%d')
     ax.set_xticklabels(x_labels)
     ax.set(xlabel="Date", ylabel="Count")
-
     plt.title('Observed stream activity {}min intervals ({})'.format(binmins, shwrname))
     plt.tight_layout()
+
     plt.savefig(fname)
     return len(dta)
 
@@ -128,16 +128,19 @@ def matchesGraphs(dta, shwrname, outdir, binmins=60):
     mbinned.plot(kind='bar')
 
     # set ticks and labels every 144 intervals
-    plt.locator_params(axis='x', nbins=len(mbinned)/24)
-    #plt.xticks(rotation=0)
-    # set font size
     ax = plt.gca()
-    for lab in ax.get_xticklabels():
-        lab.set_fontsize(SMALL_SIZE)
+    nbins=len(mbinned)/24
+    if nbins > 1:
+        plt.locator_params(axis='x', nbins=len(mbinned)/24)
+        # set font size
         
-    # format x-axes
-    x_labels = mbinned.index.strftime('%b-%d')
-    ax.set_xticklabels(x_labels)
+        for lab in ax.get_xticklabels():
+            lab.set_fontsize(SMALL_SIZE)
+        
+        # format x-axes
+        x_labels = mbinned.index.strftime('%b-%d')
+        ax.set_xticklabels(x_labels)
+
     ax.set(xlabel="Date", ylabel="Count")
 
     fname = os.path.join(outdir, '03_stream_plot_timeline_matches.jpg')
@@ -460,64 +463,82 @@ if __name__ == '__main__':
 
     os.makedirs(outdir, exist_ok=True)
 
+    # read the single-station data
     singleFile = os.path.join(datadir, 'single', 'singles-{}.csv'.format(yr))
-    matchfile = os.path.join(datadir, 'matched', 'matches-full-{}.csv'.format(yr))
-
-    # read the data
     sngl = pd.read_csv(singleFile)
-    mtch = pd.read_csv(matchfile, skipinitialspace=True)
+    sngl = sngl[sngl['Y']==yr]
 
     # select the required data
     if shwr != 'ALL':
         id, shwrname, sl, dt = sd.getShowerDets(sys.argv[1])
-        shwrfltr = sngl[sngl['Shwr']==shwr]
-        mtchfltr = mtch[mtch['_stream']==shwr]
+        sngl = sngl[sngl['Shwr']==shwr]
     else:
         shwrname = 'All Showers'
-        shwrfltr = sngl
-        mtchfltr = mtch
 
     if mth is not None:
         tmpdt = datetime.datetime.strptime(mth, '%m')
         mthname = tmpdt.strftime('%B')
         shwrname = 'All Showers, {}'.format(mthname)
-        shwrfltr = shwrfltr[shwrfltr['M']==int(mth)]
-        mtchfltr = mtchfltr[mtchfltr['_M_ut']==int(mth)]
+        sngl = sngl[sngl['M']==int(mth)]
 
     numsngl = 0
     numcams = 0
+    bestvmag = 0
+    # now get the graphs and stats
+    if len(sngl) > 0:
+        numsngl = timeGraph(sngl, shwrname, outdir, 10)
+        numcams = stationGraph(sngl, shwrname, outdir, 20)
+        bestvmag = magDistributionVis(sngl, shwrname, outdir)
+        if shwr == 'ALL':
+            showerGraph(sngl, 'observed', outdir)
+        pass
+    sngl = None
+
+    matchfile = os.path.join(datadir, 'matched', 'matches-full-{}.csv'.format(yr))
+    mtch = pd.read_csv(matchfile, skipinitialspace=True)
+    mtch = mtch[mtch['_Y_ut']==yr]
+
+    # select the required data
+    if shwr != 'ALL':
+        id, shwrname, sl, dt = sd.getShowerDets(sys.argv[1])
+        mtch = mtch[mtch['_stream']==shwr]
+    else:
+        shwrname = 'All Showers'
+
+    if mth is not None:
+        tmpdt = datetime.datetime.strptime(mth, '%m')
+        mthname = tmpdt.strftime('%B')
+        shwrname = 'All Showers, {}'.format(mthname)
+        mtch = mtch[mtch['_M_ut']==int(mth)]
+
     nummatch = 0
     nummatched = 0
-    bestvmag = 0
     bestamag = 0
     lowest = 0
     longest = 0
-    # now get the graphs and stats
-    if len(shwrfltr) > 0:
-        numsngl = timeGraph(shwrfltr, shwrname, outdir, 10)
-        numcams = stationGraph(shwrfltr, shwrname, outdir, 20)
-        bestvmag = magDistributionVis(shwrfltr, shwrname, outdir)
-        if shwr == 'ALL':
-            showerGraph(shwrfltr, 'observed', outdir)
-        pass
-    if len(mtchfltr) > 0:
+    slowest = 0
+
+    if len(mtch) > 0:
         if shwr == 'ALL':
             binsize = 1440
         else:
             binsize = 60
-        nummatch, nummatched = matchesGraphs(mtchfltr, shwrname, outdir, binsize)
-        bestamag, bestvmag = magDistributionAbs(mtchfltr, shwrname, outdir)
-        velDistribution(mtchfltr, shwrname, outdir, 'vg')
-        velDistribution(mtchfltr, shwrname, outdir, 'vs')
-        longest = distanceDistribution(mtchfltr, shwrname, outdir)
-        slowest = durationDistribution(mtchfltr, shwrname, outdir)
-        lowest = ablationDistribution(mtchfltr, shwrname, outdir)
+
+        nummatch, nummatched = matchesGraphs(mtch, shwrname, outdir, binsize)
+        bestamag, bestvmag = magDistributionAbs(mtch, shwrname, outdir)
+        velDistribution(mtch, shwrname, outdir, 'vg')
+        velDistribution(mtch, shwrname, outdir, 'vs')
+        longest = distanceDistribution(mtch, shwrname, outdir)
+        slowest = durationDistribution(mtch, shwrname, outdir)
+        lowest = ablationDistribution(mtch, shwrname, outdir)
         if shwr != 'ALL':
-            semimajorDistribution(mtchfltr, shwrname, outdir)
-            radiantDistribution(mtchfltr, shwrname, outdir)
+            semimajorDistribution(mtch, shwrname, outdir)
+            radiantDistribution(mtch, shwrname, outdir)
         else:
-            showerGraph(mtchfltr, 'matched', outdir)
-    
+            showerGraph(mtch, 'matched', outdir)
+    mtch = None
+
+    # create summary file
     outfname = os.path.join(outdir, 'statistics.txt')
     with open(outfname,'w') as outf:
         outf.write('Summary Statistics for {} {}\n'.format(shwrname, str(yr)))
@@ -558,5 +579,5 @@ if __name__ == '__main__':
 # abs mag vs lowest height
 # abs mag vs track length
 # abs mag vs lowest and highest heights
-# UK map showing all  detections ground tracks
+# UK map showing all detections ground tracks
 # sky map showing all detections sky tracks
