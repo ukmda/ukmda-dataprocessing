@@ -38,7 +38,7 @@ aws s3 cp s3://ukmon-live/idx${yr}0${lq}.csv ${DATADIR}/ukmonlive/
 # run this only once as it scoops up all unprocessed data
 logger -s -t nightlyJob "looking for matching events and solving their trajectories"
 matchlog=matches-$(date +%Y%m%d-%H%M%S).log
-${SRC}/analysis/findAllMatches.sh > ${SRC}/logs/matches/${matchlog} 2>&1
+${SRC}/analysis/findAllMatches.sh > ${SRC}/logs/${matchlog} 2>&1
 
 # send daily report - only want to do this if in batch mode
 if [ "`tty`" != "not a tty" ]; then 
@@ -88,7 +88,7 @@ ${SRC}/website/cameraStatusReport.sh
 logger -s -t nightlyJob "create event log for other networks"
 python $SRC/ukmon_pylib/reports/createExchangeFiles.py
 
-logger -s -t stationReports "create list of connected stations and map of stations"
+logger -s -t nightlyJob "create list of connected stations and map of stations"
 sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s, %s\n", $3,$9)}' > $DATADIR/reports/stationlogins.txt
 python /home/ec2-user/prod/ukmon_pylib/traj/plotStationsOnMap.py $CAMINFO
 
@@ -108,7 +108,7 @@ rm -f $SRC/data/.nightly_running
 
 # create performance metrics
 cd $SRC/logs
-matchlog=$( ls -1 ${SRC}/logs/matches/matches-*.log | tail -1)
+matchlog=$( ls -1 ${SRC}/logs/matches-*.log | tail -1)
 python $SRC/ukmon_pylib/metrics/timingMetrics.py $matchlog 'M' >> $SRC/logs/perfMatching.csv
 
 nightlog=$( ls -1 ${SRC}/logs/nightlyJob-*.log | tail -1)

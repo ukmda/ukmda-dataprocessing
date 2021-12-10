@@ -39,7 +39,7 @@ fi
 
 
 # folder for logs
-mkdir -p $SRC/logs/matches > /dev/null 2>&1
+mkdir -p $SRC/logs > /dev/null 2>&1
 
 logger -s -t findAllMatches "load the WMPL environment and set PYTHONPATH for the matching engine"
 
@@ -69,7 +69,7 @@ cp $thisjson $MATCHDIR/RMSCorrelate/prev_processed_trajectories.json.bigserver
 $SRC/analysis/runMatching.sh
 
 logger -s -t findAllMatches "check if the solver had some sort of failiure"
-logf=$(ls -1tr $SRC/logs/matches/matches*.log | tail -1)
+logf=$(ls -1tr $SRC/logs/matches-*.log | tail -1)
 success=$(grep "SOLVING RUN DONE" $logf)
 
 if [ "$success" == "" ]
@@ -106,7 +106,7 @@ do
 done
 
 logger -s -t findAllMatches "gather some stats"
-matchlog=$( ls -1 ${SRC}/logs/matches/matches-*.log | tail -1)
+matchlog=$( ls -1 ${SRC}/logs/matches-*.log | tail -1)
 vals=$(python $SRC/ukmon_pylib/utils/getMatchStats.py $matchlog )
 evts=$(echo $vals | awk '{print $2}')
 trajs=$(echo $vals | awk '{print $6}')
@@ -153,7 +153,7 @@ done
 rm /tmp/days.txt
 
 logger -s -t findAllMatches "purge old logs"
-find $SRC/logs/matches -name "matches*" -mtime +7 -exec gzip {} \;
-find $SRC/logs/matches -name "matches*" -mtime +90 -exec rm -f {} \;
+find $SRC/logs -name "matches*" -mtime +7 -exec gzip {} \;
+find $SRC/logs -name "matches*" -mtime +90 -exec rm -f {} \;
 
 logger -s -t findAllMatches "Matching process finished"
