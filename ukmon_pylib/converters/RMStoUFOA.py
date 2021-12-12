@@ -118,6 +118,7 @@ def RMStoUFOA(rmssingle, rmsassoc, rmsuafile, templatedir):
         UAdata.at[u.index[0],'LocalTime'] = lt[:-2] + '59'
 
     print('save back to file')
+    UAdata.Ver = 'R05B25'
     UAdata.to_csv(rmsuafile, index=False)
 
     return 0

@@ -123,6 +123,7 @@ def FTPdetectinfo2UkmonCsv(dir_path, out_path):
     """
     # Load the FTPdetectinfo file
 
+    ftpdetectinfo_name = None
     for name in os.listdir(dir_path):
         # Find FTPdetectinfo
         if name.startswith("FTPdetectinfo") and name.endswith('.txt') and \
@@ -147,7 +148,11 @@ def FTPdetectinfo2UkmonCsv(dir_path, out_path):
 
 
     # Load the FTPdetectinfo file
-    meteor_list = FTPdetectinfo.readFTPdetectinfo(dir_path, ftpdetectinfo_name)
+    try:
+        meteor_list = FTPdetectinfo.readFTPdetectinfo(dir_path, ftpdetectinfo_name)
+    except Exception:
+        print('Malformed FTPdetect file') 
+        return 
     if len(meteor_list) == 0:
         print('no meteors')
         return
@@ -182,7 +187,7 @@ def FTPdetectinfo2UkmonCsv(dir_path, out_path):
             pp = PlateparDummy(**pp_dict)
 
         else:
-            print('Skipping {:s} becuase no platepar was found for this FF file!'.format(ff_name))
+            print('Skipping {:s} because no platepar was found for this FF file!'.format(ff_name))
             continue
         
         # Convert the FF file name into time
