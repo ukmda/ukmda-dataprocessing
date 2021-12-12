@@ -154,6 +154,6 @@ rm /tmp/days.txt
 
 logger -s -t findAllMatches "purge old logs"
 find $SRC/logs -name "matches*" -mtime +7 -exec gzip {} \;
-find $SRC/logs -name "matches*" -mtime +90 -exec rm -f {} \;
+find $SRC/logs -name "matches*" -mtime +30 -exec rm -f {} \;
 
 logger -s -t findAllMatches "Matching process finished"
