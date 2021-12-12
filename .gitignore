@@ -532,7 +532,7 @@ analysis/orbitSolver/testing
 analysis/FormatConverters/testing
 */test_data/*
 archive/lambdas/pytz*
-archive/website/static_content/data/searchdialog.js
+archive/static_content/data/searchdialog.js
 ToDo*
 archive/costs/**/*.csv
 archive/costs/**/*.json

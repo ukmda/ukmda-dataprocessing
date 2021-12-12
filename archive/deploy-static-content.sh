@@ -5,7 +5,7 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
-bsjs="$here/templates/searchdialog-template.js"
+bsjs="$here/website/templates/searchdialog-template.js"
 newf="$here/static_content/data/searchdialog.js"
 
 
