@@ -19,13 +19,12 @@ source $here/../config/config.ini >/dev/null 2>&1
 if [ $# -gt 0 ] ; then
     ymd=$1
     yrs=${ymd:0:4}   
-    mths=${ymd:4:2}
+    mth=${ymd:4:2}
 else
     yrs="2021 2020"
-    mths="01 02 03 04 05 06 07 08 09 10 11 12"
+    mth=01
+    endmths=12
 fi 
-
-logger -s -t createMthlyExtracts "starting"
 
 logger -s -t createMthlyExtracts "gathering annual data"
 cd $DATADIR/browse/annual/
@@ -35,58 +34,15 @@ rsync -avz ${DATADIR}/consolidated/M*.csv .
 rsync -avz ${DATADIR}/consolidated/P*.csv .
 
 cd $DATADIR/matched
-logger -s -t createMthlyExtracts "creating matched extracts"
+logger -s -t createMthlyExtracts "creating extracts"
 
+export DATADIR
 for yr in $yrs
 do
-    for mth in $mths
-    do
-        rc=$(grep _${yr}${mth} ./matches-${yr}.csv | egrep -v "_${yr}${mth}," | wc -l)
-        if [ $rc -gt 0 ]; then
-            cp $SRC/analysis/templates/UO_header.txt $DATADIR/browse/monthly/${yr}${mth}-matches.csv
-            grep _${yr}${mth} ./matches-${yr}.csv >> $DATADIR/browse/monthly/${yr}${mth}-matches.csv
-        fi
-    done
+    python $PYLIB/reports/extractors.py $yr $mth $endmths
 done
 
-cd $DATADIR/consolidated
-logger -s -t createMthlyExtracts "creating UFO detections"
-for yr in $yrs
-do
-    for mth in $mths
-    do
-        rc=$(grep ",${yr}${mth}" ./M_${yr}-unified.csv | wc -l)
-        if [ $rc -gt 0 ]; then
-            cp $SRC/analysis/templates/UA_header.txt $DATADIR/browse/monthly/${yr}${mth}-detections-ufo.csv
-            grep ",${yr}${mth}" ./M_${yr}-unified.csv >> $DATADIR/browse/monthly/${yr}${mth}-detections-ufo.csv
-        fi
-    done
-done
-
-logger -s -t createMthlyExtracts "creating RMS detections"
-mths1="1 2 3 4 5 6 7 8 9"
-mths2="10 11 12"
-for yr in $yrs
-do
-    for mth in $mths1
-    do
-        rc=$(grep ",${yr}, ${mth}" ./P_${yr}-unified.csv | wc -l)
-        if [ $rc -gt 0 ]; then
-            cp $SRC/analysis/templates/RMS_header.txt $DATADIR/browse/monthly/${yr}0${mth}-detections-rms.csv
-            grep ",${yr}, ${mth}" ./P_${yr}-unified.csv >> $DATADIR/browse/monthly/${yr}0${mth}-detections-rms.csv
-        fi
-    done
-    for mth in $mths2
-    do
-        rc=$(grep ",${yr},${mth}" ./P_${yr}-unified.csv | wc -l)
-        if [ $rc -gt 0 ]; then
-            cp $SRC/analysis/templates/RMS_header.txt $DATADIR/browse/monthly/${yr}${mth}-detections-rms.csv
-            grep ",${yr},${mth}" ./P_${yr}-unified.csv >> $DATADIR/browse/monthly/${yr}${mth}-detections-rms.csv
-        fi
-    done
-done
 logger -s -t createMthlyExtracts "done gathering data, creating table"
-
 idxfile=$DATADIR/browse/monthly/browselist.js
 
 echo "\$(function() {" > $idxfile
@@ -100,7 +56,7 @@ yr=$(date +%Y)
 
 while [ $yr -gt 2012 ]
 do
-    for mth in {12,11,10,90,08,07,06,05,04,03,02,01}
+    for mth in {12,11,10,09,08,07,06,05,04,03,02,01}
     do
         ufobn=""
         rmsbn=""
