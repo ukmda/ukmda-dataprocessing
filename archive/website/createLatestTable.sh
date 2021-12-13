@@ -26,6 +26,7 @@ echo "table.className = \"table table-striped table-bordered table-hover table-c
 echo "var header = table.createTHead();" >> reportindex.js
 echo "header.className = \"h4\";" >> reportindex.js 
 
+echo "StationID,DateTime" > $DATADIR/latest/uploadtimes.csv
 source $WEBSITEKEY
 aws s3 ls $WEBSITEBUCKET/latest/ | grep jpg | while read i
 do
@@ -33,6 +34,7 @@ do
     dt=$(echo $i | awk '{print $1}')
     tm=$(echo $i | awk '{print $2}')
     fname=$(basename $fn .jpg)
+    echo $fname,${dt}T${tm}.000Z >> $DATADIR/latest/uploadtimes.csv
     loc=$(grep $fname $DATADIR/consolidated/camera-details.csv  | awk -F, '{printf("%s_%s\n",$1 , $4)}')
     echo "var row = table.insertRow(-1);" >> reportindex.js
     echo "var cell = row.insertCell(0);" >> reportindex.js
