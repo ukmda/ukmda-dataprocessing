@@ -472,6 +472,13 @@ if __name__ == '__main__':
     if shwr != 'ALL':
         id, shwrname, sl, dt = sd.getShowerDets(sys.argv[1])
         sngl = sngl[sngl['Shwr']==shwr]
+        # exclude data more than 60 days either side of peak - impacts showers near year end
+        peakdt = datetime.datetime.strptime('{}-{}'.format(yr, dt), '%Y-%m-%d')
+        if peakdt.month in [1,12]:
+            mindt = peakdt + datetime.timedelta(days=-60)
+            sngl = sngl[sngl.Dtstamp > mindt.timestamp()]
+            maxdt = peakdt + datetime.timedelta(days=60)
+            sngl = sngl[sngl.Dtstamp < maxdt.timestamp()]
     else:
         shwrname = 'All Showers'
 
@@ -502,6 +509,14 @@ if __name__ == '__main__':
     if shwr != 'ALL':
         id, shwrname, sl, dt = sd.getShowerDets(sys.argv[1])
         mtch = mtch[mtch['_stream']==shwr]
+
+        # exclude data more than 60 days either side of peak - impacts showers near year end
+        peakdt = datetime.datetime.strptime('{}-{}'.format(yr, dt), '%Y-%m-%d')
+        if peakdt.month in [1,12]:
+            mindt = peakdt + datetime.timedelta(days=-60)
+            mtch = mtch[mtch.dtstamp > mindt.timestamp()]
+            maxdt = peakdt + datetime.timedelta(days=60)
+            mtch = mtch[mtch.dtstamp < maxdt.timestamp()]
     else:
         shwrname = 'All Showers'
 
