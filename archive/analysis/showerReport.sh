@@ -100,7 +100,7 @@ else
 
         echo "<script src=\"./reportindex.js\"></script>" >> $idxfile
     fi
-    if [ "$mth" == "" ] ; then
+    if [[ "$mth" == "" && "$shwr" == "ALL" ] ; then
         echo "<h3>Monthly Reports</h3>" >> $idxfile
         echo "<table class=\"table table-striped table-bordered table-hover table-condensed\"><tr>" >> $idxfile
         for i in 01 02 03 04 05 06  ; do
@@ -123,7 +123,14 @@ else
     if [[ "$shwr" == "ALL" && "$mth" == "" ]] ; then
         cp $DATADIR/Annual-$2.jpg $DATADIR/$outdir/02_stream_plot_timeline_single.jpg
     fi
-    jpglist=$(ls -1 *.jpg)
+
+    if [ "$mth" == "" ]; then 
+        dt=$(date +Y%m) 
+    fi
+    if [ -f $MATCHDIR/RMSCorrelate/trajectories/$yr/$dt/plots/*$shwr.png ] ; then 
+        cp $MATCHDIR/RMSCorrelate/trajectories/$yr/$dt/plots/*$shwr.png .
+    fi 
+    jpglist=$(ls -1 *.jpg *.png)
     echo "<div class=\"top-img-container\">" >> $idxfile
     for j in $jpglist; do
         echo "<a href=\"./$j\"><img src=\"./$j\" width=\"20%\"></a>" >> $idxfile
