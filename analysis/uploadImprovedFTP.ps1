@@ -12,7 +12,7 @@ Set-Location $Loc
 $stationdetails=$ini['fireballs']['stationdets'] 
 
 $fullftpfile = [string]$args[0]
-$targpth = (split-path $fullftpfile)
+$targpth = (split-path $fullftpfile).replace('\','/')
 $ftpname = (split-path $fullftpfile -leaf)
 $cam = $ftpname.substring(14,6)
 $dt = $ftpname.substring(21,8)
@@ -24,5 +24,6 @@ $ym=$dt.substring(0,6)
 $ymd=$dt
 
 Write-Output "Target location is $stn/$cam/$yr/$ym/$ymd/"
-#scp $targpth/platepars_all_recalibrated.json ukmonhelper:ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/
-scp $targpth/$ftpname ukmonhelper:ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/ 
+ssh ukmonhelper "if [ ! -d ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/ ] ; then mkdir ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/ ; fi"
+scp $targpth/platepars_all_recalibrated.json ukmonhelper:ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/
+scp $targpth/$ftpname ukmonhelper:ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/$ftpname
