@@ -41,8 +41,11 @@ def createMDFiles(fbs, outdir, matchdir):
 
 
 def findMatchedFireballs(df, outdir=None, mag=-4):
-    fbs = df[df['_mag'] < mag]
-    fbs = fbs.sort_values(by='_mag')
+    fbs = df.sort_values(by='_mag')
+    if mag == 999: 
+        fbs = fbs.head(10)        
+    else:
+        fbs = fbs[fbs['_mag'] < mag]
     newm=pd.concat([fbs['url'],fbs['_mag'], fbs['_stream'], fbs['_vg'], fbs['mass'], fbs['_mjd']], axis=1, keys=['url','mag','shower','vg','mass','mjd'])
     return newm
 
@@ -75,7 +78,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 4:
         mag = float(sys.argv[4])
     else:
-        mag = -4
+        mag = -3.9
 
     if shwr != 'ALL':
         df = df[df['_stream']==shwr]

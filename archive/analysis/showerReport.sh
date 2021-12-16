@@ -32,14 +32,18 @@ else
 
     export DATADIR
     outdir=reports/$yr/$shwr
+    if [ "$shwr" != "ALL" ] ; then 
+        magval=999
+    fi
     if [ "$mth" != "" ] ; then
         outdir=$outdir/$mth
+        magval=999
     fi 
 
     if [[ ! -d $DATADIR/reports/$yr/$shwr || "$3" == "force" ]] ; then
         logger -s -t showerReport "Running the analysis routines"
         python $PYLIB/analysis/showerAnalysis.py $shwr $dt
-        python $PYLIB/reports/findFireballs.py $dt $DATADIR/$outdir $shwr
+        python $PYLIB/reports/findFireballs.py $dt $DATADIR/$outdir $shwr $magval
         logger -s -t showerReport "done, now creating report"
     fi
 
@@ -72,7 +76,11 @@ else
         echo "header.className = \"h4\";" >> reportindex.js
         echo "var row = table.insertRow(-1);" >> reportindex.js
         echo "var cell = row.insertCell(0);" >> reportindex.js
-        echo "cell.innerHTML = \"Fireball Reports\";" >> reportindex.js
+        if [ $magval == 999 ] ; then 
+            echo "cell.innerHTML = \"Brightest Ten Events\";" >> reportindex.js
+        else 
+            echo "cell.innerHTML = \"Fireball Reports\";" >> reportindex.js
+        fi 
 
         cat $DATADIR/$outdir/fblist.txt | while read i ; do
             echo "var row = table.insertRow(-1);">> reportindex.js
@@ -100,7 +108,7 @@ else
 
         echo "<script src=\"./reportindex.js\"></script>" >> $idxfile
     fi
-    if [[ "$mth" == "" && "$shwr" == "ALL" ] ; then
+    if [[ "$mth" == "" && "$shwr" == "ALL" ]] ; then
         echo "<h3>Monthly Reports</h3>" >> $idxfile
         echo "<table class=\"table table-striped table-bordered table-hover table-condensed\"><tr>" >> $idxfile
         for i in 01 02 03 04 05 06  ; do
