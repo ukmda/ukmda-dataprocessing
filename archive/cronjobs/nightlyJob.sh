@@ -76,6 +76,10 @@ logger -s -t nightlyJob "update the monthly and annual reports"
 $SRC/analysis/showerReport.sh ALL ${mth} force
 $SRC/analysis/showerReport.sh ALL ${yr} force
 
+# do this before individual shower reports so that the graphs can be copied
+logger -s -t nightlyJob "Create density and velocity plots by solar longitude"
+$SRC/analysis/createDensityPlots.sh ${mth}
+
 logger -s -t nightlyJob "update other relevant showers"
 ${SRC}/analysis/reportYear.sh ${yr}
 
@@ -90,14 +94,13 @@ python $SRC/ukmon_pylib/reports/createExchangeFiles.py
 
 logger -s -t nightlyJob "create list of connected stations and map of stations"
 sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s, %s\n", $3,$9)}' > $DATADIR/reports/stationlogins.txt
-python /home/ec2-user/prod/ukmon_pylib/traj/plotStationsOnMap.py $CAMINFO
+
+cd $DATADIR
+python $PYLIB/traj/plotStationsOnMap.py $CAMINFO
 
 source $WEBSITEKEY
 aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt
-aws s3 cp stations.png $WEBSITEBUCKET/
-
-logger -s -t nightlyJob "Create density and velocity plots by solar longitude"
-$SRC/analysis/createDensityPlots.sh ${mth}
+aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/
 
 logger -s -t nightlyJob "clean up old logs"
 find $SRC/logs -name "nightly*.gz" -mtime +90 -exec rm -f {} \;
