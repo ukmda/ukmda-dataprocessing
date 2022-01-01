@@ -1,6 +1,0 @@
-cmake_minimum_required(VERSION 2.8)
-project( stacker )
-find_package( OpenCV REQUIRED )
-include_directories( ${OpenCV_INCLUDE_DIRS} )
-add_executable( stacker stacker.cpp )
-target_link_libraries( stacker ${OpenCV_LIBS} )
