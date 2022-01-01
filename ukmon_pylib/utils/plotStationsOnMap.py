@@ -7,7 +7,15 @@ import os
 import sys
 import fnmatch
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
+
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+
+# override PIL's image size limit
+from PIL import Image
+Image.MAX_IMAGE_PIXELS = None
+
+
 from fileformats import ReadUFOAnalyzerXML as ua
 from fileformats import CameraDetails as cd
 
@@ -83,8 +91,6 @@ def plotMap(srcpath, intersect):
             longs.append(cam['Longi'])
             lats.append(cam['Lati'])
             stas.append(cam['CamID'].decode('utf-8'))
-        maxn, minn = 3.25, -8.55
-        maxa, mina = 59.55, 49.75
 
     else:
         with open(os.path.join(srcpath, 'CameraSites.txt'), 'r') as f:
@@ -97,36 +103,32 @@ def plotMap(srcpath, intersect):
             lats.append(float(dta[1]))
             longs.append(-float(dta[2]))
 
-        maxn, minn = max(longs) + 1, min(longs) - 1
-        wid = maxn - minn
-        maxa, mina = max(lats) + 1, min(lats) - 1
-
+    mapproj = ccrs.AlbersEqualArea()
     fig = plt.gcf()
-    fig.set_size_inches(23.2, 16.52)
+    fig.set_size_inches(16.52, 23.2)
 
-    myepsg = 5520
-    m = Basemap(projection='lcc', resolution='i',
-                llcrnrlon=minn,  # Longitude lower left corner
-                llcrnrlat=mina,  # Latitude lower left corner
-                urcrnrlon=maxn,   # Longitude upper right corner
-                urcrnrlat=maxa,  # Latitude upper right corner
-                lat_0=51.88, lon_0=-1.31,
-                epsg=myepsg
-                )
-    #m.arcgisimage(service='ESRI_Imagery_World_2D', xpixels = 1500, verbose= True)                
-    m.bluemarble()
-    m.drawcoastlines()
-    m.drawcountries()
-    m.drawrivers()
-    #m.drawmapboundary(fill_color='aqua')
-    #m.etopo(scale=0.5, alpha=0.5)
+    maxn, minn = max(longs) + 1, min(longs) - 1
+    maxa, mina = max(lats) + 1, min(lats) - 1
 
-    x, y = m(longs, lats)
-    m.plot(x, y, 'bo', markersize=5, linewidth=1)
-    for label, xpt, ypt in zip(stas, x, y):
-        plt.text(xpt, ypt, label, color='white')
+    plt.title('Station locations')
 
-    plt.title('Station Locations')
+    ax = plt.axes(projection=mapproj)
+
+    ax.set_extent([minn, maxn, mina, maxa], ccrs.PlateCarree())
+#    ax.coastlines(resolution='10m')
+#    ax.add_feature(cfeature.OCEAN)
+#    ax.add_feature(cfeature.LAND, edgecolor='black')
+#    ax.add_feature(cfeature.LAKES, edgecolor='black')
+#    ax.add_feature(cfeature.RIVERS)
+    ax.gridlines()
+    pylib=os.getenv('PYLIB')
+    os.environ['CARTOPY_USER_BACKGROUNDS'] = os.path.join(pylib, 'share','maps')
+    ax.background_img(name='BM', resolution='low')
+
+    plt.plot(longs, lats, 'bo', markersize=5, linewidth=1, transform=ccrs.PlateCarree())
+    for label, xpt, ypt in zip(stas, longs, lats):
+        plt.text(xpt, ypt, label, color='red', transform=ccrs.PlateCarree())
+
     if intersect is True:
         brngs = getBearingsForEvent(stas, srcpath)
 
@@ -148,17 +150,18 @@ def plotMap(srcpath, intersect):
 
             print(stas[i], lat1, lon1, brng)
 
-            x, y = m(lon, lat)
-            m.plot(x, y, 'o-', markersize=5, linewidth=1)
+            map.plot(lon, lat, 'o-', markersize=5, linewidth=1)
 
         xi, yi = get_intersect(vecs1[0], vecs2[0], vecs1[1], vecs2[1])
-        ixi, iyi = m(yi, xi)  # get_intersect return s lat, long but map requires long, lat
-        print(xi, yi)
-        m.plot(ixi, iyi, 'bx', markersize=10, linewidth=1)
+        plt.plot(yi, xi, 'bx', markersize=10, linewidth=1)
 
     plt.tight_layout()
-    plt.savefig('./stations.png', dpi=200)
+    datadir = os.getenv('DATADIR')
+    if len(datadir) == 0:
+        datadir='.'
+    plt.savefig(os.path.join(datadir, 'stations.png'), dpi=200)
     plt.show()
+
 
 
 if __name__ == '__main__':
