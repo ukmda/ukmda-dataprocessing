@@ -3,14 +3,16 @@
 #
 
 import sys
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
+import datetime
 
 import fileformats.UOFormat as uof 
 from wmpl.Utils.TrajConversions import jd2Date
 
 
-def createBarChart(fname):
+def createBarChart(fname, yr):
     matches = uof.MatchedCsv(fname)
     v1=int(matches.rawdata['_mjd'][0])
     v2=int(matches.rawdata['_mjd'][len(matches.rawdata)-1])+2
@@ -24,9 +26,10 @@ def createBarChart(fname):
 
     fig, ax = plt.subplots()
     width = 0.35       
+    nowdt=datetime.datetime.now()
     ax.set_ylabel('# matches')
     ax.set_xlabel('Date')
-    ax.set_title('Number of matched events per day')
+    ax.set_title('Number of matched events per day. Last updated {}'.format(nowdt.strftime('%Y-%m-%d %H:%M:%S')))
 
     li.append(0) # comes up one short
     ax.bar(dts, li, width, label='Events')
@@ -34,7 +37,7 @@ def createBarChart(fname):
     fig.set_size_inches(12, 5)
     fig.tight_layout()
 
-    plt.savefig('YearToDate.png', dpi=100)
+    plt.savefig('Annual-{}.jpg'.format(yr), dpi=100)
 
     return matches
 
@@ -42,7 +45,11 @@ def createBarChart(fname):
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         fname = sys.argv[1]
+        yr = sys.argv[2]
     else:
-        fname = 'f:/videos/meteorcam/ukmondata/UKMON-all-matches.csv'
-    m = createBarChart(fname)
+        yr=2021
+        datadir=os.getenv('DATADIR')
+        fname = os.path.join(datadir, 'matched', 'matches-{}.csv'.format(yr))
+        
+    m = createBarChart(fname, yr)
 #    print(m.selectByMag(minMag=-2))

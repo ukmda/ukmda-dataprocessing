@@ -23,6 +23,9 @@
   - name: Ensures {{destdir}}/data/reports/ exists
     file: path={{destdir}}/data/reports/ state=directory  
     tags: [dev,prod]
+  - name: Ensures {{destdir}}/data/single/ exists
+    file: path={{destdir}}/data/single/ state=directory  
+    tags: [dev,prod]
   - name: Ensures {{destdir}}/data/browse/ exists
     file: path={{destdir}}/data/browse/ state=directory  
     tags: [dev,prod]
@@ -49,7 +52,8 @@
     - {src: '{{srcdir}}/archive/analysis/', dest: '{{destdir}}/analysis/', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/cronjobs/', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/utils/', dest: '{{destdir}}/utils/', mode: '754', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/archive/website/', dest: '{{destdir}}/website/', mode: '754', backup: no, directory_mode: yes }
 
-    - {src: '{{srcdir}}/archive/costs/getMetrics.sh', dest: '{{destdir}}/costs/', mode: '754', backup: no }
-    - {src: '{{srcdir}}/analysis/orbitSolver/reduceOrbit.sh', dest: '{{destdir}}/orbits/', mode: '744', backup: no }
+    - {src: '{{srcdir}}/archive/costs/getCostMetrics.sh', dest: '{{destdir}}/costs/', mode: '754', backup: no }
+#    - {src: '{{srcdir}}/analysis/orbitSolver/reduceOrbit.sh', dest: '{{destdir}}/orbits/', mode: '744', backup: no }
     

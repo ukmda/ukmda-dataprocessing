@@ -5,36 +5,97 @@ import os
 import sys
 import glob
 import shutil
+import platform
 
 from wmpl.Utils.Pickling import loadPickle 
 from wmpl.Utils.TrajConversions import jd2Date
 from datetime import datetime, timedelta
-from traj.ufoTrajSolver import createAdditionalOutput, calcAdditionalValues
-import fileformats.CameraDetails as cdet
+from traj.ufoTrajSolver import createAdditionalOutput, calcAdditionalValues, loadMagData
+from fileformats import CameraDetails as cdet
 
 
-def generateExtraFiles(outdir):
-
+def generateExtraFiles(outdir, skipimgs = False):
+    outdir=os.path.normpath(outdir)
     picklefile = glob.glob1(outdir, '*.pickle')[0]
     traj = loadPickle(outdir, picklefile)
     traj.save_results = True
 
     createAdditionalOutput(traj, outdir)
-    fetchJpgsAndMp4s(traj, outdir)
+    if skipimgs is False:
+        findMatchingJpgs(traj, outdir)
+        findMatchingMp4s(traj, outdir)
     return
+
+
+def getBestView(outdir):
+    picklefile = glob.glob1(outdir, '*.pickle')[0]
+    traj = loadPickle(outdir, picklefile)
+    _, statids, vmags = loadMagData(traj)
+    bestvmag = min(vmags)
+    beststatid = statids[vmags.index(bestvmag)]
+    imgfn = glob.glob1(outdir, '*{}*.jpg'.format(beststatid))
+    if len(imgfn) > 0:
+        bestimg = imgfn[0]
+    else:
+        with open(os.path.join(outdir, 'jpgs.lst')) as inf:
+            lis = inf.readlines()
+        bestimg=''
+        worstmag = max(vmags)
+        for mag, stat in zip(vmags, statids):
+            res=[stat in ele for ele in lis]    
+            imgfn = lis[res is True].strip()
+            if mag <= worstmag:
+                if len(imgfn) > 0:
+                    bestimg = imgfn
+
+    return bestimg
 
 
 def getVMagCodeAndStations(outdir):
 
     picklefile = glob.glob1(outdir, '*.pickle')[0]
     traj = loadPickle(outdir, picklefile)
-    amag, bestvmag, mass, id, cod, orb, shower_obj, lg, bg, vg, stations = calcAdditionalValues(traj)
+    _, bestvmag, _, _, cod, _, _, _, _, _, _, stations = calcAdditionalValues(traj)
     return bestvmag, cod, stations
 
 
-def fetchJpgsAndMp4s(traj, outdir):
+def findMatchingJpgs(traj, outdir):
+    try:
+        datadir = os.getenv('DATADIR')
+    except Exception:
+        datadir='/home/ec2-user/prod/data'
+
+    jpgs = None
+    with open(os.path.join(outdir, 'jpgs.lst'), 'w') as outf:
+        for obs in traj.observations:
+            statid = obs.station_id
+            evtdate = jd2Date(obs.jdt_ref, dt_obj=True)
+            if jpgs is None:
+                with open(os.path.join(datadir, 'singleJpgs-{}.csv'.format(evtdate.year))) as inf:
+                    jpgs = inf.readlines()
+            compstr = statid + '_' + evtdate.strftime('%Y%m%d_%H%M%S')
+            mtch=[line.strip() for line in jpgs if compstr[:-1] in line]
+            if len(mtch) > 1: 
+                for m in mtch:
+                    fn = os.path.basename(m)
+                    spls=fn.split('_')
+                    dtstamp = datetime.strptime(spls[2] + '_' + spls[3], '%Y%m%d_%H%M%S')
+                    if (evtdate - dtstamp).seconds < 10:
+                        outf.write('{}\n'.format(m[0]))
+                        break
+            elif len(mtch) == 0:
+                tmped = evtdate + timedelta(seconds=-10)
+                compstr = statid + '_' + tmped.strftime('%Y%m%d_%H%M%S')
+                mtch=[line.strip() for line in jpgs if compstr[:-1] in line]
+                if len(mtch) > 0:
+                    outf.write('{}\n'.format(mtch[0]))
+            else: 
+                outf.write('{}\n'.format(mtch[0]))
+
+
+def findMatchingMp4s(traj, outdir):
     archdir = os.getenv('ARCHDIR')
-    if len(archdir) < 5:
+    if archdir is None:
         archdir='/home/ec2-user/ukmon-shared/archive'
 
     print('getting camera details file')
@@ -43,10 +104,10 @@ def fetchJpgsAndMp4s(traj, outdir):
     for obs in traj.observations:
         statid = obs.station_id
         fldr = cinfo.getFolder(statid)
-        print(statid, fldr)
+        #print(statid, fldr)
         evtdate = jd2Date(obs.jdt_ref, dt_obj=True)
 
-        print('station {} event {} '.format(statid, evtdate.strftime('%Y%m%d-%H%M%S')))
+        #print('station {} event {} '.format(statid, evtdate.strftime('%Y%m%d-%H%M%S')))
         # if the event is after midnight the folder will have the previous days date
         if evtdate.hour < 12:
             evtdate += timedelta(days=-1)
@@ -54,11 +115,11 @@ def fetchJpgsAndMp4s(traj, outdir):
         ym = evtdate.year * 100 + evtdate.month
         ymd = ym *100 + evtdate.day
 
-        print('getting jpgs and mp4s')
+        #print('getting mp4s')
         thispth = '{:s}/{:04d}/{:06d}/{:08d}/'.format(fldr, yr, ym, ymd)
+        #print(thispth)
         srcpath = os.path.join(archdir, thispth)
-        print(thispth)
-        flist = glob.glob1(srcpath, 'FF*.jpg')
+        flist = glob.glob1(srcpath, 'FF*.mp4')
         srcfil = None
         for fil in flist:
             spls = fil.split('_')
@@ -69,34 +130,55 @@ def fetchJpgsAndMp4s(traj, outdir):
                 break
         if srcfil is not None:
             srcfil = srcpath + srcfil
-            shutil.copy2(srcfil, outdir)
-            file_name, _ = os.path.splitext(srcfil)
-            srcfil = file_name + '.mp4'
-            try:
+            try: 
                 shutil.copy2(srcfil, outdir)
             except FileNotFoundError:
                 pass
         else:
-            print('no jpgs in {}'.format(srcpath))
+            pass
+            #print('no mp4s in {}'.format(srcpath))
 
         print('R90 CSV, KML and FTPDetect file')
-        flist = os.listdir(srcpath)
-        for fil in flist:
-            file_name, file_ext = os.path.splitext(fil)
-            if ('FTPdetectinfo' in fil) and (file_ext == '.txt') and ('_original' not in file_name) and ('_uncal' not in file_name) and ('_backup' not in file_name):
-                srcfil = srcpath + fil
-                shutil.copy2(srcfil, outdir)
-            elif file_ext == '.csv':
-                srcfil = srcpath + fil
-                shutil.copy2(srcfil, outdir)
-            elif file_ext == '.kml':
-                srcfil = srcpath + fil
-                shutil.copy2(srcfil, outdir)
-                kmldir = os.path.join(archdir, 'kmls')
-                shutil.copy2(srcfil, kmldir)
+        try:
+            flist = os.listdir(srcpath)
+            for fil in flist:
+                file_name, file_ext = os.path.splitext(fil)
+                if ('FTPdetectinfo' in fil) and (file_ext == '.txt') and ('_original' not in file_name) and ('_uncal' not in file_name) and ('_backup' not in file_name):
+                    srcfil = srcpath + fil
+                    shutil.copy2(srcfil, outdir)
+                elif file_ext == '.csv':
+                    srcfil = srcpath + fil
+                    shutil.copy2(srcfil, outdir)
+                elif file_ext == '.kml':
+                    srcfil = srcpath + fil
+                    shutil.copy2(srcfil, outdir)
+                    kmldir = os.path.join(archdir, 'kmls')
+                    shutil.copy2(srcfil, kmldir)
+        except:
+            continue
+    mp4s=glob.glob1(outdir, "*.mp4")
+    if len(mp4s) > 0:
+        _, orbdir = os.path.split(outdir)
+        #print(outdir, orbdir)
+        fullpth='reports/{}/orbits/{}/{}/{}'.format(orbdir[:4], orbdir[:6], orbdir[:8], orbdir)
+        with open(os.path.join(outdir, 'jpgs.lst'), 'a') as outf:
+            for mp4 in mp4s:
+                outf.write('{}/{}\n'.format(fullpth, mp4))
 
     return
 
 
 if __name__ == '__main__':
-    generateExtraFiles(sys.argv[1])
+    fl = sys.argv[1]
+    skipimgs = False
+    if platform.system() == 'Windows':
+        skipimgs = True
+
+    if os.path.isdir(fl):
+        generateExtraFiles(fl, skipimgs=skipimgs)
+    else:
+        with open(fl,'r') as inf:
+            dirs = inf.readlines()
+            for li in dirs:
+                fl = li.split(',')[1]
+                generateExtraFiles(fl, skipimgs=skipimgs)

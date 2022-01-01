@@ -4,28 +4,41 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
+export SRC
 source ~/venvs/$WMPL_ENV/bin/activate
-
-# to avoid other processes running alongside
-echo "1" > $SRC/data/.nightly_running
-
-# so i can import the config file into python functions
-export CONFIG
-
-# to run various python processes
 export PYTHONPATH=$PYLIB:$wmpl_loc
 
-thismth=`date '+%Y%m'`
-thisyr=`date '+%Y'`
+logger -s -t nightlyJob "starting"
 
+# dates to process for
+mth=`date '+%Y%m'`
+yr=`date '+%Y'`
+
+# force-consolidate any outstanding new data 
+logger -s -t nightlyJob "forcing consolidation of anything pending"
 source $WEBSITEKEY
 export AWS_DEFAULT_REGION=eu-west-2
 aws lambda invoke --function-name ConsolidateCSVs --log-type Tail $SRC/logs/ConsolidateCSVs.log
 
+# get a list of all jpgs from single station events for later use
+logger -s -t nightlyJob "getting list of single jpg files"
+aws s3 ls $WEBSITEBUCKET/img/single/$yr/ --recursive | awk '{print $4}' > $DATADIR/singleJpgs-$yr.csv
+
+logger -s -t nightlyJob "getting latest consolidated information"
+source $UKMONSHAREDKEY
+aws s3 sync s3://ukmon-shared/consolidated/ ${DATADIR}/consolidated --exclude 'temp/*' --quiet
+
+logger -s -t nightlyJob "getting latest livefeed CSV files"
+qmth=$(date +%m)
+cq=$(((qmth - 1 ) / 3 + 1))
+lq=$(((qmth - 1 ) / 3 ))
+aws s3 cp s3://ukmon-live/idx${yr}0${cq}.csv ${DATADIR}/ukmonlive/
+aws s3 cp s3://ukmon-live/idx${yr}0${lq}.csv ${DATADIR}/ukmonlive/
+
 # run this only once as it scoops up all unprocessed data
 logger -s -t nightlyJob "looking for matching events and solving their trajectories"
 matchlog=matches-$(date +%Y%m%d-%H%M%S).log
-${SRC}/analysis/findAllMatches.sh ${thismth} > ${SRC}/logs/matches/${matchlog} 2>&1
+${SRC}/analysis/findAllMatches.sh > ${SRC}/logs/${matchlog} 2>&1
 
 # send daily report - only want to do this if in batch mode
 if [ "`tty`" != "not a tty" ]; then 
@@ -37,12 +50,17 @@ else
     aws lambda invoke --function-name dailyReport --log-type Tail $SRC/logs/dailyReport.log
 fi
 
-logger -s -t nightlyJob "update shower associations, then create monthly and shower extracts for the website"
-
-daysback=4
+logger -s -t nightlyJob "update shower associations"
+daysback=$MATCHSTART
 ${SRC}/analysis/updateRMSShowerAssocs.sh $daysback
-${SRC}/website/createMthlyExtracts.sh ${thismth}
-${SRC}/website/createShwrExtracts.sh ${thismth}
+
+logger -s -t nightlyJob "consolidate the resulting data "
+$SRC/analysis/consolidateOutput.sh ${yr}
+
+logger -s -t nightlyJob "create monthly and shower extracts for the website"
+${SRC}/website/createMthlyExtracts.sh ${mth}
+${SRC}/website/createShwrExtracts.sh ${mth}
+${SRC}/website/createFireballPage.sh
 
 logger -s -t nightlyJob "update search index"
 ${SRC}/analysis/updateSearchIndex.sh
@@ -54,22 +72,16 @@ s = cc.SiteInfo()
 s.saveAsR('${RCODEDIR}/CONFIG/StationList.r')
 EOD
 
-logger -s -t nightlyJob "update the annual report for this year"
-${SRC}/analysis/monthlyReports.sh ALL ${thisyr} force
+logger -s -t nightlyJob "update the monthly and annual reports"
+$SRC/analysis/showerReport.sh ALL ${mth} force
+$SRC/analysis/showerReport.sh ALL ${yr} force
+
+# do this before individual shower reports so that the graphs can be copied
+logger -s -t nightlyJob "Create density and velocity plots by solar longitude"
+$SRC/analysis/createDensityPlots.sh ${mth}
 
 logger -s -t nightlyJob "update other relevant showers"
-${SRC}/analysis/reportYear.sh ${thisyr}
-
-#logger -s -t nightlyJob  "update the data for last month too, since some data comes in quite late"
-# commented out since RMS data is near-realtime
-#dom=`date '+%d'`
-#if [ $dom -lt 10 ] ; then 
-#    lastmth=`date --date='-1 month' '+%Y%m'`
-#    lastyr=`date --date='-1 month' '+%Y'`
-
-#    ${SRC}/website/createMthlyExtracts.sh ${lastmth}
-#    ${SRC}/website/createShwrExtracts.sh ${lastmth}
-#fi
+${SRC}/analysis/reportYear.sh ${yr}
 
 logger -s -t nightlyJob "create the cover page for the website"
 ${SRC}/website/createSummaryTable.sh
@@ -80,12 +92,31 @@ ${SRC}/website/cameraStatusReport.sh
 logger -s -t nightlyJob "create event log for other networks"
 python $SRC/ukmon_pylib/reports/createExchangeFiles.py
 
-logger -s -t nightlyJob "Create density and velocity plots by solar longitude"
-# too slow for now commented out
-# $SRC/analysis/createDensityPlots.sh
+logger -s -t nightlyJob "create list of connected stations and map of stations"
+sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s, %s\n", $3,$9)}' > $DATADIR/reports/stationlogins.txt
+
+cd $DATADIR
+python $PYLIB/traj/plotStationsOnMap.py $CAMINFO
+
+source $WEBSITEKEY
+aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt
+aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/
 
 logger -s -t nightlyJob "clean up old logs"
-find $SRC/logs -name "nightly*" -mtime +7 -exec rm -f {} \;
+find $SRC/logs -name "nightly*.gz" -mtime +90 -exec rm -f {} \;
+find $SRC/logs -name "nightly*.log" -mtime +7 -exec gzip {} \;
 
 logger -s -t nightlyJob "Finished"
 rm -f $SRC/data/.nightly_running
+
+# create performance metrics
+cd $SRC/logs
+matchlog=$( ls -1 ${SRC}/logs/matches-*.log | tail -1)
+python $SRC/ukmon_pylib/metrics/timingMetrics.py $matchlog 'M' >> $SRC/logs/perfMatching.csv
+
+nightlog=$( ls -1 ${SRC}/logs/nightlyJob-*.log | tail -1)
+python $SRC/ukmon_pylib/metrics/timingMetrics.py $nightlog 'N' >> $SRC/logs/perfNightly.csv
+
+# check for bad stations
+$SRC/analysis/getBadStations.sh
+

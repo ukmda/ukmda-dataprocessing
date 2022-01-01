@@ -140,3 +140,9 @@
       regexp: 'MAILPWD='
       line: 'MAILPWD=~/.ssh/gmailpass'
     tags: [dev,prod]
+  - name: update archive loc
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'UKMONSHAREDBUCKET='
+      line: 'UKMONSHAREDBUCKET=s3://{{archivebucket}}'
+    tags: [dev,prod]

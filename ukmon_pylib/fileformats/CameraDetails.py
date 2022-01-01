@@ -2,6 +2,7 @@
 import numpy
 import sys
 import os
+import numpy as np
 
 
 # defines the data content of a UFOAnalyser CSV file
@@ -22,6 +23,7 @@ class SiteInfo:
         #print(self.camdets)
 
     def getCameraOffset(self, statid):
+        spls=statid.split('_')
         statid = statid.encode('utf-8')
         cam = numpy.where(self.camdets['CamID'] == statid) 
         if len(cam[0]) == 0:
@@ -29,6 +31,8 @@ class SiteInfo:
             cam = numpy.where(self.camdets['CamID'] == statid) 
         if len(cam[0]) == 0:
             cam = numpy.where(self.camdets['dummycode'] == statid) 
+        if len(cam[0]) ==0:
+            cam = numpy.where(numpy.logical_and(self.camdets['LID']==spls[0].encode('utf-8'), self.camdets['SID']==spls[1].encode('utf-8')))
 
         # if we can't find the camera, assume its inactive
         if len(cam[0]) == 0:
@@ -38,6 +42,7 @@ class SiteInfo:
             return c
 
     def GetSiteLocation(self, camname):
+        camname = camname.encode('utf-8')
         eles = camname.split(b'_')
         if len(eles) > 2:
             lid = eles[0].strip() + b'_' + eles[1].strip()
@@ -55,7 +60,10 @@ class SiteInfo:
         else:
             cam = numpy.where((self.camdets['LID'] == lid))
         if len(cam[0]) == 0:
-            return 0, 0, 0, 0, 'Unknown'
+            cam = numpy.where((self.camdets['dummycode'] == lid))
+            if len(cam[0]) == 0:
+                return 0, 0, 0, 0, 'Unknown'
+        #print(cam)
         c = cam[0][0]
         longi = self.camdets[c]['Longi']
         lati = self.camdets[c]['Lati']
@@ -171,6 +179,36 @@ class SiteInfo:
                     outf.write(',\n')
                 else:
                     outf.write('\n)')
+    
+    def getStationsAtSite(self, sitename, onlyactive=False):
+        idlist = []
+        bsite = sitename.encode('utf-8')
+        fltred = self.camdets[self.camdets['Site'] == bsite]
+        if onlyactive is True:
+            fltred = fltred[fltred['active']==1]
+        for rw in fltred:
+            if int(rw['camtyp']) == 1:
+                idlist.append(rw['LID'].decode('utf-8') + '_' + rw['SID'].decode('utf-8'))
+            else:
+                idlist.append(rw['LID'].decode('utf-8'))
+        return idlist
+
+    def getSites(self, onlyactive=True):
+        sites=[]
+        silist=self.camdets['Site']
+        silist = np.unique(silist)
+        sites = [si.decode('utf-8') for si in silist]
+        return sites
+
+    def getUFOCameras(self, onlyactive=False):
+        camlist=[]
+        ufo=self.camdets[self.camdets['camtyp']==1]
+        if onlyactive is True:
+            ufo = ufo[ufo['active'] == 1]
+        for rw in ufo:
+            ufoname = rw['LID'].decode('utf-8') + '_' + rw['SID'].decode('utf-8') 
+            camlist.append({'Site':rw['Site'].decode('utf-8'), 'CamID':rw['CamID'].decode('utf-8'), 'dummycode':rw['dummycode'].decode('utf-8'), 'ufoid':ufoname})
+        return camlist
 
 
 

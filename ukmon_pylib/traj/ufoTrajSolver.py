@@ -21,9 +21,11 @@ from wmpl.Utils.Math import mergeClosePoints, angleBetweenSphericalCoords
 from wmpl.Utils.Physics import calcMass
 from wmpl.Utils.ShowerAssociation import associateShower
 
+from utils.getShowerDates import getShowerDets
+
 
 def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
-    print('Creating UFO Orbit style output file')
+    #print('Creating UFO Orbit style output file')
     orb = traj.orbit
     if shower_obj is None:
         shid = -1
@@ -34,8 +36,8 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
         shcod = shower_obj.IAU_code
         shname = shower_obj.IAU_name
 
-    dtstr = jd2Date(orb.jd_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
-    dt = jd2Date(orb.jd_ref, dt_obj=True)
+    dt = jd2Date(traj.jdt_ref, dt_obj=True)
+    dtstr = jd2Date(traj.jdt_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
     secs = dt.second + dt.microsecond / 1000000
     nO = len(traj.observations)
     id = '_(UNIFIED_' + str(nO) + ')'
@@ -91,7 +93,7 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
     csvname = os.path.join(outdir, dtstr + '_orbit.csv')
     with open(csvname, 'w', newline='') as csvf:
         csvf.write('RMS,0,')
-        csvf.write('{:s}, {:.6f}, {:.6f}, {:s}, {:s}, {:.6f}, '.format(dt.strftime('_%Y%m%d_%H%M%S'), orb.jd_ref - 2400000.5, lasun, id, '_', amag))
+        csvf.write('{:s}, {:.10f}, {:.6f}, {:s}, {:s}, {:.6f}, '.format(dt.strftime('_%Y%m%d_%H%M%S'), traj.jdt_ref - 2400000.5, lasun, id, '_', amag))
         csvf.write('{:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(rao, dco, rat, dct))
         csvf.write('{:.6f}, {:.6f}, {:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(lg, bg, vo, vi, vg, vh))
         csvf.write('{:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(orb.a, orb.q, orb.e, orb.T))
@@ -124,8 +126,8 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
     # create CSV extras file
     csvname = os.path.join(outdir, dtstr + '_orbit_extras.csv')
     with open(csvname, 'w', newline='') as csvf:
-        csvf.write('# date, mjd,id,iau,name,mass,pi,Q,true_anom,EA,MA,Tj,T,last_peri,jacchia1,Jacchia2,numstats,stations\n#\n')
-        csvf.write('{:s}, {:.6f}, {:s}, '.format(dt.strftime('%Y%m%d_%H%M%S'), orb.jd_ref - 2400000.5, id))
+        #csvf.write('# date, mjd,id,iau,name,mass,pi,Q,true_anom,EA,MA,Tj,T,last_peri,jacchia1,Jacchia2,numstats,stations\n#\n')
+        csvf.write('{:s}, {:.10f}, {:s}, '.format(dt.strftime('%Y%m%d_%H%M%S'), traj.jdt_ref-2400000.5, id))
         csvf.write('{:d}, {:s}, {:.6f}, '.format(shid, shname, mass))
         csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(orb.pi), orb.Q, np.degrees(orb.true_anomaly)))
         csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(orb.eccentric_anomaly), np.degrees(orb.mean_anomaly), orb.Tj))
@@ -141,7 +143,7 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
             statlist = statlist + str(obs.station_id) + ';'
         csvf.write('{:d}, {:s}'.format(nO, statlist))
         csvf.write('\n')
-    print('done')
+    #print('done')
     return 0
 
 
@@ -817,8 +819,8 @@ def computeAbsoluteMagnitudes(traj, meteor_list):
 
 
 def draw3Dmap(traj, outdir):
-    orb = traj.orbit
-    dtstr = jd2Date(orb.jd_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
+    #orb = traj.orbit
+    dtstr = jd2Date(traj.jdt_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
 
     lats = []
     lons = []
@@ -842,22 +844,24 @@ def draw3Dmap(traj, outdir):
     return
 
 
-def calcAdditionalValues(traj):
-    # print('about to calc abs mag')
-    # # Compute absolute mangitudes
+def loadMagData(traj):
     magdata=[]
     stations = []
-    bestvmag = 99
+    vmags = []
     for obs in traj.observations:
         thisobs = MeteorObservation(0,'',0,0,0,0,'')
         thisobs.mag_data = obs.magnitudes
         magdata.append(thisobs)
-        vmag = min(obs.magnitudes)
-        bestvmag = min(vmag, bestvmag)
+        vmags.append(min(obs.magnitudes))
         stations.append(obs.station_id)
+    return magdata, stations, vmags
 
-    # print(magdata)
+
+def calcAdditionalValues(traj):
+    # # Compute  mangitudes
+    magdata, stations, vmags = loadMagData(traj)
     computeAbsoluteMagnitudes(traj, magdata)
+    bestvmag = min(vmags)
 
     # # List of photometric uncertainties per station
     photometry_stddevs = [0.3] * len(magdata)
@@ -906,16 +910,19 @@ def calcAdditionalValues(traj):
         if shower_obj is None:
             id = -1
             cod = 'spo'
+            shwrname='Sporadic'
         else:
             id = shower_obj.IAU_no
             cod = shower_obj.IAU_code
+            _, shwrname, _, _ = getShowerDets(cod)
     else:
         # no orbit was calculated
         id = -1
         cod = 'spo'
+        shwrname='Sporadic'
 
     amag = min(abs_mag_data_all)
-    return amag, bestvmag, mass, id, cod, orb, shower_obj, lg, bg, vg, stations
+    return amag, bestvmag, mass, id, cod, shwrname, orb, shower_obj, lg, bg, vg, stations
 
 
 def createAdditionalOutput(traj, outdir):
@@ -923,10 +930,10 @@ def createAdditionalOutput(traj, outdir):
     matplotlib.rcParams['savefig.dpi'] = 300
 
     # calculate the values
-    amag, _, mass, id, cod, orb, shower_obj, lg, bg, vg, _ = calcAdditionalValues(traj)
+    amag, vmag, mass, id, cod, shwrname, orb, shower_obj, lg, bg, vg, _ = calcAdditionalValues(traj)
 
     # create Summary report for webpage
-    print('creating summary report')
+    #print('creating summary report')
     summrpt = os.path.join(outdir, 'summary.html')
 
     if traj.save_results:
@@ -934,11 +941,11 @@ def createAdditionalOutput(traj, outdir):
             f.write('Summary for Event\n')
             f.write('-----------------\n')
             if orb is not None:
-                f.write('shower ID {:d} {:s}\n'.format(id, cod))
+                f.write('shower ID {:d} {:s} ({:s})\n'.format(id, cod, shwrname))
                 if orb.L_g is not None:
                     f.write('Lg {:.2f}&deg; Bg {:.2f}&deg; Vg {:.2f}km/s\n'.format(lg, bg, vg / 1000))
 
-                f.write('mass {:.5f}g, abs. mag {:.1f}\n'.format(mass * 1000, amag))
+                f.write('mass {:.5f}g, abs. mag {:.1f}\nbest visual mag {:.1f}\n'.format(mass * 1000, amag, vmag))
             else:
                 f.write('unable to calculate realistic shower details\n')
             f.write('Path Details\n')

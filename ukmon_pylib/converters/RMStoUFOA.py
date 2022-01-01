@@ -100,8 +100,8 @@ def RMStoUFOA(rmssingle, rmsassoc, rmsuafile, templatedir):
     UAdata[hdrlst[17]] = rmsdata['Dec1']
     UAdata[hdrlst[18]] = rmsdata['Ra2']
     UAdata[hdrlst[19]] = rmsdata['Dec2']
-    # remaining values are UFO-specific and not used by RMS/WMPL
-    for i in range(19,47):
+    # remaining values are UFO specific and not used by RMS/WMPL
+    for i in range(20,47):
         if hdrlst[i]==' ': 
             hdrlst[i]='Fld'+str(i)
         UAdata[hdrlst[i]] = zeros
@@ -118,6 +118,7 @@ def RMStoUFOA(rmssingle, rmsassoc, rmsuafile, templatedir):
         UAdata.at[u.index[0],'LocalTime'] = lt[:-2] + '59'
 
     print('save back to file')
+    UAdata.Ver = 'R05B25'
     UAdata.to_csv(rmsuafile, index=False)
 
     return 0

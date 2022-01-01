@@ -30,12 +30,13 @@ class DetectedCsv:
             ts.append(datetime.datetime.strptime(row['LocalTime'],'%Y%m%d_%H%M%S').timestamp())
         self.rawdata['timestamp'] = ts
 
-    def selectByMag(self, minMag=100, maxMag=-50):
+    def selectByMag(self, minMag=100, maxMag=-50, filterbadav=False):
         """ get data by magnitude
         """
         tmpa1 = self.rawdata[self.rawdata['Mag'] <= minMag]
         tmpa2 = tmpa1[tmpa1['Mag'] >= maxMag]
-        tmpa2 = tmpa2[tmpa2['AV(deg/s)']!=0]  # exclude events with no angular velocity
+        if filterbadav is True: 
+            tmpa2 = tmpa2[tmpa2['AV(deg/s)']!=0]  # exclude events with no angular velocity
         return tmpa2
 
     def selectByStation(self, stationid):

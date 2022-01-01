@@ -1,17 +1,38 @@
 #!/bin/bash
-
 # bash script to create index page for an individual orbit report
+#
+# Parameters
+#   full path to the folder to create an index for
+#   (optional) "force" to compel the script to recreate the index
+#
+# Consumes
+#   The ftpdetect and platepar files, to create the csv and extracsv files
+#
+# Produces
+#   Website index.html for the event, along with any images, videos and graphs
+#     all synced to the website
+
+
+if [ $# -lt 1 ] ; then
+    echo "usage: createPageIndex.sh /full/path/to/folder {force}"
+    echo "optionally force recalc of extra data files"
+    exit 1
+fi 
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
 logger -s -t createPageIndex "starting"
-logger -s -t createPageIndex "generate extra data files and copy other data of interest"
-cd $SRC/orbits
-source ~/venvs/$WMPL_ENV/bin/activate
-export PYTHONPATH=$wmpl_loc:$PYLIB
-export ARCHDIR # used by extraDataFiles.py
-python $PYLIB/traj/extraDataFiles.py $1
+
+if [ "$2" == "force" ] ; then
+    cd $SRC/orbits
+    echo "forcing recalc of extra files"
+    source ~/venvs/$WMPL_ENV/bin/activate
+    export PYTHONPATH=$wmpl_loc:$PYLIB
+    export DATADIR # used by extraDataFiles.py
+    logger -s -t createPageIndex "generate extra data files and copy other data of interest"
+    python $PYLIB/traj/extraDataFiles.py $1
+fi
 cd $here
 
 logger -s -t createPageIndex "generating orbit page index.html"
@@ -21,11 +42,14 @@ mth=${ym:0:6}
 ymd=${ym:0:8}
 targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${mth}/${ymd}/$ym
 
+#Examples of arg1
+#/home/ec2-user/ukmon-shared/matches/RMSCorrelate/trajectories/20211009_043016.566_UK
+#/home/ec2-user/ukmon-shared/matches/RMSCorrelate/trajectories/2021/202101/20210131/20210131_052556.356_UK
 srcdata=$1
 
 idxfile=${srcdata}/index.html
-repf=`ls -1 ${srcdata}/$yr*report.txt`
-repfile=`basename $repf`
+repf=$(ls -1 ${srcdata}/$yr*report.txt)
+repfile=$(basename $repf)
 pref=${repfile:0:16}
 
 fldr=$(basename $srcdata)
@@ -46,17 +70,36 @@ echo "<a href=\"${pref}orbit_side.png\"><img src=\"${pref}orbit_side.png\" width
 echo "<a href=\"${pref}ground_track.png\"><img src=\"${pref}ground_track.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}velocities.png\"><img src=\"${pref}velocities.png\" width=\"20%\"></a>" >> $idxfile
 echo "<br>">>$idxfile
-ls -1 ${srcdata}/*.jpg | while read jpg 
-do
-    jpgbn=`basename $jpg`
-    echo "<a href=\"$jpgbn\"><img src=\"$jpgbn\" width=\"20%\"></a>" >> $idxfile
-done
+\rm ${srcdata}/available_jpgs.txt >/dev/null 2>&1
+if [ -f ${srcdata}/jpgs.lst ] ; then
+    cat ${srcdata}/jpgs.lst | while read i 
+    do
+        ext=${i##*.}
+        if [ "$ext" == "jpg" ] ; then 
+            echo "<a href=\"/$i\"><img src=\"/$i\" width=\"20%\"></a>" >> $idxfile
+            echo "https://archive.ukmeteornetwork.co.uk/$i" >> ${srcdata}/available_jpgs.txt
+        fi
+    done
+fi
+
 echo "<a href=\"${pref}lengths.png\"><img src=\"${pref}lengths.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}lags_all.png\"><img src=\"${pref}lags_all.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}abs_mag.png\"><img src=\"${pref}abs_mag.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}abs_mag_ht.png\"><img src=\"${pref}abs_mag_ht.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}all_angular_residuals.png\"><img src=\"${pref}all_angular_residuals.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}all_spatial_total_residuals_height.png\"><img src=\"${pref}all_spatial_total_residuals_height.png\" width=\"20%\"></a>" >> $idxfile
+echo "</div>" >> $idxfile
+echo "<div>" >> $idxfile
+if [ -f ${srcdata}/jpgs.lst ] ; then
+    cat ${srcdata}/jpgs.lst | while read i 
+    do
+        ext=${i##*.}
+        if [ "$ext" == "mp4" ] ; then 
+            echo "<a href=\"/$i\"><video width=\"20%\"><source src=\"/$i\" type=\"video/mp4\"></video></a>" >> $idxfile
+            echo "https://archive.ukmeteornetwork.co.uk/$i" >> ${srcdata}/available_jpgs.txt
+        fi
+    done
+fi
 echo "</div>" >> $idxfile
 
 echo "<pre>" >>$idxfile 
@@ -72,13 +115,13 @@ cat $TEMPLATES/footer.html >> $idxfile
 
 logger -s -t createPageIndex "adding zip file"
 pushd ${srcdata}
-zip -r -9 /tmp/$fldr.zip . -x ./$fldr.zip
+zip -r -9 /tmp/$fldr.zip . -x ./$fldr.zip -x ./jpgs.lst --quiet
 cp /tmp/$fldr.zip ${srcdata}/
 rm -f /tmp/$fldr.zip
 popd
 
 logger -s -t createPageIndex "copying to website"
 source $WEBSITEKEY
-aws s3 sync ${srcdata}/ ${targ}/ --include "*"  --quiet
+aws s3 sync ${srcdata}/ ${targ}/ --include "*" --quiet
 
 logger -s -t createPageIndex "finished"

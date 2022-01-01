@@ -304,7 +304,8 @@ class UAXml:
 
         ff_name = 'FF_' + statid +'_'
         ff_name = ff_name + imgdt.strftime('%Y%m%d_%H%M%S_') 
-        ff_name = ff_name + '{:.0f}'.format(imgdt.microsecond/1000) + '_0000000.fits'
+        ms = '{:03d}'.format(int(imgdt.microsecond / 1000))
+        ff_name = ff_name + ms + '_0000000.fits'
 
         fovv = fovh*(cx*yx/cy)
 
@@ -324,6 +325,7 @@ class UAXml:
         pp = pp + '    "fov_h": {:f},\n'.format(fovh)
         pp = pp + '    "fov_v": {:f},\n'.format(fovv)
         pp = pp + '    "station_code": "{:s}",\n'.format(statid)
+        pp = pp + '    "auto_recalibrated": true,\n'
         pp = pp + '    "version": 2\n'
         pp = pp + '}'
 
