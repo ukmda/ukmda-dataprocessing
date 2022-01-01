@@ -10,6 +10,7 @@ import sys
 import shutil
 import fnmatch
 import datetime
+import glob
 from fileformats import ReadUFOAnalyzerXML as UA
 from fileformats import CameraDetails as cdet
 
@@ -123,8 +124,8 @@ def createStationInfo(fldr, sta, lat, lng, alt):
 
 def convertFolder(fldr):
     """
-    Read all the A.XML files and create an RMS-style ftpdetect file plus station info file
-    Then check for RMS-style data and append it onto the files
+    Read all the A.XML files and create an RMS ftpdetect file plus station info file
+    Then check for any RMS data and append it onto the files
     """
     axmls, metcount, stime = loadAXMLs(fldr)
 
@@ -171,7 +172,7 @@ def convertFolder(fldr):
 
 def convertUFOFolder(fldr, outfldr):
     """
-    Read all the A.XML files and create an RMS-style ftpdetect file and platepars file
+    Read all the A.XML files and create an RMS ftpdetect file and platepars file
     """
     print('reading from', fldr)
     axmls, metcount, stime = loadAXMLs(fldr)
@@ -181,6 +182,8 @@ def convertUFOFolder(fldr, outfldr):
 
     _, ymd = os.path.split(fldr)
     _, lid, sid, _, _, _ = axmls[0].getStationDetails()
+    if lid == 'Blackfield' and sid == '':
+        sid = 'c1'
 
     ci = cdet.SiteInfo()
     statid = ci.getDummyCode(lid, sid)
@@ -228,5 +231,45 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('Usage python UFOtoFTPdetect.py srcfolder targfolder')
         print('  will convert all UFO A.xml files in srcfolder to a single FTPDetectInfo file in targfolder')
+        print('Usage python UFOtoFTPdetect.py yyyymmdd targfolder')
+        print('  will convert all UFO data for all cameras for the given date. dd is optional')
     else:
-        convertUFOFolder(sys.argv[1], sys.argv[2])
+        if len(sys.argv[1]) < 9:
+            # its a date
+            ymdin = sys.argv[1]
+            outroot = sys.argv[2]
+            archdir=os.getenv('ARCHDIR')
+            if len(archdir) == 0:
+                print('export ARCHDIR first')
+                exit(0)
+            
+            yr = ymdin[:4] 
+            ym = ymdin[:6] 
+            if len(ymdin) > 7:
+                ymd = ymdin[:8] 
+            else:
+                ymd = None
+            print(yr, ym, ymd)
+            ci = cdet.SiteInfo()
+            ufos = ci.getUFOCameras()
+            for cam in ufos:
+                site = cam['Site']
+                camid = cam['CamID']
+                dum = cam['dummycode']
+                if ymd is None:
+                    inroot = os.path.join(archdir,site, camid, yr, ym)
+                    days = glob.glob1(inroot, '*')
+                    for d in days:
+                        inpth = os.path.join(inroot, d)
+                        fils = glob.glob1(inpth, "*.*")
+                        if len(fils) > 0: 
+                            try:
+                                convertUFOFolder(inpth, outroot)
+                            except:
+                                continue
+                else:
+                    inpth = os.path.join(archdir,site, camid, yr, ym, ymd)
+                    convertUFOFolder(inpth, outroot)
+        else:
+            # its a folder
+            convertUFOFolder(sys.argv[1], sys.argv[2])

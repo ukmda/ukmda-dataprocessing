@@ -1,6 +1,15 @@
 #!/bin/bash
-
 # bash script to create station list option HTML for the search page
+#
+# Parameters
+#   none
+# 
+# Consumes
+#   the camera-details file
+#
+# Produces
+#   an html file containing a list of stations as options for the search page
+#
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
@@ -59,7 +68,7 @@ do
     echo "<option value=\"${rowid}\">${cam}</option>" >> $siteidx
     rowid=$((rowid+1))
 done
-echo "</select>" >> $siteidx
+#echo "</select>" >> $siteidx
 
 source $WEBSITEKEY
 aws s3 cp $siteidx $WEBSITEBUCKET/search/ --quiet

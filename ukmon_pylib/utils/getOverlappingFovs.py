@@ -8,11 +8,18 @@ import glob
 
 
 from utils.makeCoverageMap import munchKML
+from shapely.geometry import Point
+
+
+def pointInsideFov(lat,lng, k1):
+    c1, p1 = munchKML(k1, True)
+    pt = Point(lat, lng)
+    return p1.contains(pt)
 
 
 def checkKMLOverlap(k1, k2):
-    c1,p1=munchKML(k1, True)
-    c2,p2=munchKML(k2, True)
+    c1,p1 = munchKML(k1, True)
+    c2,p2 = munchKML(k2, True)
     return p1.intersects(p2)
 
 
@@ -42,21 +49,3 @@ if __name__ == '__main__':
     src = sys.argv[1]
     targ = sys.argv[2]
     matches = getOverlappingCameras(src, '*-25km.kml')
-    #for li in matches:
-    #    print(len(li), li)
-    #    # only one entry means no matches with this camera
-    #    if len(li) > 1: 
-    #        print('some matches')
-    #        targpth = os.path.join(targ, li[0])
-
-    #        if not os.path.exists(targpth):
-    #            os.mkdir(targpth)
-    #        files=glob.glob1(targpth, '*')
-    #        for f in files:
-    #            os.remove(os.path.join(targpth, f))
-
-    #        for cam in li:
-    #            srcfil = os.path.join(src, cam + '.kml')
-    #            shutil.copy(srcfil, targpth)
-    #    else:
-    #        print('no matches with camera', li[0])

@@ -44,7 +44,7 @@ def decodeApiKey(enckey):
 def makeCoverageMap(config, kmlsource, outdir, showMarker=False, useName=False):
     apikey = decodeApiKey(config['maps']['apikey'])
     kmltempl = config['maps']['kmltemplate']
-    print(apikey)
+    #print(apikey)
     gmap = gmplot.GoogleMapPlotter(52, -1.0, 5, apikey=apikey, 
         title='Camera Coverage', map_type='satellite')
 

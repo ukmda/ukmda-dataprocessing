@@ -6,7 +6,7 @@ import sys
 
 
 def getBestNMp4s(yr, mth, numtoget):
-    matches = uof.MatchedCsv('./UKMON-all-matches.csv')
+    matches = uof.MatchedCsv('./matched/matches-{}.csv'.format(yr))
 
     sd = datetime.datetime(yr,mth,1)
     lastday = calendar.monthrange(yr, mth)[1]

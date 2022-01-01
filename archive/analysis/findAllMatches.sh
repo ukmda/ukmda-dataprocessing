@@ -2,7 +2,20 @@
 #
 # Script to find correlated events, solve for their trajectories and orbits,
 # then copy the results to the Archive website. 
+# Parameters:
+#   optional start and end days back to process. 
+#   If not supplied, the environment variables MATCHSTART and MATCHEND are used
 #
+# Consumes:
+#   All UFO and RMS single-station data (ftpdetect, platepars_all and A.xml files)
+#
+# Produces:
+#   new and updated orbit solutions in $MATCHDIR/RMSCorrelate/trajectories 
+#   csv and extracsv files in $DATADIR/orbits/yyyy/csv and extracsv
+#   daily report of matches and statistics, in $DATADIR/dailyreports
+#   an email sent out via a lambda fn
+#   updated orbit page, monthly and annual indexes for the website
+
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
@@ -10,19 +23,23 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 source $UKMONSHAREDKEY
 
-# get the date to operate for
-if [ $# -eq 0 ]; then
-    ym=$(date +%Y%m)
-else
-    ym=$1
+# read start/end dates from commandline if rerunning for historical date
+if [ $# -gt 0 ] ; then
+    if [ "$1" != "" ] ; then
+        echo "selecting range"
+        MATCHSTART=$1
+    fi
+    if [ "$2" != "" ] ; then
+        MATCHEND=$(( $MATCHSTART - $2 ))
+    else
+        echo "matchend was not supplied, using 2"
+        MATCHEND=$(( $MATCHSTART - 2 ))
+    fi
 fi
-yr=${ym:0:4}
-mth=${ym:4:2}
+
 
 # folder for logs
-mkdir -p $SRC/logs/matches > /dev/null 2>&1
-
-#python $here/consolidateMatchedData.py $yr $mth |tee $SRC/logs/matches/$ym.log
+mkdir -p $SRC/logs > /dev/null 2>&1
 
 logger -s -t findAllMatches "load the WMPL environment and set PYTHONPATH for the matching engine"
 
@@ -30,12 +47,14 @@ source ~/venvs/${WMPL_ENV}/bin/activate
 export PYTHONPATH=$wmpl_loc:$PYLIB
 
 logger -s -t findAllMatches "get all UFO data into the right format"
-$SRC/analysis/convertUfoToRms.sh $ym
+$SRC/analysis/convertUfoToRms.sh
 dom=`date '+%d'`
 if [ $dom -lt 10 ] ; then 
     lastmth=`date --date='-1 month' '+%Y%m'`
     $SRC/analysis/convertUfoToRms.sh $lastmth
 fi
+logger -s -t findAllMatches "create ukmon specific merged single-station data file"
+$SRC/analysis/getRMSSingleData.sh
 
 logger -s -t findAllMatches "set the date range for the solver"
 cd $wmpl_loc
@@ -49,10 +68,8 @@ cp $thisjson $MATCHDIR/RMSCorrelate/prev_processed_trajectories.json.bigserver
 
 $SRC/analysis/runMatching.sh
 
-#python -m wmpl.Trajectory.CorrelateRMS $MATCHDIR/RMSCorrelate/ -l -r "($startdt,$enddt)"
-
 logger -s -t findAllMatches "check if the solver had some sort of failiure"
-logf=$(ls -1tr $SRC/logs/matches/matches*.log | tail -1)
+logf=$(ls -1tr $SRC/logs/matches-*.log | tail -1)
 success=$(grep "SOLVING RUN DONE" $logf)
 
 if [ "$success" == "" ]
@@ -66,13 +83,19 @@ logger -s -t findAllMatches "================"
 
 cd $here
 logger -s -t findAllMatches "create text file containing most recent matches"
-python $PYLIB/reports/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate $DATADIR
+python $PYLIB/reports/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate $DATADIR $MATCHEND
 
-logger -s -t findAllMatches "update the website loop over new matches, creating an index page and copying files"
+logger -s -t findAllMatches "update the website loop over new matches creating an index page and copying files"
 dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
 trajlist=$(cat $dailyrep | awk -F, '{print $2}')
 
+# create extra datafiles
+export DATADIR # used by extraDatafiles
+python $PYLIB/traj/extraDataFiles.py $dailyrep
+
+# now create page indexes and update website
 cd $here/../website
+yr=$(date +%Y)
 for traj in $trajlist 
 do
     $SRC/website/createPageIndex.sh $traj
@@ -83,11 +106,10 @@ do
 done
 
 logger -s -t findAllMatches "gather some stats"
-matchlog=$( ls -1 ${SRC}/logs/matches/matches-*.log | tail -1)
-p1=$(awk '/PROCESSING TIME BIN/{print NR; exit}' $matchlog)
-p2=$(awk '/RUNNING TRAJ/{print NR; exit}' $matchlog)
-evts=$((p2-p1-6))
-trajs=$(grep SOLVING $matchlog| grep TRAJECTORIES | awk '{print $2}')
+matchlog=$( ls -1 ${SRC}/logs/matches-*.log | tail -1)
+vals=$(python $SRC/ukmon_pylib/utils/getMatchStats.py $matchlog )
+evts=$(echo $vals | awk '{print $2}')
+trajs=$(echo $vals | awk '{print $6}')
 matches=$(wc -l $dailyrep | awk '{print $1}')
 rtim=$(grep "Total run time" $matchlog | awk '{print $4}')
 echo $(basename $dailyrep) $evts $trajs $matches $rtim >>  $DATADIR/dailyreports/stats.txt
@@ -122,9 +144,16 @@ do
 done
 rm /tmp/days.txt
 
-$SRC/website/createOrbitIndex.sh ${yr}
+for traj in $trajlist ; do bn=$(basename $traj); echo ${bn:0:4} >> /tmp/days.txt ; done
+daystodo=$(cat /tmp/days.txt | sort | uniq)
+for ytd in $daystodo
+do
+    $SRC/website/createOrbitIndex.sh ${ytd}
+done
+rm /tmp/days.txt
 
 logger -s -t findAllMatches "purge old logs"
-find $SRC/logs/matches -name "matches*" -mtime +7 -exec rm -f {} \;
+find $SRC/logs -name "matches*" -mtime +7 -exec gzip {} \;
+find $SRC/logs -name "matches*" -mtime +30 -exec rm -f {} \;
 
 logger -s -t findAllMatches "Matching process finished"

@@ -73,7 +73,7 @@ def getLastUpdateDate(pth, skipfldrs):
         print('var cell = row.insertCell(1);')
         print('cell.innerHTML = "{}";'.format(s[1]))
         print('var cell = row.insertCell(2);')
-        print('cell.innerHTML = "{}";'.format(s[2].strftime('%Y-%m-%d')))
+        print('cell.innerHTML = "{}";'.format(s[2].strftime('%Y-%m-%d %H:%M:%S')))
 
     print('var row = table.insertRow(0);')
     print('var cell = row.insertCell(0);')
@@ -81,7 +81,7 @@ def getLastUpdateDate(pth, skipfldrs):
     print('var cell = row.insertCell(1);')
     print('cell.innerHTML = "Cam";')
     print('var cell = row.insertCell(2);')
-    print('cell.innerHTML = "Date";')
+    print('cell.innerHTML = "Date of Run";')
     print('var outer_div = document.getElementById("camrep");')
     print('outer_div.appendChild(table);')
     print('})')

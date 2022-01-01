@@ -1,5 +1,15 @@
 #!/bin/bash
-# bash script to create monthly or annual index page for orbit data
+# bash script to create daily, monthly or annual index page for orbit data
+#
+# Parameters
+#   yyyymmdd to run for (or yyyymm or yyyy)
+#
+# Consumes
+#   If doing daily index, scans website for solutions to include in the index. 
+#   If doing monthly or annual index, scans site for days or months to include. 
+#
+# Produces
+#   Website index pages for the day, month or year, synced to the website
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
@@ -21,6 +31,7 @@ if [ "$dy" != "" ] ; then
     targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${yr}${mth}/${ym}
     orblist=$(aws s3 ls $targ/ | grep PRE | grep $mth | awk '{print $2}')
     domth=1
+    doplt=0
     rm -f $DATADIR/orbits/$yr/$ym.txt
 elif [ "$mth" != "" ] ; then
     displstr=${yr}-${mth}
@@ -29,6 +40,7 @@ elif [ "$mth" != "" ] ; then
     targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${ym}
     orblist=$(aws s3 ls $targ/ | grep PRE | grep $mth | awk '{print $2}')
     domth=1
+    doplt=1
     rm -f $DATADIR/orbits/$yr/$ym.txt
 else
     displstr=${yr}
@@ -37,6 +49,7 @@ else
     targ=${WEBSITEBUCKET}/reports/${yr}/orbits
     orblist=$(aws s3 ls $targ/ | grep PRE | grep $yr | awk '{print $2}')
     domth=0
+    doplt=1
 fi
 
 idxfile=/tmp/${ym}.html
@@ -69,14 +82,14 @@ fi
 echo "</tr></table>" >> $idxfile
 echo "</div>" >> $idxfile
 
-if [ $domth -eq 0 ]
+if [ $doplt -eq 1 ]
 then
-echo "<h3>Year to Date Density, Velocity and Solar Longitude</h3>" >> $idxfile
+echo "<h3>Density, Velocity and Solar Longitude for the current period</h3>" >> $idxfile
 echo "Click on the charts to see a larger gallery view" >> $idxfile
 echo "<div class=\"top-img-container\">" >> $idxfile
-echo "<a href=\"/reports/plots/scecliptic_density.png\"><img src=\"/reports/plots/scecliptic_density.png\" width=\"30%\"></a>" >> $idxfile
-echo "<a href=\"/reports/plots/scecliptic_sol.png\"><img src=\"/reports/plots/scecliptic_sol.png\" width=\"30%\"></a>" >> $idxfile
-echo "<a href=\"/reports/plots/scecliptic_vg.png\"><img src=\"/reports/plots/scecliptic_vg.png\" width=\"30%\"></a>" >> $idxfile
+echo "<a href=\"./plots/scecliptic_density.png\"><img src=\"./plots/scecliptic_density.png\" width=\"30%\"></a>" >> $idxfile
+echo "<a href=\"./plots/scecliptic_sol.png\"><img src=\"./plots/scecliptic_sol.png\" width=\"30%\"></a>" >> $idxfile
+echo "<a href=\"./plots/scecliptic_vg.png\"><img src=\"./plots/scecliptic_vg.png\" width=\"30%\"></a>" >> $idxfile
 echo "</div>" >> $idxfile
 echo "<script> \$('.top-img-container').magnificPopup({ " >> $idxfile
 echo "delegate: 'a', type: 'image', image:{verticalFit:false}, gallery:{enabled:true} }); " >> $idxfile

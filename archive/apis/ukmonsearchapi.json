@@ -4,8 +4,8 @@
     "version" : "2021-02-15T19:23:10Z",
     "title" : "ukmonSearcher"
   },
-  "host" : "0zbnc358p0.execute-api.eu-west-1.amazonaws.com",
-  "basePath" : "/test",
+  "host" : "lx6dt0krxj.execute-api.eu-west-1.amazonaws.com",
+  "basePath" : "/prod",
   "schemes" : [ "https" ],
   "paths" : {
     "/" : {
@@ -41,8 +41,8 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "uri" : "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:317976261112:function:searchUKmon/invocations",
           "httpMethod" : "POST",
+          "uri" : "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:822069317839:function:searchUKmon/invocations",
           "responses" : {
             "default" : {
               "statusCode" : "200",

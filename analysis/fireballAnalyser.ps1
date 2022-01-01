@@ -1,73 +1,56 @@
 # fireball analyser
 
 # NB NB NB
-# this script expects the FF*.fits to already be available 
+# this script expects the data to already be available 
+$loc = Get-Location
 set-location $PSScriptRoot
 # load the helper functions
 . .\helperfunctions.ps1
 $ini=get-inicontent analysis.ini
 
 $stationdetails=$ini['fireballs']['stationdets']
-$fbfldr=$ini['fireballs']['localgolder']
-
-$arcfldr=$args[0]
-$cam=$arcfldr.substring(0,6)
-$yr=$arcfldr.substring(7,4)
-$ym=$arcfldr.substring(7,6)
-$yd=$arcfldr.substring(7,8)
-
-$stndet=(select-string -pattern $cam -path $stationdetails | out-string)
-$stn=$stndet.split(',')[1]
+$fbfldr=$ini['fireballs']['localfolder']
+$env:PYLIB=$ini['pylib']['pylib']
 
 # set up paths
-$targpth = $fbfldr + $cam + "\" + $arcfldr + '_200000'
-$srcloc = "s3://ukmon-shared/archive/" + $stn + "/" + $cam + "/" +$yr + "/" + $ym + "/" + $yd
-$destloc = "s3://ukmon-shared/archive/" + $stn + "/" + $cam + "/" +$yr + "/" + $ym + "/" + $yd +"_man"
+$targpth = $fbfldr + '\' + $args[0]
+set-location $targpth
 
-# get required supporting files
-if ((test-path $targpth\upload) -eq 0) {mkdir $targpth\upload}
+conda activate $ini['wmpl']['wmpl_env']
+$wmplloc=$ini['wmpl']['wmpl_loc']
+$env:pythonpath="$wmplloc;$env:pylib"
 
-aws s3 cp $srcloc/platepar_cmn2010.cal $targpth
-aws s3 cp $srcloc/.config $targpth
+Write-Output $env:pythonpath
 
-write-output "now save the FF file into $targpth"
-pause
+$solver = read-host -prompt "ECSV or RMS solver? (E/R)"
+if ($solver -eq 'E') {
+    python -m wmpl.Formats.ECSV . -l -x -w $args[1]
+    $trajoutdir=$args[0] + '*'
+    $d=(Get-ChildItem $trajoutdir).fullname
+    if ($d.length -gt 0 )
+    {
+        python $env:PYLIB/traj/extraDataFiles.py $d
+    }
+}
+else {
+    python -m wmpl.Trajectory.CorrelateRMS . -l 
+    if (test-path ".\processed_trajectories.json")
+    {
+        $json=(get-content ".\processed_trajectories.json" | convertfrom-json)
+        $json.trajectories.psobject.properties.name |foreach-object { 
+            $picklepath=(split-path $json.trajectories.$_.traj_file_path)
+            python $env:PYLIB/traj/extraDataFiles.py $picklepath
+        }
+    }
+}
+set-location $loc
 
-# run SkyFit to refine the platepar and reduce the path
-conda activate $ini['rms']['rms_env']
-$env:PYTHONPATH=$ini['rms']['rms_loc']
-python -m Utils.SkyFit2 $targpth\$ffname -c $targpth\.config
-
-# copy the Ftpfile
-copy-item $targpth\FTPdetect*manual.txt $targpth\upload 
-
-# create the jpeg and copy it
-# needs to be run in the target folder so the config file is found
-push-location $targpth 
-python -m Utils.BatchFFtoImage $targpth jpg
-copy-item $targpth\*.jpg $targpth\upload
-
-$ftpname=(Get-ChildItem $targpth\FTP*manual.txt).name
-python -m Utils.RMS2UFO $ftpname platepar_cmn2010.cal
-pop-location
-copy-item $targpth\*.csv $targpth\upload
-
-$ffname=(Get-ChildItem $targpth\FF*.fits).name
-copy-item $targpth\$ffname $targpth\upload 
-
-#create a dummy platepars_all_recalibrated
-# and set auto_recalibrated to true so the data can be solved
-$hdr='{"'+$ffname+'": '
-Write-Output $hdr > $targpth/platepars_all_recalibrated.json
-(Get-Content -path $targpth/platepar_cmn2010.cal -Raw) -replace '"auto_recalibrated": false','"auto_recalibrated": true' >> $targpth/platepars_all_recalibrated.json
-Write-Output "}" >> $targpth/platepars_all_recalibrated.json
-Copy-Item $targpth/platepars_all_recalibrated.json $targpth/upload
-
+#pause 
 # finally upload the new data to a _man folder
-write-output "upload new files to Archive"
-aws s3 cp $targpth\upload\ $destloc/ --recursive --exclude "bkp*" 
+#write-output "upload new files to Archive"
+#aws s3 cp $targpth\upload\ $destloc/ --recursive --exclude "bkp*" 
 
 # zip up the results in case needed later
-compress-archive -path $targpth\upload\* -DestinationPath $targpth\upload.zip
-Remove-Item $targpth\upload\*
-Remove-Item $targpth\upload
+#compress-archive -path $targpth\upload\* -DestinationPath $targpth\upload.zip -Update
+#Remove-Item $targpth\upload\*
+#Remove-Item $targpth\upload

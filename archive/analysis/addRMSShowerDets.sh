@@ -1,6 +1,19 @@
 #!/bin/bash
 
-# script to create RMS shower association details if not already present
+# script to create RMS shower association details for a single day and station, if not already present
+# Parameters
+#   sitename eg Tackley
+#   canname eg UK0006
+#   date eg 20210528
+#   optional "force" to force recalculation
+#
+# Consumes: 
+#   FTPdetectinfo file for station for required date
+#   Caminfo file, to obtain lati and longi of station
+#
+# Produces:
+#   one file per stat per day in $DATADIR/consolidated/A containing the single-station shower association 
+#
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 

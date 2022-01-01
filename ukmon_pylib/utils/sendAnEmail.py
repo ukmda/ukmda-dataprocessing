@@ -6,14 +6,13 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 
-def sendAnEmail(mailrecip,message, msgtype):
+def sendAnEmail(mailrecip, message, msgtype, files=None):
     hname = 'ukmonhelper' # os.uname()[1]
     srcdir = os.getenv('SRC')
     localcfg = configparser.ConfigParser()
     localcfg.read(os.path.join(srcdir, 'config', 'config.ini'))
 
     # email a summary to the mailrecip
-    #mailrecip = localcfg['gmail']['mailrecip'].rstrip()
     smtphost = localcfg['gmail']['mailhost'].rstrip()
     smtpport = int(localcfg['gmail']['mailport'].rstrip())
     smtpuser = localcfg['gmail']['mailuser'].rstrip()

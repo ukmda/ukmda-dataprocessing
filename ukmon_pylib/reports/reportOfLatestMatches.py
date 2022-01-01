@@ -29,24 +29,25 @@ def getListOfNewMatches(dir_path, tfile = 'processed_trajectories.json', prevtfi
         ptrajs = json.load(inf)
     
     newtrajs = {k:v for k,v in trajs['trajectories'].items() if k not in ptrajs['trajectories']}
-    print(len(newtrajs))
+    #print(len(newtrajs))
     newdirs, _ = getTrajPaths(newtrajs)  
     return newdirs
 
 
-def findNewMatches(dir_path, out_path):
+def findNewMatches(dir_path, out_path, offset):
     newdirs = getListOfNewMatches(dir_path, 'processed_trajectories.json.bigserver', 'prev_processed_trajectories.json.bigserver')
     # load camera details
     cinf = cd.SiteInfo()
 
-    matchlist = os.path.join(out_path, 'dailyreports', datetime.datetime.now().strftime('%Y%m%d.txt'))
+    repdt = datetime.datetime.now() - datetime.timedelta(int(offset))
+    matchlist = os.path.join(out_path, 'dailyreports', repdt.strftime('%Y%m%d.txt'))
     with open(matchlist, 'w') as outf:
         for trajdir in newdirs:
             trajdir = trajdir.replace('/data/','/ukmon-shared/matches/')
             bestvmag, shwr, stationids = getVMagCodeAndStations(trajdir)
             stations=[]
             for statid in stationids:
-                _,_,_,_,loc = cinf.GetSiteLocation(statid.encode('utf-8'))
+                _,_,_,_,loc = cinf.GetSiteLocation(statid)
                 locbits = loc.split('/')
                 stations.append(locbits[0])
 
@@ -82,4 +83,4 @@ def findNewMatches(dir_path, out_path):
 
 
 if __name__ == '__main__':
-    findNewMatches(sys.argv[1], sys.argv[2])
+    findNewMatches(sys.argv[1], sys.argv[2], sys.argv[3])

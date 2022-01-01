@@ -5,3 +5,4 @@ s3profile: ukmonarchive
 siteurl: https://archive.ukmeteornetwork.co.uk
 env: PROD
 wmplhome: /home/ec2-user/src/WesternMeteorPyLib
+archivebucket: ukmon-shared

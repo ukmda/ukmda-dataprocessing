@@ -1,42 +1,103 @@
 #!/bin/bash
-here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+# Creates an the reports page index.
+#
+# Parameters
+#   year to create report index for - default is current year
+# 
+# Consumes
+#   list of folders in the reports/ folder
+#
+# Produces
+#   index.html for the reports page, synced to the website
+#
 
+here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 
 logger -s -t createReportIndex "starting"
+if [ $# -lt 1 ] ; then 
+    curryr=$(date +%Y)
+    fldr=.
+    prefix=.
+else
+    curryr=$1
+    fldr=$1
+    prefix=..
+fi
 
 cd ${DATADIR}/reports
-echo "\$(function() {" > ./reportindex.js
-echo "var table = document.createElement(\"table\");" >> ./reportindex.js
-echo "table.className = \"table table-striped table-bordered table-hover table-condensed\";" >> ./reportindex.js
-echo "var header = table.createTHead();" >> ./reportindex.js
-echo "header.className = \"h4\";" >> ./reportindex.js
-ls -1dr 2* | while read i
-do
-    echo "var row = table.insertRow(-1);" >> ./reportindex.js
-    echo "var cell = row.insertCell(0);" >> ./reportindex.js
-    echo "cell.innerHTML = \"<a href="$i/ALL/index.html">$i Full Year</a>\";" >> ./reportindex.js
-    echo "var cell = row.insertCell(1);" >> ./reportindex.js
-    echo "cell.innerHTML = \"<a href="$i/orbits/index.html">Orbits</a>\";" >> ./reportindex.js
-    echo "var cell = row.insertCell(2);" >> ./reportindex.js
-    echo "cell.innerHTML = \"<a href="$i/stations/index.html">Stations</a>\";" >> ./reportindex.js
 
-    ls -1 $i | egrep -v "ALL|orbits" | while read j
-    do
-        echo "var row = table.insertRow(-1);">> ./reportindex.js
-        echo "var cell = row.insertCell(0);" >> ./reportindex.js
-        echo "var cell = row.insertCell(1);" >> ./reportindex.js
-        sname=`grep $j ${RCODEDIR}/CONFIG/streamnames.csv | awk -F, '{print $2}'`
-        echo "cell.innerHTML = \"<a href="$i/$j/index.html">$sname</a>\";" >> ./reportindex.js
-        echo "var cell = row.insertCell(2);" >> ./reportindex.js
-    done
+repidx=$fldr/reportindex.js
+echo "\$(function() {" > $repidx
+echo "var table = document.createElement(\"table\");" >> $repidx
+echo "table.className = \"table table-striped table-bordered table-hover table-condensed\";" >> $repidx
+echo "var header = table.createTHead();" >> $repidx
+echo "header.className = \"h4\";" >> $repidx
+
+echo "var row = table.insertRow(-1);" >> $repidx
+echo "var cell = row.insertCell(0);" >> $repidx
+echo "cell.innerHTML = \"<a href="$prefix/$curryr/ALL/index.html">$i Full Year</a>\";" >> $repidx
+echo "var cell = row.insertCell(1);" >> $repidx
+echo "cell.innerHTML = \"<a href="$prefix/$curryr/orbits/index.html">Trajectories and Orbits</a>\";" >> $repidx
+echo "var cell = row.insertCell(2);" >> $repidx
+echo "cell.innerHTML = \"<a href="$prefix/$curryr/fireballs/index.html">Fireballs</a>\";" >> $repidx
+echo "var cell = row.insertCell(3);" >> $repidx
+echo "cell.innerHTML = \"<a href="$prefix/$curryr/stations/index.html">Stations</a>\";" >> $repidx
+
+if [ -f $curryr/tmp.txt ] ; then rm -f $curryr/tmp.txt ; fi
+ls -1 $curryr | egrep -v "ALL|orbits|stations|fireballs|.js|.html" | while read j
+do 
+    python $PYLIB/utils/getShowerDates.py $j >> $curryr/tmp.txt
 done
-echo "var outer_div = document.getElementById(\"summary\");" >> ./reportindex.js
-echo "outer_div.appendChild(table);" >> ./reportindex.js
-echo "})" >> ./reportindex.js
+sort -n $curryr/tmp.txt > $curryr/shwrs.txt
+rm -f $curryr/tmp.txt
+cat $curryr/shwrs.txt | while read j 
+do
+    dt=$(echo $j | awk -F, '{print $2}')
+    nam=$(echo $j | awk -F, '{print $3}')
+    abbrv=$(echo $j | awk -F, '{print $4}')
+    echo "var row = table.insertRow(-1);">> $repidx
+    echo "var cell = row.insertCell(0);" >> $repidx
+    echo "var cell = row.insertCell(1);" >> $repidx
+    echo "cell.innerHTML = \"<a href="$prefix/$curryr/$abbrv/index.html">$dt $nam</a>\";" >> $repidx
+    #echo "var cell = row.insertCell(2);" >> $repidx
+done
+rm -f $curryr/shwrs.txt
 
-logger -s -t createPageIndex "done, sending to website"
+echo "var outer_div = document.getElementById(\"summary\");" >> $repidx
+echo "outer_div.appendChild(table);" >> $repidx
+echo "})" >> $repidx
+
+previdx=$fldr/prevyrs.js
+echo "\$(function() {" > $previdx
+echo "var table = document.createElement(\"table\");" >> $previdx
+echo "table.className = \"table table-striped table-bordered table-hover table-condensed\";" >> $previdx
+echo "var header = table.createTHead();" >> $previdx
+echo "header.className = \"h4\";" >> $previdx
+
+j=0
+ls -1dr 2* | grep -v $curryr | while read i
+do
+    if [ $j == 0 ] ; then echo "var row = table.insertRow(-1);">> $previdx ; fi
+    echo "var cell = row.insertCell(-1);" >> $previdx
+    echo "cell.innerHTML = \"<a href="$prefix/$i/index.html">$i</a>\";" >> $previdx
+    ((j=j+1))
+    if [ $j == 5 ] ; then j=0 ; fi
+done
+
+echo "var outer_div = document.getElementById(\"prevyrs\");" >> $previdx
+echo "outer_div.appendChild(table);" >> $previdx
+echo "})" >> $previdx
+
+logger -s -t createReportIndex "done, sending to website"
 source $WEBSITEKEY
-aws s3 cp ./reportindex.js  $WEBSITEBUCKET/data/ --quiet
-
-logger -s -t createPageIndex "finished"
+if [ "$fldr" == "." ] ; then 
+    aws s3 cp $SRC/website/templates/reportindex.html $WEBSITEBUCKET/reports/index.html --quiet
+    aws s3 cp $repidx  $WEBSITEBUCKET/reports/ --quiet
+    aws s3 cp $previdx  $WEBSITEBUCKET/reports/ --quiet
+else
+    aws s3 cp $SRC/website/templates/reportindex.html $WEBSITEBUCKET/reports/$curryr/index.html --quiet
+    aws s3 cp $repidx  $WEBSITEBUCKET/reports/$curryr/ --quiet
+    aws s3 cp $previdx  $WEBSITEBUCKET/reports/$curryr/ --quiet
+fi
+logger -s -t createReportIndex "finished"

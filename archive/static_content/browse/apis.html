@@ -1,0 +1,164 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>UK Meteor Network Archive</title>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Meteor Observation Data">
+    <meta name="author" content="Mark McIntyre">
+
+    <meta name="keywords" content="meteors,astronomy,space" />
+    <!-- Bootstrap Core CSS -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="/css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="/css/dragontail.css" rel="stylesheet">
+
+    <!-- Timeline CSS -->
+    <link href="/css/plugins/timeline.css" rel="stylesheet">
+
+    <!-- Morris Charts CSS -->
+    <link href="/css/plugins/morris.css" rel="stylesheet">
+
+</head>
+
+<body>
+    <!-- jQuery -->
+    <script src="/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="/js/bootstrap.min.js"></script>
+
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="/js/plugins/metisMenu/metisMenu.min.js"></script>
+
+    <!-- Morris Charts JavaScript -->
+    <script src="/js/plugins/morris/raphael.min.js"></script>
+    <script src="/js/plugins/morris/morris.min.js"></script>
+
+    <script src="/js/constellation.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="/js/sb-admin-2.js"></script>
+
+    <div id="nav-placeholder"></div>
+    <script>
+        $(function () {
+            $("#nav-placeholder").load("/templates/navbar.html");
+        });
+    </script>
+
+
+    <div class="container">
+        <h2>UK Meteor Network APIs.</h2>
+        <p>
+            The following data is available via our APIs:
+        </p>
+        <li>List of matched events for a specific date.</li>
+        <li>Details of a specific matched event.</li>
+        <br>
+        <h4>URL</h4>
+        <p>https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod</p>
+        <h4>Parameters</h4>
+        <li>reqtyp: can be either 'matches' or 'details'</li>
+        <li>reqval: either a date in yyyymmdd format or a specific event eg 20211121_032219.699_UK</li>
+        <h4>Returns</h4>
+        Data is returned in JSON format suitable for consumption directly into Python Pandas dataframes,
+        but it can also be processed in any other programming language capable of parsing JSON
+        or saved to a file. See below for some examples.
+        <hr>
+        <p>
+            The data are released under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+            license, so if you are using the data
+            whether for scientific or other purposes, your must reference this web site and UKMON
+            in your work.
+        </p>
+        <hr>
+        <h3>Windows Powershell Example</h3>
+        Get all matches for 2021-11-21
+        <pre>
+PS> curl "https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod?reqtyp=matches&reqval=20211121" > matches-20211121.txt
+PS> get-content .\matches-20211121.txt | convertfrom-json
+
+orbname
+-------
+20211121_000411.688_UK
+20211121_000855.686_UK
+20211121_002819.330_UK
+20211121_003704.344_UK
+20211121_011116.433_UK
+.....
+</pre>
+        Retrieve details for event 20211121_032219.699_UK and extract the visual magnitude
+        <pre>
+PS> curl "https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod?reqtyp=detail&reqval=20211121_032219.699_UK" > 20211121_032219.699_UK.txt
+PS> (get-content .\20211121_032219.699_UK.txt | convertfrom-json -ashashtable)._mag
+-0.93
+</pre>
+        Alternatively you can pipe the output of curl directly into convertFrom-json. Note however 
+        that this will download the whole dataset then discard it. So if 
+        you expect to use more than one value, its better to save the results in a file and query it later.
+        <pre>
+PS> (curl "https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod?reqtyp=detail&reqval=20211121_032219.699_UK" | convertfrom-json -ashashtable)._mag
+  -0.93
+</pre>
+        <h3>Linux Bash Example</h3>
+        Retrieve details for event 20211121_032219.699_UK and extract the visual magnitude
+        <pre>
+$ curl "https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod?reqtyp=detail&reqval=20211121_032219.699_UK" > 20211121_032219.699_UK.txt
+$ cat 20211121_032219.699_UK.txt | jq ._mag
+"-0.93"
+$ curl "https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod?reqtyp=detail&reqval=20211121_032219.699_UK" | jq ._mag
+"-0.93"
+</pre>
+
+        <h3>Python Example</h3>
+        <pre>
+import pandas as pd 
+
+apiurl = 'https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod'
+
+# get all matched events for a given date
+reqtyp = 'matches'
+reqval = '20211121'
+apicall = '{}?reqtyp={}&reqval={}'.format(apiurl, reqtyp, reqval)
+matchlist = pd.read_json(apicall, lines=True)
+print(matchlist)
+
+# get details of the 6th event in matchlist
+reqtyp = 'detail'
+reqval = matchlist.iloc[5].orbname
+apicall = '{}?reqtyp={}&reqval={}'.format(apiurl, reqtyp, reqval)
+evtdetail = pd.read_json(apicall, typ='series')
+print(evtdetail)
+
+# get details for the first five events in the match list
+# and put them in a pandas dataframe, then sort by brightest
+details=[]
+for id in matchlist.head(5).orbname:
+    reqval = id
+    apicall = '{}?reqtyp={}&reqval={}'.format(apiurl, reqtyp, reqval)
+    details.append(pd.read_json(apicall, typ='series'))
+df = pd.DataFrame(details)
+df = df.sort_values(by=['_mag'])
+print(df)
+        </pre>
+
+        <hr>
+        <div id="copyrite-placeholder"></div>
+        <script>
+            $(function () {
+                $("#copyrite-placeholder").load("/templates/copyright.html");
+            });
+        </script>
+
+    </div>
+
+</body>
+
+</html>
