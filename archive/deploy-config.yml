@@ -103,6 +103,11 @@
       path: '{{destdir}}/config/config.ini'
       regexp: 'WEBSITEKEY='
       line: 'WEBSITEKEY={{websitekey}}'
+  - name: update Calcengine Server I
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'SERVERINSTANCEID='
+      line: 'SERVERINSTANCEID={{calcinstance}}'
     tags: [dev,prod]
   - name: update config file loc
     lineinfile:
