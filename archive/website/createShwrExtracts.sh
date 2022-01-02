@@ -39,43 +39,50 @@ shwrs=$(PYTHONPATH=$PYLIB python -c "from fileformats import imoWorkingShowerLis
 
 cd ${DATADIR}/matched
 logger -s -t createShwrExtracts "creating matched extracts"
+
 for yr in $yrs
 do
-    for shwr in $shwrs
-    do
-        rc=$(grep $shwr ./matches-${yr}.csv | wc -l)
-        if [ $rc -gt 0 ]; then
-            logger -s -t createShwrExtracts "doing $yr $shwr"
-            cp $SRC/analysis/templates/UO_header.txt $DATADIR/browse/showers/${yr}-${shwr}-matches.csv
-            grep $shwr ./matches-${yr}.csv >> $DATADIR/browse/showers/${yr}-${shwr}-matches.csv
-        fi
-    done
+    if compgen -G "$DATADIR/matched/matches-${yr}.csv" > /dev/null ; then 
+        for shwr in $shwrs
+        do
+            rc=$(grep $shwr ./matches-${yr}.csv | wc -l)
+            if [ $rc -gt 0 ]; then
+                logger -s -t createShwrExtracts "doing $yr $shwr"
+                cp $SRC/analysis/templates/UO_header.txt $DATADIR/browse/showers/${yr}-${shwr}-matches.csv
+                grep $shwr ./matches-${yr}.csv >> $DATADIR/browse/showers/${yr}-${shwr}-matches.csv
+            fi
+        done
+    fi
 done
 cd ${DATADIR}/consolidated
 logger -s -t createShwrExtracts "creating UFO detections"
 for yr in $yrs
 do
-    for shwr in $shwrs
-    do
-        rc=$(grep "${shwr}" ./M_${yr}-unified.csv | wc -l)
-        if [ $rc -gt 0 ]; then
-            cp $SRC/analysis/templates/UA_header.txt $DATADIR/browse/showers/${yr}-${shwr}-detections-ufo.csv
-            grep "${shwr}" ./M_${yr}-unified.csv >> $DATADIR/browse/showers/${yr}-${shwr}-detections-ufo.csv
-        fi
-    done
+    if compgen -G "$DATADIR/consolidated/M_${yr}-unified.csv" > /dev/null ; then 
+        for shwr in $shwrs
+        do
+            rc=$(grep "${shwr}" ./M_${yr}-unified.csv | wc -l)
+            if [ $rc -gt 0 ]; then
+                cp $SRC/analysis/templates/UA_header.txt $DATADIR/browse/showers/${yr}-${shwr}-detections-ufo.csv
+                grep "${shwr}" ./M_${yr}-unified.csv >> $DATADIR/browse/showers/${yr}-${shwr}-detections-ufo.csv
+            fi
+        done
+    fi
 done
 cd ${DATADIR}/consolidated
 logger -s -t createShwrExtracts "creating RMS detections"
 for yr in $yrs
 do
-    for shwr in $shwrs
-    do
-        rc=$(grep "${shwr}" ./R_${yr}-unified.csv | wc -l)
-        if [ $rc -gt 0 ]; then
-            cp $SRC/analysis/templates/UA_header.txt $DATADIR/browse/showers/${yr}-${shwr}-detections-rms.csv
-            grep "_${shwr}" ./R_${yr}-unified.csv >> $DATADIR/browse/showers/${yr}-${shwr}-detections-rms.csv
-        fi
-    done
+    if compgen -G "$DATADIR/consolidated/P_${yr}-unified.csv" > /dev/null ; then 
+        for shwr in $shwrs
+        do
+            rc=$(grep "${shwr}" ./P_${yr}-unified.csv | wc -l)
+            if [ $rc -gt 0 ]; then
+                cp $SRC/analysis/templates/UA_header.txt $DATADIR/browse/showers/${yr}-${shwr}-detections-rms.csv
+                grep "_${shwr}" ./P_${yr}-unified.csv >> $DATADIR/browse/showers/${yr}-${shwr}-detections-rms.csv
+            fi
+        done
+    fi
 done
 
 logger -s -t createShwrExtracts "done gathering data, creating tables"

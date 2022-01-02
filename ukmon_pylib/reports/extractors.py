@@ -19,10 +19,11 @@ def createUFOSingleMonthlyExtract(yr, mth):
     sd = datetime.datetime(yr, mth, 1)
     ed = sd + relativedelta(months=1)
     dsv = uaf.DetectedCsv(os.path.join(datadir, 'consolidated','M_{}-unified.csv'.format(yr)))
-    dta = dsv.selectByDateRange(sd, ed)
-    os.makedirs(os.path.join(datadir, 'browse', 'monthly'), exist_ok=True)
-    dta = dta.sort_values(by=['LocalTime','Group'])
-    dta.to_csv(os.path.join(datadir, 'browse', 'monthly', '{:04d}{:02d}-detections-ufo.csv'.format(yr, mth)), index=False)
+    if dsv.rawdata is not None:
+        dta = dsv.selectByDateRange(sd, ed)
+        os.makedirs(os.path.join(datadir, 'browse', 'monthly'), exist_ok=True)
+        dta = dta.sort_values(by=['LocalTime','Group'])
+        dta.to_csv(os.path.join(datadir, 'browse', 'monthly', '{:04d}{:02d}-detections-ufo.csv'.format(yr, mth)), index=False)
     return 
 
 
@@ -32,7 +33,11 @@ def createRMSSingleMonthlyExtract(yr, mth):
         print('define DATADIR first')
         exit(1)
 
-    dsv = pd.read_csv(os.path.join(datadir, 'consolidated','P_{}-unified.csv'.format(yr)),index_col=False)
+    fname = os.path.join(datadir, 'consolidated','P_{}-unified.csv'.format(yr))
+    if not os.path.isfile(fname):
+        print('datafile missing!')
+        return 
+    dsv = pd.read_csv(fname,index_col=False)
     dsv = dsv[dsv.Y == yr]
     dta = dsv[dsv.M == mth]
     os.makedirs(os.path.join(datadir, 'browse', 'monthly'), exist_ok=True)
@@ -47,7 +52,11 @@ def createMatchedMonthlyExtract(yr, mth):
         print('define DATADIR first')
         exit(1)
 
-    dsv = pd.read_csv(os.path.join(datadir, 'matched','matches-{}.csv'.format(yr)),index_col=False)
+    fname = os.path.join(datadir, 'matched','matches-{}.csv'.format(yr))
+    if not os.path.isfile(fname):
+        print('datafile missing!')
+        return 
+    dsv = pd.read_csv(fname,index_col=False)
     dsv = dsv[dsv._Y_ut == yr]
     dta = dsv[dsv._M_ut == mth]
     os.makedirs(os.path.join(datadir, 'browse', 'monthly'), exist_ok=True)

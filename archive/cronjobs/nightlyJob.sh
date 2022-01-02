@@ -33,7 +33,9 @@ qmth=$(date +%m)
 cq=$(((qmth - 1 ) / 3 + 1))
 lq=$(((qmth - 1 ) / 3 ))
 aws s3 cp s3://ukmon-live/idx${yr}0${cq}.csv ${DATADIR}/ukmonlive/
-aws s3 cp s3://ukmon-live/idx${yr}0${lq}.csv ${DATADIR}/ukmonlive/
+
+if [ "$lq" -eq "00" ] ; then lyr=$((yr - 1)) ; lq=04 ; else lyr=$yr ; fi
+aws s3 cp s3://ukmon-live/idx${lyr}0${lq}.csv ${DATADIR}/ukmonlive/
 
 # run this only once as it scoops up all unprocessed data
 logger -s -t nightlyJob "looking for matching events and solving their trajectories"
@@ -96,7 +98,9 @@ logger -s -t nightlyJob "create list of connected stations and map of stations"
 sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s, %s\n", $3,$9)}' > $DATADIR/reports/stationlogins.txt
 
 cd $DATADIR
-python $PYLIB/traj/plotStationsOnMap.py $CAMINFO
+export DATADIR
+export PYLIB
+python $PYLIB/utils/plotStationsOnMap.py $CAMINFO
 
 source $WEBSITEKEY
 aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt

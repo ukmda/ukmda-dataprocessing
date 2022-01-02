@@ -1,5 +1,6 @@
 # create a data type for UFO Orbit style CSV files
 import sys
+import os
 import datetime
 import pandas as pd
 from wmpl.Utils.TrajConversions import date2JD
@@ -14,12 +15,20 @@ class MatchedCsv:
             fname string -- The full path and filename to the CSV file
         """
         # load from file
+        if not os.path.isfile(fname):
+            self.rawdata = None
+            print('datafile missing!')
+            return 
+
         self.rawdata = pd.read_csv(fname, delimiter=',')
 
     def selectByMag(self, minMag=100, maxMag=-50):
         """ get data by magnitude
 
         """
+        if self.rawdata is None:
+            print('datafile missing!')
+            return None
         tmpa1 = self.rawdata[self.rawdata['_amag'] <= minMag]
         tmpa2 = tmpa1[tmpa1['_amag'] >= maxMag]
         return tmpa2
@@ -27,6 +36,9 @@ class MatchedCsv:
     def selectByShwr(self, shwr):
         """ Get data by shower ID eg LYR or spo 
         """
+        if self.rawdata is None:
+            print('datafile missing!')
+            return None
         tmpshwr = ' ' + shwr
         return self.rawdata[self.rawdata['_stream']==tmpshwr]
 
@@ -42,6 +54,9 @@ class MatchedCsv:
         """ Get data for a specified time range. 
             Note that this uses the exact range supplied. 
         """
+        if self.rawdata is None:
+            print('datafile missing!')
+            return None
         sjd = date2JD(sDate.year, sDate.month, sDate.day, 12,0,0) - 2400000.5
         ejd = date2JD(eDate.year, eDate.month, eDate.day, 12,0,0) - 2400000.5
         f1 = self.rawdata[self.rawdata['_mjd'] >= sjd]
