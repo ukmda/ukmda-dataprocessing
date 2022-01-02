@@ -13,6 +13,9 @@ from wmpl.Utils.TrajConversions import jd2Date
 
 
 def createBarChart(fname, yr):
+    if not os.path.isfile(fname):
+        print('{} missing', fname)
+        return None
     matches = uof.MatchedCsv(fname)
     v1=int(matches.rawdata['_mjd'][0])
     v2=int(matches.rawdata['_mjd'][len(matches.rawdata)-1])+2
