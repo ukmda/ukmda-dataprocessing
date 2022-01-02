@@ -94,6 +94,10 @@ export DATADIR # used by extraDatafiles
 python $PYLIB/traj/extraDataFiles.py $dailyrep
 
 # now create page indexes and update website
+if [ ! -d ${DATADIR}/orbits/$yr/csv/ ] ; then
+    mkdir -p ${DATADIR}/orbits/$yr/csv/processed/
+    mkdir -p ${DATADIR}/orbits/$yr/extracsv/processed/
+fi
 cd $here/../website
 yr=$(date +%Y)
 for traj in $trajlist 

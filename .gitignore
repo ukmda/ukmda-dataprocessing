@@ -539,3 +539,7 @@ archive/costs/**/*.json
 archive/costs/plots/*.png
 archive/lambdas/.aws-sam/build.toml
 archive/costs/S3-size-empireelements.xlsx
+ukmon_pylib/share/maps/BM_medres.jpg
+ukmon_pylib/share/maps/BM.jpg
+ukmon_pylib/share/maps/BMNG_hirez.png
+ukmon_pylib/share/maps/population.jpg

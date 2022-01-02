@@ -6,3 +6,4 @@ siteurl: https://archive.ukmeteornetwork.co.uk
 env: PROD
 wmplhome: /home/ec2-user/src/WesternMeteorPyLib
 archivebucket: ukmon-shared
+calcinstance: i-061455c30c8fbf037

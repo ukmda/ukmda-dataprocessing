@@ -1,6 +1,7 @@
 # create a data type for UFO Analyser style CSV files
 import numpy
 import sys
+import os
 import datetime
 import pandas as pd
 
@@ -24,6 +25,11 @@ class DetectedCsv:
         """
         # load from file
         # append field for timestamp
+        if not os.path.isfile(fname):
+            self.rawdata = None
+            print('datafile missing!')
+            return 
+        
         self.rawdata = pd.read_csv(fname, delimiter=',')
         ts=[]
         for _,row in self.rawdata.iterrows():
@@ -33,6 +39,9 @@ class DetectedCsv:
     def selectByMag(self, minMag=100, maxMag=-50, filterbadav=False):
         """ get data by magnitude
         """
+        if self.rawdata is None:
+            print('datafile missing!')
+            return None
         tmpa1 = self.rawdata[self.rawdata['Mag'] <= minMag]
         tmpa2 = tmpa1[tmpa1['Mag'] >= maxMag]
         if filterbadav is True: 
@@ -42,12 +51,18 @@ class DetectedCsv:
     def selectByStation(self, stationid):
         """ get data by station ID
         """
+        if self.rawdata is None:
+            print('datafile missing!')
+            return None
         tmpa2 = self.rawdata[self.rawdata['Loc_Cam'] == stationid]
         return tmpa2
 
     def selectByShwr(self, shwr):
         """ Get data by shower ID eg LYR or spo 
         """
+        if self.rawdata is None:
+            print('datafile missing!')
+            return None
         if shwr != 'spo':
             tmpshwr = ' J8_' + shwr
         else:
@@ -66,6 +81,10 @@ class DetectedCsv:
         """ Get data for a specified time range. 
             Note that this uses the exact range supplied. 
         """
+        if self.rawdata is None:
+            print('datafile missing!')
+            return None
+
         f1 = self.rawdata[self.rawdata['timestamp'] >= sDate.timestamp()]
         f1 = f1[f1['timestamp'] <= eDate.timestamp()]
         return f1
@@ -73,6 +92,10 @@ class DetectedCsv:
     def getExchangeData(self, eDate=datetime.datetime.now(), daysreq=3):
         """ get minimal data for exchange with other networks
         """
+        if self.rawdata is None:
+            print('datafile missing!')
+            return None
+
         sDate = eDate + datetime.timedelta(days = -daysreq)
         fltrset = self.selectByDateRange(sDate, eDate)
         outarr = []
