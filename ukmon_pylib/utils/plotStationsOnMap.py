@@ -90,7 +90,11 @@ def plotMap(srcpath, intersect):
         for cam in ac:
             longs.append(cam['Longi'])
             lats.append(cam['Lati'])
-            stas.append(cam['CamID'].decode('utf-8'))
+            #stas.append(cam['CamID'].decode('utf-8'))
+            stas.append(' ')
+            maxn, minn = 5, -11
+            maxa, mina = 60.5, 49.5
+
 
     else:
         with open(os.path.join(srcpath, 'CameraSites.txt'), 'r') as f:
@@ -102,13 +106,12 @@ def plotMap(srcpath, intersect):
             stas.append(dta[0])
             lats.append(float(dta[1]))
             longs.append(-float(dta[2]))
+            maxn, minn = max(longs) + 1, min(longs) - 1
+            maxa, mina = max(lats) + 1, min(lats) - 1
 
     mapproj = ccrs.AlbersEqualArea()
     fig = plt.gcf()
-    fig.set_size_inches(16.52, 23.2)
-
-    maxn, minn = max(longs) + 1, min(longs) - 1
-    maxa, mina = max(lats) + 1, min(lats) - 1
+    fig.set_size_inches(23.2, 16.52)
 
     plt.title('Station locations')
 
@@ -123,9 +126,9 @@ def plotMap(srcpath, intersect):
     ax.gridlines()
     pylib=os.getenv('PYLIB')
     os.environ['CARTOPY_USER_BACKGROUNDS'] = os.path.join(pylib, 'share','maps')
-    ax.background_img(name='BM', resolution='low')
+    ax.background_img(name='BM', resolution='high', extent= [minn, maxn, mina, maxa])
 
-    plt.plot(longs, lats, 'bo', markersize=5, linewidth=1, transform=ccrs.PlateCarree())
+    plt.plot(longs, lats, 'Dw', markersize=5, linewidth=1, transform=ccrs.PlateCarree())
     for label, xpt, ypt in zip(stas, longs, lats):
         plt.text(xpt, ypt, label, color='red', transform=ccrs.PlateCarree())
 
@@ -157,7 +160,7 @@ def plotMap(srcpath, intersect):
 
     plt.tight_layout()
     datadir = os.getenv('DATADIR')
-    if len(datadir) == 0:
+    if datadir is None:
         datadir='.'
     plt.savefig(os.path.join(datadir, 'stations.png'), dpi=200)
     plt.show()
@@ -171,6 +174,6 @@ if __name__ == '__main__':
     else:
         srcfile = sys.argv[1]
         intersect = False
-        if len(sys.argv)>2:
+        if len(sys.argv) > 2:
             intersect = True
         plotMap(srcfile, intersect)
