@@ -11,5 +11,10 @@
     "__comment__": "Population density from Nasa earth observations website",
     "__source__": "https://neo.sci.gsfc.nasa.gov/view.php?datasetId=SEDAC_POP",
     "__projection__": "PlateCarree",
-    "high": "population.jpg"}
+    "high": "population.jpg"},
+    "UK": {
+      "__comment__": "High res UK cropped from Blue Marble",
+      "__source__": "https://neo.sci.gsfc.nasa.gov/view.php?datasetId=SEDAC_POP",
+      "__projection__": "PlateCarree",
+      "high": "BMUK_hirez.png"}    
 }

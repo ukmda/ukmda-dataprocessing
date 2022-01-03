@@ -89,15 +89,17 @@ logger -s -t findAllMatches "update the website loop over new matches creating a
 dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
 trajlist=$(cat $dailyrep | awk -F, '{print $2}')
 
-# create extra datafiles
-export DATADIR # used by extraDatafiles
-python $PYLIB/traj/extraDataFiles.py $dailyrep
-
-# now create page indexes and update website
+# create extra datafiles 
+# make sure target folders exist
 if [ ! -d ${DATADIR}/orbits/$yr/csv/ ] ; then
     mkdir -p ${DATADIR}/orbits/$yr/csv/processed/
     mkdir -p ${DATADIR}/orbits/$yr/extracsv/processed/
 fi
+
+export DATADIR # used by extraDatafiles
+python $PYLIB/traj/extraDataFiles.py $dailyrep
+
+# now create page indexes and update website
 cd $here/../website
 yr=$(date +%Y)
 for traj in $trajlist 
