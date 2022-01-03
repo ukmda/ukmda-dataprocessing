@@ -81,6 +81,7 @@ $SRC/analysis/showerReport.sh ALL ${yr} force
 # do this before individual shower reports so that the graphs can be copied
 logger -s -t nightlyJob "Create density and velocity plots by solar longitude"
 $SRC/analysis/createDensityPlots.sh ${mth}
+$SRC/analysis/createDensityPlots.sh ${yr}
 
 logger -s -t nightlyJob "update other relevant showers"
 ${SRC}/analysis/reportYear.sh ${yr}
@@ -98,9 +99,11 @@ logger -s -t nightlyJob "create list of connected stations and map of stations"
 sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s, %s\n", $3,$9)}' > $DATADIR/reports/stationlogins.txt
 
 cd $DATADIR
-export DATADIR
-export PYLIB
-python $PYLIB/utils/plotStationsOnMap.py $CAMINFO
+#export DATADIR
+#export PYLIB
+# do this manually when required; closes #61
+#python $PYLIB/utils/plotStationsOnMap.py $CAMINFO
+#
 
 source $WEBSITEKEY
 aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt
