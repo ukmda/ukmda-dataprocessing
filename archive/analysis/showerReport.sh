@@ -44,6 +44,10 @@ else
         logger -s -t showerReport "Running the analysis routines"
         python $PYLIB/analysis/showerAnalysis.py $shwr $dt
         python $PYLIB/reports/findFireballs.py $dt $DATADIR/$outdir $shwr $magval
+
+        if [ -f $MATCHDIR/RMSCorrelate/trajectories/${yr}/${dt}/plots/*${shwr}.png ] ; then 
+            cp $MATCHDIR/RMSCorrelate/trajectories/${yr}/${dt}/plots/*${shwr}.png $DATADIR/$outdir
+        fi 
         logger -s -t showerReport "done, now creating report"
     fi
 
@@ -159,7 +163,7 @@ else
 
     tstval=$(grep "$yr/$shwr" $DATADIR/reports/reportindex.js)
     if [ "$tstval" == "" ] ; then 
-        ${SRC}/website/createReportIndex.sh
+        ${SRC}/website/createReportIndex.sh ${yr}
     fi
     logger -s -t showerReport "finished"    
 fi 

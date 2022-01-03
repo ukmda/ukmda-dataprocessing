@@ -106,6 +106,9 @@ source $WEBSITEKEY
 aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt
 aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/
 
+logger -s -t nightlyJob "create station reports"
+$SRC/analysis/stationReports.sh
+
 logger -s -t nightlyJob "clean up old logs"
 find $SRC/logs -name "nightly*.gz" -mtime +90 -exec rm -f {} \;
 find $SRC/logs -name "nightly*.log" -mtime +7 -exec gzip {} \;
