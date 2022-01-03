@@ -8,7 +8,7 @@ set-location $PSScriptRoot
 . .\helperfunctions.ps1
 $ini=get-inicontent analysis.ini
 
-$stationdetails=$ini['fireballs']['stationdets']
+#$stationdetails=$ini['fireballs']['stationdets']
 $fbfldr=$ini['fireballs']['localfolder']
 $env:PYLIB=$ini['pylib']['pylib']
 
@@ -20,16 +20,20 @@ conda activate $ini['wmpl']['wmpl_env']
 $wmplloc=$ini['wmpl']['wmpl_loc']
 $env:pythonpath="$wmplloc;$env:pylib"
 
-Write-Output $env:pythonpath
+# Write-Output $env:pythonpath
 
 $solver = read-host -prompt "ECSV or RMS solver? (E/R)"
 if ($solver -eq 'E') {
     python -m wmpl.Formats.ECSV . -l -x -w $args[1]
     $trajoutdir=$args[0] + '*'
+
     $d=(Get-ChildItem $trajoutdir).fullname
     if ($d.length -gt 0 )
     {
-        python $env:PYLIB/traj/extraDataFiles.py $d
+	foreach($direc in $d){
+	    write-output "Getting extra files for $direc"
+        python $env:PYLIB/traj/extraDataFiles.py $direc
+	}
     }
 }
 else {
@@ -44,13 +48,3 @@ else {
     }
 }
 set-location $loc
-
-#pause 
-# finally upload the new data to a _man folder
-#write-output "upload new files to Archive"
-#aws s3 cp $targpth\upload\ $destloc/ --recursive --exclude "bkp*" 
-
-# zip up the results in case needed later
-#compress-archive -path $targpth\upload\* -DestinationPath $targpth\upload.zip -Update
-#Remove-Item $targpth\upload\*
-#Remove-Item $targpth\upload

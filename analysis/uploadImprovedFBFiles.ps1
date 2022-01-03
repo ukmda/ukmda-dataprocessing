@@ -24,8 +24,15 @@ $ymd=$dt
 
 set-location $fbfldr
 
+if ((test-path $targpth\platepars_all_recalibrated.json) -eq 0)
+{
+    & $PSScriptRoot\makePPallFromPP.ps1 $args[0] $args[1]
+}
+
 scp $targpth/platepar_cmn2010.cal ukmonhelper:ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/
 #scp ukmonhelper:ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/.config $targpth
-#scp ukmonhelper:ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/platepars_all_recalibrated.json $targpth
+scp $targpth/platepars_all_recalibrated.json ukmonhelper:ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/
+scp $targpth/*.ecsv ukmonhelper:ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/ 
+# must upload FTP file last
 scp $targpth/FTPdetect*manual.txt ukmonhelper:ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/ 
 Set-Location $Loc
