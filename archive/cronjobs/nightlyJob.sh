@@ -81,6 +81,7 @@ $SRC/analysis/showerReport.sh ALL ${yr} force
 # do this before individual shower reports so that the graphs can be copied
 logger -s -t nightlyJob "Create density and velocity plots by solar longitude"
 $SRC/analysis/createDensityPlots.sh ${mth}
+$SRC/analysis/createDensityPlots.sh ${yr}
 
 logger -s -t nightlyJob "update other relevant showers"
 ${SRC}/analysis/reportYear.sh ${yr}
