@@ -3,7 +3,12 @@
 #
 # args : arg1 date, arg2 stationid
 $loc = Get-Location
+if ($args.count -lt 2) {
+    write-output "usage: uploadImprovedFBFiles.ps1 yyyymmdd UKxxxxx"
+    exit 1
+}
 set-location $PSScriptRoot
+    
 # load the helper functions
 . .\helperfunctions.ps1
 $ini=get-inicontent analysis.ini
