@@ -31,6 +31,10 @@ source ~/venvs/${WMPL_ENV}/bin/activate
 python $PYLIB/reports/createSummaryTable.py ./summarytable.js $yr
 
 logger -s -t createSummaryTable "create a coverage map from the kmls"
+# make sure correct version of GEOS and PROJ4 available for mapping routines
+
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/geos/lib:/usr/local/proj4/lib
+export LD_LIBRARY_PATH
 python $PYLIB/utils/makeCoverageMap.py $CONFIG/config.ini $ARCHDIR/kmls $DATADIR
 
 logger -s -t createSummaryTable "create year-to-date barchart"
