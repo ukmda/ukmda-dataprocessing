@@ -186,7 +186,8 @@ def lambda_handler(event, context):
     print('DailyCheck: getting daily report')
     s3 = boto3.resource('s3')
     repdate = datetime.datetime.today() + datetime.timedelta(days=-(doff-1))
-    fullrep = 'matches/RMSCorrelate/dailyreports/'+ repdate.strftime('%Y%m%d.txt')
+    #fullrep = 'matches/RMSCorrelate/dailyreports/'+ repdate.strftime('%Y%m%d.txt')
+    fullrep = 'matches/RMSCorrelate/dailyreports/latest.txt'
     dailyreport = os.path.join(tmppth,'dailyreport.csv')
     print(target, fullrep, dailyreport)
     try:
