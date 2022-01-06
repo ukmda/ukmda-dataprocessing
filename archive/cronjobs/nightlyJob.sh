@@ -11,8 +11,10 @@ export PYTHONPATH=$PYLIB:$wmpl_loc
 logger -s -t nightlyJob "starting"
 
 # dates to process for
-mth=`date '+%Y%m'`
-yr=`date '+%Y'`
+rundate=$(date +%Y%m%d)
+mth=$(date +%Y%m)
+yr=$(date +%Y)
+echo $rundate > $DATADIR/rundate.txt
 
 # force-consolidate any outstanding new data 
 logger -s -t nightlyJob "forcing consolidation of anything pending"

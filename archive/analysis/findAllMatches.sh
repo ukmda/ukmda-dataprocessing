@@ -23,6 +23,8 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 source $UKMONSHAREDKEY
 
+rundate=$(cat $DATADIR/rundate.txt)
+
 # read start/end dates from commandline if rerunning for historical date
 if [ $# -gt 0 ] ; then
     if [ "$1" != "" ] ; then
@@ -35,8 +37,8 @@ if [ $# -gt 0 ] ; then
         echo "matchend was not supplied, using 2"
         MATCHEND=$(( $MATCHSTART - 2 ))
     fi
+    rundate=$(date --date="-$MATCHEND days" '+%Y%m%d')
 fi
-
 
 # folder for logs
 mkdir -p $SRC/logs > /dev/null 2>&1
@@ -83,7 +85,7 @@ logger -s -t findAllMatches "================"
 
 cd $here
 logger -s -t findAllMatches "create text file containing most recent matches"
-python $PYLIB/reports/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate $DATADIR $MATCHEND
+python $PYLIB/reports/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate $DATADIR $MATCHEND $rundate
 
 logger -s -t findAllMatches "update the website loop over new matches creating an index page and copying files"
 dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
