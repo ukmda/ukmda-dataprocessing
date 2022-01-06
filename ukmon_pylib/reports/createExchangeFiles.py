@@ -24,6 +24,7 @@ def createDetectionsFile(eDate, datadir):
 
     outfname = os.path.join(datadir, 'browse/daily/ukmon-latest.csv')
     outdf.to_csv(outfname, index=False)
+    createEventList(datadir, outdf)
     return 
 
 
@@ -37,12 +38,12 @@ def createEventList(datadir, data):
         outf.write('header.className = "h4";\n')
 
         if data is not None: 
-            for li in data:
+            for _, li in data.iterrows():
                 outf.write('var row = table.insertRow(-1);\n')
                 outf.write('var cell = row.insertCell(0);\n')
-                outf.write('cell.innerHTML = "{}";\n'.format(li[0]))
+                outf.write('cell.innerHTML = "{}";\n'.format(li['camera_id']))
                 outf.write('var cell = row.insertCell(1);\n')
-                outf.write('cell.innerHTML = "{}";\n'.format(li[1]))
+                outf.write('cell.innerHTML = "{}";\n'.format(li['datetime']))
 
         outf.write('var row = header.insertRow(0);\n')
         outf.write('var cell = row.insertCell(0);\n')
@@ -135,7 +136,7 @@ def createWebpage(datadir):
 
 def createCameraFile(config):
     datadir = config['config']['datadir']
-    ppdir = os.path.join(config['config']['archdir'],'platepars')
+    ppdir = os.path.join(datadir, 'consolidated', 'platepars')
     pps = loadPlatepars(ppdir)
     with open(os.path.join(datadir, 'browse/daily/cameradetails.csv'), 'w') as outf:
         outf.write('camera_id,obs_latitude,obs_longitude,obs_az,obs_ev,obs_rot,fov_horiz,fov_vert\n')

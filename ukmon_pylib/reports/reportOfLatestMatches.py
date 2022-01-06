@@ -10,6 +10,7 @@ import csv
 import fileformats.CameraDetails as cd
 from traj.extraDataFiles import getVMagCodeAndStations
 import json
+import shutil
 
 
 def getTrajPaths(trajdict):
@@ -34,13 +35,25 @@ def getListOfNewMatches(dir_path, tfile = 'processed_trajectories.json', prevtfi
     return newdirs
 
 
-def findNewMatches(dir_path, out_path, offset):
+def findNewMatches(dir_path, out_path, offset, repdtstr):
     newdirs = getListOfNewMatches(dir_path, 'processed_trajectories.json.bigserver', 'prev_processed_trajectories.json.bigserver')
     # load camera details
     cinf = cd.SiteInfo()
 
-    repdt = datetime.datetime.now() - datetime.timedelta(int(offset))
+    if repdtstr is not None:
+        repdt = datetime.datetime.strptime(repdtstr, '%Y%m%d')
+    else:
+        repdt = datetime.datetime.now() - datetime.timedelta(int(offset))
+
+    # create filename. Allow for three reruns in a day
     matchlist = os.path.join(out_path, 'dailyreports', repdt.strftime('%Y%m%d.txt'))
+    if os.path.isfile(matchlist) is True:
+        matchlist = os.path.join(out_path, 'dailyreports', repdt.strftime('%Y%m%d_1.txt'))
+    if os.path.isfile(matchlist) is True:
+        matchlist = os.path.join(out_path, 'dailyreports', repdt.strftime('%Y%m%d_2.txt'))
+    if os.path.isfile(matchlist) is True:
+        matchlist = os.path.join(out_path, 'dailyreports', repdt.strftime('%Y%m%d_3.txt'))
+
     with open(matchlist, 'w') as outf:
         for trajdir in newdirs:
             trajdir = trajdir.replace('/data/','/ukmon-shared/matches/')
@@ -78,9 +91,15 @@ def findNewMatches(dir_path, out_path, offset):
                 if fld != lastfld:
                     outf.write(',')
             outf.write('\n')
-            
-        return 
+
+    # finally, create a "latest.txt" as well
+    latestlist = os.path.join(out_path, 'dailyreports', 'latest.txt')
+    shutil.copy(matchlist, latestlist)
+    return 
 
 
 if __name__ == '__main__':
-    findNewMatches(sys.argv[1], sys.argv[2], sys.argv[3])
+    repdtstr = None
+    if len(sys.argv) > 4:
+        repdtstr = sys.argv[4]
+    findNewMatches(sys.argv[1], sys.argv[2], sys.argv[3], repdtstr)

@@ -5,6 +5,11 @@
 # args : arg1 target orbit eg trajectories\2021\202111\20211117\20211117_054502.196_UK
 
 $loc = Get-Location
+if ($args.count -lt 1) {
+    write-output "usage: uploadOrbit.ps1 path-to-orbit eg trajectories\2021\202111\20211117\20211117_054502.196_UK"
+    exit 1
+}
+
 set-location $PSScriptRoot
 # load the helper functions
 . .\helperfunctions.ps1
