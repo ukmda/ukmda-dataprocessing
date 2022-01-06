@@ -16,39 +16,48 @@ from fileformats import CameraDetails as cdet
 
 def generateExtraFiles(outdir, skipimgs = False):
     outdir=os.path.normpath(outdir)
-    picklefile = glob.glob1(outdir, '*.pickle')[0]
-    traj = loadPickle(outdir, picklefile)
-    traj.save_results = True
+    try:
+        picklefile = glob.glob1(outdir, '*.pickle')[0]
+    except Exception:
+        print('no pickle found in ', outdir)
+    else:
+        traj = loadPickle(outdir, picklefile)
+        traj.save_results = True
 
-    createAdditionalOutput(traj, outdir)
-    if skipimgs is False:
-        findMatchingJpgs(traj, outdir)
-        findMatchingMp4s(traj, outdir)
+        createAdditionalOutput(traj, outdir)
+        if skipimgs is False:
+            findMatchingJpgs(traj, outdir)
+            findMatchingMp4s(traj, outdir)
     return
 
 
 def getBestView(outdir):
-    picklefile = glob.glob1(outdir, '*.pickle')[0]
-    traj = loadPickle(outdir, picklefile)
-    _, statids, vmags = loadMagData(traj)
-    bestvmag = min(vmags)
-    beststatid = statids[vmags.index(bestvmag)]
-    imgfn = glob.glob1(outdir, '*{}*.jpg'.format(beststatid))
-    if len(imgfn) > 0:
-        bestimg = imgfn[0]
+    try:
+        picklefile = glob.glob1(outdir, '*.pickle')[0]
+    except Exception:
+        print('no picklefile in ', outdir)
+        return ''
     else:
-        with open(os.path.join(outdir, 'jpgs.lst')) as inf:
-            lis = inf.readlines()
-        bestimg=''
-        worstmag = max(vmags)
-        for mag, stat in zip(vmags, statids):
-            res=[stat in ele for ele in lis]    
-            imgfn = lis[res is True].strip()
-            if mag <= worstmag:
-                if len(imgfn) > 0:
-                    bestimg = imgfn
+        traj = loadPickle(outdir, picklefile)
+        _, statids, vmags = loadMagData(traj)
+        bestvmag = min(vmags)
+        beststatid = statids[vmags.index(bestvmag)]
+        imgfn = glob.glob1(outdir, '*{}*.jpg'.format(beststatid))
+        if len(imgfn) > 0:
+            bestimg = imgfn[0]
+        else:
+            with open(os.path.join(outdir, 'jpgs.lst')) as inf:
+                lis = inf.readlines()
+            bestimg=''
+            worstmag = max(vmags)
+            for mag, stat in zip(vmags, statids):
+                res=[stat in ele for ele in lis]    
+                imgfn = lis[res is True].strip()
+                if mag <= worstmag:
+                    if len(imgfn) > 0:
+                        bestimg = imgfn
 
-    return bestimg
+        return bestimg
 
 
 def getVMagCodeAndStations(outdir):
