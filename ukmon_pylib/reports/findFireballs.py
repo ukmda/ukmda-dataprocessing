@@ -18,6 +18,9 @@ def createMDFiles(fbs, outdir, matchdir):
         ym = trajdir[:6]
         ymd = trajdir[:8]
         pickledir = os.path.join(matchdir, 'RMSCorrelate', 'trajectories', yr, ym, ymd, trajdir)
+        if not os.path.exists(pickledir):
+            trajdir=loctime.strftime("%Y%m%d_%H%M%S.%f")
+            pickledir = os.path.join(matchdir, 'RMSCorrelate', 'trajectories', yr, ym, ymd, trajdir)
         bestimg = getBestView(pickledir)
         if bestimg[:4] != 'img/':
             pth, _ = os.path.split(fb.url)
