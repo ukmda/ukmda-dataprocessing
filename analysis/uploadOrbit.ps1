@@ -29,6 +29,7 @@ set-location $fbfldr\$fbdate
 if ((test-path $args[1]) -eq "True" )
 {
     $newname=$args[1].replace('-','_') 
+    $newname = $newname.substring(0, $newname.length-3)+"_UK"
     Rename-Item $args[1] $newname
     $yr=$newname.substring(0,4)
     $ym=$newname.substring(0,6)
