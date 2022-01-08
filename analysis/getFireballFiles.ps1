@@ -3,6 +3,10 @@
 #
 # args : arg1 date, arg2 stationid
 $loc = Get-Location
+if ($args.count -lt 2) {
+    write-output "usage: getFireballFiles.ps1 yyyymmdd UKxxxxx"
+    exit 1
+}
 set-location $PSScriptRoot
 # load the helper functions
 . .\helperfunctions.ps1
