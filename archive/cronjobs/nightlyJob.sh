@@ -36,7 +36,7 @@ cq=$(((qmth - 1 ) / 3 + 1))
 lq=$(((qmth - 1 ) / 3 ))
 aws s3 cp s3://ukmon-live/idx${yr}0${cq}.csv ${DATADIR}/ukmonlive/
 
-if [ "$lq" -eq "00" ] ; then lyr=$((yr - 1)) ; lq=04 ; else lyr=$yr ; fi
+if [ "$lq" -eq "00" ] ; then lyr=$((yr - 1)) ; lq=4 ; else lyr=$yr ; fi
 aws s3 cp s3://ukmon-live/idx${lyr}0${lq}.csv ${DATADIR}/ukmonlive/
 
 # run this only once as it scoops up all unprocessed data
