@@ -32,7 +32,6 @@ def addRowCamTimings(s3bucket, s3object, ftpname):
             'manual': manual
         }
     )   
-    print('added entry to timings table')
     return 
 
 
@@ -59,7 +58,6 @@ def copyFiles(s3bucket, s3object, target, maxdetcount):
     outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/' + ftpname
 
     s3object = unquote_plus(s3object)
-    print(s3object)
 
     # check for too many events to be realistic data
     s3.meta.client.download_file(s3bucket, s3object, '/tmp/tmp.txt')
@@ -78,17 +76,22 @@ def copyFiles(s3bucket, s3object, target, maxdetcount):
     plap = pth +'/platepars_all_recalibrated.json'
     outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/platepars_all_recalibrated.json'
     src = {'Bucket': s3bucket, 'Key': plap}
-    # print(s3bucket, outf, src)
     s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
 
     s3c = boto3.client('s3')
+    pth, _ = os.path.split(s3object)
+    plap = pth +'/.config'
+    response = s3c.head_object(Bucket=s3bucket, Key=plap)
+    if response['ContentLength'] > 100: 
+        outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/.config'
+        src = {'Bucket': s3bucket, 'Key': plap}
+        s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
+
     plap = pth +'/platepar_cmn2010.cal'
     response = s3c.head_object(Bucket=s3bucket, Key=plap)
     if response['ContentLength'] > 100: 
         outf = 'consolidated/platepars/' + bits[1] + '.json'
         src = {'Bucket': s3bucket, 'Key': plap}
-        #print(plap)
-        #print(outf)
         s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
 
     return 0
