@@ -7,23 +7,57 @@ import os
 from urllib.parse import unquote_plus
 
 
+# add a row to the CamTimings table
+def addRowCamTimings(s3bucket, s3object, ftpname):
+    s3c = boto3.client('s3')
+    dtstamp = s3c.head_object(Bucket=s3bucket, Key=s3object)['LastModified']
+    ddb = boto3.resource('dynamodb', region_name='eu-west-1') 
+    table = ddb.Table('ukmon_uploadtimes')
+    spls = ftpname.split('_')
+#    print(spls[0], dtstamp)
+    if spls[-1] == 'manual.txt':
+        manflag = '_man'
+        manual = True
+    else:
+        manflag = ''
+        manual = False
+    uploaddate = dtstamp.strftime('%Y%m%d')
+    uploadtime = dtstamp.strftime('%H%M%S')
+    table.put_item(
+        Item={
+            'stationid': spls[1],
+            'dtstamp': uploaddate + '_' + uploadtime + manflag,
+            'uploaddate': int(uploaddate),
+            'uploadtime': int(uploadtime),
+            'manual': manual
+        }
+    )   
+    print('added entry to timings table')
+    return 
+
+
 def copyFiles(s3bucket, s3object, target, maxdetcount):
     s3 = boto3.resource('s3')
     x = s3object.find('FTPdetect')
     y = s3object.find('backup')
     z = s3object.find('detected')
     if x == -1 or y > 0 or z > 0:
-        # its not an FTPdetect file so ignore it
+        # its not a calibrated FTPdetect file so ignore it
         return 0
     
     ftpname = s3object[x:]
+    try:
+        addRowCamTimings(s3bucket, s3object, ftpname)
+    except Exception:
+        pass
+
     bits = ftpname.split('_')
     mus = bits[4][:6]
     outdir = bits[1] + '_' + bits[2] + '_' + bits[3] + '_' + mus
     if bits[-1] == 'manual.txt':
         outdir = outdir + '_man'
     outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/' + ftpname
-    
+
     s3object = unquote_plus(s3object)
     print(s3object)
 
@@ -44,6 +78,7 @@ def copyFiles(s3bucket, s3object, target, maxdetcount):
     plap = pth +'/platepars_all_recalibrated.json'
     outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/platepars_all_recalibrated.json'
     src = {'Bucket': s3bucket, 'Key': plap}
+    # print(s3bucket, outf, src)
     s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
 
     s3c = boto3.client('s3')
@@ -52,8 +87,8 @@ def copyFiles(s3bucket, s3object, target, maxdetcount):
     if response['ContentLength'] > 100: 
         outf = 'consolidated/platepars/' + bits[1] + '.json'
         src = {'Bucket': s3bucket, 'Key': plap}
-        print(plap)
-        print(outf)
+        #print(plap)
+        #print(outf)
         s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
 
     return 0

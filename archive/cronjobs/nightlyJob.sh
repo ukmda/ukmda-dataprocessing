@@ -64,10 +64,12 @@ $SRC/analysis/consolidateOutput.sh ${yr}
 logger -s -t nightlyJob "create monthly and shower extracts for the website"
 ${SRC}/website/createMthlyExtracts.sh ${mth}
 ${SRC}/website/createShwrExtracts.sh ${mth}
-${SRC}/website/createFireballPage.sh
 
 logger -s -t nightlyJob "update search index"
 ${SRC}/analysis/updateSearchIndex.sh
+
+#requires search index to have been updated first 
+${SRC}/website/createFireballPage.sh
 
 logger -s -t nightlyJob "update the R version of the camera info file"
 python << EOD

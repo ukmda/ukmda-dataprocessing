@@ -3,6 +3,10 @@
 #
 # args : arg1 full path to ftpdetect file
 $loc = Get-Location
+if ($args.count -lt 2) {
+    write-output "usage: uploadImprovedFTP.ps1 full\path\to-ftpfile"
+    exit 1
+}
 set-location $PSScriptRoot
 # load the helper functions
 . .\helperfunctions.ps1
