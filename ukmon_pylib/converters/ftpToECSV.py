@@ -38,7 +38,12 @@ def saveECSV(ftpFile):
         ecsv_file_name = dt_ref.strftime(isodate_format_file) + '_RMS_' + met.station_id + ".ecsv"
 
         ffname = os.path.basename(met.ff_name)
-        platepar = platepars_recalibrated_dict[ffname]
+        try:
+            platepar = platepars_recalibrated_dict[ffname]
+        except Exception:
+            print(f'Skipping {ffname} due to missing platepar data')
+            continue
+
         evtdate = datetime.datetime.strptime(ffname[10:29], '%Y%m%d_%H%M%S_%f')
 
         azim, elev = platepar['az_centre'], platepar['alt_centre']
