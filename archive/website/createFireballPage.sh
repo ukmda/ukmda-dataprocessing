@@ -29,7 +29,7 @@ mkdir -p $DATADIR/reports/$yr/fireballs > /dev/null 2>&1
 cd $DATADIR/reports/$yr/fireballs
 
 export DATADIR
-python $PYLIB/reports/findFireballs.py ${yr} $DATADIR/reports/$yr/fireballs ALL
+python $PYLIB/reports/findFireballs.py ${yr} ALL
 
 echo "\$(function() {" > reportindex.js
 echo "var table = document.createElement(\"table\");" >> reportindex.js
@@ -51,8 +51,12 @@ if [ -f ./fblist.txt ] ; then
         fldr=$(echo $i | awk -F, '{print $1}')
         mag=$(echo $i | awk -F, '{print $2}')
         shwr=$(echo $i | awk -F, '{print $3}')
-        bn=$(basename $(dirname $fldr))
-        echo "cell.innerHTML = \"<a href="$fldr">$bn</a>\";" >> reportindex.js
+        if [ "${fldr:0:1}" == "_" ] ; then 
+            echo "cell.innerHTML = \"${fldr:1:25}\";" >> reportindex.js
+        else 
+            bn=$(basename $(dirname $fldr))
+            echo "cell.innerHTML = \"<a href="$fldr">$bn</a>\";" >> reportindex.js
+        fi
         echo "var cell = row.insertCell(1);" >> reportindex.js
         echo "cell.innerHTML = \"$mag\";" >> reportindex.js
         echo "var cell = row.insertCell(2);" >> reportindex.js
