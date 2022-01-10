@@ -35,7 +35,7 @@ logger -s -t createSummaryTable "create a coverage map from the kmls"
 
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/geos/lib:/usr/local/proj4/lib
 export LD_LIBRARY_PATH
-python $PYLIB/utils/makeCoverageMap.py $CONFIG/config.ini $ARCHDIR/kmls $DATADIR
+python $PYLIB/utils/makeCoverageMap.py $CONFIG/config.ini $ARCHDIR/../kmls $DATADIR
 
 logger -s -t createSummaryTable "create year-to-date barchart"
 pushd $DATADIR
