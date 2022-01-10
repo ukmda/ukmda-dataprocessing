@@ -75,6 +75,9 @@ def findMatchingJpgs(traj, outdir):
         datadir='/home/ec2-user/prod/data'
 
     jpgs = None
+    # file to write JPGs html to, for performance benefits
+    jpghtml = open(os.path.join(outdir, 'jpgs.html'), 'w')
+    # loop over observations adding jpgs to the listing file
     with open(os.path.join(outdir, 'jpgs.lst'), 'w') as outf:
         for obs in traj.observations:
             statid = obs.station_id
@@ -98,8 +101,11 @@ def findMatchingJpgs(traj, outdir):
                 mtch=[line.strip() for line in jpgs if compstr[:-1] in line]
                 if len(mtch) > 0:
                     outf.write('{}\n'.format(mtch[0]))
+                    jpghtml.write(f'<a href="/{mtch[0]}"><img src="/{mtch[0]}" width="20%"></a>\n')
             else: 
                 outf.write('{}\n'.format(mtch[0]))
+                jpghtml.write(f'<a href="/{mtch[0]}"><img src="/{mtch[0]}" width="20%"></a>\n')
+    jpghtml.close()
 
 
 def findMatchingMp4s(traj, outdir):
@@ -165,10 +171,13 @@ def findMatchingMp4s(traj, outdir):
         _, orbdir = os.path.split(outdir)
         #print(outdir, orbdir)
         fullpth='reports/{}/orbits/{}/{}/{}'.format(orbdir[:4], orbdir[:6], orbdir[:8], orbdir)
-        with open(os.path.join(outdir, 'jpgs.lst'), 'a') as outf:
+        mpghtml = open(os.path.join(outdir, 'mpgs.html'), 'w')
+        with open(os.path.join(outdir, 'mpgs.lst'), 'a') as outf:
             for mp4 in mp4s:
-                outf.write('{}/{}\n'.format(fullpth, mp4))
-
+                mp4name = f'{fullpth}/{mp4}'
+                outf.write(f'{mp4name}\n')
+                mpghtml.write(f'<a href="/{mp4name}"><video width="20%"><source src="/{mp4name}" type="video/mp4"></video></a>\n')
+        mpghtml.close
     return
 
 
