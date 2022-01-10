@@ -149,20 +149,15 @@ def findMatchingMp4s(traj, outdir):
 
         print('R90 CSV, KML and FTPDetect file')
         try:
-            flist = os.listdir(srcpath)
+            flist=glob.glob1(srcpath, '*.csv')
+            for f in flist:
+                shutil.copy2(os.path.join(srcpath, f), outdir)
+            flist=glob.glob1(srcpath, '*.kml')
+            for f in flist:
+                shutil.copy2(os.path.join(srcpath, f), outdir)
+            flist = glob.glob1(srcpath, "FTPdetectinfo*.txt")
             for fil in flist:
-                file_name, file_ext = os.path.splitext(fil)
-                if ('FTPdetectinfo' in fil) and (file_ext == '.txt') and ('_original' not in file_name) and ('_uncal' not in file_name) and ('_backup' not in file_name):
-                    srcfil = srcpath + fil
-                    shutil.copy2(srcfil, outdir)
-                elif file_ext == '.csv':
-                    srcfil = srcpath + fil
-                    shutil.copy2(srcfil, outdir)
-                elif file_ext == '.kml':
-                    srcfil = srcpath + fil
-                    shutil.copy2(srcfil, outdir)
-                    kmldir = os.path.join(archdir, 'kmls')
-                    shutil.copy2(srcfil, kmldir)
+                shutil.copy2(os.path.join(srcpath, f), outdir)
         except:
             continue
     mp4s=glob.glob1(outdir, "*.mp4")
