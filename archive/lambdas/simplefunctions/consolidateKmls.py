@@ -25,8 +25,10 @@ def copyKmlToWebsite(s3bucket, s3object):
         s3object = unquote_plus(s3object)
         _, kmlname = os.path.split(s3object)
         outf = 'img/kmls/{:s}'.format(kmlname)
-        print(s3object, outf, target)
+        #print(s3object, outf, target)
         s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src, ContentType="application/vnd.google-earth.kml+xml", MetadataDirective='REPLACE')
+        outf2 = f'kmls/{kmlname}'
+        s3.meta.client.copy_object(Bucket='ukmon-shared', Key=outf2, CopySource=src, ContentType="application/vnd.google-earth.kml+xml", MetadataDirective='REPLACE')
         return 
 
 
