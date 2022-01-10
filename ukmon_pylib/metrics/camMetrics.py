@@ -4,6 +4,7 @@
 
 import boto3
 import os
+import sys
 import glob
 from boto3.dynamodb.conditions import Key
 
@@ -145,20 +146,45 @@ def findRowCamTimings(stationid, uploaddate, ddb=None):
     return
 
 
-# find matching entries based on stationid and upload date in yyyymmdd format
-def getDayCamTimings(uploaddate, ddb=None):
+# find matching entries based on upload date in yyyymmdd format
+# aws dynamodb query --table-name ukmon_uploadtimes 
+# --index-name uploaddate-stationid-index 
+# --key-condition-expression "uploaddate= :dt" 
+# --expression-attribute-values '{":dt":{"N":"20220108"}}'
+
+def getDayCamTimings(uploaddate, ddb=None, outfile=None):
+    try:
+        datadir = os.getenv('DATADIR')
+    except Exception:
+        print('define DATADIR first')
+        exit(1)
     if not ddb:
         ddb = boto3.resource('dynamodb', region_name='eu-west-1') #, endpoint_url="http://thelinux:8000")
     table = ddb.Table('ukmon_uploadtimes')
-    response = table.query(KeyConditionExpression=Key(Key('dtstamp').begins_with(uploaddate)))
+    response = table.query(
+        IndexName='uploaddate-stationid-index',
+        KeyConditionExpression=Key('uploaddate').eq(int(uploaddate)))
 
+    statids = []
+    updtims = []
+    manuals = []
     try:
         items = response['Items']
+
         for item in items:
-            print(item['stationid'], item['uploaddate'], item['uploadtime'],item['manual'])
+            statids.append(item['stationid'])
+            updtims.append(str(item['uploadtime']).zfill(6))
+            manuals.append(item['manual'])
+
+        if outfile is not None:
+            with open(os.path.join(datadir, 'reports', outfile), 'w') as outf:
+                outf.write('stationid,uploadtime,manual\n')
+                for ss,dd,mm in zip(statids, updtims, manuals):
+                    outf.write(f'{ss},{dd},{mm}\n')
+
     except Exception:
         print('record not found')
-    return
+    return statids, updtims, manuals
 
 
 # read a row based on stationid and datestamp
@@ -198,6 +224,9 @@ def backPopulate(stationid):
 
 
 if __name__ == '__main__':
-    stationids = glob.glob1(f'/home/ec2-user/ukmon-shared/matches/RMSCorrelate/', 'UK*')
-    for statid in stationids:
-        backPopulate(statid)
+#    stationids = glob.glob1(f'/home/ec2-user/ukmon-shared/matches/RMSCorrelate/', 'UK*')
+#    for statid in stationids:
+#        backPopulate(statid)
+    s,d,m = getDayCamTimings(sys.argv[1], outfile='camuploadtimes.csv')
+    #for ss,dd,mm in zip(s,d,m):
+    #    print(ss,dd,mm)
