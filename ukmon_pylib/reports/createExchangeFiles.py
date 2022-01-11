@@ -16,7 +16,7 @@ def createDetectionsFile(eDate, datadir):
     df = df[df.Dtstamp <= eDate.timestamp()]
     outdf = pd.concat([df.ID, df.Dtstamp],keys=['camera_id','Dtstamp'], axis=1)
     outdf = outdf.assign(ts = pd.to_datetime(outdf['Dtstamp'], unit='s'))
-    outdf['datetime'] = [ts.strftime('%Y-%m-%dT%H:%M:%S') for ts in outdf.ts]
+    outdf['datetime'] = [ts.strftime('%Y-%m-%dT%H:%M:%S.f') for ts in outdf.ts]
     outdf = outdf.assign(image_URL='')
     outdf.sort_values(by=['Dtstamp'], inplace=True, ascending=False)
     outdf = outdf.drop(columns=['Dtstamp', 'ts'])
