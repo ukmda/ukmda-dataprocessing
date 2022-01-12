@@ -40,7 +40,7 @@ def createSummaryTable(fname, curryr):
                 dets = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
                 matches = dets.split(' ')[0]
 
-                srchfile = os.path.join(datadir, 'reports', '{}'.format(yr), 'ALL','fblist.txt')
+                srchfile = os.path.join(datadir, 'reports', '{}'.format(yr), 'fireballs','fblist.txt')
                 cmd = ['wc', '-l', srchfile]
                 fbdets = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
                 fireballs = 0

@@ -38,7 +38,12 @@ def saveECSV(ftpFile):
         ecsv_file_name = dt_ref.strftime(isodate_format_file) + '_RMS_' + met.station_id + ".ecsv"
 
         ffname = os.path.basename(met.ff_name)
-        platepar = platepars_recalibrated_dict[ffname]
+        try:
+            platepar = platepars_recalibrated_dict[ffname]
+        except Exception:
+            print(f'Skipping {ffname} due to missing platepar data')
+            continue
+
         evtdate = datetime.datetime.strptime(ffname[10:29], '%Y%m%d_%H%M%S_%f')
 
         azim, elev = platepar['az_centre'], platepar['alt_centre']
@@ -56,6 +61,7 @@ def saveECSV(ftpFile):
             'photometric_band': 'unknown',  # The photometric band of the star catalogue
             'image_file': ffname,           # The name of the original image or video
             'isodate_start_obs': str(dt_ref.strftime(isodate_format_entry)),               # The date and time of the start of the video or exposure
+            'isodate_calib': None,          # The date and time corresponding to the astrometric calibration
             'astrometry_number_stars': len(platepar['star_list']),       # The number of stars identified and used in the astrometric calibration
             'mag_label': 'mag',             # The label of the Magnitude column in the Point Observation data
             'no_frags': 1,                  # The number of meteoroid fragments described in this data
@@ -105,6 +111,8 @@ def saveECSV(ftpFile):
             musadj = t*1e6
             ptdate = evtdate + datetime.timedelta(microseconds=musadj)
             #print(evtdate, t, musadj)
+            if meta_dict['isodate_calib'] is None:
+                meta_dict['isodate_calib'] = str(ptdate.strftime(isodate_format_file))
             # Add an entry to the ECSV file
             ra = np.degrees(ra)
             dec = np.degrees(dec)
@@ -115,6 +123,9 @@ def saveECSV(ftpFile):
                 "{:+7.2f}".format(mag), "{:9.3f}".format(x), "{:9.3f}".format(y)]
 
             out_str += ",".join(entry) + "\n"
+
+        # ESCV files name
+        ecsv_file_name = meta_dict['isodate_calib'] + '_RMS_' + met.station_id + ".ecsv"
 
         ecsv_file_path = os.path.join(outdir, ecsv_file_name)
 

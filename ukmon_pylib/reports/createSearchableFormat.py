@@ -61,8 +61,8 @@ def convertUFOAtoSrchable(config, year, outdir):
     print(datetime.datetime.now(), 'filter the RMS data')
     rms = list(filter(lambda fnam: 'FF_' in fnam, lis))
     rmsnams = list(filter(lambda fnam: 'FF_' in fnam, fnames))
-    rmsdts = [datetime.datetime.strptime(x[10:25],'%Y%m%d_%H%M%S').timestamp() for x in rmsnams]
-    rmsdtstrs = [x[10:25] for x in rmsnams]
+    rmsdts = [datetime.datetime.strptime(x[10:29],'%Y%m%d_%H%M%S_%f').timestamp() for x in rmsnams]
+    rmsdtstrs = [x[10:29] for x in rmsnams]
     rmscamids = [x[3:9] for x in rmsnams]
     rmsurls = [weburl + '/' + x[:-1] for x in rms]
     rmsimgs = rmsurls
