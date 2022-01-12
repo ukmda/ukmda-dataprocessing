@@ -18,6 +18,7 @@ else:
     tmpdir = '/tmp'
 
 isodate_format_entry = "%Y-%m-%dT%H:%M:%S.%f"
+isodate_format_file = "%Y-%m-%dT%H:%M:%S"
 
 def createECSV(ftpFile, required_event = None):
     """ Save the picks into the GDEF ECSV standard. 
@@ -25,7 +26,7 @@ def createECSV(ftpFile, required_event = None):
         ftpFile:        string  full path and ftp File name
         required_event  string  target event in the format isodate_format_entry (see below)
     """
-    out_str='not available'
+    out_str=''
 
     meteors = loadFTPDetectInfo(ftpFile)
     outdir, _ = os.path.split(ftpFile)
@@ -40,9 +41,22 @@ def createECSV(ftpFile, required_event = None):
             return 'malformed platepar file - cannot continue'
 
     if required_event is not None:
-        reqevt = datetime.datetime.strptime(required_event, isodate_format_entry).timestamp()
+        try:
+            reqevt = datetime.datetime.strptime(required_event, isodate_format_entry).timestamp()
+        except:
+            reqevt = datetime.datetime.strptime(required_event, isodate_format_file).timestamp()
     else:
         reqevt = 0
+
+    # check input precision
+    spls = required_event.split('.')
+    if len(spls) == 1:
+        prec = 1
+    else:
+        decis = spls[1]
+        prec = pow(10, -len(decis))
+
+    # find matching meteors. If more than one matches you will get multiple datasets concatenated
 
     for met in meteors:
         # Reference time
@@ -55,7 +69,7 @@ def createECSV(ftpFile, required_event = None):
             continue
         evtdate = datetime.datetime.strptime(ffname[10:29], '%Y%m%d_%H%M%S_%f')
         obscalib = evtdate + datetime.timedelta(microseconds=(met.time_data[0]*1e6))
-        if reqevt > 0 and abs(obscalib.timestamp() - reqevt) >= 1e-6:
+        if reqevt > 0 and abs(obscalib.timestamp() - reqevt) >= prec:
             continue
 
         azim, elev = platepar['az_centre'], platepar['alt_centre']
@@ -86,7 +100,7 @@ def createECSV(ftpFile, required_event = None):
 
 
         # Write the header
-        out_str = """# %ECSV 0.9
+        out_str += """# %ECSV 0.9
 # ---
 # datatype:
 # - {name: datetime, datatype: string}
@@ -147,6 +161,8 @@ def createECSV(ftpFile, required_event = None):
         #with open(ecsv_file_path, 'w') as f:
         #    f.write(out_str)
 
+    if len(out_str) ==0:
+        out_str = 'not available'
     return out_str
 
 
@@ -170,7 +186,11 @@ def fetchECSV(camid, reqevent):
         return    
 
     # construct the path
-    dt = datetime.datetime.strptime(reqevent, isodate_format_entry)
+    try:
+        dt = datetime.datetime.strptime(reqevent, isodate_format_entry)
+    except:
+        dt = datetime.datetime.strptime(reqevent, isodate_format_file)
+
     if dt.hour < 12:
         dt = dt + datetime.timedelta(days=-1)
     ym = f'{dt.year}{dt.month:02d}'
@@ -240,6 +260,6 @@ def lambda_handler(event, context):
 if __name__ == '__main__':
     camid = sys.argv[1]
     reqdate = sys.argv[2]
-    #fetchECSV(camid, reqdate)
-    ecsvstr = fetchECSV('UK0057', '2022-01-11T03:43:26.389876')
+    ecsvstr = fetchECSV(camid, reqdate)
+    #ecsvstr = fetchECSV('UK001M', '2022-01-10T19:43:30.567111')
     print(ecsvstr)
