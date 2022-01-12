@@ -542,3 +542,5 @@ archive/costs/S3-size-empireelements.xlsx
 ukmon_pylib/share/maps/BM*.jpg
 ukmon_pylib/share/maps/BM*.png
 ukmon_pylib/share/maps/pop*.jpg
+archive/unused/**
+**/build.toml

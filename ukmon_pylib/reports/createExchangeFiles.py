@@ -16,14 +16,14 @@ def createDetectionsFile(eDate, datadir):
     df = df[df.Dtstamp <= eDate.timestamp()]
     outdf = pd.concat([df.ID, df.Dtstamp],keys=['camera_id','Dtstamp'], axis=1)
     outdf = outdf.assign(ts = pd.to_datetime(outdf['Dtstamp'], unit='s'))
-    outdf['datetime'] = [ts.strftime('%Y-%m-%dT%H:%M:%S') for ts in outdf.ts]
+    outdf['datetime'] = [ts.strftime('%Y-%m-%dT%H:%M:%S.%f') for ts in outdf.ts]
     outdf = outdf.assign(image_URL='')
     outdf.sort_values(by=['Dtstamp'], inplace=True, ascending=False)
-    outdf = outdf.drop(columns=['Dtstamp', 'ts'])
-    outdf = outdf.drop_duplicates()
+    outdfnots = outdf.drop(columns=['Dtstamp', 'ts'])
+    outdfnots = outdfnots.drop_duplicates()
 
     outfname = os.path.join(datadir, 'browse/daily/ukmon-latest.csv')
-    outdf.to_csv(outfname, index=False)
+    outdfnots.to_csv(outfname, index=False)
     createEventList(datadir, outdf)
     return 
 
@@ -43,7 +43,7 @@ def createEventList(datadir, data):
                 outf.write('var cell = row.insertCell(0);\n')
                 outf.write('cell.innerHTML = "{}";\n'.format(li['camera_id']))
                 outf.write('var cell = row.insertCell(1);\n')
-                outf.write('cell.innerHTML = "{}";\n'.format(li['datetime']))
+                outf.write('cell.innerHTML = "{}";\n'.format(li['ts'].strftime('%Y-%m-%dT%H:%M:%S.%f')))
 
         outf.write('var row = header.insertRow(0);\n')
         outf.write('var cell = row.insertCell(0);\n')

@@ -115,6 +115,9 @@ aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/
 
 logger -s -t nightlyJob "create station reports"
 $SRC/analysis/stationReports.sh
+python -m metrics.camMetrics $rundate
+cat $DATADIR/reports/camuploadtimes.csv  | sort -n -t ',' -k2 > /tmp/tmp444.txt
+mv -f /tmp/tmp444.txt $DATADIR/reports/camuploadtimes.csv
 
 logger -s -t nightlyJob "clean up old logs"
 find $SRC/logs -name "nightly*.gz" -mtime +90 -exec rm -f {} \;

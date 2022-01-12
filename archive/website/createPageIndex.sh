@@ -70,17 +70,8 @@ echo "<a href=\"${pref}orbit_side.png\"><img src=\"${pref}orbit_side.png\" width
 echo "<a href=\"${pref}ground_track.png\"><img src=\"${pref}ground_track.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}velocities.png\"><img src=\"${pref}velocities.png\" width=\"20%\"></a>" >> $idxfile
 echo "<br>">>$idxfile
-\rm ${srcdata}/available_jpgs.txt >/dev/null 2>&1
-if [ -f ${srcdata}/jpgs.lst ] ; then
-    cat ${srcdata}/jpgs.lst | while read i 
-    do
-        ext=${i##*.}
-        if [ "$ext" == "jpg" ] ; then 
-            echo "<a href=\"/$i\"><img src=\"/$i\" width=\"20%\"></a>" >> $idxfile
-            echo "https://archive.ukmeteornetwork.co.uk/$i" >> ${srcdata}/available_jpgs.txt
-        fi
-    done
-fi
+
+cat ${srcdata}/jpgs.html >> $idxfile
 
 echo "<a href=\"${pref}lengths.png\"><img src=\"${pref}lengths.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}lags_all.png\"><img src=\"${pref}lags_all.png\" width=\"20%\"></a>" >> $idxfile
@@ -89,17 +80,9 @@ echo "<a href=\"${pref}abs_mag_ht.png\"><img src=\"${pref}abs_mag_ht.png\" width
 echo "<a href=\"${pref}all_angular_residuals.png\"><img src=\"${pref}all_angular_residuals.png\" width=\"20%\"></a>" >> $idxfile
 echo "<a href=\"${pref}all_spatial_total_residuals_height.png\"><img src=\"${pref}all_spatial_total_residuals_height.png\" width=\"20%\"></a>" >> $idxfile
 echo "</div>" >> $idxfile
+
 echo "<div>" >> $idxfile
-if [ -f ${srcdata}/jpgs.lst ] ; then
-    cat ${srcdata}/jpgs.lst | while read i 
-    do
-        ext=${i##*.}
-        if [ "$ext" == "mp4" ] ; then 
-            echo "<a href=\"/$i\"><video width=\"20%\"><source src=\"/$i\" type=\"video/mp4\"></video></a>" >> $idxfile
-            echo "https://archive.ukmeteornetwork.co.uk/$i" >> ${srcdata}/available_jpgs.txt
-        fi
-    done
-fi
+cat ${srcdata}/mpgs.html >> $idxfile
 echo "</div>" >> $idxfile
 
 echo "<pre>" >>$idxfile 
@@ -114,11 +97,8 @@ echo "</script>" >> $idxfile
 cat $TEMPLATES/footer.html >> $idxfile
 
 logger -s -t createPageIndex "adding zip file"
-pushd ${srcdata}
-zip -r -9 /tmp/$fldr.zip . -x ./$fldr.zip -x ./jpgs.lst --quiet
-cp /tmp/$fldr.zip ${srcdata}/
-rm -f /tmp/$fldr.zip
-popd
+zip -j -r -9 /tmp/$fldr.zip ${srcdata} -x ${srcdata}/$fldr.zip -x ${srcdata}/?pgs.lst -x ${srcdata}/?pgs.html --quiet
+mv -f /tmp/$fldr.zip ${srcdata}/
 
 logger -s -t createPageIndex "copying to website"
 source $WEBSITEKEY
