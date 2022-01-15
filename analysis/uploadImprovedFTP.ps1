@@ -3,7 +3,7 @@
 #
 # args : arg1 full path to ftpdetect file
 $loc = Get-Location
-if ($args.count -lt 2) {
+if ($args.count -lt 1) {
     write-output "usage: uploadImprovedFTP.ps1 full\path\to-ftpfile"
     exit 1
 }
@@ -30,4 +30,6 @@ $ymd=$dt
 Write-Output "Target location is $stn/$cam/$yr/$ym/$ymd/"
 ssh ukmonhelper "if [ ! -d ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/ ] ; then mkdir ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/ ; fi"
 scp $targpth/platepars_all_recalibrated.json ukmonhelper:ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/
-scp $targpth/$ftpname ukmonhelper:ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/$ftpname
+if ((test-path $targpth/$ftpname) -eq 1){
+    scp $targpth/$ftpname ukmonhelper:ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/$ftpname
+}
