@@ -54,3 +54,6 @@ if __name__ == '__main__':
     for ev in events: 
         plt.plot(ev['x'],ev['y'])
     plt.show()
+    spls = sys.argv[1].split('_')
+    outfname = f'{spls[1]}_{spls[2]}_{spls[3]}_{spls[3]}_ftpmap.png'
+    plt.savefig(outfname)

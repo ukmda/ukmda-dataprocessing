@@ -96,19 +96,23 @@
             </p>
             <h4>Returns</h4>
             <p>
-                Data is returned in ECSV format and can be saved directly into a file 
-                as shown in the example below. 
-                Note however that if more than
-                one event matches, then the returned data will contain all matched events, and the consumer will have
-                to either split the data, or request again with more granularity in the time value.
+                Data are returned in Astropy ECSV format and can be saved directly into a file
+                as shown in the example below. Note however that if more than
+                one event matches, then the returned data will be a concatenation of multiple ECSV datasets and
+                you will need to either split the data into individual files or make a new 
+                API request with sufficient time granularity to retrieve only one event.
             </p>
             <hr>
             <h2>Examples</h2>
-            <h3>Detections API</h3>
+            <h4>Detections API - Windows Powershell or Linux Bash</h4>
             <pre>
 PS> wget "https://jpaq0huazc.execute-api.eu-west-1.amazonaws.com/Prod/getecsv?stat=UK0025&dt=2021-07-17T02:41:05.05" -O test.ecsv
             </pre>
             <p>Returns the ECSV format data for the detection from Camera UK0025 at 02:41:05.05 on 2021/07/17</p>
+            <h4>Detections API - Python example</h4>
+            <pre>
+
+            </pre>
 
             <h4>Match API Windows Example</h4>
             Get all matches for 2021-11-21

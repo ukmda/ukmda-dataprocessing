@@ -13,7 +13,7 @@ from wmpl.Utils.TrajConversions import jd2Date
 
 def saveECSV(ftpFile):
     """ Save the picks into the GDEF ECSV standard. """
-    isodate_format_file = "%Y-%m-%dT%H_%M_%S"
+    isodate_format_file = "%Y-%m-%dT%H_%M_%S.%f"
     isodate_format_entry = "%Y-%m-%dT%H:%M:%S.%f"
 
     meteors = loadFTPDetectInfo(ftpFile)
@@ -34,8 +34,7 @@ def saveECSV(ftpFile):
         # Reference time
         dt_ref = jd2Date(met.jdt_ref, dt_obj=True)
         
-        # ESCV files name
-        ecsv_file_name = dt_ref.strftime(isodate_format_file) + '_RMS_' + met.station_id + ".ecsv"
+        ecsv_file_name = None
 
         ffname = os.path.basename(met.ff_name)
         try:
@@ -113,6 +112,12 @@ def saveECSV(ftpFile):
             #print(evtdate, t, musadj)
             if meta_dict['isodate_calib'] is None:
                 meta_dict['isodate_calib'] = str(ptdate.strftime(isodate_format_file))
+
+            # ESCV files name
+            if ecsv_file_name is None:
+                ecsv_file_name = ptdate.strftime(isodate_format_file) + '_RMS_' + met.station_id + ".ecsv"
+
+
             # Add an entry to the ECSV file
             ra = np.degrees(ra)
             dec = np.degrees(dec)
