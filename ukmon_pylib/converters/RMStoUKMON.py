@@ -12,6 +12,7 @@ import json
 import numpy as np
 import re
 import pytz
+import glob
 
 #import RMS.Astrometry.ApplyAstrometry
 from RMS.Astrometry.Conversions import datetime2JD, altAz2RADec
@@ -25,9 +26,10 @@ import RMS.ConfigReader as cr
 from RMS.Routines import GreatCircle
 
 
-def findUnprocessedFolders(dir_path, station_list, db):
+def findUnprocessedFolders(dir_path, station_list, db, dbtime):
     """ Go through directories and find folders with unprocessed data. """
     processing_list = []
+    nowdt = int(datetime.datetime.now().strftime('%Y%m%d'))
 
     # Go through all station directories
     for station_name in station_list:
@@ -38,11 +40,19 @@ def findUnprocessedFolders(dir_path, station_list, db):
         for night_name in os.listdir(station_path):
 
             night_path = os.path.join(station_path, night_name)
-
+            #print(f'checking {night_path}')
             if night_path not in db: 
                 print('adding', night_path)
                 processing_list.append(night_path)                
-
+            else:
+                spls = night_name.split('_')
+                if int(spls[1]) >  nowdt-14:
+                    ftpf = glob.glob1(night_path, 'FTPdetect*') 
+                    if len(ftpf) > 0:
+                        ftpd = os.path.getmtime(os.path.join(night_path, ftpf[0]))
+                        if ftpd > dbtime:
+                            print('ftp newer, adding', night_path)
+                            processing_list.append(night_path)                
     return processing_list
 
 
@@ -273,10 +283,11 @@ def processManyFolders(in_dir, out_dir):
     dbfile = os.path.join(in_dir, 'processed_single.txt')
     if not os.path.isfile(dbfile):
         open(dbfile, 'w').close()
+    lastmtime = os.path.getmtime(dbfile)
     with open(dbfile, 'r', newline=None) as inf:
         db = inf.readlines()
     db = [li.strip() for li in db]
-    processing_list = findUnprocessedFolders(in_dir, stations, db)
+    processing_list = findUnprocessedFolders(in_dir, stations, db, lastmtime)
     for fldr in processing_list:
         print(fldr)
         FTPdetectinfo2UkmonCsv(fldr, out_dir)
