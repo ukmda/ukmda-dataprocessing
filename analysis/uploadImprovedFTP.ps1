@@ -13,8 +13,10 @@ set-location $PSScriptRoot
 $ini=get-inicontent analysis.ini
 Set-Location $Loc
 
-$stationdetails=$ini['fireballs']['stationdets'] 
+# load the AWS keyfile
+. $ini['website']['awskey'] 
 
+$stationdetails=$ini['fireballs']['stationdets'] 
 $fullftpfile = [string]$args[0]
 $targpth = (split-path $fullftpfile).replace('\','/')
 $ftpname = (split-path $fullftpfile -leaf)
@@ -28,8 +30,7 @@ $ym=$dt.substring(0,6)
 $ymd=$dt
 
 Write-Output "Target location is $stn/$cam/$yr/$ym/$ymd/"
-ssh ukmonhelper "if [ ! -d ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/ ] ; then mkdir ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/ ; fi"
-scp $targpth/platepars_all_recalibrated.json ukmonhelper:ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/
-if ((test-path $targpth/$ftpname) -eq 1){
-    scp $targpth/$ftpname ukmonhelper:ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/$ftpname
+aws s3 cp $targpth/$ftpname s3://ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/
+if ((test-path $targpth/platepars_all_recalibrated.json) -eq 1){
+    aws s3 cp $targpth/platepars_all_recalibrated.json s3://ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/
 }
