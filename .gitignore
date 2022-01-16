@@ -544,3 +544,6 @@ ukmon_pylib/share/maps/BM*.png
 ukmon_pylib/share/maps/pop*.jpg
 archive/unused/**
 **/build.toml
+archive/terraform/mjmm/.terraform.lock.hcl
+archive/terraform/mjmm/terraform.tfstate
+archive/terraform/mjmm/terraform.tfstate.backup
