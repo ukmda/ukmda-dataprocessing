@@ -56,13 +56,22 @@
 
     <div class="container">
         <h2>UK Meteor Network APIs.</h2>
-        <h3>Matched Data API</h3>
         <p>
-            Important Note: The data here are released under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+            Important Note: The data here are released under the <a
+                href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
             license, so if you are using the data
             whether for scientific or other purposes, your must reference this web site and UKMON
             in your work.
+    
         </p>
+        <h3>Available APIs and Examples</h3>
+        <p>
+        <li><a href=#Matches>Matches API</a></li>
+        <li><a href=#Detections>Detections API</a></li>
+        <li><a href=#MatchExamples>Matches Examples</a></li>
+        <li><a href=#DetExamples>Detections Examples</a></li>
+        </p>
+        <h3 id="Matches">Matched Data API</h3>
         <p>
             The following data are available:
         </p>
@@ -79,11 +88,13 @@
         but it can also be processed in any other programming language capable of parsing JSON
         or saved to a file. See below for some examples.
         <hr>
-        <h3>Detections API</h3>
+        <h3 id="Detections">Detections API</h3>
         <p>
-            You can retrieve the raw event data in ECSV format. This is a format
-            thats been agreed by all the major meteor networks round the world, and allows you to
-            combine data from different networks.
+            The following data are available: 
+            </p>
+            <li>Raw data from one or more detections in ECSV format </li><p>
+            The ECSV format has been agreed by all the major meteor networks round the world, and allows you to
+            combine data from different sources.
         </p>
         <h4>URL</h4>
         <p>https://jpaq0huazc.execute-api.eu-west-1.amazonaws.com/Prod/getecsv</p>
@@ -97,24 +108,49 @@
             <h4>Returns</h4>
             <p>
                 Data are returned in Astropy ECSV format and can be saved directly into a file
-                as shown in the example below. Note however that if more than
+                as shown in the example below. Note that if more than
                 one event matches, then the returned data will be a concatenation of multiple ECSV datasets and
-                you will need to either split the data into individual files or make a new 
+                you will need to either split the data into individual files or make a new
                 API request with sufficient time granularity to retrieve only one event.
             </p>
             <hr>
             <h2>Examples</h2>
-            <h4>Detections API - Windows Powershell or Linux Bash</h4>
+            <h4 id="DetExamples">Detections API - Windows Powershell or Linux Bash</h4>
             <pre>
 PS> wget "https://jpaq0huazc.execute-api.eu-west-1.amazonaws.com/Prod/getecsv?stat=UK0025&dt=2021-07-17T02:41:05.05" -O test.ecsv
             </pre>
             <p>Returns the ECSV format data for the detection from Camera UK0025 at 02:41:05.05 on 2021/07/17</p>
-            <h4>Detections API - Python example</h4>
+            <h4>Detections API - Python</h4>
+            This example shows how to handle multiple datasets being returned
             <pre>
+import requests
 
+apiurl='https://jpaq0huazc.execute-api.eu-west-1.amazonaws.com/Prod/getecsv?stat={}&dt={}'
+stat ='UK0025'
+dt = '2021-07-17T02:41:05.05'
+res = requests.get(apiurl.format(stat, dt))
+if res.status_code == 200:
+    rawdata=res.text
+    ecsvlines=rawdata.split('\n') # convert the raw data into a python list
+    numecsvs = len([e for e in ecsvlines if '# %ECSV' in e]) # find out how many meteors 
+    fnamebase = dt.replace(':','_').replace('.','_') # create an output filename
+    if numecsvs == 1:
+        with open(fnamebase + '.ecsv', 'w') as outf:
+            outf.writelines(ecsvlines)
+    else:
+        outf = None
+        j=1
+        for i in range(len(ecsvlines)):
+            if '# %ECSV' in ecsvlines[i]:
+                if outf is not None:
+                    outf.close()
+                    j=j+1
+                outf = open(fnamebase + f'_M{j:03d}.ecsv', 'w')
+            outf.write(f'{ecsvlines[i]}\n')
             </pre>
 
-            <h4>Match API Windows Example</h4>
+
+            <h4 id="MatchExamples">Match API Windows Example</h4>
             Get all matches for 2021-11-21
             <pre>
 PS> curl "https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod?reqtyp=matches&reqval=20211121" > matches-20211121.txt
