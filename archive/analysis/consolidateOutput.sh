@@ -29,6 +29,24 @@ fi
 cd ${DATADIR}
 logger -s -t consolidateOutput "Backing up previous days data"
 
+# collect the latest trajectory CSV files
+# make sure target folders exist
+if [ ! -d ${DATADIR}/orbits/$yr/csv/ ] ; then
+    mkdir -p ${DATADIR}/orbits/$yr/csv/processed/
+    mkdir -p ${DATADIR}/orbits/$yr/extracsv/processed/
+fi
+# get the list of orbits
+dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
+trajlist=$(cat $dailyrep | awk -F, '{print $2}')
+
+# copy the orbit file for consolidation and reporting
+for traj in $trajlist 
+do
+    cp $traj/*orbit.csv ${DATADIR}/orbits/$yr/csv/
+    cp $traj/*orbit_extras.csv ${DATADIR}/orbits/$yr/extracsv/
+done
+
+
 # this creates an R91 compatible file with four extra columns which UFO Orbit ignores
 export DATADIR
 python $PYLIB/converters/UKMONtoUFOR91.py ${yr} $DATADIR/UKMON-all-single.csv
