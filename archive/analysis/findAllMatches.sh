@@ -92,12 +92,6 @@ dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
 trajlist=$(cat $dailyrep | awk -F, '{print $2}')
 
 # create extra datafiles 
-# make sure target folders exist
-if [ ! -d ${DATADIR}/orbits/$yr/csv/ ] ; then
-    mkdir -p ${DATADIR}/orbits/$yr/csv/processed/
-    mkdir -p ${DATADIR}/orbits/$yr/extracsv/processed/
-fi
-
 export DATADIR # used by extraDatafiles
 python $PYLIB/traj/extraDataFiles.py $dailyrep
 
@@ -107,10 +101,6 @@ yr=$(date +%Y)
 for traj in $trajlist 
 do
     $SRC/website/createPageIndex.sh $traj
-
-    # copy the orbit file for consolidation and reporting
-    cp $traj/*orbit.csv ${DATADIR}/orbits/$yr/csv/
-    cp $traj/*orbit_extras.csv ${DATADIR}/orbits/$yr/extracsv/
 done
 
 logger -s -t findAllMatches "gather some stats"
@@ -122,8 +112,8 @@ matches=$(wc -l $dailyrep | awk '{print $1}')
 rtim=$(grep "Total run time" $matchlog | awk '{print $4}')
 echo $(basename $dailyrep) $evts $trajs $matches $rtim >>  $DATADIR/dailyreports/stats.txt
 
+# copy data to S3 so the daily report can run
 if [ "$RUNTIME_ENV" == "PROD" ] ; then 
-    # copy back so the daily report can run
     rsync -avz $DATADIR/dailyreports/ $MATCHDIR/RMSCorrelate/dailyreports/
 fi 
 
