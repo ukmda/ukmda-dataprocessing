@@ -81,18 +81,24 @@ def copyFiles(s3bucket, s3object, target, maxdetcount):
     s3c = boto3.client('s3')
     pth, _ = os.path.split(s3object)
     plap = pth +'/.config'
-    response = s3c.head_object(Bucket=s3bucket, Key=plap)
-    if response['ContentLength'] > 100: 
-        outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/.config'
-        src = {'Bucket': s3bucket, 'Key': plap}
-        s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
+    try:
+        response = s3c.head_object(Bucket=s3bucket, Key=plap)
+        if response['ContentLength'] > 100: 
+            outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/.config'
+            src = {'Bucket': s3bucket, 'Key': plap}
+            s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
+    except:
+        print(f'config missing for {pth}')
 
-    plap = pth +'/platepar_cmn2010.cal'
-    response = s3c.head_object(Bucket=s3bucket, Key=plap)
-    if response['ContentLength'] > 100: 
-        outf = 'consolidated/platepars/' + bits[1] + '.json'
-        src = {'Bucket': s3bucket, 'Key': plap}
-        s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
+    try:
+        plap = pth +'/platepar_cmn2010.cal'
+        response = s3c.head_object(Bucket=s3bucket, Key=plap)
+        if response['ContentLength'] > 100: 
+            outf = 'consolidated/platepars/' + bits[1] + '.json'
+            src = {'Bucket': s3bucket, 'Key': plap}
+            s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
+    except:
+        print(f'platepar missing for {pth}')
 
     return 0
 
