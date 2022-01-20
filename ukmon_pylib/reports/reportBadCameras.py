@@ -45,8 +45,9 @@ if __name__ == '__main__':
         """)
 
     badmsg = textwrap.dedent("""
-        Hi, this is to let you know that camera {} attempted to upload {} events last night.
+        Hi, this is to let you know that camera {} attempted to upload {} events.
         Anything over 500 detections is unusual and suggests bad data.
+        The questionable data was uploaded in {}.
 
         We suggest you check for vegetation that might have grown into the field of view, 
         security lights that might be flicking off and on, and anything that might attract
@@ -55,7 +56,8 @@ if __name__ == '__main__':
         If you would like to clean up the data, you can do so using CMN_BinViewer, 
         following the Confirmation process explained at the link below. 
         https://github.com/markmac99/ukmon-pitools/wiki/Using-Binviewer
-        Then please post the new FTPDetect file in groups.io/ukmeteornetwork so we can process it.
+        Then please reply to this email, attaching the new FTPdetect file from the 
+        ConfirmedFiles folder.
 
         Regards
         The UKMON team
@@ -125,10 +127,11 @@ if __name__ == '__main__':
             msg = response['events'][i]['message'].strip()
             spls = msg.split(' ')
             badcount = spls[3]
+            ftpname = spls[5]
             spls = spls[5].split('_')
             statid = spls[1]
             dat = datetime.datetime.strptime(spls[2] + '_' + spls[3], '%Y%m%d_%H%M%S')
-            badcams.append([statid, dat, badcount])
+            badcams.append([statid, dat, badcount, ftpname])
     while True:
         currentToken = response['nextToken']
         response = logcli.filter_log_events(
@@ -143,9 +146,10 @@ if __name__ == '__main__':
                 spls = msg.split(' ')
                 badcount = spls[3]
                 spls = spls[5].split('_')
+                ftpname = spls[5]
                 statid = spls[1]
                 dat = datetime.datetime.strptime(spls[2] + '_' + spls[3], '%Y%m%d_%H%M%S')
-                badcams.append([statid, dat, badcount])
+                badcams.append([statid, dat, badcount, ftpname])
         if 'nextToken' not in response:
             break
 
@@ -154,7 +158,7 @@ if __name__ == '__main__':
         print('\nToo many detections\n===================')
         mailmsg = mailmsg + '\nToo many detections\n'
         mailmsg = mailmsg + '===================\n'
-        badcams = pd.DataFrame(badcams, columns=['StationID','ts','reccount'])
+        badcams = pd.DataFrame(badcams, columns=['StationID','ts','reccount','ftpname'])
         badcams = pd.merge(badcams, camowners, on=['StationID'])
         badcams = badcams.drop(columns=['site'])
         print(badcams)
@@ -162,7 +166,8 @@ if __name__ == '__main__':
             mailrecip = row['eMail']
             statid = row['StationID']
             reccount = row['reccount']
-            sendAnEmail.sendAnEmail(mailrecip, badmsg.format(statid, reccount), subj)
+            ftpname = row['ftpname']
+            sendAnEmail.sendAnEmail(mailrecip, badmsg.format(statid, reccount, ftpname), subj)
             mailmsg = mailmsg + '{} {} {} {}\n'.format(row['StationID'], row['ts'], row['reccount'], row['eMail'])
 
     mailrecip = 'markmcintyre99@googlemail.com'
