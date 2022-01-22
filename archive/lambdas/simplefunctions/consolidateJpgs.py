@@ -50,6 +50,15 @@ def copyJpgToArchive(s3bucket, s3object):
     src = {'Bucket': s3bucket, 'Key': s3object}
     print(s3object, outf)
     s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src, ContentType="image/jpeg", MetadataDirective='REPLACE')
+
+    try:
+        s3vid = s3object.replace('.jpg', '.mp4')
+        outf = 'img/mp4/{:s}/{:s}/{}'.format(yr, ym, s3vid[y:])
+        print(s3vid, outf)
+        src = {'Bucket': s3bucket, 'Key': s3vid}
+        s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src, ContentType="video/mp4", MetadataDirective='REPLACE')
+    except:
+        pass
     return
 
 
@@ -63,8 +72,8 @@ def lambda_handler(event, context):
 
 if __name__ == "__main__":
     s3bucket = 'ukmon-shared'
-    s3object = 'archive/Cardiff/Cardiff_Camera_1/2015/201510/20151025/M20151026_030101_MC1_c1P.jpg'
-    if len(sys.argv) > 0:
+    s3object = 'archive/Tackley/UK0006/2022/202201/20220120/FF_UK0006_20220120_201332_261_0258560.jpg'
+    if len(sys.argv) > 1:
         fname = sys.argv[1]
         if './' in fname:
             s3object = 'archive/' + fname[2:]
