@@ -122,6 +122,7 @@ class SiteInfo:
         # fetch camera details from the CSV file
         fldrs = []
         cams = []
+        locs = []
 
         for row in self.camdets:
             if row[0][:1] != '#':
@@ -151,13 +152,31 @@ class SiteInfo:
                 cname = cam['CamID'].decode('utf-8')
                 if ' ' not in cname:
                     tmpcams = tmpcams + cname + ' ' 
-            tcc = tmpcams.split()
-            tcc.sort()
-            tmpcams = ''
-            for cname in tcc:
-                tmpcams = tmpcams + cname + ' ' 
+            #tcc = tmpcams.split()
+            #tcc.sort()
+            #tmpcams = ''
+            #for cname in tcc:
+            #    tmpcams = tmpcams + cname + ' ' 
             return tmpcams.strip()
 
+    def getAllLocsStr(self, onlyActive=False):
+        if onlyActive is False:
+            _, locs = self.getAllCamsAndFolders()
+            locs.sort()
+            tmpcams = ''
+            for loc in locs:
+                loc = loc.split('/')
+                tmpcams = tmpcams + loc + ' ' 
+            return tmpcams.strip()
+        else:
+            cams = self.getActiveCameras()
+            tmpcams = ''
+            for cam in cams:
+                if cam['active']==1:
+                    cname = cam['Site'].decode('utf-8')
+                    if ' ' not in cname:
+                        tmpcams = tmpcams + cname + ' ' 
+            return tmpcams.strip()
 
     def saveAsR(self, outfname):
         with open(outfname, 'w') as outf:

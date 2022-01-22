@@ -93,7 +93,7 @@ def findMatchingJpgs(traj, outdir):
                     spls=fn.split('_')
                     dtstamp = datetime.strptime(spls[2] + '_' + spls[3], '%Y%m%d_%H%M%S')
                     if (evtdate - dtstamp).seconds < 10:
-                        outf.write('{}\n'.format(m[0]))
+                        outf.write('{}\n'.format(m))
                         break
             elif len(mtch) == 0:
                 tmped = evtdate + timedelta(seconds=-10)
