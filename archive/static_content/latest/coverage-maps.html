@@ -76,6 +76,7 @@
     <script src="/js/sb-admin-2.js"></script>
 
     <div id="nav-placeholder"></div>
+
     <script>
         $(function () {
             $("#nav-placeholder").load("/templates/navbar.html");
@@ -83,16 +84,25 @@
     </script>
 
     <div class="container">
+        <h2>Individual Station Coverage Maps</h2>
+        <p>
+            To use this page, select a camera from the dropdown, then select an altitude.
+            Click on Show to reveal the coverage of that camera at that altitude.
+            <br>
+            Note: If no coverage is displayed, it means the camera has not yet been calibrated.
+
+        </p>
+
         <form id="selectStation" onsubmit="return formSubmit()">
             <div id="stationsplaceholder"></div>
             <label for="statselect">Station</label>
             <select class="bootstrap-select" id="statselect" name="statselect">
-            <script>
-                $(function () {
-                    $("#statselect").load("/search/activestatopts.html");
-                });
-            </script>
-            </select>            
+                <script>
+                    $(function () {
+                        $("#statselect").load("/search/activestatopts.html");
+                    });
+                </script>
+            </select>
             <label for="heightsel">Height</label>
             <select class="bootstrap-select" id="heightsel" name="heightsel">
                 <option value="25km" selected="selected">25km</option>
@@ -100,6 +110,15 @@
                 <option value="100km">100km</option>
             </select>
             <button type="submit">Show</button>
+            <label for="statloc">Station Location</label>
+            <input type="text" readonly="readonly" id="statloc">
+            <select class="bootstrap-select" id="statlocsel" name="stalocsel" disabled hidden>
+                <script>
+                    $(function () {
+                        $("#statlocsel").load("/search/activestatlocs.html");
+                    });
+                </script>
+            </select>
         </form>
         <div id="map"></div>
         <div id="capture"></div>
@@ -107,12 +126,19 @@
             var strstat;
             var height;
             function formSubmit() {
-                console.log('in formSubmit')
+                console.log('in formSubmit');
                 var e = document.getElementById('statselect');
                 strstat = e.options[e.selectedIndex].text;
+                selidx = e.selectedIndex;
                 var e = document.getElementById('heightsel');
                 height = e.options[e.selectedIndex].text;
                 console.log('station is', strstat, 'height ', height)
+
+                loc = document.getElementById('statloc');
+                locsel = document.getElementById('statlocsel');
+                strloc = locsel.options[selidx].text;
+                loc.value = strloc;
+
                 initMap();
                 return false;
             }
@@ -151,6 +177,7 @@
                 });
                 kmlLayer.addListener('click', function (event) {
                     var content = event.featureData.infoWindowHtml;
+                    console.log(content)
                     var testimonial = document.getElementById('capture');
                     testimonial.innerHTML = content;
                 });
@@ -190,7 +217,7 @@
         </script>
         <script async
             src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZlZmJY76LmDZ2Qy7AcmM84MavYoqJIQk&callback=initMap">
-        </script>
+            </script>
     </div>
 </body>
 
