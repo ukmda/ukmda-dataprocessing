@@ -27,6 +27,7 @@ else
     logger -s -t showerReport "starting $shwr $dt"
     source /home/ec2-user/venvs/${WMPL_ENV}/bin/activate
     export PYTHONPATH=$wmpl_loc:$PYLIB
+    export MATCHDIR
 
     cd ${DATADIR}
 
