@@ -145,8 +145,8 @@ if __name__ == '__main__':
                 msg = response['events'][i]['message'].strip()
                 spls = msg.split(' ')
                 badcount = spls[3]
-                spls = spls[5].split('_')
                 ftpname = spls[5]
+                spls = spls[5].split('_')
                 statid = spls[1]
                 dat = datetime.datetime.strptime(spls[2] + '_' + spls[3], '%Y%m%d_%H%M%S')
                 badcams.append([statid, dat, badcount, ftpname])
