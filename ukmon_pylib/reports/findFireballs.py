@@ -93,13 +93,22 @@ if __name__ == '__main__':
         print('unable to load datafile')
         exit(0)
     
-    outdir = os.path.join(datadir, 'reports',f'{yr}', 'fireballs')
     shwr = sys.argv[2]
     if len(sys.argv) > 3:
         mag = float(sys.argv[3])
     else:
         mag = -3.9
 
+    if mag > 998:
+        if mth is not None:
+            outdir = os.path.join(datadir, 'reports',f'{yr:04d}', shwr, f'{mth:02d}')
+        else:
+            outdir = os.path.join(datadir, 'reports',f'{yr:04d}', shwr)
+        matchdir = None
+    else:
+        outdir = os.path.join(datadir, 'reports',f'{yr}', 'fireballs')
+
+    # print('outdir is ', outdir)
     if shwr != 'ALL':
         df = df[df['_stream']==shwr]
     if mth is not None:
@@ -115,5 +124,5 @@ if __name__ == '__main__':
             os.makedirs(outdir, exist_ok=True)
             outf = os.path.join(outdir, 'fblist.txt')
             fbs.to_csv(outf, index=False, header=False, columns=['url','mag','shower'])
-        if shwr == 'ALL' and yr > 2019:
+        if shwr == 'ALL' and yr > 2019 and matchdir is not None:
             createMDFiles(fbs, outdir, matchdir)
