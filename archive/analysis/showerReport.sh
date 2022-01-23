@@ -27,10 +27,11 @@ else
     logger -s -t showerReport "starting $shwr $dt"
     source /home/ec2-user/venvs/${WMPL_ENV}/bin/activate
     export PYTHONPATH=$wmpl_loc:$PYLIB
+    export MATCHDIR
+    export DATADIR
 
     cd ${DATADIR}
 
-    export DATADIR
     outdir=reports/$yr/$shwr
     if [ "$shwr" != "ALL" ] ; then 
         magval=999
@@ -43,7 +44,7 @@ else
     if [[ ! -d $DATADIR/reports/$yr/$shwr || "$3" == "force" ]] ; then
         logger -s -t showerReport "Running the analysis routines"
         python $PYLIB/analysis/showerAnalysis.py $shwr $dt
-        python $PYLIB/reports/findFireballs.py $dt $DATADIR/$outdir $shwr $magval
+        python $PYLIB/reports/findFireballs.py $dt $shwr $magval
 
         if [ -f $MATCHDIR/RMSCorrelate/trajectories/${yr}/${dt}/plots/*${shwr}.png ] ; then 
             cp $MATCHDIR/RMSCorrelate/trajectories/${yr}/${dt}/plots/*${shwr}.png $DATADIR/$outdir
