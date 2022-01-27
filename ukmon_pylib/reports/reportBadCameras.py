@@ -65,10 +65,12 @@ if __name__ == '__main__':
 
     mailmsg = ''
     camowners = pd.read_csv(os.path.join(datadir, 'admin', 'stationdetails.csv'))
-    camowners = camowners.rename(columns={'camid':'StationID'})
-    dts = pd.read_csv(os.path.join(datadir,'latest','uploadtimes.csv'), index_col=False)
-    dts = dts.assign(ts=pd.to_datetime(dts.DateTime))
-    dts = dts.drop(columns=['DateTime'])
+    camowners = camowners.rename(columns={'camid':'stationid'})
+    dts = pd.read_csv(os.path.join(datadir,'reports','camuploadtimes.csv'), index_col=False)
+    dts['tcol']=[t.zfill(6) for t in dts.uploadtime.map(str)]
+    dts['DateTime']=dts.upddate.map(str)+'_'+dts.tcol
+    dts['ts']=[datetime.datetime.strptime(d, '%Y%m%d_%H%M%S') for d in dts.DateTime]
+    dts = dts.drop(columns=['DateTime', 'tcol','manual'])
     targdate=datetime.date.today() + datetime.timedelta(days=-int(sys.argv[1]))
 
     subj = 'camera upload missing'
@@ -78,16 +80,16 @@ if __name__ == '__main__':
         print('=========================')
         mailmsg = mailmsg + '\nNot Uploaded for {} days\n'.format(sys.argv[1])
         mailmsg = mailmsg + '=======================\n'
-        latecams = pd.merge(latecams, camowners, on=['StationID'])
-        latecams = latecams.drop(columns=['site'])
+        latecams = pd.merge(latecams, camowners, on=['stationid'])
+        latecams = latecams.drop(columns=['upddate','uploadtime'])
         print(latecams)
         
         for _, row in latecams.iterrows():
             mailrecip = row['eMail']
-            statid = row['StationID']
+            statid = row['stationid']
             dayslate = int(sys.argv[1])
-            sendAnEmail.sendAnEmail(mailrecip, latemsg1.format(statid, dayslate), subj)
-            mailmsg = mailmsg + '{} {} {}\n'.format(row['StationID'], row['ts'], row['eMail'])
+            #sendAnEmail.sendAnEmail(mailrecip, latemsg1.format(statid, dayslate), subj)
+            mailmsg = mailmsg + '{} {} {}\n'.format(row['stationid'], row['ts'], row['eMail'])
 
     subj = 'camera upload missing - final notice'
     longerdt = int(sys.argv[1])+7
@@ -99,15 +101,15 @@ if __name__ == '__main__':
         print('============================')
         mailmsg = mailmsg + '\nNot Uploaded for {} days\n'.format(longerdt)
         mailmsg = mailmsg + '============================\n'
-        latecams = pd.merge(latecams, camowners, on=['StationID'])
-        latecams = latecams.drop(columns=['site'])
+        latecams = pd.merge(latecams, camowners, on=['stationid'])
+        latecams = latecams.drop(columns=['upddate','uploadtime'])
         print(latecams)
         for _, row in latecams.iterrows():
             mailrecip = row['eMail']
-            statid = row['StationID']
+            statid = row['stationid']
             dayslate = int(sys.argv[1] + 7)
-            sendAnEmail.sendAnEmail(mailrecip, latemsg1.format(statid, dayslate), subj)
-            mailmsg = mailmsg + '{} {} {}\n'.format(row['StationID'], row['ts'], row['eMail'])
+            #sendAnEmail.sendAnEmail(mailrecip, latemsg1.format(statid, dayslate), subj)
+            mailmsg = mailmsg + '{} {} {}\n'.format(row['stationid'], row['ts'], row['eMail'])
 
     logcli = boto3.client('logs', region_name='eu-west-2')
 
@@ -158,17 +160,17 @@ if __name__ == '__main__':
         print('\nToo many detections\n===================')
         mailmsg = mailmsg + '\nToo many detections\n'
         mailmsg = mailmsg + '===================\n'
-        badcams = pd.DataFrame(badcams, columns=['StationID','ts','reccount','ftpname'])
-        badcams = pd.merge(badcams, camowners, on=['StationID'])
+        badcams = pd.DataFrame(badcams, columns=['stationid','ts','reccount','ftpname'])
+        badcams = pd.merge(badcams, camowners, on=['stationid'])
         badcams = badcams.drop(columns=['site'])
         print(badcams)
         for _, row in badcams.iterrows():
             mailrecip = row['eMail']
-            statid = row['StationID']
+            statid = row['stationid']
             reccount = row['reccount']
             ftpname = row['ftpname']
             sendAnEmail.sendAnEmail(mailrecip, badmsg.format(statid, reccount, ftpname), subj)
-            mailmsg = mailmsg + '{} {} {} {}\n'.format(row['StationID'], row['ts'], row['reccount'], row['eMail'])
+            mailmsg = mailmsg + '{} {} {} {}\n'.format(row['stationid'], row['ts'], row['reccount'], row['eMail'])
 
     mailrecip = 'markmcintyre99@googlemail.com'
     msgtype='Late or Misbehaving camera report'
