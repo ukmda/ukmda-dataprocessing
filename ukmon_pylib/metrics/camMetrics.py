@@ -2,11 +2,13 @@
 # Create and access dynamodb tables containing camera upload timings etc
 #
 
+from distutils.command.upload import upload
 import boto3
 import os
 import sys
 import glob
 from boto3.dynamodb.conditions import Key
+import pandas as pd
 
 def createCamTimingsTable(ddb=None):
     
@@ -152,12 +154,13 @@ def findRowCamTimings(stationid, uploaddate, ddb=None):
 # --key-condition-expression "uploaddate= :dt" 
 # --expression-attribute-values '{":dt":{"N":"20220108"}}'
 
-def getDayCamTimings(uploaddate, ddb=None, outfile=None):
-    try:
-        datadir = os.getenv('DATADIR')
-    except Exception:
-        print('define DATADIR first')
-        exit(1)
+def getDayCamTimings(uploaddate, ddb=None, outfile=None, datadir=None):
+    if datadir is None:
+        try:
+            datadir = os.getenv('DATADIR')
+        except Exception:
+            print('define DATADIR first')
+            exit(1)
     if not ddb:
         ddb = boto3.resource('dynamodb', region_name='eu-west-1') #, endpoint_url="http://thelinux:8000")
     table = ddb.Table('ukmon_uploadtimes')
@@ -168,23 +171,25 @@ def getDayCamTimings(uploaddate, ddb=None, outfile=None):
     statids = []
     updtims = []
     manuals = []
+    upddts = []
     try:
         items = response['Items']
 
         for item in items:
             statids.append(item['stationid'])
-            updtims.append(str(item['uploadtime']).zfill(6))
+            updtims.append(item['uploadtime'])
             manuals.append(item['manual'])
+            upddts.append(uploaddate)
 
         if outfile is not None:
             with open(os.path.join(datadir, 'reports', outfile), 'w') as outf:
-                outf.write('stationid,uploadtime,manual\n')
-                for ss,dd,mm in zip(statids, updtims, manuals):
-                    outf.write(f'{ss},{dd},{mm}\n')
+                outf.write('stationid,upddate,uploadtime,manual\n')
+                for ss,dd,tt,mm in zip(statids, upddts, updtims, manuals):
+                    outf.write(f'{ss},{dd},{int(tt):06d},{mm}\n')
 
     except Exception:
         print('record not found')
-    return statids, updtims, manuals
+    return statids, upddts, updtims, manuals
 
 
 # read a row based on stationid and datestamp
@@ -224,9 +229,23 @@ def backPopulate(stationid):
 
 
 if __name__ == '__main__':
-#    stationids = glob.glob1(f'/home/ec2-user/ukmon-shared/matches/RMSCorrelate/', 'UK*')
-#    for statid in stationids:
-#        backPopulate(statid)
-    s,d,m = getDayCamTimings(sys.argv[1], outfile='camuploadtimes.csv')
-    #for ss,dd,mm in zip(s,d,m):
-    #    print(ss,dd,mm)
+    try:
+        datadir = os.getenv('DATADIR')
+    except Exception:
+        print('define DATADIR first')
+        exit(1)
+    outfile=os.path.join(datadir, 'reports', 'camuploadtimes.csv')
+    if os.path.isfile(outfile):
+        currdata = pd.read_csv(outfile)
+
+    s,d,t,m = getDayCamTimings(sys.argv[1])
+    newdata=pd.DataFrame(zip(s,d,t,m), columns=['stationid','upddate','uploadtime','manual'])
+
+    if os.path.isfile(outfile):
+        currdata = pd.read_csv(outfile)
+        fulldf = currdata.append(newdata)
+        fulldf = fulldf.sort_values(by=['stationid','upddate','uploadtime'])
+        fulldf = fulldf.drop_duplicates(subset=['stationid'], keep='last')
+    else:
+        fulldf = newdata
+    fulldf.to_csv(outfile, index=False)
