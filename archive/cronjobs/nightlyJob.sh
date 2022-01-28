@@ -124,7 +124,6 @@ logger -s -t nightlyJob "clean up old logs"
 find $SRC/logs -name "nightly*.gz" -mtime +90 -exec rm -f {} \;
 find $SRC/logs -name "nightly*.log" -mtime +7 -exec gzip {} \;
 
-logger -s -t nightlyJob "Finished"
 rm -f $SRC/data/.nightly_running
 
 # create performance metrics
@@ -137,4 +136,5 @@ python $SRC/ukmon_pylib/metrics/timingMetrics.py $nightlog 'N' >> $SRC/logs/perf
 
 # check for bad stations
 $SRC/analysis/getBadStations.sh
+logger -s -t nightlyJob "Finished"
 

@@ -15,26 +15,22 @@ shopt -s direxpand
 # Uncomment the following line if you don't like systemctl's auto-paging feature:
 # export SYSTEMD_PAGER=
 
-function dev {
-	source ~/dev/config/config.ini >/dev/null 2>&1 
-	source ~/venvs/$WMPL_ENV/bin/activate
-	PS1="(wmpl) (dev) [\W]\$ "
-	cd ~/dev
-	export PYTHONPATH=$PYLIB:$wmpl_loc
-	export SRC
-}
-function prd {
-	source ~/prod/config/config.ini >/dev/null 2>&1
-	source ~/venvs/$WMPL_ENV/bin/activate
-	PS1="(wmpl) (prd) [\W]\$ "
-	cd ~/prod
-	export PYTHONPATH=$PYLIB:$wmpl_loc
-	export SRC
-}
+# required for proj4 and libgeos 
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/geos/lib:/usr/local/proj4/lib
+export PATH=$PATH:/usr/local/geos/bin:/usr/local/proj4/bin
 
-function bigserver {
-	source $SERVERAWSKEYS
-	AWS_DEFAULT_REGION=eu-west-2
-	privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
-	ssh -i ~/.ssh/markskey.pem $privip
-}
+if shopt -q login_shell ; then
+ echo ""
+ echo "Type 'dev' to activate the dev environment"
+ echo "Type 'prd' to activate the dev environment"
+ echo ""
+ echo " Some handy aliases that work in either environment are"
+ echo " logs => go to the logs folder"
+ echo " data => go to the data folder"
+ echo " matchstatus => check status of matching process today"
+ echo " stats => display recent matching statistics"
+ echo " tml => tail the matching process log"
+ echo " tnj => tail the nightly job log"
+ echo " spacecalc => display space usage in the current folder"
+ echo ""
+fi
