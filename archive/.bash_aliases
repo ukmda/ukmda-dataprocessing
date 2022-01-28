@@ -3,15 +3,39 @@ alias h='history'
 alias df='df -h'
 alias du='du -h'
 
-alias data='cd $SRC/data && pwd'
-alias logs='cd $SRC/logs && pwd'
-alias matchdir='cd $MATCHDIR/RMSCorrelate && pwd'
-alias arch='cd $ARCHDIR && pwd'
+alias data='if [ "$SRC" == "" ] ; then echo select env first; else cd $SRC/data && pwd ; fi'
+alias logs='if [ "$SRC" == "" ] ; then echo select env first; else cd $SRC/logs && pwd ; fi'
+alias matchdir='if [ "$MATCHDIR" == "" ] ; then echo select env first; else cd $MATCHDIR/RMSCorrelate && pwd ; fi'
+alias arch='if [ "$ARCHDIR" == "" ] ; then echo select env first; else cd $ARCHDIR && pwd ; fi'
 
-alias tml='tail -f $(ls -1 $SRC/logs/matches-*.log | tail -1)'
-alias tnj='tail -f $(ls -1 $SRC/logs/nigh*.log | tail -1)'
+alias tml='if [ "$SRC" == "" ] ; then echo select env first; else tail -f $(ls -1 $SRC/logs/matches-*.log | tail -1) ; fi'
+alias tnj='if [ "$SRC" == "" ] ; then echo select env first; else tail -f $(ls -1 $SRC/logs/nigh*.log | tail -1) ; fi'
 
-alias stats='tail $DATADIR/dailyreports/stats.txt'
+alias stats='if [ "$DATADIR" == "" ] ; then echo select env first; else tail $DATADIR/dailyreports/stats.txt ; fi'
 
-alias matchstatus='grep TRAJ $(ls -1 $SRC/logs/matches-*.log | tail -1)|grep SOLVING && grep Observations: $(ls -1 $SRC/logs/matches-*.log | tail -1) | wc -l '
+alias matchstatus='if [ "$SRC" == "" ] ; then echo select env first; else grep TRAJ $(ls -1 $SRC/logs/matches-*.log | tail -1)|grep SOLVING && grep Observations: $(ls -1 $SRC/logs/matches-*.log | tail -1) | wc -l ; fi'
 alias spacecalc='ls -1 | egrep -v "ukmon-shared" | while read i ; do \du -s $i ; done | sort -n'
+
+function dev {
+	source ~/dev/config/config.ini >/dev/null 2>&1 
+	source ~/venvs/$WMPL_ENV/bin/activate
+	PS1="(wmpl) (dev) [\W]\$ "
+	cd ~/dev
+	export PYTHONPATH=$PYLIB:$wmpl_loc
+	export SRC
+}
+function prd {
+	source ~/prod/config/config.ini >/dev/null 2>&1
+	source ~/venvs/$WMPL_ENV/bin/activate
+	PS1="(wmpl) (prd) [\W]\$ "
+	cd ~/prod
+	export PYTHONPATH=$PYLIB:$wmpl_loc
+	export SRC
+}
+
+function bigserver {
+	source $SERVERAWSKEYS
+	AWS_DEFAULT_REGION=eu-west-2
+	privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
+	ssh -i ~/.ssh/markskey.pem $privip
+}

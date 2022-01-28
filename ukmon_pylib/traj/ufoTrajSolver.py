@@ -10,6 +10,7 @@ import sys
 import argparse
 import numpy as np
 import matplotlib
+import pandas as pd
 
 from wmpl.Formats.GenericFunctions import addSolverOptions
 from wmpl.Formats.Milig import StationData, writeMiligInputFile
@@ -819,12 +820,10 @@ def computeAbsoluteMagnitudes(traj, meteor_list):
 
 
 def draw3Dmap(traj, outdir):
-    #orb = traj.orbit
-    dtstr = jd2Date(traj.jdt_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
-
     lats = []
     lons = []
     alts = []
+    lens = []
     # Go through observation from all stations
     for obs in traj.observations:
         # Go through all observed points
@@ -832,15 +831,12 @@ def draw3Dmap(traj, outdir):
             lats.append(np.degrees(obs.model_lat[i]))
             lons.append(np.degrees(obs.model_lon[i]))
             alts.append(obs.model_ht[i])
-    
-    # print(lats)
-    # print(outdir, dtstr)
+            lens.append(obs.length[i])
+    df = pd.DataFrame({"lats": lats, "lons": lons, "alts": alts, "lens": lens })
+    df = df.sort_values(by=['lens', 'lats'])
+    dtstr = jd2Date(traj.jdt_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
     csvname = os.path.join(outdir, dtstr + '_track.csv')
-    # print(csvname)
-    with open(csvname, 'w') as outf:
-        outf.write('# lat, lon, alt\n#\n')
-        for i in range(len(lats)):
-            outf.write('{:15.4f}, {:15.4f}, {:15.4f}\n'.format(lats[i], lons[i], alts[i]))
+    df.to_csv(csvname, index=False)
     return
 
 
