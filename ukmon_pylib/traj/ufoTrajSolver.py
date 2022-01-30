@@ -11,6 +11,9 @@ import argparse
 import numpy as np
 import matplotlib
 import pandas as pd
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
 
 from wmpl.Formats.GenericFunctions import addSolverOptions
 from wmpl.Formats.Milig import StationData, writeMiligInputFile
@@ -831,12 +834,19 @@ def draw3Dmap(traj, outdir):
             lats.append(np.degrees(obs.model_lat[i]))
             lons.append(np.degrees(obs.model_lon[i]))
             alts.append(obs.model_ht[i])
-            lens.append(obs.length[i])
-    df = pd.DataFrame({"lats": lats, "lons": lons, "alts": alts, "lens": lens })
-    df = df.sort_values(by=['lens', 'lats'])
+            lens.append(obs.time_data[i])
+    df = pd.DataFrame({"lats": lats, "lons": lons, "alts": alts, "times": lens })
+    df = df.sort_values(by=['times', 'lats'])
     dtstr = jd2Date(traj.jdt_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
     csvname = os.path.join(outdir, dtstr + '_track.csv')
     df.to_csv(csvname, index=False)
+    df = df.drop(columns=['times'])
+    fig = plt.figure()
+    ax = Axes3D(fig)
+    _ = ax.plot_trisurf(df.lats, df.lons, df.alts, cmap=cm.jet, linewidth=0.2)
+    jpgname = os.path.join(outdir, dtstr + '_3dtrack.png')
+    plt.savefig(jpgname)
+    plt.close()
     return
 
 
