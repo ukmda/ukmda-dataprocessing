@@ -1,15 +1,14 @@
 #
 # manually reduce one camera folder 
 #
-
 # args : arg1 date, arg2 stationid
-$loc = Get-Location
-set-location $PSScriptRoot
+
+push-location $PSScriptRoot
 # load the helper functions
 . .\helperfunctions.ps1
 $ini=get-inicontent analysis.ini
 
-$stationdetails=$ini['fireballs']['stationdets']
+#$stationdetails=$ini['fireballs']['stationdets']
 $fbfldr=$ini['fireballs']['localfolder']
 set-location $fbfldr
 
@@ -28,7 +27,7 @@ push-Location $ini['rms']['rms_loc']
 python -m Utils.SkyFit2 $targpth -c $targpth\.config
 python -m Utils.BatchFFtoImage $targpth jpg
 $ftpname=(Get-ChildItem $targpth\FTP*manual.txt).name
-python -m Utils.RMS2UFO $ftpname $targpth\platepar_cmn2010.cal
+python -m Utils.RMS2UFO $targpth\$ftpname $targpth\platepar_cmn2010.cal
 
 $ffname=(Get-ChildItem $targpth\FF*.fits).name
 if ($ffname -is [array])
