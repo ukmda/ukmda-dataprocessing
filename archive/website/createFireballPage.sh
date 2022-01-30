@@ -29,7 +29,7 @@ mkdir -p $DATADIR/reports/$yr/fireballs > /dev/null 2>&1
 cd $DATADIR/reports/$yr/fireballs
 
 export DATADIR
-python $PYLIB/reports/findFireballs.py ${yr} ALL
+python -m reports.findFireballs ${yr} ALL $2
 
 echo "\$(function() {" > reportindex.js
 echo "var table = document.createElement(\"table\");" >> reportindex.js
