@@ -12,7 +12,7 @@
 #   Caminfo file, to obtain lati and longi of station
 #
 # Produces:
-#   one file per stat per day in $DATADIR/consolidated/A containing the single-station shower association 
+#   shower maps and assoc files for each source dataset in the original folder
 #
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
@@ -34,7 +34,7 @@ fpath="$ARCHDIR/$sitename/$camname/$yy/$ym/$ymd"
 
 logger -s -t addRMSShowerDets "starting"
 if compgen -G "$fpath/FTPdetect*.txt" > /dev/null ; then 
-    ftpfile=$(compgen -G "$fpath/FTPdetect*.txt" | grep -v backup | head -1) 
+    ftpfile=$(compgen -G "$fpath/FTPdetect*.txt" | egrep -v "backup|uncal" | head -1) 
 
     export PYTHONPATH=$RMS_LOC:$PYLIB
     cd $RMS_LOC
@@ -44,6 +44,7 @@ if compgen -G "$fpath/FTPdetect*.txt" > /dev/null ; then
     if compgen -G "$fpath/*assoc*.txt"  > /dev/null ; then done=1 ; fi
     if compgen -G "$fpath/nometeors" > /dev/null ; then done=1 ; fi
     if [ "$force" == "force" ] ; then done=0 ; fi
+    if [ -z $ftpfile ] ; then done=1 ; fi
     
     if [ $done -eq 0 ] ; then 
         logger -s -t addRMSShowerDets "processing $ymd"
@@ -52,21 +53,8 @@ if compgen -G "$fpath/FTPdetect*.txt" > /dev/null ; then
 
         python $PYLIB/traj/ufoShowerAssoc.py "$ftpfile" -y $lati -z $longi
 
-        if [ $? -eq 0 ] ; then 
-            if compgen -G "$fpath/*assoc*.txt"  > /dev/null ; then 
-                mkdir -p ${DATADIR}/consolidated/A > /dev/null 2>&1
-                assocfile=$(compgen -G "$fpath/*assoc*.txt")
-                cp "$assocfile" ${DATADIR}/consolidated/A
-            fi
-        fi
     else
         logger -s -t addRMSShowerDets "skipping $ymd"
-        if compgen -G "$fpath/*assoc*.txt"  > /dev/null ; then
-            assocfile=$(compgen -G "$fpath/*assoc*.txt")
-            basassoc=$(basename $assocfile)
-            logger -s -t addRMSShowerDets "copying $basassoc"
-            cp "$assocfile" ${DATADIR}/consolidated/A
-        fi
     fi
 else
     logger -s -t addRMSShowerDets "ftpfile not found in $fpath"
