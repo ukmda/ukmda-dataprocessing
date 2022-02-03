@@ -107,7 +107,7 @@ if __name__ == '__main__':
         for _, row in latecams.iterrows():
             mailrecip = row['eMail']
             statid = row['stationid']
-            dayslate = int(sys.argv[1] + 7)
+            dayslate = int(sys.argv[1]) + 7
             #sendAnEmail.sendAnEmail(mailrecip, latemsg1.format(statid, dayslate), subj)
             mailmsg = mailmsg + '{} {} {}\n'.format(row['stationid'], row['ts'], row['eMail'])
 

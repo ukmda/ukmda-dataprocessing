@@ -70,7 +70,7 @@ logger -s -t nightlyJob "update search index"
 ${SRC}/analysis/updateSearchIndex.sh
 
 #requires search index to have been updated first 
-${SRC}/website/createFireballPage.sh
+${SRC}/website/createFireballPage.sh ${yr} -3.7
 
 logger -s -t nightlyJob "update the R version of the camera info file"
 python << EOD
@@ -104,7 +104,6 @@ logger -s -t nightlyJob "create list of connected stations and map of stations"
 sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s, %s\n", $3,$9)}' > $DATADIR/reports/stationlogins.txt
 
 cd $DATADIR
-#export DATADIR
 #export PYLIB
 # do this manually when required; closes #61
 #python $PYLIB/utils/plotStationsOnMap.py $CAMINFO
@@ -116,6 +115,9 @@ aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/
 
 logger -s -t nightlyJob "create station reports"
 $SRC/analysis/stationReports.sh
+
+source $WEBSITEKEY
+export DATADIR
 python -m metrics.camMetrics $rundate
 cat $DATADIR/reports/camuploadtimes.csv  | sort -n -t ',' -k2 > /tmp/tmp444.txt
 mv -f /tmp/tmp444.txt $DATADIR/reports/camuploadtimes.csv

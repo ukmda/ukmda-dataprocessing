@@ -20,7 +20,7 @@ source /home/ec2-user/venvs/${RMS_ENV}/bin/activate
 cd $RMS_LOC
 logger -s -t getRMSSingleData "starting"
 indir=$MATCHDIR/RMSCorrelate
-outdir=$SRC/data/tmpsingle
+outdir=$SRC/data/single/new
 mkdir -p $outdir/processed > /dev/null 2>&1 
 
 python $SRC/ukmon_pylib/converters/RMStoUKMON.py $indir $outdir
