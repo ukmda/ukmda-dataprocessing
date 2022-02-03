@@ -40,7 +40,7 @@ else
 
     if [[ ! -d $DATADIR/reports/$yr/$shwr || "$3" == "force" ]] ; then
         logger -s -t showerReport "Running the analysis routines"
-        python -m analysis.showerAnalysis.py $shwr $dt
+        python -m analysis.showerAnalysis $shwr $dt
         python -m reports.findFireballs $dt $shwr $magval
 
         if [ -f $MATCHDIR/RMSCorrelate/trajectories/${yr}/${dt}/plots/*${shwr}.png ] ; then 
