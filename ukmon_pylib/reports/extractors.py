@@ -18,7 +18,14 @@ def createUFOSingleMonthlyExtract(yr, mth):
 
     sd = datetime.datetime(yr, mth, 1)
     ed = sd + relativedelta(months=1)
-    dsv = uaf.DetectedCsv(os.path.join(datadir, 'consolidated','M_{}-unified.csv'.format(yr)))
+    dataf = os.path.join(datadir, 'consolidated','M_{}-unified.csv'.format(yr))
+    try:
+        siz = os.path.getsize(dataf)
+        if siz < 10: 
+            return 
+    except Exception:
+        return 
+    dsv = uaf.DetectedCsv(dataf)
     if dsv.rawdata is not None:
         dta = dsv.selectByDateRange(sd, ed)
         os.makedirs(os.path.join(datadir, 'browse', 'monthly'), exist_ok=True)
@@ -34,9 +41,13 @@ def createRMSSingleMonthlyExtract(yr, mth):
         exit(1)
 
     fname = os.path.join(datadir, 'consolidated','P_{}-unified.csv'.format(yr))
-    if not os.path.isfile(fname):
-        print('datafile missing!')
+    try:
+        siz = os.path.getsize(fname)
+        if siz < 10: 
+            return 
+    except Exception:
         return 
+
     dsv = pd.read_csv(fname,index_col=False)
     dsv = dsv[dsv.Y == yr]
     dta = dsv[dsv.M == mth]
