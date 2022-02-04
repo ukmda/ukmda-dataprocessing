@@ -50,11 +50,16 @@ egrep -v "BOUNDS|WARNING|RuntimeWarning|OptimizeWarning|DeprecationWarning|ABNOR
 echo "</pre>" >> $DATADIR/lastlog.html
 cat $TEMPLATES/footer.html >> $DATADIR/lastlog.html
 
+# update index page
+numcams=$(python -c "from fileformats import CameraDetails as cd; print(len(cd.SiteInfo().getActiveCameras()))")
+cat $TEMPLATES/frontpage.html | sed "s/#NUMCAMS#/$numcams/g" > $DATADIR/newindex.html
+
 logger -s -t createSummaryTable "copying to website"
 source $WEBSITEKEY
 aws s3 cp $DATADIR/summarytable.js  $WEBSITEBUCKET/data/ --quiet
 aws s3 cp $DATADIR/coverage.html  $WEBSITEBUCKET/data/ --quiet
 aws s3 cp $DATADIR/lastlog.html  $WEBSITEBUCKET/reports/ --quiet
 aws s3 cp $DATADIR/Annual-${yr}.jpg $WEBSITEBUCKET/YearToDate.jpg --quiet
+aws s3 cp $DATADIR/newindex.html $WEBSITEBUCKET/index.html --quiet
 
 logger -s -t createSummaryTable "finished"
