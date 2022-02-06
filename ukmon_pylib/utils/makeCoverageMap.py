@@ -3,7 +3,6 @@
 #
 import sys
 import os
-import configparser
 import gmplot
 import xmltodict
 import glob
@@ -41,9 +40,10 @@ def decodeApiKey(enckey):
     return apikey.decode('utf-8')
 
 
-def makeCoverageMap(config, kmlsource, outdir, showMarker=False, useName=False):
-    apikey = decodeApiKey(config['maps']['apikey'])
-    kmltempl = config['maps']['kmltemplate']
+def makeCoverageMap( kmlsource, outdir, showMarker=False, useName=False):
+    apikey = os.getenv('APIKEY')
+    kmltempl = os.getenv('KMLTEMPLATE')
+    datadir =  os.getenv('DATADIR')
     #print(apikey)
     gmap = gmplot.GoogleMapPlotter(52, -1.0, 5, apikey=apikey, 
         title='Camera Coverage', map_type='satellite')
@@ -71,18 +71,15 @@ def makeCoverageMap(config, kmlsource, outdir, showMarker=False, useName=False):
 
 
 if __name__ == '__main__':
-    kmlsource = os.path.normpath(sys.argv[2])
-    outdir = os.path.normpath(sys.argv[3])
-    if len(sys.argv) > 4:
+    kmlsource = os.path.normpath(sys.argv[1])
+    outdir = os.path.normpath(sys.argv[2])
+    if len(sys.argv) > 3:
         showMarker=True
     else:
         showMarker=False
-    if len(sys.argv) > 5:
+    if len(sys.argv) > 4:
         useName=True
     else:
         useName=False
 
-    config = configparser.ConfigParser()
-    config.read(sys.argv[1])
-
-    makeCoverageMap(config, kmlsource, outdir, showMarker, useName)
+    makeCoverageMap(kmlsource, outdir, showMarker, useName)

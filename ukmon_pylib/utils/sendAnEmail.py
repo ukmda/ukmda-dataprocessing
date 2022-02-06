@@ -8,15 +8,12 @@ from email.mime.text import MIMEText
 
 def sendAnEmail(mailrecip, message, msgtype, files=None):
     hname = 'ukmonhelper' # os.uname()[1]
-    srcdir = os.getenv('SRC')
-    localcfg = configparser.ConfigParser()
-    localcfg.read(os.path.join(srcdir, 'config', 'config.ini'))
 
     # email a summary to the mailrecip
-    smtphost = localcfg['gmail']['mailhost'].rstrip()
-    smtpport = int(localcfg['gmail']['mailport'].rstrip())
-    smtpuser = localcfg['gmail']['mailuser'].rstrip()
-    smtppwd = localcfg['gmail']['mailpwd'].rstrip()
+    smtphost = os.getenv('MAILHOST') # localcfg['gmail']['mailhost'].rstrip()
+    smtpport = os.getenv('MAILPORT') # int(localcfg['gmail']['mailport'].rstrip())
+    smtpuser = os.getenv('MAILUSER') # localcfg['gmail']['mailuser'].rstrip()
+    smtppwd = os.getenv('MAILPWD')   # localcfg['gmail']['mailpwd'].rstrip()
     with open(os.path.expanduser(smtppwd), 'r') as fi:
         line = fi.readline()
         spls=line.split('=')

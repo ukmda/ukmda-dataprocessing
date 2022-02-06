@@ -3,10 +3,8 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
-source ~/venvs/$WMPL_ENV/bin/activate
+source $HOME/venvs/$WMPL_ENV/bin/activate
 source $WEBSITEKEY
-export PYTHONPATH=$wmpl_loc:$PYLIB
-
 
 cd $SRC/analysis
 

@@ -6,9 +6,7 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
-
 source $HOME/venvs/${WMPL_ENV}/bin/activate
-export PYTHONPATH=$wmpl_loc:$PYLIB
 
 pth=$1
 yr=${pth:0:4}

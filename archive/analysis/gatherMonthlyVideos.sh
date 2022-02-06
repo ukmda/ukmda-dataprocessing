@@ -31,9 +31,7 @@ outdir=$DATADIR/videos/${yr}/${yr}${mth}
 s3outdir=videos/${yr}/${yr}${mth}
 mkdir -p $outdir > /dev/null 2>&1
 
-export PYTHONPATH=$wmpl_loc:$PYLIB
-
-tlist=$(python $PYLIB/reports/findBestMp4s.py $yr $mth $numreq)
+tlist=$(python -m reports.findBestMp4s $yr $mth $numreq)
 for t in $tlist 
 do 
     ym=$yr$mth

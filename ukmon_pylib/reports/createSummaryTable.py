@@ -7,19 +7,16 @@ import subprocess
 import configparser as cfg
 
 
-def createSummaryTable(fname, curryr):
+def createSummaryTable(curryr):
     """Creates a summary of all data for the website front page. The table has four columns,
     the year, number of detections, number of matches and number of fireballs. 
 
     Args:
-        fname (str): full path to the output file
         curryr (str): current year
 
     """
-    srcdir = os.getenv('SRC')
-    config = cfg.ConfigParser()
-    config.read(os.path.join(srcdir, 'config', 'config.ini'))
-    datadir = config['config']['datadir']
+    datadir = os.getenv('DATADIR')
+    fname = os.path.join(datadir, 'summarytable.js')
     with open(fname, 'w') as f:
         f.write('$(function() {\n')
         f.write('var table = document.createElement("table");\n')
@@ -84,4 +81,4 @@ def createSummaryTable(fname, curryr):
 
 
 if __name__ == '__main__':
-    createSummaryTable(sys.argv[1], sys.argv[2])
+    createSummaryTable(sys.argv[1])
