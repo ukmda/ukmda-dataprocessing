@@ -4,9 +4,7 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
-export SRC
-source ~/venvs/$WMPL_ENV/bin/activate
-export PYTHONPATH=$PYLIB:$wmpl_loc
+source $HOME/venvs/$WMPL_ENV/bin/activate
 
 source ~/.ssh/ukmon-backup-keys
 
