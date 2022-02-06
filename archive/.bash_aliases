@@ -21,16 +21,12 @@ function dev {
 	source ~/venvs/$WMPL_ENV/bin/activate
 	PS1="(wmpl) (dev) [\W]\$ "
 	cd ~/dev
-	export PYTHONPATH=$PYLIB:$wmpl_loc
-	export SRC
 }
 function prd {
 	source ~/prod/config/config.ini >/dev/null 2>&1
 	source ~/venvs/$WMPL_ENV/bin/activate
 	PS1="(wmpl) (prd) [\W]\$ "
 	cd ~/prod
-	export PYTHONPATH=$PYLIB:$wmpl_loc
-	export SRC
 }
 
 function bigserver {

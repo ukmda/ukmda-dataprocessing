@@ -22,7 +22,7 @@ if [ $# -lt 1 ] ; then
 else
     curryr=$1
     fldr=$1
-    prefix=..
+    prefix=/reports
 fi
 
 cd ${DATADIR}/reports
@@ -45,9 +45,10 @@ echo "var cell = row.insertCell(3);" >> $repidx
 echo "cell.innerHTML = \"<a href="$prefix/$curryr/stations/index.html">Stations</a>\";" >> $repidx
 
 if [ -f $curryr/tmp.txt ] ; then rm -f $curryr/tmp.txt ; fi
+
 ls -1 $curryr | egrep -v "ALL|orbits|stations|fireballs|.js|.html" | while read j
 do 
-    python $PYLIB/utils/getShowerDates.py $j >> $curryr/tmp.txt
+    python -m utils.getShowerDates $j >> $curryr/tmp.txt
 done
 sort -n $curryr/tmp.txt > $curryr/shwrs.txt
 rm -f $curryr/tmp.txt
@@ -91,7 +92,7 @@ echo "})" >> $previdx
 
 logger -s -t createReportIndex "done, sending to website"
 source $WEBSITEKEY
-if [ "$fldr" == "." ] ; then 
+if [ "$prefix" == "." ] ; then 
     aws s3 cp $SRC/website/templates/reportindex.html $WEBSITEBUCKET/reports/index.html --quiet
     aws s3 cp $repidx  $WEBSITEBUCKET/reports/ --quiet
     aws s3 cp $previdx  $WEBSITEBUCKET/reports/ --quiet
@@ -99,5 +100,11 @@ else
     aws s3 cp $SRC/website/templates/reportindex.html $WEBSITEBUCKET/reports/$curryr/index.html --quiet
     aws s3 cp $repidx  $WEBSITEBUCKET/reports/$curryr/ --quiet
     aws s3 cp $previdx  $WEBSITEBUCKET/reports/$curryr/ --quiet
+    realyr=$(date +%Y)
+    if [ $curryr -eq $realyr ] ;  then
+        aws s3 cp $SRC/website/templates/reportindex.html $WEBSITEBUCKET/reports/index.html --quiet
+        aws s3 cp $repidx  $WEBSITEBUCKET/reports/ --quiet
+        aws s3 cp $previdx  $WEBSITEBUCKET/reports/ --quiet
+    fi 
 fi
 logger -s -t createReportIndex "finished"

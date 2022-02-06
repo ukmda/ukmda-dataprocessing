@@ -4,6 +4,7 @@
 #
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
+source $HOME/venvs/${RMS_ENV}/bin/activate
 
 if [ $# -lt 1 ] ; then 
     thismth=`date '+%m'`
@@ -11,8 +12,6 @@ else
     thismth=$1
 fi
 
-source /home/ec2-user/venvs/${RMS_ENV}/bin/activate
-export PYTHONPATH=$wmpl_loc:$PYLIB
 export AWS_DEFAULT_REGION=eu-west-1
 
 cd $SRC/metrics

@@ -18,8 +18,8 @@
 #
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-
 source $here/../config/config.ini >/dev/null 2>&1
+source ~/venvs/$WMPL_ENV/bin/activate
 
 mkdir -p $DATADIR/browse/showers
 
@@ -32,8 +32,6 @@ if [ $# -gt 0 ] ; then
 else
     yrs="2021 2020"
 fi 
-source ~/venvs/$WMPL_ENV/bin/activate
-export PYTHONPATH=$PYLIB
 shwrs=$(PYTHONPATH=$PYLIB python -c "from fileformats import imoWorkingShowerList as imo; sl = imo.IMOshowerList();print(sl.getMajorShowers(True, True));")
 
 

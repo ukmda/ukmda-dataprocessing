@@ -4,9 +4,7 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
-export SRC
-source ~/venvs/$WMPL_ENV/bin/activate
-export PYTHONPATH=$PYLIB:$wmpl_loc
+source $HOME/venvs/$WMPL_ENV/bin/activate
 
 logger -s -t nightlyJob "starting"
 
@@ -98,13 +96,12 @@ logger -s -t nightlyJob "create station status report"
 ${SRC}/website/cameraStatusReport.sh
 
 logger -s -t nightlyJob "create event log for other networks"
-python $SRC/ukmon_pylib/reports/createExchangeFiles.py
+python -m reports.createExchangeFiles
 
 logger -s -t nightlyJob "create list of connected stations and map of stations"
 sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s, %s\n", $3,$9)}' > $DATADIR/reports/stationlogins.txt
 
 cd $DATADIR
-#export PYLIB
 # do this manually when required; closes #61
 #python $PYLIB/utils/plotStationsOnMap.py $CAMINFO
 #
@@ -117,7 +114,6 @@ logger -s -t nightlyJob "create station reports"
 $SRC/analysis/stationReports.sh
 
 source $WEBSITEKEY
-export DATADIR
 python -m metrics.camMetrics $rundate
 cat $DATADIR/reports/camuploadtimes.csv  | sort -n -t ',' -k2 > /tmp/tmp444.txt
 mv -f /tmp/tmp444.txt $DATADIR/reports/camuploadtimes.csv
@@ -131,10 +127,10 @@ rm -f $SRC/data/.nightly_running
 # create performance metrics
 cd $SRC/logs
 matchlog=$( ls -1 ${SRC}/logs/matches-*.log | tail -1)
-python $SRC/ukmon_pylib/metrics/timingMetrics.py $matchlog 'M' >> $SRC/logs/perfMatching.csv
+python -m metrics.timingMetrics $matchlog 'M' >> $SRC/logs/perfMatching.csv
 
 nightlog=$( ls -1 ${SRC}/logs/nightlyJob-*.log | tail -1)
-python $SRC/ukmon_pylib/metrics/timingMetrics.py $nightlog 'N' >> $SRC/logs/perfNightly.csv
+python -m metrics.timingMetrics $nightlog 'N' >> $SRC/logs/perfNightly.csv
 
 # check for bad stations
 $SRC/analysis/getBadStations.sh

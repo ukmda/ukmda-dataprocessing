@@ -12,12 +12,11 @@ mv IMO*.xml $(date +%Y%m%d_%H%M%S).xml
 
 # update WMPL static data 
 source ~/venvs/$WMPL_ENV/bin/activate
-export PYTHONPATH=$PYLIB:$wmpl_loc
-export wmpl_loc
 
-cd $wmpl_loc
+cd $WMPL_LOC
 git checkout wmpl/share/streamfulldata.csv
 git checkout wmpl/share/ShowerLookUpTable.txt
+
 python -m utils.getShowerDates refresh
 
 logger -s -t getImoWSfile "finished"
