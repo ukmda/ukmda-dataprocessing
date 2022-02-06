@@ -16,8 +16,7 @@
 #
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
-
-source /home/ec2-user/venvs/${RMS_ENV}/bin/activate
+source $HOME/venvs/${RMS_ENV}/bin/activate
 
 if [ $# -lt 3 ] ; then
     echo usage: addRMSShowerDets.sh sitename camname ymd force
@@ -36,7 +35,6 @@ logger -s -t addRMSShowerDets "starting"
 if compgen -G "$fpath/FTPdetect*.txt" > /dev/null ; then 
     ftpfile=$(compgen -G "$fpath/FTPdetect*.txt" | egrep -v "backup|uncal" | head -1) 
 
-    export PYTHONPATH=$RMS_LOC:$PYLIB
     cd $RMS_LOC
 
     logger -s -t addRMSShowerDets "check if we already processed ${sitename} ${camname}" 
@@ -51,7 +49,7 @@ if compgen -G "$fpath/FTPdetect*.txt" > /dev/null ; then
         lati=$(egrep "$sitename" $CAMINFO | grep $camname | awk -F, '{print $10}')
         longi=$(egrep "$sitename" $CAMINFO | grep $camname | awk -F, '{print $9}')
 
-        python $PYLIB/traj/ufoShowerAssoc.py "$ftpfile" -y $lati -z $longi
+        python -m traj.ufoShowerAssoc "$ftpfile" -y $lati -z $longi
 
     else
         logger -s -t addRMSShowerDets "skipping $ymd"

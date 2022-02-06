@@ -36,10 +36,9 @@ rsync -avz ${DATADIR}/consolidated/P*.csv .
 cd $DATADIR/matched
 logger -s -t createMthlyExtracts "creating extracts"
 
-export DATADIR
 for yr in $yrs
 do
-    python $PYLIB/reports/extractors.py $yr $mth $endmths
+    python -m reports.extractors $yr $mth $endmths
 done
 
 logger -s -t createMthlyExtracts "done gathering data, creating table"

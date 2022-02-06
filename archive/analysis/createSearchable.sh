@@ -18,6 +18,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 source ~/venvs/$WMPL_ENV/bin/activate
 source $WEBSITEKEY
+
 if [ $# -lt 1 ] ; then
     yr=$(date +%Y)
 else
@@ -28,9 +29,7 @@ mkdir -p $DATADIR/searchidx
 cd $SRC/analysis
 logger -s -t createSearchable "creating searchable format files"
 
-export PYTHONPATH=$wmpl_loc:$PYLIB
-export WEBSITEBUCKET
-python $PYLIB/reports/createSearchableFormat.py $yr /tmp
+python -m reports.createSearchableFormat $yr /tmp
 
 mv /tmp/${yr}-singleevents.csv $DATADIR/searchidx/${yr}-allevents.csv
 if [ -f /tmp/${yr}-matchedevents.csv ] ; then 

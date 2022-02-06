@@ -20,18 +20,16 @@ if [ $# -lt 1 ] ; then
 fi 
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-
 source $here/../config/config.ini >/dev/null 2>&1
+source $HOME/venvs/$WMPL_ENV/bin/activate
+
 logger -s -t createPageIndex "starting"
 
 if [ "$2" == "force" ] ; then
     cd $SRC/orbits
     echo "forcing recalc of extra files"
-    source ~/venvs/$WMPL_ENV/bin/activate
-    export PYTHONPATH=$wmpl_loc:$PYLIB
-    export DATADIR # used by extraDataFiles.py
     logger -s -t createPageIndex "generate extra data files and copy other data of interest"
-    python $PYLIB/traj/extraDataFiles.py $1
+    python -m traj.extraDataFiles $1
 fi
 cd $here
 

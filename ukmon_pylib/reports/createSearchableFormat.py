@@ -15,12 +15,11 @@ from wmpl.Utils.TrajConversions import jd2Date
 from fileformats import CameraDetails as cd
 
 
-def convertUFOAtoSrchable(config, year, outdir):
+def convertUFOAtoSrchable(datadir, year, outdir, weburl):
     print(datetime.datetime.now(), 'single-detection searchable index start')
-    weburl=config['config']['SITEURL']
 
     # load the single-station combined data
-    rmsuafile = os.path.join(config['config']['DATADIR'], 'single', 'singles-{}.csv'.format(year))
+    rmsuafile = os.path.join(datadir, 'single', 'singles-{}.csv'.format(year))
     print(datetime.datetime.now(), 'read single file to get shower and mag')
     uadata = pd.read_csv(rmsuafile, delimiter=',')    
     uadata = uadata.assign(ts = pd.to_datetime(uadata['Dtstamp'], unit='s', utc=True))
@@ -41,7 +40,7 @@ def convertUFOAtoSrchable(config, year, outdir):
 
     # Load the list of single-camera jpgs that are available.
     print(datetime.datetime.now(), 'read list of available jpgs')
-    singlesname = os.path.join(config['config']['DATADIR'], 'singleJpgs-{}.csv'.format(year))
+    singlesname = os.path.join(datadir, 'singleJpgs-{}.csv'.format(year))
     ####
     with open(singlesname, 'r') as inf:
         lis = inf.readlines()
@@ -131,7 +130,7 @@ def convertUFOAtoSrchable(config, year, outdir):
     return 
 
 
-def convertLiveToSrchable(config, year, outdir):
+def convertLiveToSrchable(datadir, year, outdir):
     """ Convert ukmon-live records to searchable format
 
     Args:
@@ -150,7 +149,7 @@ def convertLiveToSrchable(config, year, outdir):
     zeros = []
     for q in range(1,5):
         livef='idx{:s}{:02d}.csv'.format(year, q)
-        uafile = os.path.join(config['config']['DATADIR'], 'ukmonlive', livef)
+        uafile = os.path.join(datadir, 'ukmonlive', livef)
         if os.path.exists(uafile):
             # load the data
             LIVEFMT=np.dtype([('ymd','U8'),('hms','U8'),('Loc_Cam','U16'),('SID','U8'),('Bri','f8')])
@@ -186,7 +185,7 @@ def convertLiveToSrchable(config, year, outdir):
     np.savetxt(outfile, outdata, fmt=fmtstr, header=hdr, comments='')
 
 
-def createMergedMatchFile(config, year, outdir):
+def createMergedMatchFile(datadir, year, outdir, weburl):
     """ Convert matched data records to searchable format
 
     Args:
@@ -195,10 +194,10 @@ def createMergedMatchFile(config, year, outdir):
         outdir (str): where to save the file
         
     """
-    weburl=config['config']['SITEURL'] + '/reports/' + year + '/orbits/'
+    weburl = weburl + '/reports/' + year + '/orbits/'
 
-    matchfile = os.path.join(config['config']['DATADIR'], 'matched', 'matches-{}.csv'.format(year))
-    extrafile = os.path.join(config['config']['DATADIR'], 'matched', 'matches-extras-{}.csv'.format(year))
+    matchfile = os.path.join(datadir, 'matched', 'matches-{}.csv'.format(year))
+    extrafile = os.path.join(datadir, 'matched', 'matches-extras-{}.csv'.format(year))
     mtch = pd.read_csv(matchfile, skipinitialspace=True)
     xtra = pd.read_csv(extrafile, skipinitialspace=True)
 
@@ -222,7 +221,7 @@ def createMergedMatchFile(config, year, outdir):
     return newm
 
 
-def convertMatchToSrchable(config, year, outdir):
+def convertMatchToSrchable(config, year, outdir, weburl):
     """ Convert matched data records to searchable format
 
     Args:
@@ -232,7 +231,7 @@ def convertMatchToSrchable(config, year, outdir):
         
     """
 
-    newm = createMergedMatchFile(config, year, outdir)
+    newm = createMergedMatchFile(config, year, outdir, weburl)
 
     outdf = pd.concat([newm['dtstamp'], newm['src'], newm['_stream'], newm['_mag'], newm['stations'], newm['url'], newm['img']], 
         axis=1, keys=['eventtime','source','shower','mag','loccam','url','img'])
@@ -246,13 +245,12 @@ if __name__ == '__main__':
         print('usage: python createSearchableFormat.py year dest')
         exit(1)
     else:
-        srcdir = os.getenv('SRC')
-        config = cfg.ConfigParser()
-        config.read(os.path.join(srcdir, 'config', 'config.ini'))
+        datadir = os.getenv('DATADIR')
+        weburl = os.getenv('SITEURL')
 
         year =sys.argv[1]
 
-        ret = convertUFOAtoSrchable(config, year, sys.argv[2])
-        ret = convertLiveToSrchable(config, year, sys.argv[2])
+        ret = convertUFOAtoSrchable(datadir, year, sys.argv[2], weburl)
+        ret = convertLiveToSrchable(datadir, year, sys.argv[2])
         if int(year) > 2019:
-            ret = convertMatchToSrchable(config, year, sys.argv[2])
+            ret = convertMatchToSrchable(datadir, year, sys.argv[2], weburl)

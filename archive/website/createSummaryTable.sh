@@ -18,28 +18,25 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
+source $HOME/venvs/${WMPL_ENV}/bin/activate
 
 logger -s -t createSummaryTable "creating summary table"
 cd $DATADIR
 
-export PYTHONPATH=$PYLIB:$wmpl_loc
-export SRC 
-export DATADIR
 yr=$(date +%Y)
-source ~/venvs/${WMPL_ENV}/bin/activate
 
-python $PYLIB/reports/createSummaryTable.py ./summarytable.js $yr
+python -m reports.createSummaryTable $yr
 
 logger -s -t createSummaryTable "create a coverage map from the kmls"
 # make sure correct version of GEOS and PROJ4 available for mapping routines
 
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/geos/lib:/usr/local/proj4/lib
 export LD_LIBRARY_PATH
-python $PYLIB/utils/makeCoverageMap.py $CONFIG/config.ini $ARCHDIR/../kmls $DATADIR
+python -m utils.makeCoverageMap $ARCHDIR/../kmls $DATADIR
 
 logger -s -t createSummaryTable "create year-to-date barchart"
 pushd $DATADIR
-python $PYLIB/reports/createAnnualBarChart.py  $DATADIR/matched/matches-${yr}.csv ${yr}
+python -m reports.createAnnualBarChart  $DATADIR/matched/matches-${yr}.csv ${yr}
 popd
 
 logger -s -t createSummaryTable "Add last nights log file to the website"

@@ -15,6 +15,7 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
+source $HOME/venvs/$WMPL_ENV/bin/activate
 
 if [ $# -eq 0 ]; then
     ym=$(date +%Y%m)
@@ -28,12 +29,9 @@ if [ "$2" != "" ] ; then
 else
     logger -s -t stationReports "running station reports for $ym for all stations"
 fi
-export DATADIR
-python $SRC/ukmon_pylib/analysis/stationAnalysis.py $ym $loc
-python $SRC/ukmon_pylib/analysis/stationAnalysis.py $yr $loc
+python -m analysis.stationAnalysis $ym $loc
+python -m analysis.stationAnalysis $yr $loc
 
-#cd $RCODEDIR
-#./STATION_SUMMARY_MASTER.r $yr
 logger -s -t stationReports "station reports done creating index"
 
 mkdir -p $DATADIR/reports/$yr/stations > /dev/null 2>&1

@@ -21,6 +21,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # load the configuration and website keys
 source $here/../config/config.ini >/dev/null 2>&1
+source ~/venvs/${WMPL_ENV}/bin/activate
 source $UKMONSHAREDKEY
 
 rundate=$(cat $DATADIR/rundate.txt)
@@ -43,11 +44,6 @@ fi
 # folder for logs
 mkdir -p $SRC/logs > /dev/null 2>&1
 
-logger -s -t findAllMatches "load the WMPL environment and set PYTHONPATH for the matching engine"
-
-source ~/venvs/${WMPL_ENV}/bin/activate
-export PYTHONPATH=$wmpl_loc:$PYLIB
-
 logger -s -t findAllMatches "get all UFO data into the right format"
 $SRC/analysis/convertUfoToRms.sh
 dom=`date '+%d'`
@@ -59,7 +55,6 @@ logger -s -t findAllMatches "create ukmon specific merged single-station data fi
 $SRC/analysis/getRMSSingleData.sh
 
 logger -s -t findAllMatches "set the date range for the solver"
-cd $wmpl_loc
 
 startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
 enddt=$(date --date="-$MATCHEND days" '+%Y%m%d-080000')
@@ -76,8 +71,7 @@ success=$(grep "SOLVING RUN DONE" $logf)
 
 if [ "$success" == "" ]
 then
-    export SRC
-    python $PYLIB/utils/sendAnEmail.py markmcintyre99@googlemail.com "problem with matching" "Error"
+    python -m utils.sendAnEmail markmcintyre99@googlemail.com "problem with matching" "Error"
     echo problems with solver
 fi
 logger -s -t findAllMatches "Solving run done"
@@ -85,15 +79,14 @@ logger -s -t findAllMatches "================"
 
 cd $here
 logger -s -t findAllMatches "create text file containing most recent matches"
-python $PYLIB/reports/reportOfLatestMatches.py $MATCHDIR/RMSCorrelate $DATADIR $MATCHEND $rundate
+python -m report.reportOfLatestMatches $MATCHDIR/RMSCorrelate $DATADIR $MATCHEND $rundate
 
 logger -s -t findAllMatches "update the website loop over new matches creating an index page and copying files"
 dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
 trajlist=$(cat $dailyrep | awk -F, '{print $2}')
 
 # create extra datafiles 
-export DATADIR # used by extraDatafiles
-python $PYLIB/traj/extraDataFiles.py $dailyrep
+python -m traj.extraDataFiles $dailyrep
 
 # now create page indexes and update website
 cd $here/../website
@@ -105,7 +98,7 @@ done
 
 logger -s -t findAllMatches "gather some stats"
 matchlog=$( ls -1 ${SRC}/logs/matches-*.log | tail -1)
-vals=$(python $SRC/ukmon_pylib/utils/getMatchStats.py $matchlog )
+vals=$(python -m utils.getMatchStats $matchlog )
 evts=$(echo $vals | awk '{print $2}')
 trajs=$(echo $vals | awk '{print $6}')
 matches=$(wc -l $dailyrep | awk '{print $1}')
