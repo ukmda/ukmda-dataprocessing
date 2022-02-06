@@ -271,7 +271,7 @@ def reportAllSites(ym):
         si = cd.SiteInfo(cifile)
     sitelist = si.getSites()
     for site in sitelist:
-        print('processing', site)
+        print(f'processing {site}')
         reportOneSite(ym, site)
 
     return 

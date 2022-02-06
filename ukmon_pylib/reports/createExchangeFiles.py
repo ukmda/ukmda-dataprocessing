@@ -134,8 +134,7 @@ def createWebpage(datadir):
     return 
 
 
-def createCameraFile(config):
-    datadir = config['config']['datadir']
+def createCameraFile(datadir):
     ppdir = os.path.join(datadir, 'consolidated', 'platepars')
     pps = loadPlatepars(ppdir)
     with open(os.path.join(datadir, 'browse/daily/cameradetails.csv'), 'w') as outf:
@@ -152,27 +151,23 @@ def createCameraFile(config):
     return
 
 
-def uploadFiles(config):
-    datadir = config['config']['datadir']
-    bucket = config['config']['websitebucket']
-    keyf = config['config']['websitekey']
+def uploadFiles(datadir, bucket, keyf):
     cmd = 'source {} && aws s3 sync {}/browse/daily/ {}/browse/daily/'.format(keyf, datadir, bucket)
     os.system(cmd)
     return
 
 
 if __name__ == '__main__':
-    srcdir = os.getenv('SRC')
-    config = cfg.ConfigParser()
-    config.read(os.path.join(srcdir, 'config', 'config.ini'))
-    datadir = config['config']['datadir']
+    datadir = os.getenv('DATADIR')
+    bucket = os.getenv('WEBSITEBUCKET')
+    keyf = os.getenv('WEBSITEKEY')
     if len(sys.argv) > 1:
         targdate = datetime.datetime.strptime(sys.argv[1], '%Y%m%d')
     else:
         targdate = datetime.datetime.now()
-        createCameraFile(config)
+        createCameraFile(datadir)
     
     createDetectionsFile(targdate, datadir)
     createMatchesFile(targdate, datadir)
     createWebpage(datadir)
-    uploadFiles(config)
+    uploadFiles(datadir, bucket, keyf)

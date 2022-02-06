@@ -7,7 +7,7 @@
 #
 # Consumes
 #   The single and matched data from $DATADIR/single and $DATADIR/matched
-#   The IAU shower database in $wmpl_loc/wmpl/share
+#   The IAU shower database in $WMPL_LOC/wmpl/share
 #
 # Produces
 #   A report per shower with diagrams and tables, in $DATADIR/reports/yyyy
@@ -17,8 +17,6 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 source ~/venvs/$RMS_ENV/bin/activate
 
-export PYTHONPATH=$RMS_LOC:$PYLIB
-
 if [ $# -eq 0 ]; then
     yr=$(date +%Y)
 else
@@ -26,7 +24,7 @@ else
 fi
 
 logger -s -t reportYear "get list of active showers"
-python $PYLIB/utils/getActiveShowers.py | while read i 
+python -m utils.getActiveShowers | while read i 
 do 
     logger -s -t reportYear "processing $i for $yr"
     $SRC/analysis/showerReport.sh $i $yr force

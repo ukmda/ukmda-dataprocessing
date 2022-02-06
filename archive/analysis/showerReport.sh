@@ -16,6 +16,7 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
+source $HOME/venvs/${WMPL_ENV}/bin/activate
 
 if [ $# -lt 2 ] ; then
 	echo Usage: showerReport.sh GEM 2017 {force}
@@ -25,10 +26,6 @@ else
     yr=${dt:0:4}
     mth=${dt:4:6}
     logger -s -t showerReport "starting $shwr $dt"
-    source /home/ec2-user/venvs/${WMPL_ENV}/bin/activate
-    export PYTHONPATH=$wmpl_loc:$PYLIB
-    export MATCHDIR
-    export DATADIR
 
     cd ${DATADIR}
 
@@ -61,6 +58,11 @@ else
     else
         echo "<a href=\"/reports/$yr/$shwr/index.html\">Back to annual index</a><br>" >> $idxfile
     fi 
+    if [ -f $DATADIR/shwrinfo/$shwr.txt ] ; then 
+        echo "<pre>" >> $idxfile
+        cat $DATADIR/shwrinfo/$shwr.txt >> $idxfile
+        echo "</pre>" >> $idxfile
+    fi
     echo "<pre>" >> $idxfile
     cat $DATADIR/$outdir/statistics.txt >> $idxfile
     if [ "$shwr" == "ALL" ] ; then 

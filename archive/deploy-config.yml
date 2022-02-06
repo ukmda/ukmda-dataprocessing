@@ -78,7 +78,7 @@
     lineinfile:
       path: '{{destdir}}/config/config.ini'
       regexp: 'WMPL_LOC='
-      line: 'wmpl_loc={{wmplhome}}'
+      line: 'WMPL_LOC={{wmplhome}}'
     tags: [dev,prod]
   - name: update camera info file loc
     lineinfile:
@@ -103,6 +103,7 @@
       path: '{{destdir}}/config/config.ini'
       regexp: 'WEBSITEKEY='
       line: 'WEBSITEKEY={{websitekey}}'
+    tags: [dev,prod]
   - name: update Calcengine Server I
     lineinfile:
       path: '{{destdir}}/config/config.ini'
