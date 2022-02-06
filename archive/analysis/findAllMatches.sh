@@ -79,7 +79,7 @@ logger -s -t findAllMatches "================"
 
 cd $here
 logger -s -t findAllMatches "create text file containing most recent matches"
-python -m report.reportOfLatestMatches $MATCHDIR/RMSCorrelate $DATADIR $MATCHEND $rundate
+python -m reports.reportOfLatestMatches $MATCHDIR/RMSCorrelate $DATADIR $MATCHEND $rundate
 
 logger -s -t findAllMatches "update the website loop over new matches creating an index page and copying files"
 dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
