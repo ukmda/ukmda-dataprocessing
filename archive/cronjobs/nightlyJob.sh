@@ -14,14 +14,14 @@ mth=$(date +%Y%m)
 yr=$(date +%Y)
 echo $rundate > $DATADIR/rundate.txt
 
-# force-consolidate any outstanding new data 
+# force-consolidate any outstanding new data in the S3 bucket
 logger -s -t nightlyJob "forcing consolidation of anything pending"
 source $WEBSITEKEY
 export AWS_DEFAULT_REGION=eu-west-2
 aws lambda invoke --function-name ConsolidateCSVs --log-type Tail $SRC/logs/ConsolidateCSVs.log
 
-# get a list of all jpgs from single station events for later use
-logger -s -t nightlyJob "getting list of single jpg files"
+# get a list of all jpgs and mp4s from single station events for later use
+logger -s -t nightlyJob "getting list of single jpg and mp4 files"
 aws s3 ls $WEBSITEBUCKET/img/single/$yr/ --recursive | awk '{print $4}' > $DATADIR/singleJpgs-$yr.csv
 aws s3 ls $WEBSITEBUCKET/img/mp4/$yr/ --recursive | awk '{print $4}' > $DATADIR/singleMp4s-$yr.csv
 
@@ -53,9 +53,9 @@ else
     aws lambda invoke --function-name dailyReport --log-type Tail $SRC/logs/dailyReport.log
 fi
 
-logger -s -t nightlyJob "update shower associations"
-daysback=$MATCHSTART
-${SRC}/analysis/updateRMSShowerAssocs.sh $daysback
+#logger -s -t nightlyJob "update shower associations"
+#daysback=$MATCHSTART
+#${SRC}/analysis/updateRMSShowerAssocs.sh $daysback
 
 logger -s -t nightlyJob "consolidate the resulting data "
 $SRC/analysis/consolidateOutput.sh ${yr}
@@ -64,9 +64,11 @@ logger -s -t nightlyJob "create monthly and shower extracts for the website"
 ${SRC}/website/createMthlyExtracts.sh ${mth}
 ${SRC}/website/createShwrExtracts.sh ${mth}
 
-logger -s -t nightlyJob "update search index"
-${SRC}/analysis/updateSearchIndex.sh
+logger -s -t nightlyJob "update search index files and station list for search index"
+$SRC/analysis/createSearchable.sh
+$SRC/website/createStationList.sh
 
+logger -s -t nightlyJob "update annual bright event/fireball page"
 #requires search index to have been updated first 
 ${SRC}/website/createFireballPage.sh ${yr} -3.7
 
@@ -81,8 +83,8 @@ logger -s -t nightlyJob "update the monthly and annual reports"
 $SRC/analysis/showerReport.sh ALL ${mth} force
 $SRC/analysis/showerReport.sh ALL ${yr} force
 
-# do this before individual shower reports so that the graphs can be copied
 logger -s -t nightlyJob "Create density and velocity plots by solar longitude"
+# do this before individual shower reports so that the graphs can be copied
 $SRC/analysis/createDensityPlots.sh ${mth}
 $SRC/analysis/createDensityPlots.sh ${yr}
 
@@ -102,9 +104,8 @@ logger -s -t nightlyJob "create list of connected stations and map of stations"
 sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s, %s\n", $3,$9)}' > $DATADIR/reports/stationlogins.txt
 
 cd $DATADIR
-# do this manually when required; closes #61
+# do this manually when on PC required; closes #61
 #python $PYLIB/utils/plotStationsOnMap.py $CAMINFO
-#
 
 source $WEBSITEKEY
 aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt
