@@ -25,7 +25,7 @@ if [ "$yr" == "" ] ; then
 fi 
 
 cd ${DATADIR}
-logger -s -t consolidateOutput "Backing up previous days data"
+logger -s -t consolidateOutput "Getting latest trajectory data"
 
 # collect the latest trajectory CSV files
 # make sure target folders exist
