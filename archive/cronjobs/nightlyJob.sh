@@ -53,10 +53,6 @@ else
     aws lambda invoke --function-name dailyReport --log-type Tail $SRC/logs/dailyReport.log
 fi
 
-#logger -s -t nightlyJob "update shower associations"
-#daysback=$MATCHSTART
-#${SRC}/analysis/updateRMSShowerAssocs.sh $daysback
-
 logger -s -t nightlyJob "consolidate the resulting data "
 $SRC/analysis/consolidateOutput.sh ${yr}
 
@@ -108,8 +104,8 @@ cd $DATADIR
 #python $PYLIB/utils/plotStationsOnMap.py $CAMINFO
 
 source $WEBSITEKEY
-aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt
-aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/
+aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --quiet
+aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/ --quiet
 
 logger -s -t nightlyJob "create station reports"
 $SRC/analysis/stationReports.sh
