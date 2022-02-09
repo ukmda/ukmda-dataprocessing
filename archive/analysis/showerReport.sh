@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Create a report for the named shower and year
+# Create a report for the named shower and year or year+month
 #
 # Parameters
 #   shower 3-letter code SSS
