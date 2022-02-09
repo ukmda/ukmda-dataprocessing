@@ -14,7 +14,7 @@ from traj.ufoTrajSolver import createAdditionalOutput, calcAdditionalValues, loa
 from fileformats import CameraDetails as cdet
 
 
-def generateExtraFiles(outdir, skipimgs = False):
+def generateExtraFiles(outdir, cinfo, datadir, archdir, skipimgs = False):
     outdir=os.path.normpath(outdir)
     try:
         picklefile = glob.glob1(outdir, '*.pickle')[0]
@@ -23,11 +23,11 @@ def generateExtraFiles(outdir, skipimgs = False):
     else:
         traj = loadPickle(outdir, picklefile)
         traj.save_results = True
-
+        print(picklefile)
         createAdditionalOutput(traj, outdir)
         if skipimgs is False:
-            findMatchingJpgs(traj, outdir)
-            findMatchingMp4s(traj, outdir)
+            # findMatchingJpgs(traj, outdir)
+            findMatchingOtherFiles(traj, outdir, cinfo, datadir, archdir)
     return
 
 
@@ -108,7 +108,99 @@ def findMatchingJpgs(traj, outdir):
     jpghtml.close()
 
 
-def findMatchingMp4s(traj, outdir):
+def findMatchingOtherFiles(traj, outdir, cinfo, datadir, archdir):
+    mp4s = None
+    jpgs = None
+    mp4html = open(os.path.join(outdir, 'mpgs.html'), 'w')
+    jpghtml = open(os.path.join(outdir, 'jpgs.html'), 'w')
+    mp4outf = open(os.path.join(outdir, 'mpgs.lst'), 'w')
+    jpgoutf = open(os.path.join(outdir, 'jpgs.lst'), 'w')
+    for obs in traj.observations:
+        statid = obs.station_id
+        fldr = cinfo.getFolder(statid)
+        evtdate = jd2Date(obs.jdt_ref, dt_obj=True)
+        if mp4s is None:
+            with open(os.path.join(datadir, 'singleMp4s-{}.csv'.format(evtdate.year))) as inf:
+                mp4s = inf.readlines()
+        if jpgs is None:
+            with open(os.path.join(datadir, 'singleJpgs-{}.csv'.format(evtdate.year))) as inf:
+                jpgs = inf.readlines()
+
+        compstr = statid + '_' + evtdate.strftime('%Y%m%d_%H%M%S')
+        #print(compstr)
+        # look for matching jpgs
+        mtch=[line.strip() for line in jpgs if compstr[:-1] in line]
+        if len(mtch) > 1: 
+            for m in mtch:
+                fn = os.path.basename(m)
+                spls=fn.split('_')
+                dtstamp = datetime.strptime(spls[2] + '_' + spls[3], '%Y%m%d_%H%M%S')
+                if (evtdate - dtstamp).seconds < 10:
+                    jpgoutf.write('{}\n'.format(m))
+                    break
+        elif len(mtch) == 0:
+            tmped = evtdate + timedelta(seconds=-10)
+            compstr = statid + '_' + tmped.strftime('%Y%m%d_%H%M%S')
+            mtch=[line.strip() for line in jpgs if compstr[:-1] in line]
+            if len(mtch) > 0:
+                jpgoutf.write('{}\n'.format(mtch[0]))
+                jpghtml.write(f'<a href="/{mtch[0]}"><img src="/{mtch[0]}" width="20%"></a>\n')
+        else: 
+            jpgoutf.write('{}\n'.format(mtch[0]))
+            jpghtml.write(f'<a href="/{mtch[0]}"><img src="/{mtch[0]}" width="20%"></a>\n')
+
+        #now do MP4s            
+        mtch=[line.strip() for line in mp4s if compstr[:-1] in line]
+        if len(mtch) > 1: 
+            for m in mtch:
+                fn = os.path.basename(m)
+                spls=fn.split('_')
+                dtstamp = datetime.strptime(spls[2] + '_' + spls[3], '%Y%m%d_%H%M%S')
+                if (evtdate - dtstamp).seconds < 10:
+                    mp4outf.write('{}\n'.format(m))
+                    mp4html.write(f'<a href="/{m}"><video width="20%"><source src="/{m}" width="20%" type="video/mp4"></video></a>\n')
+                    break
+        elif len(mtch) == 0:
+            tmped = evtdate + timedelta(seconds=-10)
+            compstr = statid + '_' + tmped.strftime('%Y%m%d_%H%M%S')
+            mtch=[line.strip() for line in mp4s if compstr[:-1] in line]
+            if len(mtch) > 0:
+                mp4outf.write('{}\n'.format(mtch[0]))
+                mp4html.write(f'<a href="/{mtch[0]}"><video width="20%"><source src="/{mtch[0]}" width="20%" type="video/mp4"></video></a>\n')
+        else: 
+            mp4outf.write('{}\n'.format(mtch[0]))
+            mp4html.write(f'<a href="/{mtch[0]}"><video width="20%"><source src="/{mtch[0]}" width="20%" type="video/mp4"></video></a>\n')
+
+        # if the event is after midnight the folder will have the previous days date
+        if evtdate.hour < 12:
+            evtdate += timedelta(days=-1)
+        yr = evtdate.year
+        ym = evtdate.year * 100 + evtdate.month
+        ymd = ym *100 + evtdate.day
+
+        thispth = '{:s}/{:04d}/{:06d}/{:08d}/'.format(fldr, yr, ym, ymd)
+        srcpath = os.path.join(archdir, thispth)
+        print('R90 CSV, KML and FTPDetect file')
+        try:
+            flist=glob.glob1(srcpath, '*.csv')
+            for f in flist:
+                shutil.copy2(os.path.join(srcpath, f), outdir)
+            flist=glob.glob1(srcpath, '*.kml')
+            for f in flist:
+                shutil.copy2(os.path.join(srcpath, f), outdir)
+            flist = glob.glob1(srcpath, "FTPdetectinfo*.txt")
+            for fil in flist:
+                shutil.copy2(os.path.join(srcpath, f), outdir)
+        except:
+            continue
+    mp4html.close()
+    mp4outf.close()
+    jpghtml.close()
+    jpgoutf.close()
+    return
+
+
+if __name__ == '__main__':
     archdir = os.getenv('ARCHDIR')
     if archdir is None:
         archdir='/home/ec2-user/ukmon-shared/archive'
@@ -117,80 +209,16 @@ def findMatchingMp4s(traj, outdir):
     except Exception:
         datadir='/home/ec2-user/prod/data'
 
-    print('getting camera details file')
-    cinfo = cdet.SiteInfo()
-
-    mp4s = None
-    mp4html = open(os.path.join(outdir, 'mpgs.html'), 'w')
-
-    with open(os.path.join(outdir, 'mpgs.lst'), 'w') as outf:
-        for obs in traj.observations:
-            statid = obs.station_id
-            fldr = cinfo.getFolder(statid)
-            evtdate = jd2Date(obs.jdt_ref, dt_obj=True)
-            if mp4s is None:
-                with open(os.path.join(datadir, 'singleMp4s-{}.csv'.format(evtdate.year))) as inf:
-                    mp4s = inf.readlines()
-            compstr = statid + '_' + evtdate.strftime('%Y%m%d_%H%M%S')
-            #print(compstr)
-            mtch=[line.strip() for line in mp4s if compstr[:-1] in line]
-            if len(mtch) > 1: 
-                for m in mtch:
-                    fn = os.path.basename(m)
-                    spls=fn.split('_')
-                    dtstamp = datetime.strptime(spls[2] + '_' + spls[3], '%Y%m%d_%H%M%S')
-                    if (evtdate - dtstamp).seconds < 10:
-                        outf.write('{}\n'.format(m))
-                        mp4html.write(f'<a href="/{m}"><video width="20%"><source src="/{m}" width="20%" type="video/mp4"></video></a>\n')
-                        break
-            elif len(mtch) == 0:
-                tmped = evtdate + timedelta(seconds=-10)
-                compstr = statid + '_' + tmped.strftime('%Y%m%d_%H%M%S')
-                mtch=[line.strip() for line in mp4s if compstr[:-1] in line]
-                if len(mtch) > 0:
-                    outf.write('{}\n'.format(mtch[0]))
-                    mp4html.write(f'<a href="/{mtch[0]}"><video width="20%"><source src="/{mtch[0]}" width="20%" type="video/mp4"></video></a>\n')
-            else: 
-                outf.write('{}\n'.format(mtch[0]))
-                mp4html.write(f'<a href="/{mtch[0]}"><video width="20%"><source src="/{mtch[0]}" width="20%" type="video/mp4"></video></a>\n')
-    
-            # if the event is after midnight the folder will have the previous days date
-            if evtdate.hour < 12:
-                evtdate += timedelta(days=-1)
-            yr = evtdate.year
-            ym = evtdate.year * 100 + evtdate.month
-            ymd = ym *100 + evtdate.day
-
-            thispth = '{:s}/{:04d}/{:06d}/{:08d}/'.format(fldr, yr, ym, ymd)
-            srcpath = os.path.join(archdir, thispth)
-            print('R90 CSV, KML and FTPDetect file')
-            try:
-                flist=glob.glob1(srcpath, '*.csv')
-                for f in flist:
-                    shutil.copy2(os.path.join(srcpath, f), outdir)
-                flist=glob.glob1(srcpath, '*.kml')
-                for f in flist:
-                    shutil.copy2(os.path.join(srcpath, f), outdir)
-                flist = glob.glob1(srcpath, "FTPdetectinfo*.txt")
-                for fil in flist:
-                    shutil.copy2(os.path.join(srcpath, f), outdir)
-            except:
-                continue
-    mp4html.close()
-    return
-
-
-if __name__ == '__main__':
     fl = sys.argv[1]
     skipimgs = False
     if platform.system() == 'Windows':
         skipimgs = True
-
+    cinfo = cdet.SiteInfo()
     if os.path.isdir(fl):
-        generateExtraFiles(fl, skipimgs=skipimgs)
+        generateExtraFiles(fl, cinfo, datadir, archdir, skipimgs=skipimgs)
     else:
         with open(fl,'r') as inf:
             dirs = inf.readlines()
             for li in dirs:
                 fl = li.split(',')[1]
-                generateExtraFiles(fl, skipimgs=skipimgs)
+                generateExtraFiles(fl, cinfo, datadir, archdir, skipimgs=skipimgs)
