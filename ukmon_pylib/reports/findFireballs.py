@@ -1,5 +1,5 @@
 #
-# Search for Fireballs in the archive
+# Search for Fireballs and bright events in the archive
 # Default magnitude -4 or greater (either abs or observed)
 #
 
@@ -45,6 +45,7 @@ def createMDFiles(fbs, outdir, matchdir):
 
 def findMatchedFireballs(df, outdir=None, mag=-4):
     fbs = df.sort_values(by='_mag')
+    fbs = fbs.drop_duplicates(subset=['_mjd', '_mag'], keep='last')
     if mag == 999: 
         fbs = fbs.head(10)        
     else:
