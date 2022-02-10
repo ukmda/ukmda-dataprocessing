@@ -66,7 +66,7 @@ sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")
 
 source $WEBSITEKEY
 aws s3 sync $DATADIR/reports/$yr/stations/  $WEBSITEBUCKET/reports/$yr/stations/ --quiet
-aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt
+aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --quiet
 
 logger -s -t stationReports "finished"
 
