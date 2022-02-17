@@ -5,10 +5,10 @@ UKMON Archive and UKMON Live data flows
     flowchart TD
     A[camera 1] -- realtime --> C[UKMON Live];
     B[camera 2] -- realtime --> C;
-    B1[camera 3] -- realtime --> C;
+    P[camera 3] -- realtime --> C;
     A -- next day --> D[cloud storage];
     B -- next day --> D;
-    B1 -- next day --> D;
+    P -- next day --> D;
     D --> E[matching engine];
     E --> F[reports generator];
     F --> G[opt-in email of matches];
@@ -20,7 +20,6 @@ UKMON Archive and UKMON Live data flows
     C --> N{bright event?};
     N -->|yes| K[social media];
     H -- manual --> K;
-    G --> O[camera owners];
-    I --> O;
-    F --> O;
+    I --> O[camera owners];
+    G --> O;
 ```
