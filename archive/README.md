@@ -1,10 +1,11 @@
-README for UKMON Archive
+UKMON Archive and UKMON Live data flows
+=======================================
 
 ```mermaid
     flowchart TD
     A[camera 1] -- realtime --> C[UKMON Live];
     B[camera 2] -- realtime --> C;
-    B1[camera N] -- realtime --> C;
+    B1[camera 3] -- realtime --> C;
     A -- next day --> D[cloud storage];
     B -- next day --> D;
     B1 -- next day --> D;
@@ -19,4 +20,7 @@ README for UKMON Archive
     C --> N{bright event?};
     N -->|yes| K[social media];
     H -- manual --> K;
+    G --> O[camera owners];
+    I --> O;
+    F --> O;
 ```
