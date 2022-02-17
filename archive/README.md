@@ -15,6 +15,6 @@ README for UKMON Archive
     H --> M[public];
     C --> M[public];
     C --> N{bright event?};
-    N -- |yes| K[social media];
+    N -->|yes| K[social media];
     K -- manual -->H;
 ```
