@@ -86,7 +86,8 @@ dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
 trajlist=$(cat $dailyrep | awk -F, '{print $2}')
 
 # create extra datafiles 
-python -m traj.extraDataFiles $dailyrep
+#python -m traj.extraDataFiles $dailyrep
+sleep 30
 
 # now create page indexes and update website
 cd $here/../website
