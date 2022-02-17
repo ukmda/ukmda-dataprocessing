@@ -12,4 +12,8 @@ README for UKMON Archive
     F[reports generator] --> I[bad-data alerts];
     F[reports generator] --> H[website];
     H[website] -- on demand -->J[other networks];
+    H[website] --> L[public];
+    C[livestream] --> L[public];
+    C[livestream] -- manual --> K[social media];
+    K[social media] -- manual -->H[website];
 ```
