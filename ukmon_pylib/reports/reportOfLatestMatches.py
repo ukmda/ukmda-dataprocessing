@@ -73,7 +73,7 @@ def findNewMatches(dir_path, out_path, offset, repdtstr):
                     break
                 outstr = outstr + ',' + f
             outstr = outstr.strip()
-            print(outstr)
+            #print(outstr)
             outf.write('{}\n'.format(outstr))
 
     # sort the data by magnitude

@@ -45,4 +45,4 @@ do
 done
 
 source $UKMONSHAREDKEY
-aws s3 sync $outdir s3://ukmon-shared/$s3outdir 
+aws s3 sync $outdir s3://ukmon-shared/$s3outdir --quiet

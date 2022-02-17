@@ -547,3 +547,9 @@ archive/unused/**
 **/.terraform.lock.hcl
 **/terraform.tfstate
 **/terraform.tfstate.backup
+**/test/*.csv
+**/test/*.kml
+**/test/*.txt
+**/test/*.png
+**/test/*.html
+**/test/*.lst
