@@ -11,7 +11,7 @@ README for UKMON Archive
     F --> G[opt-in email of matches];
     F --> I[bad-data alerts];
     F --> H[website];
-    H -- on demand -->J[other networks];
+    H -- on demand --> J[other networks];
     H --> M[public];
     C --> M[public];
     C --> N{bright event?};
