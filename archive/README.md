@@ -1,11 +1,14 @@
 README for UKMON Archive
 
 ```mermaid
-    flowchart TD;
-    [camera 1]-->[livestream];
-    [camera 2]-->[livestream];
-    [camera 1]-->[cloud storage];
-    [camera 2]-->[cloud storage];
-    [cloud storage]-->[matching engine];
-    [matching engine]-->[website];
+    flowchart TD
+    A[camera 1] --> C[livestream];
+    B[camera 2] --> C[livestream];
+    A[camera 1] --> D[cloud storage];
+    B[camera 2] --> D[cloud storage];
+    D[cloud storage] --> E[matching engine];
+    E[matching engine] --> F[reports generator];
+    F[reports generator] --> G[opt-in email of matches];
+    F[reports generator] --> H[website];
+    F[reports generator] --> I[bad-data alerts];
 ```
