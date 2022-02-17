@@ -4,8 +4,7 @@ UKMon Shared code and libraries
 
 analysis
 --------
-Some python scripts to analyse UFO data with RMS or WMPL, curate UFO data and solve orbits
-after converting to RMS format. These will be merged into the ukmon_pylib module at some point. 
+Some powershell scripts to analyse data with RMS or WMPL, and solve orbits after converting to RMS format. 
 
 archive
 -------
@@ -29,9 +28,5 @@ ukmon_pylib
 -----------
 A python module containing functionality used across the website and other analytics. 
 
-UKmonCPPTools
--------------
-The live uploader, archiver and other tools for Windows written in C++ 
-These require the AWS API for C++ and Visual Studio 2019. This code is legacy. 
 
 
