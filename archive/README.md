@@ -3,17 +3,18 @@ README for UKMON Archive
 ```mermaid
     flowchart TD
     A[camera 1] -- realtime --> C[livestream];
-    B[camera 2] -- realtime --> C[livestream];
-    A[camera 1] -- next day --> D[cloud storage];
-    B[camera 2] -- next day --> D[cloud storage];
-    D[cloud storage] --> E[matching engine];
-    E[matching engine] --> F[reports generator];
-    F[reports generator] --> G[opt-in email of matches];
-    F[reports generator] --> I[bad-data alerts];
-    F[reports generator] --> H[website];
-    H[website] -- on demand -->J[other networks];
-    H[website] --> L[public];
-    C[livestream] --> L[public];
-    C[livestream] -- manual --> K[social media];
-    K[social media] -- manual -->H[website];
+    B[camera 2] -- realtime --> C;
+    A -- next day --> D[cloud storage];
+    B -- next day --> D;
+    D --> E[matching engine];
+    E --> F[reports generator];
+    F --> G[opt-in email of matches];
+    F --> I[bad-data alerts];
+    F --> H[website];
+    H -- on demand -->J[other networks];
+    H --> M[public];
+    C --> M[public];
+    C --> N{bright event?};
+    N -- |yes| K[social media];
+    K -- manual -->H;
 ```
