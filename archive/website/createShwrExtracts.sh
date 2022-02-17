@@ -81,6 +81,16 @@ do
             fi
         done
     fi
+    if compgen -G "$DATADIR/single/singles-${yr}.csv" > /dev/null ; then 
+        for shwr in $shwrs
+        do
+            rc=$(grep "${shwr}" $DATADIR/single/singles-${yr}.csv | wc -l)
+            if [ $rc -gt 0 ]; then
+                cp $SRC/analysis/templates/UA_header.txt $DATADIR/browse/showers/${yr}-${shwr}-detections-rms.csv
+                grep "${shwr}" $DATADIR/single/singles-${yr}.csv | grep -v UK99 >> $DATADIR/browse/showers/${yr}-${shwr}-detections-rms.csv
+            fi
+        done
+    fi
 done
 
 logger -s -t createShwrExtracts "done gathering data, creating tables"

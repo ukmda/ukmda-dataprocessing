@@ -13,7 +13,7 @@ alias tnj='if [ "$SRC" == "" ] ; then echo select env first; else tail -f $(ls -
 
 alias stats='if [ "$DATADIR" == "" ] ; then echo select env first; else tail $DATADIR/dailyreports/stats.txt ; fi'
 
-alias matchstatus='if [ "$SRC" == "" ] ; then echo select env first; else grep TRAJ $(ls -1 $SRC/logs/matches-*.log | tail -1)|grep SOLVING && grep Observations: $(ls -1 $SRC/logs/matches-*.log | tail -1) | wc -l ; fi'
+alias matchstatus='if [ "$SRC" == "" ] ; then echo select env first; else grep "Running" $(ls -1 $SRC/logs/matches-*.log| tail -1 ) && grep TRAJ $(ls -1 $SRC/logs/matches-*.log | tail -1)|grep SOLVING && grep Observations: $(ls -1 $SRC/logs/matches-*.log | tail -1) | wc -l ; fi'
 alias spacecalc='ls -1 | egrep -v "ukmon-shared" | while read i ; do \du -s $i ; done | sort -n'
 
 function dev {

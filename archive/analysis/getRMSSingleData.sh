@@ -35,4 +35,11 @@ do
     mv $i $outdir/processed
 done 
 
+# push to S3 bucket for future use by AWS tools
+source $UKMONSHAREDKEY
+source ~/venvs/${WMPL_ENV}/bin/activate
+python -m converters.toParquet $SRC/data/single/singles-${yr}.csv
+aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/single/ --exclude "*" --include "*.csv" --quiet
+aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/singlepq/ --exclude "*" --include "*.parquet.gzip" --quiet
+
 logger -s -t getRMSSingleData "finished"

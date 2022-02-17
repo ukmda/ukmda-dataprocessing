@@ -60,7 +60,7 @@ echo "cd /home/ec2-user/data/RMSCorrelate" >> $execMatchingsh
 echo "df -h . " >> $execMatchingsh
 echo "logger -s -t runMatching done and syncing back" >> $execMatchingsh
 echo "aws s3 sync trajectories/ s3://ukmon-shared/matches/RMSCorrelate/trajectories/ --quiet" >> $execMatchingsh
-echo "aws s3 cp processed_trajectories.json s3://ukmon-shared/matches/RMSCorrelate/processed_trajectories.json.bigserver" >> $execMatchingsh
+echo "aws s3 cp processed_trajectories.json s3://ukmon-shared/matches/RMSCorrelate/processed_trajectories.json.bigserver --quiet" >> $execMatchingsh
 chmod +x $execMatchingsh
 
 logger -s -t runMatching "get server details"

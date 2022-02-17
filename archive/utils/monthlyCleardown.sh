@@ -57,4 +57,4 @@ fi
 rm -Rf ${lyr}-allevents.csv
 
 source ~/.ssh/ukmon-backup-keys
-aws s3 sync $DATADIR/olddata/ s3://ukmon-shared-backup/analysisbackup/ --exclude "*" --include "*.tgz"
+aws s3 sync $DATADIR/olddata/ s3://ukmon-shared-backup/analysisbackup/ --exclude "*" --include "*.tgz" --quiet
