@@ -8,8 +8,9 @@ from boto3.dynamodb.conditions import Key
 
 from wmplloc.Pickling import loadPickle 
 from wmplloc.Math import jd2Date
-from wmplloc.ufoTrajSolver import createAdditionalOutput
+from wmplloc.pickleAnalyser import createAdditionalOutput
 from wmplloc import awsAthenaGlueRetr as agr
+from wmplloc.createOrbitPageIndex import createOrbitPageIndex
 
 
 def findSite(stationid, ddb):
@@ -28,11 +29,11 @@ def findSite(stationid, ddb):
 
 def generateExtraFiles(key, athena_client, archbucket, websitebucket, ddb, s3):
     fuloutdir, fname = os.path.split(key)
-    _, outdir = os.path.split(fuloutdir)
+    _, orbname = os.path.split(fuloutdir)
     tmpdir = os.getenv('TMP')
     if tmpdir is None:
         tmpdir ='/tmp'
-    outdir = os.path.join(tmpdir, outdir)
+    outdir = os.path.join(tmpdir, orbname)
     os.makedirs(outdir, exist_ok=True)
     locfname = os.path.join(outdir, fname)
 
@@ -81,7 +82,13 @@ def generateExtraFiles(key, athena_client, archbucket, websitebucket, ddb, s3):
     mp4html.close()
     jpgf.close()
     mp4f.close()
+
+    repfname = locfname.replace('trajectory.pickle', 'report.txt')
+    key2 = key.replace('trajectory.pickle', 'report.txt')
+    s3.meta.client.download_file(archbucket, key2, repfname)
+    createOrbitPageIndex(outdir)
     pushFilesBack(outdir, archbucket, fuloutdir, s3)
+    pushToWebsite(archbucket, fuloutdir, websitebucket, orbname, s3)
     return 
 
 
@@ -103,9 +110,18 @@ def findOtherFiles(evtdate, archbucket, outdir, fldr, s3):
                 _, locfname = os.path.split(fname)
                 locfname = os.path.join(outdir, locfname)
                 s3.meta.client.download_file(archbucket, fname, locfname)
-        if objlist['IsTruncated'] is True:
-            # handle case when additional files
-            pass 
+    while objlist['IsTruncated'] is True:
+        contToken = objlist['NextContinuationToken'] 
+        objlist = s3.meta.client.list_objects_v2(Bucket=archbucket,Prefix=thispth, ContinuationToken=contToken)
+        if objlist['KeyCount'] > 0:
+            keys = objlist['Contents']
+            for k in keys:
+                fname = k['Key']
+                if '.csv' in fname or '.kml' in fname or 'FTPdetectinfo' in fname:
+                    _, locfname = os.path.split(fname)
+                    locfname = os.path.join(outdir, locfname)
+                    s3.meta.client.download_file(archbucket, fname, locfname)
+
     return
 
 
@@ -120,13 +136,79 @@ def pushFilesBack(outdir, archbucket, fldr, s3):
     for f in flist:
         locfname = os.path.join(outdir, f)
         zipfile.write(locfname)
-        key = os.path.join(fldr, f)
-        # print(locfname, key)
-        s3.meta.client.upload_file(locfname, archbucket, key) 
+        if 'pickle' not in f:
+            key = os.path.join(fldr, f)
+            # print(locfname, key)
+            extraargs = getExtraArgs(locfname)
+            s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs) 
+
     zipfile.close()
     # now we push the zipfile
     key = os.path.join(fldr, pth + '.zip')
-    s3.meta.client.upload_file(zipfname, archbucket, key) 
+    extraargs = getExtraArgs(zipfname)
+    s3.meta.client.upload_file(zipfname, archbucket, key, ExtraArgs=extraargs) 
+    return 
+
+
+def getExtraArgs(fname):
+    _, file_ext = os.path.splitext(fname)
+    ctyp='text/plain'
+    if file_ext=='.jpg': 
+        ctyp = 'image/jpeg'
+    if file_ext=='.fits': 
+        ctyp = 'image/fits'
+    elif file_ext=='.png': 
+        ctyp = 'image/png'
+    elif file_ext=='.bmp': 
+        ctyp = 'image/bmp'
+    elif file_ext=='.mp4': 
+        ctyp = 'video/mp4'
+    elif file_ext=='.csv': 
+        ctyp = 'text/csv'
+    elif file_ext=='.html': 
+        ctyp = 'text/html'
+    elif file_ext=='.json': 
+        ctyp = 'application/json'
+    elif file_ext=='.zip': 
+        ctyp = 'application/zip'
+
+    extraargs = {'ContentType': ctyp}
+    return extraargs
+
+
+def pushToWebsite(archbucket, fuloutdir, websitebucket, orbname, s3):
+    yr = orbname[:4]
+    ym = orbname[:6]
+    ymd = orbname[:8]
+
+    targpth = f'reports/{yr}/orbits/{ym}/{ymd}/{orbname}/'
+
+    objlist = s3.meta.client.list_objects_v2(Bucket=archbucket,Prefix=fuloutdir)
+    if objlist['KeyCount'] > 0:
+        keys = objlist['Contents']
+        for k in keys:
+            fname = k['Key']
+            _, locfname = os.path.split(fname)
+            copysrc = {'Bucket': archbucket, 'Key': fname}
+            targfile = targpth + locfname
+            extraargs = getExtraArgs(locfname)
+            print(targfile, extraargs)
+            s3.meta.client.copy(copysrc, websitebucket, targfile, ExtraArgs=extraargs)
+
+    while objlist['IsTruncated'] is True:
+        contToken = objlist['NextContinuationToken'] 
+        objlist = s3.meta.client.list_objects_v2(Bucket=archbucket,Prefix=fuloutdir, ContinuationToken=contToken)
+        if objlist['KeyCount'] > 0:
+            keys = objlist['Contents']
+            for k in keys:
+                fname = k['Key']
+                _, locfname = os.path.split(fname)
+                copysrc = {'Bucket': archbucket, 'Key': fname}
+                targfile = targpth + locfname
+                extraargs = getExtraArgs(locfname)
+                print('targfile')
+                s3.meta.client.copy(copysrc, websitebucket, targfile, ExtraArgs=extraargs)
+
     return 
 
 

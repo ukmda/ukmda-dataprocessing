@@ -1,3 +1,8 @@
+#
+# arn:aws:lambda:eu-west-2:317976261112:function:getExtraFiles
+# remember to add policy to allow s3 bucket to invoke 
+# then add s3 trigger on the properties page of teh bucket
+# 
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Parameters:
@@ -29,6 +34,7 @@ Resources:
         Variables:
           WEBSITEBUCKET: ukmeteornetworkarchive
           PYTHONPATH: /mnt/pylibs/python
+          TEMPLATES: /mnt/pylibs/templates
           MPLCONFIGDIR: /tmp/mpl
       VpcConfig:
         SecurityGroupIds: !Ref SecurityGroupIds

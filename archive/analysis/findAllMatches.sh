@@ -85,17 +85,18 @@ logger -s -t findAllMatches "update the website loop over new matches creating a
 dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
 trajlist=$(cat $dailyrep | awk -F, '{print $2}')
 
+# wait while lambdas complete
+sleep 60
 # create extra datafiles 
 #python -m traj.extraDataFiles $dailyrep
-sleep 30
 
 # now create page indexes and update website
-cd $here/../website
-yr=$(date +%Y)
-for traj in $trajlist 
-do
-    $SRC/website/createPageIndex.sh $traj
-done
+#cd $here/../website
+#yr=$(date +%Y)
+#for traj in $trajlist 
+#do
+#    $SRC/website/createPageIndex.sh $traj
+#done
 
 logger -s -t findAllMatches "gather some stats"
 matchlog=$( ls -1 ${SRC}/logs/matches-*.log | tail -1)

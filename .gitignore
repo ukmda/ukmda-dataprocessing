@@ -553,3 +553,4 @@ archive/unused/**
 **/test/*.png
 **/test/*.html
 **/test/*.lst
+ukmon_pylib/tests/*
