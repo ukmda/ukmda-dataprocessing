@@ -180,7 +180,7 @@ def findMatchingOtherFiles(traj, outdir, cinfo, datadir, archdir):
 
         thispth = '{:s}/{:04d}/{:06d}/{:08d}/'.format(fldr, yr, ym, ymd)
         srcpath = os.path.join(archdir, thispth)
-        print('R90 CSV, KML and FTPDetect file')
+        #print('R90 CSV, KML and FTPDetect file')
         try:
             flist=glob.glob1(srcpath, '*.csv')
             for f in flist:
