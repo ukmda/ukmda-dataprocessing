@@ -81,20 +81,21 @@ cd $here
 logger -s -t findAllMatches "create text file containing most recent matches"
 python -m reports.reportOfLatestMatches $MATCHDIR/RMSCorrelate $DATADIR $MATCHEND $rundate
 
-logger -s -t findAllMatches "update the website loop over new matches creating an index page and copying files"
-dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
-trajlist=$(cat $dailyrep | awk -F, '{print $2}')
-
+# wait while lambdas complete
+sleep 60
 # create extra datafiles 
-python -m traj.extraDataFiles $dailyrep
+#python -m traj.extraDataFiles $dailyrep
 
 # now create page indexes and update website
-cd $here/../website
-yr=$(date +%Y)
-for traj in $trajlist 
-do
-    $SRC/website/createPageIndex.sh $traj
-done
+#cd $here/../website
+#yr=$(date +%Y)
+#for traj in $trajlist 
+#do
+#    $SRC/website/createPageIndex.sh $traj
+#done
+
+dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
+trajlist=$(cat $dailyrep | awk -F, '{print $2}')
 
 logger -s -t findAllMatches "gather some stats"
 matchlog=$( ls -1 ${SRC}/logs/matches-*.log | tail -1)
@@ -110,38 +111,14 @@ if [ "$RUNTIME_ENV" == "PROD" ] ; then
     rsync -avz $DATADIR/dailyreports/ $MATCHDIR/RMSCorrelate/dailyreports/
 fi 
 
-logger -s -t findAllMatches "backup the solved trajectory data"
+logger -s -t findAllMatches "update the Index page for the month and the year"
+$SRC/website/updateIndexPages.sh $dailyrep
 
+logger -s -t findAllMatches "backup the solved trajectory data"
 lastjson=$(ls -1tr $SRC/bkp/| grep -v ".gz" | tail -1)
 thisjson=$MATCHDIR/RMSCorrelate/processed_trajectories.json.bigserver
 cp $thisjson $SRC/bkp/processed_trajectories.json.$(date +%Y%m%d).bigserver
 gzip $SRC/bkp/$lastjson
-
-logger -s -t findAllMatches "update the Index page for the month and the year"
-
-for traj in $trajlist ; do bn=$(basename $traj); echo ${bn:0:8} >> /tmp/days.txt ; done
-daystodo=$(cat /tmp/days.txt | sort | uniq)
-for dtd in $daystodo
-do
-    $SRC/website/createOrbitIndex.sh ${dtd}
-done
-rm /tmp/days.txt
-
-for traj in $trajlist ; do bn=$(basename $traj); echo ${bn:0:6} >> /tmp/days.txt ; done
-daystodo=$(cat /tmp/days.txt | sort | uniq)
-for dtd in $daystodo
-do
-    $SRC/website/createOrbitIndex.sh ${dtd}
-done
-rm /tmp/days.txt
-
-for traj in $trajlist ; do bn=$(basename $traj); echo ${bn:0:4} >> /tmp/days.txt ; done
-daystodo=$(cat /tmp/days.txt | sort | uniq)
-for ytd in $daystodo
-do
-    $SRC/website/createOrbitIndex.sh ${ytd}
-done
-rm /tmp/days.txt
 
 logger -s -t findAllMatches "purge old logs"
 find $SRC/logs -name "matches*" -mtime +7 -exec gzip {} \;

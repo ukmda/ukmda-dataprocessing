@@ -6,7 +6,6 @@
 from __future__ import print_function, division, absolute_import
 
 import os
-import sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -308,7 +307,7 @@ def draw3Dmap(traj, outdir):
             lons.append(np.degrees(obs.model_lon[i]))
             alts.append(obs.model_ht[i])
             lens.append(obs.time_data[i])
-    df = pd.DataFrame({"lats": lats, "lons": lons, "alts": alts, "times": lens })
+    df = pd.DataFrame({"lats": lats, "lons": lons, "alts": alts, "times": lens})
     df = df.sort_values(by=['times', 'lats'])
     dtstr = jd2Date(traj.jdt_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
     csvname = os.path.join(outdir, dtstr + '_track.csv')
@@ -317,7 +316,7 @@ def draw3Dmap(traj, outdir):
     fig = plt.figure()
     ax = Axes3D(fig)
     _ = ax.plot_trisurf(df.lats, df.lons, df.alts, cmap=cm.jet, linewidth=0.2)
-    jpgname = os.path.join(outdir, dtstr + '_3dtrack.png')
+    jpgname = os.path.join(outdir, dtstr[:15].replace('-','_') + '_3dtrack.png')
     plt.savefig(jpgname, dpi=300)
     plt.close()
     return
@@ -451,5 +450,3 @@ def createAdditionalOutput(traj, outdir):
         print('no orbit object')
 
     return 
-
-

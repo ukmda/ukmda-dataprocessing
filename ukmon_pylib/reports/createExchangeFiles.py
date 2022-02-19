@@ -3,7 +3,6 @@ import os
 import sys
 import csv
 import pandas as pd
-import configparser as cfg
 
 from fileformats.platepar import loadPlatepars
 
