@@ -23,7 +23,7 @@ if __name__ == '__main__':
         exit(1)
     
     latemsg1 = textwrap.dedent("""
-        Hi, this is to let you know that your camera {} has not uploaded to UKMON for {} days.
+        Hi, this is to let you know that camera {} has not uploaded to UKMON for {} days.
 
         If you've taken the camera offline for maintenance you can ignore this message. 
         Otherwise you might want to check that the camera and Pi are working as expected and 
@@ -34,7 +34,7 @@ if __name__ == '__main__':
         The UKMON team
         """)
     latemsg2 = textwrap.dedent("""
-        Hi, this is to let you know that your camera {} has not uploaded to UKMON for {} days.
+        Hi, this is to let you know that camera {} has not uploaded to UKMON for {} days.
 
         If you've taken the camera offline for maintenance you can ignore this message. 
         Otherwise you might want to check that the camera and Pi are working as expected and 
@@ -49,15 +49,18 @@ if __name__ == '__main__':
         Anything over 500 detections is unusual and suggests bad data.
         The questionable data was uploaded in {}.
 
-        We suggest you check for vegetation that might have grown into the field of view, 
-        security lights that might be flicking off and on, and anything that might attract
-        insects into the field of view. 
+        To check for possible causes, look at the all-night timelapse or all-night
+        stack of meteors. Possible culprits are fast-moving cloud lit by moonlight, 
+        moving vegetation, security lights flicking off and on, and anything that might 
+        attract insects. 
 
-        If you would like to clean up the data, you can do so using CMN_BinViewer, 
-        following the Confirmation process explained at the link below. 
+        Unless you spot an interesting event on the stack or timelapse, there is no need
+        to manually clean up the data. It can be really time consuming. However, if 
+        you would like to do it, you use CMN_BinViewer by following the Confirmation 
+        process explained at the link below. 
         https://github.com/markmac99/ukmon-pitools/wiki/Using-Binviewer
-        Then please reply to this email, attaching the new FTPdetect file from the 
-        ConfirmedFiles folder.
+        Once you've eliminated the bad data, please send the new FTPdetect file from the 
+        ConfirmedFiles folder to this email address.
 
         Regards
         The UKMON team
