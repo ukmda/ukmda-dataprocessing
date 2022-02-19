@@ -15,12 +15,15 @@ def angleBetweenSphericalCoords(phi1, lambda1, phi2, lambda2):
 def vectNorm(vect):
     return vect/vectMag(vect)
 
+
 def vectMag(vect):
     return np.sqrt(inner1d(vect, vect))
+
 
 def rotateVector(vect, axis, theta):
     rot_M = scipy.linalg.expm(np.cross(np.eye(3), axis/vectMag(axis)*theta))
     return np.dot(rot_M, vect)
+
 
 def jd2Date(jd, UT_corr=0, dt_obj=False):
     try:
@@ -59,6 +62,7 @@ def sollon2jd(Year, Month, Long):
 
     return JD1
 
+
 def date2JD(year, month, day, hour, minute, second, millisecond=0, UT_corr=0.0):
     """ Convert date and time to Julian Date in J2000.0. 
     
@@ -89,6 +93,7 @@ def date2JD(year, month, day, hour, minute, second, millisecond=0, UT_corr=0.0):
     
     # Convert seconds to day fractions
     return julian.days + (julian.seconds + julian.microseconds/1000000.0)/86400.0
+
 
 def mergeClosePoints(x_array, y_array, delta, x_datetime=False, method='avg'):
     """ Finds if points have similar sample values on the independant axis x (if they are within delta) and 
@@ -140,13 +145,13 @@ def mergeClosePoints(x_array, y_array, delta, x_datetime=False, method='avg'):
 
             # Choose either to take the mean, max, or min of the points in the window
             if method.lower() == "max":
-                y = np.max(y_array[i : i + count])
+                y = np.max(y_array[i:i + count])
 
             elif method.lower() == "min":
-                y = np.min(y_array[i : i + count])
+                y = np.min(y_array[i:i + count])
                 
             else:
-                y = np.mean(y_array[i : i + count])
+                y = np.mean(y_array[i:i + count])
 
 
         # If there are no close points, add the current point to the list

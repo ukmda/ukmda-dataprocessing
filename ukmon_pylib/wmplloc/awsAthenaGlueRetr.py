@@ -3,6 +3,8 @@
 # 
 import boto3
 import pandas as pd
+from random import randint
+from time import sleep
 
 
 def run_query(client, query, bucket_name, dbname):
@@ -18,9 +20,14 @@ def validate_query(client, query_id):
     resp = ["FAILED", "SUCCEEDED", "CANCELLED"]
     response = client.get_query_execution(QueryExecutionId=query_id)
     # wait until query finishes
-    while response["QueryExecution"]["Status"]["State"] not in resp:
-        response = client.get_query_execution(QueryExecutionId=query_id)
-
+    retries = 0
+    while response["QueryExecution"]["Status"]["State"] not in resp and retries < 100:
+        try:
+            response = client.get_query_execution(QueryExecutionId=query_id)
+        except: 
+            sleep(randint(0,10)/100)
+            retries += 1
+    
     return response["QueryExecution"]["Status"]["State"]
 
 
@@ -32,10 +39,10 @@ def read(query, bucket_name, athena_client, dbname, credentials=None):
             aws_access_key_id=credentials['AccessKeyId'],
             aws_secret_access_key=credentials['SecretAccessKey'],
             aws_session_token=credentials['SessionToken'])
-    #print('start query: {}\n'.format(query))
+
     qe = run_query(athena_client, query, bucket_name, dbname)
+
     _ = validate_query(athena_client, qe["QueryExecutionId"])
-    #print('query state: {}\n'.format(qstate))
 
     file_name = "tmp/fromglue/{}.csv".format(qe["QueryExecutionId"])
     obj = s3_client.get_object(Bucket=bucket_name, Key=file_name)
@@ -43,10 +50,8 @@ def read(query, bucket_name, athena_client, dbname, credentials=None):
 
 
 if __name__ =='__main__':
-    # s3 = boto3.resource('s3')
     athena_client = boto3.client(service_name='athena', region_name='eu-west-2')
     bucket_name = 'ukmon-shared'
-    # print('Working bucket: {}'.format(bucket_name))
 
     time_entries_df = read("SELECT dtstamp,filename,y,m,d,h,mi,s FROM singlepq where id='UK000P' and d=2 and y=2022", 
         bucket_name, athena_client, 'ukmonsingledata')

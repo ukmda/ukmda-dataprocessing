@@ -6,6 +6,7 @@ from zipfile import ZipFile
 from datetime import datetime, timedelta
 from boto3.dynamodb.conditions import Key
 
+# modules imported from EFS filesystem
 from wmplloc.Pickling import loadPickle 
 from wmplloc.Math import jd2Date
 from wmplloc.pickleAnalyser import createAdditionalOutput
@@ -192,7 +193,7 @@ def pushToWebsite(archbucket, fuloutdir, websitebucket, orbname, s3):
             copysrc = {'Bucket': archbucket, 'Key': fname}
             targfile = targpth + locfname
             extraargs = getExtraArgs(locfname)
-            print(targfile, extraargs)
+            # print(targfile, extraargs)
             s3.meta.client.copy(copysrc, websitebucket, targfile, ExtraArgs=extraargs)
 
     while objlist['IsTruncated'] is True:
@@ -206,7 +207,7 @@ def pushToWebsite(archbucket, fuloutdir, websitebucket, orbname, s3):
                 copysrc = {'Bucket': archbucket, 'Key': fname}
                 targfile = targpth + locfname
                 extraargs = getExtraArgs(locfname)
-                print('targfile')
+                # print(targfile, extraargs)
                 s3.meta.client.copy(copysrc, websitebucket, targfile, ExtraArgs=extraargs)
 
     return 
