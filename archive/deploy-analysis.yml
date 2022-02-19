@@ -58,7 +58,7 @@
     - {src: '{{srcdir}}/archive/website/', dest: '{{destdir}}/website/', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/shwrinfo/', dest: '{{destdir}}/data/shwrinfo/', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/website/templates/', dest: '/home/ec2-user/pylibs/templates/', mode: '754', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/ukmon_pylib/wmplloc/', dest: '/home/ec2-user/pylibs/python/wmplloc/', mode: '754', backup: no, directory_mode: yes }
 
     - {src: '{{srcdir}}/archive/costs/getCostMetrics.sh', dest: '{{destdir}}/costs/', mode: '754', backup: no }
-#    - {src: '{{srcdir}}/analysis/orbitSolver/reduceOrbit.sh', dest: '{{destdir}}/orbits/', mode: '744', backup: no }
     
