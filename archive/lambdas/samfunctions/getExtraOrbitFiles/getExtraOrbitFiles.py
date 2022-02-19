@@ -87,8 +87,16 @@ def generateExtraFiles(key, athena_client, archbucket, websitebucket, ddb, s3):
     repfname = locfname.replace('trajectory.pickle', 'report.txt')
     key2 = key.replace('trajectory.pickle', 'report.txt')
     s3.meta.client.download_file(archbucket, key2, repfname)
-    createOrbitPageIndex(outdir)
+
+    # pushFilesBack creates the zipfile so we need to do this first
     pushFilesBack(outdir, archbucket, fuloutdir, s3)
+    createOrbitPageIndex(outdir)
+
+    idxname = os.path.join(outdir, 'index.html')
+    key = os.path.join(fuloutdir, 'index.html')
+    extraargs = getExtraArgs('index.html')
+    s3.meta.client.upload_file(idxname, archbucket, key, ExtraArgs=extraargs) 
+    
     pushToWebsite(archbucket, fuloutdir, websitebucket, orbname, s3)
     return 
 
