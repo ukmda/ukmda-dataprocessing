@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
+#from matplotlib import cm
 import datetime
 
 from wmplloc.Math import jd2Date, sollon2jd
@@ -315,9 +315,10 @@ def draw3Dmap(traj, outdir):
     df = df.drop(columns=['times'])
     fig = plt.figure()
     ax = Axes3D(fig)
-    _ = ax.plot_trisurf(df.lats, df.lons, df.alts, cmap=cm.jet, linewidth=0.2)
+    #_ = ax.plot_trisurf(df.lats, df.lons, df.alts, cmap=cm.jet, linewidth=2)
+    _ = ax.plot(df.lats, df.lons, df.alts, linewidth=2)
     jpgname = os.path.join(outdir, dtstr[:15].replace('-','_') + '_3dtrack.png')
-    plt.savefig(jpgname, dpi=300)
+    plt.savefig(jpgname, dpi=200)
     plt.close()
     return
 
@@ -415,6 +416,8 @@ def createAdditionalOutput(traj, outdir):
         with open(summrpt, 'w', newline='') as f:
             f.write('Summary for Event\n')
             f.write('-----------------\n')
+            dt = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            f.write(f'Updated: {dt}\n\n')
             if orb is not None:
                 f.write('shower ID {:d} {:s} ({:s})\n'.format(id, cod, shwrname))
                 if orb.L_g is not None:
