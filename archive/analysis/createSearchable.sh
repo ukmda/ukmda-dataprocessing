@@ -32,14 +32,15 @@ logger -s -t createSearchable "creating searchable format files"
 python -m reports.createSearchableFormat $yr /tmp
 
 mv /tmp/${yr}-singleevents.csv $DATADIR/searchidx/${yr}-allevents.csv
+
 if [ -f /tmp/${yr}-matchedevents.csv ] ; then 
     sed '1d' /tmp/${yr}-matchedevents.csv >> $DATADIR/searchidx/${yr}-allevents.csv
     rm -f /tmp/${yr}-matchedevents.csv
 fi 
-if [ -f /tmp/${yr}-liveevents.csv ] ; then 
-    sed '1d' /tmp/${yr}-liveevents.csv >> $DATADIR/searchidx/${yr}-allevents.csv
-    rm -f /tmp/${yr}-liveevents.csv
-fi
+#if [ -f /tmp/${yr}-liveevents.csv ] ; then 
+#    sed '1d' /tmp/${yr}-liveevents.csv >> $DATADIR/searchidx/${yr}-allevents.csv
+#    rm -f /tmp/${yr}-liveevents.csv
+#fi
 
 if [ -f /tmp/matches-full-${yr}.csv ] ; then 
     mv -f /tmp/matches-full-${yr}.csv $DATADIR/matched/
@@ -56,4 +57,4 @@ cat $DATADIR/searchidx/*-allevents.csv | awk -F, '{print $5}' | sort | sed 's/^ 
 source $WEBSITEKEY
 aws s3 sync $DATADIR/searchidx/ $WEBSITEBUCKET/search/indexes/ --quiet
 source $UKMONSHAREDKEY
-aws s3 sync $DATADIR/matched $UKMONSHAREDBUCKET/matches/matched --quiet
+aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matched/ --quiet
