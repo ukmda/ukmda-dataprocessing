@@ -111,15 +111,15 @@ if __name__ == '__main__':
             mailrecip = row['eMail']
             statid = row['stationid']
             dayslate = int(sys.argv[1]) + 7
-            #sendAnEmail.sendAnEmail(mailrecip, latemsg1.format(statid, dayslate), subj)
+            sendAnEmail.sendAnEmail(mailrecip, latemsg1.format(statid, dayslate), subj)
             mailmsg = mailmsg + '{} {} {}\n'.format(row['stationid'], row['ts'], row['eMail'])
 
     logcli = boto3.client('logs', region_name='eu-west-2')
 
-    uxt = datetime.datetime.now() + datetime.timedelta(days=-1)
-    uxt = uxt.replace(hour=0, minute=0, second=0, microsecond=0)
-    print(uxt)
-    uxt = int(uxt.timestamp()*1000)
+    chkdt = datetime.datetime.now() + datetime.timedelta(days=-1)
+    chkdt = chkdt.replace(hour=0, minute=0, second=0, microsecond=0)
+    print(chkdt)
+    uxt = int(chkdt.timestamp()*1000)
 
     badcams=[]
     response = logcli.filter_log_events(
@@ -166,6 +166,7 @@ if __name__ == '__main__':
         badcams = pd.DataFrame(badcams, columns=['stationid','ts','reccount','ftpname'])
         badcams = pd.merge(badcams, camowners, on=['stationid'])
         badcams = badcams.drop(columns=['site'])
+        badcams = badcams[badcams.ts >= chkdt]
         print(badcams)
         for _, row in badcams.iterrows():
             mailrecip = row['eMail']
