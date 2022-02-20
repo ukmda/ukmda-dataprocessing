@@ -52,6 +52,7 @@ if [ $dom -lt 10 ] ; then
     $SRC/analysis/convertUfoToRms.sh $lastmth
 fi
 logger -s -t findAllMatches "create ukmon specific merged single-station data file"
+# this creates the parquet table for Athena
 $SRC/analysis/getRMSSingleData.sh
 
 logger -s -t findAllMatches "set the date range for the solver"
@@ -60,9 +61,12 @@ startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
 enddt=$(date --date="-$MATCHEND days" '+%Y%m%d-080000')
 logger -s -t findAllMatches "solving for ${startdt} to ${enddt}"
 
+
+logger -s -t findAllMatches "preserve previous trajectories database"
 thisjson=$MATCHDIR/RMSCorrelate/processed_trajectories.json.bigserver
 cp $thisjson $MATCHDIR/RMSCorrelate/prev_processed_trajectories.json.bigserver
 
+logger -s -t findAllMatches "actually run the matching process"
 $SRC/analysis/runMatching.sh
 
 logger -s -t findAllMatches "check if the solver had some sort of failiure"
@@ -79,25 +83,15 @@ logger -s -t findAllMatches "================"
 
 cd $here
 logger -s -t findAllMatches "create text file containing most recent matches"
+# this compares the previous and current trajectory database (json file)
 python -m reports.reportOfLatestMatches $MATCHDIR/RMSCorrelate $DATADIR $MATCHEND $rundate
 
-# wait while lambdas complete
-sleep 60
-# create extra datafiles 
-#python -m traj.extraDataFiles $dailyrep
 
-# now create page indexes and update website
-#cd $here/../website
-#yr=$(date +%Y)
-#for traj in $trajlist 
-#do
-#    $SRC/website/createPageIndex.sh $traj
-#done
+logger -s -t findAllMatches "gather some stats"
 
 dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
 trajlist=$(cat $dailyrep | awk -F, '{print $2}')
 
-logger -s -t findAllMatches "gather some stats"
 matchlog=$( ls -1 ${SRC}/logs/matches-*.log | tail -1)
 vals=$(python -m utils.getMatchStats $matchlog )
 evts=$(echo $vals | awk '{print $2}')
@@ -106,7 +100,7 @@ matches=$(wc -l $dailyrep | awk '{print $1}')
 rtim=$(grep "Total run time" $matchlog | awk '{print $4}')
 echo $(basename $dailyrep) $evts $trajs $matches $rtim >>  $DATADIR/dailyreports/stats.txt
 
-# copy data to S3 so the daily report can run
+# copy stats to S3 so the daily report can run
 if [ "$RUNTIME_ENV" == "PROD" ] ; then 
     rsync -avz $DATADIR/dailyreports/ $MATCHDIR/RMSCorrelate/dailyreports/
 fi 
