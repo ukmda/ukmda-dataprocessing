@@ -8,14 +8,79 @@ import sys
 import os
 import numpy as np
 import pandas as pd
-import configparser as cfg
 import datetime 
 
 from wmpl.Utils.TrajConversions import jd2Date
 from fileformats import CameraDetails as cd
 
 
-def convertUFOAtoSrchable(datadir, year, outdir, weburl):
+def convertSingletoSrchable(datadir, year, outdir, weburl):
+    print(datetime.datetime.now(), 'single-detection searchable index start')
+
+    # load the single-station combined data
+    rmsuafile = os.path.join(datadir, 'single', 'singles-{}.csv'.format(year))
+    print(datetime.datetime.now(), 'read single file to get shower and mag')
+    uadata = pd.read_csv(rmsuafile, delimiter=',')    
+    uadata = uadata.assign(ts = pd.to_datetime(uadata['Dtstamp'], unit='s', utc=True))
+    uadata['LocalTime'] = [ts.strftime('%Y%m%d_%H%M%S') for ts in uadata.ts]
+
+    # create image filename
+    uadata['fn']=[f'{weburl}/img/single/{y}/{y}{m:02d}/'+f.replace('.fits','.jpg') 
+        for f,y,m in zip(uadata.Filename, uadata.Y, uadata.M)]
+
+    # create array for source
+    print(datetime.datetime.now(), 'add source column')
+    srcs = ['2Single']*len(uadata.Filename)
+
+    #eventtime,source,shower,Mag,loccam,url,imgs
+
+    # and put it all in a dataframe
+    print(datetime.datetime.now(), 'create interim dataframe')
+    hdr=['eventtime','source','shower','Mag','loccam','url','imgs', 'loctime', 'Y','M']
+    resdf = pd.DataFrame(zip(uadata.Dtstamp, srcs, uadata.Shwr, 
+        uadata.Mag, uadata.ID, uadata.fn, uadata.fn, uadata.LocalTime,
+        uadata.Y, uadata.M), columns=hdr)
+
+    # fix up some mangled historical data
+    resdf.loc[resdf.loccam=='Ringwood_N_UK000S', 'loccam'] = 'UK000S'
+    resdf.loc[resdf.loccam=='Tackley_SW_UK0006', 'loccam'] = 'UK0006'
+
+    # select the RMS data out, its good now
+    rmsdata=resdf[resdf.url.str.contains('FF_UK0')]
+    rmsdata = rmsdata.drop(columns=['Y','M','loctime'])
+
+    # now select out the UFO dta and fix it up
+    ufodata=resdf[resdf.url.str.contains('FF_UK9')]
+    #fix up Clanfield cameras
+    ufodata.loc[ufodata.loccam=='UK9990', 'loccam'] = 'Clanfield_NE'
+    ufodata.loc[ufodata.loccam=='UK9989', 'loccam'] = 'Clanfield_NW'
+    ufodata.loc[ufodata.loccam=='UK9988', 'loccam'] = 'Clanfield_SE'
+    ufodata = ufodata.drop(columns=['url','imgs'])
+
+    # create the URL and imgs fields
+    ufodata['url']=[f'{weburl}/img/single/{y}/{y}{m:02d}/M{lt}_{f}P.jpg'
+        for f,y,m,lt in zip(ufodata.loccam, ufodata.Y, ufodata.M, ufodata.loctime)]
+    ufodata['imgs'] = ufodata.url
+    ufodata = ufodata.drop(columns=['loctime','Y','M'])
+
+    # annoying special case for UK0001, H and S which do not upload JPGs
+    rmsdata.loc[rmsdata.loccam=='UK0001','url']=f'{weburl}/img/missing-white.png'
+    rmsdata.loc[rmsdata.loccam=='UK0001','imgs']=f'{weburl}/img/missing-white.png'
+    rmsdata.loc[rmsdata.loccam=='UK000H','url']=f'{weburl}/img/missing-white.png'
+    rmsdata.loc[rmsdata.loccam=='UK000H','imgs']=f'{weburl}/img/missing-white.png'
+    rmsdata.loc[rmsdata.loccam=='UK000S','url']=f'{weburl}/img/missing-white.png'
+    rmsdata.loc[rmsdata.loccam=='UK000S','imgs']=f'{weburl}/img/missing-white.png'
+    
+    print(datetime.datetime.now(), 'save data')
+    outfile = os.path.join(outdir, '{:s}-singleevents.csv'.format(year))
+
+    resdf = pd.concat([rmsdata,ufodata])
+    resdf.to_csv(outfile, sep=',', index=False)
+    print(datetime.datetime.now(), 'single-detection index created')
+    return 
+
+
+def OLDconvertSingletoSrchable(datadir, year, outdir, weburl):
     print(datetime.datetime.now(), 'single-detection searchable index start')
 
     # load the single-station combined data
@@ -230,9 +295,10 @@ def convertMatchToSrchable(config, year, outdir, weburl):
         outdir (str): where to save the file
         
     """
-
+    print('creating merged match file')
     newm = createMergedMatchFile(config, year, outdir, weburl)
 
+    print('saving file')
     outdf = pd.concat([newm['dtstamp'], newm['src'], newm['_stream'], newm['_mag'], newm['stations'], newm['url'], newm['img']], 
         axis=1, keys=['eventtime','source','shower','mag','loccam','url','img'])
     outfile = os.path.join(outdir, '{:s}-matchedevents.csv'.format(year))
@@ -250,7 +316,7 @@ if __name__ == '__main__':
 
         year =sys.argv[1]
 
-        ret = convertUFOAtoSrchable(datadir, year, sys.argv[2], weburl)
-        ret = convertLiveToSrchable(datadir, year, sys.argv[2])
+        ret = convertSingletoSrchable(datadir, year, sys.argv[2], weburl)
+        # ret = convertLiveToSrchable(datadir, year, sys.argv[2])
         if int(year) > 2019:
             ret = convertMatchToSrchable(datadir, year, sys.argv[2], weburl)

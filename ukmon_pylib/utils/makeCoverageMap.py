@@ -40,13 +40,15 @@ def decodeApiKey(enckey):
     return apikey.decode('utf-8')
 
 
-def makeCoverageMap( kmlsource, outdir, showMarker=False, useName=False):
+def makeCoverageMap(kmlsource, outdir, showMarker=False, useName=False):
     apikey = os.getenv('APIKEY')
+    apikey = decodeApiKey(apikey)
     kmltempl = os.getenv('KMLTEMPLATE')
-    datadir =  os.getenv('DATADIR')
+    heightval = kmltempl[1:-4]
+    #datadir = os.getenv('DATADIR')
     #print(apikey)
     gmap = gmplot.GoogleMapPlotter(52, -1.0, 5, apikey=apikey, 
-        title='Camera Coverage', map_type='satellite')
+        title=f'Camera Coverage at {heightval}', map_type='satellite')
 
     flist = glob.glob1(kmlsource, kmltempl)
     cols = list(gmplot.color._HTML_COLOR_CODES.keys())
@@ -60,7 +62,7 @@ def makeCoverageMap( kmlsource, outdir, showMarker=False, useName=False):
 
     # Draw the map to an HTML file:
     if useName is False:
-        outfname = 'coverage.html'
+        outfname = f'coverage-{heightval}.html'
         gmap.draw(os.path.join(outdir, outfname))
     else:
         outpth = os.path.split(outdir)[0]
