@@ -2,6 +2,7 @@ import urllib.parse
 import boto3
 import os
 import sys
+import shutil
 from zipfile import ZipFile
 from datetime import datetime, timedelta
 from boto3.dynamodb.conditions import Key
@@ -98,6 +99,10 @@ def generateExtraFiles(key, athena_client, archbucket, websitebucket, ddb, s3):
     s3.meta.client.upload_file(idxname, archbucket, key, ExtraArgs=extraargs) 
     
     pushToWebsite(archbucket, fuloutdir, websitebucket, orbname, s3)
+    try:
+        shutil.rmtree(outdir)
+    except Exception:
+        print(f'unable to remove {outdir}')
     return 
 
 
