@@ -6,8 +6,9 @@
 import sys
 import os
 import pandas as pd
-from traj.extraDataFiles import getBestView
-from wmpl.Utils.TrajConversions import jd2Date
+
+from wmplloc.pickleAnalyser import getBestView
+from wmplloc.Math import jd2Date
 
 
 def createMDFiles(fbs, outdir, matchdir):
@@ -58,10 +59,11 @@ def findMatchedFireballs(df, outdir=None, mag=-4):
 def findFBPre2020(df, outdir=None, mag=-4):
     df=df[df._mag < mag]
     fbs=pd.concat([df._localtime,df._mag,df._stream,df._vg,df._a,df._e,df._incl,df._peri,df._node,df._p], axis=1, 
-    	keys=['url','mag','shower','vg','a','e','incl','peri','node','p'])
+        keys=['url','mag','shower','vg','a','e','incl','peri','node','p'])
 #    fbs['url']=['not available' for x in fbs.mag]
     fbs=fbs.sort_values(by=['mag','shower'])
     return fbs
+
 
 if __name__ == '__main__':
     datadir = os.getenv('DATADIR')
