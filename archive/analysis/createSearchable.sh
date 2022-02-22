@@ -46,6 +46,8 @@ if [ -f /tmp/matches-full-${yr}.csv ] ; then
     mv -f /tmp/matches-full-${yr}.csv $DATADIR/matched/
 fi
 
+python -m converters.toParquet $DATADIR/matched/matches-full-${yr}.csv
+
 grep -v "J8_TBC" $DATADIR/searchidx/${yr}-allevents.csv > /tmp/${yr}-allevents.csv
 
 cp /tmp/${yr}-allevents.csv $DATADIR/searchidx/${yr}-allevents.csv
@@ -57,4 +59,5 @@ cat $DATADIR/searchidx/*-allevents.csv | awk -F, '{print $5}' | sort | sed 's/^ 
 source $WEBSITEKEY
 aws s3 sync $DATADIR/searchidx/ $WEBSITEBUCKET/search/indexes/ --quiet
 source $UKMONSHAREDKEY
-aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matched/ --quiet
+aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matched/ --quiet --include "*" --exclude "*.gzip"
+aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matchedpq/ --quiet --exclude "*" --include "*.gzip"
