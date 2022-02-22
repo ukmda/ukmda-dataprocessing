@@ -10,7 +10,7 @@ import shutil
 import glob
 import datetime
 
-from wmpl.Utils.TrajConversions import jd2Date
+from wmplloc.Math import jd2Date
 
 from fileformats import CameraDetails as cd
 
@@ -20,7 +20,8 @@ BIGGER_SIZE = 12
 
 
 def getBrightest(mtch, xtra, loc, outdir, when):
-    brightest = mtch[mtch['_mjd'].isin(list(xtra['mjd']))].nsmallest(10, ['_mag'])
+    brightest = mtch[mtch['_mjd'].isin(list(xtra['mjd']))].drop_duplicates(subset=['_mjd', '_mag'], keep='last')
+    brightest = brightest.nsmallest(10, ['_mag'])
     fbs = []
     fname = os.path.join(outdir, 'fbtable.js')
     with open(fname, 'w') as fbf:
@@ -263,20 +264,6 @@ def reportOneSite(ym, loc):
     return numsngl, nummatch
 
 
-def reportAllSites(ym):
-    cifile = os.getenv('CAMINFO')
-    if cifile is None:
-        si = cd.SiteInfo()
-    else:
-        si = cd.SiteInfo(cifile)
-    sitelist = si.getSites()
-    for site in sitelist:
-        print(f'processing {site}')
-        reportOneSite(ym, site)
-
-    return 
-
-
 if __name__ == '__main__':
     datadir = os.getenv('DATADIR')
     if datadir is None:
@@ -288,9 +275,6 @@ if __name__ == '__main__':
         exit(0)
         
     ym=sys.argv[1]
-    if len(sys.argv) < 3:
-        reportAllSites(ym)
-    else:
-        loc = sys.argv[2]
-        numsngl, nummatch = reportOneSite(ym, loc)
-        print(numsngl, nummatch)
+    loc = sys.argv[2]
+    numsngl, nummatch = reportOneSite(ym, loc)
+    print(numsngl, nummatch)
