@@ -6,6 +6,7 @@ import shutil
 from zipfile import ZipFile
 from datetime import datetime, timedelta
 from boto3.dynamodb.conditions import Key
+from botocore.config import Config
 
 # modules imported from EFS filesystem
 from wmplloc.Pickling import loadPickle 
@@ -281,6 +282,13 @@ def lambda_handler(event, context):
     # create a routing table on the VPC to send 0.0.0.0/0 to the NAT gw
     # attach the new subnet to the NAT gw
     # 
+    config = Config(
+        retries = {
+            'max_attempts': 10,
+            'mode': 'standard'
+        }
+    )
+
     sts_client = boto3.client('sts')
 
     assumed_role_object=sts_client.assume_role(
@@ -293,7 +301,8 @@ def lambda_handler(event, context):
     athena_client = boto3.client(service_name='athena', region_name='eu-west-2',
         aws_access_key_id=credentials['AccessKeyId'],
         aws_secret_access_key=credentials['SecretAccessKey'],
-        aws_session_token=credentials['SessionToken'])
+        aws_session_token=credentials['SessionToken'], 
+        config=config)
     s3 = boto3.resource('s3',
         aws_access_key_id=credentials['AccessKeyId'],
         aws_secret_access_key=credentials['SecretAccessKey'],
