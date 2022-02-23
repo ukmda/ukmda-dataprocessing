@@ -1,6 +1,7 @@
 import requests
 import sys
 
+
 def getECSVs(stat, dt, savefiles=False):
     apiurl='https://jpaq0huazc.execute-api.eu-west-1.amazonaws.com/Prod/getecsv?stat={}&dt={}'
     res = requests.get(apiurl.format(stat, dt))
@@ -32,6 +33,7 @@ def getECSVs(stat, dt, savefiles=False):
     else:
         print(res.status_code)
     return ecsvlines
+
 
 if __name__ == '__main__':
     sav = True
