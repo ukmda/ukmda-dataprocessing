@@ -44,7 +44,6 @@ do
     cp $traj/*orbit_extras.csv ${DATADIR}/orbits/$yr/extracsv/
 done
 
-
 # this creates an R91 compatible file with four extra columns which UFO Orbit ignores
 python -m converters.UKMONtoUFOR91 ${yr} $DATADIR/UKMON-all-single.csv
  
@@ -65,5 +64,17 @@ fi
 cat ${DATADIR}/orbits/$yr/extracsv/$yr*.csv >> ${DATADIR}/matched/matches-extras-$yr.csv
 mv ${DATADIR}/orbits/$yr/extracsv/$yr*.csv ${DATADIR}/orbits/${yr}/extracsv/processed
 
+python << EOD
+import pandas as pd 
+df = pd.read_csv('${DATADIR}/matched/matches-${yr}.csv')
+df = df.drop_duplicates()
+df.to_csv('${DATADIR}/matched/matches-${yr}.csv', index=False)
+EOD
+python << EOD2
+import pandas as pd 
+df = pd.read_csv('${DATADIR}/matched/matches-extras-${yr}.csv')
+df = df.drop_duplicates()
+df.to_csv('${DATADIR}/matched/matches-extras-${yr}.csv', index=False)
+EOD2
 logger -s -t consolidateOutput "consolidation done"
 
