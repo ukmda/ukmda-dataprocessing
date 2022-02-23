@@ -25,3 +25,4 @@ xmltodict
 tweepy
 fastparquet
 cryptography
+cartopy
