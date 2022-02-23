@@ -7,8 +7,8 @@ import os
 import pandas as pd
 from matplotlib import pyplot as plt
 import shutil
-import glob
 import datetime
+import boto3
 
 from wmplloc.Math import jd2Date
 
@@ -137,34 +137,16 @@ def shwrGraph(dta, loc, outdir, when):
     return 'showers_by_station.jpg'
 
 
-def reportOneSite(ym, loc):
-    yr = int(ym[:4])
-    when = ym[:4]
-    mth = None
-    if len(ym) > 4:
-        mth = int(ym[4:6])
-        when = '{:02d}-{}'.format(mth, yr)
+def reportOneSite(yr, mth, loc, sngl, mful, idlist, outdir):
+    when = f'{yr}'
+    if mth is not None:
+        when = f'{mth:02d}-{yr}'
 
-    datadir = os.getenv('DATADIR')
-    if datadir is None:
-        print('define DATADIR first')
-        exit(1)
-
-    srcdir = os.getenv('SRC')
-    if srcdir is None:
-        print('define SRC first')
-        exit(1)
-
-    # set up paths, files etc
-    if mth is None: 
-        sampleinterval="1M"
-        outdir = os.path.join(datadir, 'reports', str(yr), 'stations', loc)
-    else:
-        sampleinterval="30min"
-        outdir = os.path.join(datadir, 'reports', str(yr), 'stations', loc, '{:02d}'.format(mth))
-    os.makedirs(outdir, exist_ok=True)
     idxfile = os.path.join(outdir,'index.html')
-    shutil.copyfile(os.path.join(srcdir,'website/templates/header.html'), idxfile)
+    templatedir ='~/pylibs/templates'
+    templatedir = os.path.expanduser(templatedir)
+
+    shutil.copyfile(os.path.join(templatedir, 'header.html'), idxfile)
     outf = open(idxfile, 'a+')
     if mth is not None:
         outf.write('<a href=../index.html>back to index for {}</a><br>\n'.format(loc))
@@ -181,32 +163,17 @@ def reportOneSite(ym, loc):
 
     outf.write('<h2>Station report for {} for {}</h2>\n'.format(loc, when))
     outf.write('Last updated: {}<br>'.format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-    singleFile = os.path.join(datadir, 'single', 'singles-{}.csv'.format(yr))
-    matchfile = os.path.join(datadir, 'matched', 'matches-{}.csv'.format(yr))
-    extrafile = os.path.join(datadir, 'matched', 'matches-extras-{}.csv'.format(yr))
 
-    # read the data
-    sngl = pd.read_csv(singleFile)
-    mtch = pd.read_csv(matchfile, skipinitialspace=True)
-    xtra = pd.read_csv(extrafile, skipinitialspace=True)
-    xtra = xtra.dropna(subset=['stations'])
-
-    cifile = os.getenv('CAMINFO')
-    if cifile is None:
-        si = cd.SiteInfo()
-    else:
-        si = cd.SiteInfo(cifile)
-    idlist = si.getStationsAtSite(loc)
     # select the required data
     statfltr = sngl[sngl['ID'].isin(idlist)]
     xtrafltr = pd.DataFrame()
     for id in idlist:
-        xtmp = xtra[xtra['stations'].str.contains(id)]    
-        xtrafltr = xtrafltr.append(xtmp).drop_duplicates()
+        xtmp = mful[mful['stations'].str.contains(id)]    
+        xtrafltr =pd.concat([xtrafltr,xtmp]).drop_duplicates()
     
     if mth is not None:
         statfltr = statfltr[statfltr['M']==mth]
-        xtrafltr = xtrafltr[xtrafltr['# date'].str[:6].isin([ym])]
+        xtrafltr = xtrafltr[xtrafltr['_M_ut']==mth]
 
     numsngl = len(statfltr)
     outf.write('During this period, {} single station detections were collected '.format(numsngl))
@@ -221,7 +188,7 @@ def reportOneSite(ym, loc):
     outf.write('{} of the detections matched with other stations. '.format(nummatch))
     if nummatch > 0:
         outf.write(' Orbit and trajectory solutions were calculated for these matches. \n')
-        _ = getBrightest(mtch, xtrafltr, loc, outdir, when)
+        _ = getBrightest(mful, xtrafltr, loc, outdir, when)
         outf.write('The brighest up to ten confirmed matches are shown below.<br>\n')
         outf.write('<div id="fbtable" class="table-responsive"></div>')
         outf.write('<script src="./fbtable.js"></script><hr>\n')
@@ -245,30 +212,66 @@ def reportOneSite(ym, loc):
             #mthf.write('var header = table.createTHead();\n')
             #mthf.write('header.className = \"h4\";\n')
 
-            mthstodo=sorted(glob.glob1(outdir, '*'))
-            for m in mthstodo:
-                if os.path.isdir(os.path.join(outdir, m)):
-                    if (m =='01' or m=='07'):
-                        mthf.write('var row = table.insertRow(-1);\n')
-                    mthf.write('var cell = row.insertCell(-1);\n')
-                    mthf.write('cell.innerHTML = "<a href=./{}/index.html>{}</a>";\n'.format(m, m))
+            currmth = datetime.datetime.now().month            
+            for m in range(1,currmth+1):
+                print(m)
+                if m == 1 or m== 7:
+                    print('foo',m)
+                    mthf.write('var row = table.insertRow(-1);\n')
+                mthf.write('var cell = row.insertCell(-1);\n')
+                mthf.write(f'cell.innerHTML = "<a href=./{m:02d}/index.html>{m:02d}</a>";\n')
 
             mthf.write('var outer_div = document.getElementById(\"mthtable\");\n')
             mthf.write('outer_div.appendChild(table);\n')
             mthf.write('})\n')
 
-    with open(os.path.join(srcdir,'website/templates/footer.html'), 'r') as inf:
+    with open(os.path.join(templatedir, 'footer.html'), 'r') as inf:
         lis = inf.readlines()
     outf.writelines(lis)
     outf.close()
     return numsngl, nummatch
 
 
+def getExtraArgs(fname):
+    _, file_ext = os.path.splitext(fname)
+    ctyp='text/html'
+    if file_ext=='.jpg': 
+        ctyp = 'image/jpeg'
+    elif file_ext=='.png': 
+        ctyp = 'image/png'
+    elif file_ext=='.js': 
+        ctyp = 'text/javascript'
+    extraargs = {'ContentType': ctyp}
+    return extraargs
+
+
+def pushToWebsite(fuloutdir, outdir, websitebucket):
+    sts_client = boto3.client('sts')
+
+    assumed_role_object=sts_client.assume_role(
+        RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+        RoleSessionName="AssumeRoleSession1")
+    
+    credentials=assumed_role_object['Credentials']
+    
+    # Use the temporary credentials that AssumeRole returns to connections
+    s3 = boto3.resource('s3',
+        aws_access_key_id=credentials['AccessKeyId'],
+        aws_secret_access_key=credentials['SecretAccessKey'],
+        aws_session_token=credentials['SessionToken'])
+    
+    flist = os.listdir(fuloutdir)
+    for fi in flist:
+        locfname = fuloutdir + '/' + fi
+        key = outdir + '/' + fi
+        if os.path.isfile(locfname):
+            print(locfname)
+            extraargs = getExtraArgs(fi)
+            s3.meta.client.upload_file(locfname, websitebucket, key, ExtraArgs=extraargs) 
+    return 
+
+
 if __name__ == '__main__':
-    datadir = os.getenv('DATADIR')
-    if datadir is None:
-        print('define DATADIR first')
-        exit(1)
 
     if len(sys.argv) < 1:
         print('usage: python stationAnalysis.py 201710 {site}')
@@ -276,5 +279,58 @@ if __name__ == '__main__':
         
     ym=sys.argv[1]
     loc = sys.argv[2]
-    numsngl, nummatch = reportOneSite(ym, loc)
+    mth = None
+    if len(ym) > 4:
+        mth = int(ym[4:6])
+
+    # set up paths, files etc
+    yr = int(ym[:4])
+        
+    cifile = os.getenv('CAMINFO')
+    if cifile[:5] == 's3://':
+        datadir = os.getenv('TMP')
+        if datadir is None:
+            datadir = '/tmp'
+        singleFile = f's3://ukmon-shared/matches/single/singles-{yr}.csv'
+        mtchfull = f's3://ukmon-shared/matches/matched/matches-full-{yr}.csv'
+        camlist = pd.read_csv('s3://ukmon-shared/consolidated/camera-details.csv')
+        camlist = camlist[camlist.site == loc]
+        camlist = camlist[camlist.active == 1]
+        idlist = list(camlist.camid)
+
+    else:
+        datadir = os.getenv('DATADIR')
+        if datadir is None:
+            datadir='/home/ec2-user/prod/data'
+        singleFile = os.path.join(datadir, 'single', f'singles-{yr}.csv')
+        mtchfull = os.path.join(datadir, 'matched', f'matches-full-{yr}.csv')
+        si = cd.SiteInfo(cifile)
+        idlist = si.getStationsAtSite(loc)
+
+    if mth is None: 
+        sampleinterval="1M"
+        shortoutdir = os.path.join('reports', str(yr), 'stations', loc)
+        outdir = os.path.join(datadir, shortoutdir)
+    else:
+        sampleinterval="30min"
+        shortoutdir = os.path.join('reports', str(yr), 'stations', loc, f'{mth:02d}')
+        outdir = os.path.join(datadir, shortoutdir)
+
+    os.makedirs(outdir, exist_ok=True)
+
+    # read the data
+    sngl = pd.read_csv(singleFile)
+    mful = pd.read_csv(mtchfull, skipinitialspace=True)
+
+
+    numsngl, nummatch = reportOneSite(yr, mth, loc, sngl, mful, idlist, outdir)
     print(numsngl, nummatch)
+    if cifile[:5] == 's3://':
+        print('push back then clean up')
+        websitebucket = os.getenv('WEBSITEBUCKET')
+        shortoutdir = shortoutdir.replace('\\','/')
+        pushToWebsite(outdir, shortoutdir, websitebucket)
+        #try:
+        #    shutil.rmtree(outdir)
+        #except Exception:
+        #    print(f'unable to remove {outdir}')
