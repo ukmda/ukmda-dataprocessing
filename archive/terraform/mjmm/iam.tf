@@ -31,6 +31,9 @@ resource "aws_iam_role_policy_attachment" "aws-managed-policy-attachment2" {
 # User, Policy and Roles used to mount s3 buckets. 
 resource "aws_iam_user" "s3user" {
   name = "s3user"
+  tags = {
+    "billingtag" = "ukmon"
+  }
 }
 
 resource "aws_iam_policy" "MMS3BucketAccessRW" {
@@ -98,6 +101,9 @@ resource "aws_iam_user_policy" "Ukmon-shared-access" {
 # User, Policy and Roles used by ukmon-backup process. 
 resource "aws_iam_user" "ukmon-backup" {
   name = "ukmon-backup"
+  tags = {
+    "billingtag" = "ukmon"
+  }
 }
 
 resource "aws_iam_policy" "pol-ukmon-backup" {
