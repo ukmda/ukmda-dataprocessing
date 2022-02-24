@@ -7,10 +7,11 @@ import sys
 import datetime
 import numpy
 import csv
-import fileformats.CameraDetails as cd
-from traj.extraDataFiles import getVMagCodeAndStations
 import json
 import shutil
+
+import fileformats.CameraDetails as cd
+from wmplloc.pickleAnalyser import getVMagCodeAndStations
 
 
 def getTrajPaths(trajdict):

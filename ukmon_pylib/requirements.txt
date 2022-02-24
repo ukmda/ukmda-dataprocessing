@@ -24,3 +24,5 @@ Shapely
 xmltodict
 tweepy
 fastparquet
+cryptography
+cartopy

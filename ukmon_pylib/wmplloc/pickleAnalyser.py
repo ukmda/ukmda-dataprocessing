@@ -10,14 +10,52 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-#from matplotlib import cm
+import glob
 import datetime
 
 from wmplloc.Math import jd2Date, sollon2jd
 from wmplloc.Math import mergeClosePoints, angleBetweenSphericalCoords
 from wmplloc.Physics import calcMass
 from wmplloc.ShowerAssociation import associateShower
+from wmplloc.Pickling import loadPickle
 from wmplloc.Config import config
+
+
+def getVMagCodeAndStations(outdir):
+
+    picklefile = glob.glob1(outdir, '*.pickle')[0]
+    traj = loadPickle(outdir, picklefile)
+    _, bestvmag, _, _, cod, _, _, _, _, _, _, stations = calcAdditionalValues(traj)
+    return bestvmag, cod, stations
+
+
+def getBestView(outdir):
+    try:
+        picklefile = glob.glob1(outdir, '*.pickle')[0]
+    except Exception:
+        print('no picklefile in ', outdir)
+        return ''
+    else:
+        traj = loadPickle(outdir, picklefile)
+        _, statids, vmags = loadMagData(traj)
+        bestvmag = min(vmags)
+        beststatid = statids[vmags.index(bestvmag)]
+        imgfn = glob.glob1(outdir, '*{}*.jpg'.format(beststatid))
+        if len(imgfn) > 0:
+            bestimg = imgfn[0]
+        else:
+            with open(os.path.join(outdir, 'jpgs.lst')) as inf:
+                lis = inf.readlines()
+            bestimg=''
+            worstmag = max(vmags)
+            for mag, stat in zip(vmags, statids):
+                res=[stat in ele for ele in lis]    
+                imgfn = lis[res is True].strip()
+                if mag <= worstmag:
+                    if len(imgfn) > 0:
+                        bestimg = imgfn
+
+        return bestimg
 
 
 def getShowerDets(shwr):

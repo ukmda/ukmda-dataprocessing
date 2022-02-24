@@ -25,29 +25,9 @@ $env:pythonpath="$wmplloc;$env:pylib"
 $solver = read-host -prompt "ECSV or RMS solver? (E/R)"
 if ($solver -eq 'E') {
     python -m wmpl.Formats.ECSV . -l -x -w $args[1]
-    $trajoutdir='' + $args[0] + '*'
-
-    $d=(Get-ChildItem $trajoutdir).fullname
-    if ($d.length -gt 0 )
-    {
-	foreach($direc in $d){
-	    write-output "Getting extra files for $direc"
-        python $env:PYLIB/traj/extraDataFiles.py $direc
-	}
-    }
 }
 else {
     python -m wmpl.Trajectory.CorrelateRMS . -l 
-    if (test-path ".\processed_trajectories.json")
-    {
-        $json=(get-content ".\processed_trajectories.json" | convertfrom-json)
-        if($json.trajectories.psobject.properties.name.length -gt 0) {
-            $json.trajectories.psobject.properties.name |foreach-object { 
-                $picklepath=(split-path $json.trajectories.$_.traj_file_path)
-                python $env:PYLIB/traj/extraDataFiles.py $picklepath
-            }
-        }
-    }
 }
 set-location $loc
 conda deactivate
