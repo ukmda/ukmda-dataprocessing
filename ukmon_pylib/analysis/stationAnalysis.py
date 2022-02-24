@@ -12,8 +12,6 @@ import boto3
 
 from wmplloc.Math import jd2Date
 
-from fileformats import CameraDetails as cd
-
 SMALL_SIZE = 8
 MEDIUM_SIZE = 10
 BIGGER_SIZE = 12
@@ -172,8 +170,10 @@ def reportOneSite(yr, mth, loc, sngl, mful, idlist, outdir):
         xtrafltr =pd.concat([xtrafltr,xtmp]).drop_duplicates()
     
     if mth is not None:
-        statfltr = statfltr[statfltr['M']==mth]
-        xtrafltr = xtrafltr[xtrafltr['_M_ut']==mth]
+        if len(statfltr) > 0:
+            statfltr = statfltr[statfltr['M']==mth]
+        if len(xtrafltr) > 0:
+            xtrafltr = xtrafltr[xtrafltr['_M_ut']==mth]
 
     numsngl = len(statfltr)
     outf.write('During this period, {} single station detections were collected '.format(numsngl))
@@ -214,9 +214,7 @@ def reportOneSite(yr, mth, loc, sngl, mful, idlist, outdir):
 
             currmth = datetime.datetime.now().month            
             for m in range(1,currmth+1):
-                print(m)
                 if m == 1 or m== 7:
-                    print('foo',m)
                     mthf.write('var row = table.insertRow(-1);\n')
                 mthf.write('var cell = row.insertCell(-1);\n')
                 mthf.write(f'cell.innerHTML = "<a href=./{m:02d}/index.html>{m:02d}</a>";\n')
@@ -246,19 +244,22 @@ def getExtraArgs(fname):
 
 
 def pushToWebsite(fuloutdir, outdir, websitebucket):
-    sts_client = boto3.client('sts')
 
-    assumed_role_object=sts_client.assume_role(
-        RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
-        RoleSessionName="AssumeRoleSession1")
+    #sts_client = boto3.client('sts')
+
+    #assumed_role_object=sts_client.assume_role(
+    #    RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+    #    RoleSessionName="AssumeRoleSession1")
     
-    credentials=assumed_role_object['Credentials']
+    #credentials=assumed_role_object['Credentials']
     
     # Use the temporary credentials that AssumeRole returns to connections
-    s3 = boto3.resource('s3',
-        aws_access_key_id=credentials['AccessKeyId'],
-        aws_secret_access_key=credentials['SecretAccessKey'],
-        aws_session_token=credentials['SessionToken'])
+    #s3 = boto3.resource('s3',
+    #    aws_access_key_id=credentials['AccessKeyId'],
+    #    aws_secret_access_key=credentials['SecretAccessKey'],
+    #    aws_session_token=credentials['SessionToken'])
+
+    s3 = boto3.resource('s3')
     
     flist = os.listdir(fuloutdir)
     for fi in flist:
@@ -278,7 +279,7 @@ if __name__ == '__main__':
         exit(0)
         
     ym=sys.argv[1]
-    loc = sys.argv[2]
+
     mth = None
     if len(ym) > 4:
         mth = int(ym[4:6])
@@ -291,46 +292,50 @@ if __name__ == '__main__':
         datadir = os.getenv('TMP')
         if datadir is None:
             datadir = '/tmp'
-        singleFile = f's3://ukmon-shared/matches/single/singles-{yr}.csv'
-        mtchfull = f's3://ukmon-shared/matches/matched/matches-full-{yr}.csv'
-        camlist = pd.read_csv('s3://ukmon-shared/consolidated/camera-details.csv')
-        camlist = camlist[camlist.site == loc]
-        camlist = camlist[camlist.active == 1]
-        idlist = list(camlist.camid)
+        sngl = pd.read_csv(f's3://ukmon-shared/matches/single/singles-{yr}.csv')
+        mful = pd.read_csv(f's3://ukmon-shared/matches/matched/matches-full-{yr}.csv', 
+            skipinitialspace=True)
 
     else:
         datadir = os.getenv('DATADIR')
         if datadir is None:
             datadir='/home/ec2-user/prod/data'
-        singleFile = os.path.join(datadir, 'single', f'singles-{yr}.csv')
-        mtchfull = os.path.join(datadir, 'matched', f'matches-full-{yr}.csv')
-        si = cd.SiteInfo(cifile)
-        idlist = si.getStationsAtSite(loc)
+        sngl = pd.read_csv(os.path.join(datadir, 'single', f'singles-{yr}.csv'))
+        mful = pd.read_csv(os.path.join(datadir, 'matched', f'matches-full-{yr}.csv'),
+            skipinitialspace=True)
 
-    if mth is None: 
-        sampleinterval="1M"
-        shortoutdir = os.path.join('reports', str(yr), 'stations', loc)
-        outdir = os.path.join(datadir, shortoutdir)
+    camlist = pd.read_csv(cifile)
+    if len(sys.argv) > 2:
+        locs = [sys.argv[2]]
     else:
-        sampleinterval="30min"
-        shortoutdir = os.path.join('reports', str(yr), 'stations', loc, f'{mth:02d}')
-        outdir = os.path.join(datadir, shortoutdir)
+        locs = list(camlist[camlist.active==1].site.drop_duplicates().sort_values())
 
-    os.makedirs(outdir, exist_ok=True)
+    for loc in locs: 
+        camlistfltr = camlist[camlist.site == loc]
+        camlistfltr = camlistfltr[camlistfltr.active == 1]
+        idlist = list(camlistfltr.camid)
 
-    # read the data
-    sngl = pd.read_csv(singleFile)
-    mful = pd.read_csv(mtchfull, skipinitialspace=True)
+        if mth is None:
+            sampleinterval="1M"
+            shortoutdir = os.path.join('reports', str(yr), 'stations', loc)
+            outdir = os.path.join(datadir, shortoutdir)
+        else:
+            sampleinterval="30min"
+            shortoutdir = os.path.join('reports', str(yr), 'stations', loc, f'{mth:02d}')
+            outdir = os.path.join(datadir, shortoutdir)
 
+        os.makedirs(outdir, exist_ok=True)
 
-    numsngl, nummatch = reportOneSite(yr, mth, loc, sngl, mful, idlist, outdir)
-    print(numsngl, nummatch)
-    if cifile[:5] == 's3://':
-        print('push back then clean up')
-        websitebucket = os.getenv('WEBSITEBUCKET')
-        shortoutdir = shortoutdir.replace('\\','/')
-        pushToWebsite(outdir, shortoutdir, websitebucket)
-        #try:
-        #    shutil.rmtree(outdir)
-        #except Exception:
-        #    print(f'unable to remove {outdir}')
+        numsngl, nummatch = reportOneSite(yr, mth, loc, sngl, mful, idlist, outdir)
+        print(numsngl, nummatch)
+        if cifile[:5] == 's3://':
+            print('push back then clean up')
+            websitebucket = os.getenv('WEBSITEBUCKET')
+            if websitebucket[:5] == 's3://':
+                websitebucket = websitebucket[5:]
+            shortoutdir = shortoutdir.replace('\\','/')
+            pushToWebsite(outdir, shortoutdir, websitebucket)
+        try:
+            shutil.rmtree(outdir)
+        except Exception:
+            print(f'unable to remove {outdir}')
