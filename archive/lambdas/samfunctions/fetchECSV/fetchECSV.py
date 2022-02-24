@@ -20,6 +20,7 @@ else:
 isodate_format_entry = "%Y-%m-%dT%H:%M:%S.%f"
 isodate_format_file = "%Y-%m-%dT%H:%M:%S"
 
+
 def createECSV(ftpFile, required_event = None):
     """ Save the picks into the GDEF ECSV standard. 
     Arguments: 
@@ -202,7 +203,7 @@ def fetchECSV(camid, reqevent):
     bucket = s3.Bucket(s3bucket)
     for obj in bucket.objects.filter(Prefix = s3path):
         localf = os.path.basename(obj.key)
-        if localf == '.config' :
+        if localf == '.config':
             cfgname = os.path.join(tmpdir, localf)
             #print(localname)
             s3.meta.client.download_file(s3bucket, obj.key, cfgname)
@@ -224,6 +225,7 @@ def fetchECSV(camid, reqevent):
         
     removefiles(localftpname, ppname, cfgname, camfname)
     return 'not available'
+
 
 def removefiles(localftpname, ppname, cfgname, camfname):
     try:

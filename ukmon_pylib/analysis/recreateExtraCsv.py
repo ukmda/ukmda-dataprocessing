@@ -5,8 +5,8 @@ import glob
 import os
 import sys
 import shutil
-from wmpl.Utils.Pickling import loadPickle 
-from traj.ufoTrajSolver import createAdditionalOutput
+from wmplloc.Pickling import loadPickle 
+from wmplloc.pickleAnalyser import createAdditionalOutput
 
 
 def generateExtraFiles(outdir):

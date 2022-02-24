@@ -5,6 +5,7 @@ import boto3
 import pandas as pd
 from random import randint
 from time import sleep
+from botocore.config import Config
 
 
 def run_query(client, query, bucket_name, dbname):
@@ -18,16 +19,17 @@ def run_query(client, query, bucket_name, dbname):
 
 def validate_query(client, query_id):
     resp = ["FAILED", "SUCCEEDED", "CANCELLED"]
-    response = client.get_query_execution(QueryExecutionId=query_id)
-    # wait until query finishes
     retries = 0
+    response={"QueryExecution":{"Status":{"State":"x"}}}
     while response["QueryExecution"]["Status"]["State"] not in resp and retries < 100:
-        try:
+        try: 
             response = client.get_query_execution(QueryExecutionId=query_id)
         except: 
-            sleep(randint(0,10)/100)
+            paus = randint(0,10)/100
+            sleep(paus)
+            print(f'backing off for {paus}')
             retries += 1
-    
+
     return response["QueryExecution"]["Status"]["State"]
 
 
@@ -50,7 +52,13 @@ def read(query, bucket_name, athena_client, dbname, credentials=None):
 
 
 if __name__ =='__main__':
-    athena_client = boto3.client(service_name='athena', region_name='eu-west-2')
+    config = Config(
+        retries = {
+            'max_attempts': 10,
+            'mode': 'standard'
+        }
+    )
+    athena_client = boto3.client(service_name='athena', region_name='eu-west-2', config=config)
     bucket_name = 'ukmon-shared'
 
     time_entries_df = read("SELECT dtstamp,filename,y,m,d,h,mi,s FROM singlepq where id='UK000P' and d=2 and y=2022", 

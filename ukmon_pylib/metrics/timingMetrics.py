@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 
 njstrs = ['nightlyJob: looking for matching',
     'nightlyJob: starting',
+    'nightlyJob: forcing consolidation of',
+    'nightlyJob: Create density',
     "nightlyJob: getting list of single jpg files"
     'nightlyJob: update shower associations',
     'createMthlyExtracts: starting',
@@ -22,7 +24,9 @@ njstrs = ['nightlyJob: looking for matching',
     'monthlyReports: running ALL report for 2021',
     'nightlyJob: update other relevant showers',
     'nightlyJob: create the cover page',
-    'nightlyJob: Finished']
+    'nightlyJob: Finished',
+    'stationReports: finished',
+    'stationReports: running station reports']
 
 mlstrs=[
     'findAllMatches: load the WMPL',
@@ -34,10 +38,7 @@ mlstrs=[
     'runMatching: finished',
     'findAllMatches: create text file containing',
     'findAllMatches: update the website loop',
-#    'createPageIndex: generate extra data files',
-#    'createPageIndex: generating orbit',
     'findAllMatches: gather some stats',
-#    'createOrbitIndex: finished',
     'findAllMatches: Matching process finished'
 ]
 
@@ -49,7 +50,6 @@ def graphOfData(logf, typ):
         times = []
         events = []
         elapsed = []
-        cumul = 0
         daystart=0
         for li in loglines:
             spls = li.split(',')
@@ -58,14 +58,13 @@ def graphOfData(logf, typ):
             events.append(spls[2].strip())
             if 'nightlyJob: starting' in li:
                 print('resetting at ', dtstamp)
-                cumul = 0
                 daystart = dtstamp
             evttime = (dtstamp - daystart).seconds
             elapsed.append(evttime)
         #fig, ax = plt.subplots()
-        l = len(times)
-        t1 = times[l-16:]
-        e1 = elapsed[l-16:]
+        le = len(times)
+        t1 = times[le - 16:]
+        e1 = elapsed[le - 16:]
         print(t1, e1)
         plt.plot(t1, e1)    
         plt.show()    

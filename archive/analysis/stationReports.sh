@@ -29,6 +29,7 @@ if [ "$2" != "" ] ; then
 else
     logger -s -t stationReports "running station reports for $ym for all stations"
 fi
+export CAMINFO=s3://ukmon-shared/consolidated/camera-details.csv
 python -m analysis.stationAnalysis $ym $loc
 python -m analysis.stationAnalysis $yr $loc
 
