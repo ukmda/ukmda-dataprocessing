@@ -245,21 +245,22 @@ def getExtraArgs(fname):
 
 def pushToWebsite(fuloutdir, outdir, websitebucket):
 
-    #sts_client = boto3.client('sts')
-
-    #assumed_role_object=sts_client.assume_role(
-    #    RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
-    #    RoleSessionName="AssumeRoleSession1")
-    
-    #credentials=assumed_role_object['Credentials']
-    
-    # Use the temporary credentials that AssumeRole returns to connections
-    #s3 = boto3.resource('s3',
-    #    aws_access_key_id=credentials['AccessKeyId'],
-    #    aws_secret_access_key=credentials['SecretAccessKey'],
-    #    aws_session_token=credentials['SessionToken'])
-
-    s3 = boto3.resource('s3')
+    sts_client = boto3.client('sts')
+    acct=sts_client.get_caller_identity().get('Account')
+    if acct == '317976261112':
+        assumed_role_object=sts_client.assume_role(
+            RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+            RoleSessionName="AssumeRoleSession1")
+        
+        credentials=assumed_role_object['Credentials']
+        
+        # Use the temporary credentials that AssumeRole returns to connections
+        s3 = boto3.resource('s3',
+            aws_access_key_id=credentials['AccessKeyId'],
+            aws_secret_access_key=credentials['SecretAccessKey'],
+            aws_session_token=credentials['SessionToken'])
+    else:
+        s3 = boto3.resource('s3')
     
     flist = os.listdir(fuloutdir)
     for fi in flist:
