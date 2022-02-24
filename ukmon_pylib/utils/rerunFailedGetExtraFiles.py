@@ -12,7 +12,8 @@ templ = '{"Records": [{"s3": {"bucket": {"name": "ukmon-shared",\
 
 
 def findFailedEvents():
-    logcli = boto3.client('logs', region_name='eu-west-2')
+    session=boto3.Session(profile_name='default') # load default profile
+    logcli = session.client('logs', region_name='eu-west-2')
     datadir=os.getenv('DATADIR')
     lastf = os.path.join(datadir,'orbits', 'lastorbitcheck.txt')
     if os.path.isfile(lastf):
