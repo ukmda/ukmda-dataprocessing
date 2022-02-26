@@ -1,0 +1,47 @@
+#
+# Python script to create execMatching shell script to be run on the calc engine
+#
+
+import os
+import sys
+import datetime
+
+
+shkey = os.getenv('UKMONSHAREDKEY')
+shbucket = os.getenv('UKMONSHAREDBUCKET')
+matchstart = int(sys.argv[1])
+matchend = int(sys.argv[2])
+
+startdt = datetime.datetime.now() + datetime.timedelta(days=-matchstart)
+enddt = datetime.datetime.now() + datetime.timedelta(days=-matchend)
+print(startdt, enddt)
+startdtstr = startdt.strftime('%Y%m%d-080000')
+enddtstr = enddt.strftime('%Y%m%d-080000')
+
+tmpdir = os.getenv('TMP')
+if tmpdir is None:
+    tmpdir = '/tmp'
+execmatchingsh = os.path.join(tmpdir, 'execMatching.sh')
+with open(execmatchingsh, 'w') as outf:
+    outf.write('#!/bin/bash\n')
+    outf.write('source /home/ec2-user/venvs/wmpl/bin/activate\n')
+    outf.write('export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib/\n')
+    outf.write('cd /home/ec2-user/data/RMSCorrelate\n')
+    outf.write('df -h . \n')
+    outf.write(f'source {shkey}\n')
+    outf.write(f'aws s3 sync {shbucket}/matches/RMSCorrelate/ . --exclude "*" --include "UK*" --quiet\n')
+    outf.write('cd /home/ec2-user/src/WesternMeteorPyLib/\n')
+    outf.write('logger -s -t runMatching \"starting correlator\"\n')
+    outf.write(f'time python -m wmpl.Trajectory.CorrelateRMS /home/ec2-user/data/RMSCorrelate/ -l -r \"({startdtstr},{enddtstr})\"\n')
+    outf.write(f'source {shkey}\n')
+    outf.write('cd /home/ec2-user/data/RMSCorrelate\n')
+    outf.write('df -h . \n')
+    outf.write('logger -s -t runMatching \"done and syncing back\"\n')
+    for d in range(matchend, matchstart+1):
+        thisdt=datetime.datetime.now() + datetime.timedelta(days=-d)
+        trajloc=f'{thisdt.year}/{thisdt.year}{thisdt.month:02d}/{thisdt.year}{thisdt.month:02d}{thisdt.day:02d}'
+        outf.write(f'aws s3 sync trajectories/{trajloc} {shbucket}/matches/RMSCorrelate/trajectories/{trajloc} --quiet\n')
+
+    outf.write(f'aws s3 cp processed_trajectories.json {shbucket}/matches/RMSCorrelate/processed_trajectories.json.bigserver --quiet\n')
+
+#chmod +x $execMatchingsh

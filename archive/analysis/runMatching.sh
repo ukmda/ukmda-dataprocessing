@@ -11,7 +11,8 @@
 # Produces
 #   Solved trajectories
 #
-# NOTE: this script executes on the target instance, not on the ukmonhelper instance
+# NOTE: this script creates a script that executes on the target instance,
+# not on the ukmonhelper instance
 
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
@@ -40,27 +41,7 @@ sleep 20
 # could store this on the server permanently but this allows me to more readily
 # make changes
 logger -s -t runMatching "create the run script"
-execMatchingsh=/tmp/execMatching.sh
-thisip=$(curl --silent http://169.254.169.254/latest/meta-data/local-ipv4) 
-startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
-enddt=$(date --date="-$MATCHEND days" '+%Y%m%d-080000')
-
-echo '#!/bin/bash' > $execMatchingsh
-echo "source /home/ec2-user/venvs/wmpl/bin/activate" >> $execMatchingsh
-echo "export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib/" >> $execMatchingsh
-echo "cd /home/ec2-user/data/RMSCorrelate" >> $execMatchingsh
-echo "df -h . " >> $execMatchingsh
-echo "source $UKMONSHAREDKEY" >> $execMatchingsh
-echo 'aws s3 sync s3://ukmon-shared/matches/RMSCorrelate/ . --exclude "*" --include "UK*" --quiet'  >> $execMatchingsh
-echo "cd /home/ec2-user/src/WesternMeteorPyLib/" >> $execMatchingsh
-echo "logger -s -t runMatching starting correlator" >> $execMatchingsh
-echo "time python -m wmpl.Trajectory.CorrelateRMS /home/ec2-user/data/RMSCorrelate/ -l -r \"($startdt,$enddt)\"" >> $execMatchingsh
-echo "source $UKMONSHAREDKEY" >> $execMatchingsh
-echo "cd /home/ec2-user/data/RMSCorrelate" >> $execMatchingsh
-echo "df -h . " >> $execMatchingsh
-echo "logger -s -t runMatching done and syncing back" >> $execMatchingsh
-echo "aws s3 sync trajectories/ s3://ukmon-shared/matches/RMSCorrelate/trajectories/ --quiet" >> $execMatchingsh
-echo "aws s3 cp processed_trajectories.json s3://ukmon-shared/matches/RMSCorrelate/processed_trajectories.json.bigserver --quiet" >> $execMatchingsh
+python -m traj.createExecMatchingSh $MATCHSTART $MATCHEND
 chmod +x $execMatchingsh
 
 logger -s -t runMatching "get server details"

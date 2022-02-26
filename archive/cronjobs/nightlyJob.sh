@@ -14,29 +14,8 @@ mth=$(date +%Y%m)
 yr=$(date +%Y)
 echo $rundate > $DATADIR/rundate.txt
 
-# force-consolidate any outstanding new data in the S3 bucket
-logger -s -t nightlyJob "forcing consolidation of anything pending"
 source $WEBSITEKEY
 export AWS_DEFAULT_REGION=eu-west-2
-aws lambda invoke --function-name ConsolidateCSVs --log-type Tail $SRC/logs/ConsolidateCSVs.log
-
-# get a list of all jpgs and mp4s from single station events for later use
-logger -s -t nightlyJob "getting list of single jpg and mp4 files"
-aws s3 ls $WEBSITEBUCKET/img/single/$yr/ --recursive | awk '{print $4}' > $DATADIR/singleJpgs-$yr.csv
-aws s3 ls $WEBSITEBUCKET/img/mp4/$yr/ --recursive | awk '{print $4}' > $DATADIR/singleMp4s-$yr.csv
-
-logger -s -t nightlyJob "getting latest consolidated information"
-source $UKMONSHAREDKEY
-aws s3 sync s3://ukmon-shared/consolidated/ ${DATADIR}/consolidated --exclude 'temp/*' --quiet
-
-logger -s -t nightlyJob "getting latest livefeed CSV files"
-qmth=$(date +%m)
-cq=$(((qmth - 1 ) / 3 + 1))
-lq=$(((qmth - 1 ) / 3 ))
-aws s3 cp s3://ukmon-live/idx${yr}0${cq}.csv ${DATADIR}/ukmonlive/ --quiet
-
-if [ "$lq" -eq "00" ] ; then lyr=$((yr - 1)) ; lq=4 ; else lyr=$yr ; fi
-aws s3 cp s3://ukmon-live/idx${lyr}0${lq}.csv ${DATADIR}/ukmonlive/ --quiet
 
 # run this only once as it scoops up all unprocessed data
 logger -s -t nightlyJob "looking for matching events and solving their trajectories"
@@ -59,7 +38,7 @@ else
     aws lambda invoke --function-name dailyReport --log-type Tail $SRC/logs/dailyReport.log
 fi
 
-logger -s -t nightlyJob "consolidate the resulting data "
+logger -s -t nightlyJob "consolidate the resulting data"
 $SRC/analysis/consolidateOutput.sh ${yr}
 
 logger -s -t nightlyJob "create monthly and shower extracts for the website"
