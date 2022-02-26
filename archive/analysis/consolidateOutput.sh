@@ -47,7 +47,7 @@ do
     if [ ! -f $mrgfile ] ; then
         cat $csvf >> $mrgfile
     else
-        echo $bn $mrgfile
+        #echo $bn $mrgfile
         sed '1d' $csvf >> $mrgfile
         rm $csvf
     fi
@@ -101,7 +101,7 @@ mv ${DATADIR}/orbits/$yr/extracsv/$yr*.csv ${DATADIR}/orbits/${yr}/extracsv/proc
 python << EOD
 import pandas as pd 
 df = pd.read_csv('${DATADIR}/matched/matches-${yr}.csv')
-df = df.drop_duplicates()
+df = df.drop_duplicates(subset=['_mjd','_sol','_ID1','_ra_o','_dc_o','_amag','_ra_t','_dc_t'])
 df.to_csv('${DATADIR}/matched/matches-${yr}.csv', index=False)
 EOD
 python << EOD2
@@ -111,4 +111,3 @@ df = df.drop_duplicates()
 df.to_csv('${DATADIR}/matched/matches-extras-${yr}.csv', index=False)
 EOD2
 logger -s -t consolidateOutput "consolidation done"
-

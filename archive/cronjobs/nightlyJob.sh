@@ -17,11 +17,6 @@ echo $rundate > $DATADIR/rundate.txt
 source $WEBSITEKEY
 export AWS_DEFAULT_REGION=eu-west-2
 
-# get a list of all jpgs and mp4s from single station events for later use
-logger -s -t nightlyJob "getting list of single jpg and mp4 files"
-aws s3 ls $WEBSITEBUCKET/img/single/$yr/ --recursive | awk '{print $4}' > $DATADIR/singleJpgs-$yr.csv
-aws s3 ls $WEBSITEBUCKET/img/mp4/$yr/ --recursive | awk '{print $4}' > $DATADIR/singleMp4s-$yr.csv
-
 # run this only once as it scoops up all unprocessed data
 logger -s -t nightlyJob "looking for matching events and solving their trajectories"
 matchlog=matches-$(date +%Y%m%d-%H%M%S).log
