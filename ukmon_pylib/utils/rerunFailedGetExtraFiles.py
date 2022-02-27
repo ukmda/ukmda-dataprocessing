@@ -129,7 +129,7 @@ if __name__ == '__main__':
     #print(realfails)
     otherfails = findOtherBadEvents()
     #print(otherfails)
-    realfails = realfails + otherfails
+    realfails = list(dict.fromkeys(realfails + otherfails))
     rerunFails(realfails)
     numfails = len(realfails)
     print(f'resubmitted {numfails}')

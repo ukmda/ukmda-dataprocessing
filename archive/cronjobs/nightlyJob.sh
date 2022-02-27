@@ -22,12 +22,6 @@ logger -s -t nightlyJob "looking for matching events and solving their trajector
 matchlog=matches-$(date +%Y%m%d-%H%M%S).log
 ${SRC}/analysis/findAllMatches.sh > ${SRC}/logs/${matchlog} 2>&1
 
-logger -s -t nightlyJob "waiting for lambdas to finish"
-# need to wait here till the lambdas creating orbit pages are finished
-sleep 600
-# catchall to reprocess any failed orbit page updates
-python -m utils.rerunFailedGetExtraFiles
-
 # send daily report - only want to do this if in batch mode
 if [ "`tty`" != "not a tty" ]; then 
     logger -s -t nightlyJob 'got a tty, not triggering report'
