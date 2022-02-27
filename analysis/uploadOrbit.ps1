@@ -42,45 +42,51 @@ if ((test-path $args[1]) -eq "True" )
     $yd=$newname.substring(0,8)
     $srcpath="trajectories/$yr/$ym/$yd/$newname"
 }
-$targ="ukmonhelper:ukmon-shared/matches/RMSCorrelate/trajectories/$yr/$ym/$yd/$newname"
 
 # copy the trajectory solution over
-scp -pr $srcpath $targ
+$targ="ukmon-shared/matches/RMSCorrelate/trajectories/$yr/$ym/$yd/$newname"
+aws s3 sync "$srcpath" "s3://$targ" --include "*" --exclude "*.jpg"
+
+# add row to dailyreport file
+$newl=(python -c "import reports.reportOfLatestMatches as rml ; print(rml.processLocalFolder('$srcpath','/home/ec2-user/ukmon-shared/matches/RMSCorrelate'))")
+
+$dlyfile="$yd.txt"
+scp "ukmonhelper:prod/data/dailyreports/$dlyfile" .
+$x=(select-string $newl $dlyfile)
+if ($x.length -eq 0)
+{
+    add-content $dlyfile $newl
+}
+scp "$dlyfile" "ukmonhelper:prod/data/dailyreports/" 
 
 # now invoke the script to build the index page and update the daily index.
-$nixpath="$yr/$ym/$yd/$newname"
-$cmd="/home/ec2-user/prod/website/createPageIndex.sh" 
-$pth="/home/ec2-user/ukmon-shared/matches/RMSCorrelate/trajectories/$nixpath"
-$opt="force"
+$cmd="/home/ec2-user/prod/website/updateIndexPages.sh /home/ec2-user/prod/data/dailyreports/$dlyfile"
+ssh ukmonhelper "$cmd"
+
 
 # update the jpgs file
-$sp = (split-path $srcpath)
-$yyyymmdd=(get-item $sp).name
-$yyyymm=$yyyymmdd.substring(0,6)
-$yyyy=$yyyymmdd.substring(0,4)
-$imgloc="img/single/$yyyy/$yyyymm"
-scp "ukmonhelper:$pth/jpgs.lst" .
-$jpglst=(Get-ChildItem ".\*.jpg").name
-if ($jpglst -is [array])
-{
-    for ($i=0; $i -lt $jpglst.length ; $i++)
-    {
-        $jpg=$jpglst[$i]
-        write-output "$imgloc/$jpg" >> jpgs.lst
-        aws s3 cp "$jpg" "s3://ukmeteornetworkarchive/$imgloc/"
-    }
-}
-else {
-    write-output "$imgloc/$jpglst" >> jpgs.lst
-}
+#$sp = (split-path $srcpath)
+#$yyyymmdd=(get-item $sp).name
+#$yyyymm=$yyyymmdd.substring(0,6)
+#$yyyy=$yyyymmdd.substring(0,4)
+#$imgloc="img/single/$yyyy/$yyyymm"
+#scp "ukmonhelper:$pth/jpgs.lst" .
+#$jpglst=(Get-ChildItem ".\*.jpg").name
+#if ($jpg.length -gt 0) {
+#    if ($jpglst -is [array])
+#    {
+#        for ($i=0; $i -lt $jpglst.length ; $i++)
+#        {
+##            $jpg=$jpglst[$i]
+#            write-output "$imgloc/$jpg" >> jpgs.lst
+#            aws s3 cp "$jpg" "s3://ukmeteornetworkarchive/$imgloc/"
+#        }
+#    }
+#    else {
+#        write-output "$imgloc/$jpglst" >> jpgs.lst
+#        aws s3 cp "$jpglst" "s3://ukmeteornetworkarchive/$imgloc/"
+#    }
+#}
 # and copy it back to the server then rebuild the index
-scp jpgs.lst "ukmonhelper:$pth/" 
-ssh ukmonhelper "dos2unix $pth/jpgs.lst"
-
-ssh ukmonhelper "$cmd $pth $opt"
-ssh ukmonhelper "scp $pth/*orbit.csv /home/ec2-user/prod/data/orbits/$yr/csv/"
-ssh ukmonhelper "scp $pth/*orbit_extras.csv /home/ec2-user/prod/data/orbits/$yr/extracsv/"
-
-# finally update the daily index
-$cmd="/home/ec2-user/prod/website/createOrbitIndex.sh " 
-ssh ukmonhelper "$cmd $yyyymmdd"
+#scp jpgs.lst "ukmonhelper:$pth/" 
+#ssh ukmonhelper "dos2unix $pth/jpgs.lst"
