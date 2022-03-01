@@ -9,8 +9,6 @@ import os
 import pandas as pd
 import datetime 
 
-from wmplloc.Math import jd2Date
-
 
 def convertSingletoSrchable(datadir, year, outdir, weburl):
     print(datetime.datetime.now(), 'single-detection searchable index start')
@@ -78,42 +76,6 @@ def convertSingletoSrchable(datadir, year, outdir, weburl):
     return 
 
 
-def createMergedMatchFile(datadir, year, outdir, weburl):
-    """ Convert matched data records to searchable format
-
-    Args:
-        configfile (str): name of the local config file
-        year (int): the year to process
-        outdir (str): where to save the file
-        
-    """
-    weburl = weburl + '/reports/' + year + '/orbits/'
-
-    matchfile = os.path.join(datadir, 'matched', 'matches-{}.csv'.format(year))
-    extrafile = os.path.join(datadir, 'matched', 'matches-extras-{}.csv'.format(year))
-    mtch = pd.read_csv(matchfile, skipinitialspace=True)
-    xtra = pd.read_csv(extrafile, skipinitialspace=True)
-
-    # add datestamp and source arrays, then construct required arrays
-    mtch['dtstamp'] = [jd2Date(x+2400000.5, dt_obj=True).timestamp() for x in mtch['_mjd']]
-    mtch['orbname'] = [datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d_%H%M%S.%f')[:19]+'_UK' for ts in mtch['dtstamp']]
-
-    mtch['src'] = ['1Matched' for x in mtch['_mjd']]
-    mths = [x[1:7]+'/'+x[1:9] for x in mtch['_localtime']]
-    gtnames = ['/' + x[1:] + '_ground_track.png' for x in mtch['_localtime']]
-    mtch['url'] = [weburl + y + '/' + x + '/index.html' for x,y in zip(mtch['orbname'], mths)]
-    mtch['img'] = [weburl + y + '/' + x + g for x,y,g in zip(mtch['orbname'], mths, gtnames)]
-
-    mtch.set_index(['_mjd'])
-    xtra.set_index(['mjd'])
-    newm = mtch.join(xtra)
-
-    outfile = os.path.join(outdir, 'matches-full-{}.csv'.format(year))
-    newm.to_csv(outfile, index=False)
-
-    return newm
-
-
 def convertMatchToSrchable(config, year, outdir, weburl):
     """ Convert matched data records to searchable format
 
@@ -123,8 +85,9 @@ def convertMatchToSrchable(config, year, outdir, weburl):
         outdir (str): where to save the file
         
     """
-    print('creating merged match file')
-    newm = createMergedMatchFile(config, year, outdir, weburl)
+    print('reading merged match file')
+    infile = os.path.join(datadir, 'matched', 'matches-full-{}.csv'.format(year))
+    newm = pd.read_csv(infile)
 
     print('saving file')
     outdf = pd.concat([newm['dtstamp'], newm['src'], newm['_stream'], newm['_mag'], newm['stations'], newm['url'], newm['img']], 
