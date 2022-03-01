@@ -6,14 +6,14 @@
 #   year to process
 #
 # Consumes:
-#   single-station data preprocessed by getRMSSingleData.sh (which includes converted UFO data)
-#   csv and extracsv files created by the matching engine 
+#   R05B25 and R91 csv files uploaded from cameras
+#   csv files created by the matching engine 
 #
 # Produces:
-#   Updated consolidated ukmon single-event CSV file in standard UFO R91 format
+#   Updated consolidated ukmon single-event CSV file in standard UFO formats
 #   Updated matched data files (matches-{yr} and matches-extras-{yr})
 #   
-# The outputs are used for downstream processing and reporting
+# The data are used for downstream processing and reporting
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
@@ -113,4 +113,12 @@ df = pd.read_csv('${DATADIR}/matched/matches-extras-${yr}.csv')
 df = df.drop_duplicates()
 df.to_csv('${DATADIR}/matched/matches-extras-${yr}.csv', index=False)
 EOD2
+
+python -m converters.mergeMatchFiles ${yr}
+python -m converters.toParquet $DATADIR/matched/matches-full-${yr}.csv
+
+source $UKMONSHAREDKEY
+aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matched/ --quiet --include "*" --exclude "*.gzip"
+aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matchedpq/ --quiet --exclude "*" --include "*.gzip"
+
 logger -s -t consolidateOutput "consolidation done"
