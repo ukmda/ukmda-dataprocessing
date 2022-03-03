@@ -59,7 +59,7 @@ $SRC/analysis/showerReport.sh ALL ${mth} force
 $SRC/analysis/showerReport.sh ALL ${yr} force
 
 # if we ran on the 1st of the month we need to catch any late-arrivals for last month
-if [ $(date +%d) == 1 ] ; then
+if [ $(date +%d) -eq 1 ] ; then
     lastmth=$(date -d '-1 month' +%Y%m)
     ${SRC}/website/createMthlyExtracts.sh ${lastmth}
     ${SRC}/website/createShwrExtracts.sh ${lastmth}
@@ -68,7 +68,6 @@ fi
 logger -s -t nightlyJob "Create density and velocity plots by solar longitude"
 # do this before individual shower reports so that the graphs can be copied
 $SRC/analysis/createDensityPlots.sh ${mth}
-$SRC/analysis/createDensityPlots.sh ${yr}
 
 logger -s -t nightlyJob "update other relevant showers"
 ${SRC}/analysis/reportYear.sh ${yr}
@@ -121,3 +120,7 @@ python -m metrics.timingMetrics $nightlog 'N' >> $SRC/logs/perfNightly.csv
 $SRC/analysis/getBadStations.sh
 logger -s -t nightlyJob "Finished"
 
+# this is REALLY slow so do it last and only once a month
+if [ $(date +%d) -eq 15 ] ; then
+    $SRC/analysis/createDensityPlots.sh ${yr}
+fi
