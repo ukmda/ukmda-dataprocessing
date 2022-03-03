@@ -6,6 +6,7 @@ import boto3
 from botocore.config import Config
 import matplotlib.pyplot as plt
 import numpy as np
+from dateutil import relativedelta
 
 PRICEPERGBSEC = 0.00001667
 
@@ -106,11 +107,13 @@ if __name__ == '__main__':
     if len(sys.argv)> 3:
         mthwanted = int(sys.argv[3])
         curdt = datetime.date.today()
+        thismth = curdt.month
         dtwanted = curdt.replace(month=mthwanted).replace(day=1)
+        if mthwanted > thismth:
+            dtwanted = dtwanted.replace(year = curdt.year-1)
         if mthwanted == 12:
             dtwanted = dtwanted.replace(year = curdt.year-1).replace(month=12)
-            mthwanted = 0
-        endwanted = dtwanted.replace(year=curdt.year).replace(month=mthwanted+1) + datetime.timedelta(days=-1)
+        endwanted = dtwanted + relativedelta.relativedelta(months=1)
         
     else:
         endwanted = datetime.date.today() - datetime.timedelta(days=1)
