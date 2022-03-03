@@ -145,6 +145,7 @@ def pushFilesBack(outdir, archbucket, fldr, s3):
     flist = os.listdir(outdir)
 
     _, pth =os.path.split(outdir)
+    yr = pth[:4]
     zipfname = os.path.join(outdir, pth +'.zip')
     zipfile = ZipFile(zipfname, 'w')
 
@@ -155,7 +156,15 @@ def pushFilesBack(outdir, archbucket, fldr, s3):
             key = os.path.join(fldr, f)
             # print(locfname, key)
             extraargs = getExtraArgs(locfname)
-            s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs) 
+            s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
+        if 'orbit.csv' in f:
+            key = os.path.join(f'matches/{yr}/csv', f)
+            extraargs = getExtraArgs(locfname)
+            s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
+        if 'orbit_extras.csv' in f:
+            key = os.path.join(f'matches/{yr}/extracsv', f)
+            extraargs = getExtraArgs(locfname)
+            s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
 
     zipfile.close()
     # now we push the zipfile

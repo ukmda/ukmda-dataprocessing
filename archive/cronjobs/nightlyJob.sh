@@ -22,12 +22,6 @@ logger -s -t nightlyJob "looking for matching events and solving their trajector
 matchlog=matches-$(date +%Y%m%d-%H%M%S).log
 ${SRC}/analysis/findAllMatches.sh > ${SRC}/logs/${matchlog} 2>&1
 
-logger -s -t nightlyJob "waiting for lambdas to finish"
-# need to wait here till the lambdas creating orbit pages are finished
-sleep 600
-# catchall to reprocess any failed orbit page updates
-python -m utils.rerunFailedGetExtraFiles
-
 # send daily report - only want to do this if in batch mode
 if [ "`tty`" != "not a tty" ]; then 
     logger -s -t nightlyJob 'got a tty, not triggering report'
@@ -64,6 +58,13 @@ logger -s -t nightlyJob "update the monthly and annual reports"
 $SRC/analysis/showerReport.sh ALL ${mth} force
 $SRC/analysis/showerReport.sh ALL ${yr} force
 
+# if we ran on the 1st of the month we need to catch any late-arrivals for last month
+if [ $(date +%d) == 1 ] ; then
+    lastmth=$(date -d '-1 month' +%Y%m)
+    ${SRC}/website/createMthlyExtracts.sh ${lastmth}
+    ${SRC}/website/createShwrExtracts.sh ${lastmth}
+    $SRC/analysis/showerReport.sh ALL ${lastmth} force
+fi 
 logger -s -t nightlyJob "Create density and velocity plots by solar longitude"
 # do this before individual shower reports so that the graphs can be copied
 $SRC/analysis/createDensityPlots.sh ${mth}
@@ -80,6 +81,8 @@ ${SRC}/website/cameraStatusReport.sh
 
 logger -s -t nightlyJob "create event log for other networks"
 python -m reports.createExchangeFiles
+source $WEBSITEKEY
+aws s3 sync $DATADIR/browse/daily/ $WEBSITEBUCKET/browse/daily/
 
 logger -s -t nightlyJob "create list of connected stations and map of stations"
 sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s, %s\n", $3,$9)}' > $DATADIR/reports/stationlogins.txt

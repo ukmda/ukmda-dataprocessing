@@ -14,6 +14,32 @@ import fileformats.CameraDetails as cd
 from wmplloc.pickleAnalyser import getVMagCodeAndStations
 
 
+def processLocalFolder(trajdir, basedir):
+    # load camera details
+    cinf = cd.SiteInfo()
+    bestvmag, shwr, stationids = getVMagCodeAndStations(trajdir)
+    stations=[]
+    for statid in stationids:
+        _,_,_,_,loc = cinf.GetSiteLocation(statid)
+        locbits = loc.split('/')
+        stations.append(locbits[0])
+
+    _, dname = os.path.split(trajdir)
+    realtraj = trajdir[trajdir.find('tra'):]
+    realtraj = basedir + '/' + realtraj
+    tstamp = datetime.datetime.strptime(dname[:15],'%Y%m%d_%H%M%S').timestamp()
+    outstr = '{},{:s},{:s},{:.1f}'.format(int(tstamp), realtraj, shwr, bestvmag)
+
+    for f in stations:
+        if len(f) < 4:
+            break
+        outstr = outstr + ',' + f
+    outstr = outstr.strip()
+    #print(outstr)
+
+    return outstr
+
+
 def getTrajPaths(trajdict):
     trajpaths=[]
     fullnames=[]

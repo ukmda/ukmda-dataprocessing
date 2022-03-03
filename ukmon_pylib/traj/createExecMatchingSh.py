@@ -9,8 +9,12 @@ import datetime
 
 shkey = os.getenv('UKMONSHAREDKEY')
 shbucket = os.getenv('UKMONSHAREDBUCKET')
+if len(sys.argv) < 4:
+    print('Usage: createExecMatchingSh day1 day2 outfile')
+    exit(1)
 matchstart = int(sys.argv[1])
 matchend = int(sys.argv[2])
+outfname = sys.argv[3]
 
 startdt = datetime.datetime.now() + datetime.timedelta(days=-matchstart)
 enddt = datetime.datetime.now() + datetime.timedelta(days=-matchend)
@@ -18,10 +22,10 @@ print(startdt, enddt)
 startdtstr = startdt.strftime('%Y%m%d-080000')
 enddtstr = enddt.strftime('%Y%m%d-080000')
 
-tmpdir = os.getenv('TMP')
-if tmpdir is None:
-    tmpdir = '/tmp'
-execmatchingsh = os.path.join(tmpdir, 'execMatching.sh')
+#tmpdir = os.getenv('TMP')
+#if tmpdir is None:
+#    tmpdir = '/tmp'
+execmatchingsh = outfname # os.path.join(tmpdir, outfname)
 with open(execmatchingsh, 'w') as outf:
     outf.write('#!/bin/bash\n')
     outf.write('source /home/ec2-user/venvs/wmpl/bin/activate\n')
