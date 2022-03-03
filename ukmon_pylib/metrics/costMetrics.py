@@ -111,8 +111,8 @@ if __name__ == '__main__':
         dtwanted = curdt.replace(month=mthwanted).replace(day=1)
         if mthwanted > thismth:
             dtwanted = dtwanted.replace(year = curdt.year-1)
-        if mthwanted == 12:
-            dtwanted = dtwanted.replace(year = curdt.year-1).replace(month=12)
+        #if mthwanted == 12:
+        #    dtwanted = dtwanted.replace(year = curdt.year-1).replace(month=12)
         endwanted = dtwanted + relativedelta.relativedelta(months=1)
         
     else:
