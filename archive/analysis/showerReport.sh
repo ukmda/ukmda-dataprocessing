@@ -40,7 +40,7 @@ else
         python -m analysis.showerAnalysis $shwr $dt
         python -m reports.findFireballs $dt $shwr $magval
 
-        if [ -f $MATCHDIR/RMSCorrelate/trajectories/${yr}/${dt}/plots/*${shwr}.png ] ; then 
+        if compgen -G "$MATCHDIR/RMSCorrelate/trajectories/${yr}/${dt}/plots/*${shwr}.png" > /dev/null ; then 
             cp $MATCHDIR/RMSCorrelate/trajectories/${yr}/${dt}/plots/*${shwr}.png $DATADIR/$outdir
         fi 
         logger -s -t showerReport "done, now creating report"
@@ -135,14 +135,16 @@ else
     if [[ "$shwr" == "ALL" && "$mth" == "" ]] ; then
         cp $DATADIR/Annual-$2.jpg $DATADIR/$outdir/02_stream_plot_timeline_single.jpg
     fi
-
-    if [ "$mth" == "" ]; then 
-        dt=$(date +Y%m) 
-    fi
-    if [ -f $MATCHDIR/RMSCorrelate/trajectories/$yr/$dt/plots/*$shwr.png ] ; then 
-        cp $MATCHDIR/RMSCorrelate/trajectories/$yr/$dt/plots/*$shwr.png .
+    
+    locmth=$(python -m utils.getShowerDates $shwr | awk -F, '{print $2}'| awk -F- '{print $1}')
+    tdt=${yr}${locmth}
+    if compgen -G "$MATCHDIR/RMSCorrelate/trajectories/${yr}/${tdt}/plots/*${shwr}.png" > /dev/null ; then 
+        cp $MATCHDIR/RMSCorrelate/trajectories/$yr/$tdt/plots/*$shwr.png $DATADIR/$outdir
+        jpglist=$(ls -1 *.jpg *.png)
+    else
+        jpglist=$(ls -1 *.jpg)
     fi 
-    jpglist=$(ls -1 *.jpg *.png)
+    
     echo "<div class=\"top-img-container\">" >> $idxfile
     for j in $jpglist; do
         echo "<a href=\"./$j\"><img src=\"./$j\" width=\"20%\"></a>" >> $idxfile
