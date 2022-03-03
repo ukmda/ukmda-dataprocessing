@@ -1,5 +1,5 @@
 #
-# powershell script to upload improved fit details of fireballs
+# powershell script to upload improved FTP file sent over by camera owner
 #
 # args : arg1 full path to ftpdetect file
 $loc = Get-Location
@@ -33,10 +33,14 @@ Write-Output "Target location is $stn/$cam/$yr/$ym/$ymd/"
 if ((test-path $targpth/processed) -eq 0) { mkdir $targpth/processed}
 
 aws s3 cp $targpth/$ftpname s3://ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/
-Move-Item $targpth/$ftpname $targpth/processed/
+Move-Item $targpth/$ftpname $targpth/processed/ -Force
 
 if ((test-path $targpth/platepars_all_recalibrated.json) -eq 1){
-    aws s3 cp $targpth/platepars_all_recalibrated.json s3://ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/
-    Move-Item $targpth/platepars_all_recalibrated.json $targpth/processed/
+    $x=(select-string -pattern UK005P -path .\platepars_all_recalibrated.json)
+    if ($x.length -gt 0) 
+    {
+        aws s3 cp $targpth/platepars_all_recalibrated.json s3://ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/
+        Move-Item $targpth/platepars_all_recalibrated.json $targpth/processed/platepars_all_recalibrated.json.$cam.$dt
+    }
 }
 

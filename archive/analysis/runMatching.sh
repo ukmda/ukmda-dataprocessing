@@ -41,7 +41,8 @@ sleep 20
 # could store this on the server permanently but this allows me to more readily
 # make changes
 logger -s -t runMatching "create the run script"
-python -m traj.createExecMatchingSh $MATCHSTART $MATCHEND
+execMatchingsh=/tmp/execMatching.sh
+python -m traj.createExecMatchingSh $MATCHSTART $MATCHEND $execMatchingsh
 chmod +x $execMatchingsh
 
 logger -s -t runMatching "get server details"

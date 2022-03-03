@@ -81,11 +81,17 @@ fi
 logger -s -t findAllMatches "Solving run done"
 logger -s -t findAllMatches "================"
 
+logger -s -t nightlyJob "waiting for lambdas to finish"
+# need to wait here till the lambdas creating orbit pages are finished
+sleep 600
+# catchall to reprocess any failed orbit page updates
+source $WEBSITEKEY
+python -m utils.rerunFailedGetExtraFiles
+
 cd $here
 logger -s -t findAllMatches "create text file containing most recent matches"
 # this compares the previous and current trajectory database (json file)
 python -m reports.reportOfLatestMatches $MATCHDIR/RMSCorrelate $DATADIR $MATCHEND $rundate
-
 
 logger -s -t findAllMatches "gather some stats"
 

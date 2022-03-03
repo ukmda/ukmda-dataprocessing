@@ -31,11 +31,7 @@ This diagram shows the various scripts and processes called, in order
 
 ```mermaid
     flowchart TD
-    nj[nightlyJob.sh] --> CCsv[Lambda:ConsolidateCSVs]
-    CCsv --> jpgs[Get List of Jpgs and Mp4s]
-    jpgs --> cons[Sync Consolidated Data from S3]
-    cons --> liv[Sync ukmon-live indexes]
-    liv --> fam[run findAllMatches.sh]
+    nj[nightlyJob.sh] --> fam[run findAllMatches.sh]
     fam --> don[matches identified]
     don --> rep[send email of Latest Matches]
     rep --> cons2[Consolidate matched data]
@@ -46,7 +42,7 @@ This diagram shows the various scripts and processes called, in order
     rep2 --> dens[Create Density Plots]
     dens --> rep3[Create reports of current Showers]
     rep3 --> summ[Create summary date for homepage]
-    summ --> camst[Create Camer status reports]
+    summ --> camst[Create Camera status reports]
     camst --> exch[Create files for exchange with other networks]
     exch --> stats[Create Station Reports]
     stats --> mets[Create Metrics]

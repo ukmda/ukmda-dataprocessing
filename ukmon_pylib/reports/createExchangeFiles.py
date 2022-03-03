@@ -150,16 +150,8 @@ def createCameraFile(datadir):
     return
 
 
-def uploadFiles(datadir, bucket, keyf):
-    cmd = 'source {} && aws s3 sync {}/browse/daily/ {}/browse/daily/'.format(keyf, datadir, bucket)
-    os.system(cmd)
-    return
-
-
 if __name__ == '__main__':
     datadir = os.getenv('DATADIR')
-    bucket = os.getenv('WEBSITEBUCKET')
-    keyf = os.getenv('WEBSITEKEY')
     if len(sys.argv) > 1:
         targdate = datetime.datetime.strptime(sys.argv[1], '%Y%m%d')
     else:
@@ -169,4 +161,3 @@ if __name__ == '__main__':
     createDetectionsFile(targdate, datadir)
     createMatchesFile(targdate, datadir)
     createWebpage(datadir)
-    uploadFiles(datadir, bucket, keyf)

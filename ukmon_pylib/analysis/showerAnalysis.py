@@ -59,14 +59,14 @@ def showerGraph(dta, s_or_m, outdir, maxshwrs=30):
     else:
         dta = dta[dta._stream !='spo']
         grps = dta.groupby('_stream').size()
+    if len(dta) > 0: 
+        ax=grps.sort_values(ascending=False).head(maxshwrs).plot.barh()
+        for lab in ax.get_xticklabels():
+            lab.set_fontsize(SMALL_SIZE)
 
-    ax=grps.sort_values(ascending=False).head(maxshwrs).plot.barh()
-    for lab in ax.get_xticklabels():
-        lab.set_fontsize(SMALL_SIZE)
-
-    fname = os.path.join(outdir, '01_streamcounts_plot_shower_{}.jpg'.format(s_or_m))
-    plt.title('Top {} showers - {} events ({})'.format(maxshwrs, s_or_m, shwrname))
-    plt.savefig(fname)
+        fname = os.path.join(outdir, '01_streamcounts_plot_shower_{}.jpg'.format(s_or_m))
+        plt.title('Top {} showers - {} events ({})'.format(maxshwrs, s_or_m, shwrname))
+        plt.savefig(fname)
     return len(grps)
 
 

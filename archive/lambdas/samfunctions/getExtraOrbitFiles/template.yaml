@@ -28,7 +28,7 @@ Resources:
       Description: Gets UKMON orbit extra files
       Handler: getExtraOrbitFiles.lambda_handler
       Runtime: python3.8
-      Timeout: 120
+      Timeout: 180
       MemorySize: 512
       Environment:
         Variables:
