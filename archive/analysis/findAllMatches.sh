@@ -10,7 +10,7 @@
 #   All UFO and RMS single-station data (ftpdetect, platepars_all and A.xml files)
 #
 # Produces:
-#   new and updated orbit solutions in $MATCHDIR/RMSCorrelate/trajectories 
+#   new and updated orbit solutions 
 #   csv and extracsv files in $DATADIR/orbits/yyyy/csv and extracsv
 #   daily report of matches and statistics, in $DATADIR/dailyreports
 #   an email sent out via a lambda fn
