@@ -29,6 +29,30 @@ def getVMagCodeAndStations(outdir):
     return bestvmag, cod, stations
 
 
+def getAllMp4s(outdir):
+    try:
+        picklefile = glob.glob1(outdir, '*.pickle')[0]
+    except Exception:
+        print('no picklefile in ', outdir)
+        return ''
+    else:
+        traj = loadPickle(outdir, picklefile)
+        _, statids, vmags = loadMagData(traj)
+        with open(os.path.join(outdir, 'mpgs.lst')) as inf:
+            lis = inf.readlines()
+        maglist = []
+        mp4list = []
+        for mag, stat in zip(vmags, statids):
+            res=[stat in ele for ele in lis]    
+            try:
+                imgfn = lis[res.index(1)].strip()
+                mp4list.append(imgfn)
+                maglist.append(mag)
+            except:
+                pass
+        return pd.DataFrame(zip(mp4list, maglist), columns=['mp4', 'mag'])
+
+
 def getBestView(outdir):
     try:
         picklefile = glob.glob1(outdir, '*.pickle')[0]
@@ -50,7 +74,10 @@ def getBestView(outdir):
             worstmag = max(vmags)
             for mag, stat in zip(vmags, statids):
                 res=[stat in ele for ele in lis]    
-                imgfn = lis[res is True].strip()
+                try:
+                    imgfn = lis[res.index(1)].strip()
+                except:
+                    pass
                 if mag <= worstmag:
                     if len(imgfn) > 0:
                         bestimg = imgfn

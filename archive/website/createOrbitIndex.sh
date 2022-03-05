@@ -29,7 +29,7 @@ if [ "$dy" != "" ] ; then
     msg="Click on an entry to see results of analysis for the matched event."
     msg2="<a href=\"../index.html\">Back to monthly index</a>" 
     targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${yr}${mth}/${ym}
-    orblist=$(ls -1 ${MATCHDIR}/RMSCorrelate/trajectories/${yr}/${yr}${mth}/${ym} | egrep -v "plots|png" )
+    orblist=$(aws s3 ls $targ/ | egrep -v "html|plots|png" | awk '{print $2}')
     domth=1
     doplt=0
     rm -f $DATADIR/orbits/$yr/$ym.txt
@@ -38,7 +38,7 @@ elif [ "$mth" != "" ] ; then
     msg="Click to explore the selected day."
     msg2="<a href=\"../index.html\">Back to annual index</a>" 
     targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${ym}
-    orblist=$(ls -1 ${MATCHDIR}/RMSCorrelate/trajectories/${yr}/${ym} | egrep -v "plots|png")
+    orblist=$(aws s3 ls $targ/ | egrep -v "html|plots|png" | awk '{print $2}')
     domth=1
     doplt=1
     rm -f $DATADIR/orbits/$yr/$ym.txt
@@ -47,7 +47,7 @@ else
     msg="Click to explore the selected month."
     msg2="<a href=\"../../index.html\">Back to reports index</a>" 
     targ=${WEBSITEBUCKET}/reports/${yr}/orbits
-    orblist=$(ls -1 ${MATCHDIR}/RMSCorrelate/trajectories/${yr} | egrep -v "plots|png")
+    orblist=$(aws s3 ls $targ/ | egrep -v "html|plots|png" | awk '{print $2}')
     domth=0
     doplt=1
 fi
