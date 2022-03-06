@@ -22,6 +22,9 @@ print(startdt, enddt)
 startdtstr = startdt.strftime('%Y%m%d-080000')
 enddtstr = enddt.strftime('%Y%m%d-080000')
 
+yr = enddt.year
+ym = enddt.strftime('%Y%m')
+
 #tmpdir = os.getenv('TMP')
 #if tmpdir is None:
 #    tmpdir = '/tmp'
@@ -39,13 +42,24 @@ with open(execmatchingsh, 'w') as outf:
     outf.write(f'time python -m wmpl.Trajectory.CorrelateRMS /home/ec2-user/data/RMSCorrelate/ -l -r \"({startdtstr},{enddtstr})\"\n')
     outf.write(f'source {shkey}\n')
     outf.write('cd /home/ec2-user/data/RMSCorrelate\n')
+    outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot  ./trajectories/{yr} -p -s 30')
+    outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot  ./trajectories/{yr}/{ym} -p -s 30')
+    outf.write(f'mkdir -p ./trajectories/{yr}/plots')
+    outf.write(f'mv ./trajectories/{yr}/*.png ./trajectories/{yr}/plots')
+    outf.write(f'mv ./trajectories/{yr}/trajectory_summary.txt ./trajectories/{yr}/plots')
+    outf.write(f'mkdir -p ./trajectories/{yr}/{ym}/plots')
+    outf.write(f'mv ./trajectories/{yr}/{ym}/*.png ./trajectories/{yr}/{ym}/plots')
+    outf.write(f'mv ./trajectories/{yr}/{ym}/trajectory_summary.txt ./trajectories/{yr}/{ym}/plots')
     outf.write('df -h . \n')
+    
     outf.write('logger -s -t runMatching \"done and syncing back\"\n')
     for d in range(matchend, matchstart+1):
         thisdt=datetime.datetime.now() + datetime.timedelta(days=-d)
         trajloc=f'{thisdt.year}/{thisdt.year}{thisdt.month:02d}/{thisdt.year}{thisdt.month:02d}{thisdt.day:02d}'
         outf.write(f'aws s3 sync trajectories/{trajloc} {shbucket}/matches/RMSCorrelate/trajectories/{trajloc} --quiet\n')
 
+    outf.write(f'aws s3 sync trajectories/{yr}/plots {shbucket}/matches/RMSCorrelate/trajectories/{yr}/plots --quiet\n')
+    outf.write(f'aws s3 sync trajectories/{yr}/{ym}/plots {shbucket}/matches/RMSCorrelate/trajectories/{yr}/{ym}/plots --quiet\n')
     outf.write(f'aws s3 cp processed_trajectories.json {shbucket}/matches/RMSCorrelate/processed_trajectories.json.bigserver --quiet\n')
 
 #chmod +x $execMatchingsh
