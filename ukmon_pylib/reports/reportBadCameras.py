@@ -178,7 +178,8 @@ if __name__ == '__main__':
 
     mailrecip = 'markmcintyre99@googlemail.com'
     msgtype='Late or Misbehaving camera report'
-    
-    if len(mailmsg) > 0:
+        
+    # check again as we just applied a 2nd filter (on date)
+    if len(badcams) > 0: 
         sendAnEmail.sendAnEmail(mailrecip, mailmsg, msgtype)
         print('mail sent')
