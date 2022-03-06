@@ -20,6 +20,18 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 # load the configuration
 source $here/../config/config.ini >/dev/null 2>&1
 
+if [ $# -gt 0 ] ; then
+    if [ "$1" != "" ] ; then
+        echo "selecting range"
+        MATCHSTART=$1
+    fi
+    if [ "$2" != "" ] ; then
+        MATCHEND=$2 
+    else
+        MATCHEND=$(( $MATCHSTART - 2 ))
+    fi
+fi
+
 source $SERVERAWSKEYS
 AWS_DEFAULT_REGION=eu-west-2 
 
@@ -35,7 +47,6 @@ while [ "$stat" -ne 16 ]; do
     stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
 done
 logger -s -t runMatching "ready to use"
-sleep 20
 
 # create the script to run the matching process
 # could store this on the server permanently but this allows me to more readily
@@ -51,8 +62,10 @@ privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Res
 logger -s -t runMatching "deploy the script to the server and run it"
 
 scp -i $SERVERSSHKEY $execMatchingsh ec2-user@$privip:/tmp
-while [ $? -eq 255 ] ; do
+while [ $? -ne 0 ] ; do
     # in case the server isn't responding to ssh sessions yet
+    sleep 10
+    echo "server not responding yet, retrying"
     scp -i $SERVERSSHKEY $execMatchingsh ec2-user@$privip:/tmp
 done 
 ssh -i $SERVERSSHKEY ec2-user@$privip $execMatchingsh

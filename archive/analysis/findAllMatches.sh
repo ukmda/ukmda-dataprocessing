@@ -61,13 +61,12 @@ startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
 enddt=$(date --date="-$MATCHEND days" '+%Y%m%d-080000')
 logger -s -t findAllMatches "solving for ${startdt} to ${enddt}"
 
-
 logger -s -t findAllMatches "preserve previous trajectories database"
 thisjson=$MATCHDIR/RMSCorrelate/processed_trajectories.json.bigserver
 cp $thisjson $MATCHDIR/RMSCorrelate/prev_processed_trajectories.json.bigserver
 
 logger -s -t findAllMatches "actually run the matching process"
-$SRC/analysis/runMatching.sh
+$SRC/analysis/runMatching.sh $MATCHSTART $MATCHEND
 
 logger -s -t findAllMatches "check if the solver had some sort of failiure"
 logf=$(ls -1tr $SRC/logs/matches-*.log | tail -1)
