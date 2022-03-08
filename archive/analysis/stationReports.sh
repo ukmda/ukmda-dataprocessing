@@ -66,7 +66,8 @@ logger -s -t stationReports "create list of connected stations"
 sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s-%s, %s, %s\n", $1, $2, $3,$9)}' > $DATADIR/reports/stationlogins.txt
 
 source $WEBSITEKEY
-aws s3 sync $DATADIR/reports/$yr/stations/  $WEBSITEBUCKET/reports/$yr/stations/ --quiet
+aws s3 cp $DATADIR/reports/$yr/stations/index.html  $WEBSITEBUCKET/reports/$yr/stations/ --quiet
+aws s3 cp $DATADIR/reports/$yr/stations/reportindex.js  $WEBSITEBUCKET/reports/$yr/stations/ --quiet
 aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --quiet
 
 logger -s -t stationReports "finished"
