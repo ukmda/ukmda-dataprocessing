@@ -8,19 +8,19 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import datetime
 
-import fileformats.UOFormat as uof 
-from wmpl.Utils.TrajConversions import jd2Date
+from wmplloc.Math import jd2Date
 
 
 def createBarChart(fname, yr):
     if not os.path.isfile(fname):
         print('{} missing', fname)
         return None
-    matches = uof.MatchedCsv(fname)
-    v1=int(matches.rawdata['_mjd'][0])
-    v2=int(matches.rawdata['_mjd'][len(matches.rawdata)-1])+2
+    matches = pd.read_csv(fname)
+    matches = matches.sort_values(by=['_mjd'])
+    v1=int(matches['_mjd'][0])
+    v2=int(matches['_mjd'][len(matches)-1])+2
     ranges=list(range(v1,v2))
-    li=matches.rawdata.groupby(pd.cut(matches.rawdata['_mjd'], ranges)).count()['_mjd'].tolist()
+    li=matches.groupby(pd.cut(matches['_mjd'], ranges)).count()['_mjd'].tolist()
 
     dts=[]
     for d in ranges:
@@ -50,7 +50,7 @@ if __name__ == '__main__':
         fname = sys.argv[1]
         yr = sys.argv[2]
     else:
-        yr=2021
+        yr=datetime.datetime.now().year
         datadir=os.getenv('DATADIR')
         fname = os.path.join(datadir, 'matched', 'matches-{}.csv'.format(yr))
         
