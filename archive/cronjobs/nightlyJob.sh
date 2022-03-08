@@ -117,8 +117,3 @@ python -m metrics.timingMetrics $nightlog 'N' >> $SRC/logs/perfNightly.csv
 # check for bad stations
 $SRC/analysis/getBadStations.sh
 logger -s -t nightlyJob "Finished"
-
-# this is REALLY slow so do it last and only once a month
-if [ $(date +%d) -eq 15 ] ; then
-    $SRC/analysis/createDensityPlots.sh ${yr}
-fi
