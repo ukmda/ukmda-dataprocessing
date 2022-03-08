@@ -267,7 +267,7 @@ def pushToWebsite(fuloutdir, outdir, websitebucket):
         locfname = fuloutdir + '/' + fi
         key = outdir + '/' + fi
         if os.path.isfile(locfname):
-            print(locfname)
+            print(locfname, key)
             extraargs = getExtraArgs(fi)
             s3.meta.client.upload_file(locfname, websitebucket, key, ExtraArgs=extraargs) 
     return 
@@ -314,7 +314,8 @@ if __name__ == '__main__':
     for loc in locs: 
         camlistfltr = camlist[camlist.site == loc]
         camlistfltr = camlistfltr[camlistfltr.active == 1]
-        idlist = list(camlistfltr.camid)
+        # use dummycode here to find data for both UFO and RMS cams
+        idlist = list(camlistfltr.dummycode) 
 
         if mth is None:
             sampleinterval="1M"
