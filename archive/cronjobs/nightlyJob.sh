@@ -117,3 +117,5 @@ python -m metrics.timingMetrics $nightlog 'N' >> $SRC/logs/perfNightly.csv
 # check for bad stations
 $SRC/analysis/getBadStations.sh
 logger -s -t nightlyJob "Finished"
+
+$SRC/analysis/getLogData.sh
