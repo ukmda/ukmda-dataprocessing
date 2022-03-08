@@ -66,8 +66,6 @@ if [ $(date +%d) -eq 1 ] ; then
     $SRC/analysis/showerReport.sh ALL ${lastmth} force
 fi 
 logger -s -t nightlyJob "Create density and velocity plots by solar longitude"
-# do this before individual shower reports so that the graphs can be copied
-$SRC/analysis/createDensityPlots.sh ${mth}
 
 logger -s -t nightlyJob "update other relevant showers"
 ${SRC}/analysis/reportYear.sh ${yr}

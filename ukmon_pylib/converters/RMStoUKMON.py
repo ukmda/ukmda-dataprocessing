@@ -46,7 +46,7 @@ def findUnprocessedFolders(dir_path, station_list, db, dbtime):
                 processing_list.append(night_path)                
             else:
                 spls = night_name.split('_')
-                if int(spls[1]) >  nowdt-14:
+                if int(spls[1]) > nowdt - 14:
                     ftpf = glob.glob1(night_path, 'FTPdetect*') 
                     if len(ftpf) > 0:
                         ftpd = os.path.getmtime(os.path.join(night_path, ftpf[0]))
