@@ -57,5 +57,6 @@ aws s3 cp $DATADIR/coverage-70km.html  $WEBSITEBUCKET/data/coverage.html --quiet
 aws s3 cp $DATADIR/coverage-25km.html  $WEBSITEBUCKET/data/ --quiet
 aws s3 cp $DATADIR/Annual-${yr}.jpg $WEBSITEBUCKET/YearToDate.jpg --quiet
 aws s3 cp $DATADIR/newindex.html $WEBSITEBUCKET/index.html --quiet
-
+aws s3 cp $SRC/website/templates/header.html $WEBSITEBUCKET/templates/ --quiet
+aws s3 cp $SRC/website/templates/footer.html $WEBSITEBUCKET/templates/ --quiet
 logger -s -t createSummaryTable "finished"
