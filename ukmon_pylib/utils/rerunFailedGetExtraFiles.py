@@ -112,7 +112,7 @@ def rerunFails(fails):
         thisevent = templ.replace('KEYHERE', evt)
         print(thisevent)
         response = lambd.invoke(
-            FunctionName='getExtraFiles',
+            FunctionName='getExtraOrbitFilesV2',
             InvocationType='Event',
             Payload=thisevent,
         )
