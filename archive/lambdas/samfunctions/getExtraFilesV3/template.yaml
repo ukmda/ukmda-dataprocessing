@@ -27,6 +27,7 @@ Resources:
         Variables:
           WEBSITEBUCKET: ukmeteornetworkarchive
           MPLCONFIGDIR: /tmp/mpl
+          WEBURL: https://archive.ukmeteornetwork.co.uk
       Role: arn:aws:iam::317976261112:role/lambda-s3-full-access-role
     Metadata:
       Dockerfile: Dockerfile
