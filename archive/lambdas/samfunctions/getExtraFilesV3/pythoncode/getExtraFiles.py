@@ -166,6 +166,10 @@ def pushFilesBack(outdir, archbucket, fldr, s3):
             key = os.path.join(f'matches/{yr}/extracsv', f)
             extraargs = getExtraArgs(locfname)
             s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
+        if 'orbit_full.csv' in f:
+            key = os.path.join(f'matches/{yr}/fullcsv', f)
+            extraargs = getExtraArgs(locfname)
+            s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
 
     zipfile.close()
     # now we push the zipfile
