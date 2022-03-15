@@ -41,7 +41,7 @@ python -m utils.makeCoverageMap $ARCHDIR/../kmls $DATADIR
 
 logger -s -t createSummaryTable "create year-to-date barchart"
 pushd $DATADIR
-python -m reports.createAnnualBarChart  $DATADIR/matched/matches-${yr}.csv ${yr}
+python -m reports.createAnnualBarChart  $DATADIR/matched/matches-full-${yr}.csv ${yr}
 popd
 
 # update index page

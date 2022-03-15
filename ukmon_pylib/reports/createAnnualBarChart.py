@@ -52,7 +52,7 @@ if __name__ == '__main__':
     else:
         yr=datetime.datetime.now().year
         datadir=os.getenv('DATADIR')
-        fname = os.path.join(datadir, 'matched', 'matches-{}.csv'.format(yr))
+        fname = os.path.join(datadir, 'matched', 'matches-full-{}.csv'.format(yr))
         
     m = createBarChart(fname, yr)
 #    print(m.selectByMag(minMag=-2))
