@@ -91,7 +91,7 @@ if __name__ == '__main__':
 
     if os.path.isfile(fname):
         with open(fname) as inf:
-            df = pd.read_csv(inf)
+            df = pd.read_csv(inf, skipinitialspace=True)
     else:
         print('unable to load datafile')
         exit(0)
