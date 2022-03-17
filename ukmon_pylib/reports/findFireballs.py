@@ -7,8 +7,8 @@ import sys
 import os
 import pandas as pd
 
-from wmplloc.pickleAnalyser import getBestView
-from wmplloc.Math import jd2Date
+from traj.pickleAnalyser import getBestView
+from wmpl.Utils.Math import jd2Date
 
 
 def createMDFiles(fbs, outdir, matchdir):

@@ -3,7 +3,7 @@ import boto3
 import shutil
 import sys
 import os
-from wmplloc.pickleAnalyser import getAllMp4s
+from traj.pickleAnalyser import getAllMp4s
 
 
 def getBestNMp4s(yr, mth, numtoget):

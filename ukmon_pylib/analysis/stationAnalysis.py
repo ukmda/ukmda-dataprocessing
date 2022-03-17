@@ -10,7 +10,7 @@ import shutil
 import datetime
 import boto3
 
-from wmplloc.Math import jd2Date
+from wmpl.Utils.Math import jd2Date
 
 SMALL_SIZE = 8
 MEDIUM_SIZE = 10
