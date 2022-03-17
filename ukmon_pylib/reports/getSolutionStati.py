@@ -62,6 +62,7 @@ def getSolutionStati(fname):
             continue
         if "Shower:" in li and newtraj is True:
             spls = thistraj.strip().split(' ')
+            spl2 = li.strip().split(' ')
             if spl2[1] == '...':
                 shwr = 'Spo'
             else:
