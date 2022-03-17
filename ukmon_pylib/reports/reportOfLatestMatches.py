@@ -11,7 +11,7 @@ import json
 import shutil
 
 import fileformats.CameraDetails as cd
-from wmplloc.pickleAnalyser import getVMagCodeAndStations
+from traj.pickleAnalyser import getVMagCodeAndStations
 
 
 def processLocalFolder(trajdir, basedir):

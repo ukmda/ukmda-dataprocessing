@@ -8,7 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import datetime
 
-from wmplloc.Math import jd2Date
+from wmpl.Utils.Math import jd2Date
 
 
 def createBarChart(fname, yr):

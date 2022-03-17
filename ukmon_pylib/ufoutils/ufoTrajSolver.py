@@ -10,7 +10,7 @@ import sys
 import argparse
 import numpy as np
 
-from wmplloc.pickleAnalyser import createAdditionalOutput
+from traj.pickleAnalyser import createAdditionalOutput
 
 from wmpl.Formats.GenericFunctions import addSolverOptions
 from wmpl.Formats.Milig import StationData, writeMiligInputFile
