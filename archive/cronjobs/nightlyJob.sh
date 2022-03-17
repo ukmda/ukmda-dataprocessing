@@ -22,6 +22,13 @@ logger -s -t nightlyJob "looking for matching events and solving their trajector
 matchlog=matches-$(date +%Y%m%d-%H%M%S).log
 ${SRC}/analysis/findAllMatches.sh > ${SRC}/logs/${matchlog} 2>&1
 
+logger -s -t nightlyJob "consolidate the resulting data"
+$SRC/analysis/consolidateOutput.sh ${yr}
+
+logger -s -t nightlyJob "update search index files and station list for search index"
+$SRC/analysis/createSearchable.sh
+$SRC/website/createStationList.sh
+
 # send daily report - only want to do this if in batch mode
 if [ "`tty`" != "not a tty" ]; then 
     logger -s -t nightlyJob 'got a tty, not triggering report'
@@ -32,16 +39,9 @@ else
     aws lambda invoke --function-name dailyReport --log-type Tail $SRC/logs/dailyReport.log
 fi
 
-logger -s -t nightlyJob "consolidate the resulting data"
-$SRC/analysis/consolidateOutput.sh ${yr}
-
 logger -s -t nightlyJob "create monthly and shower extracts for the website"
 ${SRC}/website/createMthlyExtracts.sh ${mth}
 ${SRC}/website/createShwrExtracts.sh ${mth}
-
-logger -s -t nightlyJob "update search index files and station list for search index"
-$SRC/analysis/createSearchable.sh
-$SRC/website/createStationList.sh
 
 logger -s -t nightlyJob "update annual bright event/fireball page"
 #requires search index to have been updated first 
@@ -65,7 +65,6 @@ if [ $(date +%d) -eq 1 ] ; then
     ${SRC}/website/createShwrExtracts.sh ${lastmth}
     $SRC/analysis/showerReport.sh ALL ${lastmth} force
 fi 
-logger -s -t nightlyJob "Create density and velocity plots by solar longitude"
 
 logger -s -t nightlyJob "update other relevant showers"
 ${SRC}/analysis/reportYear.sh ${yr}
