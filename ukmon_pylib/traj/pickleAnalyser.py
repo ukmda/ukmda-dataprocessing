@@ -3,8 +3,6 @@
 
 """
 
-from __future__ import print_function, division, absolute_import
-
 import os
 import numpy as np
 import pandas as pd
@@ -22,22 +20,25 @@ from wmpl.Config import config
 from traj.ShowerAssociation import associateShower
 
 
-def getVMagCodeAndStations(outdir):
+def getVMagCodeAndStations(picklename):
+    try:
+        traj = loadPickle(*os.path.split(picklename))
+    except Exception:
+        print('no picklefile ', picklename)
+        return ''
 
-    picklefile = glob.glob1(outdir, '*.pickle')[0]
-    traj = loadPickle(outdir, picklefile)
     _, bestvmag, _, _, cod, _, _, _, _, _, _, stations = calcAdditionalValues(traj)
     return bestvmag, cod, stations
 
 
-def getAllMp4s(outdir):
+def getAllMp4s(picklename):
     try:
-        picklefile = glob.glob1(outdir, '*.pickle')[0]
+        outdir, _ = os.path.split(picklename)
+        traj = loadPickle(*os.path.split(picklename))
     except Exception:
         print('no picklefile in ', outdir)
         return ''
     else:
-        traj = loadPickle(outdir, picklefile)
         _, statids, vmags = loadMagData(traj)
         with open(os.path.join(outdir, 'mpgs.lst')) as inf:
             lis = inf.readlines()
@@ -54,14 +55,14 @@ def getAllMp4s(outdir):
         return pd.DataFrame(zip(mp4list, maglist), columns=['mp4', 'mag'])
 
 
-def getBestView(outdir):
+def getBestView(picklename):
     try:
-        picklefile = glob.glob1(outdir, '*.pickle')[0]
+        outdir, _ = os.path.split(picklename)
+        traj = loadPickle(*os.path.split(picklename))
     except Exception:
         print('no picklefile in ', outdir)
         return ''
     else:
-        traj = loadPickle(outdir, picklefile)
         _, statids, vmags = loadMagData(traj)
         bestvmag = min(vmags)
         beststatid = statids[vmags.index(bestvmag)]

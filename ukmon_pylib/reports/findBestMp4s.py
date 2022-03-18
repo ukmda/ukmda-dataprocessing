@@ -28,13 +28,13 @@ def getBestNMp4s(yr, mth, numtoget):
         locdir = os.path.join(tmpdir, trname)
         os.makedirs(locdir, exist_ok=True)
         key = trdir + '/' + picklefile
-        locfname = os.path.join(locdir, picklefile)
-        s3.meta.client.download_file(wsbucket, key, locfname)
+        picklename = os.path.join(locdir, picklefile)
+        s3.meta.client.download_file(wsbucket, key, picklename)
         key = trdir + '/mpgs.lst'
         locfname = os.path.join(locdir, 'mpgs.lst')
         try:
             s3.meta.client.download_file(wsbucket, key, locfname)
-            newdf = getAllMp4s(locdir)
+            newdf = getAllMp4s(picklename)
             mp4df = pd.concat([mp4df, newdf])
         except:
             pass
