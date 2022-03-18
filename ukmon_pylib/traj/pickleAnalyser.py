@@ -13,7 +13,8 @@ from mpl_toolkits.mplot3d import Axes3D
 import glob
 import datetime
 
-from wmpl.Utils.Math import jd2Date, sollon2jd
+from wmpl.Utils.TrajConversions import jd2Date
+from utils.convertSolLon import sollon2jd
 from wmpl.Utils.Math import mergeClosePoints, angleBetweenSphericalCoords
 from wmpl.Utils.Physics import calcMass
 from wmpl.Utils.Pickling import loadPickle

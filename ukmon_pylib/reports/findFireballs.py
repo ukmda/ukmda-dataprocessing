@@ -8,7 +8,7 @@ import os
 import pandas as pd
 
 from traj.pickleAnalyser import getBestView
-from wmpl.Utils.Math import jd2Date
+from wmpl.Utils.TrajConversions import jd2Date
 
 
 def createMDFiles(fbs, outdir, matchdir):
