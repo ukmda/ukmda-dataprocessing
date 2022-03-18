@@ -10,10 +10,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-import glob
 import datetime
 
-from wmpl.Utils.Pickling import loadPickle
 from wmpl.Utils.Math import mergeClosePoints, angleBetweenSphericalCoords
 from wmpl.Utils.SolarLongitude import date2JD
 from wmpl.Utils.TrajConversions import jd2Date    
@@ -41,70 +39,6 @@ def sollon2jd(Year, Month, Long):
     JD1 = JDM0 + Dt
 
     return JD1
-
-
-def getVMagCodeAndStations(outdir):
-
-    picklefile = glob.glob1(outdir, '*.pickle')[0]
-    traj = loadPickle(outdir, picklefile)
-    _, bestvmag, _, _, cod, _, _, _, _, _, _, stations = calcAdditionalValues(traj)
-    return bestvmag, cod, stations
-
-
-def getAllMp4s(outdir):
-    try:
-        picklefile = glob.glob1(outdir, '*.pickle')[0]
-    except Exception:
-        print('no picklefile in ', outdir)
-        return ''
-    else:
-        traj = loadPickle(outdir, picklefile)
-        _, statids, vmags = loadMagData(traj)
-        with open(os.path.join(outdir, 'mpgs.lst')) as inf:
-            lis = inf.readlines()
-        maglist = []
-        mp4list = []
-        for mag, stat in zip(vmags, statids):
-            res=[stat in ele for ele in lis]    
-            try:
-                imgfn = lis[res.index(1)].strip()
-                mp4list.append(imgfn)
-                maglist.append(mag)
-            except:
-                pass
-        return pd.DataFrame(zip(mp4list, maglist), columns=['mp4', 'mag'])
-
-
-def getBestView(outdir):
-    try:
-        picklefile = glob.glob1(outdir, '*.pickle')[0]
-    except Exception:
-        print('no picklefile in ', outdir)
-        return ''
-    else:
-        traj = loadPickle(outdir, picklefile)
-        _, statids, vmags = loadMagData(traj)
-        bestvmag = min(vmags)
-        beststatid = statids[vmags.index(bestvmag)]
-        imgfn = glob.glob1(outdir, '*{}*.jpg'.format(beststatid))
-        if len(imgfn) > 0:
-            bestimg = imgfn[0]
-        else:
-            with open(os.path.join(outdir, 'jpgs.lst')) as inf:
-                lis = inf.readlines()
-            bestimg=''
-            worstmag = max(vmags)
-            for mag, stat in zip(vmags, statids):
-                res=[stat in ele for ele in lis]    
-                try:
-                    imgfn = lis[res.index(1)].strip()
-                except:
-                    pass
-                if mag <= worstmag:
-                    if len(imgfn) > 0:
-                        bestimg = imgfn
-
-        return bestimg
 
 
 def getShowerDets(shwr):
