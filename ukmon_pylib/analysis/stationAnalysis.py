@@ -10,8 +10,6 @@ import shutil
 import datetime
 import boto3
 
-from wmpl.Utils.TrajConversions import jd2Date
-
 SMALL_SIZE = 8
 MEDIUM_SIZE = 10
 BIGGER_SIZE = 12
@@ -30,20 +28,16 @@ def getBrightest(mtch, xtra, loc, outdir, when):
         fbf.write('header.className = \"h4\";\n')
         for r in brightest.iterrows():
             fbs.append({'mjd': r[1]._mjd, 'mag': r[1]._mag, 'shwr':r[1]._stream})
-            dt = jd2Date(r[1]._mjd + 2400000.5, dt_obj=True)
-            dtstr = dt.strftime('%Y%m%d_%H%M%S')
-            ms = int(dt.microsecond/1000)
-            suff = '.{:03d}_UK'.format(ms)
-            dtstr = dtstr + suff
-            yr = dtstr[:4]
-            ym = dtstr[:6]
-            ymd = dtstr[:8]
+            orbname = r[1].orbname
+            yr = orbname[:4]
+            ym = orbname[:6]
+            ymd = orbname[:8]
             mag = r[1]._mag
             shwr = r[1]._stream
             fbf.write('var row = table.insertRow(-1);\n')
             fbf.write('var cell = row.insertCell(0);\n')
-            hlink='/reports/{}/orbits/{}/{}/{}/index.html'.format(yr, ym, ymd, dtstr)
-            fbf.write('cell.innerHTML = "<a href={}>{}</a>";\n'.format(hlink, dtstr))
+            hlink='/reports/{}/orbits/{}/{}/{}/index.html'.format(yr, ym, ymd, orbname)
+            fbf.write('cell.innerHTML = "<a href={}>{}</a>";\n'.format(hlink, orbname))
             fbf.write('var cell = row.insertCell(1);\n')
             fbf.write('cell.innerHTML = "{}";\n'.format(mag))
             fbf.write('var cell = row.insertCell(2);\n')
