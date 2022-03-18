@@ -10,7 +10,7 @@ import shutil
 import datetime
 import boto3
 
-from wmpl.Utils.Math import jd2Date
+from wmpl.Utils.TrajConversions import jd2Date
 
 SMALL_SIZE = 8
 MEDIUM_SIZE = 10
@@ -141,8 +141,7 @@ def reportOneSite(yr, mth, loc, sngl, mful, idlist, outdir):
         when = f'{mth:02d}-{yr}'
 
     idxfile = os.path.join(outdir,'index.html')
-    templatedir ='~/pylibs/templates'
-    templatedir = os.path.expanduser(templatedir)
+    templatedir=os.getenv('TEMPLATES')
 
     shutil.copyfile(os.path.join(templatedir, 'header.html'), idxfile)
     outf = open(idxfile, 'a+')
