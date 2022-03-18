@@ -84,7 +84,9 @@ def findNewMatches(dir_path, out_path, offset, repdtstr):
     with open(matchlist, 'w') as outf:
         for trajdir in newdirs:
             trajdir = trajdir.replace('/data/','/ukmon-shared/matches/')
-            bestvmag, shwr, stationids = getVMagCodeAndStations(trajdir)
+            _, picklename = os.path.split(trajdir)
+            picklename = os.path.join(trajdir, picklename[:15] +'_trajectory.pickle')
+            bestvmag, shwr, stationids = getVMagCodeAndStations(picklename)
             stations=[]
             for statid in stationids:
                 _,_,_,_,loc = cinf.GetSiteLocation(statid)
