@@ -24,7 +24,15 @@ def annotateImage(img_path, title, metcount):
 
 
 if __name__ == '__main__':
-    now = datetime.datetime.now()
     statid = sys.argv[2]
-    title = '{} {}'.format(statid, now.strftime('%Y-%m-%d'))
+    if len(sys.argv) > 3:
+        if len(sys.argv[4]) > 6:
+            now = datetime.datetime.strptime(sys.argv[4], '%Y%m%d')
+            title = '{} {}'.format(statid, now.strftime('%Y-%m-%d'))
+        else:
+            now = datetime.datetime.strptime(sys.argv[4], '%Y%m')
+            title = '{} {}'.format(statid, now.strftime('%Y-%m'))
+    else:
+        now = datetime.datetime.now()
+        title = '{} {}'.format(statid, now.strftime('%Y-%m-%d'))
     annotateImage(sys.argv[1], title, int(sys.argv[3]))
