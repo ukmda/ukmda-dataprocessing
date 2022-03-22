@@ -5,17 +5,20 @@
 import sys
 import os
 import shutil
-import glob 
 
 
-def createOrbitPageIndex(fldr):
-    templatedir = os.getenv('TEMPLATES')
-    if templatedir is None:
-        templatedir ='~/pylibs/templates'
-    templatedir = os.path.expanduser(templatedir)
+def createOrbitPageIndex(fldr, websitebucket, s3):
+    hdrname = '/tmp/header.txt'
+    ftrname = '/tmp/footer.txt'
+    if not os.path.isfile(hdrname):
+        key='templates/header.html'
+        s3.meta.client.download_file(websitebucket, key, hdrname)
+        key='templates/footer.html'
+        s3.meta.client.download_file(websitebucket, key, ftrname)
+
     idxname = os.path.join(fldr, 'index.html')
-    hdrname = os.path.join(templatedir, 'header.html')
     shutil.copy(hdrname, idxname)
+
     _, orbitname = os.path.split(fldr)
     pref = orbitname[:15] + '_'
     with open(idxname, 'a') as idxf:
@@ -27,9 +30,9 @@ def createOrbitPageIndex(fldr):
             lis = sumf.readlines()
         idxf.writelines(lis)
 
-        zipfs=glob.glob1(fldr, '*.zip')
-        if len(zipfs) >0:
-            idxf.write(f"Click <a href=\"./{zipfs[0]}\">here</a> to download a zip of the raw and processed data.\n")
+        zipf = orbitname + '.zip'
+        if os.path.isfile(os.path.join(fldr, zipf)):
+            idxf.write(f"Click <a href=\"./{zipf}\">here</a> to download a zip of the raw and processed data.\n")
         idxf.write("</pre>\n")
         idxf.write("<p><b>Detailed report below graphs</b></p>\n")
         idxf.write("<h3>Click on an image to see a larger view</h3>\n")
@@ -61,10 +64,10 @@ def createOrbitPageIndex(fldr):
         idxf.write("</div>\n")
 
         idxf.write("<pre>\n")
-        #cat $repf >>$idxfile
-        repfs=glob.glob1(fldr, '*report.txt')
-        if len(repfs) > 0:
-            with open(os.path.join(fldr, repfs[0])) as sumf:
+        repf = os.path.join(fldr, pref + 'report.txt')
+        print(repf)
+        if os.path.isfile(repf):
+            with open(repf) as sumf:
                 lis = sumf.readlines()
             idxf.writelines(lis)
         idxf.write("</pre>\n")
@@ -77,7 +80,7 @@ def createOrbitPageIndex(fldr):
         idxf.write("</script>\n")
 
 
-        with open(os.path.join(templatedir, 'footer.html'), 'r') as footf:
+        with open(ftrname, 'r') as footf:
             lis = footf.readlines()
         idxf.writelines(lis)
     return

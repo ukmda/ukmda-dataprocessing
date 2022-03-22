@@ -48,6 +48,7 @@ $targ="ukmon-shared/matches/RMSCorrelate/trajectories/$yr/$ym/$yd/$newname"
 aws s3 sync "$srcpath" "s3://$targ" --include "*" --exclude "*.jpg"
 
 # add row to dailyreport file
+$env:DATADIR="f:\videos\meteorcam\ukmondata"
 $newl=(python -c "import reports.reportOfLatestMatches as rml ; print(rml.processLocalFolder('$srcpath','/home/ec2-user/ukmon-shared/matches/RMSCorrelate'))")
 
 $dlyfile="$yd.txt"
@@ -62,7 +63,7 @@ scp "$dlyfile" "ukmonhelper:prod/data/dailyreports/"
 # now invoke the script to build the index page and update the daily index.
 $cmd="/home/ec2-user/prod/website/updateIndexPages.sh /home/ec2-user/prod/data/dailyreports/$dlyfile"
 ssh ukmonhelper "$cmd"
-
+set-location $loc
 
 # update the jpgs file
 #$sp = (split-path $srcpath)

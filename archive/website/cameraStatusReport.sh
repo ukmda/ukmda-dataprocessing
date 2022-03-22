@@ -35,4 +35,4 @@ source $WEBSITEKEY
 aws s3 cp $DATADIR/reports/statrep.html $WEBSITEBUCKET/reports/ --quiet
 aws s3 cp $DATADIR/reports/camrep.js $WEBSITEBUCKET/reports/ --quiet
 
-$here/createLatestTable.sh
+$SRC/website/createLatestTable.sh

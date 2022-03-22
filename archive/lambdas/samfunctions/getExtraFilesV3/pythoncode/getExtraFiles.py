@@ -8,12 +8,11 @@ from datetime import datetime, timedelta
 from boto3.dynamodb.conditions import Key
 from botocore.config import Config
 
-# modules imported from EFS filesystem
-from wmplloc.Pickling import loadPickle 
-from wmplloc.Math import jd2Date
-from wmplloc.pickleAnalyser import createAdditionalOutput
-from wmplloc import awsAthenaGlueRetr as agr
-from wmplloc.createOrbitPageIndex import createOrbitPageIndex
+from wmpl.Utils.Pickling import loadPickle
+from pickleAnalysis import createAdditionalOutput
+from wmpl.Utils.TrajConversions import jd2Date
+import awsAthenaGlueRetr as agr
+from createOrbitPageIndex import createOrbitPageIndex
 
 
 def findSite(stationid, ddb):
@@ -36,6 +35,12 @@ def generateExtraFiles(key, athena_client, archbucket, websitebucket, ddb, s3):
     tmpdir = os.getenv('TMP')
     if tmpdir is None:
         tmpdir ='/tmp'
+
+    yr = orbname[:4]
+    ym = orbname[:6]
+    ymd= orbname[:8]
+    webpth = f'reports/{yr}/orbits/{ym}/{ymd}/{orbname}/'
+        
     outdir = os.path.join(tmpdir, orbname)
     os.makedirs(outdir, exist_ok=True)
     locfname = os.path.join(outdir, fname)
@@ -44,15 +49,16 @@ def generateExtraFiles(key, athena_client, archbucket, websitebucket, ddb, s3):
     traj = loadPickle(outdir, fname)
     traj.save_results = True
 
+    #print('loaded pickle')
     createAdditionalOutput(traj, outdir)
-
+    #print('created additional output')
     # file to write JPGs html to, for performance benefits
     jpghtml = open(os.path.join(outdir, 'jpgs.html'), 'w')
     mp4html = open(os.path.join(outdir, 'mpgs.html'), 'w')
     # loop over observations adding jpgs to the listing file
     jpgf = open(os.path.join(outdir, 'jpgs.lst'), 'w')
     mp4f = open(os.path.join(outdir, 'mpgs.lst'), 'w')
-
+    #print('opened image list files')
     for obs in traj.observations:
         dtref = jd2Date(obs.jdt_ref, dt_obj=True)
         dtst = dtref.timestamp()
@@ -85,21 +91,21 @@ def generateExtraFiles(key, athena_client, archbucket, websitebucket, ddb, s3):
     mp4html.close()
     jpgf.close()
     mp4f.close()
-
+    #print('created image lists')
     repfname = locfname.replace('trajectory.pickle', 'report.txt')
     key2 = key.replace('trajectory.pickle', 'report.txt')
     s3.meta.client.download_file(archbucket, key2, repfname)
 
     # pushFilesBack creates the zipfile so we need to do this first
-    pushFilesBack(outdir, archbucket, fuloutdir, s3)
-    createOrbitPageIndex(outdir)
+    pushFilesBack(outdir, archbucket, websitebucket, fuloutdir, s3)
+    createOrbitPageIndex(outdir, websitebucket, s3)
 
     idxname = os.path.join(outdir, 'index.html')
-    key = os.path.join(fuloutdir, 'index.html')
+    key = os.path.join(webpth, 'index.html')
     extraargs = getExtraArgs('index.html')
-    s3.meta.client.upload_file(idxname, archbucket, key, ExtraArgs=extraargs) 
-    
-    pushToWebsite(archbucket, fuloutdir, websitebucket, orbname, s3)
+    s3.meta.client.upload_file(idxname, websitebucket, key, ExtraArgs=extraargs) 
+    #print('pushing to website')
+    #pushToWebsite(archbucket, fuloutdir, websitebucket, orbname, s3)
     try:
         shutil.rmtree(outdir)
     except Exception:
@@ -140,37 +146,42 @@ def findOtherFiles(evtdate, archbucket, outdir, fldr, s3):
     return
 
 
-def pushFilesBack(outdir, archbucket, fldr, s3):
+def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
     # get filelist before creating the zipfile! 
     flist = os.listdir(outdir)
 
     _, pth =os.path.split(outdir)
     yr = pth[:4]
+    ym = pth[:6]
+    ymd= pth[:8]
+    webpth = f'reports/{yr}/orbits/{ym}/{ymd}/{pth}/'
+
     zipfname = os.path.join(outdir, pth +'.zip')
     zipfile = ZipFile(zipfname, 'w')
 
     for f in flist:
         locfname = os.path.join(outdir, f)
         zipfile.write(locfname)
-        if 'pickle' not in f:
+        # some files need to be pushed to the website, some to the archive bucket
+        if '3dtrack' in f:
+            key = os.path.join(webpth, f)
+            extraargs = getExtraArgs(locfname)
+            s3.meta.client.upload_file(locfname, websitebucket, key, ExtraArgs=extraargs)
+        elif 'summary' in f:
             key = os.path.join(fldr, f)
             # print(locfname, key)
             extraargs = getExtraArgs(locfname)
             s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
-        if 'orbit.csv' in f:
-            key = os.path.join(f'matches/{yr}/csv', f)
-            extraargs = getExtraArgs(locfname)
-            s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
-        if 'orbit_extras.csv' in f:
-            key = os.path.join(f'matches/{yr}/extracsv', f)
+        elif 'orbit_full.csv' in f:
+            key = os.path.join(f'matches/{yr}/fullcsv', f)
             extraargs = getExtraArgs(locfname)
             s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
 
     zipfile.close()
     # now we push the zipfile
-    key = os.path.join(fldr, pth + '.zip')
+    key = os.path.join(webpth, pth + '.zip')
     extraargs = getExtraArgs(zipfname)
-    s3.meta.client.upload_file(zipfname, archbucket, key, ExtraArgs=extraargs) 
+    s3.meta.client.upload_file(zipfname, websitebucket, key, ExtraArgs=extraargs) 
     return 
 
 
@@ -319,7 +330,7 @@ def lambda_handler(event, context):
     ddb = boto3.resource('dynamodb', region_name='eu-west-1',
         aws_access_key_id=credentials['AccessKeyId'],
         aws_secret_access_key=credentials['SecretAccessKey'],
-        aws_session_token=credentials['SessionToken']) #, endpoint_url="http://thelinux:8000")
+        aws_session_token=credentials['SessionToken']) 
 
     websitebucket = os.getenv('WEBSITEBUCKET')
 

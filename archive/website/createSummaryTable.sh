@@ -41,16 +41,8 @@ python -m utils.makeCoverageMap $ARCHDIR/../kmls $DATADIR
 
 logger -s -t createSummaryTable "create year-to-date barchart"
 pushd $DATADIR
-python -m reports.createAnnualBarChart  $DATADIR/matched/matches-${yr}.csv ${yr}
+python -m reports.createAnnualBarChart  $DATADIR/matched/matches-full-${yr}.csv ${yr}
 popd
-
-logger -s -t createSummaryTable "Add last nights log file to the website"
-cp $TEMPLATES/header.html $DATADIR/lastlog.html
-echo "<pre>" >> $DATADIR/lastlog.html
-lastlog=$(ls -1tr $SRC/logs/matches-*.log | tail -1)
-egrep -v "BOUNDS|WARNING|RuntimeWarning|OptimizeWarning|DeprecationWarning|ABNORMAL|Unsuccessful timing" $lastlog >> $DATADIR/lastlog.html
-echo "</pre>" >> $DATADIR/lastlog.html
-cat $TEMPLATES/footer.html >> $DATADIR/lastlog.html
 
 # update index page
 numcams=$(python -c "from fileformats import CameraDetails as cd; print(len(cd.SiteInfo().getActiveCameras()))")
@@ -63,8 +55,8 @@ aws s3 cp $DATADIR/coverage-100km.html  $WEBSITEBUCKET/data/ --quiet
 aws s3 cp $DATADIR/coverage-70km.html  $WEBSITEBUCKET/data/ --quiet
 aws s3 cp $DATADIR/coverage-70km.html  $WEBSITEBUCKET/data/coverage.html --quiet
 aws s3 cp $DATADIR/coverage-25km.html  $WEBSITEBUCKET/data/ --quiet
-aws s3 cp $DATADIR/lastlog.html  $WEBSITEBUCKET/reports/ --quiet
 aws s3 cp $DATADIR/Annual-${yr}.jpg $WEBSITEBUCKET/YearToDate.jpg --quiet
 aws s3 cp $DATADIR/newindex.html $WEBSITEBUCKET/index.html --quiet
-
+aws s3 cp $SRC/website/templates/header.html $WEBSITEBUCKET/templates/ --quiet
+aws s3 cp $SRC/website/templates/footer.html $WEBSITEBUCKET/templates/ --quiet
 logger -s -t createSummaryTable "finished"
