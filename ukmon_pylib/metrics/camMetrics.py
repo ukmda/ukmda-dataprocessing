@@ -1,14 +1,13 @@
 #
 # Create and access dynamodb tables containing camera upload timings etc
 #
-
-from distutils.command.upload import upload
 import boto3
 import os
 import sys
 import glob
 from boto3.dynamodb.conditions import Key
 import pandas as pd
+
 
 def createCamTimingsTable(ddb=None):
     
@@ -197,7 +196,7 @@ def readRowCamTimings(stationid, dtstamp, ddb=None):
     if not ddb:
         ddb = boto3.resource('dynamodb', region_name='eu-west-1') #, endpoint_url="http://thelinux:8000")
     table = ddb.Table('ukmon_uploadtimes')
-    response = table.get_item(Key={ 'stationid': stationid,'dtstamp': dtstamp })
+    response = table.get_item(Key={'stationid': stationid,'dtstamp': dtstamp})
     try:
         item = response['Item']
         print(item['stationid'], item['uploaddate'], item['uploadtime'],item['manual'])

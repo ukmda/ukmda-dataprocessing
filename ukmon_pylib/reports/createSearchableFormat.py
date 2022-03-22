@@ -42,6 +42,7 @@ def convertSingletoSrchable(datadir, year, outdir, weburl):
     resdf.loc[resdf.loccam=='Tackley_SW_UK0006', 'loccam'] = 'UK0006'
 
     # select the RMS data out, its good now
+    # FIXME - needs to select for "not FF_UK9" so we can include non-UK cameras
     rmsdata=resdf[resdf.url.str.contains('FF_UK0')]
     rmsdata = rmsdata.drop(columns=['Y','M','loctime'])
 

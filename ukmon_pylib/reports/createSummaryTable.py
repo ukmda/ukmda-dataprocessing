@@ -3,8 +3,6 @@
 #
 import sys
 import os
-import subprocess
-import configparser as cfg
 
 
 def createSummaryTable(curryr):
@@ -28,21 +26,22 @@ def createSummaryTable(curryr):
 
             if yr > 2020:
                 srchfile = os.path.join(datadir, 'single', 'singles-{}.csv'.format(yr))
-                cmd = ['wc', '-l', srchfile]
-                dets = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-                detections = dets.split(' ')[0]
+                if os.path.isfile(srchfile):
+                    detections = sum(1 for line in open(srchfile))-1
+                else:
+                    detections = 0
 
-                srchfile = os.path.join(datadir, 'matched', 'matches-{}.csv'.format(yr))
-                cmd = ['wc', '-l', srchfile]
-                dets = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-                matches = dets.split(' ')[0]
+                srchfile = os.path.join(datadir, 'matched', 'matches-full-{}.csv'.format(yr))
+                if os.path.isfile(srchfile):
+                    matches = sum(1 for line in open(srchfile))-1
+                else:
+                    matches = 0
 
                 srchfile = os.path.join(datadir, 'reports', '{}'.format(yr), 'fireballs','fblist.txt')
-                cmd = ['wc', '-l', srchfile]
-                fbdets = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8')
-                fireballs = 0
-                if len(fbdets) > 0:
-                    fireballs = fbdets.split(' ')[0]
+                if os.path.isfile(srchfile):
+                    fireballs = sum(1 for line in open(srchfile))
+                else:
+                    fireballs = 0
             else:
                 srchfile = os.path.join(datadir, 'single', 'ALL{}.log'.format(yr))
                 with open(srchfile) as inf:

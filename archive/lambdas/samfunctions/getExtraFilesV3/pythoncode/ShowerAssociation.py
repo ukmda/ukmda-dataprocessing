@@ -1,22 +1,20 @@
 """ Associate the given meteor trajectory to a meteor shower. """
 
 
-from __future__ import print_function, division, absolute_import
+# from __future__ import print_function, division, absolute_import
 
 
 import os
-import sys
 import copy
 
 # Preserve Python 2 compatibility for the encoding option in the "open" function
-from io import open
+# from io import open
 
 import numpy as np
 
-
-from wmplloc.Config import config
-from wmplloc.Pickling import loadPickle
-from wmplloc.Math import angleBetweenSphericalCoords
+from wmpl.Config import config
+from wmpl.Utils.Pickling import loadPickle
+from wmpl.Utils.Math import angleBetweenSphericalCoords
 
 
 class MeteorShower(object):
@@ -38,7 +36,7 @@ class MeteorShower(object):
 
     def __repr__(self):
 
-        out_str  = "Shower: {:d} {:s} {:s}\n".format(self.IAU_no, self.IAU_code, self.IAU_name)
+        out_str = "Shower: {:d} {:s} {:s}\n".format(self.IAU_no, self.IAU_code, self.IAU_name)
         out_str += "    Sol: {:.6f} deg\n".format(np.degrees(self.la_sun))
         out_str += "    L_g: {:.6f} deg\n".format(np.degrees(self.L_g))
         out_str += "    B_g: {:.6f} deg\n".format(np.degrees(self.B_g))
@@ -93,7 +91,6 @@ def loadJenniskensShowers(dir_path, file_name):
     return np.array(jenniskens_shower_list)
 
 
-
 # Load the Jenniskens table on startup
 if os.path.isfile(config.jenniskens_shower_table_npy):
 
@@ -119,8 +116,8 @@ else:
 
 
 
-def associateShower(la_sun, L_g, B_g, v_g, sol_window=1.0, max_radius=3.0, \
-    max_veldif_percent=10.0):
+def associateShower(la_sun, L_g, B_g, v_g, sol_window=1.0, max_radius=3.0,
+        max_veldif_percent=10.0):
     """ Given a shower radiant in Sun-centered ecliptic coordinates, associate it to a meteor shower
         using the showers listed in the Jenniskens et al. (2018) paper. 
 
@@ -145,7 +142,7 @@ def associateShower(la_sun, L_g, B_g, v_g, sol_window=1.0, max_radius=3.0, \
 
 
     # Find all showers in the solar longitude window
-    la_sun_diffs = np.abs((temp_shower_list[:, 0] - la_sun + np.pi)%(2*np.pi) - np.pi)
+    la_sun_diffs = np.abs((temp_shower_list[:, 0] - la_sun + np.pi) % (2 * np.pi) - np.pi)
     temp_shower_list = temp_shower_list[la_sun_diffs <= np.radians(sol_window)]
 
 
@@ -155,8 +152,8 @@ def associateShower(la_sun, L_g, B_g, v_g, sol_window=1.0, max_radius=3.0, \
 
     
     # Find all showers within the maximum radiant distance radius
-    radiant_distances = angleBetweenSphericalCoords(temp_shower_list[:, 2], temp_shower_list[:, 1], B_g, \
-        (L_g - la_sun)%(2*np.pi))
+    radiant_distances = angleBetweenSphericalCoords(temp_shower_list[:, 2], temp_shower_list[:, 1], B_g, 
+        (L_g - la_sun) % (2*np.pi))
     temp_shower_list = temp_shower_list[radiant_distances <= np.radians(max_radius)]
 
 
@@ -175,34 +172,27 @@ def associateShower(la_sun, L_g, B_g, v_g, sol_window=1.0, max_radius=3.0, \
         return None
 
 
-    ### Choose the best matching shower by the solar longitude, radiant, and velocity closeness ###
+    # Choose the best matching shower by the solar longitude, radiant, and velocity closeness ###
 
     # Compute the closeness parameters as a sum of normalized closeness by every individual parameter
-    sol_dist_norm = np.abs(((temp_shower_list[:, 0] - la_sun + np.pi)%(2*np.pi) \
+    sol_dist_norm = np.abs(((temp_shower_list[:, 0] - la_sun + np.pi) % (2*np.pi) 
         - np.pi))/np.radians(sol_window)
-    rad_dist_norm = angleBetweenSphericalCoords(temp_shower_list[:, 2], temp_shower_list[:, 1], B_g, (L_g \
-        - la_sun)%(2*np.pi))/np.radians(max_radius)
+    rad_dist_norm = angleBetweenSphericalCoords(temp_shower_list[:, 2], temp_shower_list[:, 1], B_g, (L_g 
+        - la_sun) % (2*np.pi))/np.radians(max_radius)
     vg_dist_norm = np.abs(100*(temp_shower_list[:, 3] - v_g)/temp_shower_list[:, 3])/max_veldif_percent
     closeness_param = sol_dist_norm + rad_dist_norm + vg_dist_norm
 
     # Choose the best matching shower
     best_shower = temp_shower_list[np.argmin(closeness_param)]
 
-    ### ###
-
-
     # Init a shower object
     l0, L_l0, B_g, v_g, IAU_no = best_shower
-    shower_obj = MeteorShower(l0, (L_l0 + l0)%360, B_g, v_g, int(round(IAU_no)))
-
+    shower_obj = MeteorShower(l0, (L_l0 + l0) % 360, B_g, v_g, int(round(IAU_no)))
 
     return shower_obj
 
 
-
-
-def associateShowerTraj(traj, sol_window=1.0, max_radius=3.0, \
-    max_veldif_percent=10.0):
+def associateShowerTraj(traj, sol_window=1.0, max_radius=3.0, max_veldif_percent=10.0):
     """ Given a Trajectory object, associate it to a meteor shower using the showers listed in the 
         Jenniskens et al. (2018) paper. 
 
@@ -219,7 +209,7 @@ def associateShowerTraj(traj, sol_window=1.0, max_radius=3.0, \
     """
 
     if traj.orbit.ra_g is not None:
-        return associateShower(traj.orbit.la_sun, traj.orbit.L_g, traj.orbit.B_g, traj.orbit.v_g, \
+        return associateShower(traj.orbit.la_sun, traj.orbit.L_g, traj.orbit.B_g, traj.orbit.v_g, 
             sol_window=sol_window, max_radius=max_radius, max_veldif_percent=max_veldif_percent)
 
     else:
@@ -232,8 +222,7 @@ if __name__ == "__main__":
 
     import argparse
 
-
-    ### COMMAND LINE ARGUMENTS
+    # COMMAND LINE ARGUMENTS
 
     # Init the command line arguments parser
     arg_parser = argparse.ArgumentParser(description="""Associate the given trajectory object to a meteor shower.""",
@@ -241,16 +230,16 @@ if __name__ == "__main__":
 
     arg_parser.add_argument('traj_path', type=str, help="Path to a trajectory pickle file.")
 
-    arg_parser.add_argument('-s', '--solwindow', metavar='SOL_WINDOW', \
-        help="Solar longitude window (deg) for association. Note that the shower table has an entry for the same shower across several solar longitudes, which covers the activity period.", \
+    arg_parser.add_argument('-s', '--solwindow', metavar='SOL_WINDOW', 
+        help="Solar longitude window (deg) for association. Note that the shower table has an entry for the same shower across several solar longitudes, which covers the activity period.", 
         type=float, default=1.0)
 
-    arg_parser.add_argument('-r', '--radius', metavar='RADIUS', \
-        help="Maximum distance from reference radiant for association (deg).", \
+    arg_parser.add_argument('-r', '--radius', metavar='RADIUS', 
+        help="Maximum distance from reference radiant for association (deg).", 
         type=float, default=3.0)
 
-    arg_parser.add_argument('-v', '--velperc', metavar='VEL_PERC', \
-        help="Maximum difference in geocentric velocity (in percent) from the reference radiant.", \
+    arg_parser.add_argument('-v', '--velperc', metavar='VEL_PERC', 
+        help="Maximum difference in geocentric velocity (in percent) from the reference radiant.", 
         type=float, default=10.0)
 
 
@@ -267,7 +256,7 @@ if __name__ == "__main__":
         traj = loadPickle(*os.path.split(cml_args.traj_path))
 
         # Perform shower association
-        shower_obj = associateShowerTraj(traj, sol_window=cml_args.solwindow, max_radius=cml_args.radius, \
+        shower_obj = associateShowerTraj(traj, sol_window=cml_args.solwindow, max_radius=cml_args.radius, 
             max_veldif_percent=cml_args.velperc)
 
 
@@ -280,24 +269,3 @@ if __name__ == "__main__":
 
     else:
         print("The file {:s} does not exist!".format(cml_args.traj_path))
-
-
-
-    ##########################################################################################################
-    sys.exit()
-
-    ### Test shower association ###
-
-    import time
-
-
-    # Draconid meteor
-    la_sun = np.radians(195.402007)
-    L_g = np.radians(247.41825)
-    B_g = np.radians(78.95281)
-    v_g = 1000*19.83965
-
-
-    t1 = time.time()
-    print(associateShower(la_sun, L_g, B_g, v_g))
-    print("Time for association:", time.time() - t1)

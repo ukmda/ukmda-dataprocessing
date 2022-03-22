@@ -7,14 +7,14 @@ import sys
 import os
 import pandas as pd
 
-from wmplloc.pickleAnalyser import getBestView
-from wmplloc.Math import jd2Date
+from traj.pickleAnalyser import getBestView
+from wmpl.Utils.TrajConversions import jd2Date
 
 
 def createMDFiles(fbs, outdir, matchdir):
     for _, fb in fbs.iterrows(): 
         loctime = jd2Date(fb.mjd + 2400000.5, dt_obj=True)
-        trajdir=loctime.strftime("%Y%m%d_%H%M%S.%f")[:-3] + "_UK"
+        trajdir = fb.orbname
         yr = trajdir[:4]
         ym = trajdir[:6]
         ymd = trajdir[:8]
@@ -22,7 +22,8 @@ def createMDFiles(fbs, outdir, matchdir):
         if not os.path.exists(pickledir):
             trajdir=loctime.strftime("%Y%m%d_%H%M%S.%f")
             pickledir = os.path.join(matchdir, 'RMSCorrelate', 'trajectories', yr, ym, ymd, trajdir)
-        bestimg = getBestView(pickledir)
+        picklename = trajdir[:15] +'_trajectory.pickle'
+        bestimg = getBestView(picklename)
         if bestimg[:4] != 'img/':
             pth, _ = os.path.split(fb.url)
         else:
@@ -51,8 +52,8 @@ def findMatchedFireballs(df, outdir=None, mag=-4):
         fbs = fbs.head(10)        
     else:
         fbs = fbs[fbs['_mag'] < mag]
-    newm=pd.concat([fbs['url'],fbs['_mag'], fbs['_stream'], fbs['_vg'], fbs['mass'], fbs['_mjd']], 
-        axis=1, keys=['url','mag','shower','vg','mass','mjd'])
+    newm=pd.concat([fbs['url'],fbs['_mag'], fbs['_stream'], fbs['_vg'], fbs['mass'], fbs['_mjd'], fbs['orbname']], 
+        axis=1, keys=['url','mag','shower','vg','mass','mjd', 'orbname'])
     return newm
 
 
@@ -91,7 +92,7 @@ if __name__ == '__main__':
 
     if os.path.isfile(fname):
         with open(fname) as inf:
-            df = pd.read_csv(inf)
+            df = pd.read_csv(inf, skipinitialspace=True)
     else:
         print('unable to load datafile')
         exit(0)

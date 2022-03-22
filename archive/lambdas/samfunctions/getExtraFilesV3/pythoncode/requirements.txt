@@ -1,0 +1,14 @@
+pandas
+numpy
+scipy
+matplotlib
+cython
+jplephem
+pyephem
+basemap
+#https://github.com/matplotlib/basemap/archive/master.zip
+PyQt5 ; platform_machine != 'aarch64'
+pyyaml
+pyswarms
+keras
+pytz

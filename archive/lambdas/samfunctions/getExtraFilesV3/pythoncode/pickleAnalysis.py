@@ -10,52 +10,35 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-import glob
 import datetime
 
-from wmplloc.Math import jd2Date, sollon2jd
-from wmplloc.Math import mergeClosePoints, angleBetweenSphericalCoords
-from wmplloc.Physics import calcMass
-from wmplloc.ShowerAssociation import associateShower
-from wmplloc.Pickling import loadPickle
-from wmplloc.Config import config
+from wmpl.Utils.Math import mergeClosePoints, angleBetweenSphericalCoords
+from wmpl.Utils.SolarLongitude import date2JD
+from wmpl.Utils.TrajConversions import jd2Date    
+from wmpl.Utils.Physics import calcMass
+from ShowerAssociation import associateShower
+from wmpl.Config import config
 
 
-def getVMagCodeAndStations(outdir):
+def sollon2jd(Year, Month, Long):
 
-    picklefile = glob.glob1(outdir, '*.pickle')[0]
-    traj = loadPickle(outdir, picklefile)
-    _, bestvmag, _, _, cod, _, _, _, _, _, _, stations = calcAdditionalValues(traj)
-    return bestvmag, cod, stations
+    Long = np.radians(Long)
+    N = Year - 2000
+    if abs(N) > 100:
+        print("Algorithm is not stable for years below 1900 or above 2100")
 
+    JDM0 = 2451182.24736 + 365.25963575 * N
+    ApproxJD = date2JD(Year, Month, 15, 12, 0, 0)
+    DiffJD = ApproxJD-2451545
 
-def getBestView(outdir):
-    try:
-        picklefile = glob.glob1(outdir, '*.pickle')[0]
-    except Exception:
-        print('no picklefile in ', outdir)
-        return ''
-    else:
-        traj = loadPickle(outdir, picklefile)
-        _, statids, vmags = loadMagData(traj)
-        bestvmag = min(vmags)
-        beststatid = statids[vmags.index(bestvmag)]
-        imgfn = glob.glob1(outdir, '*{}*.jpg'.format(beststatid))
-        if len(imgfn) > 0:
-            bestimg = imgfn[0]
-        else:
-            with open(os.path.join(outdir, 'jpgs.lst')) as inf:
-                lis = inf.readlines()
-            bestimg=''
-            worstmag = max(vmags)
-            for mag, stat in zip(vmags, statids):
-                res=[stat in ele for ele in lis]    
-                imgfn = lis[res is True].strip()
-                if mag <= worstmag:
-                    if len(imgfn) > 0:
-                        bestimg = imgfn
+    Dt = 1.94330 * np.sin(Long - 1.798135) + 0.01305272 * np.sin(2*Long + 2.634232) + 78.195268 + 58.13165 * Long - 0.0000089408 * DiffJD
 
-        return bestimg
+    if abs(ApproxJD - (JDM0 + Dt))>50:
+        Dt = Dt + 365.2596
+
+    JD1 = JDM0 + Dt
+
+    return JD1
 
 
 def getShowerDets(shwr):
@@ -142,6 +125,69 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
     ZF, OH, ZHR = 0, 0, 0
 
     # create CSV file in UFOOrbit format
+    #print('create orbit csv')
+    weburl = os.getenv('WEBURL')
+    if weburl == '':
+        weburl = 'https://archive.ukmeteornetwork.co.uk'
+    urlbase = f'{weburl}/reports/{dtstr[:4]}/orbits/{dtstr[:6]}/{dtstr[:8]}'
+    csvname = os.path.join(outdir, dtstr + '_orbit_full.csv')
+    with open(csvname, 'w', newline='') as csvf:
+        csvf.write('RMS,0,')
+        csvf.write('{:s}, {:.10f}, {:.6f}, {:s}, {:s}, {:.6f}, '.format(dt.strftime('_%Y%m%d_%H%M%S'), traj.jdt_ref - 2400000.5, lasun, id, '_', amag))
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(rao, dco, rat, dct))
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(lg, bg, vo, vi, vg, vh))
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(orb.a, orb.q, orb.e, orb.T))
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(orb.peri), np.degrees(orb.node), np.degrees(orb.i)))
+        csvf.write('{:s}, '.format(shcod))
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(dr, dvpct, omag, Qo, dur))
+        csvf.write('0, 0, 0, 0, ')  # av Voa Pra Pdc always zero in Unified orbits
+        csvf.write('{:.6f}, {:.6f}, '.format(GPlng, GPlat))
+        csvf.write('0, 0, 0, 0, ')  # ra1 dc1 az1 ev1 always zero in Unified orbits
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(traj.rbeg_lon), np.degrees(traj.rbeg_lat), traj.rbeg_ele / 1000))
+        csvf.write('0, 0, 0, 0, 0, ')  # LD1 Qr1 Qd1 ra2 rc2 always zero in Unified orbits
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(traj.rend_lon), np.degrees(traj.rend_lat), traj.rend_ele / 1000))
+        csvf.write('0, 0, 0, ')  # LD2 Qr2 Qd2 always zero in Unified orbits
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, 0, {:.6f}, '.format(LD21, az1r, ev1r, evrt))
+        csvf.write('{:d}, {:d}, {:.6f}, 0, {:.6f}, {:.6f}, '.format(totsamp, nO, leap, ddeg, cdeg))
+        csvf.write('0, 0, 1, ')  # drop, inout, tme always zero in Unified orbits
+        csvf.write('{:.6f}, 0, {:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(d_t, Qc, dGP, Gmpct, dv12pct))  # GD
+        csvf.write('{:.6f}, 0, 0, {:.6f}, '.format(zmv, QA))  # Ed Ex always zero in Unified orbits
+        csvf.write('{:s}, {:s}, {:s}, {:s}, {:s}, {:.6f}, '.format(dtstr[:4], dtstr[4:6], dtstr[6:8],
+            dtstr[9:11], dtstr[11:13], secs))
+        csvf.write('{:d}, '.format(nO))
+        csvf.write('0, 0, 0, 0, ')  # Qp pole_sd rao_sd dco_sd always zero in UO
+        csvf.write('{:.6f}, '.format(vo_sd))
+        csvf.write('0, 0, 0, 0, ')  # rat_sd dct_sd vg_sd a_sd always zero in UO
+        csvf.write('{:.6f}, '.format(1 / orb.a))
+        csvf.write('0, 0, 0, 0, 0, 0, 0, ')  # 1/a_sd q_sd e_sd peri_sd node_sd incl_sd Er_sd always zero in UO
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(ZF, OH, ZHR))
+        csvf.write('0, 0, 0,') # three dummy values, not sure why! 
+
+        csvf.write('{:6f},'.format(jd2Date(traj.jdt_ref, dt_obj=True).timestamp()))
+        _, orbname =os.path.split(outdir)
+        csvf.write('{},'.format(orbname))
+        csvf.write('1Matched,')
+        csvf.write('{}/{}/index.html,'.format(urlbase, orbname))
+        csvf.write('{}/{}/{}_ground_track.png,'.format(urlbase, orbname, orbname[:15]))
+
+        csvf.write('{:s}, {:.10f}, {:s}, '.format(dt.strftime('%Y%m%d_%H%M%S'), traj.jdt_ref-2400000.5, id))
+        csvf.write('{:d}, {:s}, {:.6f}, '.format(shid, shname, mass))
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(orb.pi), orb.Q, np.degrees(orb.true_anomaly)))
+        csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(orb.eccentric_anomaly), np.degrees(orb.mean_anomaly), orb.Tj))
+        csvf.write('{:.6f}, '.format(orb.T))
+        if orb.last_perihelion is not None:
+            csvf.write('{:s}, '.format(orb.last_perihelion.strftime('%Y-%m-%d')))
+        else:
+            csvf.write('9999-99-99, ')
+        csvf.write('{:.6f}, {:.6f}, '.format(traj.jacchia_fit[0], traj.jacchia_fit[1]))
+
+        statlist = ''
+        for obs in traj.observations:
+            statlist = statlist + str(obs.station_id) + ';'
+        csvf.write('{:d}, {:s}'.format(nO, statlist))
+        csvf.write('\n')
+    #print('done')
+
     csvname = os.path.join(outdir, dtstr + '_orbit.csv')
     with open(csvname, 'w', newline='') as csvf:
         csvf.write('RMS,0,')
@@ -176,6 +222,7 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
         csvf.write('\n')
 
     # create CSV extras file
+    #print('create extras file')
     csvname = os.path.join(outdir, dtstr + '_orbit_extras.csv')
     with open(csvname, 'w', newline='') as csvf:
         #csvf.write('# date, mjd,id,iau,name,mass,pi,Q,true_anom,EA,MA,Tj,T,last_peri,jacchia1,Jacchia2,numstats,stations\n#\n')
@@ -195,8 +242,8 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
             statlist = statlist + str(obs.station_id) + ';'
         csvf.write('{:d}, {:s}'.format(nO, statlist))
         csvf.write('\n')
-    #print('done')
-    return 0
+
+    return
 
 
 class MeteorObservation(object):
@@ -333,11 +380,13 @@ def computeAbsoluteMagnitudes(traj, meteor_list):
 
 
 def draw3Dmap(traj, outdir):
+    #print('creating 3d image')
     lats = []
     lons = []
     alts = []
     lens = []
     # Go through observation from all stations
+    #print('loading observations')
     for obs in traj.observations:
         # Go through all observed points
         for i in range(obs.kmeas):
@@ -345,19 +394,25 @@ def draw3Dmap(traj, outdir):
             lons.append(np.degrees(obs.model_lon[i]))
             alts.append(obs.model_ht[i])
             lens.append(obs.time_data[i])
+    #print('creating DF')
     df = pd.DataFrame({"lats": lats, "lons": lons, "alts": alts, "times": lens})
     df = df.sort_values(by=['times', 'lats'])
     dtstr = jd2Date(traj.jdt_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
+    #print('creating csv')
     csvname = os.path.join(outdir, dtstr + '_track.csv')
     df.to_csv(csvname, index=False)
+    #print('csv saved')
     df = df.drop(columns=['times'])
+    #print('creating figure')
     fig = plt.figure()
     ax = Axes3D(fig)
-    #_ = ax.plot_trisurf(df.lats, df.lons, df.alts, cmap=cm.jet, linewidth=2)
+    #print('made figure')
     _ = ax.plot(df.lats, df.lons, df.alts, linewidth=2)
     jpgname = os.path.join(outdir, dtstr[:15].replace('-','_') + '_3dtrack.png')
+    #print(f'saving figure {jpgname}')
     plt.savefig(jpgname, dpi=200)
     plt.close()
+    #print('done')
     return
 
 
@@ -451,6 +506,7 @@ def createAdditionalOutput(traj, outdir):
     summrpt = os.path.join(outdir, 'summary.html')
 
     if traj.save_results:
+        #print('saving results to file')
         with open(summrpt, 'w', newline='') as f:
             f.write('Summary for Event\n')
             f.write('-----------------\n')
@@ -480,14 +536,18 @@ def createAdditionalOutput(traj, outdir):
                 f.write('unable to calculate realistic orbit details\n')
             f.write('\nFull details below\n')
 
+        #print('saved')
     if orb is not None:
+        #print('create ufo file and 3d image')
         try:
-            # print(amag, mass, shower_obj)
+            #print(amag, mass, shower_obj)
             createUFOOrbitFile(traj, outdir, amag, mass, shower_obj)
         except Exception:
             print('problem creating UFO style output')
+        #print('drawing 3d')
         draw3Dmap(traj, outdir)
     else:
         print('no orbit object')
 
+    #print('done')
     return 

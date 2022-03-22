@@ -555,3 +555,5 @@ archive/unused/**
 **/test/*.lst
 ukmon_pylib/tests/*
 unused/*
+*tfstate.lock.info
+archive/lambdas/samfunctions/getExtraFilesV3/pythoncode/WesternMeteorPyLib/*

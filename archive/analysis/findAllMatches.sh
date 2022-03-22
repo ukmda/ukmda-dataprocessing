@@ -10,7 +10,7 @@
 #   All UFO and RMS single-station data (ftpdetect, platepars_all and A.xml files)
 #
 # Produces:
-#   new and updated orbit solutions in $MATCHDIR/RMSCorrelate/trajectories 
+#   new and updated orbit solutions 
 #   csv and extracsv files in $DATADIR/orbits/yyyy/csv and extracsv
 #   daily report of matches and statistics, in $DATADIR/dailyreports
 #   an email sent out via a lambda fn
@@ -44,7 +44,7 @@ fi
 # folder for logs
 mkdir -p $SRC/logs > /dev/null 2>&1
 
-logger -s -t findAllMatches "get all UFO data into the right format"
+logger -s -t findAllMatches1 "get all UFO data into the right format"
 $SRC/analysis/convertUfoToRms.sh
 dom=`date '+%d'`
 if [ $dom -lt 10 ] ; then 
@@ -55,21 +55,20 @@ logger -s -t findAllMatches "create ukmon specific merged single-station data fi
 # this creates the parquet table for Athena
 $SRC/analysis/getRMSSingleData.sh
 
-logger -s -t findAllMatches "set the date range for the solver"
+logger -s -t findAllMatches1 "set the date range for the solver"
 
 startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
 enddt=$(date --date="-$MATCHEND days" '+%Y%m%d-080000')
-logger -s -t findAllMatches "solving for ${startdt} to ${enddt}"
+logger -s -t findAllMatches1 "solving for ${startdt} to ${enddt}"
 
-
-logger -s -t findAllMatches "preserve previous trajectories database"
+logger -s -t findAllMatches1 "preserve previous trajectories database"
 thisjson=$MATCHDIR/RMSCorrelate/processed_trajectories.json.bigserver
 cp $thisjson $MATCHDIR/RMSCorrelate/prev_processed_trajectories.json.bigserver
 
-logger -s -t findAllMatches "actually run the matching process"
-$SRC/analysis/runMatching.sh
+logger -s -t findAllMatches1 "actually run the matching process"
+$SRC/analysis/runMatching.sh $MATCHSTART $MATCHEND
 
-logger -s -t findAllMatches "check if the solver had some sort of failiure"
+logger -s -t findAllMatches2 "check if the solver had some sort of failiure"
 logf=$(ls -1tr $SRC/logs/matches-*.log | tail -1)
 success=$(grep "SOLVING RUN DONE" $logf)
 
@@ -78,10 +77,10 @@ then
     python -m utils.sendAnEmail markmcintyre99@googlemail.com "problem with matching" "Error"
     echo problems with solver
 fi
-logger -s -t findAllMatches "Solving run done"
-logger -s -t findAllMatches "================"
+logger -s -t findAllMatches2 "Solving run done"
+logger -s -t findAllMatches2 "================"
 
-logger -s -t nightlyJob "waiting for lambdas to finish"
+logger -s -t findAllMatches2 "waiting for lambdas to finish"
 # need to wait here till the lambdas creating orbit pages are finished
 sleep 600
 # catchall to reprocess any failed orbit page updates
@@ -89,11 +88,11 @@ source $WEBSITEKEY
 python -m utils.rerunFailedGetExtraFiles
 
 cd $here
-logger -s -t findAllMatches "create text file containing most recent matches"
+logger -s -t findAllMatches2 "create text file containing most recent matches"
 # this compares the previous and current trajectory database (json file)
 python -m reports.reportOfLatestMatches $MATCHDIR/RMSCorrelate $DATADIR $MATCHEND $rundate
 
-logger -s -t findAllMatches "gather some stats"
+logger -s -t findAllMatches2 "gather some stats"
 
 dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
 trajlist=$(cat $dailyrep | awk -F, '{print $2}')
@@ -111,17 +110,17 @@ if [ "$RUNTIME_ENV" == "PROD" ] ; then
     rsync -avz $DATADIR/dailyreports/ $MATCHDIR/RMSCorrelate/dailyreports/
 fi 
 
-logger -s -t findAllMatches "update the Index page for the month and the year"
+logger -s -t findAllMatches2 "update the Index page for the month and the year"
 $SRC/website/updateIndexPages.sh $dailyrep
 
-logger -s -t findAllMatches "backup the solved trajectory data"
+logger -s -t findAllMatches2 "backup the solved trajectory data"
 lastjson=$(ls -1tr $SRC/bkp/| grep -v ".gz" | tail -1)
 thisjson=$MATCHDIR/RMSCorrelate/processed_trajectories.json.bigserver
 cp $thisjson $SRC/bkp/processed_trajectories.json.$(date +%Y%m%d).bigserver
 gzip $SRC/bkp/$lastjson
 
-logger -s -t findAllMatches "purge old logs"
+logger -s -t findAllMatches2 "purge old logs"
 find $SRC/logs -name "matches*" -mtime +7 -exec gzip {} \;
 find $SRC/logs -name "matches*" -mtime +30 -exec rm -f {} \;
 
-logger -s -t findAllMatches "Matching process finished"
+logger -s -t findAllMatches2 "Matching process finished"

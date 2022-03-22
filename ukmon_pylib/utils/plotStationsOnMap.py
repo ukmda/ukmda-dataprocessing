@@ -8,16 +8,15 @@ import sys
 import fnmatch
 import matplotlib.pyplot as plt
 
+from fileformats import ReadUFOAnalyzerXML as ua
+from fileformats import CameraDetails as cd
+
 import cartopy.crs as ccrs
-import cartopy.feature as cfeature
+#import cartopy.feature as cfeature
 
 # override PIL's image size limit
 from PIL import Image
 Image.MAX_IMAGE_PIXELS = None
-
-
-from fileformats import ReadUFOAnalyzerXML as ua
-from fileformats import CameraDetails as cd
 
 
 def getBearingsForEvent(stns, fldr):

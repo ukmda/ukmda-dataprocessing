@@ -31,17 +31,11 @@ outdir=$DATADIR/videos/${yr}/${yr}${mth}
 s3outdir=videos/${yr}/${yr}${mth}
 mkdir -p $outdir > /dev/null 2>&1
 
+source $WEBSITEKEY
 tlist=$(python -m reports.findBestMp4s $yr $mth $numreq)
 for t in $tlist 
 do 
-    ym=$yr$mth
-    ymd=${t:0:8}
-    cp -p $MATCHDIR/RMSCorrelate/trajectories/$yr/$ym/$ymd/$t*/*.mp4 $outdir
-    gotcount=$(ls -1 $outdir/*.mp4 | wc -l)
-    if [ $gotcount -gt $numreq ] ; then
-        break
-    fi
-    echo "got $gotcount"
+    aws s3 cp $WEBSITEBUCKET/$t $outdir
 done
 
 source $UKMONSHAREDKEY
