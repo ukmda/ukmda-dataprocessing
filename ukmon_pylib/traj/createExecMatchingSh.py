@@ -9,6 +9,8 @@ import datetime
 
 shkey = os.getenv('UKMONSHAREDKEY')
 shbucket = os.getenv('UKMONSHAREDBUCKET')
+webkey = os.getenv('WEBSITEKEY')
+webbucket = os.getenv('WEBSITEBUCKET')
 if len(sys.argv) < 4:
     print('Usage: createExecMatchingSh day1 day2 outfile')
     exit(1)
@@ -40,7 +42,6 @@ with open(execmatchingsh, 'w') as outf:
     outf.write('cd /home/ec2-user/src/WesternMeteorPyLib/\n')
     outf.write('logger -s -t runMatching \"starting correlator\"\n')
     outf.write(f'time python -m wmpl.Trajectory.CorrelateRMS /home/ec2-user/data/RMSCorrelate/ -l -r \"({startdtstr},{enddtstr})\"\n')
-    outf.write(f'source {shkey}\n')
     outf.write('cd /home/ec2-user/data/RMSCorrelate\n')
     outf.write('logger -s -t runMatching \"creating density plots\"\n')
     outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot  ./trajectories/{yr} -p -s 30\n')
@@ -52,15 +53,22 @@ with open(execmatchingsh, 'w') as outf:
     outf.write(f'mv ./trajectories/{yr}/{ym}/*.png ./trajectories/{yr}/{ym}/plots\n')
     outf.write(f'mv ./trajectories/{yr}/{ym}/trajectory_summary.txt ./trajectories/{yr}/{ym}/plots\n')
     outf.write('df -h . \n')
-    
     outf.write('logger -s -t runMatching \"done and syncing back\"\n')
+
     for d in range(matchend, matchstart+1):
         thisdt=datetime.datetime.now() + datetime.timedelta(days=-d)
-        trajloc=f'{thisdt.year}/{thisdt.year}{thisdt.month:02d}/{thisdt.year}{thisdt.month:02d}{thisdt.day:02d}'
-        outf.write(f'aws s3 sync trajectories/{trajloc} {shbucket}/matches/RMSCorrelate/trajectories/{trajloc} --quiet\n')
+        yr = thisdt.year
+        mth = thisdt.month
+        dy = thisdt.day
+        trajloc=f'trajectories/{yr}/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}'
+        targloc=f'reports/{yr}/orbits/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}'
+        outf.write(f'source {webkey}\n')
+        outf.write(f'aws s3 sync {trajloc} {webbucket}/{targloc} --quiet\n')
+        outf.write(f'source {shkey}\n')
+        outf.write(f'aws s3 sync {trajloc} {shbucket}/matches/RMSCorrelate/{trajloc} --exclude "*" --include "*.pickle" --include "*report.txt" --quiet\n')
 
+
+    outf.write(f'source {shkey}\n')
     outf.write(f'aws s3 sync trajectories/{yr}/plots {shbucket}/matches/RMSCorrelate/trajectories/{yr}/plots --quiet\n')
     outf.write(f'aws s3 sync trajectories/{yr}/{ym}/plots {shbucket}/matches/RMSCorrelate/trajectories/{yr}/{ym}/plots --quiet\n')
     outf.write(f'aws s3 cp processed_trajectories.json {shbucket}/matches/RMSCorrelate/processed_trajectories.json.bigserver --quiet\n')
-
-#chmod +x $execMatchingsh
