@@ -5,7 +5,6 @@
 import sys
 import os
 import shutil
-import glob 
 
 
 def createOrbitPageIndex(fldr, websitebucket, s3):
@@ -31,9 +30,9 @@ def createOrbitPageIndex(fldr, websitebucket, s3):
             lis = sumf.readlines()
         idxf.writelines(lis)
 
-        zipfs=glob.glob1(fldr, '*.zip')
-        if len(zipfs) >0:
-            idxf.write(f"Click <a href=\"./{zipfs[0]}\">here</a> to download a zip of the raw and processed data.\n")
+        zipf = orbitname + '.zip'
+        if os.path.isfile(os.path.join(fldr, zipf)):
+            idxf.write(f"Click <a href=\"./{zipf}\">here</a> to download a zip of the raw and processed data.\n")
         idxf.write("</pre>\n")
         idxf.write("<p><b>Detailed report below graphs</b></p>\n")
         idxf.write("<h3>Click on an image to see a larger view</h3>\n")
@@ -65,10 +64,10 @@ def createOrbitPageIndex(fldr, websitebucket, s3):
         idxf.write("</div>\n")
 
         idxf.write("<pre>\n")
-        #cat $repf >>$idxfile
-        repfs=glob.glob1(fldr, '*report.txt')
-        if len(repfs) > 0:
-            with open(os.path.join(fldr, repfs[0])) as sumf:
+        repf = os.path.join(fldr, pref + 'report.txt')
+        print(repf)
+        if os.path.isfile(repf):
+            with open(repf) as sumf:
                 lis = sumf.readlines()
             idxf.writelines(lis)
         idxf.write("</pre>\n")
