@@ -251,19 +251,15 @@ class MeteorObservation(object):
         The loaded points are RA and Dec in J2000 epoch, in radians.
     """
     def __init__(self, jdt_ref, station_id, latitude, longitude, height, fps, ff_name=None, isj2000=True):
-
         self.jdt_ref = jdt_ref
         self.station_id = station_id
         self.latitude = latitude
         self.longitude = longitude
         self.height = height
         self.fps = fps
-
         self.ff_name = ff_name
-
         # flag to indicate whether data is as-of-epoch or J2000
         self.isj2000 = isj2000
-
         self.frames = []
         self.time_data = []
         self.x_data = []
@@ -440,7 +436,7 @@ def calcAdditionalValues(traj):
 
     time_data_all = []
     abs_mag_data_all = []
-
+    bestamag = 6
     # # Plot absolute magnitudes for every station
     for i, (meteor_obs, photometry_stddev) in enumerate(zip(magdata, photometry_stddevs)):
 
@@ -448,7 +444,8 @@ def calcAdditionalValues(traj):
         good_mag_indices = [j for j, abs_mag in enumerate(meteor_obs.abs_mag_data) if abs_mag is not None]
         time_data = traj.observations[i].time_data[good_mag_indices]
         abs_mag_data = np.array(meteor_obs.abs_mag_data)[good_mag_indices]
-
+        tmpamag= min(abs_mag_data)
+        bestamag = min(tmpamag, bestamag)
         time_data_all += time_data.tolist()
         abs_mag_data_all += abs_mag_data.tolist()
 
@@ -493,8 +490,7 @@ def calcAdditionalValues(traj):
         cod = 'spo'
         shwrname='Sporadic'
 
-    amag = min(abs_mag_data_all)
-    return amag, bestvmag, mass, id, cod, shwrname, orb, shower_obj, lg, bg, vg, stations
+    return bestamag, bestvmag, mass, id, cod, shwrname, orb, shower_obj, lg, bg, vg, stations
 
 
 def createAdditionalOutput(traj, outdir):
