@@ -3,6 +3,11 @@
 #
 # args : arg1 date, arg2 stationid
 
+if ($args.count -lt 2) {
+    write-output "usage: manualReduction.ps1 yyyymmdd UKxxxxx"
+    exit 1
+}
+
 push-location $PSScriptRoot
 # load the helper functions
 . .\helperfunctions.ps1
@@ -16,16 +21,24 @@ set-location $fbfldr
 $dt = [string]$args[0]
 $cam = $args[1]
 
-# create target path
-$tf = $cam + '_' + $dt + '_180000'
+# locate target path
+$tf = $cam + '_' + $dt + '_*'
 $targpth = "$fbfldr\$dt\$cam\$tf"
+if ((test-path $targpth) -eq 0) { $targpth = "$fbfldr\$dt\$cam" }
+
+if ((test-path $targpth\.config) -eq 0) {
+    write-output "no config file so can't continue"
+    pop-location
+    exit 1
+}
+write-output "processing $targpth"
 
 # run SkyFit to refine the platepar and reduce the path
 conda activate $ini['rms']['rms_env']
 $env:PYTHONPATH=$ini['rms']['rms_loc']
 push-Location $ini['rms']['rms_loc']
-python -m Utils.SkyFit2 $targpth -c $targpth\.config
 python -m Utils.BatchFFtoImage $targpth jpg
+python -m Utils.SkyFit2 $targpth -c $targpth\.config
 $ftpname=(Get-ChildItem $targpth\FTP*manual.txt).name
 python -m Utils.RMS2UFO $targpth\$ftpname $targpth\platepar_cmn2010.cal
 

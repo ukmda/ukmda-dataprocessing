@@ -26,6 +26,12 @@ $fbfldr=$ini['fireballs']['localfolder']
 $fbdate=$args[0]
 set-location $fbfldr\$fbdate
 
+$env:PYLIB=$ini['pylib']['pylib']
+conda activate $ini['wmpl']['wmpl_env']
+$wmplloc=$ini['wmpl']['wmpl_loc']
+$env:pythonpath="$wmplloc;$env:pylib"
+
+
 if ((test-path $args[1]) -eq "True" )
 {
     $newname=$args[1].replace('-','_') 
@@ -44,8 +50,10 @@ if ((test-path $args[1]) -eq "True" )
 }
 
 # copy the trajectory solution over
-$targ="ukmon-shared/matches/RMSCorrelate/trajectories/$yr/$ym/$yd/$newname"
+$targ="ukmeteornetworkarchive/reports/$yr/orbits/$ym/$yd/$newname"
 aws s3 sync "$srcpath" "s3://$targ" --include "*" --exclude "*.jpg"
+$targ="ukmon-shared/matches/RMSCorrelate/trajectories/$yr/$ym/$yd/$newname"
+aws s3 sync "$srcpath" "s3://$targ" --exclude "*" --include "*.pickle" --include "*report.txt"
 
 # add row to dailyreport file
 $env:DATADIR="f:\videos\meteorcam\ukmondata"
@@ -57,8 +65,8 @@ $x=(select-string $newl $dlyfile)
 if ($x.length -eq 0)
 {
     add-content $dlyfile $newl
+    scp "$dlyfile" "ukmonhelper:prod/data/dailyreports/" 
 }
-scp "$dlyfile" "ukmonhelper:prod/data/dailyreports/" 
 
 # now invoke the script to build the index page and update the daily index.
 $cmd="/home/ec2-user/prod/website/updateIndexPages.sh /home/ec2-user/prod/data/dailyreports/$dlyfile"
