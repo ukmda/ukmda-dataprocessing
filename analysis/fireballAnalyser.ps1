@@ -3,6 +3,13 @@
 # NB NB NB
 # this script expects the data to already be available 
 $loc = Get-Location
+if ($args.count -lt 1) {
+    write-output "usage: fireballAnalyser.ps1 yyyymmdd"
+    exit 1
+}
+
+if ($args.count -eq 2) { $mcrun = [int]$args[1] } else { $mcrun =100 }
+
 set-location $PSScriptRoot
 # load the helper functions
 . .\helperfunctions.ps1
@@ -24,7 +31,7 @@ $env:pythonpath="$wmplloc;$env:pylib"
 
 $solver = read-host -prompt "ECSV or RMS solver? (E/R)"
 if ($solver -eq 'E') {
-    python -m wmpl.Formats.ECSV . -l -x -w $args[1]
+    python -m wmpl.Formats.ECSV . -l -x -r $mcrun -w 
 }
 else {
     python -m wmpl.Trajectory.CorrelateRMS . -l 
