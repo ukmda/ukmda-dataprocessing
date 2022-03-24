@@ -167,6 +167,10 @@ def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
             key = os.path.join(webpth, f)
             extraargs = getExtraArgs(locfname)
             s3.meta.client.upload_file(locfname, websitebucket, key, ExtraArgs=extraargs)
+        elif '.lst' in f:
+            key = os.path.join(f'matches/RMSCorrelate/trajectories/{yr}/{ym}/{ymd}/{pth}', f)
+            extraargs = getExtraArgs(locfname)
+            s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
         elif 'summary' in f:
             key = os.path.join(fldr, f)
             # print(locfname, key)

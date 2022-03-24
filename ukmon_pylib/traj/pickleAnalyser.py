@@ -414,7 +414,7 @@ def calcAdditionalValues(traj):
 
     time_data_all = []
     abs_mag_data_all = []
-
+    amag = 6
     # # Plot absolute magnitudes for every station
     for i, (meteor_obs, photometry_stddev) in enumerate(zip(magdata, photometry_stddevs)):
 
@@ -422,6 +422,8 @@ def calcAdditionalValues(traj):
         good_mag_indices = [j for j, abs_mag in enumerate(meteor_obs.abs_mag_data) if abs_mag is not None]
         time_data = traj.observations[i].time_data[good_mag_indices]
         abs_mag_data = np.array(meteor_obs.abs_mag_data)[good_mag_indices]
+        tmpamag = min(abs_mag_data)
+        amag = min(tmpamag, amag)
 
         time_data_all += time_data.tolist()
         abs_mag_data_all += abs_mag_data.tolist()
@@ -467,7 +469,6 @@ def calcAdditionalValues(traj):
         cod = 'spo'
         shwrname='Sporadic'
 
-    amag = min(abs_mag_data_all)
     return amag, bestvmag, mass, id, cod, shwrname, orb, shower_obj, lg, bg, vg, stations
 
 
