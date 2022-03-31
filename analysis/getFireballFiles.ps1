@@ -3,8 +3,8 @@
 #
 # args : arg1 date, arg2 stationid
 $loc = Get-Location
-if ($args.count -lt 2) {
-    write-output "usage: getFireballFiles.ps1 yyyymmdd UKxxxxx"
+if ($args.count -lt 3) {
+    write-output "usage: getFireballFiles.ps1 yyyymmdd HHMM UKxxxxx"
     exit 1
 }
 set-location $PSScriptRoot
@@ -14,11 +14,13 @@ $ini=get-inicontent analysis.ini
 
 $stationdetails=$ini['fireballs']['stationdets']
 $fbfldr=$ini['fireballs']['localfolder']
+$awskey=$ini['website']['awskey']
 set-location $fbfldr
 
 # read date and camera ID from commandline
 $dt = [string]$args[0]
-$cam = $args[1]
+$hm = [string]$args[1]
+$cam = $args[2]
 
 # create target path
 $tf = $cam + '_' + $dt + '_180000'
@@ -45,6 +47,19 @@ scp ukmonhelper:ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/platepars_all_recali
 scp ukmonhelper:ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/FTPdetect*.txt $targpth
 (Get-Content -path $targpth/.config) -replace 'gaia_dr2_mag_11.5.npy','BSC5' > $targpth/.config.new
 copy-item $targpth/.config.new $targpth/.config
+
+# get JPGs if any
+$origdt=$dt
+$ftpf=(get-item "$targpth/FTPdetect*.txt")
+if ([int]$hm -lt 1200) {
+    $dt=([datetime]::parseexact($dt,'yyyyMMdd',$null).adddays(1)).ToString('yyyyMMdd')
+}
+$fitsf=(select-string $ftpf -pattern "${dt}_${hm}" -list -raw)
+if ($fitsf.length -gt 2 ){
+    $jpgf=$fitsf.replace('fits','jpg')
+    . $awskey
+    aws s3 cp s3://ukmeteornetworkarchive/img/single/$yr/$ym/$jpgf $fbfldr/$origdt
+}
 
 # job done
 Set-Location $Loc
