@@ -4,6 +4,9 @@
 
 resource "aws_vpc" "main_vpc" {
   cidr_block = "172.31.0.0/16"
+  tags = {
+    Name = "MainVPC"
+  }
 }
 
 resource "aws_subnet" "subnet1" {
@@ -52,17 +55,6 @@ resource "aws_route_table" "default" {
   }
 }
 
-resource "aws_route_table" "lambda_to_internet" {
-  vpc_id = aws_vpc.main_vpc.id
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = "nat-0e203492f202148f1"
-  }
-  tags = {
-    "Name" = "lambda_to_internet"
-  }
-}
-
 resource "aws_internet_gateway" "main_igw" {
   vpc_id = aws_vpc.main_vpc.id
   tags = {
@@ -80,24 +72,7 @@ resource "aws_network_interface" "mainif" {
   }
 }
 
-resource "aws_eip" "lambdaeip" {
-  network_interface = "eni-0cecdd958c8f43ef7"
-  #associate_with_private_ip = "172.31.0.102"
-  vpc = true
-}
-
 resource "aws_eip" "ukmonhelper" {
   instance = aws_instance.ukmonhelper.id
   vpc      = true
-}
-
-resource "aws_nat_gateway" "lambdaNatGW" {
-  allocation_id = aws_eip.lambdaeip.id
-  subnet_id     = aws_subnet.ec2Subnet.id
-  tags = {
-    Name = "lambdaNatGW"
-  }
-  # To ensure proper ordering, it is recommended to add an explicit dependency
-  # on the Internet Gateway for the VPC.
-  depends_on = [aws_internet_gateway.main_igw]
 }
