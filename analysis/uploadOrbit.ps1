@@ -46,8 +46,10 @@ if ((test-path $args[1]) -eq "True" )
     $yr=$newname.substring(0,4)
     $ym=$newname.substring(0,6)
     $yd=$newname.substring(0,8)
-    $srcpath="trajectories/$yr/$ym/$yd/$newname"
+    $srcpath="$fbfldr/$fbdate/trajectories/$yr/$ym/$yd/$newname"
 }
+$pf=(Get-ChildItem "$srcpath/*.pickle").fullname
+$pf=$pf.replace('\','/')
 
 # copy the trajectory solution over
 $targ="ukmeteornetworkarchive/reports/$yr/orbits/$ym/$yd/$newname"
@@ -56,8 +58,8 @@ $targ="ukmon-shared/matches/RMSCorrelate/trajectories/$yr/$ym/$yd/$newname"
 aws s3 sync "$srcpath" "s3://$targ" --exclude "*" --include "*.pickle" --include "*report.txt"
 
 # add row to dailyreport file
-$env:DATADIR="f:\videos\meteorcam\ukmondata"
-$newl=(python -c "import reports.reportOfLatestMatches as rml ; print(rml.processLocalFolder('$srcpath','/home/ec2-user/ukmon-shared/matches/RMSCorrelate'))")
+$env:DATADIR="f:/videos/meteorcam/ukmondata"
+$newl=(python -c "import reports.reportOfLatestMatches as rml ; print(rml.processLocalFolder('$pf','/home/ec2-user/ukmon-shared/matches/RMSCorrelate'))")
 
 $dlyfile="$yd.txt"
 scp "ukmonhelper:prod/data/dailyreports/$dlyfile" .
