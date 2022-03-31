@@ -48,8 +48,19 @@ if ((test-path $args[1]) -eq "True" )
     $yd=$newname.substring(0,8)
     $srcpath="$fbfldr/$fbdate/trajectories/$yr/$ym/$yd/$newname"
 }
-$pf=(Get-ChildItem "$srcpath/*.pickle").fullname
-$pf=$pf.replace('\','/')
+
+# sort out the jpegs
+out-file -filepath $srcpath/extrajpgs.html
+$jpgs=(get-item $fbfldr/$fbdate/*.jpg).name
+if ($jpgs -is [array]) {
+    foreach ($jpg in $jpgs){
+        $li = "<a href=""/img/single/${yr}/${ym}/${jpg}""><img src=""/img/single/${yr}/${ym}/${jpg}"" width=""20%""></a>"
+        write-output $li  | out-file $srcpath/extrajpgs.html -append
+    }
+} else {
+    $li = "<a href=""/img/single/${yr}/${ym}/${jpgs}""><img src=""/img/single/${yr}/${ym}/${jpgs}"" width=""20%""></a>"
+    write-output $li  | out-file $srcpath/extrajpgs.html -append
+}
 
 # copy the trajectory solution over
 $targ="ukmeteornetworkarchive/reports/$yr/orbits/$ym/$yd/$newname"
@@ -58,6 +69,8 @@ $targ="ukmon-shared/matches/RMSCorrelate/trajectories/$yr/$ym/$yd/$newname"
 aws s3 sync "$srcpath" "s3://$targ" --exclude "*" --include "*.pickle" --include "*report.txt"
 
 # add row to dailyreport file
+$pf=(Get-ChildItem "$srcpath/*.pickle").fullname
+$pf=$pf.replace('\','/')
 $env:DATADIR="f:/videos/meteorcam/ukmondata"
 $newl=(python -c "import reports.reportOfLatestMatches as rml ; print(rml.processLocalFolder('$pf','/home/ec2-user/ukmon-shared/matches/RMSCorrelate'))")
 
@@ -74,30 +87,3 @@ if ($x.length -eq 0)
 $cmd="/home/ec2-user/prod/website/updateIndexPages.sh /home/ec2-user/prod/data/dailyreports/$dlyfile"
 ssh ukmonhelper "$cmd"
 set-location $loc
-
-# update the jpgs file
-#$sp = (split-path $srcpath)
-#$yyyymmdd=(get-item $sp).name
-#$yyyymm=$yyyymmdd.substring(0,6)
-#$yyyy=$yyyymmdd.substring(0,4)
-#$imgloc="img/single/$yyyy/$yyyymm"
-#scp "ukmonhelper:$pth/jpgs.lst" .
-#$jpglst=(Get-ChildItem ".\*.jpg").name
-#if ($jpg.length -gt 0) {
-#    if ($jpglst -is [array])
-#    {
-#        for ($i=0; $i -lt $jpglst.length ; $i++)
-#        {
-##            $jpg=$jpglst[$i]
-#            write-output "$imgloc/$jpg" >> jpgs.lst
-#            aws s3 cp "$jpg" "s3://ukmeteornetworkarchive/$imgloc/"
-#        }
-#    }
-#    else {
-#        write-output "$imgloc/$jpglst" >> jpgs.lst
-#        aws s3 cp "$jpglst" "s3://ukmeteornetworkarchive/$imgloc/"
-#    }
-#}
-# and copy it back to the server then rebuild the index
-#scp jpgs.lst "ukmonhelper:$pth/" 
-#ssh ukmonhelper "dos2unix $pth/jpgs.lst"
