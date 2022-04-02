@@ -185,64 +185,11 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
         for obs in traj.observations:
             statlist = statlist + str(obs.station_id) + ';'
         csvf.write('{:d}, {:s}'.format(nO, statlist))
-        csvf.write('\n')
-    #print('done')
-
-    csvname = os.path.join(outdir, dtstr + '_orbit.csv')
-    with open(csvname, 'w', newline='') as csvf:
-        csvf.write('RMS,0,')
-        csvf.write('{:s}, {:.10f}, {:.6f}, {:s}, {:s}, {:.6f}, '.format(dt.strftime('_%Y%m%d_%H%M%S'), traj.jdt_ref - 2400000.5, lasun, id, '_', amag))
-        csvf.write('{:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(rao, dco, rat, dct))
-        csvf.write('{:.6f}, {:.6f}, {:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(lg, bg, vo, vi, vg, vh))
-        csvf.write('{:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(orb.a, orb.q, orb.e, orb.T))
-        csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(orb.peri), np.degrees(orb.node), np.degrees(orb.i)))
-        csvf.write('{:s}, '.format(shcod))
-        csvf.write('{:.6f}, {:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(dr, dvpct, omag, Qo, dur))
-        csvf.write('0, 0, 0, 0, ')  # av Voa Pra Pdc always zero in Unified orbits
-        csvf.write('{:.6f}, {:.6f}, '.format(GPlng, GPlat))
-        csvf.write('0, 0, 0, 0, ')  # ra1 dc1 az1 ev1 always zero in Unified orbits
-        csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(traj.rbeg_lon), np.degrees(traj.rbeg_lat), traj.rbeg_ele / 1000))
-        csvf.write('0, 0, 0, 0, 0, ')  # LD1 Qr1 Qd1 ra2 rc2 always zero in Unified orbits
-        csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(traj.rend_lon), np.degrees(traj.rend_lat), traj.rend_ele / 1000))
-        csvf.write('0, 0, 0, ')  # LD2 Qr2 Qd2 always zero in Unified orbits
-        csvf.write('{:.6f}, {:.6f}, {:.6f}, 0, {:.6f}, '.format(LD21, az1r, ev1r, evrt))
-        csvf.write('{:d}, {:d}, {:.6f}, 0, {:.6f}, {:.6f}, '.format(totsamp, nO, leap, ddeg, cdeg))
-        csvf.write('0, 0, 1, ')  # drop, inout, tme always zero in Unified orbits
-        csvf.write('{:.6f}, 0, {:.6f}, {:.6f}, {:.6f}, {:.6f}, '.format(d_t, Qc, dGP, Gmpct, dv12pct))  # GD
-        csvf.write('{:.6f}, 0, 0, {:.6f}, '.format(zmv, QA))  # Ed Ex always zero in Unified orbits
-        csvf.write('{:s}, {:s}, {:s}, {:s}, {:s}, {:.6f}, '.format(dtstr[:4], dtstr[4:6], dtstr[6:8],
-            dtstr[9:11], dtstr[11:13], secs))
-        csvf.write('{:d}, '.format(nO))
-        csvf.write('0, 0, 0, 0, ')  # Qp pole_sd rao_sd dco_sd always zero in UO
-        csvf.write('{:.6f}, '.format(vo_sd))
-        csvf.write('0, 0, 0, 0, ')  # rat_sd dct_sd vg_sd a_sd always zero in UO
-        csvf.write('{:.6f}, '.format(1 / orb.a))
-        csvf.write('0, 0, 0, 0, 0, 0, 0, ')  # 1/a_sd q_sd e_sd peri_sd node_sd incl_sd Er_sd always zero in UO
-        csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(ZF, OH, ZHR))
-        csvf.write('\n')
-
-    # create CSV extras file
-    #print('create extras file')
-    csvname = os.path.join(outdir, dtstr + '_orbit_extras.csv')
-    with open(csvname, 'w', newline='') as csvf:
-        #csvf.write('# date, mjd,id,iau,name,mass,pi,Q,true_anom,EA,MA,Tj,T,last_peri,jacchia1,Jacchia2,numstats,stations\n#\n')
-        csvf.write('{:s}, {:.10f}, {:s}, '.format(dt.strftime('%Y%m%d_%H%M%S'), traj.jdt_ref-2400000.5, id))
-        csvf.write('{:d}, {:s}, {:.6f}, '.format(shid, shname, mass))
-        csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(orb.pi), orb.Q, np.degrees(orb.true_anomaly)))
-        csvf.write('{:.6f}, {:.6f}, {:.6f}, '.format(np.degrees(orb.eccentric_anomaly), np.degrees(orb.mean_anomaly), orb.Tj))
-        csvf.write('{:.6f}, '.format(orb.T))
-        if orb.last_perihelion is not None:
-            csvf.write('{:s}, '.format(orb.last_perihelion.strftime('%Y-%m-%d')))
+        if omag < -3.999:
+            csvf.write(',True')
         else:
-            csvf.write('9999-99-99, ')
-        csvf.write('{:.6f}, {:.6f}, '.format(traj.jacchia_fit[0], traj.jacchia_fit[1]))
-
-        statlist = ''
-        for obs in traj.observations:
-            statlist = statlist + str(obs.station_id) + ';'
-        csvf.write('{:d}, {:s}'.format(nO, statlist))
+            csvf.write(',False')
         csvf.write('\n')
-
     return
 
 
