@@ -51,7 +51,9 @@ def findMatchedFireballs(df, outdir=None, mag=-4):
     if mag == 999: 
         fbs = fbs.head(10)        
     else:
-        fbs = fbs[fbs['_mag'] < mag]
+        f2 = fbs[fbs.isfb]
+        f1 = fbs[fbs['_mag'] < mag]
+        fbs = pd.concat([f1, f2]).drop_duplicates()
     newm=pd.concat([fbs['url'],fbs['_mag'], fbs['_stream'], fbs['_vg'], fbs['mass'], fbs['_mjd'], fbs['orbname']], 
         axis=1, keys=['url','mag','shower','vg','mass','mjd', 'orbname'])
     return newm
@@ -61,7 +63,6 @@ def findFBPre2020(df, outdir=None, mag=-4):
     df=df[df._mag < mag]
     fbs=pd.concat([df._localtime,df._mag,df._stream,df._vg,df._a,df._e,df._incl,df._peri,df._node,df._p], axis=1, 
         keys=['url','mag','shower','vg','a','e','incl','peri','node','p'])
-#    fbs['url']=['not available' for x in fbs.mag]
     fbs=fbs.sort_values(by=['mag','shower'])
     return fbs
 
@@ -86,16 +87,19 @@ if __name__ == '__main__':
         mth = int(ym[4:6])
 
     if yr > 2019:
-        fname = os.path.join(datadir, 'matched','matches-full-{}.csv'.format(yr))
+        fname = os.path.join(datadir, 'matched','matches-full-{}.parquet.gzip'.format(yr))
+        if os.path.isfile(fname):
+            df = pd.read_parquet(fname)
+        else:
+            print('unable to load datafile')
+            exit(0)
     else:
         fname = os.path.join(datadir, 'matched','matches-{}.csv'.format(yr))
-
-    if os.path.isfile(fname):
-        with open(fname) as inf:
-            df = pd.read_csv(inf, skipinitialspace=True)
-    else:
-        print('unable to load datafile')
-        exit(0)
+        if os.path.isfile(fname):
+            df = pd.read_csv(fname, skipinitialspace=True)
+        else:
+            print('unable to load datafile')
+            exit(0)
     
     shwr = sys.argv[2]
     if len(sys.argv) > 3:

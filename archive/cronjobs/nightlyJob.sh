@@ -45,7 +45,7 @@ ${SRC}/website/createShwrExtracts.sh ${mth}
 
 logger -s -t nightlyJob "update annual bright event/fireball page"
 #requires search index to have been updated first 
-${SRC}/website/createFireballPage.sh ${yr} -3.7
+${SRC}/website/createFireballPage.sh ${yr} -3.99
 
 logger -s -t nightlyJob "update the R version of the camera info file"
 python << EOD
