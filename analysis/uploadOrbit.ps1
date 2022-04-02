@@ -40,15 +40,16 @@ if ((test-path $args[1]) -eq "True" )
     $yr=$newname.substring(0,4)
     $ym=$newname.substring(0,6)
     $yd=$newname.substring(0,8)
-    $srcpath="$fbfldr/$fbdate/$newname"
+    mkdir "$fbfldr/$fbdate/trajectories/$yr/$ym/$yd"
+    Move-Item "$fbfldr/$fbdate/$newname" "$fbfldr/$fbdate/trajectories/$yr/$ym/$yd"
 }else{
     $newname=$args[1]
     $yr=$newname.substring(0,4)
     $ym=$newname.substring(0,6)
     $yd=$newname.substring(0,8)
-    $srcpath="$fbfldr/$fbdate/trajectories/$yr/$ym/$yd/$newname"
 }
-
+$srcpath="$fbfldr/$fbdate/trajectories/$yr/$ym/$yd/$newname"
+pause
 # sort out the jpegs
 out-file -filepath $srcpath/extrajpgs.html
 $jpgs=(get-item $fbfldr/$fbdate/*.jpg).name
@@ -60,6 +61,17 @@ if ($jpgs -is [array]) {
 } else {
     $li = "<a href=""/img/single/${yr}/${ym}/${jpgs}""><img src=""/img/single/${yr}/${ym}/${jpgs}"" width=""20%""></a>"
     write-output $li  | out-file $srcpath/extrajpgs.html -append
+}
+out-file -filepath $srcpath/extrampgs.html
+$jpgs=(get-item $fbfldr/$fbdate/*.mp4).name
+if ($jpgs -is [array]) {
+    foreach ($jpg in $jpgs){
+        $li = "<a href=""/img/single/${yr}/${ym}/${jpg}""><img src=""/img/single/${yr}/${ym}/${jpg}"" width=""20%""></a>"
+        write-output $li  | out-file $srcpath/extrampgs.html -append
+    }
+} else {
+    $li = "<a href=""/img/single/${yr}/${ym}/${jpgs}""><img src=""/img/single/${yr}/${ym}/${jpgs}"" width=""20%""></a>"
+    write-output $li  | out-file $srcpath/extrampgs.html -append
 }
 
 # copy the trajectory solution over
