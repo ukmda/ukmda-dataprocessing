@@ -66,19 +66,25 @@ out-file -filepath $srcpath/extrampgs.html
 $jpgs=(get-item $fbfldr/$fbdate/*.mp4).name
 if ($jpgs -is [array]) {
     foreach ($jpg in $jpgs){
-        $li = "<a href=""/img/single/${yr}/${ym}/${jpg}""><img src=""/img/single/${yr}/${ym}/${jpg}"" width=""20%""></a>"
+        $li = "<a href=""/img/mp4/${yr}/${ym}/${jpg}""><video width=""20%""><source src=""/img/mp4/${yr}/${ym}/${jpg} width=""20%"" type=""video/mp4""></video></a>"
         write-output $li  | out-file $srcpath/extrampgs.html -append
     }
 } else {
-    $li = "<a href=""/img/single/${yr}/${ym}/${jpgs}""><img src=""/img/single/${yr}/${ym}/${jpgs}"" width=""20%""></a>"
+    $li = "<a href=""/img/mp4/${yr}/${ym}/${jpg}""><video width=""20%""><source src=""/img/mp4/${yr}/${ym}/${jpg} width=""20%"" type=""video/mp4""></video></a>"
     write-output $li  | out-file $srcpath/extrampgs.html -append
 }
 
 # copy the trajectory solution over
 $targ="ukmeteornetworkarchive/reports/$yr/orbits/$ym/$yd/$newname"
-aws s3 sync "$srcpath" "s3://$targ" --include "*" --exclude "*.jpg"
+aws s3 sync "$srcpath" "s3://$targ" --include "*" --exclude "*.jpg" --exclude "*.mp4"
+# push the pickle and report to ukmon-shared
 $targ="ukmon-shared/matches/RMSCorrelate/trajectories/$yr/$ym/$yd/$newname"
 aws s3 sync "$srcpath" "s3://$targ" --exclude "*" --include "*.pickle" --include "*report.txt"
+# push the jpgs and mp4s to the website
+$targ="ukmeteornetworkarchive/img/single/$yr/$ym/"
+aws s3 sync "$fbfldr/$fbdate" "s3://$targ" --exclude "*" --include "*.jpg"
+$targ="ukmeteornetworkarchive/img/mp4/$yr/$ym/"
+aws s3 sync "$fbfldr/$fbdate" "s3://$targ" --exclude "*" --include "*.mp4"
 
 # add row to dailyreport file
 $pf=(Get-ChildItem "$srcpath/*.pickle").fullname
