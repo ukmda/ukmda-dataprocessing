@@ -66,11 +66,11 @@ out-file -filepath $srcpath/extrampgs.html
 $jpgs=(get-item $fbfldr/$fbdate/*.mp4).name
 if ($jpgs -is [array]) {
     foreach ($jpg in $jpgs){
-        $li = "<a href=""/img/mp4/${yr}/${ym}/${jpg}""><video width=""20%""><source src=""/img/mp4/${yr}/${ym}/${jpg} width=""20%"" type=""video/mp4""></video></a>"
+        $li = "<a href=""/img/mp4/${yr}/${ym}/${jpg}""><video width=""20%""><source src=""/img/mp4/${yr}/${ym}/${jpg}"" width=""20%"" type=""video/mp4""></video></a>"
         write-output $li  | out-file $srcpath/extrampgs.html -append
     }
 } else {
-    $li = "<a href=""/img/mp4/${yr}/${ym}/${jpg}""><video width=""20%""><source src=""/img/mp4/${yr}/${ym}/${jpg} width=""20%"" type=""video/mp4""></video></a>"
+    $li = "<a href=""/img/mp4/${yr}/${ym}/${jpgs}""><video width=""20%""><source src=""/img/mp4/${yr}/${ym}/${jpgs}"" width=""20%"" type=""video/mp4""></video></a>"
     write-output $li  | out-file $srcpath/extrampgs.html -append
 }
 
