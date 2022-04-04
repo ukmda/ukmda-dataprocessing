@@ -72,3 +72,6 @@ with open(execmatchingsh, 'w') as outf:
     outf.write(f'aws s3 sync trajectories/{yr}/plots {shbucket}/matches/RMSCorrelate/trajectories/{yr}/plots --quiet\n')
     outf.write(f'aws s3 sync trajectories/{yr}/{ym}/plots {shbucket}/matches/RMSCorrelate/trajectories/{yr}/{ym}/plots --quiet\n')
     outf.write(f'aws s3 cp processed_trajectories.json {shbucket}/matches/RMSCorrelate/processed_trajectories.json.bigserver --quiet\n')
+    outf.write(f'source {webkey}\n')
+    outf.write(f'aws s3 sync trajectories/{yr}/plots {webbucket}/reports/{yr}/orbits/plots --quiet\n')
+    outf.write(f'aws s3 sync trajectories/{yr}/{ym}/plots {webbucket}/reports/{yr}/orbits/{ym}/plots --quiet\n')
