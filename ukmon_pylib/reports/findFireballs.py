@@ -11,6 +11,31 @@ from traj.pickleAnalyser import getBestView
 from wmpl.Utils.TrajConversions import jd2Date
 
 
+def markAsFireball(trajname, tof=True):
+    datadir = os.getenv('DATADIR')
+    if datadir == '' or datadir is None:
+        print('export DATADIR first')
+        exit(1)
+    yr=trajname[:4]
+    if int(yr) > 2021:
+        fname = os.path.join(datadir, 'matched','matches-full-{}.parquet.gzip'.format(yr))
+        if os.path.isfile(fname):
+            df = pd.read_parquet(fname)
+        else:
+            print('unable to load datafile')
+            exit(0)
+    else:
+        print("can only be done for 2022 onwards")
+        exit(0)
+    print(f'setting {trajname} to {tof}')
+    df.loc[df.orbname==trajname, ['isfb']] = tof
+    df.to_parquet(fname)
+    csvfname = os.path.join(datadir, 'matched','matches-full-{}.csv'.format(yr))
+    df.to_csv(csvfname, index=False)
+
+    return 
+
+
 def createMDFiles(fbs, outdir, matchdir):
     for _, fb in fbs.iterrows(): 
         loctime = jd2Date(fb.mjd + 2400000.5, dt_obj=True)
