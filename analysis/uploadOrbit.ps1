@@ -77,9 +77,15 @@ if ($jpgs -is [array]) {
 # copy the trajectory solution over
 $targ="ukmeteornetworkarchive/reports/$yr/orbits/$ym/$yd/$newname"
 aws s3 sync "$srcpath" "s3://$targ" --include "*" --exclude "*.jpg" --exclude "*.mp4"
+
 # push the pickle and report to ukmon-shared
 $targ="ukmon-shared/matches/RMSCorrelate/trajectories/$yr/$ym/$yd/$newname"
-aws s3 sync "$srcpath" "s3://$targ" --exclude "*" --include "*.pickle" --include "*report.txt"
+$pickle=(get-item "$srcpath/*.pickle").name
+aws s3 cp "$srcpath/$pickle" "s3://$targ/" 
+$repfile=(get-item "$srcpath/*report.txt").name
+aws s3 cp "$srcpath/$repfile" "s3://$targ/" 
+
+
 # push the jpgs and mp4s to the website
 $targ="ukmeteornetworkarchive/img/single/$yr/$ym/"
 aws s3 sync "$fbfldr/$fbdate" "s3://$targ" --exclude "*" --include "*.jpg"
