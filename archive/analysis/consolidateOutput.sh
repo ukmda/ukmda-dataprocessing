@@ -85,7 +85,7 @@ EOD3
 python -m converters.toParquet $DATADIR/matched/matches-full-${yr}.csv
 
 source $UKMONSHAREDKEY
-aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matched/ --quiet --include "*" --exclude "*.gzip"
-aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matchedpq/ --quiet --exclude "*" --include "*.gzip"
+aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matched/ --quiet --include "*" --exclude "*.gzip" --exclude "*.bkp"
+aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matchedpq/ --quiet --exclude "*" --include "*.gzip" --exclude "*.bkp"
 
 logger -s -t consolidateOutput "consolidation done"

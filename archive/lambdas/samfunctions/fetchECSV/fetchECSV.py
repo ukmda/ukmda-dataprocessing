@@ -42,17 +42,19 @@ def createECSV(ftpFile, required_event = None):
             return 'malformed platepar file - cannot continue'
 
     if required_event is not None:
-        try:
-            reqevt = datetime.datetime.strptime(required_event, isodate_format_entry).timestamp()
-        except:
-            reqevt = datetime.datetime.strptime(required_event, isodate_format_file).timestamp()
+        fmtstr=isodate_format_entry[:min(len(required_event)-2, 24)]
+        reqevt = datetime.datetime.strptime(required_event, fmtstr).timestamp()
+#        try:
+#            reqevt = datetime.datetime.strptime(required_event, isodate_format_entry).timestamp()
+#        except:
+#            reqevt = datetime.datetime.strptime(required_event, isodate_format_file).timestamp()
     else:
         reqevt = 0
 
     # check input precision
     spls = required_event.split('.')
     if len(spls) == 1:
-        prec = 1
+        prec = 10
     else:
         decis = spls[1]
         prec = pow(10, -len(decis))

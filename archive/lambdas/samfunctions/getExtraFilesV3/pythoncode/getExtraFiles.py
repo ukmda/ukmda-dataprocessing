@@ -96,6 +96,21 @@ def generateExtraFiles(key, athena_client, archbucket, websitebucket, ddb, s3):
     key2 = key.replace('trajectory.pickle', 'report.txt')
     s3.meta.client.download_file(archbucket, key2, repfname)
 
+    key2 = webpth + 'extrajpgs.html'
+    locfname = os.path.join(outdir, 'extrajpgs.html')
+    try:
+        s3.meta.client.download_file(websitebucket, key2, locfname)
+    except:
+        print('no extrajpgs.html')
+        pass
+    key2 = webpth + 'extrampgs.html'
+    locfname = os.path.join(outdir, 'extrampgs.html')
+    try:
+        s3.meta.client.download_file(websitebucket, key2, locfname)
+    except:
+        print('no extrampgs.html')
+        pass
+
     # pushFilesBack creates the zipfile so we need to do this first
     pushFilesBack(outdir, archbucket, websitebucket, fuloutdir, s3)
     createOrbitPageIndex(outdir, websitebucket, s3)

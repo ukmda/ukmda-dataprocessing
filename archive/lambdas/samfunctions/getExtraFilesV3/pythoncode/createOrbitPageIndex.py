@@ -45,7 +45,14 @@ def createOrbitPageIndex(fldr, websitebucket, s3):
         idxf.write('<br>\n')
 
         with open(os.path.join(fldr, 'jpgs.html')) as sumf:
-            lis = sumf.readlines()
+            lis = sumf.readlines()            
+        if os.path.isfile(os.path.join(fldr, 'extrajpgs.html')):
+            print('reading extrajpgs.html')
+            with open(os.path.join(fldr, 'extrajpgs.html')) as sumf:
+                lis2 = sumf.readlines()
+            for li in lis2:
+                lis.append(li)
+        lis = list(dict.fromkeys(lis))
         idxf.writelines(lis)
 
         idxf.write(f'<a href="{pref}lengths.png"><img src="{pref}lengths.png" width="20%"></a>\n')
@@ -60,6 +67,12 @@ def createOrbitPageIndex(fldr, websitebucket, s3):
         idxf.write("<div>\n")
         with open(os.path.join(fldr, 'mpgs.html')) as sumf:
             lis = sumf.readlines()
+        if os.path.isfile(os.path.join(fldr, 'extrampgs.html')):
+            with open(os.path.join(fldr, 'extrampgs.html')) as sumf:
+                lis2 = sumf.readlines()
+            for li in lis2:
+                lis.append(li)
+        lis = list(dict.fromkeys(lis))
         idxf.writelines(lis)
         idxf.write("</div>\n")
 
