@@ -32,7 +32,7 @@ def createSplitMatchFile(yr, mth=None, shwr=None):
         os.makedirs(os.path.join(datadir, 'browse','showers'),exist_ok=True)
         ofname = os.path.join(datadir, 'browse','showers',f'{yr}-{shwr}-matches.csv')
 
-    matches = matches.sort_values(by=['_D_ut','_h_ut','_m_ut','_s_ut'])
+    matches = matches.sort_values(by=['_D_ut','_h_ut','_mi_ut','_s_ut'])
     truncmatch=matches.drop(columns=['dtstamp','orbname','src','url','img',
         '# date','mjd','id','iau','name','mass','pi','Q','true_anom','EA',
         'MA','Tj','T','last_peri','jacchia1','Jacchia2','numstats','stations'])

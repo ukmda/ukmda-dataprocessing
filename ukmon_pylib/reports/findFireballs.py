@@ -11,6 +11,31 @@ from traj.pickleAnalyser import getBestView
 from wmpl.Utils.TrajConversions import jd2Date
 
 
+def markAsFireball(trajname, tof=True):
+    datadir = os.getenv('DATADIR')
+    if datadir == '' or datadir is None:
+        print('export DATADIR first')
+        exit(1)
+    yr=trajname[:4]
+    if int(yr) > 2021:
+        fname = os.path.join(datadir, 'matched','matches-full-{}.parquet.gzip'.format(yr))
+        if os.path.isfile(fname):
+            df = pd.read_parquet(fname)
+        else:
+            print('unable to load datafile')
+            exit(0)
+    else:
+        print("can only be done for 2022 onwards")
+        exit(0)
+    print(f'setting {trajname} to {tof}')
+    df.loc[df.orbname==trajname, ['isfb']] = tof
+    df.to_parquet(fname)
+    csvfname = os.path.join(datadir, 'matched','matches-full-{}.csv'.format(yr))
+    df.to_csv(csvfname, index=False)
+
+    return 
+
+
 def createMDFiles(fbs, outdir, matchdir):
     for _, fb in fbs.iterrows(): 
         loctime = jd2Date(fb.mjd + 2400000.5, dt_obj=True)
@@ -51,7 +76,9 @@ def findMatchedFireballs(df, outdir=None, mag=-4):
     if mag == 999: 
         fbs = fbs.head(10)        
     else:
-        fbs = fbs[fbs['_mag'] < mag]
+        f2 = fbs[fbs.isfb]
+        f1 = fbs[fbs['_mag'] < mag]
+        fbs = pd.concat([f1, f2]).drop_duplicates()
     newm=pd.concat([fbs['url'],fbs['_mag'], fbs['_stream'], fbs['_vg'], fbs['mass'], fbs['_mjd'], fbs['orbname']], 
         axis=1, keys=['url','mag','shower','vg','mass','mjd', 'orbname'])
     return newm
@@ -61,7 +88,6 @@ def findFBPre2020(df, outdir=None, mag=-4):
     df=df[df._mag < mag]
     fbs=pd.concat([df._localtime,df._mag,df._stream,df._vg,df._a,df._e,df._incl,df._peri,df._node,df._p], axis=1, 
         keys=['url','mag','shower','vg','a','e','incl','peri','node','p'])
-#    fbs['url']=['not available' for x in fbs.mag]
     fbs=fbs.sort_values(by=['mag','shower'])
     return fbs
 
@@ -86,16 +112,19 @@ if __name__ == '__main__':
         mth = int(ym[4:6])
 
     if yr > 2019:
-        fname = os.path.join(datadir, 'matched','matches-full-{}.csv'.format(yr))
+        fname = os.path.join(datadir, 'matched','matches-full-{}.parquet.gzip'.format(yr))
+        if os.path.isfile(fname):
+            df = pd.read_parquet(fname)
+        else:
+            print('unable to load datafile')
+            exit(0)
     else:
         fname = os.path.join(datadir, 'matched','matches-{}.csv'.format(yr))
-
-    if os.path.isfile(fname):
-        with open(fname) as inf:
-            df = pd.read_csv(inf, skipinitialspace=True)
-    else:
-        print('unable to load datafile')
-        exit(0)
+        if os.path.isfile(fname):
+            df = pd.read_csv(fname, skipinitialspace=True)
+        else:
+            print('unable to load datafile')
+            exit(0)
     
     shwr = sys.argv[2]
     if len(sys.argv) > 3:
