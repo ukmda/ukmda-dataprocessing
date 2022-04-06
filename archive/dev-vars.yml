@@ -7,3 +7,4 @@ env: DEV
 wmplhome: /home/ec2-user/src/wmpldev
 archivebucket: mjmm-ukmonarchive.co.uk
 calcinstance: i-0da38ed8aea1a1d85
+ukmonlivebucket: mjmm-live
