@@ -14,6 +14,9 @@ mth=$(date +%Y%m)
 yr=$(date +%Y)
 echo $rundate > $DATADIR/rundate.txt
 
+logger -s -t nightlyJob "update search index files with singleton data"
+$SRC/analysis/createSearchable.sh
+
 source $WEBSITEKEY
 export AWS_DEFAULT_REGION=eu-west-2
 
@@ -25,7 +28,7 @@ ${SRC}/analysis/findAllMatches.sh > ${SRC}/logs/${matchlog} 2>&1
 logger -s -t nightlyJob "consolidate the resulting data"
 $SRC/analysis/consolidateOutput.sh ${yr}
 
-logger -s -t nightlyJob "update search index files and station list for search index"
+logger -s -t nightlyJob "reupdate search index files to collect matches"
 $SRC/analysis/createSearchable.sh
 $SRC/website/createStationList.sh
 
