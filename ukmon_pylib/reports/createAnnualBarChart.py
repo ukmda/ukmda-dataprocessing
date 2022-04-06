@@ -15,7 +15,7 @@ def createBarChart(fname, yr):
     if not os.path.isfile(fname):
         print('{} missing', fname)
         return None
-    matches = pd.read_csv(fname)
+    matches = pd.read_parquet(fname)
     matches = matches.sort_values(by=['_mjd'])
     v1=int(matches['_mjd'][0])
     v2=int(matches['_mjd'][len(matches)-1])+2
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     else:
         yr=datetime.datetime.now().year
         datadir=os.getenv('DATADIR')
-        fname = os.path.join(datadir, 'matched', 'matches-full-{}.csv'.format(yr))
+        fname = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.gzip'.format(yr))
         
     m = createBarChart(fname, yr)
 #    print(m.selectByMag(minMag=-2))

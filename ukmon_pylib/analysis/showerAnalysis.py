@@ -464,8 +464,8 @@ if __name__ == '__main__':
     os.makedirs(outdir, exist_ok=True)
 
     # read the single-station data
-    singleFile = os.path.join(datadir, 'single', 'singles-{}.csv'.format(yr))
-    sngl = pd.read_csv(singleFile)
+    singleFile = os.path.join(datadir, 'single', 'singles-{}.parquet.gzip'.format(yr))
+    sngl = pd.read_parquet(singleFile)
     sngl = sngl[sngl['Y']==yr]
 
     # select the required data
@@ -501,8 +501,8 @@ if __name__ == '__main__':
         pass
     sngl = None
 
-    matchfile = os.path.join(datadir, 'matched', 'matches-full-{}.csv'.format(yr))
-    mtch = pd.read_csv(matchfile, skipinitialspace=True)
+    matchfile = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.gzip'.format(yr))
+    mtch = pd.read_parquet(matchfile)
     mtch = mtch[mtch['_Y_ut']==yr]
 
     # select the required data
