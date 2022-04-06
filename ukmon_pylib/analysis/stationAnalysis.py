@@ -286,17 +286,15 @@ if __name__ == '__main__':
         datadir = os.getenv('TMP')
         if datadir is None:
             datadir = '/tmp'
-        sngl = pd.read_csv(f's3://ukmon-shared/matches/single/singles-{yr}.csv')
-        mful = pd.read_csv(f's3://ukmon-shared/matches/matched/matches-full-{yr}.csv', 
-            skipinitialspace=True)
+        sngl = pd.read_parquet(f's3://ukmon-shared/matches/single/singles-{yr}.parquet.gzip')
+        mful = pd.read_parquet(f's3://ukmon-shared/matches/matched/matches-full-{yr}.parquet.gzip')
 
     else:
         datadir = os.getenv('DATADIR')
         if datadir is None:
             datadir='/home/ec2-user/prod/data'
-        sngl = pd.read_csv(os.path.join(datadir, 'single', f'singles-{yr}.csv'))
-        mful = pd.read_csv(os.path.join(datadir, 'matched', f'matches-full-{yr}.csv'),
-            skipinitialspace=True)
+        sngl = pd.read_parquet(os.path.join(datadir, 'single', f'singles-{yr}.parquet.gzip'))
+        mful = pd.read_parquet(os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.gzip'))
 
     camlist = pd.read_csv(cifile)
     if len(sys.argv) > 2:

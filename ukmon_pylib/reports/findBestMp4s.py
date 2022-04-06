@@ -8,8 +8,8 @@ from traj.pickleAnalyser import getAllMp4s
 
 def getBestNMp4s(yr, mth, numtoget):
     datadir=os.getenv('DATADIR')
-    mf = os.path.join(datadir, 'matched', f'matches-full-{yr}.csv')
-    matches = pd.read_csv(mf)
+    mf = os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.gzip')
+    matches = pd.read_parquet(mf)
     matches = matches[matches._Y_ut == int(yr)]
     matches = matches[matches._M_ut == int(mth)]
     sepdata = matches.sort_values(by=['_mag'])
