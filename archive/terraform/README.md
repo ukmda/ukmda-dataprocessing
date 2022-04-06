@@ -29,3 +29,8 @@ Managed by *iam.tf*:
 **IAM Policies**
 Managed by *iam.tf*:
 (coming soon)
+
+markmcintyreastro Account
+-------------------------
+This account holds all compute resources and some APIs. 
+

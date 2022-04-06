@@ -4,7 +4,7 @@ import sys
 import pandas as pd
 import os
 
-df = pd.read_csv(sys.argv[1])
+df = pd.read_csv(sys.argv[1], skipinitialspace=True)
 
 fn, _ = os.path.splitext(sys.argv[1])
 
