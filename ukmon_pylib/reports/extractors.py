@@ -96,7 +96,7 @@ def createRMSSingleMonthlyExtract(yr, mth=None, shwr=None):
     if mth is not None:
         dta = dta[dta['M']==mth]
         os.makedirs(os.path.join(datadir, 'browse', 'monthly'), exist_ok=True)
-        dta = dta.sort_values(by=['D','h','m','s'])
+        dta = dta.sort_values(by=['D','h','mi','s'])
         dta=dta.drop(columns=['AngVel','Shwr','Filename','Dtstamp'])
         dta.Ver='R91'
         if len(dta) > 0:
@@ -104,7 +104,7 @@ def createRMSSingleMonthlyExtract(yr, mth=None, shwr=None):
     elif shwr is not None:
         dta = dta[dta['Shwr']==shwr]
         os.makedirs(os.path.join(datadir, 'browse', 'showers'), exist_ok=True)
-        dta = dta.sort_values(by=['D','h','m','s'])
+        dta = dta.sort_values(by=['D','h','mi','s'])
         dta=dta.drop(columns=['AngVel','Shwr','Filename','Dtstamp'])
         dta.Ver='R91'
         if len(dta) > 0:

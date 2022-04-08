@@ -81,7 +81,7 @@ ${SRC}/website/cameraStatusReport.sh
 logger -s -t nightlyJob "create event log for other networks"
 python -m reports.createExchangeFiles
 source $WEBSITEKEY
-aws s3 sync $DATADIR/browse/daily/ $WEBSITEBUCKET/browse/daily/
+aws s3 sync $DATADIR/browse/daily/ $WEBSITEBUCKET/browse/daily/ --quiet
 
 logger -s -t nightlyJob "create list of connected stations and map of stations"
 sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s, %s\n", $3,$9)}' > $DATADIR/reports/stationlogins.txt

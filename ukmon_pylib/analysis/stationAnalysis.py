@@ -286,8 +286,8 @@ if __name__ == '__main__':
         datadir = os.getenv('TMP')
         if datadir is None:
             datadir = '/tmp'
-        sngl = pd.read_parquet(f's3://ukmon-shared/matches/single/singles-{yr}.parquet.gzip')
-        mful = pd.read_parquet(f's3://ukmon-shared/matches/matched/matches-full-{yr}.parquet.gzip')
+        sngl = pd.read_parquet(f's3://ukmon-shared/matches/singlepq/singles-{yr}.parquet.gzip')
+        mful = pd.read_parquet(f's3://ukmon-shared/matches/matchedpq/matches-full-{yr}.parquet.gzip')
 
     else:
         datadir = os.getenv('DATADIR')

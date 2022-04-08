@@ -11,6 +11,9 @@ from traj.pickleAnalyser import getBestView
 from wmpl.Utils.TrajConversions import jd2Date
 
 
+# 
+# Manually mark a trajectoriy as a "fireball"
+#
 def markAsFireball(trajname, tof=True):
     datadir = os.getenv('DATADIR')
     if datadir == '' or datadir is None:
@@ -36,6 +39,9 @@ def markAsFireball(trajname, tof=True):
     return 
 
 
+#
+# Create MD files for the Jekyll website
+#
 def createMDFiles(fbs, outdir, matchdir):
     for _, fb in fbs.iterrows(): 
         loctime = jd2Date(fb.mjd + 2400000.5, dt_obj=True)
@@ -70,6 +76,9 @@ def createMDFiles(fbs, outdir, matchdir):
     return
 
 
+#
+# Search the matched data for fireball events
+#
 def findMatchedFireballs(df, outdir=None, mag=-4):
     fbs = df.sort_values(by='_mag')
     fbs = fbs.drop_duplicates(subset=['_mjd', '_mag'], keep='last')
@@ -84,6 +93,7 @@ def findMatchedFireballs(df, outdir=None, mag=-4):
     return newm
 
 
+# old version of the above for older data
 def findFBPre2020(df, outdir=None, mag=-4):
     df=df[df._mag < mag]
     fbs=pd.concat([df._localtime,df._mag,df._stream,df._vg,df._a,df._e,df._incl,df._peri,df._node,df._p], axis=1, 
