@@ -32,7 +32,7 @@ python -m reports.findFireballs ${yr} ALL $2
 
 echo "\$(function() {" > reportindex.js
 echo "var table = document.createElement(\"table\");" >> reportindex.js
-echo "table.className = \"table table-striped table-bordered table-hover table-condensed\";" >> reportindex.js
+echo "table.className = \"table table-striped table-bordered table-hover table-condensed table-fixed\";" >> reportindex.js
 echo "var header = table.createTHead();" >> reportindex.js
 echo "header.className = \"h4\";" >> reportindex.js
 echo "var row = table.insertRow(-1);" >> reportindex.js
@@ -42,6 +42,8 @@ echo "var cell = row.insertCell(1);" >> reportindex.js
 echo "cell.innerHTML = \"Vis Mag\";" >> reportindex.js
 echo "var cell = row.insertCell(2);" >> reportindex.js
 echo "cell.innerHTML = \"Shower\";" >> reportindex.js
+echo "var cell = row.insertCell(2);" >> reportindex.js
+echo "cell.innerHTML = \"Image Link\";" >> reportindex.js
 
 if [ -f ./fblist.txt ] ; then 
     cat ./fblist.txt | while read i ; do
@@ -50,6 +52,10 @@ if [ -f ./fblist.txt ] ; then
         fldr=$(echo $i | awk -F, '{print $1}')
         mag=$(echo $i | awk -F, '{print $2}')
         shwr=$(echo $i | awk -F, '{print $3}')
+        md=$(echo $i | awk -F, '{print $4}')
+        md=${md:0:15}
+        img=$(grep besti ./${md}.md | awk '{print $2}')
+
         if [ "${fldr:0:1}" == "_" ] ; then 
             echo "cell.innerHTML = \"${fldr:1:25}\";" >> reportindex.js
         else 
@@ -60,6 +66,10 @@ if [ -f ./fblist.txt ] ; then
         echo "cell.innerHTML = \"$mag\";" >> reportindex.js
         echo "var cell = row.insertCell(2);" >> reportindex.js
         echo "cell.innerHTML = \"$shwr\";" >> reportindex.js
+        if [ "$img" != "" ]; then 
+            echo "var cell = row.insertCell(3);" >> reportindex.js
+            echo "cell.innerHTML = \"<a href="$fldr"><img src=$img width=100px></a>\";" >> reportindex.js
+        fi 
     done
 else
         echo "var row = table.insertRow(-1);">> reportindex.js
