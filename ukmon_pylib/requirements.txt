@@ -5,6 +5,8 @@ Cython
 gmplot
 google-auth
 google-auth-oauthlib
+google-api-python-client
+googleapis-common-protos
 jplephem
 Keras
 matplotlib==3.3.2
@@ -27,3 +29,4 @@ fastparquet
 cryptography
 cartopy
 python-crontab
+simplekml

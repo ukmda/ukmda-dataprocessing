@@ -14,9 +14,10 @@ def convertSingletoSrchable(datadir, year, outdir, weburl):
     print(datetime.datetime.now(), 'single-detection searchable index start')
 
     # load the single-station combined data
-    rmsuafile = os.path.join(datadir, 'single', 'singles-{}.csv'.format(year))
-    print(datetime.datetime.now(), 'read single file to get shower and mag')
-    uadata = pd.read_csv(rmsuafile, delimiter=',')    
+    rmsuafile = os.path.join(datadir, 'single', 'singles-{}.parquet.gzip'.format(year))
+    print(datetime.datetime.now(), f'read single file to get shower and mag: {rmsuafile}')
+    uadata = pd.read_parquet(rmsuafile)    
+
     uadata = uadata.assign(ts = pd.to_datetime(uadata['Dtstamp'], unit='s', utc=True))
     uadata['LocalTime'] = [ts.strftime('%Y%m%d_%H%M%S') for ts in uadata.ts]
 
@@ -68,13 +69,13 @@ def convertSingletoSrchable(datadir, year, outdir, weburl):
     rmsdata.loc[rmsdata.loccam=='UK000S','url']=f'{weburl}/img/missing-white.png'
     rmsdata.loc[rmsdata.loccam=='UK000S','imgs']=f'{weburl}/img/missing-white.png'
     
-    print(datetime.datetime.now(), 'save data')
-    outfile = os.path.join(outdir, '{:s}-singleevents.csv'.format(year))
-
     resdf = pd.concat([rmsdata,ufodata])
-    resdf.to_csv(outfile, sep=',', index=False)
-    print(datetime.datetime.now(), 'single-detection index created')
-    return 
+
+    #print(datetime.datetime.now(), 'save data')
+    #outfile = os.path.join(outdir, '{:s}-singleevents.csv'.format(year))
+    #resdf.to_csv(outfile, sep=',', index=False)
+    #print(datetime.datetime.now(), 'single-detection index created')
+    return resdf
 
 
 def convertMatchToSrchable(config, year, outdir, weburl):
@@ -87,15 +88,15 @@ def convertMatchToSrchable(config, year, outdir, weburl):
         
     """
     print('reading merged match file')
-    infile = os.path.join(datadir, 'matched', 'matches-full-{}.csv'.format(year))
-    newm = pd.read_csv(infile)
+    infile = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.gzip'.format(year))
+    newm = pd.read_parquet(infile)
 
-    print('saving file')
     outdf = pd.concat([newm['dtstamp'], newm['src'], newm['_stream'], newm['_mag'], newm['stations'], newm['url'], newm['img']], 
-        axis=1, keys=['eventtime','source','shower','mag','loccam','url','img'])
-    outfile = os.path.join(outdir, '{:s}-matchedevents.csv'.format(year))
-    outdf.to_csv(outfile, index=False)
-    return 
+        axis=1, keys=['eventtime','source','shower','Mag','loccam','url','imgs'])
+    #print('saving file')
+    #outfile = os.path.join(outdir, '{:s}-matchedevents.csv'.format(year))
+    #outdf.to_csv(outfile, index=False)
+    return outdf
 
 
 if __name__ == '__main__':
@@ -108,6 +109,12 @@ if __name__ == '__main__':
 
         year =sys.argv[1]
 
-        ret = convertSingletoSrchable(datadir, year, sys.argv[2], weburl)
+        fulldf = convertSingletoSrchable(datadir, year, sys.argv[2], weburl)
         if int(year) > 2019:
-            ret = convertMatchToSrchable(datadir, year, sys.argv[2], weburl)
+            mtchdf = convertMatchToSrchable(datadir, year, sys.argv[2], weburl)
+            fulldf = pd.concat([fulldf, mtchdf])
+        outfile = os.path.join(sys.argv[2], '{:s}-allevents.csv'.format(year))
+        fulldf.to_csv(outfile, index=False)
+        outfilepq = os.path.join(sys.argv[2], '{:s}-allevents.parquet.gzip'.format(year))
+        fulldf.to_parquet(outfilepq, compression='gzip')
+        print('file saved')
