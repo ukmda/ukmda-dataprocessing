@@ -8,7 +8,7 @@ if ($args.count -lt 1) {
     exit 1
 }
 
-if ($args.count -eq 2) { $mcrun = [int]$args[1] } else { $mcrun =100 }
+if ($args.count -eq 2) { $mcrun = [int]$args[1] } else { $mcrun = 20 }
 
 set-location $PSScriptRoot
 # load the helper functions

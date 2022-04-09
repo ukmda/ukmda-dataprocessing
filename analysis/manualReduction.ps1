@@ -25,12 +25,15 @@ $cam = $args[1]
 $tf = $cam + '_' + $dt + '_*'
 $targpth = "$fbfldr\$dt\$cam\$tf"
 if ((test-path $targpth) -eq 0) { $targpth = "$fbfldr\$dt\$cam" }
+if ((test-path $targpth) -eq 0) { $targpth = "$fbfldr\$dt*\$dt*\$cam" }
+$targpth = (Get-ChildItem $targpth).fullname
 
 if ((test-path $targpth\.config) -eq 0) {
     write-output "no config file so can't continue"
     pop-location
     exit 1
 }
+
 write-output "processing $targpth"
 
 # run SkyFit to refine the platepar and reduce the path
