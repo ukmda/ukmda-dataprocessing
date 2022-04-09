@@ -62,17 +62,20 @@ def createMDFiles(fbs, outdir, matchdir):
         bestimgurl = os.path.join(pth, bestimg)
 
         fname = loctime.strftime('%Y%m%d_%H%M%S') + '.md'
-        with open(os.path.join(outdir,fname), 'w') as outf:
-            outf.write('---\nlayout: fireball\n\n')
-            outf.write('date: {}\n\n'.format(loctime.strftime('%Y-%m-%d %H:%M:%SZ')))
-            outf.write('showerID: {}\n'.format(fb.shower))
-            outf.write('bestmag: {:.1f}\n'.format(float(fb.mag)))
-            outf.write('mass: {:.5f}g\n'.format(float(fb.mass)*1000))
-            outf.write('vg: {:.2f}m/s\n'.format(float(fb.vg)))
-            outf.write('\n')
-            outf.write('archive-url: {}\n'.format(fb.url))
-            outf.write('bestimage: {}\n'.format(bestimgurl))
-            outf.write('\n---\n')
+        if os.path.isfile(os.path.join(outdir,fname)):
+            print('md file exists, not replacing it')
+        else:
+            with open(os.path.join(outdir,fname), 'w') as outf:
+                outf.write('---\nlayout: fireball\n\n')
+                outf.write('date: {}\n\n'.format(loctime.strftime('%Y-%m-%d %H:%M:%SZ')))
+                outf.write('showerID: {}\n'.format(fb.shower))
+                outf.write('bestmag: {:.1f}\n'.format(float(fb.mag)))
+                outf.write('mass: {:.5f}g\n'.format(float(fb.mass)*1000))
+                outf.write('vg: {:.2f}m/s\n'.format(float(fb.vg)))
+                outf.write('\n')
+                outf.write('archive-url: {}\n'.format(fb.url))
+                outf.write('bestimage: {}\n'.format(bestimgurl))
+                outf.write('\n---\n')
     return
 
 
@@ -99,6 +102,7 @@ def findFBPre2020(df, outdir=None, mag=-4):
     fbs=pd.concat([df._localtime,df._mag,df._stream,df._vg,df._a,df._e,df._incl,df._peri,df._node,df._p], axis=1, 
         keys=['url','mag','shower','vg','a','e','incl','peri','node','p'])
     fbs=fbs.sort_values(by=['mag','shower'])
+    fbs['orbname']=['none' for i in fbs.mag]
     return fbs
 
 
@@ -166,6 +170,6 @@ if __name__ == '__main__':
         if outdir is not None:
             os.makedirs(outdir, exist_ok=True)
             outf = os.path.join(outdir, 'fblist.txt')
-            fbs.to_csv(outf, index=False, header=False, columns=['url','mag','shower'])
+            fbs.to_csv(outf, index=False, header=False, columns=['url','mag','shower','orbname'])
         if shwr == 'ALL' and yr > 2019 and matchdir is not None:
             createMDFiles(fbs, outdir, matchdir)
