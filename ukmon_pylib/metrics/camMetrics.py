@@ -233,13 +233,11 @@ if __name__ == '__main__':
     except Exception:
         print('define DATADIR first')
         exit(1)
-    outfile=os.path.join(datadir, 'reports', 'camuploadtimes.csv')
-    if os.path.isfile(outfile):
-        currdata = pd.read_csv(outfile)
 
     s,d,t,m = getDayCamTimings(sys.argv[1])
     newdata=pd.DataFrame(zip(s,d,t,m), columns=['stationid','upddate','uploadtime','manual'])
 
+    outfile=os.path.join(datadir, 'reports', 'camuploadtimes.csv')
     if os.path.isfile(outfile):
         currdata = pd.read_csv(outfile)
         fulldf = currdata.append(newdata)

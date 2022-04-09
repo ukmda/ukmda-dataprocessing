@@ -152,3 +152,9 @@
       regexp: 'UKMONSHAREDBUCKET='
       line: 'UKMONSHAREDBUCKET=s3://{{archivebucket}}'
     tags: [dev,prod]
+  - name: update live loc
+    lineinfile:
+      path: '{{destdir}}/config/config.ini'
+      regexp: 'UKMONLIVEBUCKET='
+      line: 'UKMONLIVEBUCKET=s3://{{ukmonlivebucket}}'
+    tags: [dev,prod]

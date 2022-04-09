@@ -17,12 +17,12 @@ def createSplitMatchFile(yr, mth=None, shwr=None):
         
     """
     datadir = os.getenv('DATADIR')
-    infname = os.path.join(datadir, 'matched',f'matches-full-{yr}.csv')
+    infname = os.path.join(datadir, 'matched',f'matches-full-{yr}.parqet.gzip')
     if not os.path.isfile(infname):
         return 
 
     ofname = os.path.join(datadir, 'matched',f'matches-{yr}.csv')
-    matches=pd.read_csv(infname,skipinitialspace=True)
+    matches=pd.read_parquet(infname)
     if mth is not None:
         matches = matches[matches._M_ut == mth]
         os.makedirs(os.path.join(datadir, 'browse','monthly'),exist_ok=True)
@@ -87,16 +87,16 @@ def createRMSSingleMonthlyExtract(yr, mth=None, shwr=None):
         
     """
     datadir = os.getenv('DATADIR')
-    fname = os.path.join(datadir, 'single','singles-{}.csv'.format(yr))
+    fname = os.path.join(datadir, 'single','singles-{}.parquet.gzip'.format(yr))
     if not os.path.isfile(fname):
         return 
 
-    dta = pd.read_csv(fname, skipinitialspace=True)
+    dta = pd.read_parquet(fname)
     dta = dta[dta.ID.str.contains('UK0')]
     if mth is not None:
         dta = dta[dta['M']==mth]
         os.makedirs(os.path.join(datadir, 'browse', 'monthly'), exist_ok=True)
-        dta = dta.sort_values(by=['D','h','m','s'])
+        dta = dta.sort_values(by=['D','h','mi','s'])
         dta=dta.drop(columns=['AngVel','Shwr','Filename','Dtstamp'])
         dta.Ver='R91'
         if len(dta) > 0:
@@ -104,7 +104,7 @@ def createRMSSingleMonthlyExtract(yr, mth=None, shwr=None):
     elif shwr is not None:
         dta = dta[dta['Shwr']==shwr]
         os.makedirs(os.path.join(datadir, 'browse', 'showers'), exist_ok=True)
-        dta = dta.sort_values(by=['D','h','m','s'])
+        dta = dta.sort_values(by=['D','h','mi','s'])
         dta=dta.drop(columns=['AngVel','Shwr','Filename','Dtstamp'])
         dta.Ver='R91'
         if len(dta) > 0:

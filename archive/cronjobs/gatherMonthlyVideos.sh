@@ -25,7 +25,7 @@ else
     mth=$2
     numreq=$3
 fi
-
+export TMP=/tmp
 cd $DATADIR
 outdir=$DATADIR/videos/${yr}/${yr}${mth}
 s3outdir=videos/${yr}/${yr}${mth}

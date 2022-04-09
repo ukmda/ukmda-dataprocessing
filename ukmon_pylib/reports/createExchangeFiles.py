@@ -9,7 +9,7 @@ from fileformats.platepar import loadPlatepars
 
 def createDetectionsFile(eDate, datadir):
     yr = datetime.datetime.now().year
-    df = pd.read_csv(os.path.join(datadir, 'single','singles-{}.csv'.format(yr)))
+    df = pd.read_parquet(os.path.join(datadir, 'single','singles-{}.parquet.gzip'.format(yr)))
     sDate = eDate + datetime.timedelta(days = -3)
     df = df[df.Dtstamp >= sDate.timestamp()]
     df = df[df.Dtstamp <= eDate.timestamp()]

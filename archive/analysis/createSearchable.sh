@@ -30,18 +30,8 @@ cd $SRC/analysis
 logger -s -t createSearchable "creating searchable format files"
 
 python -m reports.createSearchableFormat $yr /tmp
-
-mv /tmp/${yr}-singleevents.csv $DATADIR/searchidx/${yr}-allevents.csv
-
-if [ -f /tmp/${yr}-matchedevents.csv ] ; then 
-    sed '1d' /tmp/${yr}-matchedevents.csv >> $DATADIR/searchidx/${yr}-allevents.csv
-    rm -f /tmp/${yr}-matchedevents.csv
-fi 
-
-grep -v "J8_TBC" $DATADIR/searchidx/${yr}-allevents.csv > /tmp/${yr}-allevents.csv
-
-cp /tmp/${yr}-allevents.csv $DATADIR/searchidx/${yr}-allevents.csv
-rm -f /tmp/${yr}-allevents.csv
+cp -f /tmp/${yr}-allevents.* $DATADIR/searchidx/
+rm -f /tmp/${yr}-allevents.*
 
 #logger -s -t createSearchable "create list of all cameras"
 #cat $DATADIR/searchidx/*-allevents.csv | awk -F, '{print $5}' | sort | sed 's/^ *//g' | uniq > $DATADIR/camlist.txt
