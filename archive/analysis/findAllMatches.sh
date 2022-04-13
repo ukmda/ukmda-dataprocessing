@@ -114,10 +114,11 @@ logger -s -t findAllMatches2 "update the Index page for the month and the year"
 $SRC/website/updateIndexPages.sh $dailyrep
 
 logger -s -t findAllMatches2 "backup the solved trajectory data"
-lastjson=$(ls -1tr $SRC/bkp/| grep -v ".gz" | tail -1)
+mkdir -p $DATADIR/trajdb > /dev/null 2>&1
+lastjson=$(ls -1tr $DATADIR/trajdb/| grep -v ".gz" | tail -1)
 thisjson=$MATCHDIR/RMSCorrelate/processed_trajectories.json.bigserver
-cp $thisjson $SRC/bkp/processed_trajectories.json.$(date +%Y%m%d).bigserver
-gzip $SRC/bkp/$lastjson
+cp $thisjson $DATADIR/trajdb/processed_trajectories.json.$(date +%Y%m%d).bigserver
+gzip $DATADIR/trajdb/$lastjson
 
 logger -s -t findAllMatches2 "purge old logs"
 find $SRC/logs -name "matches*" -mtime +7 -exec gzip {} \;
