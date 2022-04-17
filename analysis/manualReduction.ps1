@@ -24,9 +24,12 @@ $cam = $args[1]
 # locate target path
 $tf = $cam + '_' + $dt + '_*'
 $targpth = "$fbfldr\$dt\$cam\$tf"
-if ((test-path $targpth) -eq 0) { $targpth = "$fbfldr\$dt\$cam" }
-if ((test-path $targpth) -eq 0) { $targpth = "$fbfldr\$dt*\$dt*\$cam" }
 $targpth = (Get-ChildItem $targpth).fullname
+if (!$targpth) { $targpth = "$fbfldr\$dt\$cam" }
+if ((test-path $targpth) -eq 0) { 
+    $targpth = "$fbfldr\$dt*\$dt*\$cam" 
+    $targpth = (Get-ChildItem $targpth).fullname
+}
 
 if ((test-path $targpth\.config) -eq 0) {
     write-output "no config file so can't continue"
