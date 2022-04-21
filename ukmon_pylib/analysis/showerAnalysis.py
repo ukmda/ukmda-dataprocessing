@@ -93,7 +93,8 @@ def timeGraph(dta, shwrname, outdir, binmins=10):
     binned.plot(kind='bar')
 
     # set ticks and labels every 144 intervals
-    plt.locator_params(axis='x', nbins=len(binned)/144)
+    nbins = max(len(binned)/144, 2)
+    plt.locator_params(axis='x', nbins=nbins)
     #plt.xticks(rotation=0)
     # set font size
     ax = plt.gca()
@@ -579,13 +580,9 @@ if __name__ == '__main__':
         outf.write('Longest track seen:                {:.2f}km\n'.format(longest))
         outf.write('Longest event seen:                {:.2f}s\n'.format(slowest))
 
-        outf.write('\nExplanation of the data\nThe correlator matches single station detections and where possible solves for the \n')
-        outf.write('trajectory and orbit. Total matched detections is the number of single station detections \n')
-        outf.write('that could be matched. Since two or more cameras are required for a match, the number \n')
-        outf.write('of solved trajectories is always less than half the total matched detections.\n\n')
-        outf.write('Note that its possible for Matched Detectionsto be larger than Single Detections because \n')
-        outf.write('single-station classifications rely on 2-dimensional analysis and are not reliable.\n')
-        outf.write('However the matching engine works in 3-D and identifies meteors missed in single-station.\n\n')
+        outf.write('\nExplanation of the data\n')
+        outf.write('Single-station classifications rely on 2-dimensional analysis and are not reliable.\n')
+        outf.write('Multi-station matcjing works in 3-D and identifies meteors missed in single-station.\n\n')
         outf.write('Events with a lowest altitude below about 30km are potential meteorite droppers\n')
 
 # to possibly add : 
