@@ -50,12 +50,15 @@ echo "cell.innerHTML = \"Station Reports\";" >> reportindex.js
 echo "var cell = row.insertCell(2);" >> reportindex.js
 j=0
 k=1
-ls -1 | egrep -v "html|index" | while read i ; do
+source $WEBSITEKEY
+statlist=$(aws s3 ls s3://ukmeteornetworkarchive/reports/2022/stations/ \
+    | egrep -v "index.html|reportindex.js" | awk '{print $2}')
+for i in $statlist ; do
     if [ $j -eq 0 ] ; then echo "var row = table.insertRow($k);">> reportindex.js ; fi
     echo "var cell = row.insertCell(-1);" >> reportindex.js
     j=$((j+1))
     if [ $j -eq 3 ] ; then j=0 ; k=$((k+1)); fi
-    echo "cell.innerHTML = \"<a href="./$i/index.html">$i</a>\";" >> reportindex.js
+    echo "cell.innerHTML = \"<a href="./${i}index.html">$(basename $i)</a>\";" >> reportindex.js
 done
 echo "var outer_div = document.getElementById(\"summary\");" >> reportindex.js
 echo "outer_div.appendChild(table);" >> reportindex.js
@@ -65,7 +68,6 @@ cp $TEMPLATES/statreportindex.html index.html
 logger -s -t stationReports "create list of connected stations"
 sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s-%s, %s, %s\n", $1, $2, $3,$9)}' > $DATADIR/reports/stationlogins.txt
 
-source $WEBSITEKEY
 aws s3 cp $DATADIR/reports/$yr/stations/index.html  $WEBSITEBUCKET/reports/$yr/stations/ --quiet
 aws s3 cp $DATADIR/reports/$yr/stations/reportindex.js  $WEBSITEBUCKET/reports/$yr/stations/ --quiet
 aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --quiet
