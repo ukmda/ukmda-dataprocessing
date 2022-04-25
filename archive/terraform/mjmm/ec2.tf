@@ -2,7 +2,7 @@ resource "aws_instance" "ukmonhelper" {
   ami                  = "ami-0a669382ea0feb73a"
   instance_type        = "t3a.micro"
   iam_instance_profile = "S3FullAccess"
-  key_name = "markskey"
+  key_name             = "markskey"
   #security_groups = [aws_security_group.launch-wizard-4.id]
   tags = {
     "Name"       = "UKMonHelper"
@@ -23,6 +23,14 @@ resource "aws_instance" "CalcEngine4ARM" {
     "name"       = "Calcengine4"
     "billingtag" = "ukmon"
     "project"    = "UkmonHelperBigx2"
+  }
+  root_block_device {
+    tags = {
+      "Name" = "calcengine4arm"
+      "billingtag" = "ukmon"
+      "project"    = "UkmonHelperBigx2"
+    }
+    volume_size = 40
   }
 }
 
