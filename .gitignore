@@ -557,3 +557,5 @@ ukmon_pylib/tests/*
 unused/*
 *tfstate.lock.info
 archive/lambdas/samfunctions/getExtraFilesV3/pythoncode/WesternMeteorPyLib/*
+archive/containers/trajsolver/WesternMeteorPyLib/*
+archive/containers/trajsolver/awskeys
