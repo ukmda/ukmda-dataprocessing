@@ -1,0 +1,26 @@
+[
+    {
+        "name": "mycontainer",
+        "image": "${acctid}.dkr.ecr.${regionid}.amazonaws.com/${repoid}:latest",
+        "cpu": 0,
+        "portMappings": [
+            {
+                "containerPort": 5000,
+                "hostPort": 5000,
+                "protocol": "tcp"
+            }
+        ],
+        "essential": true,
+        "environment": [],
+        "mountPoints": [],
+        "volumesFrom": [],
+        "logConfiguration" : {
+            "logDriver" : "awslogs",
+            "options": {
+                "awslogs-group": "/ecs/mytask",
+                "awslogs-region": "${regionid}",
+                "awslogs-stream-prefix": "ecs"
+            }
+        }
+    }
+]

@@ -10,12 +10,13 @@ import tarfile
 from wmpl.Trajectory.CorrelateRMS import RMSDataHandle
 from wmpl.Utils.Math import generateDatetimeBins
 from wmpl.Trajectory.CorrelateEngine import TrajectoryCorrelator, TrajectoryConstraints
-# imports are NOT unused, they're required to load the picklefiles
-from wmpl.Trajectory.CorrelateRMS import TrajectoryReduced, DatabaseJSON, \
-    MeteorObsRMS, PlateparDummy, MeteorPointRMS
+
+# imports are required to load the picklefiles
+from wmpl.Trajectory.CorrelateRMS import TrajectoryReduced, DatabaseJSON # noqa: F401
+from wmpl.Trajectory.CorrelateRMS import MeteorObsRMS, PlateparDummy, MeteorPointRMS # noqa: F401
 
 
-def prepareCorrelator(dir_path, timerange):
+def prepareCorrelator(dir_path, time_beg, time_end):
     # Init trajectory constraints
     maxtoffset = 10.0
     maxstationdist = 600.0
@@ -40,19 +41,15 @@ def prepareCorrelator(dir_path, timerange):
     # If auto run is enabled, compute the time range to use
     event_time_range = None
 
-    # If the time range to use is given, use it
-    if timerange is not None:
+    # Extract time range
+    dt_beg = datetime.datetime.strptime(time_beg, "%Y%m%d-%H%M%S")
+    dt_end = datetime.datetime.strptime(time_end, "%Y%m%d-%H%M%S")
 
-        # Extract time range
-        time_beg, time_end = timerange.strip("(").strip(")").split(",")
-        dt_beg = datetime.datetime.strptime(time_beg, "%Y%m%d-%H%M%S")
-        dt_end = datetime.datetime.strptime(time_end, "%Y%m%d-%H%M%S")
+    print("Custom time range:")
+    print("    BEG: {:s}".format(str(dt_beg)))
+    print("    END: {:s}".format(str(dt_end)))
 
-        print("Custom time range:")
-        print("    BEG: {:s}".format(str(dt_beg)))
-        print("    END: {:s}".format(str(dt_end)))
-
-        event_time_range = [dt_beg, dt_end]
+    event_time_range = [dt_beg, dt_end]
 
     # Init the data handle
     dh = RMSDataHandle(dir_path, event_time_range)
@@ -122,7 +119,7 @@ def prepareCorrelator(dir_path, timerange):
     return 
 
 
-def startup(srcfldr, timerange):
+def startup(srcfldr, startdt, enddt):
     print(f'processing {srcfldr}')
     print(f"Starting at {datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}")
 
@@ -144,7 +141,9 @@ def startup(srcfldr, timerange):
     srcbucket = 'ukmon-shared'
     srckey = f'matches/disttest/{srcfldr}/candidates/'
 
+    print(f'fetching data from {srckey}')
     objlist = s3.meta.client.list_objects_v2(Bucket=srcbucket,Prefix=srckey)
+    print(objlist)
     if objlist['KeyCount'] > 0:
         keys = objlist['Contents']
         for k in keys:
@@ -154,26 +153,33 @@ def startup(srcfldr, timerange):
                 targfile = os.path.join(canddir, locfname)
                 print(f'downloading {locfname}')
                 s3.meta.client.download_file(srcbucket, fname, targfile)
+        prepareCorrelator(localfldr, startdt, enddt)
 
-    prepareCorrelator(localfldr, timerange)
+        print('creating tarfile')
+        trajfldr = os.path.join(localfldr,'trajectories')
+        outputname = os.path.join(localfldr, srcfldr + '.tgz')
+        with tarfile.open(outputname, 'w:gz') as tar:
+            tar.add(trajfldr, arcname=os.path.basename(trajfldr))
+            tar.add(os.path.join(localfldr, 'processed_trajectories.json'))
+        
+        targkey = f'matches/disttest/{srcfldr}.tgz'
+        print(f'uploading {outputname} to {targkey}')
+        s3.meta.client.upload_file(outputname, srcbucket, targkey, ExtraArgs = {'ContentType': 'application/gzip'})
 
-    print('creating tarfile')
-    trajfldr = os.path.join(localfldr,'trajectories')
-    outputname = os.path.join(localfldr, srcfldr + '.tgz')
-    with tarfile.open(outputname, 'w:gz') as tar:
-        tar.add(trajfldr, arcname=os.path.basename(trajfldr))
-        tar.add(os.path.join(localfldr, 'processed_trajectories.json'))
-    
-    targkey = f'matches/disttest/{srcfldr}.tgz'
-    print(f'uploading {outputname} to {targkey}')
-    s3.meta.client.upload_file(outputname, srcbucket, targkey, ExtraArgs = {'ContentType': 'application/gzip'})
-
+    else:
+        print('no files found')
     print(f"Finished at {datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}")
     return
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print('not enough arguments - must pass source folder and daterange')
+    if len(sys.argv) < 4:
+        # default time range
+        rdt = sys.argv[1]
+        rdt = datetime.datetime.strptime(rdt[:8], '%Y%m%d')
+        d1 = (rdt + datetime.timedelta(days = -2)).strftime('%Y%m%d')+'-080000'
+        d2 = (rdt + datetime.timedelta(days = 1)).strftime('%Y%m%d')+'-080000'
     else:
-        startup(sys.argv[1], sys.argv[2])
+        d1 = sys.argv[2]+'-080000'
+        d2 = sys.argv[3]+'-080000'
+    startup(sys.argv[1], d1, d2)
