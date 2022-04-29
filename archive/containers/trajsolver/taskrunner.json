@@ -1,0 +1,36 @@
+{
+    "cluster": "trajsolver",
+    "count": 1,
+    "enableECSManagedTags": true,
+    "enableExecuteCommand": true,
+    "group": "trajsolvergrp",
+    "launchType": "FARGATE",
+    "networkConfiguration": {
+        "awsvpcConfiguration": {
+            "subnets": ["subnet-0cf0eab475652d539"],
+            "securityGroups": ["sg-03e8a12e65d53626b"],
+            "assignPublicIp": "ENABLED"
+        }
+    },
+    "overrides": {
+        "containerOverrides": [
+            {
+                "name": "mycontainer",
+                "command": ["20220421_1", "20220419", "20220422" ],
+                "environment": [
+                    {
+                        "name": "test",
+                        "value": "1"
+                    }
+                ]
+            }
+        ],
+        "executionRoleArn": "arn:aws:iam::317976261112:role/ecsTaskExecutionRole",
+        "taskRoleArn": ""
+    },
+    "platformVersion": "LATEST",
+    "propagateTags": "TASK_DEFINITION",
+    "referenceId": "",
+    "startedBy": "cli",
+    "taskDefinition": "trajsolver"
+}
