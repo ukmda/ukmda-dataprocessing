@@ -3,6 +3,7 @@
 #
 import sys
 import os
+import pandas as pd
 
 
 def createSummaryTable(curryr):
@@ -25,15 +26,17 @@ def createSummaryTable(curryr):
         for yr in range(int(curryr), 2012, -1):
 
             if yr > 2020:
-                srchfile = os.path.join(datadir, 'single', 'singles-{}.csv'.format(yr))
+                srchfile = os.path.join(datadir, 'single', 'singles-{}.parquet.gzip'.format(yr))
                 if os.path.isfile(srchfile):
-                    detections = sum(1 for line in open(srchfile))-1
+                    sngl = pd.read_parquet(srchfile)
+                    detections = len(sngl[sngl.Y==yr])
                 else:
                     detections = 0
 
-                srchfile = os.path.join(datadir, 'matched', 'matches-full-{}.csv'.format(yr))
+                srchfile = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.gzip'.format(yr))
                 if os.path.isfile(srchfile):
-                    matches = sum(1 for line in open(srchfile))-1
+                    mtch = pd.read_parquet(srchfile)
+                    matches = len(mtch[mtch._Y_ut==yr])
                 else:
                     matches = 0
 

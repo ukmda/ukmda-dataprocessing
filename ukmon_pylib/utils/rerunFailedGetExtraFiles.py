@@ -47,7 +47,7 @@ def findFailedEvents():
 
     fails=[]
     response = logcli.filter_log_events(
-        logGroupName="/aws/lambda/getExtraFiles",
+        logGroupName="/aws/lambda/getExtraFilesV2",
         startTime=uxt,
         filterPattern="Error processing ",
         limit=1000)
@@ -60,7 +60,7 @@ def findFailedEvents():
         while True:
             currentToken = response['nextToken']
             response = logcli.filter_log_events(
-                logGroupName="/aws/lambda/getExtraFiles",
+                logGroupName="/aws/lambda/getExtraFilesV2",
                 startTime=uxt,
                 filterPattern="Error processing ",
                 nextToken = currentToken,
