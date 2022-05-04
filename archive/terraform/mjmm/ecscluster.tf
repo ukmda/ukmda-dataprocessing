@@ -8,7 +8,7 @@ data "aws_caller_identity" "current" {}
 resource "aws_vpc" "ecs_vpc" {
   cidr_block = "172.128.0.0/16"
   tags = {
-    Name = "ecsVPC"
+    Name         = "ecsVPC"
     "billingtag" = "ukmon"
   }
 }
@@ -18,7 +18,7 @@ resource "aws_subnet" "ecs_subnet" {
   cidr_block              = "172.128.16.0/20"
   map_public_ip_on_launch = true
   tags = {
-    Name = "ecs_subnet"
+    Name         = "ecs_subnet"
     "billingtag" = "ukmon"
   }
 }
@@ -34,16 +34,15 @@ resource "aws_internet_gateway" "ecs_igw" {
 # route table that directs traffic to the IGW
 resource "aws_default_route_table" "ecs_default_rtbl" {
   default_route_table_id = aws_vpc.ecs_vpc.default_route_table_id
-
   route {
     cidr_block = "0.0.0.0/0"
     #gateway_id = "igw-8cc667e5"
     gateway_id = aws_internet_gateway.ecs_igw.id
   }
   tags = {
-    Name = "ecs_def_route"
+    Name         = "ecs_def_route"
     "billingtag" = "ukmon"
-  }  
+  }
 }
 
 # create a cluster
@@ -56,16 +55,16 @@ resource "aws_ecs_cluster" "trajsolver" {
 
 # declare the capacity provider type, in this case FARGATE
 resource "aws_ecs_cluster_capacity_providers" "trajsolver_cap" {
-  cluster_name = aws_ecs_cluster.trajsolver.name
+  cluster_name       = aws_ecs_cluster.trajsolver.name
   capacity_providers = ["FARGATE", "FARGATE_SPOT"]
 }
 
 data "template_file" "task_json_template" {
   template = file("trajsolver_container.json")
   vars = {
-    acctid = data.aws_caller_identity.current.account_id
+    acctid   = data.aws_caller_identity.current.account_id
     regionid = "eu-west-2"
-    repoid = "ukmon/trajsolver"
+    repoid   = "ukmon/trajsolver"
   }
 }
 
@@ -73,16 +72,16 @@ data "template_file" "task_json_template" {
 # the definition of the container it runs are in the webapp.json file
 resource "aws_ecs_task_definition" "trajsolver_task" {
   family                = "trajsolver"
-  container_definitions = data.template_file.task_json_template.rendered 
+  container_definitions = data.template_file.task_json_template.rendered
   cpu                   = 4096
   memory                = 8192
   network_mode          = "awsvpc"
   tags = {
     billingtag = "ukmon"
   }
-  requires_compatibilities = [ "FARGATE"]
-  execution_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
-  task_role_arn      = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
+  requires_compatibilities = ["FARGATE"]
+  execution_role_arn       = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
+  task_role_arn            = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
   runtime_platform {
     operating_system_family = "LINUX"
   }
@@ -158,4 +157,20 @@ resource "aws_security_group" "ecssecgrp" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+output "clusname" {
+  value = aws_ecs_cluster.trajsolver.name
+}
+
+output "secgrpid" {
+  value = aws_security_group.ecssecgrp.id
+}
+
+output "subnetid" {
+  value = aws_subnet.ecs_subnet.id
+}
+
+output "taskrolearn" {
+  value = aws_iam_role.ecstaskrole.arn
 }
