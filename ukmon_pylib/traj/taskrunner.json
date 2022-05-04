@@ -16,7 +16,7 @@
         "containerOverrides": [
             {
                 "name": "mycontainer",
-                "command": ["20220421_1", "20220419", "20220422" ],
+                "command": ["20220421_01", "20220419", "20220422" ],
                 "environment": [
                     {
                         "name": "test",
