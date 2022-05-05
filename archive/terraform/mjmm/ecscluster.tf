@@ -174,3 +174,22 @@ output "subnetid" {
 output "taskrolearn" {
   value = aws_iam_role.ecstaskrole.arn
 }
+
+resource "null_resource" "createECSdetails" {
+  triggers = { 
+    clusname = join(",",tolist([aws_ecs_cluster.trajsolver.name, 
+      aws_subnet.ecs_subnet.id,
+      aws_security_group.ecssecgrp.id,
+      aws_iam_role.ecstaskrole.arn]))
+  }
+  provisioner "local-exec" {
+    command = "echo $env:CLUSNAME $env:SECGRP $env:SUBNET $env:IAMROLE > ../../../ukmon_pylib/traj/clusdetails.txt"
+    interpreter = ["pwsh.exe", "-command"]
+    environment = { 
+      CLUSNAME = "${aws_ecs_cluster.trajsolver.name}"
+      SECGRP = "${aws_security_group.ecssecgrp.id}"
+      SUBNET = "${aws_subnet.ecs_subnet.id}"
+      IAMROLE = "${aws_iam_role.ecstaskrole.arn}"
+      }
+  }
+}
