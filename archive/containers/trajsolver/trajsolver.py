@@ -138,8 +138,11 @@ def startup(srcfldr, startdt, enddt):
         return 
     s3 = boto3.resource('s3', aws_access_key_id=acckey, aws_secret_access_key = secret)
 
+    srcpth = os.getenv('SRCPATH')
+    if srcpth is None:
+        srcpth = 'matches/distrib'
     srcbucket = 'ukmon-shared'
-    srckey = f'matches/disttest/{srcfldr}/candidates/'
+    srckey = f'{srcpth}/{srcfldr}/'
 
     print(f'fetching data from {srckey}')
     objlist = s3.meta.client.list_objects_v2(Bucket=srcbucket,Prefix=srckey)
@@ -162,7 +165,7 @@ def startup(srcfldr, startdt, enddt):
             tar.add(trajfldr, arcname=os.path.basename(trajfldr))
             tar.add(os.path.join(localfldr, 'processed_trajectories.json'))
         
-        targkey = f'matches/disttest/{srcfldr}.tgz'
+        targkey = f'{srcpth}/{srcfldr}.tgz'
         print(f'uploading {outputname} to {targkey}')
         s3.meta.client.upload_file(outputname, srcbucket, targkey, ExtraArgs = {'ContentType': 'application/gzip'})
 
