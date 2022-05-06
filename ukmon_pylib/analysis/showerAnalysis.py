@@ -582,7 +582,7 @@ if __name__ == '__main__':
 
         outf.write('\nExplanation of the data\n')
         outf.write('Single-station classifications rely on 2-dimensional analysis and are not reliable.\n')
-        outf.write('Multi-station matcjing works in 3-D and identifies meteors missed in single-station.\n\n')
+        outf.write('Multi-station matching works in 3-D and identifies meteors missed in single-station.\n\n')
         outf.write('Events with a lowest altitude below about 30km are potential meteorite droppers\n')
 
 # to possibly add : 
