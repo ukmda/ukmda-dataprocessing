@@ -7,8 +7,8 @@
     "launchType": "FARGATE",
     "networkConfiguration": {
         "awsvpcConfiguration": {
-            "subnets": ["subnet-0cf0eab475652d539"],
-            "securityGroups": ["sg-03e8a12e65d53626b"],
+            "subnets":[],
+            "securityGroups": [],
             "assignPublicIp": "ENABLED"
         }
     },
@@ -16,16 +16,16 @@
         "containerOverrides": [
             {
                 "name": "mycontainer",
-                "command": ["20220421_01", "20220419", "20220422" ],
+                "command": [],
                 "environment": [
                     {
-                        "name": "test",
-                        "value": "1"
+                        "name": "SRCPATH",
+                        "value": "matches/distrib"
                     }
                 ]
             }
         ],
-        "executionRoleArn": "arn:aws:iam::317976261112:role/ecsTaskExecutionRole",
+        "executionRoleArn": "",
         "taskRoleArn": ""
     },
     "platformVersion": "LATEST",
