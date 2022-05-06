@@ -1,5 +1,0 @@
-clusname = "trajsolver"
-repoid = "317976261112.dkr.ecr.eu-west-2.amazonaws.com/ukmon/trajsolver"
-secgrpid = "sg-03e8a12e65d53626b"
-subnetid = "subnet-0cf0eab475652d539"
-taskrolearn = "arn:aws:iam::317976261112:role/ecsTaskExecutionRole"
