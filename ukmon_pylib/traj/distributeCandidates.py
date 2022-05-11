@@ -12,6 +12,8 @@ import math
 import datetime
 import boto3
 import time
+import pickle
+import tarfile
 
 
 def createTaskTemplate(rundate, buckname, spandays=3):
@@ -28,7 +30,7 @@ def createTaskTemplate(rundate, buckname, spandays=3):
     subnet = lis[2].strip()
     exrolearn = lis[3].strip()
 
-    targdir, buckname = os.path.split(buckname)
+    _, buckname = os.path.split(buckname)
     with open(templatefile) as inf:
         templ = json.load(inf)
         templ['cluster'] = clusname
@@ -37,7 +39,7 @@ def createTaskTemplate(rundate, buckname, spandays=3):
         templ['overrides']['executionRoleArn'] = exrolearn
         templ['overrides']['containerOverrides'][0]['command'] = [f'{buckname}', f'{d1}', f'{d2}']
 
-    return templ, clusname
+    return templ
 
 
 def distributeCandidates(rundate, srcdir, targdir, maxcount=20):
@@ -53,32 +55,36 @@ def distributeCandidates(rundate, srcdir, targdir, maxcount=20):
     numbucks = int(math.ceil(numcands/maxcount))
 
     # create buckets
-    buckroot = os.path.join(targdir, rundate.strftime('%Y%m%d_'))
+    buckroot = os.path.join(targdir, rundate.strftime('%Y%m%d'))
     taskarns = [None] * numbucks
     jsontempls = [None] * numbucks
+    bucknames = [None] * numbucks
+
     for i in range(0, numbucks):
-        buckname = buckroot + f'{i:02d}'
-        if os.path.isdir(buckname):
-            shutil.rmtree(buckname)
-        os.makedirs(buckname, exist_ok=True)
+        bucknames[i] = buckroot + f'_{i:02d}'
+        if os.path.isdir(bucknames[i]):
+            shutil.rmtree(bucknames[i])
+        os.makedirs(bucknames[i], exist_ok=True)
         bucklist = flist[i::numbucks]
-        with open(os.path.join(buckname, f'files_{i:02d}.txt'),'w') as outf:
+        with open(os.path.join(bucknames[i], f'files_{i:02d}.txt'),'w') as outf:
             for fli in bucklist:
                 src = os.path.join(srcdir, fli)
-                dst = os.path.join(buckname, fli)
+                dst = os.path.join(bucknames[i], fli)
                 shutil.copy2(src, dst)
                 outf.write(f'{fli}\n')
 
-        jsontempl, clusname = createTaskTemplate(rundate, buckname)
+        jsontempl = createTaskTemplate(rundate, bucknames[i])
+
         response = client.run_task(**jsontempl)
-        if len(response['tasks']) == 0:
-            print('task did not start')
-        else:
-            taskarn = response['tasks'][0]['taskArn']
-            taskarns[i] = taskarn
-            jsontempls[i] = jsontempls
-            print(taskarn[51:])
+        while len(response['tasks']) == 0:
+            response = client.run_task(**jsontempl)
+
+        taskarn = response['tasks'][0]['taskArn']
+        taskarns[i] = taskarn
+        jsontempls[i] = jsontempls
+        print(taskarn[51:])
     
+    clusname = jsontempl[0]['cluster']
     status = client.describe_clusters(clusters=[clusname])
     if len(status['clusters']) ==0:
         print('cluster not running!')
@@ -87,12 +93,27 @@ def distributeCandidates(rundate, srcdir, targdir, maxcount=20):
         ptc = status['clusters'][0]['pendingTasksCount']
         print(f'{rtc} running, {ptc} pending')
 
+    dmpdata = [bucknames, taskarns, jsontempls]
+    pickle.dump(dmpdata, open(targdir, buckroot + '.pickle'),'wb')
+
+    return
+
+
+def monitorProgress(targdir):
+    client = boto3.client('ecs', region_name='eu-west-2')
+    flist = glob.glob1(targdir, '*.pickle')
+    picklefile = flist[0]
+    dumpdata = pickle.load(open(targdir, picklefile),'wb')
+    taskarns = dumpdata[1]
+    jsontempls = dumpdata[2]
+    clusname = jsontempls[0]['cluster']
+
     # need to keep list of task ARNs and then check if they started properly.
     # Look for "lastStatus": "STOPPED",
     # if not "stopCode": "EssentialContainerExited"
     # then launch it again
 
-    # wait 30s before testing whether everything is running
+    # wait 60s before testing whether everything is running
     taskcount = len(taskarns)
     while taskcount > 0:
         time.sleep(60.0)
@@ -106,23 +127,33 @@ def distributeCandidates(rundate, srcdir, targdir, maxcount=20):
                     thisjson = jsontempls[idx]
                     response = client.run_task(**thisjson)
                     taskarns[idx] = response['tasks'][0]['taskArn']
-                    taskcount += 1
                     print(f'task {idx} restarted')
                 else:
-                    jsontempls.pop(idx)
+                    js = jsontempls.pop(idx)
                     taskarns.pop(idx)
                     taskcount -= 1
                     print(f'task {idx} completed')
+                    buckname = js['overrides']['containerOverrides'][0]['command'][0]
+                    unpackResults(targdir, buckname)
+    return
+
+
+def unpackResults(targdir, buckname):
+    tarfname = os.path.join(targdir, buckname + '.tgz')
+    with tarfile.open(tarfname, 'r:gz') as tar:
+        tar.extractall(path=targdir)
+    return 
 
 
 if __name__ == '__main__':
     if len(sys.argv) < 4:
         rundt = datetime.datetime(2022,4,21)
-        srcdir = 'f:/videos/meteorcam/ukmondata/disttest/RMSCorrelate/candidates'
-        targdir = 'f:/videos/meteorcam/ukmondata/disttest/RMSCorrelate/distribs'
     else:
         rundt = datetime.datetime.strptime(sys.argv[1], '%Y%m%d')
-        matchdir = os.getenv('MATCHDIR')
-        srcdir = os.path.join(matchdir, 'distrib', 'candidates')
-        targdir = os.path.join(matchdir, 'distrib')
+
+    matchdir = os.getenv('MATCHDIR')
+    srcdir = os.path.join(matchdir, 'distrib', 'candidates')
+    targdir = os.path.join(matchdir, 'distrib')
+
     distributeCandidates(rundt, srcdir, targdir)
+    monitorProgress(targdir)
