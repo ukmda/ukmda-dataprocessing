@@ -163,7 +163,8 @@ def startup(srcfldr, startdt, enddt):
         outputname = os.path.join(localfldr, srcfldr + '.tgz')
         with tarfile.open(outputname, 'w:gz') as tar:
             tar.add(trajfldr, arcname=os.path.basename(trajfldr))
-            tar.add(os.path.join(localfldr, 'processed_trajectories.json'))
+            tar.add(os.path.join(localfldr, 'processed_trajectories.json'), 
+                arcname= srcfldr + '.json')
         
         targkey = f'{srcpth}/{srcfldr}.tgz'
         print(f'uploading {outputname} to {targkey}')
