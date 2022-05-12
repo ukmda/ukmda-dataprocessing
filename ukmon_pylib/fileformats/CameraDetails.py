@@ -64,7 +64,7 @@ class SiteInfo:
         if len(cam[0]) == 0:
             cam = numpy.where((self.camdets['dummycode'] == lid))
             if len(cam[0]) == 0:
-                return 0, 0, 0, 0, 'Unknown'
+                return 0, 0, 0, 0, camname.decode('utf-8')
         #print(cam)
         c = cam[0][0]
         longi = self.camdets[c]['Longi']
@@ -124,7 +124,6 @@ class SiteInfo:
         # fetch camera details from the CSV file
         fldrs = []
         cams = []
-        locs = []
 
         for row in self.camdets:
             if row[0][:1] != '#':
