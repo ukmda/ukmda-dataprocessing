@@ -111,4 +111,8 @@ if ($x.length -eq 0)
 # now invoke the script to build the index page and update the daily index.
 $cmd="/home/ec2-user/prod/website/updateIndexPages.sh /home/ec2-user/prod/data/dailyreports/$dlyfile"
 ssh ukmonhelper "$cmd"
+$cmd="/home/ec2-user/prod/analysis/consolidateOutput.sh ${yr}"
+ssh ukmonhelper "$cmd"
+$cmd="/home/ec2-user/prod/website/createFireballPage.sh ${yr}"
+ssh ukmonhelper "$cmd"
 set-location $loc
