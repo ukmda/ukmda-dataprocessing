@@ -48,7 +48,7 @@ def getECSVfiles(idlist, outpth):
             ecsvlines = rawdata.split('\n') # convert the raw data into a python list
             if len(ecsvlines) > 1:
                 numecsvs = len([e for e in ecsvlines if '# %ECSV' in e]) # find out how many meteors 
-                fnamebase = stat + '_' + dt.replace(':','_').replace('.','_') # create an output filename
+                fnamebase = dt.replace(':','_').replace('.','_')+'_UKMON_' +stat  # create an output filename
                 if numecsvs == 1:
                     with open(os.path.join(outpth, fnamebase + '.ecsv'), 'w') as outf:
                         outf.writelines(line + '\n' for line in ecsvlines)
