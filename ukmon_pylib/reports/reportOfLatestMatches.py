@@ -27,6 +27,8 @@ def processLocalFolder(trajdir, basedir):
     _, dname = os.path.split(trajdir)
     realtraj = trajdir[trajdir.find('tra'):]
     realtraj = basedir + '/' + realtraj
+    if '.pickle' in realtraj:
+        realtraj, _ = os.path.split(realtraj)
     tstamp = datetime.datetime.strptime(dname[:15],'%Y%m%d_%H%M%S').timestamp()
     outstr = '{},{:s},{:s},{:.1f}'.format(int(tstamp), realtraj, shwr, bestvmag)
 
