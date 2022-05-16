@@ -1,6 +1,6 @@
 [
     {
-        "name": "mycontainer",
+        "name": "${contname}",
         "image": "${acctid}.dkr.ecr.${regionid}.amazonaws.com/${repoid}:latest",
         "cpu": 0,
         "portMappings": [
@@ -17,7 +17,7 @@
         "logConfiguration" : {
             "logDriver" : "awslogs",
             "options": {
-                "awslogs-group": "/ecs/mytask",
+                "awslogs-group": "${loggrp}",
                 "awslogs-region": "${regionid}",
                 "awslogs-stream-prefix": "ecs"
             }

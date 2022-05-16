@@ -65,6 +65,8 @@ data "template_file" "task_json_template" {
     acctid   = data.aws_caller_identity.current.account_id
     regionid = "eu-west-2"
     repoid   = "ukmon/trajsolver"
+    contname = "trajcont"
+    loggrp   = "/ecs/trajcont"
   }
 }
 
@@ -176,20 +178,20 @@ output "taskrolearn" {
 }
 
 resource "null_resource" "createECSdetails" {
-  triggers = { 
-    clusname = join(",",tolist([aws_ecs_cluster.trajsolver.name, 
+  triggers = {
+    clusname = join(",", tolist([aws_ecs_cluster.trajsolver.name,
       aws_subnet.ecs_subnet.id,
       aws_security_group.ecssecgrp.id,
-      aws_iam_role.ecstaskrole.arn]))
+    aws_iam_role.ecstaskrole.arn]))
   }
   provisioner "local-exec" {
-    command = "echo $env:CLUSNAME $env:SECGRP $env:SUBNET $env:IAMROLE > ../../../ukmon_pylib/traj/clusdetails.txt"
+    command     = "echo $env:CLUSNAME $env:SECGRP $env:SUBNET $env:IAMROLE > ../../../ukmon_pylib/traj/clusdetails.txt"
     interpreter = ["pwsh.exe", "-command"]
-    environment = { 
+    environment = {
       CLUSNAME = "${aws_ecs_cluster.trajsolver.name}"
-      SECGRP = "${aws_security_group.ecssecgrp.id}"
-      SUBNET = "${aws_subnet.ecs_subnet.id}"
-      IAMROLE = "${aws_iam_role.ecstaskrole.arn}"
-      }
+      SECGRP   = "${aws_security_group.ecssecgrp.id}"
+      SUBNET   = "${aws_subnet.ecs_subnet.id}"
+      IAMROLE  = "${aws_iam_role.ecstaskrole.arn}"
+    }
   }
 }
