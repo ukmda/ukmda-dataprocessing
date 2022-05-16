@@ -560,3 +560,4 @@ archive/lambdas/samfunctions/getExtraFilesV3/pythoncode/WesternMeteorPyLib/*
 archive/containers/trajsolver/WesternMeteorPyLib/*
 archive/containers/trajsolver/awskeys
 ukmon_pylib/traj/clusdetails.txt
+**/*.pickle
