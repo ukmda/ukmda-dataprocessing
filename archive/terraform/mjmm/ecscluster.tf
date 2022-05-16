@@ -135,6 +135,28 @@ resource "aws_iam_role_policy_attachment" "ecspolicy1" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+resource "aws_iam_role_policy" "container_logging_policy" {
+  name   = "container_logging_policy"
+  role   = "${aws_iam_role.ecstaskrole.name}"
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+        "Effect": "Allow",
+        "Action": [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+        ],
+        "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+
 # security group for the service to use
 resource "aws_security_group" "ecssecgrp" {
   name        = "ecs-secgrp"
@@ -161,6 +183,7 @@ resource "aws_security_group" "ecssecgrp" {
   }
 }
 
+# print out some results - clustername, sec grp, subnet and role arn
 output "clusname" {
   value = aws_ecs_cluster.trajsolver.name
 }
@@ -177,6 +200,8 @@ output "taskrolearn" {
   value = aws_iam_role.ecstaskrole.arn
 }
 
+# create a local file containing the clustername and a few other details
+#
 resource "null_resource" "createECSdetails" {
   triggers = {
     clusname = join(",", tolist([aws_ecs_cluster.trajsolver.name,
