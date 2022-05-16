@@ -20,7 +20,15 @@
                 "environment": [
                     {
                         "name": "SRCPATH",
-                        "value": "matches/distrib"
+                        "value": "s3://ukmon-shared/matches/distrib"
+                    },
+                    {
+                        "name": "OUTPATH",
+                        "value": "s3://ukmon-shared/matches/distrib"
+                    },
+                    {
+                        "name": "TRGPATH",
+                        "value": "s3://ukmeteornetworkarchive/dummy/"
                     }
                 ]
             }
