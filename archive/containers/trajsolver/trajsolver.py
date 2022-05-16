@@ -5,7 +5,6 @@ import sys
 import boto3
 import datetime
 import tempfile
-import tarfile
 
 from wmpl.Trajectory.CorrelateRMS import RMSDataHandle
 from wmpl.Utils.Math import generateDatetimeBins
@@ -16,7 +15,7 @@ from wmpl.Trajectory.CorrelateRMS import TrajectoryReduced, DatabaseJSON # noqa:
 from wmpl.Trajectory.CorrelateRMS import MeteorObsRMS, PlateparDummy, MeteorPointRMS # noqa: F401
 
 
-def prepareCorrelator(dir_path, time_beg, time_end):
+def runCorrelator(dir_path, time_beg, time_end):
     # Init trajectory constraints
     maxtoffset = 10.0
     maxstationdist = 600.0
@@ -119,6 +118,77 @@ def prepareCorrelator(dir_path, time_beg, time_end):
     return 
 
 
+# read the source bucket + folder and target buckets + folders from the environment
+def getSourceAndTargets():
+    srcpth = os.getenv('SRCPATH')
+    if srcpth is None:
+        srcpth = 's3://ukmon-shared/matches/distrib'
+    srcpth = srcpth[5:]
+    srcbucket = srcpth[:srcpth.find('/')]
+    srcpth = srcpth[srcpth.find('/')+1:]
+    outpth = os.getenv('OUTPATH')
+    if outpth is None:
+        outpth = 's3://ukmon-shared/matches'
+    outpth = outpth[5:]
+    outbucket = outpth[:outpth.find('/')]
+    outpth = outpth[outpth.find('/')+1:]
+    webpth = os.getenv('WEBPATH')
+    if webpth is None:
+        webpth = 's3://ukmeteornetworkarchive/reports'
+    webpth = webpth[5:]
+    webbucket = webpth[:webpth.find('/')]
+    webpth = webpth[webpth.find('/')+1:]
+    return srcbucket, srcpth, outbucket, outpth, webbucket, webpth
+
+
+# extra args for setting the MIME type when uploading to S3. 
+# if this isn't set then the files appear as plain text which is no good for images!
+def getExtraArgs(fname):
+    _, file_ext = os.path.splitext(fname)
+    ctyp='text/plain'
+    if file_ext=='.jpg': 
+        ctyp = 'image/jpeg'
+    if file_ext=='.fits': 
+        ctyp = 'image/fits'
+    elif file_ext=='.png': 
+        ctyp = 'image/png'
+    elif file_ext=='.bmp': 
+        ctyp = 'image/bmp'
+    elif file_ext=='.mp4': 
+        ctyp = 'video/mp4'
+    elif file_ext=='.csv': 
+        ctyp = 'text/csv'
+    elif file_ext=='.html': 
+        ctyp = 'text/html'
+    elif file_ext=='.json': 
+        ctyp = 'application/json'
+    elif file_ext=='.zip': 
+        ctyp = 'application/zip'
+    extraargs = {'ContentType': ctyp}
+    return extraargs
+
+
+#push solutions to the website, and push the pickle and report to ukmon-shared
+def pushToWebsite(s3, localfldr, webbucket, webfldr, outbucket, outpth):
+    for root, _, files in os.walk(localfldr):
+        for fil in files:
+            fullname = os.path.join(localfldr, root, fil)
+            fname = os.path.split(fil)[1]
+            orbname = os.path.split(root)[1]
+            yr = orbname[:4]
+            ym = orbname[:6]
+            ymd = orbname[:8]
+            targkey = f'{webfldr}/{yr}/orbits/{ym}/{ymd}/{orbname}/{fname}'
+            print(f'uploading {fname} to s3://{webbucket}/{targkey}')
+            s3.meta.client.upload_file(fullname, webbucket, targkey, ExtraArgs = getExtraArgs(fname))
+            if 'report' in fname or 'pickle' in fname:
+                targkey = f'{outpth}/trajectories/{ym}/{ymd}/{orbname}/{fname}'
+                print(f'uploading {fname} to s3://{outbucket}/{targkey}')
+                s3.meta.client.upload_file(fullname, outbucket, targkey, ExtraArgs = getExtraArgs(fname))
+    return
+
+
+# starting point for the process
 def startup(srcfldr, startdt, enddt):
     print(f'processing {srcfldr}')
     print(f"Starting at {datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}")
@@ -138,10 +208,7 @@ def startup(srcfldr, startdt, enddt):
         return 
     s3 = boto3.resource('s3', aws_access_key_id=acckey, aws_secret_access_key = secret)
 
-    srcpth = os.getenv('SRCPATH')
-    if srcpth is None:
-        srcpth = 'matches/distrib'
-    srcbucket = 'ukmon-shared'
+    srcbucket, srcpth, outbucket, outpth, webbucket, webpth = getSourceAndTargets()
     srckey = f'{srcpth}/{srcfldr}/'
 
     print(f'fetching data from {srckey}')
@@ -156,20 +223,17 @@ def startup(srcfldr, startdt, enddt):
                 targfile = os.path.join(canddir, locfname)
                 print(f'downloading {locfname}')
                 s3.meta.client.download_file(srcbucket, fname, targfile)
-        prepareCorrelator(localfldr, startdt, enddt)
+        runCorrelator(localfldr, startdt, enddt)
 
-        print('creating tarfile')
+        print('uploading data to website')
         trajfldr = os.path.join(localfldr,'trajectories')
-        outputname = os.path.join(localfldr, srcfldr + '.tgz')
-        with tarfile.open(outputname, 'w:gz') as tar:
-            tar.add(trajfldr, arcname=os.path.basename(trajfldr))
-            tar.add(os.path.join(localfldr, 'processed_trajectories.json'), 
-                arcname= srcfldr + '.json')
-        
-        targkey = f'{srcpth}/{srcfldr}.tgz'
-        print(f'uploading {outputname} to {targkey}')
-        s3.meta.client.upload_file(outputname, srcbucket, targkey, ExtraArgs = {'ContentType': 'application/gzip'})
+        pushToWebsite(s3, trajfldr, webbucket, webpth, outbucket, outpth)
 
+        fname = f'{srcfldr}.json'
+        jsonfile = os.path.join(localfldr, fname)
+        targkey = f'{outpth}/{fname}'
+        print(f'uploading {fname} to {outbucket}/{outpth}')
+        s3.meta.client.upload_file(jsonfile, outbucket, targkey, ExtraArgs = getExtraArgs(fname)) 
     else:
         print('no files found')
     print(f"Finished at {datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}")
