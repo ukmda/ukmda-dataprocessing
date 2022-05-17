@@ -128,13 +128,13 @@ def getSourceAndTargets():
     srcpth = srcpth[srcpth.find('/')+1:]
     outpth = os.getenv('OUTPATH')
     if outpth is None:
-        outpth = 's3://ukmon-shared/matches'
+        outpth = 's3://ukmon-shared/matches/distrib'
     outpth = outpth[5:]
     outbucket = outpth[:outpth.find('/')]
     outpth = outpth[outpth.find('/')+1:]
     webpth = os.getenv('WEBPATH')
     if webpth is None:
-        webpth = 's3://ukmeteornetworkarchive/reports'
+        webpth = 's3://ukmeteornetworkarchive/dummy'
     webpth = webpth[5:]
     webbucket = webpth[:webpth.find('/')]
     webpth = webpth[webpth.find('/')+1:]
