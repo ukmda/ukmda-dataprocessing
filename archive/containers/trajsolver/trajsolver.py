@@ -230,9 +230,9 @@ def startup(srcfldr, startdt, enddt):
         pushToWebsite(s3, trajfldr, webbucket, webpth, outbucket, outpth)
 
         fname = f'{srcfldr}.json'
-        jsonfile = os.path.join(localfldr, fname)
+        jsonfile = os.path.join(localfldr, 'processed_trajectories.json')
         targkey = f'{outpth}/{fname}'
-        print(f'uploading {fname} to {outbucket}/{outpth}')
+        print(f'uploading {jsonfile} to {outbucket}/{outpth}')
         s3.meta.client.upload_file(jsonfile, outbucket, targkey, ExtraArgs = getExtraArgs(fname)) 
     else:
         print('no files found')
