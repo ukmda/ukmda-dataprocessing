@@ -1,6 +1,7 @@
 #
 # Used when running the correlator in 'distributed' mode. 
-# Pick up new groups of candidate trajectories and distribute them.
+# Pick up new groups of candidate trajectories and distribute them, then
+# wait for completion and unpack the resultss. 
 #
 
 import json
@@ -52,6 +53,16 @@ def createTaskTemplate(rundate, buckname, spandays=3):
     return templ
 
 
+def getDebugStatus():
+    dbg = os.getenv('DEBUG')
+    if dbg is None:
+        return False
+    elif dbg == '1':
+        return True
+    else:
+        return False
+
+
 def distributeCandidates(rundate, srcdir, targdir, maxcount=20):
 
     client = boto3.client('ecs', region_name='eu-west-2')
@@ -70,31 +81,43 @@ def distributeCandidates(rundate, srcdir, targdir, maxcount=20):
     jsontempls = [None] * numbucks
     bucknames = [None] * numbucks
 
+    isDbg = getDebugStatus()
+
     for i in range(0, numbucks):
         bucknames[i] = buckroot + f'_{i:02d}'
         if os.path.isdir(bucknames[i]):
             shutil.rmtree(bucknames[i])
         os.makedirs(bucknames[i], exist_ok=True)
-        bucklist = flist[i::numbucks]
+        filelist = flist[i::numbucks]
         with open(os.path.join(bucknames[i], f'files_{i:02d}.txt'),'w') as outf:
-            for fli in bucklist:
+            for fli in filelist:
                 src = os.path.join(srcdir, fli)
                 dst = os.path.join(bucknames[i], fli)
                 shutil.copy2(src, dst)
                 outf.write(f'{fli}\n')
 
-        jsontempl = createTaskTemplate(rundate, bucknames[i])
+        taskjson = createTaskTemplate(rundate, bucknames[i])
 
-        response = client.run_task(**jsontempl)
+        response = client.run_task(**taskjson)
         while len(response['tasks']) == 0:
-            response = client.run_task(**jsontempl)
+            response = client.run_task(**taskjson)
 
         taskarn = response['tasks'][0]['taskArn']
         taskarns[i] = taskarn
-        jsontempls[i] = jsontempls
+        jsontempls[i] = taskjson
         print(taskarn[51:])
+        if isDbg is True and i == 3:
+            break
     
-    clusname = jsontempl[0]['cluster']
+    # may not be 20 tasks
+    taskarns = [e for e in taskarns if e is not None]
+    bucknames = [e for e in bucknames if e is not None]
+    jsontempls = [e for e in jsontempls if e is not None]
+
+    clusname = jsontempls[0]['cluster']
+    dmpdata = [bucknames, taskarns, clusname]
+    pickle.dump(dmpdata, open(buckroot + '.pickle','wb'))
+
     status = client.describe_clusters(clusters=[clusname])
     if len(status['clusters']) ==0:
         print('cluster not running!')
@@ -103,20 +126,17 @@ def distributeCandidates(rundate, srcdir, targdir, maxcount=20):
         ptc = status['clusters'][0]['pendingTasksCount']
         print(f'{rtc} running, {ptc} pending')
 
-    dmpdata = [bucknames, taskarns, jsontempls]
-    pickle.dump(dmpdata, open(targdir, buckroot + '.pickle'),'wb')
-
     return
 
 
-def monitorProgress(targdir):
+def monitorProgress(rundate, targdir):
     client = boto3.client('ecs', region_name='eu-west-2')
-    flist = glob.glob1(targdir, '*.pickle')
-    picklefile = flist[0]
-    dumpdata = pickle.load(open(targdir, picklefile),'wb')
+
+    picklefile = os.path.join(targdir, rundate.strftime('%Y%m%d') + '.pickle')
+    dumpdata = pickle.load(open(picklefile,'rb'))
+    bucknames = dumpdata[0]
     taskarns = dumpdata[1]
-    jsontempls = dumpdata[2]
-    clusname = jsontempls[0]['cluster']
+    clusname = dumpdata[2]
 
     # need to keep list of task ARNs and then check if they started properly.
     # Look for "lastStatus": "STOPPED",
@@ -129,29 +149,65 @@ def monitorProgress(targdir):
         time.sleep(60.0)
         sts = client.describe_tasks(cluster=clusname, tasks=taskarns)
         for tsk in sts['tasks']:
-            print(f'checking {tsk["taskArn"]}')
+            print(f'checking {tsk["taskArn"][51:]}')
             idx = taskarns.index(tsk['taskArn'])
             if tsk['lastStatus'] == 'STOPPED':
                 if tsk['stopCode'] != 'EssentialContainerExited':
                     # retry the task
-                    thisjson = jsontempls[idx]
+                    thisjson = createTaskTemplate(rundate, bucknames[idx])
                     response = client.run_task(**thisjson)
                     taskarns[idx] = response['tasks'][0]['taskArn']
                     print(f'task {idx} restarted')
                 else:
-                    js = jsontempls.pop(idx)
-                    taskarns.pop(idx)
+                    thisarn=taskarns.pop(idx)
+                    bucknames.pop(idx)
                     taskcount -= 1
                     print(f'task {idx} completed')
-                    buckname = js['overrides']['containerOverrides'][0]['command'][0]
-                    unpackResults(targdir, buckname)
+                    os.makedirs(os.path.join(targdir, 'logs'), exist_ok=True)
+                    with open(os.path.join(targdir, 'logs', f'{thisarn[51:]}.log'), 'w') as outf:
+                        for events in getLogDetails(targdir, '/ecs/trajcont', thisarn[51:]):
+                            for evt in events:
+                                evtdt = datetime.datetime.fromtimestamp(int(evt['timestamp']) / 1000)
+                                msg = evt['message']
+                                outf.write(f'{evtdt} {msg}\n')    
+                                        
     return
 
 
-def unpackResults(targdir, buckname):
-    tarfname = os.path.join(targdir, buckname + '.tgz')
-    with tarfile.open(tarfname, 'r:gz') as tar:
-        tar.extractall(path=targdir)
+def getLogDetails(targdir, loggrp, thisarn, region_name='eu-west-2'):
+    """
+    Get all event messages of a group and stream from CloudWatch Logs AWS
+    """
+    client = boto3.client('logs', region_name=region_name)
+
+    # first request
+    response = client.get_log_events(
+        logGroupName=loggrp,
+        logStreamName=f'ecs/trajcont/{thisarn}',
+        startFromHead=True)
+    yield response['events']
+
+    # second and later
+    while True:
+        prev_token = response['nextForwardToken']
+        response = client.get_log_events(
+            logGroupName=loggrp,
+            logStreamName=f'ecs/trajcont/{thisarn}',
+            nextToken=prev_token)
+        # same token then break
+        if response['nextForwardToken'] == prev_token:
+            break
+        yield response['events']
+
+
+def unpackResults(targdir, buckname, remove=False):
+    outdir = os.path.join(targdir, 'solved')
+    os.makedirs(outdir, exist_ok=True)
+    with tarfile.open(buckname + '.tgz', 'r:gz') as tar:
+        tar.extractall(path=outdir)
+    if remove is True:
+        os.remove(buckname + '.tgz')
+        shutil.rmtree(buckname)
     return 
 
 
@@ -196,4 +252,5 @@ if __name__ == '__main__':
     targdir = os.path.join(matchdir, 'distrib')
 
     distributeCandidates(rundt, srcdir, targdir)
-    monitorProgress(targdir)
+
+    monitorProgress(rundt, targdir)
