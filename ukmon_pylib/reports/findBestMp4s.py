@@ -16,13 +16,14 @@ def getBestNMp4s(yr, mth, numtoget):
     sorteddata = sepdata.head(numtoget)
 
     tmpdir = os.getenv('TMP')
-    wsbucket = os.getenv('WEBSITEBUCKET')[5:]
+    wsbucket = os.getenv('UKMONSHAREDBUCKET')[5:]
     s3 = boto3.resource('s3')
     mp4df = pd.DataFrame()
     for traj in sorteddata.url:
         trdir = traj[traj.find('reports'):]
-        trdir, _ = os.path.split(trdir)
-        _, trname = os.path.split(trdir)
+        spls = trdir.split('/')
+        trdir = f'matches/RMSCorrelate/trajectories/{spls[1]}/{spls[3]}/{spls[4]}/{spls[5]}'
+        trname = spls[5]
         picklefile = trname[:15] + '_trajectory.pickle'
         key = trdir + '/' + picklefile
         locdir = os.path.join(tmpdir, trname)
@@ -33,16 +34,20 @@ def getBestNMp4s(yr, mth, numtoget):
         key = trdir + '/mpgs.lst'
         locfname = os.path.join(locdir, 'mpgs.lst')
         try:
-            s3.meta.client.download_file(wsbucket, key, locfname)
+            s3.meta.client.download_file(wsbucket, key, locfname) # used by getAllMP4s
             newdf = getAllMp4s(picklename)
             mp4df = pd.concat([mp4df, newdf])
         except:
             pass
         shutil.rmtree(locdir)
 
-    mp4df = mp4df.drop_duplicates()
-    mp4df = mp4df.sort_values(by=['mag']).head(numtoget)
-    return list(mp4df.mp4)
+    if len(mp4df) > 0:
+        mp4df = mp4df.drop_duplicates()
+        print(mp4df)
+        mp4df = mp4df.sort_values(by=['mag']).head(numtoget)
+        return list(mp4df.mp4)
+    else:
+        return []
 
 
 if __name__ == '__main__':
