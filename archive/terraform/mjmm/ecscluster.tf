@@ -27,7 +27,8 @@ resource "aws_internet_gateway" "ecs_igw" {
   vpc_id = aws_vpc.ecs_vpc.id
 
   tags = {
-    Name = "ecs_igw"
+    Name         = "ecs_igw"
+    "billingtag" = "ukmon"
   }
 }
 
@@ -137,7 +138,7 @@ resource "aws_iam_role_policy_attachment" "ecspolicy1" {
 
 resource "aws_iam_role_policy" "container_logging_policy" {
   name   = "container_logging_policy"
-  role   = "${aws_iam_role.ecstaskrole.name}"
+  role   = aws_iam_role.ecstaskrole.name
   policy = <<EOF
 {
   "Version": "2012-10-17",
