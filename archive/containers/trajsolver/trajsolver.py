@@ -182,7 +182,7 @@ def pushToWebsite(s3, localfldr, webbucket, webfldr, outbucket, outpth):
             print(f'uploading {fname} to s3://{webbucket}/{targkey}')
             s3.meta.client.upload_file(fullname, webbucket, targkey, ExtraArgs = getExtraArgs(fname))
             if 'report' in fname or 'pickle' in fname:
-                targkey = f'{outpth}/trajectories/{ym}/{ymd}/{orbname}/{fname}'
+                targkey = f'{outpth}/trajectories/{yr}/{ym}/{ymd}/{orbname}/{fname}'
                 print(f'uploading {fname} to s3://{outbucket}/{targkey}')
                 s3.meta.client.upload_file(fullname, outbucket, targkey, ExtraArgs = getExtraArgs(fname))
     return
