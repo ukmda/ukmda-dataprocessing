@@ -27,7 +27,7 @@
                         "value": "s3://ukmon-shared/matches/distrib"
                     },
                     {
-                        "name": "TRGPATH",
+                        "name": "WEBPATH",
                         "value": "s3://ukmeteornetworkarchive/dummy/"
                     }
                 ]
