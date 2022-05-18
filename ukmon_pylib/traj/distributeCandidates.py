@@ -27,12 +27,7 @@ class dummyMeteorObsRMS(object):
         self.id = id
 
 
-def createTaskTemplate(rundate, buckname, spandays=3):
-    d1 = (rundate + datetime.timedelta(days = -(spandays-1))).strftime('%Y%m%d')
-    d2 = (rundate + datetime.timedelta(days = 1)).strftime('%Y%m%d')
-
-    templdir,_ = os.path.split(__file__)
-    templatefile = os.path.join(templdir, 'taskrunner.json')
+def getClusterDetails(templdir):
     clusdetails = os.path.join(templdir, 'clusdetails.txt')
     with open(clusdetails) as inf:
         lis = inf.readlines()
@@ -40,6 +35,18 @@ def createTaskTemplate(rundate, buckname, spandays=3):
     secgrp = lis[1].strip()
     subnet = lis[2].strip()
     exrolearn = lis[3].strip()
+    loggrp = lis[4].strip()
+    contname = lis[5].strip()
+    return clusname, secgrp, subnet, exrolearn, loggrp, contname
+
+
+def createTaskTemplate(rundate, buckname, spandays=3):
+    d1 = (rundate + datetime.timedelta(days = -(spandays-1))).strftime('%Y%m%d')
+    d2 = (rundate + datetime.timedelta(days = 1)).strftime('%Y%m%d')
+
+    templdir,_ = os.path.split(__file__)
+    templatefile = os.path.join(templdir, 'taskrunner.json')
+    clusname, secgrp, subnet, exrolearn, _ = getClusterDetails(templdir)
 
     _, buckname = os.path.split(buckname)
     with open(templatefile) as inf:
@@ -138,6 +145,8 @@ def monitorProgress(rundate, targdir):
     taskarns = dumpdata[1]
     clusname = dumpdata[2]
 
+    templdir,_ = os.path.split(__file__)
+    _, _, _, _, loggrp, contname = getClusterDetails(templdir)
     # need to keep list of task ARNs and then check if they started properly.
     # Look for "lastStatus": "STOPPED",
     # if not "stopCode": "EssentialContainerExited"
@@ -157,15 +166,15 @@ def monitorProgress(rundate, targdir):
                     thisjson = createTaskTemplate(rundate, bucknames[idx])
                     response = client.run_task(**thisjson)
                     taskarns[idx] = response['tasks'][0]['taskArn']
-                    print(f'task {idx} restarted')
+                    print('task restarted')
                 else:
                     thisarn=taskarns.pop(idx)
                     bucknames.pop(idx)
                     taskcount -= 1
-                    print(f'task {idx} completed')
+                    print('task completed')
                     os.makedirs(os.path.join(targdir, 'logs'), exist_ok=True)
                     with open(os.path.join(targdir, 'logs', f'{thisarn[51:]}.log'), 'w') as outf:
-                        for events in getLogDetails(targdir, '/ecs/trajcont', thisarn[51:]):
+                        for events in getLogDetails(loggrp, thisarn[51:], contname):
                             for evt in events:
                                 evtdt = datetime.datetime.fromtimestamp(int(evt['timestamp']) / 1000)
                                 msg = evt['message']
@@ -174,7 +183,7 @@ def monitorProgress(rundate, targdir):
     return
 
 
-def getLogDetails(targdir, loggrp, thisarn, region_name='eu-west-2'):
+def getLogDetails(loggrp, thisarn, contname, region_name='eu-west-2'):
     """
     Get all event messages of a group and stream from CloudWatch Logs AWS
     """
@@ -183,7 +192,7 @@ def getLogDetails(targdir, loggrp, thisarn, region_name='eu-west-2'):
     # first request
     response = client.get_log_events(
         logGroupName=loggrp,
-        logStreamName=f'ecs/trajcont/{thisarn}',
+        logStreamName=f'ecs/{contname}/{thisarn}',
         startFromHead=True)
     yield response['events']
 
@@ -192,7 +201,7 @@ def getLogDetails(targdir, loggrp, thisarn, region_name='eu-west-2'):
         prev_token = response['nextForwardToken']
         response = client.get_log_events(
             logGroupName=loggrp,
-            logStreamName=f'ecs/trajcont/{thisarn}',
+            logStreamName=f'ecs/{contname}/{thisarn}',
             nextToken=prev_token)
         # same token then break
         if response['nextForwardToken'] == prev_token:
