@@ -4,6 +4,10 @@
 data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
+# some variables for the cluster and task defns
+variable "ecsloggroup" { default = "/ecs/trajcont" }
+variable "containername" { default = "trajcont" }
+
 # create a VPC for the cluster
 resource "aws_vpc" "ecs_vpc" {
   cidr_block = "172.128.0.0/16"
@@ -66,8 +70,8 @@ data "template_file" "task_json_template" {
     acctid   = data.aws_caller_identity.current.account_id
     regionid = "eu-west-2"
     repoid   = "ukmon/trajsolver"
-    contname = "trajcont"
-    loggrp   = "/ecs/trajcont"
+    contname = var.containername
+    loggrp   = var.ecsloggroup
   }
 }
 
@@ -185,22 +189,12 @@ resource "aws_security_group" "ecssecgrp" {
 }
 
 # print out some results - clustername, sec grp, subnet and role arn
-output "clusname" {
-  value = aws_ecs_cluster.trajsolver.name
-}
-
-output "secgrpid" {
-  value = aws_security_group.ecssecgrp.id
-}
-
-output "subnetid" {
-  value = aws_subnet.ecs_subnet.id
-}
-
-output "taskrolearn" {
-  value = aws_iam_role.ecstaskrole.arn
-}
-
+output "clusname" { value = aws_ecs_cluster.trajsolver.name }
+output "secgrpid" { value = aws_security_group.ecssecgrp.id }
+output "subnetid" { value = aws_subnet.ecs_subnet.id }
+output "taskrolearn" { value = aws_iam_role.ecstaskrole.arn }
+output "loggrp" { value = var.ecsloggroup }
+output "contname" { value = var.containername }
 # create a local file containing the clustername and a few other details
 #
 resource "null_resource" "createECSdetails" {
@@ -208,16 +202,19 @@ resource "null_resource" "createECSdetails" {
     clusname = join(",", tolist([aws_ecs_cluster.trajsolver.name,
       aws_subnet.ecs_subnet.id,
       aws_security_group.ecssecgrp.id,
-    aws_iam_role.ecstaskrole.arn]))
+    aws_iam_role.ecstaskrole.arn, var.ecsloggroup,
+    var.containername]))
   }
   provisioner "local-exec" {
-    command     = "echo $env:CLUSNAME $env:SECGRP $env:SUBNET $env:IAMROLE > ../../../ukmon_pylib/traj/clusdetails.txt"
+    command     = "echo $env:CLUSNAME $env:SECGRP $env:SUBNET $env:IAMROLE $env:LOGGRP $env:CONTNAME > ../../../ukmon_pylib/traj/clusdetails.txt"
     interpreter = ["pwsh.exe", "-command"]
     environment = {
       CLUSNAME = "${aws_ecs_cluster.trajsolver.name}"
       SECGRP   = "${aws_security_group.ecssecgrp.id}"
       SUBNET   = "${aws_subnet.ecs_subnet.id}"
       IAMROLE  = "${aws_iam_role.ecstaskrole.arn}"
+      LOGGRP   = "${var.ecsloggroup}"
+      CONTNAME = "${var.containername}"
     }
   }
 }
