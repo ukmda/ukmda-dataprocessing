@@ -178,8 +178,7 @@ def monitorProgress(rundate, targdir):
                             for evt in events:
                                 evtdt = datetime.datetime.fromtimestamp(int(evt['timestamp']) / 1000)
                                 msg = evt['message']
-                                outf.write(f'{evtdt} {msg}\n')    
-                                        
+                                outf.write(f'{evtdt} {msg}\n')
     return
 
 
