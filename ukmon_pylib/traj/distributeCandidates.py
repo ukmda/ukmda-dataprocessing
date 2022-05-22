@@ -168,18 +168,25 @@ def monitorProgress(rundate, targdir, clusdets):
                     print('task restarted')
                 else:
                     thisarn=taskarns.pop(idx)
-                    bucknames.pop(idx)
+                    thisbuck = bucknames.pop(idx)
                     taskcount -= 1
+                    shutil.rmtree(os.path.join(targdir, thisbuck))
                     print('task completed')
 
                     # collect the logs from CloudWatch 
+                    realfname=None
                     os.makedirs(os.path.join(targdir, 'logs'), exist_ok=True)
-                    with open(os.path.join(targdir, 'logs', f'{thisarn[51:]}.log'), 'w') as outf:
+                    tmpfname = os.path.join(targdir, 'logs', f'{thisarn[51:]}.log')
+                    with open(tmpfname, 'w') as outf:
                         for events in getLogDetails(loggrp, thisarn[51:], contname):
                             for evt in events:
                                 evtdt = datetime.datetime.fromtimestamp(int(evt['timestamp']) / 1000)
                                 msg = evt['message']
                                 outf.write(f'{evtdt} {msg}\n')
+                                if realfname is None:
+                                    realfname = msg[11:]
+
+                    os.rename(tmpfname, os.path.join(targdir, 'logs', f'{realfname}.log'))
     return
 
 
@@ -212,15 +219,16 @@ def getLogDetails(loggrp, thisarn, contname, region_name='eu-west-2'):
 if __name__ == '__main__':
     if len(sys.argv) < 4:
         rundt = datetime.datetime(2022,4,21)
+        matchdir = os.getenv('MATCHDIR')
+        srcdir = os.path.join(matchdir, 'RMSCorrelate', 'candidates')
+        targdir = os.path.join(matchdir, 'distrib')
     else:
         rundt = datetime.datetime.strptime(sys.argv[1], '%Y%m%d')
-
-    matchdir = os.getenv('MATCHDIR')
-    srcdir = os.path.join(matchdir, 'distrib', 'candidates')
-    targdir = os.path.join(matchdir, 'distrib')
+        srcdir = sys.argv[2]
+        targdir =sys.argv[3]
 
     templdir,_ = os.path.split(__file__)
     clusdets = getClusterDetails(templdir)
-
+    print(clusdets)
     distributeCandidates(rundt, srcdir, targdir, clusdets)
     monitorProgress(rundt, targdir, clusdets)
