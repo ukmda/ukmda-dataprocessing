@@ -93,7 +93,11 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
 
     isDbg = getDebugStatus()
 
-    s3 = boto3.resource('s3')
+    with open(os.path.expanduser('~/.ssh/ukmonarchive-keys'), 'r') as ukmkeyfile:
+        lis = ukmkeyfile.readlines()
+    access_key = lis[0].split('=')[1].strip()
+    secret_key = lis[1].split('=')[1].strip()
+    s3 = boto3.resource('s3', aws_access_key_id=access_key, aws_secret_access_key=secret_key)
     for i in range(0, numbucks):
         bucknames[i] = buckroot + f'_{i:02d}'
         filelist = flist[i::numbucks]
@@ -142,7 +146,7 @@ def monitorProgress(rundate, targdir):
 
     templdir,_ = os.path.split(__file__)
     clusdets = getClusterDetails(templdir)
-    
+
     # load the buckets, tasks and cluster name from the dump file
     picklefile = os.path.join(targdir, rundate.strftime('%Y%m%d') + '.pickle')
     dumpdata = pickle.load(open(picklefile,'rb'))
