@@ -28,10 +28,7 @@ rundatestr = enddt.strftime('%Y%m%d')
 yr = enddt.year
 ym = enddt.strftime('%Y%m')
 
-#tmpdir = os.getenv('TMP')
-#if tmpdir is None:
-#    tmpdir = '/tmp'
-execmatchingsh = outfname # os.path.join(tmpdir, outfname)
+execmatchingsh = outfname 
 with open(execmatchingsh, 'w') as outf:
     outf.write('#!/bin/bash\n')
     outf.write('source /home/ec2-user/venvs/wmpl/bin/activate\n')
@@ -39,9 +36,9 @@ with open(execmatchingsh, 'w') as outf:
     outf.write('cd /home/ec2-user/data/RMSCorrelate\n')
     outf.write('df -h . \n')
     outf.write(f'source {shkey}\n')
-    outf.write(f'aws s3 sync {shbucket}/matches/RMSCorrelate/ . --exclude "*" --include "UK*" --quiet\n')
+    outf.write(f'time aws s3 sync {shbucket}/matches/RMSCorrelate/ . --exclude "*" --include "UK*" --quiet\n')
     outf.write('logger -s -t runMatching \"starting correlator\"\n')
     outf.write(f'time python -m wmpl.Trajectory.CorrelateRMS /home/ec2-user/data/RMSCorrelate/ -i 1 -l -r \"({startdtstr},{enddtstr})\"\n')
     outf.write('cd /home/ec2-user/data/RMSCorrelate\n')
-    outf.write(f'time python -m traj.distributeCandidates ${rundatestr} ./candidates ./distrib\n')
+    outf.write(f'time python -m traj.distributeCandidates ${rundatestr} ./candidates ${shbucket}/matches/distrib\n')
     outf.write('logger -s -t runMatching \"done\"\n')

@@ -137,9 +137,12 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
     return True
 
 
-def monitorProgress(rundate, targdir, clusdets):
+def monitorProgress(rundate, targdir):
     client = boto3.client('ecs', region_name='eu-west-2')
 
+    templdir,_ = os.path.split(__file__)
+    clusdets = getClusterDetails(templdir)
+    
     # load the buckets, tasks and cluster name from the dump file
     picklefile = os.path.join(targdir, rundate.strftime('%Y%m%d') + '.pickle')
     dumpdata = pickle.load(open(picklefile,'rb'))
@@ -236,4 +239,4 @@ if __name__ == '__main__':
     clusdets = getClusterDetails(templdir)
     print(clusdets)
     distributeCandidates(rundt, srcdir, targdir, clusdets)
-    #monitorProgress(rundt, targdir, clusdets)
+    #monitorProgress(rundt, targdir)

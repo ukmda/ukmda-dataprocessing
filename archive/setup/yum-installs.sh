@@ -21,11 +21,17 @@ source ~/venvs/wmpl/bin/activate
 pip install pytz
 pip install shapely --no-binary shapely
 
+# might need to create a softlink for qmake, which is needed to install PyQt5
+sudo ln -s /usr/bin/qmake-qt5 /usr/bin/qmake
+pip install PyQt5
+
 cd ~/src
 git clone --recursive https://github.com/wmpg/WesternMeteorPyLib.git
 cd WesternMeteorPyLib
 pip install -r requirements.txt
 python setup.py install
+#rm -Rf wmpl/MetSim
+#rm -Rf wmpl/CAMO
 
 echo "now edit wmpl/__init__.py and add GUI to the list of things to be ignored"
 
