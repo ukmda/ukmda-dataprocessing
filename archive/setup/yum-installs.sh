@@ -29,3 +29,12 @@ python setup.py install
 
 echo "now edit wmpl/__init__.py and add GUI to the list of things to be ignored"
 
+pip install boto3
+mkdir ~/src/ukmon_pylib
+cd ~/src/ukmon_pylib
+git init
+git remote add -f origin https://github.com/markmac99/UKmon-shared.git
+git config core.sparseCheckout true
+echo "ukmon_pylib" > .git/info/sparse-checkout
+git pull origin master
+
