@@ -148,6 +148,7 @@ def monitorProgress(rundate, targdir):
     clusdets = getClusterDetails(templdir)
 
     # load the buckets, tasks and cluster name from the dump file
+    rundate = datetime.datetime.strptime(rundate, '%Y%m%d')
     picklefile = os.path.join(targdir, rundate.strftime('%Y%m%d') + '.pickle')
     dumpdata = pickle.load(open(picklefile,'rb'))
     bucknames = dumpdata[0]
@@ -243,4 +244,4 @@ if __name__ == '__main__':
     clusdets = getClusterDetails(templdir)
     print(clusdets)
     distributeCandidates(rundt, srcdir, targdir, clusdets)
-    #monitorProgress(rundt, targdir)
+    

@@ -40,5 +40,6 @@ with open(execmatchingsh, 'w') as outf:
     outf.write('logger -s -t runMatching \"starting correlator\"\n')
     outf.write(f'time python -m wmpl.Trajectory.CorrelateRMS /home/ec2-user/data/RMSCorrelate/ -i 1 -l -r \"({startdtstr},{enddtstr})\"\n')
     outf.write('cd /home/ec2-user/data/RMSCorrelate\n')
+    outf.write('source ~/.ssh/marks-keys\n')
     outf.write(f'time python -m traj.distributeCandidates ${rundatestr} ./candidates ${shbucket}/matches/distrib\n')
     outf.write('logger -s -t runMatching \"done\"\n')
