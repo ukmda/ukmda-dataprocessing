@@ -82,25 +82,25 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
     numbucks = int(math.ceil(numcands/maxcount))
 
     # create buckets
+    targdir = targdir[5:]
+    outbucket=targdir[:targdir.find('/')]
+    targdir = targdir[targdir.find('/')+1:]
     buckroot = os.path.join(targdir, rundate.strftime('%Y%m%d'))
+
     taskarns = [None] * numbucks
     jsontempls = [None] * numbucks
     bucknames = [None] * numbucks
 
     isDbg = getDebugStatus()
 
+    s3 = boto3.resource('s3')
     for i in range(0, numbucks):
         bucknames[i] = buckroot + f'_{i:02d}'
-        if os.path.isdir(bucknames[i]):
-            shutil.rmtree(bucknames[i])
-        os.makedirs(bucknames[i], exist_ok=True)
         filelist = flist[i::numbucks]
-        with open(os.path.join(bucknames[i], f'files_{i:02d}.txt'),'w') as outf:
-            for fli in filelist:
-                src = os.path.join(srcdir, fli)
-                dst = os.path.join(bucknames[i], fli)
-                shutil.copy2(src, dst)
-                outf.write(f'{fli}\n')
+        for fli in filelist:
+            src = os.path.join(srcdir, fli)
+            dst = os.path.join(bucknames[i], fli)
+            s3.meta.client.upload_file(src, outbucket, dst)
 
         taskjson = createTaskTemplate(rundate, bucknames[i], clusdets)
 
@@ -122,7 +122,12 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
 
     clusname = jsontempls[0]['cluster']
     dmpdata = [bucknames, taskarns, clusname]
-    pickle.dump(dmpdata, open(buckroot + '.pickle','wb'))
+
+    src = os.path.join('/tmp', rundate.strftime('%Y%m%d') + '.pickle')
+    dst = buckroot + '.pickle'
+
+    pickle.dump(dmpdata, open(src,'wb'))
+    s3.meta.client.upload_file(src, outbucket, dst)
 
     status = client.describe_clusters(clusters=[clusname])
     rtc = status['clusters'][0]['runningTasksCount']
@@ -231,4 +236,4 @@ if __name__ == '__main__':
     clusdets = getClusterDetails(templdir)
     print(clusdets)
     distributeCandidates(rundt, srcdir, targdir, clusdets)
-    monitorProgress(rundt, targdir, clusdets)
+    #monitorProgress(rundt, targdir, clusdets)
