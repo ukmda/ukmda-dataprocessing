@@ -178,7 +178,8 @@ def FTPdetectinfo2UkmonCsv(dir_path, out_path):
         config.longitude = pp1['lon']
         config.elevation = pp1['elev']
         # get the shower associations
-        shwrs, _ = sa.showerAssociation(config, [os.path.join(dir_path,ftpdetectinfo_name)])
+        color_map='gist_ncar'
+        shwrs, _ = sa.showerAssociation(config, [os.path.join(dir_path,ftpdetectinfo_name)], color_map=color_map)
     else:
         print('platepar file empty')
         return 

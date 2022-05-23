@@ -68,7 +68,7 @@ if ($RMS_INSTALLED -eq 1){
             # generate the UFO-compatible CSV, shower association map 
             # convert fits to jpeg and create a stack
             # python -m Utils.RMS2UFO $ftpfil $platepar
-            python -m Utils.ShowerAssociation $ftpfil -x
+            python -m Utils.ShowerAssociation $ftpfil -x -p gist_ncar
             # python -m Utils.BatchFFtoImage $myf jpg
             #stack them if more than one to stack
             # $fits = $myf  + '\FF*.fits'
@@ -101,7 +101,7 @@ if ($RMS_INSTALLED -eq 1){
             # generate the UFO-compatible CSV, shower association map 
             # convert fits to jpeg and create a stack
             # python -m Utils.RMS2UFO $ftpfil $platepar
-            python -m Utils.ShowerAssociation $ftpfil -x
+            python -m Utils.ShowerAssociation $ftpfil -x -p gist_ncar
             # python -m Utils.BatchFFtoImage $myf jpg
             #stack them if more than one to stack
             # $fits = $myf  + '\FF*.fits'

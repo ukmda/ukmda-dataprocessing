@@ -130,6 +130,7 @@ def shwrGraph(dta, loc, outdir, when):
 
 
 def reportOneSite(yr, mth, loc, sngl, mful, idlist, outdir):
+    print(f'processing {loc}')
     when = f'{yr}'
     if mth is not None:
         when = f'{mth:02d}-{yr}'
@@ -283,6 +284,7 @@ if __name__ == '__main__':
         
     cifile = os.getenv('CAMINFO')
     if cifile[:5] == 's3://':
+        print('reading via s3')
         datadir = os.getenv('TMP')
         if datadir is None:
             datadir = '/tmp'
@@ -290,6 +292,7 @@ if __name__ == '__main__':
         mful = pd.read_parquet(f's3://ukmon-shared/matches/matchedpq/matches-full-{yr}.parquet.gzip')
 
     else:
+        print('reading from local store')
         datadir = os.getenv('DATADIR')
         if datadir is None:
             datadir='/home/ec2-user/prod/data'
@@ -328,7 +331,9 @@ if __name__ == '__main__':
                 websitebucket = websitebucket[5:]
             shortoutdir = shortoutdir.replace('\\','/')
             pushToWebsite(outdir, shortoutdir, websitebucket)
-        try:
-            shutil.rmtree(outdir)
-        except Exception:
-            print(f'unable to remove {outdir}')
+            try:
+                shutil.rmtree(outdir)
+            except Exception:
+                print(f'unable to remove {outdir}')
+        else:
+            print(f'not pushing back to s3, files left in {outdir}')

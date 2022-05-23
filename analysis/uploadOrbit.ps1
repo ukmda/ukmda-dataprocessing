@@ -96,6 +96,7 @@ aws s3 sync "$fbfldr/$fbdate" "s3://$targ" --exclude "*" --include "*.mp4"
 $pf=(Get-ChildItem "$srcpath/*.pickle").fullname
 $pf=$pf.replace('\','/')
 $env:DATADIR="f:/videos/meteorcam/ukmondata"
+aws s3 cp s3://ukmon-shared/consolidated/camera-details.csv $env:DATADIR/consolidated/
 $newl=(python -c "import reports.reportOfLatestMatches as rml ; print(rml.processLocalFolder('$pf','/home/ec2-user/ukmon-shared/matches/RMSCorrelate'))")
 
 $dlyfile="$yd.txt"
@@ -109,5 +110,9 @@ if ($x.length -eq 0)
 
 # now invoke the script to build the index page and update the daily index.
 $cmd="/home/ec2-user/prod/website/updateIndexPages.sh /home/ec2-user/prod/data/dailyreports/$dlyfile"
+ssh ukmonhelper "$cmd"
+$cmd="/home/ec2-user/prod/analysis/consolidateOutput.sh ${yr}"
+ssh ukmonhelper "$cmd"
+$cmd="/home/ec2-user/prod/website/createFireballPage.sh ${yr}"
 ssh ukmonhelper "$cmd"
 set-location $loc
