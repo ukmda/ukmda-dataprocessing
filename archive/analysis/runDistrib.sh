@@ -33,33 +33,58 @@ fi
 begdate=$(date --date="-$MATCHSTART days" '+%Y%m%d')
 rundate=$(date --date="-$MATCHEND days" '+%Y%m%d')
 
+source $SERVERAWSKEYS
+AWS_DEFAULT_REGION=eu-west-2 
+
+logger -s -t runMatching "checking correlation server status and starting it"
+stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
+if [ $stat -eq 80 ]; then 
+    aws ec2 start-instances --instance-ids $SERVERINSTANCEID
+fi
+logger -s -t runMatching "waiting for the server to be ready"
+while [ "$stat" -ne 16 ]; do
+    sleep 5
+    echo "checking"
+    stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
+done
+logger -s -t runMatching "ready to use"
+
 logger -s -t runDistrib "running phase 1 for dates ${begdate} to ${rundate}"
 source ~/venvs/${WMPL_ENV}/bin/activate
 source $SERVERAWSKEYS
 srcdir=$DATADIR/cameradata
 
+logger -s -t runDistrib "creating the run script"
+execmatchingsh=/tmp/execdistrib.sh
+python -m traj.createDistribMatchingSh $MATCHSTART $MATCHEND $execMatchingsh
+chmod +x $execMatchingsh
 
-logger -s -t runDistrib "synchronising the raw data"
-time aws s3 sync ${UKMONSHAREDBUCKET}/matches/RMSCorrelate/ ${srcdir} --exclude "*" --include "UK*" --quiet
+logger -s -t runMatching "get server details"
+privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
 
-logger -s -t runDistrib "copying trajectory database"
-time  python -c "from traj.consolidateDistTraj import patchTrajDB as pdb ; pdb('$MATCHDIR/RMSCorrelate/prev_processed_trajectories.json.bigserver','$srcdir');"
+logger -s -t runMatching "deploy the script to the server and run it"
 
-logger -s -t runDistrib "running correlator"
-time python -m wmpl.Trajectory.CorrelateRMS $srcdir/ -l -r "(${begdate}-080000,${rundate}-080000)" -i 1
+scp -i $SERVERSSHKEY $execMatchingsh ec2-user@$privip:/tmp
+while [ $? -ne 0 ] ; do
+    # in case the server isn't responding to ssh sessions yet
+    sleep 10
+    echo "server not responding yet, retrying"
+    scp -i $SERVERSSHKEY $execMatchingsh ec2-user@$privip:/tmp
+done 
+ssh -i $SERVERSSHKEY ec2-user@$privip $execMatchingsh
 
-logger -s -t runDistrib "distributing the candidates"
-time python -m traj.distributeCandidates ${rundate} $srcdir/candidates $MATCHDIR/distrib
+targdir=$MATCHDIR/distrib
+python -c "from traj.distributeCandidates import monitorProgress as mp; mp('${rundate}','${targdir}'); "
 
-logger -s -t runDistrib "merging in the new json files"
-cp $srcdir/processed_trajectories.json $srcdir/processed_trajectories.json.bkp
-python -m traj.consolidateDistTraj $MATCHDIR/distrib $srcdir/processed_trajectories.json
+#logger -s -t runDistrib "merging in the new json files"
+#cp $srcdir/processed_trajectories.json $srcdir/processed_trajectories.json.bkp
+#python -m traj.consolidateDistTraj $MATCHDIR/distrib $srcdir/processed_trajectories.json
 
-logger -s -t runDistrib "compressing the processed data"
-if [ ! -d $srcdir/done ] ; then mkdir $srcdir/done ; fi
-tar czvf $srcdir/done/${rundate}.tgz $srcdir/candidates/* $MATCHDIR/distrib/*.json
-rm -f $srcdir/candidates/*
-rm -f $MATCHDIR/distrib/*.json
-mv $MATCHDIR/distrib/${rundate}.pickle $srcdir/done
-logger -s -t runDistrib "done"
+#logger -s -t runDistrib "compressing the processed data"
+#if [ ! -d $srcdir/done ] ; then mkdir $srcdir/done ; fi
+#tar czvf $srcdir/done/${rundate}.tgz $srcdir/candidates/* $MATCHDIR/distrib/*.json
+#rm -f $srcdir/candidates/*
+#rm -f $MATCHDIR/distrib/*.json
+#mv $MATCHDIR/distrib/${rundate}.pickle $srcdir/done
+#logger -s -t runDistrib "done"
 
