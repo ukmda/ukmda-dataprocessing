@@ -164,10 +164,11 @@ def monitorProgress(rundate, targdir):
     # if not "stopCode": "EssentialContainerExited"
     # then launch it again
 
-    # wait 60s before testing whether everything is running
+    # wait 20s before testing whether everything is running
+    time.sleep(20.0)
+    print('starting checks')
     taskcount = len(taskarns)
     while taskcount > 0:
-        time.sleep(60.0)
         sts = client.describe_tasks(cluster=clusname, tasks=taskarns)
         for tsk in sts['tasks']:
             print(f'checking {tsk["taskArn"][51:]}')
@@ -183,7 +184,11 @@ def monitorProgress(rundate, targdir):
                     thisarn=taskarns.pop(idx)
                     thisbuck = bucknames.pop(idx)
                     taskcount -= 1
-                    shutil.rmtree(os.path.join(targdir, thisbuck))
+                    _, thisbuck = os.path.split(thisbuck)
+                    try:
+                        shutil.rmtree(os.path.join(targdir, thisbuck))
+                    except:
+                        print('folder already removed')
                     print('task completed')
 
                     # collect the logs from CloudWatch 
@@ -196,10 +201,13 @@ def monitorProgress(rundate, targdir):
                                 evtdt = datetime.datetime.fromtimestamp(int(evt['timestamp']) / 1000)
                                 msg = evt['message']
                                 outf.write(f'{evtdt} {msg}\n')
-                                if realfname is None:
-                                    realfname = msg[11:]
+                                if msg[:10] == 'processing':
+                                    realfname = msg[11:].strip()
 
                     os.rename(tmpfname, os.path.join(targdir, 'logs', f'{realfname}.log'))
+        if taskcount > 0:
+            # wait 60s before checking again
+            time.sleep(60.0)
     return
 
 

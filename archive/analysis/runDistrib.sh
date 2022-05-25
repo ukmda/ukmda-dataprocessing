@@ -51,16 +51,19 @@ logger -s -t runMatching "ready to use"
 
 logger -s -t runDistrib "running phase 1 for dates ${begdate} to ${rundate}"
 source ~/venvs/${WMPL_ENV}/bin/activate
-source $SERVERAWSKEYS
-srcdir=$DATADIR/cameradata
 
 logger -s -t runDistrib "creating the run script"
-execmatchingsh=/tmp/execdistrib.sh
+execMatchingsh=/tmp/execdistrib.sh
 python -m traj.createDistribMatchingSh $MATCHSTART $MATCHEND $execMatchingsh
 chmod +x $execMatchingsh
 
 logger -s -t runMatching "get server details"
 privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
+while [ "$privip" == "" ] ; do
+    sleep 5
+    echo "getting ipaddress"
+    privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
+done
 
 logger -s -t runMatching "deploy the script to the server and run it"
 
@@ -73,18 +76,27 @@ while [ $? -ne 0 ] ; do
 done 
 ssh -i $SERVERSSHKEY ec2-user@$privip $execMatchingsh
 
+logger -s -t runMatching "monitoring and waiting for completion"
+source $SERVERAWSKEYS
 targdir=$MATCHDIR/distrib
 python -c "from traj.distributeCandidates import monitorProgress as mp; mp('${rundate}','${targdir}'); "
 
-#logger -s -t runDistrib "merging in the new json files"
-#cp $srcdir/processed_trajectories.json $srcdir/processed_trajectories.json.bkp
-#python -m traj.consolidateDistTraj $MATCHDIR/distrib $srcdir/processed_trajectories.json
+logger -s -t runDistrib "merging in the new json files"
+mkdir -p $DATADIR/distrib
+cd $DATADIR/distrib
+cp -f $targdir/*.json $DATADIR/distrib
+cp -f $DATADIR/distrib/processed_trajectories.json $DATADIR/distrib/prev_processed_trajectories.json
 
-#logger -s -t runDistrib "compressing the processed data"
-#if [ ! -d $srcdir/done ] ; then mkdir $srcdir/done ; fi
-#tar czvf $srcdir/done/${rundate}.tgz $srcdir/candidates/* $MATCHDIR/distrib/*.json
-#rm -f $srcdir/candidates/*
-#rm -f $MATCHDIR/distrib/*.json
-#mv $MATCHDIR/distrib/${rundate}.pickle $srcdir/done
-#logger -s -t runDistrib "done"
+python -m traj.consolidateDistTraj $DATADIR/distrib $DATADIR/distrib/processed_trajectories.json
+
+cp $DATADIR/distrib/processed_trajectories.json $targdir
+gzip < $DATADIR/distrib/processed_trajectories.json > $DATADIR/distrib/processed_trajectories.json.${rundate}.gz
+
+logger -s -t runDistrib "compressing the processed data"
+if [ ! -d $targdir/done ] ; then mkdir $targdir/done ; fi
+mv $targdir/${rundate}.pickle $DATADIR/distrib
+tar czvf ${rundate}.tgz ${rundate}*.json ${rundate}.pickle
+cp ${rundate}.tgz $targdir/done
+rm -f $targdir/${rundate}*.json ${rundate}*.json ${rundate}.pickle
+logger -s -t runDistrib "done"
 
