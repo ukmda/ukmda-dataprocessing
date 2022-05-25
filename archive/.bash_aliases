@@ -16,6 +16,9 @@ alias stats='if [ "$DATADIR" == "" ] ; then echo select env first; else tail $DA
 alias matchstatus='if [ "$SRC" == "" ] ; then echo select env first; else grep "Running" $(ls -1 $SRC/logs/matches-*.log| tail -1 ) && grep TRAJ $(ls -1 $SRC/logs/matches-*.log | tail -1)|grep SOLVING && grep Observations: $(ls -1 $SRC/logs/matches-*.log | tail -1) | wc -l ; fi'
 alias spacecalc='ls -1 | egrep -v "ukmon-shared" | while read i ; do \du -s $i ; done | sort -n'
 
+alias startcalc='~/prod/utils/stopstart-calcengine.sh start'
+alias stopcalc='~/prod/utils/stopstart-calcengine.sh stop'
+
 function dev {
 	source ~/dev/config/config.ini >/dev/null 2>&1 
 	source ~/venvs/$WMPL_ENV/bin/activate
