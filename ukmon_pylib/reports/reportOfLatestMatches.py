@@ -52,7 +52,7 @@ def getTrajPaths(trajdict):
     return trajpaths, fullnames
 
 
-def getListOfNewMatches(dir_path, tfile = 'processed_trajectories.json', prevtfile = 'prev_processed_trajectories.json'):
+def getListOfNewMatches(dir_path, tfile, prevtfile):
     with open(os.path.join(dir_path, tfile), 'r') as inf:
         trajs = json.load(inf)
     with open(os.path.join(dir_path, prevtfile), 'r') as inf:
@@ -63,9 +63,7 @@ def getListOfNewMatches(dir_path, tfile = 'processed_trajectories.json', prevtfi
     return newdirs
 
 
-def findNewMatches(dir_path, out_path, offset, repdtstr=None, dbname=None):
-    if dbname is None:
-        dbname = 'processed_trajectories.json.bigserver'
+def findNewMatches(dir_path, out_path, offset, repdtstr, dbname):
     prevdbname = 'prev_' + dbname
     newdirs = getListOfNewMatches(dir_path, dbname, prevdbname)
     # load camera details
@@ -91,7 +89,10 @@ def findNewMatches(dir_path, out_path, offset, repdtstr=None, dbname=None):
             trajdir = trajdir.replace('/data/','/ukmon-shared/matches/')
             _, picklename = os.path.split(trajdir)
             picklename = os.path.join(trajdir, picklename[:15] +'_trajectory.pickle')
-            bestvmag, shwr, stationids = getVMagCodeAndStations(picklename)
+            try:
+                bestvmag, shwr, stationids = getVMagCodeAndStations(picklename)
+            except:
+                bestvmag, shwr, stationids = 0,'',['']
             stations=[]
             for statid in stationids:
                 _,_,_,_,loc = cinf.GetSiteLocation(statid)
@@ -139,4 +140,8 @@ if __name__ == '__main__':
         repdtstr = sys.argv[4]
     if len(sys.argv) > 5:
         dbname = sys.argv[5]
+    else:
+        dbname = 'processed_trajectories.json.bigserver'
+        
+    # arguments dblocation, datadir, days ago, rundate eg 20220524, full path to database
     findNewMatches(sys.argv[1], sys.argv[2], sys.argv[3], repdtstr, dbname)
