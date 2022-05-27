@@ -26,7 +26,7 @@ def getTrajsolverPaths():
 #
 def refreshTrajectories(outf, matchstart, matchend, trajpath):
     thiskey = getKeyForBucket(trajpath)
-    outf.write('logger -s -t execdistrib syncing any updated trajectories to the website and shared S3\n')
+    outf.write('logger -s -t execdistrib syncing any updated trajectories from shared S3\n')
     outf.write(f'source {thiskey}\n')
     for d in range(matchend, matchstart+1):
         thisdt=datetime.datetime.now() + datetime.timedelta(days=-d)
@@ -107,10 +107,9 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         outf.write(f'cd {calcdir}\n')
         outf.write('df -h . \n')
 
-        outf.write('logger -s -t execdistrib syncing the data from shared S3\n')
-
         refreshTrajectories(outf, matchstart, matchend, outpath)
 
+        outf.write('logger -s -t execdistrib syncing the raw data from shared S3\n')
         shkey = getKeyForBucket(shbucket)
         outf.write(f'source {shkey}\n')
         # camera data
