@@ -75,6 +75,9 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
     print(f'Reading from {srcdir}')
     # obtain a list of picklefiles and sort by name
     flist = glob.glob1(srcdir, '*.pickle')
+    if len(flist) == 0:
+        print('no candidates to process')
+        return 
     flist.sort()
 
     # work out how many buckets i need
@@ -150,6 +153,9 @@ def monitorProgress(rundate, targdir):
     # load the buckets, tasks and cluster name from the dump file
     rundate = datetime.datetime.strptime(rundate, '%Y%m%d')
     picklefile = os.path.join(targdir, rundate.strftime('%Y%m%d') + '.pickle')
+    if not os.path.isfile(picklefile):
+        print('no containers to monitor')
+        return 
     dumpdata = pickle.load(open(picklefile,'rb'))
     bucknames = dumpdata[0]
     taskarns = dumpdata[1]
