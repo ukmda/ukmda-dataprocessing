@@ -24,11 +24,11 @@
                     },
                     {
                         "name": "OUTPATH",
-                        "value": "s3://ukmon-shared/matches/distrib"
+                        "value": "s3://ukmon-shared/matches/RMSCorrelate"
                     },
                     {
                         "name": "WEBPATH",
-                        "value": "s3://ukmeteornetworkarchive/dummy/"
+                        "value": "s3://ukmeteornetworkarchive/reports"
                     }
                 ]
             }
