@@ -33,4 +33,6 @@ if shopt -q login_shell ; then
  echo " tnj => tail the nightly job log"
  echo " spacecalc => display space usage in the current folder"
  echo ""
+ prd
+ matchstatus
 fi
