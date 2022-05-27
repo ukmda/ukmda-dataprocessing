@@ -24,7 +24,7 @@ def getMatchStats(logf):
     badvelo = len([line.strip() for line in loglines if 'Velocity difference too high' in line])
     badangl = len([line.strip() for line in loglines if 'Max convergence angle too small' in line])
 
-    trajs = [line.strip() for line in loglines if 'SOLVING' in line and 'TRAJECTORIES' in line]
+    trajs = [line.strip() for line in loglines if 'SAVING' in line and 'CANDIDATES' in line]
     spls = trajs[0].split(' ')
     trajs = int(spls[1])
 
