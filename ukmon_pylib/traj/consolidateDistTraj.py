@@ -100,7 +100,7 @@ if __name__ == '__main__':
     masterdb = sys.argv[2]
 
     # real path to the trajectories as per the master database
-    masterpth = '/home/ec2-user/data/RMSCorrelate'
+    masterpth = '/home/ec2-user/ukmon-shared/matches/RMSCorrelate'
 
     flist = glob.glob1(srcdir, '2*.json')
     flist.sort()
