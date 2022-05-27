@@ -120,24 +120,21 @@ def runCorrelator(dir_path, time_beg, time_end):
 
 # read the source bucket + folder and target buckets + folders from the environment
 def getSourceAndTargets():
-    srcpth = os.getenv('SRCPATH')
-    if srcpth is None:
-        srcpth = 's3://ukmon-shared/matches/distrib'
+    srcpth = os.getenv('SRCPATH', default='s3://ukmon-shared/matches/distrib')
     srcpth = srcpth[5:]
     srcbucket = srcpth[:srcpth.find('/')]
     srcpth = srcpth[srcpth.find('/')+1:]
-    outpth = os.getenv('OUTPATH')
-    if outpth is None:
-        outpth = 's3://ukmon-shared/matches/distrib'
+
+    outpth = os.getenv('OUTPATH', default='s3://ukmon-shared/matches/distrib')
     outpth = outpth[5:]
     outbucket = outpth[:outpth.find('/')]
     outpth = outpth[outpth.find('/')+1:]
-    webpth = os.getenv('WEBPATH')
-    if webpth is None:
-        webpth = 's3://ukmeteornetworkarchive/dummy'
+
+    webpth = os.getenv('WEBPATH', default='s3://ukmeteornetworkarchive/dummy')
     webpth = webpth[5:]
     webbucket = webpth[:webpth.find('/')]
     webpth = webpth[webpth.find('/')+1:]
+
     return srcbucket, srcpth, outbucket, outpth, webbucket, webpth
 
 
