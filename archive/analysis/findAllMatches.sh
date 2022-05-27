@@ -61,16 +61,13 @@ startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
 enddt=$(date --date="-$MATCHEND days" '+%Y%m%d-080000')
 logger -s -t findAllMatches1 "solving for ${startdt} to ${enddt}"
 
-logger -s -t findAllMatches1 "preserve previous trajectories database"
-thisjson=$MATCHDIR/RMSCorrelate/processed_trajectories.json.bigserver
-cp $thisjson $MATCHDIR/RMSCorrelate/prev_processed_trajectories.json.bigserver
-
 logger -s -t findAllMatches1 "actually run the matching process"
-$SRC/analysis/runMatching.sh $MATCHSTART $MATCHEND
+$SRC/analysis/runDistrib.sh $MATCHSTART $MATCHEND
+
 
 logger -s -t findAllMatches2 "check if the solver had some sort of failiure"
 logf=$(ls -1tr $SRC/logs/matches-*.log | tail -1)
-success=$(grep "SOLVING RUN DONE" $logf)
+success=$(grep "Total run time:" $logf)
 
 if [ "$success" == "" ]
 then
@@ -80,17 +77,14 @@ fi
 logger -s -t findAllMatches2 "Solving run done"
 logger -s -t findAllMatches2 "================"
 
-logger -s -t findAllMatches2 "waiting for lambdas to finish"
-# need to wait here till the lambdas creating orbit pages are finished
+logger -s -t findAllMatches2 "waiting for lambdas to finish, and then run a quick check for any that failed"
 sleep 600
-# catchall to reprocess any failed orbit page updates
-source $WEBSITEKEY
+source $SERVERAWSKEYS
 python -m utils.rerunFailedGetExtraFiles
 
 cd $here
 logger -s -t findAllMatches2 "create text file containing most recent matches"
-# this compares the previous and current trajectory database (json file)
-python -m reports.reportOfLatestMatches $MATCHDIR/RMSCorrelate $DATADIR $MATCHEND $rundate
+python -m reports.reportOfLatestMatches $DATADIR/distrib $DATADIR $MATCHEND $rundate processed_trajectories.json
 
 logger -s -t findAllMatches2 "gather some stats"
 
@@ -112,13 +106,6 @@ fi
 
 logger -s -t findAllMatches2 "update the Index page for the month and the year"
 $SRC/website/updateIndexPages.sh $dailyrep
-
-logger -s -t findAllMatches2 "backup the solved trajectory data"
-mkdir -p $DATADIR/trajdb > /dev/null 2>&1
-lastjson=$(ls -1tr $DATADIR/trajdb/| grep -v ".gz" | tail -1)
-thisjson=$MATCHDIR/RMSCorrelate/processed_trajectories.json.bigserver
-cp $thisjson $DATADIR/trajdb/processed_trajectories.json.$(date +%Y%m%d).bigserver
-gzip $DATADIR/trajdb/$lastjson
 
 logger -s -t findAllMatches2 "purge old logs"
 find $SRC/logs -name "matches*" -mtime +7 -exec gzip {} \;
