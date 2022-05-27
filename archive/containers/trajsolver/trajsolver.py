@@ -231,9 +231,9 @@ def startup(srcfldr, startdt, enddt):
 
         fname = f'{srcfldr}.json'
         jsonfile = os.path.join(localfldr, 'processed_trajectories.json')
-        targkey = f'{outpth}/{fname}'
-        print(f'uploading {jsonfile} to {outbucket}/{outpth}')
-        s3.meta.client.upload_file(jsonfile, outbucket, targkey, ExtraArgs = getExtraArgs(fname)) 
+        targkey = f'{srcpth}/{fname}'
+        print(f'uploading {jsonfile} to {srcbucket}/{srcpth}')
+        s3.meta.client.upload_file(jsonfile, srcbucket, targkey, ExtraArgs = getExtraArgs(fname)) 
     else:
         print('no files found')
     print(f"Finished at {datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}")
