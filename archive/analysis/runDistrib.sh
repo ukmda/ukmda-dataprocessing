@@ -102,8 +102,5 @@ tar czvf ${rundate}.tgz ${rundate}*.json ${rundate}.pickle
 cp ${rundate}.tgz $targdir/done
 rm -f $targdir/${rundate}*.json ${rundate}*.json ${rundate}.pickle
 
-logger -s -t runDistrib "create list of new matches"
-python -m reports.reportOfLatestMatches $DATADIR/distrib $DATADIR/distrib $MATCHEND $rundate processed_trajectories.json
-
 logger -s -t runDistrib "done"
 
