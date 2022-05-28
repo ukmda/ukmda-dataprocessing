@@ -32,9 +32,4 @@ function prd {
 	cd ~/prod
 }
 
-function bigserver {
-	source $SERVERAWSKEYS
-	AWS_DEFAULT_REGION=eu-west-2
-	privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
-	ssh -i ~/.ssh/markskey.pem $privip
-}
+function bigserver { if [ "$BIGSERVER" == "" ] ; then startcalc && sleep 10 ; fi ; ssh -i ~/.ssh/markskey.pem $BIGSERVER ; }
