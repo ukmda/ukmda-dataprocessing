@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "async": "^2.6.0",
+    "async": "^2.6.4",
     "aws-mqtt": "^0.2.2",
     "aws-mqtt-client": "0.0.5",
     "aws-sdk": "^2.231.1",
