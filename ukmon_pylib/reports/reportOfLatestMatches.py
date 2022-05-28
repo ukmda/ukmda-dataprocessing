@@ -52,20 +52,20 @@ def getTrajPaths(trajdict):
     return trajpaths, fullnames
 
 
-def getListOfNewMatches(dir_path, tfile = 'processed_trajectories.json', prevtfile = 'prev_processed_trajectories.json'):
+def getListOfNewMatches(dir_path, tfile, prevtfile):
     with open(os.path.join(dir_path, tfile), 'r') as inf:
         trajs = json.load(inf)
     with open(os.path.join(dir_path, prevtfile), 'r') as inf:
-        ptrajs = json.load(inf)
-    
+        ptrajs = json.load(inf)    
     newtrajs = {k:v for k,v in trajs['trajectories'].items() if k not in ptrajs['trajectories']}
     #print(len(newtrajs))
     newdirs, _ = getTrajPaths(newtrajs)  
     return newdirs
 
 
-def findNewMatches(dir_path, out_path, offset, repdtstr):
-    newdirs = getListOfNewMatches(dir_path, 'processed_trajectories.json.bigserver', 'prev_processed_trajectories.json.bigserver')
+def findNewMatches(dir_path, out_path, offset, repdtstr, dbname):
+    prevdbname = 'prev_' + dbname
+    newdirs = getListOfNewMatches(dir_path, dbname, prevdbname)
     # load camera details
     cinf = cd.SiteInfo()
 
@@ -74,6 +74,7 @@ def findNewMatches(dir_path, out_path, offset, repdtstr):
     else:
         repdt = datetime.datetime.now() - datetime.timedelta(int(offset))
 
+    os.makedirs(os.path.join(out_path, 'dailyreports'), exist_ok=True)
     # create filename. Allow for three reruns in a day
     matchlist = os.path.join(out_path, 'dailyreports', repdt.strftime('%Y%m%d.txt'))
     if os.path.isfile(matchlist) is True:
@@ -88,7 +89,10 @@ def findNewMatches(dir_path, out_path, offset, repdtstr):
             trajdir = trajdir.replace('/data/','/ukmon-shared/matches/')
             _, picklename = os.path.split(trajdir)
             picklename = os.path.join(trajdir, picklename[:15] +'_trajectory.pickle')
-            bestvmag, shwr, stationids = getVMagCodeAndStations(picklename)
+            try:
+                bestvmag, shwr, stationids = getVMagCodeAndStations(picklename)
+            except:
+                bestvmag, shwr, stationids = 0,'',['']
             stations=[]
             for statid in stationids:
                 _,_,_,_,loc = cinf.GetSiteLocation(statid)
@@ -131,6 +135,13 @@ def findNewMatches(dir_path, out_path, offset, repdtstr):
 
 if __name__ == '__main__':
     repdtstr = None
+    dbname = None
     if len(sys.argv) > 4:
         repdtstr = sys.argv[4]
-    findNewMatches(sys.argv[1], sys.argv[2], sys.argv[3], repdtstr)
+    if len(sys.argv) > 5:
+        dbname = sys.argv[5]
+    else:
+        dbname = 'processed_trajectories.json.bigserver'
+        
+    # arguments dblocation, datadir, days ago, rundate eg 20220524, full path to database
+    findNewMatches(sys.argv[1], sys.argv[2], sys.argv[3], repdtstr, dbname)

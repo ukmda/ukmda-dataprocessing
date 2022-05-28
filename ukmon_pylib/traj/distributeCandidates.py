@@ -75,6 +75,9 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
     print(f'Reading from {srcdir}')
     # obtain a list of picklefiles and sort by name
     flist = glob.glob1(srcdir, '*.pickle')
+    if len(flist) == 0:
+        print('no candidates to process')
+        return 
     flist.sort()
 
     # work out how many buckets i need
@@ -82,25 +85,29 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
     numbucks = int(math.ceil(numcands/maxcount))
 
     # create buckets
+    targdir = targdir[5:]
+    outbucket=targdir[:targdir.find('/')]
+    targdir = targdir[targdir.find('/')+1:]
     buckroot = os.path.join(targdir, rundate.strftime('%Y%m%d'))
+
     taskarns = [None] * numbucks
     jsontempls = [None] * numbucks
     bucknames = [None] * numbucks
 
     isDbg = getDebugStatus()
 
+    with open(os.path.expanduser('~/.ssh/ukmonarchive-keys'), 'r') as ukmkeyfile:
+        lis = ukmkeyfile.readlines()
+    access_key = lis[0].split('=')[1].strip()
+    secret_key = lis[1].split('=')[1].strip()
+    s3 = boto3.resource('s3', aws_access_key_id=access_key, aws_secret_access_key=secret_key)
     for i in range(0, numbucks):
         bucknames[i] = buckroot + f'_{i:02d}'
-        if os.path.isdir(bucknames[i]):
-            shutil.rmtree(bucknames[i])
-        os.makedirs(bucknames[i], exist_ok=True)
         filelist = flist[i::numbucks]
-        with open(os.path.join(bucknames[i], f'files_{i:02d}.txt'),'w') as outf:
-            for fli in filelist:
-                src = os.path.join(srcdir, fli)
-                dst = os.path.join(bucknames[i], fli)
-                shutil.copy2(src, dst)
-                outf.write(f'{fli}\n')
+        for fli in filelist:
+            src = os.path.join(srcdir, fli)
+            dst = os.path.join(bucknames[i], fli)
+            s3.meta.client.upload_file(src, outbucket, dst)
 
         taskjson = createTaskTemplate(rundate, bucknames[i], clusdets)
 
@@ -120,9 +127,14 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
     bucknames = [e for e in bucknames if e is not None]
     jsontempls = [e for e in jsontempls if e is not None]
 
-    clusname = jsontempls[0]['cluster']
+    print(f' {len(flist)} buckets, {len(taskarns)} arns')
     dmpdata = [bucknames, taskarns, clusname]
-    pickle.dump(dmpdata, open(buckroot + '.pickle','wb'))
+
+    src = os.path.join('/tmp', rundate.strftime('%Y%m%d') + '.pickle')
+    dst = buckroot + '.pickle'
+
+    pickle.dump(dmpdata, open(src,'wb'))
+    s3.meta.client.upload_file(src, outbucket, dst)
 
     status = client.describe_clusters(clusters=[clusname])
     rtc = status['clusters'][0]['runningTasksCount']
@@ -132,11 +144,18 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
     return True
 
 
-def monitorProgress(rundate, targdir, clusdets):
+def monitorProgress(rundate, targdir):
     client = boto3.client('ecs', region_name='eu-west-2')
 
+    templdir,_ = os.path.split(__file__)
+    clusdets = getClusterDetails(templdir)
+
     # load the buckets, tasks and cluster name from the dump file
+    rundate = datetime.datetime.strptime(rundate, '%Y%m%d')
     picklefile = os.path.join(targdir, rundate.strftime('%Y%m%d') + '.pickle')
+    if not os.path.isfile(picklefile):
+        print('no containers to monitor')
+        return 
     dumpdata = pickle.load(open(picklefile,'rb'))
     bucknames = dumpdata[0]
     taskarns = dumpdata[1]
@@ -151,10 +170,11 @@ def monitorProgress(rundate, targdir, clusdets):
     # if not "stopCode": "EssentialContainerExited"
     # then launch it again
 
-    # wait 60s before testing whether everything is running
+    # wait 20s before testing whether everything is running
+    time.sleep(20.0)
+    print('starting checks')
     taskcount = len(taskarns)
     while taskcount > 0:
-        time.sleep(60.0)
         sts = client.describe_tasks(cluster=clusname, tasks=taskarns)
         for tsk in sts['tasks']:
             print(f'checking {tsk["taskArn"][51:]}')
@@ -170,7 +190,11 @@ def monitorProgress(rundate, targdir, clusdets):
                     thisarn=taskarns.pop(idx)
                     thisbuck = bucknames.pop(idx)
                     taskcount -= 1
-                    shutil.rmtree(os.path.join(targdir, thisbuck))
+                    _, thisbuck = os.path.split(thisbuck)
+                    try:
+                        shutil.rmtree(os.path.join(targdir, thisbuck))
+                    except:
+                        print('folder already removed')
                     print('task completed')
 
                     # collect the logs from CloudWatch 
@@ -183,10 +207,13 @@ def monitorProgress(rundate, targdir, clusdets):
                                 evtdt = datetime.datetime.fromtimestamp(int(evt['timestamp']) / 1000)
                                 msg = evt['message']
                                 outf.write(f'{evtdt} {msg}\n')
-                                if realfname is None:
-                                    realfname = msg[11:]
+                                if msg[:10] == 'processing':
+                                    realfname = msg[11:].strip()
 
                     os.rename(tmpfname, os.path.join(targdir, 'logs', f'{realfname}.log'))
+        if taskcount > 0:
+            # wait 60s before checking again
+            time.sleep(60.0)
     return
 
 
@@ -231,4 +258,4 @@ if __name__ == '__main__':
     clusdets = getClusterDetails(templdir)
     print(clusdets)
     distributeCandidates(rundt, srcdir, targdir, clusdets)
-    monitorProgress(rundt, targdir, clusdets)
+    

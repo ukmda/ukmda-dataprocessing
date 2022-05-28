@@ -8,15 +8,12 @@ import sys
 import fnmatch
 import matplotlib.pyplot as plt
 
+import cartopy.crs as ccrs
+
 from fileformats import ReadUFOAnalyzerXML as ua
 from fileformats import CameraDetails as cd
 
-import cartopy.crs as ccrs
-#import cartopy.feature as cfeature
-
-# override PIL's image size limit
 from PIL import Image
-Image.MAX_IMAGE_PIXELS = None
 
 
 def getBearingsForEvent(stns, fldr):
@@ -79,7 +76,7 @@ def get_intersect(a1, a2, b1, b2):
 
 
 def plotMap(srcpath, intersect):
-
+    print(srcpath)
     lats = []
     longs = []
     stas = []
@@ -165,8 +162,9 @@ def plotMap(srcpath, intersect):
     plt.show()
 
 
-
 if __name__ == '__main__':
+    # override PIL's image size limit
+    Image.MAX_IMAGE_PIXELS = None
     if len(sys.argv) < 2:
         print('Usage python plotStationsOnMap.py srcfile optional_intersect')
         print('  will plot all stations in srcfile and optionally the intersections of any events')
