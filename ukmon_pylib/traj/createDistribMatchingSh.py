@@ -112,14 +112,15 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         outf.write('logger -s -t execdistrib syncing the raw data from shared S3\n')
         shkey = getKeyForBucket(shbucket)
         outf.write(f'source {shkey}\n')
-        # camera data
-        outf.write(f'time aws s3 sync {shbucket}/matches/RMSCorrelate {calcdir} --exclude "*" --include "UK*" --quiet\n')
         # database from last successful run
         outf.write(f'aws s3 cp {srcpath}/processed_trajectories.json {calcdir}/processed_trajectories.json --quiet\n')
+        outf.write(f'ls -ltr {calcdir}/*.json\n')
+        # camera data
+        outf.write(f'time aws s3 sync {shbucket}/matches/RMSCorrelate {calcdir} --exclude "*" --include "UK*" --quiet\n')
 
         outf.write('logger -s -t execdistrib starting correlator to update existing matches and create candidates\n')
         outf.write(f'mkdir -p {calcdir}/candidates\n')
-        outf.write(f'rm {calcdir}/candidates/*.pickle\n')
+        outf.write(f'rm {calcdir}/candidates/*.pickle >/dev/null 2>&1\n')
         outf.write(f'time python -m wmpl.Trajectory.CorrelateRMS {calcdir} -i 1 -l -r \"({startdtstr},{enddtstr})\"\n')
 
         outf.write('logger -s -t execdistrib backing up the database to trajdb\n')
@@ -127,7 +128,9 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
 
         outf.write('logger -s -t execdistrib Syncing the database back to shared S3\n')
         outf.write(f'source {shkey}\n')
+        outf.write(f'if [ -s {calcdir}/processed_trajectories.json ] ; then\n')
         outf.write(f'aws s3 cp {calcdir}/processed_trajectories.json {srcpath}/processed_trajectories.json --quiet\n')
+        outf.write('else echo "bad database file" ; fi \n')
 
         outf.write('logger -s -t execdistrib distributing candidates and launching containers\n')
         outf.write('source ~/.ssh/marks-keys\n')
