@@ -1,6 +1,7 @@
 import os
 import sys
 import glob
+import shutil
 
 from wmpl.Trajectory.CorrelateRMS import TrajectoryReduced, DatabaseJSON 
 #from wmpl.Trajectory.CorrelateRMS import MeteorObsRMS, PlateparDummy, MeteorPointRMS # noqa: F401
@@ -48,9 +49,10 @@ def mergeDatabases(srcdir, srcdb, masterpth, masterfile):
 def patchTrajDB(dbfile, targpath, oldstr='/home/ec2-user/data/RMSCorrelate'):
 
     with open(dbfile, 'r') as inf:
-        with open(os.path.join(targpath, 'processed_trajectories.json'), 'w') as outf:
+        with open(os.path.join('/tmp/processed_trajectories.json'), 'w') as outf:
             for lin in inf:
-                outf.write(lin.replace(oldstr, targpath))            
+                outf.write(lin.replace(oldstr, targpath))
+    shutil.copyfile('/tmp/processed_trajectories.json', dbfile)
     return 
 
 
@@ -100,7 +102,7 @@ if __name__ == '__main__':
     masterdb = sys.argv[2]
 
     # real path to the trajectories as per the master database
-    masterpth = '/home/ec2-user/data/RMSCorrelate'
+    masterpth = '/home/ec2-user/ukmon-shared/matches/RMSCorrelate'
 
     flist = glob.glob1(srcdir, '2*.json')
     flist.sort()
@@ -108,3 +110,4 @@ if __name__ == '__main__':
         #countDataInDb(os.path.join(srcdir, fl))
         print(fl)
         mergeDatabases(srcdir, fl, masterpth, masterdb)
+    patchTrajDB(masterdb, masterpth, oldstr='/home/ec2-user/prod/data/distrib')
