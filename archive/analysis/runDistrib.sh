@@ -24,7 +24,7 @@ if [ $# -gt 0 ] ; then
         MATCHSTART=$1
     fi
     if [ "$2" != "" ] ; then
-        MATCHEND=$(( $MATCHSTART - $2 ))
+        MATCHEND=$2
     else
         echo "matchend was not supplied, using 2"
         MATCHEND=$(( $MATCHSTART - 2 ))
