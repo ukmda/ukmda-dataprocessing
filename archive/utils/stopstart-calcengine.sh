@@ -8,7 +8,7 @@ source /home/ec2-user/venvs/${RMS_ENV}/bin/activate
 source $SERVERAWSKEYS
 AWS_DEFAULT_REGION=eu-west-2
 aws ec2 $1-instances --instance-ids $SERVERINSTANCEID
-if [ "$1" == "start "] ; then 
+if [ "$1" == "start " ] ; then 
     privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
     export BIGSERVER=$privip
 else
