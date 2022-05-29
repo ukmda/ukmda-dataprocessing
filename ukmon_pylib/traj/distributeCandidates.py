@@ -127,7 +127,7 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
     bucknames = [e for e in bucknames if e is not None]
     jsontempls = [e for e in jsontempls if e is not None]
 
-    print(f' {len(flist)} buckets, {len(taskarns)} arns')
+    print(f' {len(flist)} candidates, {len(taskarns)} arns')
     dmpdata = [bucknames, taskarns, clusname]
 
     src = os.path.join('/tmp', rundate.strftime('%Y%m%d') + '.pickle')
