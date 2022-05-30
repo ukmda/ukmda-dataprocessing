@@ -53,6 +53,8 @@ def pushUpdatedTrajectoriesShared(outf, matchstart, matchend, targpath):
         outf.write(f'source {thiskey}\n')
         outf.write(f'aws s3 sync {trajloc} {targpath}/matches/RMSCorrelate/{trajloc} --exclude "*" --include "*.pickle" --include "*report.txt" --quiet\n')
         outf.write('fi\n')
+    outf.write(f'aws s3 sync trajectories/{yr}/plots {targpath}/matches/RMSCorrelate/trajectories/{yr}/plots --quiet\n')
+    outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth}/plots {targpath}/matches/RMSCorrelate/trajectories/{yr}/{yr}{mth}/plots --quiet\n')
     return 
 
 
@@ -72,7 +74,23 @@ def pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webpath):
         outf.write(f'source {thiskey}\n')
         outf.write(f'aws s3 sync {trajloc} {webpath}/{targloc} --quiet\n')
         outf.write('fi\n')
+    outf.write(f'aws s3 sync trajectories/{yr}/plots {webpath}/reports/{yr}/orbits/plots --quiet\n')
+    outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth}/plots {webpath}/reports/{yr}/orbits/{yr}{mth}/plots --quiet\n')
     return 
+
+
+def createDensityPlots(outf, calcdir, yr, ym):
+    outf.write('logger -s -t execdistrib creating density plots\n')
+    outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot  {calcdir}/trajectories/{yr} -p -s 30\n')
+    outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot  {calcdir}/trajectories/{yr}/{ym} -p -s 30\n')
+    outf.write(f'mkdir -p {calcdir}/trajectories/{yr}/plots\n')
+    outf.write(f'mv {calcdir}/trajectories/{yr}/*.png {calcdir}/trajectories/{yr}/plots\n')
+    outf.write(f'mv {calcdir}/trajectories/{yr}/trajectory_summary.txt {calcdir}/trajectories/{yr}/plots\n')
+    outf.write(f'mkdir -p {calcdir}/trajectories/{yr}/{ym}/plots\n')
+    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/*.png {calcdir}/trajectories/{yr}/{ym}/plots\n')
+    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/trajectory_summary.txt {calcdir}/trajectories/{yr}/{ym}/plots\n')
+
+    return
 
 
 def getKeyForBucket(buck):
@@ -95,7 +113,7 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
     startdtstr = startdt.strftime('%Y%m%d-080000')
     enddtstr = enddt.strftime('%Y%m%d-080000')
     rundatestr = enddt.strftime('%Y%m%d')
-
+    
     calcdir = '/home/ec2-user/ukmon-shared/matches/RMSCorrelate' # hardcoded!
 
     srcpath, outpath, webpath = getTrajsolverPaths()
@@ -135,6 +153,8 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         outf.write('logger -s -t execdistrib distributing candidates and launching containers\n')
         outf.write('source ~/.ssh/marks-keys\n')
         outf.write(f'time python -m traj.distributeCandidates {rundatestr} {calcdir}/candidates {srcpath}\n')
+
+        createDensityPlots(outf, calcdir, rundatestr[:4], rundatestr[:6])
 
         pushUpdatedTrajectoriesShared(outf, matchstart, matchend, shbucket)
         pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webbucket)
