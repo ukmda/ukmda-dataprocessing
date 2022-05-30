@@ -125,7 +125,7 @@ resource "aws_lambda_function" "ftpdetectlambda" {
   handler       = "consolidateFTPdetect.lambda_handler"
   runtime       = "python3.8"
   memory_size   = 128
-  timeout       = 90
+  timeout       = 30
   role          = aws_iam_role.S3FullAccess.arn
   publish       = false
   tags = {
