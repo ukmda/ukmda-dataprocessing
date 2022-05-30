@@ -25,6 +25,9 @@ resource "aws_lambda_function" "consolidatejpgslambda" {
       "WEBSITEBUCKET" = "s3://ukmeteornetworkarchive"  
     }
   }
+  ephemeral_storage {
+    size = 512
+  }
   tags = {
     Name        = "consolidateJpgs"
     billingtag  = "ukmon"
@@ -52,6 +55,9 @@ resource "aws_lambda_function" "consolidatekmlslambda" {
     variables = {
       "WEBSITEBUCKET" = "s3://ukmeteornetworkarchive"  
     }
+  }
+  ephemeral_storage {
+    size = 512
   }
   tags = {
     Name        = "consolidateKmls"
@@ -82,6 +88,9 @@ resource "aws_lambda_function" "consolidatelatestlambda" {
       "WEBSITEBUCKET" = "s3://ukmeteornetworkarchive"  
     }
   }
+  ephemeral_storage {
+    size = 512
+  }
   tags = {
     Name        = "consolidateLatest"
     billingtag  = "ukmon"
@@ -105,6 +114,9 @@ resource "aws_lambda_function" "csvtriggerlambda" {
   timeout       = 90
   role          = aws_iam_role.S3FullAccess.arn
   publish       = false
+  ephemeral_storage {
+    size = 512
+  }
   tags = {
     Name        = "CSVTrigger"
     billingtag  = "ukmon"
@@ -128,6 +140,9 @@ resource "aws_lambda_function" "ftpdetectlambda" {
   timeout       = 30
   role          = aws_iam_role.S3FullAccess.arn
   publish       = false
+  ephemeral_storage {
+    size = 512
+  }
   tags = {
     Name        = "consolidateFTPdetect"
     billingtag  = "ukmon"

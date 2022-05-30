@@ -21,6 +21,9 @@ resource "aws_lambda_function" "matchapilambda" {
        "SRCHBUCKET" = "ukmon-shared"
     }
   }
+  ephemeral_storage {
+    size = 512
+  }
   tags = {
     Name        = "matchDataApiHandler"
     billingtag  = "ukmon"
