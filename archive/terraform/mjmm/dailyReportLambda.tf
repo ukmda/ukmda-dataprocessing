@@ -10,22 +10,27 @@ data "archive_file" "dailyreportzip" {
   output_path = "${path.root}/files/dailyreport.zip"
 }
 
-resource "aws_lambda_function" "dailyReportLambda" {
+resource "aws_lambda_function" "dailyreportlambda" {
+  provider      = aws.eu-west-1-prov
   function_name = "dailyReport"
+  description   = "Daily report of matching events"
   filename      = data.archive_file.dailyreportzip.output_path
   handler       = "dailyReport.lambda_handler"
   runtime       = "python3.8"
   memory_size   = 128
   timeout       = 300
   role          = aws_iam_role.dayilreport_role.arn
+  publish       = false
   environment {
     variables = {
       OFFSET = "1"
       DEBUG  = "False"
     }
   }
-  tags {
-    billingtag = "ukmon"
+  tags = {
+    Name        = "dailyReport"
+    billingtag  = "ukmon"
+    "UKMonLive" = "2"
   }
 }
 
@@ -33,8 +38,8 @@ resource "aws_lambda_function" "dailyReportLambda" {
 # IAM role which dictates what other AWS services the Lambda function
 # may access.
 resource "aws_iam_role" "dayilreport_role" {
-  name = "dailyReportRole"
-
+  name               = "dailyReportRole"
+  path               = "/service-role/"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -63,13 +68,13 @@ resource "aws_iam_role_policy" "dailyreport_policy" {
 		{
 			"Effect": "Allow",
 			"Action": "logs:CreateLogGroup",
-      "Resource": "Resource": "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:*"
+      "Resource": "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:*"
     },
     {
 			"Effect": "Allow",
       "Action": [
         "logs:CreateLogStream",
-        "Action": "logs:PutLogEvents"
+        "logs:PutLogEvents"
       ],
       "Resource": "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/dailyReport:*"
     },
@@ -87,3 +92,6 @@ resource "aws_iam_role_policy" "dailyreport_policy" {
 }
 EOF
 }
+
+/*
+*/
