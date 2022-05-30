@@ -27,6 +27,9 @@ resource "aws_lambda_function" "dailyreportlambda" {
       DEBUG  = "False"
     }
   }
+  ephemeral_storage {
+    size = 512
+  }
   tags = {
     Name        = "dailyReport"
     billingtag  = "ukmon"
