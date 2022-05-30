@@ -20,4 +20,4 @@ variable "region"{ default = "eu-west-2"}
 
 #data used by the code in several places
 data "aws_caller_identity" "current" {}
-
+data "aws_canonical_user_id" "current" {}
