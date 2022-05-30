@@ -1,4 +1,4 @@
-resource "aws_iam_user" "ukmonarchive"{
+resource "aws_iam_user" "ukmonarchive" {
   name = "ukmonarchive"
 }
 
@@ -13,6 +13,23 @@ resource "aws_iam_role" "S3FullAccess" {
           Action = "sts:AssumeRole"
           Effect = "Allow"
           Principal = {
+            Service = "lambda.amazonaws.com"
+            "AWS": "arn:aws:iam::317976261112:root"
+          }
+        },
+        {
+          Action = "sts:AssumeRole"
+          Effect = "Allow"
+          Principal = {
+            AWS     = "arn:aws:iam::317976261112:role/lambda-s3-full-access-role"
+            Service = "lambda.amazonaws.com"
+          }
+        },
+        {
+          Action = "sts:AssumeRole"
+          Effect = "Allow"
+          Principal = {
+            AWS     = "AROAUUCG4WH4NYGWV2PLY"
             Service = "lambda.amazonaws.com"
           }
         },
@@ -42,6 +59,12 @@ resource "aws_iam_role_policy_attachment" "aws-mps4" {
   policy_arn = "arn:aws:iam::822069317839:policy/ddbPermsForLambda"
 }
 
+resource "aws_iam_role_policy_attachment" "aws-mps5" {
+  role       = aws_iam_role.S3FullAccess.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonAthenaFullAccess"
+}
+
+
 resource "aws_iam_policy" "userpol1" {
   name = "CEforUkmonarchive"
   policy = jsonencode(
@@ -62,7 +85,7 @@ resource "aws_iam_policy" "userpol1" {
   }
 }
 
-resource "aws_iam_user_policy_attachment" "ump1"{
-  user= "ukmonarchive"
+resource "aws_iam_user_policy_attachment" "ump1" {
+  user       = "ukmonarchive"
   policy_arn = "arn:aws:iam::822069317839:policy/CEforUkmonarchive"
 }
