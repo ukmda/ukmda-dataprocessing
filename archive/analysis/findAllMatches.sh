@@ -33,7 +33,7 @@ if [ $# -gt 0 ] ; then
         MATCHSTART=$1
     fi
     if [ "$2" != "" ] ; then
-        MATCHEND=$(( $MATCHSTART - $2 ))
+        MATCHEND=$2
     else
         echo "matchend was not supplied, using 2"
         MATCHEND=$(( $MATCHSTART - 2 ))
@@ -96,7 +96,7 @@ vals=$(python -m utils.getMatchStats $matchlog )
 evts=$(echo $vals | awk '{print $2}')
 trajs=$(echo $vals | awk '{print $6}')
 matches=$(wc -l $dailyrep | awk '{print $1}')
-rtim=$(grep "Total run time" $matchlog | awk '{print $4}')
+rtim=$(echo $vals | awk '{print $7}')
 echo $(basename $dailyrep) $evts $trajs $matches $rtim >>  $DATADIR/dailyreports/stats.txt
 
 # copy stats to S3 so the daily report can run

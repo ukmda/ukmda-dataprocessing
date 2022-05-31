@@ -18,8 +18,8 @@ def MakeFileWritable(ymd, hms, sid, lid):
 
 
 def AddHeader(body, bodytext, stats):
-    rtstr = datetime.datetime.strptime(stats[4], '%H:%M:%S.%f').strftime('%H:%M')
-    body = body + '<br>Today we examined {} detections, found {} potential matches and confirmed {} in {}h.<br>'.format(stats[1], stats[2], stats[3], rtstr)
+    rtstr = datetime.datetime.strptime(stats[4], '%H:%M:%S').strftime('%Hh%Mm')
+    body = body + '<br>Today we examined {} detections, found {} potential matches and confirmed {} in {}.<br>'.format(stats[1], stats[2], stats[3], rtstr)
     body = body + 'Up to the 100 brightest matched events are shown below. '
     body = body + 'Note that this may include older data for which a new match has been found.<br>'
     body = body + 'Click each link to see analysis of these events.<br>'
@@ -109,7 +109,7 @@ def sendMail(subj, body, bodytext, target, tmppth):
     client = boto3.client('sts')
     response = client.get_caller_identity()['Account']
     if response == '317976261112':
-        SENDER = 'mark.jm.mcintyre@cesmail.net'
+        SENDER = 'ukmeteornetwork@gmail.com'
         AWS_REGION = 'eu-west-2'
     else:
         SENDER = 'ukmeteornetwork@gmail.com'
@@ -123,8 +123,6 @@ def sendMail(subj, body, bodytext, target, tmppth):
         RECIPIENT = ['mark.jm.mcintyre@cesmail.net', 'mjmm456@gmail.com']
     else:
         try:
-            # recs = os.environ['RECIPS']
-            # RECIPIENT = recs.split(';')
             memblist = os.path.join(tmppth,'dailyReportRecips.txt')
             s3.meta.client.download_file(target, 'admin/dailyReportRecips.txt', memblist)
             with open(memblist, 'r') as inf:
@@ -185,8 +183,6 @@ def lambda_handler(event, context):
     tmppth = '/tmp'
     print('DailyCheck: getting daily report')
     s3 = boto3.resource('s3')
-    repdate = datetime.datetime.today() + datetime.timedelta(days=-(doff-1))
-    #fullrep = 'matches/RMSCorrelate/dailyreports/'+ repdate.strftime('%Y%m%d.txt')
     fullrep = 'matches/RMSCorrelate/dailyreports/latest.txt'
     dailyreport = os.path.join(tmppth,'dailyreport.csv')
     print(target, fullrep, dailyreport)

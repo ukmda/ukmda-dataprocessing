@@ -10,6 +10,31 @@ from dateutil import relativedelta
 csvdtype = np.dtype([('dt', 'U10'), ('service','U64'), ('tag', 'U32'), ('cost', '<f8')])
 
 
+def getAllCostsAndUsage(ceclient, startdt, enddt, svcs, tagval):
+    response = ceclient.get_cost_and_usage(
+        TimePeriod={'Start': startdt, 'End': enddt},
+        Granularity='DAILY',
+        Filter={'Dimensions': {'Key': 'SERVICE', 'Values': svcs}},
+        Metrics=['BlendedCost'],
+        GroupBy=[{'Type': 'DIMENSION','Key': 'SERVICE'},
+            {'Type': 'TAG', 'Key': tagval}])
+
+    yield(response['ResultsByTime'])
+
+    while "NextPageToken" in response:
+        prev_token = response['NextPageToken']        
+        response = ceclient.get_cost_and_usage(
+            TimePeriod={'Start': startdt, 'End': enddt},
+            Granularity='DAILY',
+            Filter={'Dimensions': {'Key': 'SERVICE', 'Values': svcs}},
+            Metrics=['BlendedCost'],
+            GroupBy=[{'Type': 'DIMENSION','Key': 'SERVICE'},
+                {'Type': 'TAG', 'Key': tagval}],
+            NextPageToken=prev_token)
+
+        yield(response['ResultsByTime'])
+
+
 def getSvcName(svc):
     if 'Elastic Compute' in svc:
         svcname='Compute'
@@ -34,10 +59,13 @@ def getSvcName(svc):
     return svcname
 
 
-def drawBarChart(outdir, accountid, regionid, mthdate):
-    fldr = os.path.join(outdir, f'{accountid}',f'{regionid}')
-    fname = os.path.join(fldr, f'costs-{mthdate}.csv')
-    costdata = np.genfromtxt(fname, delimiter=',', dtype=csvdtype, skip_header=1)
+def drawBarChart(costsfile):
+    outdir, fname =os.path.split(costsfile)
+    fn, _ = os.path.splitext(fname)
+    #accid = spls[1]
+    spls = fn.split('-')
+    mthdate = spls[2] + '-' + spls[3]
+    costdata = np.genfromtxt(costsfile, delimiter=',', dtype=csvdtype, skip_header=1)
 
     # select only the ukmon data
     fltr=np.logical_or(costdata['tag']==' billingtag$ukmon',costdata['tag']==' billingtag$ukmonstuff')
@@ -62,6 +90,7 @@ def drawBarChart(outdir, accountid, regionid, mthdate):
     numdays = len(labels)
     # run through services adding them to the graph
     bottoms=np.zeros(numdays)
+    print(svcs)
     for svc in svcs: 
         thisfltr = fltrdata['service']==svc
         thisdata = fltrdata[thisfltr]
@@ -85,16 +114,13 @@ def drawBarChart(outdir, accountid, regionid, mthdate):
     ax.set_title(f'Cost for month starting {mthdate}: total ${totcost:.2f}')
     ax.legend()
 
-    os.makedirs(os.path.join(outdir, 'plots'), exist_ok=True)
-    fname = os.path.join(outdir, 'plots','{}-{}'.format(accountid, mthdate))
+    fname = os.path.join(outdir, f'{fn}.jpg')
     plt.savefig(fname)
     plt.show()
 
 
 def getAllBillingData(ceclient, dtwanted, endwanted, regionid, outdir):
-    fldr = os.path.join(outdir, f'{accountid}/{regionid}')
-    os.makedirs(fldr, exist_ok=True)
-
+    accid = boto3.client('sts').get_caller_identity()['Account']
     startdt = dtwanted.strftime('%Y-%m-%d')
     if endwanted is None:
         endwanted = datetime.date.today()
@@ -112,29 +138,21 @@ def getAllBillingData(ceclient, dtwanted, endwanted, regionid, outdir):
     for dim in dims:
         svcs.append(dim['Value'])
 
-    response = ceclient.get_cost_and_usage(
-        TimePeriod={'Start': startdt, 'End': enddt},
-        Granularity='DAILY',
-        Filter={'Dimensions': {'Key': 'SERVICE', 'Values': svcs}},
-        Metrics=['BlendedCost'], # 'UsageQuantity'],
-        GroupBy=[{'Type': 'DIMENSION','Key': 'SERVICE'}, 
-            {'Type': 'TAG','Key': 'billingtag'}])
+    tagval = os.getenv('COSTTAG', default='billingtag')
 
-    if response['ResponseMetadata']['HTTPStatusCode'] != 200:
-        print('unable to retrieve costs by service')
-        return 
-    else:
-        results = response['ResultsByTime']
-        costsfile = os.path.join(fldr, f'costs-{startdt[:7]}.csv')
-        with open(costsfile,'w') as outf:
-            outf.write('Date,Service,Tag,Amount\n')
-            for res in results:
-                strt = res['TimePeriod']['Start']
-                for grp in res['Groups']:
+    costsfile = os.path.join(outdir, f'costs-{accid}-{startdt[:7]}.csv')
+
+    with open(costsfile,'w') as outf:
+        outf.write('Date,Service,Tag,Amount\n')
+        for costs in getAllCostsAndUsage(ceclient, startdt, enddt, svcs, tagval):
+            for cost in costs:
+                strt = cost['TimePeriod']['Start']
+                for grp in cost['Groups']:
                     svc = grp['Keys'][0]
                     tag = grp['Keys'][1]
                     amt = grp['Metrics']['BlendedCost']['Amount']
                     outf.write(f'{strt}, {svc}, {tag}, {amt}\n')
+    return costsfile, accid
 
 
 if __name__ == '__main__':
@@ -148,22 +166,26 @@ if __name__ == '__main__':
         mthwanted = int(sys.argv[3])
         curdt = datetime.date.today()
         thismth = curdt.month
-        dtwanted = curdt.replace(month=mthwanted).replace(day=1)
-        if mthwanted > thismth:
-            dtwanted = dtwanted.replace(year = curdt.year-1)
-        #if mthwanted == 12:
-        #    dtwanted = dtwanted.replace(year = curdt.year-1).replace(month=12)
+        if int(mthwanted) > 12:
+            yr = int(str(mthwanted)[:4])
+            mth = int(str(mthwanted)[4:])
+        else:
+            yr = curdt.year
+            mth = int(mthwanted)
+
+        if yr >= curdt.year and mth > thismth:
+            yr = yr - 1
+
+        dtwanted = curdt.replace(day=1).replace(month=mth).replace(year=yr)
         endwanted = dtwanted + relativedelta.relativedelta(months=1)
-        
     else:
         endwanted = datetime.date.today() - datetime.timedelta(days=1)
         dtwanted = endwanted.replace(day=1)
 
     stscli = boto3.client("sts")
-    accountid = stscli.get_caller_identity()["Account"]
     myconfig = Config(region_name=regionid)
     ceclient = boto3.client('ce', config=myconfig)
 
-    getAllBillingData(ceclient, dtwanted, endwanted, regionid, outdir)
+    costsfile, accid = getAllBillingData(ceclient, dtwanted, endwanted, regionid, outdir)
 
-    drawBarChart(outdir, accountid, regionid, dtwanted.strftime('%Y-%m'))
+    drawBarChart(costsfile)

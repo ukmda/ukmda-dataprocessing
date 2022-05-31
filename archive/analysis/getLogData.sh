@@ -3,6 +3,12 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config/config.ini >/dev/null 2>&1
 source $HOME/venvs/$WMPL_ENV/bin/activate
 
+if [ "$1" == "" ] ; then
+    rundate=$1
+else
+    rundate=$(date +%Y%m%d)
+fi 
+
 lastlog=$(ls -1tr $SRC/logs/nightly*.log | tail -1)
 lastmtch=$(ls -1tr $SRC/logs/matches-*.log | tail -1)
 
@@ -24,6 +30,9 @@ echo "</pre>" >> $DATADIR/lastlog.html
 echo "<h2>Correlator Report</h2>" >> $DATADIR/lastlog.html
 echo "<pre>" >> $DATADIR/lastlog.html
 python -m reports.getSolutionStati $lastmtch >> $DATADIR/lastlog.html
+ls -1 $SRC/logs/distrib/$rundate*.log | while read i ; do
+    python -m reports.getSolutionStati $i >> $DATADIR/lastlog.html
+done
 echo "</pre>" >> $DATADIR/lastlog.html
 echo "<h2>Uncalibrated Data Report</h2>" >> $DATADIR/lastlog.html
 echo "<pre>" >> $DATADIR/lastlog.html
