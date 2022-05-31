@@ -24,7 +24,7 @@ if [ $# -gt 0 ] ; then
         MATCHSTART=$1
     fi
     if [ "$2" != "" ] ; then
-        MATCHEND=$(( $MATCHSTART - $2 ))
+        MATCHEND=$2
     else
         echo "matchend was not supplied, using 2"
         MATCHEND=$(( $MATCHSTART - 2 ))
@@ -87,20 +87,24 @@ python -c "from traj.distributeCandidates import monitorProgress as mp; mp('${ru
 logger -s -t runDistrib "merging in the new json files"
 mkdir -p $DATADIR/distrib
 cd $DATADIR/distrib
-cp -f $targdir/*.json $DATADIR/distrib
-cp -f $DATADIR/distrib/processed_trajectories.json $DATADIR/distrib/prev_processed_trajectories.json
 
-python -m traj.consolidateDistTraj $DATADIR/distrib $DATADIR/distrib/processed_trajectories.json
+# make sure the database isn't corrupt before overwriting it !! 
+if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then 
+    cp -f $targdir/*.json $DATADIR/distrib
+    cp -f $DATADIR/distrib/processed_trajectories.json $DATADIR/distrib/prev_processed_trajectories.json
 
-cp $DATADIR/distrib/processed_trajectories.json $targdir
-gzip < $DATADIR/distrib/processed_trajectories.json > $DATADIR/distrib/processed_trajectories.json.${rundate}.gz
+    python -m traj.consolidateDistTraj $DATADIR/distrib $DATADIR/distrib/processed_trajectories.json
 
-logger -s -t runDistrib "compressing the processed data"
-if [ ! -d $targdir/done ] ; then mkdir $targdir/done ; fi
-mv $targdir/${rundate}.pickle $DATADIR/distrib
-tar czvf ${rundate}.tgz ${rundate}*.json ${rundate}.pickle
-cp ${rundate}.tgz $targdir/done
-rm -f $targdir/${rundate}*.json ${rundate}*.json ${rundate}.pickle
-
+    cp $DATADIR/distrib/processed_trajectories.json $targdir
+    gzip < $DATADIR/distrib/processed_trajectories.json > $DATADIR/trajdb/processed_trajectories.json.${rundate}.gz
+    logger -s -t runDistrib "compressing the processed data"
+    if [ ! -d $targdir/done ] ; then mkdir $targdir/done ; fi
+    mv $targdir/${rundate}.pickle $DATADIR/distrib
+    tar czvf ${rundate}.tgz ${rundate}*.json ${rundate}.pickle
+    cp ${rundate}.tgz $targdir/done
+    rm -f $targdir/${rundate}*.json ${rundate}*.json ${rundate}.pickle
+else
+    echo "trajectory database is size zero... not proceeding with copy"
+fi 
+rsync -avz $MATCHDIR/distrib/logs/ $SRC/logs/distrib/
 logger -s -t runDistrib "done"
-

@@ -2,6 +2,7 @@
 # python to get matching engine statistics
 #
 
+from datetime import datetime
 import sys
 
 
@@ -30,9 +31,20 @@ def getMatchStats(logf):
 
     nonphys = beglowr + badalti + badvelo + badangl 
     tot = added + uncal + missdf
-    return tot, added, uncal, missdf, nonphys, trajs
+
+    rtims = [line.strip() for line in loglines if 'runDistrib' in line]
+    d1=datetime.strptime(rtims[0].split(' ')[2],'%H:%M:%S')
+    d2=datetime.strptime(rtims[-1].split(' ')[2],'%H:%M:%S')
+    runtime = str(d2 - d1)
+
+    cstims = [line.strip() for line in loglines if 'execdistrib' in line]
+    d1=datetime.strptime(cstims[0].split(' ')[2],'%H:%M:%S')
+    d2=datetime.strptime(cstims[-1].split(' ')[2],'%H:%M:%S')
+    cstime = str(d2 - d1)
+
+    return tot, added, uncal, missdf, nonphys, trajs, runtime, cstime
 
 
 if __name__ == '__main__':
-    tot, added, uncal, missdf, nonphys, trajs = getMatchStats(sys.argv[1])
-    print(tot, added, uncal, missdf, nonphys, trajs)
+    tot, added, uncal, missdf, nonphys, trajs, runtime, cstime = getMatchStats(sys.argv[1])
+    print(tot, added, uncal, missdf, nonphys, trajs, runtime, cstime)
