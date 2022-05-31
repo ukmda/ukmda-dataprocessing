@@ -106,5 +106,5 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
 else
     echo "trajectory database is size zero... not proceeding with copy"
 fi 
+rsync -avz $MATCHDIR/distrib/logs/ $SRC/logs/distrib/
 logger -s -t runDistrib "done"
-
