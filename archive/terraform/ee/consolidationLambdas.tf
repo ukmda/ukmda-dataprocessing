@@ -132,7 +132,7 @@ data "archive_file" "ftpdetectzip" {
 
 resource "aws_lambda_function" "ftpdetectlambda" {
   function_name = "consolidateFTPdetect"
-  description   = "Consolidates RMS FTPdetect files for correlation and trajectory solving"
+  description   = "Consolidates FTPdetect files for correlation and trajectory solving"
   filename      = data.archive_file.ftpdetectzip.output_path
   handler       = "consolidateFTPdetect.lambda_handler"
   runtime       = "python3.8"
