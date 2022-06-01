@@ -561,3 +561,4 @@ archive/containers/trajsolver/WesternMeteorPyLib/*
 archive/containers/trajsolver/awskeys
 #ukmon_pylib/traj/clusdetails.txt
 **/*.pickle
+archive/containers/gui/awskeys
