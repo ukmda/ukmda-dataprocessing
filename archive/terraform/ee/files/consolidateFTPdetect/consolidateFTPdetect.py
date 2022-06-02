@@ -72,13 +72,18 @@ def copyFiles(s3bucket, s3object, target, maxdetcount):
     src = {'Bucket': s3bucket, 'Key': s3object}
     s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
 
+    s3c = boto3.client('s3')
     pth, _ = os.path.split(s3object)
     plap = pth +'/platepars_all_recalibrated.json'
     outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/platepars_all_recalibrated.json'
     src = {'Bucket': s3bucket, 'Key': plap}
-    s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
+    try:
+        response = s3c.head_object(Bucket=s3bucket, Key=plap)
+        if response['ContentLength'] > 100: 
+            s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
+    except:
+        print(f'platepars_all is missing for {pth}')
 
-    s3c = boto3.client('s3')
     pth, _ = os.path.split(s3object)
     plap = pth +'/.config'
     try:
@@ -88,7 +93,7 @@ def copyFiles(s3bucket, s3object, target, maxdetcount):
             src = {'Bucket': s3bucket, 'Key': plap}
             s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
     except:
-        print(f'config missing for {pth}')
+        print(f'config is missing for {pth}')
 
     try:
         plap = pth +'/platepar_cmn2010.cal'
