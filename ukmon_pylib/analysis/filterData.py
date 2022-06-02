@@ -9,15 +9,20 @@ import glob
 import shutil
 import matplotlib.pyplot as plt # noqa: F401 pyplot used by AggregateAndPlot functions
 
-from utils.convertSolLon import sollon2jd
-from wmpl.Utils.TrajConversions import jd2Date
-from wmpl.Trajectory.AggregateAndPlot import loadTrajectoryPickles, generateTrajectoryPlots
-from wmpl.Utils.Pickling import loadPickle
-from Utils import showerAssociation
-import RMS.ConfigReader as cr
+rmsloc = os.getenv('RMS_LOC', default='/home/ec2-user/src/RMS')
+curdir = os.getcwd()
+os.chdir(rmsloc)
+from Utils.ShowerAssociation import showerAssociation # noqa: E402
+os.chdir(curdir)
 
-from utils.plotRMSOrbits import processFile
-import fileformats.CameraDetails as cd
+from utils.convertSolLon import sollon2jd # noqa: E402
+from wmpl.Utils.TrajConversions import jd2Date # noqa: E402
+from wmpl.Trajectory.AggregateAndPlot import loadTrajectoryPickles, generateTrajectoryPlots # noqa: E402
+from wmpl.Utils.Pickling import loadPickle # noqa: E402
+import RMS.ConfigReader as cr # noqa: E402
+
+from utils.plotRMSOrbits import processFile # noqa: E402
+import fileformats.CameraDetails as cd # noqa: E402
 
 
 class TrajQualityParams(object):
@@ -122,11 +127,13 @@ def filterSingleData(yr, ra=None, dra=5, dec=None, ddec=5, sollon=None, dsl=5, s
         df = df[df.Dtstamp <= d2.timestamp()]
     if len(df) > 0:
         # find the ftpdetect and extract the relevant rows
+        tmppth = f'singles/{yr}-{ra}-{dec}'
+        os.makedirs(tmppth, exist_ok=True)
         archdir = os.getenv('ARCHDIR', default='/home/ec2-user/ukmon-shared/archive')
         cinfo = cd.SiteInfo()
         outdtstr = pkdt.strftime("%Y%m%d")
-        outfname = (f'./FTPdetectinfo_UK0000_{outdtstr}_000000_000000.txt')
-        with open(outfname, 'w') as outf:
+        ftpfname = (f'{tmppth}/FTPdetectinfo_UK0000_{outdtstr}_000000_000000.txt')
+        with open(ftpfname, 'w') as outf:
             writeFTPheader(outf)
             for _, row in df.iterrows(): 
                 gotlines = getSingleStnFTPdetect(row['Filename'], archdir, cinfo)
@@ -134,12 +141,13 @@ def filterSingleData(yr, ra=None, dra=5, dec=None, ddec=5, sollon=None, dsl=5, s
                     outf.write(li)
 
         if save_plots is True: 
-            rmsloc = os.getenv('RMS_LOC', default='/home/ec2-user/src/RMS')
             config = cr.loadConfigFromDirectory('.config', rmsloc)
-            showerAssociation(config, outfname, save_plots = save_plots)
-            outfname = os.path.join('.', f'singles-{yr}-{ra}-{dec}-{sollon}.csv')
-            print(f'writing data to {outfname}')
-            outdf.to_csv(outfname, index=False)
+            os.chdir(rmsloc)
+            showerAssociation(config, [os.path.join(curdir,ftpfname)], save_plot = save_plots)
+            os.chdir(curdir)
+            csvfname = os.path.join(tmppth, f'singles-{yr}-{ra}-{dec}-{sollon}.csv')
+            print(f'writing data to {csvfname}')
+            df.to_csv(csvfname, index=False)
     else:
         print('no matches')
     return df
@@ -178,7 +186,7 @@ def filterMatchData(yr, ra=None, dra=5, dec=None, ddec=5, sollon=None, dsl=5, vg
         df = df[df._sol <= (sollon + dsl)]
     if len(df) > 0:
         # find the ftpdetect and extract the relevant rows
-        tmppth='./tmppickles'
+        tmppth=f'./matches/{yr}-{ra}-{dec}'
         if os.path.isdir(tmppth):
             shutil.rmtree(tmppth)
         os.makedirs(tmppth, exist_ok=True)
@@ -202,19 +210,19 @@ def filterMatchData(yr, ra=None, dra=5, dec=None, ddec=5, sollon=None, dsl=5, vg
 
             outfname = os.path.join(tmppth, f'matches-{yr}-{ra}-{dec}-{sollon}-{vg}.csv')
             print(f'writing data to {outfname}')
-            outdf.to_csv(outfname, index=False)
+            df.to_csv(outfname, index=False)
 
     return df
 
 
 def plotAllOrbits(picklefiles, tmppth):
-    with open(os.path.join(tmppth, 'orbeles.csv'), 'w') as csvf:
+    with open(os.path.join(tmppth, 'orbital_elements.csv'), 'w') as csvf:
         csvf.write('_a,_e,_incl,_peri,_node\n')
         for pf in picklefiles:
             traj = loadPickle(*os.path.split(pf))
             orb = traj.orbit
             csvf.write(f'{orb.a}, {orb.e}, {orb.i}, {orb.peri}, {orb.node}\n')
-    processFile(os.path.join(tmppth, 'orbeles.csv'), tmppth)
+    processFile(os.path.join(tmppth, 'orbital_elements.csv'), tmppth)
     return
 
 
