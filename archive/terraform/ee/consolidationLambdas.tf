@@ -108,6 +108,7 @@ resource "aws_lambda_function" "csvtriggerlambda" {
   function_name = "CSVTrigger"
   description   = "Copies the camera CSV files to the temp area for later consolidation."
   filename      = data.archive_file.csvtriggerzip.output_path
+  source_code_hash = "${base64sha256(data.archive_file.csvtriggerzip.output_path)}"
   handler       = "csvTrigger.lambda_handler"
   runtime       = "python3.8"
   memory_size   = 128
@@ -134,6 +135,7 @@ resource "aws_lambda_function" "ftpdetectlambda" {
   function_name = "consolidateFTPdetect"
   description   = "Consolidates FTPdetect files for correlation and trajectory solving"
   filename      = data.archive_file.ftpdetectzip.output_path
+  source_code_hash = "${base64sha256(data.archive_file.ftpdetectzip.output_path)}"
   handler       = "consolidateFTPdetect.lambda_handler"
   runtime       = "python3.8"
   memory_size   = 128
