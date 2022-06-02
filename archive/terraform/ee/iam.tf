@@ -89,3 +89,45 @@ resource "aws_iam_user_policy_attachment" "ump1" {
   user       = "ukmonarchive"
   policy_arn = "arn:aws:iam::822069317839:policy/CEforUkmonarchive"
 }
+
+# readonly user for GUI toolset
+resource "aws_iam_user" "ukmonreadonly" {
+  name = "ukmonreadonly"
+  tags = {
+    "billingtag" = "ukmon"
+  }
+}
+
+resource "aws_iam_user_policy" "ukmon_ro_pol" {
+  name = "ukmon_ro"
+  user = aws_iam_user.ukmonreadonly.name
+
+  policy = jsonencode(
+    {
+      Version = "2012-10-17"
+      Statement = [
+        {
+          Action = [
+            "s3:ListBucket",
+            "s3:GetObject",
+          ]
+          Effect = "Allow"
+          Resource = [
+            "${aws_s3_bucket.ukmonshared.arn}/*",
+            "${aws_s3_bucket.ukmonshared.arn}",
+          ]
+        }
+      ]
+    }
+  )
+}
+
+resource "aws_iam_access_key" "ukmro_key" {
+  user = aws_iam_user.ukmonreadonly.name
+}
+
+output "key" { value = aws_iam_access_key.ukmro_key.id}
+output "secret" { 
+  value = aws_iam_access_key.ukmro_key.secret
+  sensitive = true
+  }
