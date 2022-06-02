@@ -33,13 +33,17 @@ def getMatchStats(logf):
     tot = added + uncal + missdf
 
     rtims = [line.strip() for line in loglines if 'runDistrib' in line]
-    d1=datetime.strptime(rtims[0].split(' ')[2],'%H:%M:%S')
-    d2=datetime.strptime(rtims[-1].split(' ')[2],'%H:%M:%S')
+    stim = rtims[0][11:19]
+    etim = rtims[-1][11:19]
+    d1=datetime.strptime(stim,'%H:%M:%S')
+    d2=datetime.strptime(etim,'%H:%M:%S')
     runtime = str(d2 - d1)
 
     cstims = [line.strip() for line in loglines if 'execdistrib' in line]
-    d1=datetime.strptime(cstims[0].split(' ')[2],'%H:%M:%S')
-    d2=datetime.strptime(cstims[-1].split(' ')[2],'%H:%M:%S')
+    stim = cstims[0][11:19]
+    etim = cstims[-1][11:19]
+    d1=datetime.strptime(stim,'%H:%M:%S')
+    d2=datetime.strptime(etim,'%H:%M:%S')
     cstime = str(d2 - d1)
 
     return tot, added, uncal, missdf, nonphys, trajs, runtime, cstime
