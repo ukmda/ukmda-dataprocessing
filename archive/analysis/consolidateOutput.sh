@@ -88,4 +88,8 @@ source $UKMONSHAREDKEY
 aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matched/ --quiet --include "*" --exclude "*.gzip" --exclude "*.bkp"
 aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matchedpq/ --quiet --exclude "*" --include "*.gzip" --exclude "*.bkp"
 
+source $WEBSITEKEY
+aws s3 sync $DATADIR/matched/ $WEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.gzip" --exclude "*.bkp" --quiet
+aws s3 sync $DATADIR/single/ $WEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.gzip" --exclude "*.bkp" --quiet
+
 logger -s -t consolidateOutput "consolidation done"
