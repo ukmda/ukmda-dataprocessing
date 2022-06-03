@@ -6,6 +6,7 @@ resource "aws_vpc" "main_vpc" {
   cidr_block = "172.31.0.0/16"
   tags = {
     Name = "MainVPC"
+    billingtag = "Management"
   }
 }
 
@@ -15,6 +16,7 @@ resource "aws_subnet" "subnet1" {
   map_public_ip_on_launch = true
   tags = {
     Name = "Subnet1"
+    billingtag = "Management"
   }
 }
 
@@ -24,6 +26,7 @@ resource "aws_subnet" "subnet2" {
   cidr_block              = "172.31.32.0/20"
   tags = {
     Name = "Subnet2"
+    billingtag = "MarysWebsite"
   }
 }
 
@@ -32,6 +35,7 @@ resource "aws_subnet" "lambdaSubnet" {
   cidr_block = "172.31.255.0/28"
   tags = {
     Name = "lambdaSubnet"
+    billingtag = "ukmon"
   }
 }
 
@@ -41,6 +45,7 @@ resource "aws_subnet" "ec2Subnet" {
   map_public_ip_on_launch = true
   tags = {
     Name = "ec2Subnet"
+    billingtag = "ukmon"
   }
 }
 
@@ -52,6 +57,7 @@ resource "aws_route_table" "default" {
   }
   tags = {
     "Name" = "default"
+    billingtag = "Management"
   }
 }
 
@@ -59,6 +65,7 @@ resource "aws_internet_gateway" "main_igw" {
   vpc_id = aws_vpc.main_vpc.id
   tags = {
     Name = "main_igw"
+    billingtag = "Management"
   }
 }
 
@@ -75,4 +82,7 @@ resource "aws_network_interface" "mainif" {
 resource "aws_eip" "ukmonhelper" {
   instance = aws_instance.ukmonhelper.id
   vpc      = true
+  tags = {
+  billingtag = "ukmon"
+  }
 }

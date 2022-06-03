@@ -18,6 +18,9 @@ resource "aws_ecr_repository" "trajsolverrepo" {
       encryption_type = "KMS"
       kms_key = aws_kms_key.container_key.arn
   }
+  tags = {
+    "billingtag" = "ukmon"
+  }
 }
 # create an ECR repository for the extrafiles image
 resource "aws_ecr_repository" "extrafilesrepo" {
@@ -26,6 +29,9 @@ resource "aws_ecr_repository" "extrafilesrepo" {
 
   image_scanning_configuration {
     scan_on_push = true
+  }
+  tags = {
+    "billingtag" = "ukmon"
   }
 }
 
@@ -40,6 +46,9 @@ resource "aws_ecr_repository" "simpleguirepo" {
   encryption_configuration {
       encryption_type = "KMS"
       kms_key = aws_kms_key.container_key.arn
+  }
+  tags = {
+    "billingtag" = "ukmon"
   }
 }
 
