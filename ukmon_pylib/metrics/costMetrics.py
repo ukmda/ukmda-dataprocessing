@@ -165,7 +165,6 @@ if __name__ == '__main__':
     if len(sys.argv)> 3:
         mthwanted = int(sys.argv[3])
         curdt = datetime.date.today()
-        thismth = curdt.month
         if int(mthwanted) > 12:
             yr = int(str(mthwanted)[:4])
             mth = int(str(mthwanted)[4:])
@@ -173,8 +172,10 @@ if __name__ == '__main__':
             yr = curdt.year
             mth = int(mthwanted)
 
-        if yr >= curdt.year and mth > thismth:
-            yr = yr - 1
+        if yr >= curdt.year and mth > curdt.month:
+            print("can't request for a future date, requesting for this month instead")
+            yr = curdt.year
+            mth = curdt.month
 
         dtwanted = curdt.replace(day=1).replace(month=mth).replace(year=yr)
         endwanted = dtwanted + relativedelta.relativedelta(months=1)
