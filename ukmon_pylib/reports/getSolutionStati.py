@@ -36,11 +36,11 @@ def getSolutionStati(fname):
         if "Shower:" in li and chktraj is True:
             spls = thistraj.strip().split(' ')
             spl2 = li.strip().split(' ')
-            if spl2[1] == '...':
+            if spl2[3] == '...':
                 shwr = 'Spo'
             else:
-                shwr = spl2[1]
-            print(f'{spls[1]} {spls[2]} updated as {shwr}')
+                shwr = spl2[3]
+            print(f'{spls[3]} {spls[4]} updated as {shwr}')
             gotchk += 1
             chktraj = False
             continue
@@ -56,18 +56,18 @@ def getSolutionStati(fname):
             continue
         if "-------" in li and newtraj is True:
             spls = thistraj.strip().split(' ')
-            print(f'{spls[1]} {spls[2]} not matched')
+            print(f'{spls[3]} {spls[4]} not matched')
             newtraj = False
             thistraj = None
             continue
         if "Shower:" in li and newtraj is True:
             spls = thistraj.strip().split(' ')
             spl2 = li.strip().split(' ')
-            if spl2[1] == '...':
+            if spl2[3] == '...':
                 shwr = 'Spo'
             else:
-                shwr = spl2[1]
-            print(f'{spls[1]} {spls[2]} solved as {shwr}')
+                shwr = spl2[3]
+            print(f'{spls[3]} {spls[4]} solved as {shwr}')
             gotnew += 1
             newtraj = False
             thistraj = None
