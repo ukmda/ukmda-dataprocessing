@@ -2,7 +2,10 @@
 
 # encryption/decryption key in the AWS KMS keystore
 resource "aws_kms_key" "container_key" {
-    description = "My KMS Key"
+  description = "My KMS Key"
+  tags = {
+    "billingtag" = "ukmon"
+  }
 }
 
 
@@ -15,8 +18,8 @@ resource "aws_ecr_repository" "trajsolverrepo" {
     scan_on_push = true
   }
   encryption_configuration {
-      encryption_type = "KMS"
-      kms_key = aws_kms_key.container_key.arn
+    encryption_type = "KMS"
+    kms_key         = aws_kms_key.container_key.arn
   }
   tags = {
     "billingtag" = "ukmon"
@@ -44,8 +47,8 @@ resource "aws_ecr_repository" "simpleguirepo" {
     scan_on_push = true
   }
   encryption_configuration {
-      encryption_type = "KMS"
-      kms_key = aws_kms_key.container_key.arn
+    encryption_type = "KMS"
+    kms_key         = aws_kms_key.container_key.arn
   }
   tags = {
     "billingtag" = "ukmon"
@@ -55,7 +58,7 @@ resource "aws_ecr_repository" "simpleguirepo" {
 
 resource "aws_ecr_lifecycle_policy" "policy1" {
   repository = aws_ecr_repository.trajsolverrepo.name
-  policy = <<EOF
+  policy     = <<EOF
 {
     "rules": [
         {
@@ -77,7 +80,7 @@ EOF
 
 resource "aws_ecr_lifecycle_policy" "getfilespolicy" {
   repository = aws_ecr_repository.extrafilesrepo.name
-  policy = <<EOF
+  policy     = <<EOF
 {
     "rules": [
         {
@@ -99,7 +102,7 @@ EOF
 
 resource "aws_ecr_lifecycle_policy" "simpleguipolicy" {
   repository = aws_ecr_repository.simpleguirepo.name
-  policy = <<EOF
+  policy     = <<EOF
 {
     "rules": [
         {
@@ -120,11 +123,11 @@ EOF
 }
 
 output "trajsolverid" {
-    value = "${aws_ecr_repository.trajsolverrepo.repository_url}"
+  value = aws_ecr_repository.trajsolverrepo.repository_url
 }
 output "simpleguiid" {
-    value = "${aws_ecr_repository.simpleguirepo.repository_url}"
+  value = aws_ecr_repository.simpleguirepo.repository_url
 }
 output "extrafilesid" {
-    value = "${aws_ecr_repository.extrafilesrepo.repository_url}"
+  value = aws_ecr_repository.extrafilesrepo.repository_url
 }
