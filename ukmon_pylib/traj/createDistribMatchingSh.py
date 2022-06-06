@@ -54,7 +54,7 @@ def pushUpdatedTrajectoriesShared(outf, matchstart, matchend, targpath):
         outf.write(f'aws s3 sync {trajloc} {targpath}/matches/RMSCorrelate/{trajloc} --exclude "*" --include "*.pickle" --include "*report.txt" --quiet\n')
         outf.write('fi\n')
     outf.write(f'aws s3 sync trajectories/{yr}/plots {targpath}/matches/RMSCorrelate/trajectories/{yr}/plots --quiet\n')
-    outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth}/plots {targpath}/matches/RMSCorrelate/trajectories/{yr}/{yr}{mth}/plots --quiet\n')
+    outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth:02d}/plots {targpath}/matches/RMSCorrelate/trajectories/{yr}/{yr}{mth:02d}/plots --quiet\n')
     return 
 
 
@@ -75,7 +75,7 @@ def pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webpath):
         outf.write(f'aws s3 sync {trajloc} {webpath}/{targloc} --quiet\n')
         outf.write('fi\n')
     outf.write(f'aws s3 sync trajectories/{yr}/plots {webpath}/reports/{yr}/orbits/plots --quiet\n')
-    outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth}/plots {webpath}/reports/{yr}/orbits/{yr}{mth}/plots --quiet\n')
+    outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth:02d}/plots {webpath}/reports/{yr}/orbits/{yr}{mth:02d}/plots --quiet\n')
     return 
 
 
