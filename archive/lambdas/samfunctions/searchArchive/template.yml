@@ -7,5 +7,7 @@ Resources:
     Properties:
       Handler: searchArchive.lambda_handler
       Runtime: python3.7
+      Tags:
+        billingtag: "ukmon"
     Metadata:
       BuildMethod: python3.7

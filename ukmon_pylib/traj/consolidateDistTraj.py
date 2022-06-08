@@ -2,6 +2,7 @@ import os
 import sys
 import glob
 import shutil
+import datetime
 
 from wmpl.Trajectory.CorrelateRMS import TrajectoryReduced, DatabaseJSON 
 #from wmpl.Trajectory.CorrelateRMS import MeteorObsRMS, PlateparDummy, MeteorPointRMS # noqa: F401
@@ -100,11 +101,14 @@ if __name__ == '__main__':
         exit(0)
     srcdir = sys.argv[1]
     masterdb = sys.argv[2]
-
+    if len(sys.argv) > 3:
+        rundt = sys.argv[3]
+    else:
+        rundt = datetime.datetime.now().strftime('%Y%m%d')
     # real path to the trajectories as per the master database
     masterpth = '/home/ec2-user/ukmon-shared/matches/RMSCorrelate'
 
-    flist = glob.glob1(srcdir, '2*.json')
+    flist = glob.glob1(srcdir, f'{rundt}*.json')
     flist.sort()
     for fl in flist:
         #countDataInDb(os.path.join(srcdir, fl))

@@ -59,6 +59,9 @@ resource "aws_security_group" "default" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  tags = {
+    billingtag = "Management"
+  }
 }
 
 resource "aws_security_group" "launch-wizard-4" {
@@ -102,6 +105,9 @@ resource "aws_security_group" "launch-wizard-4" {
       to_port          = 0
     },
   ]
+  tags = {
+    billingtag = "ukmon"
+  }
 }
 
 resource "aws_security_group" "ec2publicsg" {
@@ -145,4 +151,7 @@ resource "aws_security_group" "ec2publicsg" {
       to_port          = 0
     },
   ]
+  tags = {
+    billingtag = "Management"
+  }
 }

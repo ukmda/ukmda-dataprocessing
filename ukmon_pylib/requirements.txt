@@ -30,3 +30,5 @@ cryptography
 cartopy
 python-crontab
 simplekml
+astropy
+gitpython

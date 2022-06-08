@@ -54,7 +54,7 @@ def pushUpdatedTrajectoriesShared(outf, matchstart, matchend, targpath):
         outf.write(f'aws s3 sync {trajloc} {targpath}/matches/RMSCorrelate/{trajloc} --exclude "*" --include "*.pickle" --include "*report.txt" --quiet\n')
         outf.write('fi\n')
     outf.write(f'aws s3 sync trajectories/{yr}/plots {targpath}/matches/RMSCorrelate/trajectories/{yr}/plots --quiet\n')
-    outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth}/plots {targpath}/matches/RMSCorrelate/trajectories/{yr}/{yr}{mth}/plots --quiet\n')
+    outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth:02d}/plots {targpath}/matches/RMSCorrelate/trajectories/{yr}/{yr}{mth:02d}/plots --quiet\n')
     return 
 
 
@@ -75,7 +75,7 @@ def pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webpath):
         outf.write(f'aws s3 sync {trajloc} {webpath}/{targloc} --quiet\n')
         outf.write('fi\n')
     outf.write(f'aws s3 sync trajectories/{yr}/plots {webpath}/reports/{yr}/orbits/plots --quiet\n')
-    outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth}/plots {webpath}/reports/{yr}/orbits/{yr}{mth}/plots --quiet\n')
+    outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth:02d}/plots {webpath}/reports/{yr}/orbits/{yr}{mth:02d}/plots --quiet\n')
     return 
 
 
@@ -133,8 +133,10 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         # database from last successful run
         outf.write(f'aws s3 cp {srcpath}/processed_trajectories.json {calcdir}/processed_trajectories.json --quiet\n')
         outf.write(f'ls -ltr {calcdir}/*.json\n')
-        # camera data
-        outf.write(f'time aws s3 sync {shbucket}/matches/RMSCorrelate {calcdir} --exclude "*" --include "UK*" --quiet\n')
+        # camera data - no need to replicate it for an historical date
+        if matchend < 7:
+            outf.write('logger -s -t execdistrib updating camera data\n')
+            outf.write(f'time aws s3 sync {shbucket}/matches/RMSCorrelate {calcdir} --exclude "*" --include "UK*" --quiet\n')
 
         outf.write('logger -s -t execdistrib starting correlator to update existing matches and create candidates\n')
         outf.write(f'mkdir -p {calcdir}/candidates\n')

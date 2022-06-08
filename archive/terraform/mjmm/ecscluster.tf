@@ -186,6 +186,9 @@ resource "aws_security_group" "ecssecgrp" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  tags = {
+    billingtag = "ukmon"
+  }
 }
 
 # print out some results - clustername, sec grp, subnet and role arn

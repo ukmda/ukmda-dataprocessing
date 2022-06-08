@@ -11,26 +11,27 @@ data "archive_file" "consolidatejpgszip" {
 }
 
 resource "aws_lambda_function" "consolidatejpgslambda" {
-  function_name = "consolidateJpgs"
-  description   = "Copies new jpgs from the archive upload area to the website"
-  filename      = data.archive_file.consolidatejpgszip.output_path
-  handler       = "consolidateJpgs.lambda_handler"
-  runtime       = "python3.8"
-  memory_size   = 128
-  timeout       = 60
-  role          = aws_iam_role.S3FullAccess.arn
-  publish       = false
+  function_name    = "consolidateJpgs"
+  description      = "Copies new jpgs from the archive upload area to the website"
+  filename         = data.archive_file.consolidatejpgszip.output_path
+  source_code_hash = data.archive_file.consolidatejpgszip.output_base64sha256
+  handler          = "consolidateJpgs.lambda_handler"
+  runtime          = "python3.8"
+  memory_size      = 128
+  timeout          = 60
+  role             = aws_iam_role.S3FullAccess.arn
+  publish          = false
   environment {
     variables = {
-      "WEBSITEBUCKET" = "s3://ukmeteornetworkarchive"  
+      "WEBSITEBUCKET" = "s3://ukmeteornetworkarchive"
     }
   }
   ephemeral_storage {
     size = 512
   }
   tags = {
-    Name        = "consolidateJpgs"
-    billingtag  = "ukmon"
+    Name       = "consolidateJpgs"
+    billingtag = "ukmon"
   }
 }
 
@@ -42,26 +43,27 @@ data "archive_file" "consolidatekmlszip" {
 }
 
 resource "aws_lambda_function" "consolidatekmlslambda" {
-  function_name = "consolidateKmls"
-  description   = "Copies kml files to the website for map drawing"
-  filename      = data.archive_file.consolidatekmlszip.output_path
-  handler       = "consolidateKmls.lambda_handler"
-  runtime       = "python3.8"
-  memory_size   = 128
-  timeout       = 60
-  role          = aws_iam_role.S3FullAccess.arn
-  publish       = false
+  function_name    = "consolidateKmls"
+  description      = "Copies kml files to the website for map drawing"
+  filename         = data.archive_file.consolidatekmlszip.output_path
+  source_code_hash = data.archive_file.consolidatekmlszip.output_base64sha256
+  handler          = "consolidateKmls.lambda_handler"
+  runtime          = "python3.8"
+  memory_size      = 128
+  timeout          = 60
+  role             = aws_iam_role.S3FullAccess.arn
+  publish          = false
   environment {
     variables = {
-      "WEBSITEBUCKET" = "s3://ukmeteornetworkarchive"  
+      "WEBSITEBUCKET" = "s3://ukmeteornetworkarchive"
     }
   }
   ephemeral_storage {
     size = 512
   }
   tags = {
-    Name        = "consolidateKmls"
-    billingtag  = "ukmon"
+    Name       = "consolidateKmls"
+    billingtag = "ukmon"
   }
 }
 
@@ -74,26 +76,27 @@ data "archive_file" "consolidatelatestzip" {
 }
 
 resource "aws_lambda_function" "consolidatelatestlambda" {
-  function_name = "consolidateLatest"
-  description   = "consolidate the radiant map PNGs onto the website"
-  filename      = data.archive_file.consolidatelatestzip.output_path
-  handler       = "consolidateLatest.lambda_handler"
-  runtime       = "python3.8"
-  memory_size   = 128
-  timeout       = 60
-  role          = aws_iam_role.S3FullAccess.arn
-  publish       = false
+  function_name    = "consolidateLatest"
+  description      = "consolidate the radiant map PNGs onto the website"
+  filename         = data.archive_file.consolidatelatestzip.output_path
+  source_code_hash = data.archive_file.consolidatelatestzip.output_base64sha256
+  handler          = "consolidateLatest.lambda_handler"
+  runtime          = "python3.8"
+  memory_size      = 128
+  timeout          = 60
+  role             = aws_iam_role.S3FullAccess.arn
+  publish          = false
   environment {
     variables = {
-      "WEBSITEBUCKET" = "s3://ukmeteornetworkarchive"  
+      "WEBSITEBUCKET" = "s3://ukmeteornetworkarchive"
     }
   }
   ephemeral_storage {
     size = 512
   }
   tags = {
-    Name        = "consolidateLatest"
-    billingtag  = "ukmon"
+    Name       = "consolidateLatest"
+    billingtag = "ukmon"
   }
 }
 
@@ -105,21 +108,22 @@ data "archive_file" "csvtriggerzip" {
 }
 
 resource "aws_lambda_function" "csvtriggerlambda" {
-  function_name = "CSVTrigger"
-  description   = "Copies the camera CSV files to the temp area for later consolidation."
-  filename      = data.archive_file.csvtriggerzip.output_path
-  handler       = "csvTrigger.lambda_handler"
-  runtime       = "python3.8"
-  memory_size   = 128
-  timeout       = 90
-  role          = aws_iam_role.S3FullAccess.arn
-  publish       = false
+  function_name    = "CSVTrigger"
+  description      = "Copies the camera CSV files to the temp area for later consolidation."
+  filename         = data.archive_file.csvtriggerzip.output_path
+  source_code_hash = data.archive_file.csvtriggerzip.output_base64sha256
+  handler          = "csvTrigger.lambda_handler"
+  runtime          = "python3.8"
+  memory_size      = 128
+  timeout          = 90
+  role             = aws_iam_role.S3FullAccess.arn
+  publish          = false
   ephemeral_storage {
     size = 512
   }
   tags = {
-    Name        = "CSVTrigger"
-    billingtag  = "ukmon"
+    Name       = "CSVTrigger"
+    billingtag = "ukmon"
   }
 }
 
@@ -131,20 +135,21 @@ data "archive_file" "ftpdetectzip" {
 }
 
 resource "aws_lambda_function" "ftpdetectlambda" {
-  function_name = "consolidateFTPdetect"
-  description   = "Consolidates RMS FTPdetect files for correlation and trajectory solving"
-  filename      = data.archive_file.ftpdetectzip.output_path
-  handler       = "consolidateFTPdetect.lambda_handler"
-  runtime       = "python3.8"
-  memory_size   = 128
-  timeout       = 30
-  role          = aws_iam_role.S3FullAccess.arn
-  publish       = false
+  function_name    = "consolidateFTPdetect"
+  description      = "Consolidates FTPdetect files for correlation and trajectory solving"
+  filename         = data.archive_file.ftpdetectzip.output_path
+  source_code_hash = data.archive_file.ftpdetectzip.output_base64sha256
+  handler          = "consolidateFTPdetect.lambda_handler"
+  runtime          = "python3.8"
+  memory_size      = 128
+  timeout          = 30
+  role             = aws_iam_role.S3FullAccess.arn
+  publish          = false
   ephemeral_storage {
     size = 512
   }
   tags = {
-    Name        = "consolidateFTPdetect"
-    billingtag  = "ukmon"
+    Name       = "consolidateFTPdetect"
+    billingtag = "ukmon"
   }
 }
