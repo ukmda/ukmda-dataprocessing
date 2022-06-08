@@ -69,6 +69,23 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmonsharedlcp" {
       storage_class = "STANDARD_IA"
     }
   }
+  rule {
+    id     = "purge athena queries"
+    status = "Enabled"
+
+    expiration {
+      days                         = 2
+      expired_object_delete_marker = false
+    }
+
+    filter {
+      prefix = "tmp/fromglue/"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 2
+    }
+  }
 }
 
 resource "aws_s3_bucket_cors_configuration" "ukmonsharedcors" {
