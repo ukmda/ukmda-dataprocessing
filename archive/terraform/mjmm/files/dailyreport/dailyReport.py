@@ -1,20 +1,9 @@
 # scan the live stream for potential matches
 
 import os
-import sys
 import datetime
 import boto3
 from botocore.exceptions import ClientError
-
-
-def MakeFileWritable(ymd, hms, sid, lid):
-    s3 = boto3.resource('s3')
-    api_client = s3.meta.client
-    bucket_name = 'ukmon-live'
-    key = 'M{:08d}_{:06d}_{:s}_{:s}P.jpg'.format(ymd, hms, sid, lid)
-    api_client.copy_object(Bucket=bucket_name,
-        Key=key, ContentType='image/jpeg',
-        MetadataDirective='REPLACE', CopySource=bucket_name + '/' + key)
 
 
 def AddHeader(body, bodytext, stats):
@@ -78,7 +67,6 @@ def LookForMatchesRMS(doff, dayfile, statsfile):
     # extract yesterday's data
     yest = datetime.date.today() - datetime.timedelta(days=doff)
 
-
     mailsubj = 'Daily UKMON matches for {:04d}-{:02d}-{:02d}'.format(yest.year, yest.month, yest.day)
     domail = True
     print('DailyCheck: ', mailsubj)
@@ -106,20 +94,14 @@ def LookForMatchesRMS(doff, dayfile, statsfile):
 
 def sendMail(subj, body, bodytext, target, tmppth):
     print(bodytext)
-    client = boto3.client('sts')
-    response = client.get_caller_identity()['Account']
-    if response == '317976261112':
-        SENDER = 'ukmeteornetwork@gmail.com'
-        AWS_REGION = 'eu-west-2'
-    else:
-        SENDER = 'ukmeteornetwork@gmail.com'
-        AWS_REGION = 'eu-west-1'
+    SENDER = 'ukmeteornetwork@gmail.com'
+    AWS_REGION = 'eu-west-2'
     CHARSET = "UTF-8"
 
     s3 = boto3.resource('s3')
 
-    deb = os.environ['DEBUG']
-    if deb in ['True', 'TRUE', 'true']:
+    deb = os.getenv('DEBUG', default='True')
+    if deb.upper() == 'TRUE':
         RECIPIENT = ['mark.jm.mcintyre@cesmail.net', 'mjmm456@gmail.com']
     else:
         try:
@@ -134,10 +116,10 @@ def sendMail(subj, body, bodytext, target, tmppth):
         except:
             RECIPIENT = ['mark.jm.mcintyre@cesmail.net', 'mjmm456@gmail.com']
 
-    client = boto3.client('ses', region_name=AWS_REGION)
+    sesclient = boto3.client('ses', region_name=AWS_REGION)
     try:
         # Provide the contents of the email.
-        response = client.send_email(
+        response = sesclient.send_email(
             Destination={
                 'BccAddresses': RECIPIENT,
             },
@@ -168,24 +150,16 @@ def sendMail(subj, body, bodytext, target, tmppth):
 
 
 def lambda_handler(event, context):
-    # check which account we're in
-    client = boto3.client('sts')
-    response = client.get_caller_identity()['Account']
-    if response == '317976261112':
-        target = 'mjmm-live'
-    else:
-        target = 'ukmon-shared'
-    try:
-        doff = int(os.environ['OFFSET']) 
-    except:
-        doff = 1
+    target = 'ukmon-shared'
+    tmppth = os.getenv('TMP', default='/tmp')
+    doff = os.getenv('OFFSET', default=1)
 
-    tmppth = '/tmp'
     print('DailyCheck: getting daily report')
     s3 = boto3.resource('s3')
     fullrep = 'matches/RMSCorrelate/dailyreports/latest.txt'
     dailyreport = os.path.join(tmppth,'dailyreport.csv')
     print(target, fullrep, dailyreport)
+
     try:
         s3.meta.client.download_file(target, fullrep, dailyreport)
         
@@ -195,7 +169,7 @@ def lambda_handler(event, context):
         print(statfile, fullstat)
         s3.meta.client.download_file(target, fullstat, statfile)
 
-        domail, mailsubj, body, bodytext = LookForMatchesRMS(doff, dailyreport, statfile)
+        domail, mailsubj, body, bodytext = LookForMatchesRMS(int(doff), dailyreport, statfile)
     except:
         domail = False
 
@@ -206,9 +180,6 @@ def lambda_handler(event, context):
 
 
 if __name__ == '__main__':
-    doff = 1
-    if len(sys.argv) > 1:
-        doff = int(sys.argv[1])
     a = 1
     b = 2
     lambda_handler(a, b)

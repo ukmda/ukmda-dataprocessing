@@ -16,45 +16,92 @@ lym=$(date --date='last month' +%Y%m)
 mkdir -p $DATADIR/olddata
 
 # SINGLE STATION RAW DATA
-cd $SRC/single/new/processed
+cd $DATADIR/single/new/processed
 # backup then remove last year's data if still present
-if [ ! -f $DATADIR/olddata/${lyr}singlecsv.tgz ] ; then 
-    tar cvfz $DATADIR/olddata/${lyr}singlecsv.tgz ukmon*_${lyr}*.csv 
-else
-    tar uvfz $DATADIR/olddata/${lyr}singlecsv.tgz ukmon*_${lyr}*.csv 
-fi
-rm -f ukmon*_${lyr}*.csv 
-
-# other than in january, backup last month's data 
-if [ $cmt -ne 1 ] ; then 
-    if [ ! -f $DATADIR/olddata/${cyr}singlecsv.tgz ] ; then 
-        echo tar cvfz $DATADIR/olddata/${cyr}singlecsv.tgz ukmon*_${lym}*.csv 
+if compgen -G "$DATADIR/single/new/processed/ukmon*_${lyr}????_*.csv" > /dev/null ; then 
+    if [ ! -f $DATADIR/olddata/${lyr}-singlecsv.tgz ] ; then 
+        tar cvfz $DATADIR/olddata/${lyr}-singlecsv.tgz ukmon*_${lyr}????_*.csv
     else
-        echo tar uvfz $DATADIR/olddata/${cyr}singlecsv.tgz ukmon*_${lym}*.csv 
+        tar uvfz $DATADIR/olddata/${lyr}-singlecsv.tgz ukmon*_${lyr}????_*.csv
     fi
+    rm -f ukmon*_${lyr}????_*.csv
+fi 
+# backup last month's data 
+if compgen -G "$DATADIR/single/new/processed/ukmon*_${lym}??_*.csv" > /dev/null ; then 
+    if [ $cmt -ne 1 ] ; then 
+        if [ ! -f $DATADIR/olddata/${cyr}-singlecsv.tgz ] ; then 
+            tar cvfz $DATADIR/olddata/${cyr}-singlecsv.tgz ukmon*_${lym}??_*.csv
+        else
+            tar uvfz $DATADIR/olddata/${cyr}-singlecsv.tgz ukmon*_${lym}??_*.csv
+        fi
+    fi
+    rm -f ukmon*_${lym}*.csv 
 fi
-rm -f ukmon*_${lym}*.csv 
+
+# MATCHES
+# last year's CSV, extracsv and fullcsv files
+cd $DATADIR/orbits/$lyr/csv/processed
+if compgen -G "$DATADIR/orbits/${lyr}/csv/processed/*.csv" > /dev/null ; then 
+    if [ ! -f $DATADIR/olddata/${lyr}-matchcsv.tgz ] ; then 
+        tar cvfz $DATADIR/olddata/${lyr}-matchcsv.tgz *.csv
+    else
+        tar uvfz $DATADIR/olddata/${lyr}-matchcsv.tgz *.csv
+    fi
+    rm -f *.csv 
+fi
+cd $DATADIR/orbits/$lyr/extracsv/processed
+if compgen -G "$DATADIR/orbits/${lyr}/extracsv/processed/*.csv" > /dev/null ; then 
+    if [ ! -f $DATADIR/olddata/${lyr}-matchextracsv.tgz ] ; then 
+        tar cvfz $DATADIR/olddata/${lyr}-matchextracsv.tgz *.csv
+    else
+        tar uvfz $DATADIR/olddata/${lyr}-matchextracsv.tgz *.csv
+    fi
+    rm -f *.csv 
+fi
+cd $DATADIR/orbits/$lyr/fullcsv/processed
+if compgen -G "$DATADIR/orbits/${lyr}/fullcsv/processed/*.csv" > /dev/null ; then 
+    if [ ! -f $DATADIR/olddata/${lyr}-matchfullcsv.tgz ] ; then 
+        tar cvfz $DATADIR/olddata/${lyr}-matchfullcsv.tgz *.csv
+    else
+        tar uvfz $DATADIR/olddata/${lyr}-matchfullcsv.tgz *.csv
+    fi
+    rm -f *.csv 
+fi
+
+# and now last months fullcsv data
+cd $DATADIR/orbits/$cyr/fullcsv/processed
+if compgen -G "$DATADIR/orbits/${cyr}/fullcsv/processed/${lym}??-*.csv" > /dev/null ; then 
+    if [ ! -f $DATADIR/olddata/${cyr}-matchfullcsv.tgz ] ; then 
+        tar cvfz $DATADIR/olddata/${cyr}-matchfullcsv.tgz ${lym}??-*.csv
+    else
+        tar uvfz $DATADIR/olddata/${cyr}-matchfullcsv.tgz ${lym}??-*.csv
+    fi
+    #rm -f ${lym}??-*.csv 
+fi
 
 # SHOWER, MONTHLY AND ANNUAL REPORTS FROM PREVIOUS YEAR
-cd $SRC/data/reports/${lyr}
+cd $DATADIR/reports/${lyr}
 nf=$(ls -1 | wc -l)
 if [ $nf -ne 0 ] ; then 
     if [ ! -f $DATADIR/olddata/${lyr}reports.tgz ] ; then 
-        tar cvfz $DATADIR/olddata/${lyr}reports.tgz *
+        tar cvfz $DATADIR/olddata/${lyr}-reports.tgz *
     else
-        tar uvfz $DATADIR/olddata/${lyr}reports.tgz *
+        tar uvfz $DATADIR/olddata/${lyr}-reports.tgz *
     fi
     rm -Rf *
 fi
 
 # SEARCH INDEXES FOR PRIOR YEAR
-cd $SRC/data/searchidx 
-if [ ! -f $DATADIR/olddata/${lyr}searchidx.tgz ] ; then 
-    tar cvfz $DATADIR/olddata/${lyr}searchidx.tgz ${lyr}-allevents.csv
-else
-    tar uvfz $DATADIR/olddata/${lyr}searchidx.tgz ${lyr}-allevents.csv
+cd $DATADIR/searchidx 
+if compgen -G "$DATADIR/searchidx/${lyr}-allevents.csv" > /dev/null ; then 
+    if [ ! -f $DATADIR/olddata/${lyr}-searchidx.tgz ] ; then 
+        tar cvfz $DATADIR/olddata/${lyr}-searchidx.tgz ${lyr}-allevents.csv
+    else
+        tar uvfz $DATADIR/olddata/${lyr}-searchidx.tgz ${lyr}-allevents.csv
+    fi
+    rm -Rf ${lyr}-allevents.csv
 fi
-rm -Rf ${lyr}-allevents.csv
 
+# now push it all to the offline backup
 source ~/.ssh/ukmon-backup-keys
 aws s3 sync $DATADIR/olddata/ s3://ukmon-shared-backup/analysisbackup/ --exclude "*" --include "*.tgz" --quiet

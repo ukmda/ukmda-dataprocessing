@@ -48,8 +48,11 @@ def read(query, bucket_name, athena_client, dbname, credentials=None):
 
     file_name = "tmp/fromglue/{}.csv".format(qe["QueryExecutionId"])
     obj = s3_client.get_object(Bucket=bucket_name, Key=file_name)
-    s3_client.delete_object(Bucket=bucket_name, Key=file_name)
-    s3_client.delete_object(Bucket=bucket_name, Key=file_name+'.metadata')
+    try:
+        s3_client.delete_object(Bucket=bucket_name, Key=file_name)
+        s3_client.delete_object(Bucket=bucket_name, Key=file_name+'.metadata')
+    except:
+        print('unable to clean up temp files')
     return pd.read_csv(obj['Body'])
 
 

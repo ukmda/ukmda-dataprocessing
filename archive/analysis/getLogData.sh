@@ -13,7 +13,7 @@ lastlog=$(ls -1tr $SRC/logs/nightly*.log | tail -1)
 lastmtch=$(ls -1tr $SRC/logs/matches-*.log | tail -1)
 
 egrep "nightlyJob|consolidateOutput|createMthlyExtracts|createShwrExtracts|createSearchable|createFireballPage|showerReport|reportYear|createSummaryTable|createLatestTable|stationReports" $lastlog > /tmp/logmsgs.txt
-egrep "findAllMatches1|convertUfoToRms|getRMSSingleData|runMatching" $lastmtch > /tmp/matchpt1.txt
+egrep "findAllMatches1|convertUfoToRms|getRMSSingleData|runDistrib" $lastmtch > /tmp/matchpt1.txt
 egrep "findAllMatches2|updateIdexPages|createOrbitIndex" $lastmtch > /tmp/matchpt2.txt
 
 

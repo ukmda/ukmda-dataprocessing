@@ -15,5 +15,7 @@ Resources:
           Properties:
             Path: '/getecsv'
             Method: get
+      Tags:
+        billingtag: "ukmon"
     Metadata:
       BuildMethod: python3.8

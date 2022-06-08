@@ -120,12 +120,14 @@ class SiteInfo:
         else:
             return self.camdets[c]['camtyp'] 
 
-    def getAllCamsAndFolders(self):
+    def getAllCamsAndFolders(self, isactive=False):
         # fetch camera details from the CSV file
         fldrs = []
         cams = []
 
         for row in self.camdets:
+            if isactive is True and row['active'] == 0: 
+                continue
             if row[0][:1] != '#':
                 # print(row)
                 if row[1] == '':

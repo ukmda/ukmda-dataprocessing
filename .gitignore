@@ -556,8 +556,10 @@ archive/unused/**
 ukmon_pylib/tests/*
 unused/*
 *tfstate.lock.info
-archive/lambdas/samfunctions/getExtraFilesV3/pythoncode/WesternMeteorPyLib/*
+archive/lambdas/samfunctions/getExtraFilesV2/pythoncode/WesternMeteorPyLib/*
 archive/containers/trajsolver/WesternMeteorPyLib/*
 archive/containers/trajsolver/awskeys
 #ukmon_pylib/traj/clusdetails.txt
 **/*.pickle
+archive/containers/gui/awskeys
+archive/terraform/ee/ukmonreadonly.key
