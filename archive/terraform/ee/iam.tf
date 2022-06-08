@@ -29,7 +29,6 @@ resource "aws_iam_role" "S3FullAccess" {
           Action = "sts:AssumeRole"
           Effect = "Allow"
           Principal = {
-            AWS     = "AROAUUCG4WH4NYGWV2PLY"
             Service = "lambda.amazonaws.com"
           }
         },
