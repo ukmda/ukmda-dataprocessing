@@ -93,7 +93,7 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
     cp -f $targdir/*.json $DATADIR/distrib
     cp -f $DATADIR/distrib/processed_trajectories.json $DATADIR/distrib/prev_processed_trajectories.json
 
-    python -m traj.consolidateDistTraj $DATADIR/distrib $DATADIR/distrib/processed_trajectories.json
+    python -m traj.consolidateDistTraj $DATADIR/distrib $DATADIR/distrib/processed_trajectories.json $rundate
 
     cp $DATADIR/distrib/processed_trajectories.json $targdir
     gzip < $DATADIR/distrib/processed_trajectories.json > $DATADIR/trajdb/processed_trajectories.json.${rundate}.gz
