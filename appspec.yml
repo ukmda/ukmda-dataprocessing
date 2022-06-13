@@ -10,11 +10,21 @@ hooks:
 permissions:
   - object: /home/ec2-user/test
     pattern: "*.sh"
+    owner: ec2-user
+    group: ec2-user
     mode: 754
     type:
       - file
   - object: /home/ec2-user/test
     pattern: "*.py"
+    owner: ec2-user
+    group: ec2-user
     mode: 644
     type:
       - file
+  - object: /home/ec2-user/test
+    owner: ec2-user
+    group: ec2-user
+    mode: 755
+    type:
+      - directory
