@@ -7,3 +7,14 @@ hooks:
   BeforeInstall:
     - location: archive/codeDeploy/before-install.sh
       timeout: 900
+permissions:
+  - object: /home/ec2-user/test
+    pattern: "*.sh"
+    mode: 0754
+    type:
+      - file
+  - object: /home/ec2-user/test
+    pattern: "*.py"
+    mode: 0644
+    type:
+      - file
