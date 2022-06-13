@@ -234,7 +234,18 @@ if __name__ == '__main__':
         print('define DATADIR first')
         exit(1)
 
-    s,d,t,m = getDayCamTimings(sys.argv[1])
+    sts_client = boto3.client('sts')
+    assumed_role_object=sts_client.assume_role(
+        RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+        RoleSessionName="AssumeRoleSession1")
+    credentials=assumed_role_object['Credentials']
+
+    ddb = boto3.resource('dynamodb', region_name='eu-west-1',
+        aws_access_key_id=credentials['AccessKeyId'],
+        aws_secret_access_key=credentials['SecretAccessKey'],
+        aws_session_token=credentials['SessionToken'])
+
+    s,d,t,m = getDayCamTimings(sys.argv[1], ddb=ddb)
     newdata=pd.DataFrame(zip(s,d,t,m), columns=['stationid','upddate','uploadtime','manual'])
 
     outfile=os.path.join(datadir, 'reports', 'camuploadtimes.csv')

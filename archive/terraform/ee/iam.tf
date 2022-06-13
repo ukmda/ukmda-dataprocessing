@@ -10,6 +10,7 @@ resource "aws_iam_role" "S3FullAccess" {
     {
       Statement = [
         {
+          # not sure this one is used, double check 
           Action = "sts:AssumeRole"
           Effect = "Allow"
           Principal = {
@@ -18,11 +19,20 @@ resource "aws_iam_role" "S3FullAccess" {
           }
         },
         {
+          # give access to lambda functions in MJMM account
           Action = "sts:AssumeRole"
           Effect = "Allow"
           Principal = {
             AWS     = "arn:aws:iam::317976261112:role/lambda-s3-full-access-role"
             Service = "lambda.amazonaws.com"
+          }
+        },
+        {
+          # give access to S3FullAccess role used by EC2 in MJMM account
+          Action = "sts:AssumeRole"
+          Effect = "Allow"
+          Principal = {
+            AWS     = "arn:aws:iam::317976261112:role/S3FullAccess"
           }
         },
         {
@@ -86,7 +96,7 @@ resource "aws_iam_policy" "userpol1" {
 
 resource "aws_iam_user_policy_attachment" "ump1" {
   user       = "ukmonarchive"
-  policy_arn = "arn:aws:iam::822069317839:policy/CEforUkmonarchive"
+  policy_arn = aws_iam_policy.userpol1.arn
 }
 
 # readonly user for GUI toolset

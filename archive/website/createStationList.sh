@@ -40,7 +40,6 @@ do
 done
 echo "</select>" >> $siteidx
 
-source $WEBSITEKEY
 aws s3 cp $siteidx $WEBSITEBUCKET/search/ --quiet
 
 # active-only stations
@@ -63,7 +62,6 @@ do
     rowid=$((rowid+1))
 done
 
-source $WEBSITEKEY
 aws s3 cp $siteidx $WEBSITEBUCKET/search/ --quiet
 
 # active-only locations
@@ -86,5 +84,4 @@ do
     rowid=$((rowid+1))
 done
 
-source $WEBSITEKEY
 aws s3 cp $siteidx $WEBSITEBUCKET/search/ --quiet

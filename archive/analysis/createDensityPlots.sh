@@ -32,13 +32,11 @@ if [ $ym == $yr ] ; then
     mkdir -p $MATCHDIR/RMSCorrelate/trajectories/$yr/plots > /dev/null 2>&1
     mv -f $MATCHDIR/RMSCorrelate/trajectories/$yr/*.png $MATCHDIR/RMSCorrelate/trajectories/$yr/plots
     mv -f $MATCHDIR/RMSCorrelate/trajectories/$yr/trajectory_summary.txt $MATCHDIR/RMSCorrelate/trajectories/$yr/plots
-    source $WEBSITEKEY
     aws s3 sync $MATCHDIR/RMSCorrelate/trajectories/$yr/plots $WEBSITEBUCKET/reports/$yr/orbits/plots --quiet
 else
     python -m wmpl.Trajectory.AggregateAndPlot $MATCHDIR/RMSCorrelate/trajectories/$yr/$ym -p -s 30
     mkdir -p $MATCHDIR/RMSCorrelate/trajectories/$yr/$ym/plots > /dev/null 2>&1
     mv -f $MATCHDIR/RMSCorrelate/trajectories/$yr/$ym/*.png $MATCHDIR/RMSCorrelate/trajectories/$yr/$ym/plots
     mv -f $MATCHDIR/RMSCorrelate/trajectories/$yr/$ym/trajectory_summary.txt $MATCHDIR/RMSCorrelate/trajectories/$yr/$ym/plots
-    source $WEBSITEKEY
     aws s3 sync $MATCHDIR/RMSCorrelate/trajectories/$yr/$ym/plots $WEBSITEBUCKET/reports/$yr/orbits/$ym/plots --quiet
 fi 
