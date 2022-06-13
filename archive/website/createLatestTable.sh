@@ -27,7 +27,7 @@ echo "var header = table.createTHead();" >> reportindex.js
 echo "header.className = \"h4\";" >> reportindex.js 
 
 echo "StationID,DateTime" > $DATADIR/latest/uploadtimes.csv
-source $WEBSITEKEY
+
 aws s3 ls $WEBSITEBUCKET/latest/ | grep jpg | while read i
 do
     fn=$(echo $i | awk '{print $4}')
@@ -51,7 +51,6 @@ echo "outer_div.appendChild(table);" >> reportindex.js
 echo "})" >> reportindex.js
 
 logger -s -t createLatestTable "done, sending to website"
-source $WEBSITEKEY
 aws s3 cp reportindex.js  $WEBSITEBUCKET/latest/ --quiet
 
 logger -s -t createLatestTable "finished"

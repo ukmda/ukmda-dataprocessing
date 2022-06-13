@@ -7,7 +7,7 @@ from traj.pickleAnalyser import getAllMp4s
 
 
 def getBestNMp4s(yr, mth, numtoget):
-    datadir=os.getenv('DATADIR')
+    datadir=os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     mf = os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.gzip')
     matches = pd.read_parquet(mf)
     matches = matches[matches._Y_ut == int(yr)]
@@ -15,7 +15,7 @@ def getBestNMp4s(yr, mth, numtoget):
     sepdata = matches.sort_values(by=['_mag'])
     sorteddata = sepdata.head(numtoget)
 
-    tmpdir = os.getenv('TMP')
+    tmpdir = os.getenv('TMP', default='/tmp')
     wsbucket = os.getenv('UKMONSHAREDBUCKET')[5:]
     s3 = boto3.resource('s3')
     mp4df = pd.DataFrame()

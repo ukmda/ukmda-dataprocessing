@@ -101,7 +101,6 @@ echo "outer_div.appendChild(table);" >> $idxfile
 echo "})" >> $idxfile
 
 logger -s -t createMthlyExtracts "js table created, copying to website"
-source $WEBSITEKEY
 aws s3 sync $DATADIR/browse/monthly/  $WEBSITEBUCKET/browse/monthly/ --quiet
 
 logger -s -t createMthlyExtracts "done gathering data, creating table"
@@ -158,7 +157,6 @@ echo "outer_div.appendChild(table);" >> $idxfile
 echo "})" >> $idxfile
 
 logger -s -t createMthlyExtracts "annual js table created, copying to website"
-source $WEBSITEKEY
 aws s3 sync $DATADIR/browse/annual/  $WEBSITEBUCKET/browse/annual/ --quiet
 
 logger -s -t createMthlyExtracts "finished"

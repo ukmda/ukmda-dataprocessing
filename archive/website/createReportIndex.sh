@@ -91,7 +91,6 @@ echo "outer_div.appendChild(table);" >> $previdx
 echo "})" >> $previdx
 
 logger -s -t createReportIndex "done, sending to website"
-source $WEBSITEKEY
 if [ "$prefix" == "." ] ; then 
     aws s3 cp $SRC/website/templates/reportindex.html $WEBSITEBUCKET/reports/index.html --quiet
     aws s3 cp $repidx  $WEBSITEBUCKET/reports/ --quiet
