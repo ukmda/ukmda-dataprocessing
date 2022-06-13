@@ -159,7 +159,6 @@ else
 
 
     logger -s -t showerReport "copying files to website"
-    source $WEBSITEKEY
     aws s3 sync $DATADIR/$outdir $WEBSITEBUCKET/$outdir --quiet
     logger -s -t showerReport "all done"
 

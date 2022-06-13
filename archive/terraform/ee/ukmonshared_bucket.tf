@@ -14,11 +14,20 @@ resource "aws_s3_bucket_policy" "ukmonsharedbp" {
         {
           Action = [
             "s3:ListBucket",
-            "s3:GetObject",
+            "s3:Get*",
+            "s3:Put*",
+            "s3:Delete*"
           ]
           Effect = "Allow"
           Principal = {
-            AWS = "arn:aws:iam::317976261112:root"
+            AWS = [
+              "arn:aws:iam::317976261112:role/S3FullAccess",
+              "arn:aws:iam::317976261112:role/lambda-s3-full-access-role",
+              "arn:aws:iam::317976261112:role/ecsTaskExecutionRole",
+              "arn:aws:iam::317976261112:user/Mary",
+              "arn:aws:iam::317976261112:user/Mark",
+              "arn:aws:iam::317976261112:user/s3user",
+            ]
           }
           Resource = [
             "arn:aws:s3:::ukmon-shared/*",
@@ -65,7 +74,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmonsharedlcp" {
     }
 
     transition {
-      days          = 60
+      days          = 45
       storage_class = "STANDARD_IA"
     }
   }
@@ -109,5 +118,13 @@ resource "aws_s3_bucket_cors_configuration" "ukmonsharedcors" {
       "x-amz-meta-custom-header",
     ]
     max_age_seconds = 0
+  }
+}
+
+resource "aws_s3_bucket_ownership_controls" "ukmonshare_objownrule" {
+  bucket = aws_s3_bucket.ukmonshared.id
+
+  rule {
+    object_ownership = "BucketOwnerEnforced"
   }
 }

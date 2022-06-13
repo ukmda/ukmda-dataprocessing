@@ -42,5 +42,4 @@ echo "</pre>" >> $DATADIR/lastlog.html
 cat $TEMPLATES/footer.html >> $DATADIR/lastlog.html
 rm /tmp/matchpt1.txt /tmp/matchpt2.txt /tmp/logmsgs.txt
 
-source $WEBSITEKEY
 aws s3 cp $DATADIR/lastlog.html  $WEBSITEBUCKET/reports/ --quiet
