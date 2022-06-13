@@ -97,5 +97,10 @@ resource "aws_iam_role_policy" "dailyreport_policy" {
 EOF
 }
 
-/*
-*/
+resource "aws_lambda_permission" "rp_for_mjmmacct" {
+  provider         = aws.eu-west-1-prov
+  statement_id  = "xacctLambdaPol"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.dailyreportlambda.arn}"
+  principal     = "arn:aws:iam::317976261112:role/S3FullAccess"
+}

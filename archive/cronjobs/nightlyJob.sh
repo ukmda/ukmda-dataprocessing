@@ -17,9 +17,6 @@ echo $rundate > $DATADIR/rundate.txt
 logger -s -t nightlyJob "update search index files with singleton data"
 $SRC/analysis/createSearchable.sh
 
-source $WEBSITEKEY
-export AWS_DEFAULT_REGION=eu-west-2
-
 # run this only once as it scoops up all unprocessed data
 logger -s -t nightlyJob "looking for matching events and solving their trajectories"
 matchlog=matches-$(date +%Y%m%d-%H%M%S).log
@@ -37,9 +34,7 @@ if [ "`tty`" != "not a tty" ]; then
     logger -s -t nightlyJob 'got a tty, not triggering report'
 else 
     logger -s -t nightlyJob 'no tty, triggering report' 
-    source $WEBSITEKEY
-    export AWS_DEFAULT_REGION=eu-west-1
-    aws lambda invoke --function-name dailyReport --log-type Tail $SRC/logs/dailyReport.log
+    aws lambda invoke --function-name 822069317839:function:dailyReport --region eu-west-1 --log-type Tail $SRC/logs/dailyReport.log
 fi
 
 logger -s -t nightlyJob "create monthly and shower extracts for the website"
@@ -80,8 +75,7 @@ ${SRC}/website/cameraStatusReport.sh
 
 logger -s -t nightlyJob "create event log for other networks"
 python -m reports.createExchangeFiles
-source $WEBSITEKEY
-aws s3 sync $DATADIR/browse/daily/ $WEBSITEBUCKET/browse/daily/ --quiet
+aws s3 sync $DATADIR/browse/daily/ $WEBSITEBUCKET/browse/daily/ --region eu-west-2 --quiet
 
 logger -s -t nightlyJob "create list of connected stations and map of stations"
 sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s, %s\n", $3,$9)}' > $DATADIR/reports/stationlogins.txt
@@ -90,14 +84,12 @@ cd $DATADIR
 # do this manually when on PC required; closes #61
 #python $PYLIB/utils/plotStationsOnMap.py $CAMINFO
 
-source $WEBSITEKEY
-aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --quiet
-aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/ --quiet
+aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --region eu-west-2 --quiet
+aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/ --region eu-west-2 --quiet
 
 logger -s -t nightlyJob "create station reports"
 $SRC/analysis/stationReports.sh
 
-source $WEBSITEKEY
 python -m metrics.camMetrics $rundate
 cat $DATADIR/reports/camuploadtimes.csv  | sort -n -t ',' -k2 > /tmp/tmp444.txt
 mv -f /tmp/tmp444.txt $DATADIR/reports/camuploadtimes.csv

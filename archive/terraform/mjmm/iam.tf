@@ -34,6 +34,36 @@ resource "aws_iam_role_policy_attachment" "aws-managed-policy-attachment2" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+resource "aws_iam_role_policy_attachment" "xacctaccess" {
+  role       = aws_iam_role.S3FullAccess.name
+  policy_arn = aws_iam_policy.crossacctpolicy.arn
+}
+
+resource "aws_iam_policy" "crossacctpolicy" {
+  name = "CrossAcctPolForS3FullAccess"
+  policy = jsonencode(
+    {
+      Statement = [
+        {
+          Action   = [ 
+            "sts:AssumeRole",
+#            "lambda:InvokeFunction",
+          ]
+          Effect   = "Allow"
+          Resource = [
+            "arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+#            "arn:aws:lambda:eu-west-1:822069317839:function:dailyReport",
+          ]
+        },
+      ]
+      Version = "2012-10-17"
+    }
+  )
+  tags = {
+    "billingtag" = "ukmon"
+  }
+}
+
 # User, Policy and Roles used to mount s3 buckets. 
 resource "aws_iam_user" "s3user" {
   name = "s3user"
@@ -96,7 +126,11 @@ resource "aws_iam_user_policy" "Ukmon-shared-access" {
             "s3:PutObjectAcl",
           ]
           Effect   = "Allow"
-          Resource = "arn:aws:s3:::ukmon-shared/*"
+          Resource = [
+            "arn:aws:s3:::ukmon-shared/*",
+            "arn:aws:s3:::ukmon-live/*",
+            "arn:aws:s3:::ukmeteornetworkarchive/*",
+          ]
         },
       ]
       Version = "2012-10-17"

@@ -31,12 +31,10 @@ outdir=$DATADIR/videos/${yr}/${yr}${mth}
 s3outdir=videos/${yr}/${yr}${mth}
 mkdir -p $outdir > /dev/null 2>&1
 
-source $WEBSITEKEY
 tlist=$(python -m reports.findBestMp4s $yr $mth $numreq)
 for t in $tlist 
 do 
     aws s3 cp $WEBSITEBUCKET/$t $outdir
 done
 
-source $UKMONSHAREDKEY
 aws s3 sync $outdir s3://ukmon-shared/$s3outdir --quiet

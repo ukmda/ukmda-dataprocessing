@@ -50,7 +50,6 @@ echo "cell.innerHTML = \"Station Reports\";" >> reportindex.js
 echo "var cell = row.insertCell(2);" >> reportindex.js
 j=0
 k=1
-source $WEBSITEKEY
 statlist=$(aws s3 ls s3://ukmeteornetworkarchive/reports/2022/stations/ \
     | egrep -v "index.html|reportindex.js" | awk '{print $2}')
 for i in $statlist ; do

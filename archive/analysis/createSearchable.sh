@@ -17,7 +17,6 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
 source ~/venvs/$WMPL_ENV/bin/activate
-source $WEBSITEKEY
 
 if [ $# -lt 1 ] ; then
     yr=$(date +%Y)
@@ -36,7 +35,6 @@ rm -f /tmp/${yr}-allevents.*
 #logger -s -t createSearchable "create list of all cameras"
 #cat $DATADIR/searchidx/*-allevents.csv | awk -F, '{print $5}' | sort | sed 's/^ *//g' | uniq > $DATADIR/camlist.txt
 
-source $WEBSITEKEY
 aws s3 sync $DATADIR/searchidx/ $WEBSITEBUCKET/search/indexes/ --quiet
 
 logger -s -t createSearchable "done"

@@ -15,8 +15,6 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config/config.ini >/dev/null 2>&1
 
-source $WEBSITEKEY
-
 ym=$1
 yr=${ym:0:4}
 mth=${ym:4:2}
@@ -99,8 +97,6 @@ fi
 cat $TEMPLATES/footer.html >> $idxfile
 
 logger -s -t createOrbitIndex "copying to website"
-
-source $WEBSITEKEY
 aws s3 cp $idxfile $targ/index.html --quiet
 rm -f $idxfile
 
