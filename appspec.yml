@@ -9,14 +9,14 @@ hooks:
       timeout: 900
 permissions:
   - object: /home/ec2-user/test
-    pattern: "*.sh"
+    pattern: "**/*.sh"
     owner: ec2-user
     group: ec2-user
     mode: 754
     type:
       - file
   - object: /home/ec2-user/test
-    pattern: "*.py"
+    pattern: "**/*.py"
     owner: ec2-user
     group: ec2-user
     mode: 644
