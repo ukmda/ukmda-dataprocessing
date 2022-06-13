@@ -7,8 +7,8 @@ resource "aws_s3_bucket" "archsite" {
 }
 
 resource "aws_s3_bucket_policy" "archsite_bp" {
-    bucket = var.websitebucket
-    policy = data.aws_iam_policy_document.archsite_bp_data.json
+  bucket = var.websitebucket
+  policy = data.aws_iam_policy_document.archsite_bp_data.json
 }
 
 data "aws_iam_policy_document" "archsite_bp_data" {
@@ -25,46 +25,46 @@ data "aws_iam_policy_document" "archsite_bp_data" {
   }
 
   statement {
-    sid       = "2"
-    effect    = "Allow"
-    resources = ["arn:aws:s3:::ukmeteornetworkarchive/*"]
+    sid    = "2"
+    effect = "Allow"
+    resources = [
+      "arn:aws:s3:::ukmeteornetworkarchive/*",
+      "arn:aws:s3:::ukmeteornetworkarchive"
+    ]
 
     actions = [
-      "s3:PutObjectACL",
-      "s3:PutObject",
-      "s3:GetObject",
-      "s3:DeleteObject",
+      "s3:Put*",
+      "s3:ListBucket",
+      "s3:Get*",
+      "s3:Delete*",
     ]
 
     principals {
-      type        = "AWS"
-      identifiers = ["arn:aws:iam::317976261112:user/Mark"]
+      type = "AWS"
+      identifiers = [
+        "arn:aws:iam::317976261112:role/S3FullAccess",
+        "arn:aws:iam::317976261112:role/lambda-s3-full-access-role",
+        "arn:aws:iam::317976261112:role/ecsTaskExecutionRole",
+        "arn:aws:iam::317976261112:user/Mary",
+        "arn:aws:iam::317976261112:user/Mark",
+        "arn:aws:iam::317976261112:user/s3user",
+      ]
     }
   }
 
   statement {
-    sid       = "3"
-    effect    = "Allow"
-    resources = ["arn:aws:s3:::ukmeteornetworkarchive"]
-    actions   = ["s3:ListBucket"]
-
-    principals {
-      type        = "AWS"
-      identifiers = ["arn:aws:iam::317976261112:user/Mark"]
-    }
-  }
-
-  statement {
-    sid       = "4"
-    effect    = "Allow"
-    resources = ["arn:aws:s3:::ukmeteornetworkarchive/*"]
+    sid    = "4"
+    effect = "Allow"
+    resources = [
+      "arn:aws:s3:::ukmeteornetworkarchive/*",
+      "arn:aws:s3:::ukmeteornetworkarchive"
+    ]
 
     actions = [
-      "s3:PutObjectACL",
-      "s3:PutObject",
-      "s3:GetObjectACL",
-      "s3:GetObject",
-      "s3:DeleteObject",
+      "s3:Put*",
+      "s3:Get*",
+      "s3:Delete*",
+      "s3:ListBucket"
     ]
 
     principals {
@@ -72,16 +72,12 @@ data "aws_iam_policy_document" "archsite_bp_data" {
       identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/MarkMcIntyre"]
     }
   }
+}
 
-  statement {
-    sid       = "5"
-    effect    = "Allow"
-    resources = ["arn:aws:s3:::ukmeteornetworkarchive"]
-    actions   = ["s3:ListBucket"]
+resource "aws_s3_bucket_ownership_controls" "ukmonarch_objownrule" {
+  bucket = aws_s3_bucket.archsite.id
 
-    principals {
-      type        = "AWS"
-      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/MarkMcIntyre"]
-    }
+  rule {
+    object_ownership = "BucketOwnerEnforced"
   }
 }

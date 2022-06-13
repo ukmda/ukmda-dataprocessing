@@ -27,7 +27,6 @@ fi
 cd ${DATADIR}
 # consolidate UFO and RMS original CSVs.
 logger -s -t consolidateOutput "getting latest consolidated information"
-source $UKMONSHAREDKEY
 aws s3 sync s3://ukmon-shared/consolidated/ ${DATADIR}/consolidated --quiet --exclude 'temp/*'
 
 logger -s -t consolidateOutput "Consolidating RMS and UFO CSVs"
@@ -54,7 +53,6 @@ do
 done
 
 logger -s -t consolidateOutput "pushing consolidated information back"
-source $UKMONSHAREDKEY
 aws s3 sync ${DATADIR}/consolidated s3://ukmon-shared/consolidated/  --quiet --exclude 'UKMON*'
  
 logger -s -t consolidateOutput "Getting latest trajectory data"
@@ -84,11 +82,9 @@ EOD3
 
 python -m converters.toParquet $DATADIR/matched/matches-full-${yr}.csv
 
-source $UKMONSHAREDKEY
-aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matched/ --quiet --include "*" --exclude "*.gzip" --exclude "*.bkp"
+aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matched/ --include "*" --exclude "*.gzip" --exclude "*.bkp" --quiet 
 aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matchedpq/ --quiet --exclude "*" --include "*.gzip" --exclude "*.bkp"
 
-source $WEBSITEKEY
 aws s3 sync $DATADIR/matched/ $WEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.gzip" --exclude "*.bkp" --quiet
 aws s3 sync $DATADIR/single/ $WEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.gzip" --exclude "*.bkp" --quiet
 
