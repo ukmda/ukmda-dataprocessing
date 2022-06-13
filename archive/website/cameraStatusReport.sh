@@ -31,7 +31,6 @@ cat $TEMPLATES/footer.html >> $DATADIR/reports/statrep.html
 
 python -m reports.cameraStatusReport $MATCHDIR/RMSCorrelate > $DATADIR/reports/camrep.js
 
-source $WEBSITEKEY
 aws s3 cp $DATADIR/reports/statrep.html $WEBSITEBUCKET/reports/ --quiet
 aws s3 cp $DATADIR/reports/camrep.js $WEBSITEBUCKET/reports/ --quiet
 

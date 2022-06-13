@@ -6,6 +6,7 @@ from botocore.config import Config
 import matplotlib.pyplot as plt
 import numpy as np
 from dateutil import relativedelta
+import pandas as pd
 
 csvdtype = np.dtype([('dt', 'U10'), ('service','U64'), ('tag', 'U32'), ('cost', '<f8')])
 
@@ -76,9 +77,9 @@ def drawBarChart(costsfile):
     svcs.sort()
 
     # get dates
-    s3f=fltrdata['service']==' Amazon Simple Storage Service'
-    s3data = fltrdata[s3f]
-    labels = s3data['dt']
+    dts = pd.date_range(str(min(costdata['dt'])), str(max(costdata['dt'])))
+    labels = [d.strftime('%Y-%m-%d') for d in dts]
+    #print(labels)
 
     # create plot
     fig, ax = plt.subplots()
@@ -90,8 +91,8 @@ def drawBarChart(costsfile):
     numdays = len(labels)
     # run through services adding them to the graph
     bottoms=np.zeros(numdays)
-    print(svcs)
     for svc in svcs: 
+        #print(svc)
         thisfltr = fltrdata['service']==svc
         thisdata = fltrdata[thisfltr]
         vals=np.zeros(numdays)
