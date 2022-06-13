@@ -1,0 +1,9 @@
+version: 1.0
+os: linux
+files:
+  - source: archive/codeDeploy/test
+    destination: /home/ec2-user/test/
+hooks:
+  BeforeInstall:
+    - location: archive/codeDeploy/before-install.sh
+      timeout: 900
