@@ -17,8 +17,6 @@ echo $rundate > $DATADIR/rundate.txt
 logger -s -t nightlyJob "update search index files with singleton data"
 $SRC/analysis/createSearchable.sh
 
-export AWS_DEFAULT_REGION=eu-west-2
-
 # run this only once as it scoops up all unprocessed data
 logger -s -t nightlyJob "looking for matching events and solving their trajectories"
 matchlog=matches-$(date +%Y%m%d-%H%M%S).log
@@ -77,7 +75,7 @@ ${SRC}/website/cameraStatusReport.sh
 
 logger -s -t nightlyJob "create event log for other networks"
 python -m reports.createExchangeFiles
-aws s3 sync $DATADIR/browse/daily/ $WEBSITEBUCKET/browse/daily/ --quiet
+aws s3 sync $DATADIR/browse/daily/ $WEBSITEBUCKET/browse/daily/ --region eu-west-2 --quiet
 
 logger -s -t nightlyJob "create list of connected stations and map of stations"
 sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s, %s\n", $3,$9)}' > $DATADIR/reports/stationlogins.txt
@@ -86,8 +84,8 @@ cd $DATADIR
 # do this manually when on PC required; closes #61
 #python $PYLIB/utils/plotStationsOnMap.py $CAMINFO
 
-aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --quiet
-aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/ --quiet
+aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --region eu-west-2 --quiet
+aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/ --region eu-west-2 --quiet
 
 logger -s -t nightlyJob "create station reports"
 $SRC/analysis/stationReports.sh
