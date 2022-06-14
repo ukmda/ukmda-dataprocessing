@@ -34,7 +34,7 @@ if [ "`tty`" != "not a tty" ]; then
     logger -s -t nightlyJob 'got a tty, not triggering report'
 else 
     logger -s -t nightlyJob 'no tty, triggering report' 
-    aws lambda invoke --function-name 822069317839:function:dailyReport --region eu-west-1 --log-type Tail $SRC/logs/dailyReport.log
+    aws lambda invoke --function-name 822069317839:function:dailyReport --region eu-west-1 --log-type None $SRC/logs/dailyReport.log
 fi
 
 logger -s -t nightlyJob "create monthly and shower extracts for the website"
