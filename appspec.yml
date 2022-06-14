@@ -1,8 +1,10 @@
 version: 0.0
 os: linux
 files:
-  - source: archive/codeDeploy/test
-    destination: /home/ec2-user/test/
+  - source: archive/website/
+    destination: /home/ec2-user/test/website/
+  - source: ukmon_pylib/
+    destination: /home/ec2-user/test/ukmon_pylib/
 hooks:
   BeforeInstall:
     - location: archive/codeDeploy/before-install.sh
