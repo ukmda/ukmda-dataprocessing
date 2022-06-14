@@ -77,7 +77,6 @@ logger -s -t findAllMatches2 "Solving run done"
 logger -s -t findAllMatches2 "================"
 
 logger -s -t findAllMatches2 "run a quick check for any Lambdas that failed"
-source $SERVERAWSKEYS
 python -m utils.rerunFailedGetExtraFiles
 
 cd $here

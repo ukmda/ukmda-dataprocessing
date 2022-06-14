@@ -39,20 +39,56 @@ resource "aws_iam_role_policy_attachment" "xacctaccess" {
   policy_arn = aws_iam_policy.crossacctpolicy.arn
 }
 
+resource "aws_iam_role_policy_attachment" "polatt4s3fullaccess" {
+  role       = aws_iam_role.S3FullAccess.name
+  policy_arn = aws_iam_policy.pol4s3fullaccess.arn
+}
+
+resource "aws_iam_policy" "pol4s3fullaccess" {
+  name = "PolForS3FullAccess"
+  policy = jsonencode(
+    {
+      Statement = [
+        {
+          Action = [
+            "logs:FilterLogEvents",
+            "ec2:*",
+          ]
+          Effect = "Allow"
+          Resource = [
+            "*",
+          ]
+        },
+      ]
+      Version = "2012-10-17"
+    }
+  )
+  tags = {
+    "billingtag" = "ukmon"
+  }
+}
+
 resource "aws_iam_policy" "crossacctpolicy" {
   name = "CrossAcctPolForS3FullAccess"
   policy = jsonencode(
     {
       Statement = [
         {
-          Action   = [ 
+          Action = [
             "sts:AssumeRole",
-#            "lambda:InvokeFunction",
           ]
-          Effect   = "Allow"
+          Effect = "Allow"
           Resource = [
             "arn:aws:iam::822069317839:role/service-role/S3FullAccess",
-#            "arn:aws:lambda:eu-west-1:822069317839:function:dailyReport",
+          ]
+        },
+        {
+          Action = [
+            "lambda:InvokeFunction",
+          ]
+          Effect = "Allow"
+          Resource = [
+            "arn:aws:lambda:eu-west-1:822069317839:function:dailyReport",
           ]
         },
       ]
@@ -125,7 +161,7 @@ resource "aws_iam_user_policy" "Ukmon-shared-access" {
             "s3:PutObject",
             "s3:PutObjectAcl",
           ]
-          Effect   = "Allow"
+          Effect = "Allow"
           Resource = [
             "arn:aws:s3:::ukmon-shared/*",
             "arn:aws:s3:::ukmon-live/*",
