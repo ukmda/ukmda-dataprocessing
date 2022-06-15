@@ -1,10 +1,2 @@
 destdir: /home/ec2-user/dev
-websitebucket: mjmm-ukmonarchive.co.uk
-websitekey: ~/.ssh/marks-keys
-s3profile: default
-siteurl: http://mjmm-ukmonarchive.co.uk.s3-website.eu-west-2.amazonaws.com
 env: DEV
-wmplhome: /home/ec2-user/src/wmpldev
-archivebucket: mjmm-ukmonarchive.co.uk
-calcinstance: i-0da38ed8aea1a1d85
-ukmonlivebucket: mjmm-live
