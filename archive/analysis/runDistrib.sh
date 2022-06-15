@@ -33,9 +33,6 @@ fi
 begdate=$(date --date="-$MATCHSTART days" '+%Y%m%d')
 rundate=$(date --date="-$MATCHEND days" '+%Y%m%d')
 
-source $SERVERAWSKEYS
-AWS_DEFAULT_REGION=eu-west-2 
-
 logger -s -t runDistrib "checking correlation server status and starting it"
 stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
 if [ $stat -eq 80 ]; then 
@@ -80,7 +77,7 @@ logger -s -t runDistrib "job run, stop the server again"
 aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 
 logger -s -t runDistrib "monitoring and waiting for completion"
-source $SERVERAWSKEYS
+
 targdir=$MATCHDIR/distrib
 python -c "from traj.distributeCandidates import monitorProgress as mp; mp('${rundate}','${targdir}'); "
 

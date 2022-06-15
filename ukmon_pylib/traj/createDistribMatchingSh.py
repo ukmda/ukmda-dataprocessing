@@ -93,14 +93,14 @@ def createDensityPlots(outf, calcdir, yr, ym):
     return
 
 
-def getKeyForBucket(buck):
-    shkey = os.getenv('UKMONSHAREDKEY')
-    webkey = os.getenv('WEBSITEKEY')
-    if 'ukmon-shared' in buck:
-        thiskey = shkey
-    else:
-        thiskey = webkey
-    return thiskey
+#def getKeyForBucket(buck):
+#    shkey = os.getenv('UKMONSHAREDKEY')
+#    webkey = os.getenv('WEBSITEKEY')
+#    if 'ukmon-shared' in buck:
+#        thiskey = shkey
+#    else:
+#        thiskey = webkey
+#    return thiskey
 
 
 def createDistribMatchingSh(matchstart, matchend, execmatchingsh):

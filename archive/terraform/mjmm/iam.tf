@@ -52,7 +52,14 @@ resource "aws_iam_policy" "pol4s3fullaccess" {
         {
           Action = [
             "logs:FilterLogEvents",
-            "ec2:*",
+            "logs:GetLogEvents",
+            "ec2:DescribeInstances",
+            "ec2:StartInstances",
+            "ec2:StopInstances",
+            "ecs:DescribeClusters",
+            "ecs:DescribeTasks",
+            "ecs:RunTask",
+            "s3:*",
           ]
           Effect = "Allow"
           Resource = [
