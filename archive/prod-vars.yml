@@ -1,10 +1,2 @@
 destdir: /home/ec2-user/prod
-websitebucket: ukmeteornetworkarchive
-websitekey: ~/.ssh/ukmonarchive-keys
-s3profile: ukmonarchive
-siteurl: https://archive.ukmeteornetwork.co.uk
 env: PROD
-wmplhome: /home/ec2-user/src/WesternMeteorPyLib
-archivebucket: ukmon-shared
-calcinstance: i-0da38ed8aea1a1d85
-ukmonlivebucket: ukmon-live
