@@ -103,5 +103,5 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
 else
     echo "trajectory database is size zero... not proceeding with copy"
 fi 
-rsync -avz $MATCHDIR/distrib/logs/ $SRC/logs/distrib/
+aws s3 sync $UKMONSHAREDBUCKET/matches/distrib/logs $SRC/logs/distrib --quiet
 logger -s -t runDistrib "done"
