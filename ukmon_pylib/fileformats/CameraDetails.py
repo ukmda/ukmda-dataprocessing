@@ -27,6 +27,8 @@ class SiteInfo:
     def getCameraOffset(self, statid):
         spls=statid.split('_')
         statid = statid.encode('utf-8')
+        if statid not in self.camdets['CamID']:
+            return -1
         cam = numpy.where(self.camdets['CamID'] == statid) 
         if len(cam[0]) == 0:
             statid = statid.upper()
@@ -104,7 +106,7 @@ class SiteInfo:
     def checkCameraActive(self, statid):
         c = self.getCameraOffset(statid)
         if c < 0:
-            return 'Unknown'
+            return False
         else:
             if self.camdets[c]['active'] == 0: 
                 return False

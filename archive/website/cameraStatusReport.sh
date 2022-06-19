@@ -1,5 +1,5 @@
 #!/bin/bash
-# create report of camera statuses
+# create reports of camera statuses
 #
 # Parameters
 #   none
@@ -8,7 +8,10 @@
 #   stacks and allsky maps from individual cameras, plus the timestamp of upload
 #
 # Produces
+#   a webpage showing the list of cameras, colourcoded by status
+#       https://archive.ukmeteornetwork.co.uk/reports/statrep.html
 #   a webpage showing the latest stack and map from each camera
+#       https://archive.ukmeteornetwork.co.uk/latest/index.html
 #
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
