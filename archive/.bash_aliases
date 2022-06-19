@@ -20,7 +20,7 @@ alias startcalc='~/prod/utils/stopstart-calcengine.sh start'
 alias stopcalc='~/prod/utils/stopstart-calcengine.sh stop'
 
 function dev {
-	source ~/dev/config/config.ini >/dev/null 2>&1 
+	~/dev/config/config.ini >/dev/null 2>&1 
 	source ~/venvs/$WMPL_ENV/bin/activate
 	PS1="(wmpl) (dev) [\W]\$ "
 	cd ~/dev
@@ -32,4 +32,14 @@ function prd {
 	cd ~/prod
 }
 
-function bigserver { if [ "$BIGSERVER" == "" ] ; then startcalc && sleep 10 ; fi ; ssh -i ~/.ssh/markskey.pem $BIGSERVER ; }
+function calcserver { 
+	sts=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State --output text)
+	ipaddr=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
+	isrunning=$(echo $sts | cut -d " " -f 1)
+	if [ $isrunning -ne 16 ] ; then
+		/home/ec2-user/prod/utils/stopstart-calcengine.sh start
+		echo "starting server on ${ipaddr}... waiting 10s..."
+		sleep 10
+	fi 
+	ssh -i ~/.ssh/markskey.pem ec2-user@$ipaddr
+}
