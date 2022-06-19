@@ -66,6 +66,15 @@ resource "aws_iam_policy" "pol4s3fullaccess" {
             "*",
           ]
         },
+        {
+          Sid      = "PassRolePermission"
+          Effect   = "Allow"
+          Action   = [
+            "iam:PassRole",
+            "iam:GetRole",
+            ]
+          Resource = aws_iam_role.ecstaskrole.arn
+        }
       ]
       Version = "2012-10-17"
     }
