@@ -39,8 +39,11 @@ def AddBlank(body, bodytext):
 
 def addFooter(body, bodytext):
     fbm = 'Seen a fireball? <a href=https://ukmeteornetwork.co.uk/fireball-report/>Click here</a> to report it'
-    body = body + '</table><br><br>\n' + fbm + '<br>'
-    bodytext = bodytext + '\n' + fbm + '\n'
+    uss = 'Unsubscribe from UKMON report'
+    usb = 'Please unsubscribe me from the UKMON daily report'
+    usm = f'To unsubscribe <a href=\"mailto:markmcintyre99@googlemail.com?Subject={uss}&body={usb}\">click here</a>.'
+    body = body + '</table><br><br>\n' + fbm + '<br>' +usm + '<br>'
+    bodytext = bodytext + '\n' + fbm + '\n' + usm + '\n'
     return body, bodytext
 
 
