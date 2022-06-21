@@ -10,7 +10,7 @@ ENV PYTHONPATH ./WesternMeteorPyLib
 #COPY *.npy ./WesternMeteorPyLib/wmpl/share/
 ENV PROJ_LIB ./
 RUN pip install boto3
-COPY awskeys ./
+#COPY awskeys ./
 COPY *.py ./
 
 ENTRYPOINT ["python", "trajsolver.py"]

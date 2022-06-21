@@ -36,6 +36,14 @@ resource "aws_iam_role" "S3FullAccess" {
           }
         },
         {
+          # give access to ecsTaskRole role used by ECS in MJMM account
+          Action = "sts:AssumeRole"
+          Effect = "Allow"
+          Principal = {
+            AWS     = "arn:aws:iam::317976261112:role/ecsTaskExecutionRole"
+          }
+        },
+        {
           Action = "sts:AssumeRole"
           Effect = "Allow"
           Principal = {
