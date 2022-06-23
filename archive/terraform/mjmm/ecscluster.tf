@@ -65,7 +65,7 @@ resource "aws_ecs_cluster_capacity_providers" "trajsolver_cap" {
 }
 
 data "template_file" "task_json_template" {
-  template = file("trajsolver_container.json")
+  template = file("files/trajsolver/trajsolver_container.json")
   vars = {
     acctid   = data.aws_caller_identity.current.account_id
     regionid = "eu-west-2"
