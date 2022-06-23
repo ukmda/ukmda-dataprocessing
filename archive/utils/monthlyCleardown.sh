@@ -3,10 +3,8 @@
 # script to backup then clear down orbits from the local disk. 
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-source $here/../config/config.ini >/dev/null 2>&1
+source $here/../config.ini >/dev/null 2>&1
 source $HOME/venvs/$WMPL_ENV/bin/activate
-
-source ~/.ssh/ukmon-backup-keys
 
 cyr=$(date +%Y)
 cmt=$(date +%m)
@@ -103,5 +101,4 @@ if compgen -G "$DATADIR/searchidx/${lyr}-allevents.csv" > /dev/null ; then
 fi
 
 # now push it all to the offline backup
-source ~/.ssh/ukmon-backup-keys
 aws s3 sync $DATADIR/olddata/ s3://ukmon-shared-backup/analysisbackup/ --exclude "*" --include "*.tgz" --quiet

@@ -20,7 +20,7 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # load the configuration and website keys
-source $here/../config/config.ini >/dev/null 2>&1
+source $here/../config.ini >/dev/null 2>&1
 source ~/venvs/${WMPL_ENV}/bin/activate
 
 rundate=$(cat $DATADIR/rundate.txt)

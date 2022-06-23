@@ -19,25 +19,25 @@ UKMONLIVEBUCKET=s3://$(aws ssm get-parameters --region eu-west-2 --names ${envna
 RMS_LOC=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_rmshome --query Parameters[0].Value  | tr -d '"')
 WMPL_LOC=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_wmplhome --query Parameters[0].Value  | tr -d '"')
 SERVERINSTANCEID=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_calcinstance --query Parameters[0].Value  | tr -d '"')
+BKPINSTANCEID=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_backupinstance --query Parameters[0].Value  | tr -d '"')
+SERVERSSHKEY=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_sshkey --query Parameters[0].Value  | tr -d '"')
 
 # hardcoded
 PYLIB=$SRC/ukmon_pylib
 TEMPLATES=$SRC/website/templates
 RCODEDIR=$SRC/R
 DATADIR=$SRC/data
-BKPINSTANCEID=i-081af8754587bc7fa
 AWS_DEFAULT_REGION=eu-west-2
 MATCHSTART=2
 MATCHEND=0
 RMS_ENV=RMS
 WMPL_ENV=wmpl
-SERVERSSHKEY=~/.ssh/markskey.pem
 APIKEY=$(cat ~/.ssh/gmapsapikey)
 KMLTEMPLATE=*70km.kml
 
 # create the config file
 now=$(date +%Y-%m-%d-%H:%M:%S)
-CFGFILE=~/${envname}/config/config.ini
+CFGFILE=~/${envname}/config.ini
 
 echo "# Config last updated ${now}" > ${CFGFILE}
 echo "RUNTIME_ENV=${RUNTIME_ENV}" >> ${CFGFILE}
@@ -68,7 +68,7 @@ echo "KMLTEMPLATE=${KMLTEMPLATE}" >> ${CFGFILE}
 echo "" >> ${CFGFILE}
 echo "export RUNTIME_ENV SRC ARCHDIR MATCHDIR CAMINFO SITEURL" >> ${CFGFILE}
 echo "export WEBSITEBUCKET UKMONSHAREDBUCKET UKMONSHAREDBUCKET" >> ${CFGFILE}
-echo "export PYLIB TEMPLATES RCODEDIR DATADIR BKPINSTANCE AWS_DEFAULT_REGION" >> ${CFGFILE}
+echo "export PYLIB TEMPLATES RCODEDIR DATADIR BKPINSTANCEID AWS_DEFAULT_REGION" >> ${CFGFILE}
 echo "export RMS_ENV RMS_LOC WMPL_ENV WMPL_LOC" >> ${CFGFILE}
 echo "export PYTHONPATH=${RMS_LOC}:${WMPL_LOC}:${PYLIB}" >> ${CFGFILE}
 echo "export MATCHSTART MATCHEND SERVERSSHKEY" >> ${CFGFILE}
