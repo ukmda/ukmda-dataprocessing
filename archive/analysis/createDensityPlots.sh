@@ -22,7 +22,7 @@ else
 fi
 
 # load the configuration and website keys
-source $here/../config/config.ini >/dev/null 2>&1
+source $here/../config.ini >/dev/null 2>&1
 source $HOME/venvs/${WMPL_ENV}/bin/activate
 
 logger -s -t createDensityPlots "Create density and velocity plots by solar longitude for $ym"
