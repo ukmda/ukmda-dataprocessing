@@ -2,15 +2,12 @@
 
 $loc = get-location
 set-location $psscriptroot
-#. ~/.ssh/mark-creds.ps1
 
 $imagename="trajsolver"
 $accid = (aws sts get-caller-identity | convertfrom-json).account
 $region = "eu-west-2"
 $registry = "${accid}.dkr.ecr.${region}.amazonaws.com"
 $repo = "ukmon/${imagename}"
-
-#copy-item E:\dev\aws\awskeys\s3accessforarchive.csv .\awskeys
 
 docker build . -t ${imagename}
 if (! $?)
