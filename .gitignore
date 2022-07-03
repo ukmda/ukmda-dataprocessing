@@ -559,6 +559,8 @@ unused/*
 archive/lambdas/getExtraFilesV2/pythoncode/WesternMeteorPyLib/*
 archive/containers/trajsolver/WesternMeteorPyLib/*
 archive/containers/trajsolver/awskeys
+archive/containers/trajsolvertest/WesternMeteorPyLib/*
+archive/containers/trajsolvertest/awskeys
 #ukmon_pylib/traj/clusdetails.txt
 **/*.pickle
 archive/containers/gui/awskeys
