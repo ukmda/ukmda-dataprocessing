@@ -73,3 +73,4 @@ echo "export RMS_ENV RMS_LOC WMPL_ENV WMPL_LOC" >> ${CFGFILE}
 echo "export PYTHONPATH=${RMS_LOC}:${WMPL_LOC}:${PYLIB}" >> ${CFGFILE}
 echo "export MATCHSTART MATCHEND SERVERSSHKEY" >> ${CFGFILE}
 echo "export APIKEY KMLTEMPLATE SERVERINSTANCEID" >> ${CFGFILE}
+echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/local/geos/lib:/usr/local/proj4/lib" >> ${CFGFILE}
