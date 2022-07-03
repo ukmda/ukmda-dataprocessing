@@ -40,7 +40,10 @@ def createOrbitPageIndex(fldr, websitebucket, s3):
         idxf.write('<div class="top-img-container">\n')
         idxf.write(f'<a href="{pref}orbit_top.png"><img src="{pref}orbit_top.png" width="20%"></a>\n')
         idxf.write(f'<a href="{pref}orbit_side.png"><img src="{pref}orbit_side.png" width="20%"></a>\n')
-        idxf.write(f'<a href="{pref}ground_track.png"><img src="{pref}ground_track.png" width="20%"></a>\n')
+        if os.path.isfile(os.path.join(fldr, f'{pref}OSM_ground_track.png')):
+            idxf.write(f'<a href="{pref}OSM_ground_track.png"><img src="{pref}OSM_ground_track.png" width="20%"></a>\n')
+        else:
+            idxf.write(f'<a href="{pref}ground_track.png"><img src="{pref}ground_track.png" width="20%"></a>\n')
         idxf.write(f'<a href="{pref}velocities.png"><img src="{pref}velocities.png" width="20%"></a>\n')
         idxf.write('<br>\n')
 
