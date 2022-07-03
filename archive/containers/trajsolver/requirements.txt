@@ -10,3 +10,5 @@ pyyaml
 pyswarms
 keras
 pytz
+#cartopy
+basemap-data-hires
