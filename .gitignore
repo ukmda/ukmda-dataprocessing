@@ -565,3 +565,4 @@ archive/containers/trajsolvertest/awskeys
 **/*.pickle
 archive/containers/gui/awskeys
 archive/terraform/ee/ukmonreadonly.key
+.cache_ggshield
