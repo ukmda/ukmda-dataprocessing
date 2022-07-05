@@ -3,6 +3,8 @@ os: linux
 files:
   - source: archive/website/
     destination: /home/ec2-user/test/website/
+  - source: archive/analysis/
+    destination: /home/ec2-user/test/analysis/
   - source: ukmon_pylib/
     destination: /home/ec2-user/test/ukmon_pylib/
 hooks:
