@@ -3,7 +3,7 @@
 # script to update match data each night and then recalc any necessary orbits
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-source $here/../config/config.ini >/dev/null 2>&1
+source $here/../config.ini >/dev/null 2>&1
 source $HOME/venvs/$WMPL_ENV/bin/activate
 
 logger -s -t nightlyJob "starting"
@@ -34,7 +34,7 @@ if [ "`tty`" != "not a tty" ]; then
     logger -s -t nightlyJob 'got a tty, not triggering report'
 else 
     logger -s -t nightlyJob 'no tty, triggering report' 
-    aws lambda invoke --function-name 822069317839:function:dailyReport --region eu-west-1 --log-type Tail $SRC/logs/dailyReport.log
+    aws lambda invoke --function-name 822069317839:function:dailyReport --region eu-west-1 --log-type None $SRC/logs/dailyReport.log
 fi
 
 logger -s -t nightlyJob "create monthly and shower extracts for the website"

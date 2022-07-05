@@ -25,9 +25,9 @@ def getTrajsolverPaths():
 # make sure the local trajectories folder is synced with the master copy
 #
 def refreshTrajectories(outf, matchstart, matchend, trajpath):
-    thiskey = getKeyForBucket(trajpath)
+    #thiskey = getKeyForBucket(trajpath)
     outf.write('logger -s -t execdistrib syncing any updated trajectories from shared S3\n')
-    outf.write(f'source {thiskey}\n')
+    #outf.write(f'source {thiskey}\n')
     for d in range(matchend, matchstart+1):
         thisdt=datetime.datetime.now() + datetime.timedelta(days=-d)
         yr = thisdt.year
@@ -41,7 +41,7 @@ def refreshTrajectories(outf, matchstart, matchend, trajpath):
 # make sure the master copy is updated with any new locally updated trajectories
 #
 def pushUpdatedTrajectoriesShared(outf, matchstart, matchend, targpath):
-    thiskey = getKeyForBucket(targpath)
+    # thiskey = getKeyForBucket(targpath)
     outf.write('logger -s -t execdistrib syncing any updated trajectories to shared S3\n')
     for d in range(matchend, matchstart+1):
         thisdt=datetime.datetime.now() + datetime.timedelta(days=-d)
@@ -50,7 +50,7 @@ def pushUpdatedTrajectoriesShared(outf, matchstart, matchend, targpath):
         dy = thisdt.day
         trajloc=f'trajectories/{yr}/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}'
         outf.write(f'if [ -d {trajloc} ] ; then \n')
-        outf.write(f'source {thiskey}\n')
+        # outf.write(f'source {thiskey}\n')
         outf.write(f'aws s3 sync {trajloc} {targpath}/matches/RMSCorrelate/{trajloc} --exclude "*" --include "*.pickle" --include "*report.txt" --quiet\n')
         outf.write('fi\n')
     outf.write(f'aws s3 sync trajectories/{yr}/plots {targpath}/matches/RMSCorrelate/trajectories/{yr}/plots --quiet\n')
@@ -61,7 +61,7 @@ def pushUpdatedTrajectoriesShared(outf, matchstart, matchend, targpath):
 # make sure the master copy is updated with any new locally updated trajectories
 #
 def pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webpath):
-    thiskey = getKeyForBucket(webpath)
+    # thiskey = getKeyForBucket(webpath)
     outf.write('logger -s -t execdistrib syncing any updated trajectories to the website\n')
     for d in range(matchend, matchstart+1):
         thisdt=datetime.datetime.now() + datetime.timedelta(days=-d)
@@ -71,7 +71,7 @@ def pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webpath):
         trajloc=f'trajectories/{yr}/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}'
         targloc=f'reports/{yr}/orbits/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}'
         outf.write(f'if [ -d {trajloc} ] ; then \n')
-        outf.write(f'source {thiskey}\n')
+        # outf.write(f'source {thiskey}\n')
         outf.write(f'aws s3 sync {trajloc} {webpath}/{targloc} --quiet\n')
         outf.write('fi\n')
     outf.write(f'aws s3 sync trajectories/{yr}/plots {webpath}/reports/{yr}/orbits/plots --quiet\n')
@@ -93,14 +93,14 @@ def createDensityPlots(outf, calcdir, yr, ym):
     return
 
 
-def getKeyForBucket(buck):
-    shkey = os.getenv('UKMONSHAREDKEY')
-    webkey = os.getenv('WEBSITEKEY')
-    if 'ukmon-shared' in buck:
-        thiskey = shkey
-    else:
-        thiskey = webkey
-    return thiskey
+#def getKeyForBucket(buck):
+#    shkey = os.getenv('UKMONSHAREDKEY')
+#    webkey = os.getenv('WEBSITEKEY')
+#    if 'ukmon-shared' in buck:
+#        thiskey = shkey
+#    else:
+#        thiskey = webkey
+#    return thiskey
 
 
 def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
@@ -128,15 +128,12 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         refreshTrajectories(outf, matchstart, matchend, outpath)
 
         outf.write('logger -s -t execdistrib syncing the raw data from shared S3\n')
-        shkey = getKeyForBucket(shbucket)
-        outf.write(f'source {shkey}\n')
-        # database from last successful run
         outf.write(f'aws s3 cp {srcpath}/processed_trajectories.json {calcdir}/processed_trajectories.json --quiet\n')
         outf.write(f'ls -ltr {calcdir}/*.json\n')
         # camera data - no need to replicate it for an historical date
         if matchend < 7:
             outf.write('logger -s -t execdistrib updating camera data\n')
-            outf.write(f'time aws s3 sync {shbucket}/matches/RMSCorrelate {calcdir} --exclude "*" --include "UK*" --quiet\n')
+            outf.write(f'time aws s3 sync {shbucket}/matches/RMSCorrelate {calcdir} --exclude "*" --include "UK*" --include "BE*" --quiet\n')
 
         outf.write('logger -s -t execdistrib starting correlator to update existing matches and create candidates\n')
         outf.write(f'mkdir -p {calcdir}/candidates\n')
@@ -147,13 +144,12 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         outf.write(f'cp {calcdir}/processed_trajectories.json {calcdir}/trajdb/processed_trajectories.json.{rundatestr}\n')
 
         outf.write('logger -s -t execdistrib Syncing the database back to shared S3\n')
-        outf.write(f'source {shkey}\n')
         outf.write(f'if [ -s {calcdir}/processed_trajectories.json ] ; then\n')
         outf.write(f'aws s3 cp {calcdir}/processed_trajectories.json {srcpath}/processed_trajectories.json --quiet\n')
         outf.write('else echo "bad database file" ; fi \n')
 
         outf.write('logger -s -t execdistrib distributing candidates and launching containers\n')
-        outf.write('source ~/.ssh/marks-keys\n')
+        #outf.write('source ~/.ssh/marks-keys\n')
         outf.write(f'time python -m traj.distributeCandidates {rundatestr} {calcdir}/candidates {srcpath}\n')
 
         createDensityPlots(outf, calcdir, rundatestr[:4], rundatestr[:6])

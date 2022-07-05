@@ -21,12 +21,12 @@ resource "aws_s3_bucket_policy" "ukmonsharedbp" {
           Effect = "Allow"
           Principal = {
             AWS = [
-              "arn:aws:iam::317976261112:role/S3FullAccess",
-              "arn:aws:iam::317976261112:role/lambda-s3-full-access-role",
-              "arn:aws:iam::317976261112:role/ecsTaskExecutionRole",
+              "arn:aws:iam::317976261112:role/S3FullAccess", # role used by EC2 instances
+              "arn:aws:iam::317976261112:role/lambda-s3-full-access-role", # role used by Lambda
+              "arn:aws:iam::317976261112:role/ecsTaskExecutionRole", # role used by ECS tasks
               "arn:aws:iam::317976261112:user/Mary",
               "arn:aws:iam::317976261112:user/Mark",
-              "arn:aws:iam::317976261112:user/s3user",
+              "arn:aws:iam::317976261112:user/s3user", # not sure this is needed
             ]
           }
           Resource = [

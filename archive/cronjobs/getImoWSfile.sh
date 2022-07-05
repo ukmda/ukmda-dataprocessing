@@ -2,7 +2,7 @@
 # script to pull IMO working shower XML file with shower dates and the WMPL static data
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-source $here/../config/config.ini >/dev/null 2>&1
+source $here/../config.ini >/dev/null 2>&1
 
 logger -s -t getImoWSfile "Getting IMO working shower file"
 mkdir -p $SRC/share >/dev/null 2>&1

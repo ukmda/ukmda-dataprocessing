@@ -194,17 +194,19 @@ def startup(srcfldr, startdt, enddt):
     canddir = os.path.join(localfldr,'candidates')
     os.makedirs(canddir, exist_ok = True)
 
-    if os.path.isfile('awskeys'):
-        with open('awskeys') as inf:
-            keys = inf.readlines()
-        spls = keys[1].split(',')
-        acckey = spls[2]
-        secret = spls[3]
-    else:
-        print('key file missing, unable to continue')
-        return 
-    s3 = boto3.resource('s3', aws_access_key_id=acckey, aws_secret_access_key = secret)
+    sts_client = boto3.client('sts')
 
+    assumed_role_object=sts_client.assume_role(
+        RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+        RoleSessionName="AssumeRoleSession1")
+    
+    credentials=assumed_role_object['Credentials']
+
+    s3 = boto3.resource('s3',
+        aws_access_key_id=credentials['AccessKeyId'],
+        aws_secret_access_key=credentials['SecretAccessKey'],
+        aws_session_token=credentials['SessionToken'])    
+    
     srcbucket, srcpth, outbucket, outpth, webbucket, webpth = getSourceAndTargets()
     srckey = f'{srcpth}/{srcfldr}/'
 

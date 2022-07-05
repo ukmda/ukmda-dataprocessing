@@ -13,7 +13,7 @@
 #   Note: this uses a proprietary format extending both RMS and UFO
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-source $here/../config/config.ini >/dev/null 2>&1
+source $here/../config.ini >/dev/null 2>&1
 source $HOME/venvs/${RMS_ENV}/bin/activate
 
 cd $RMS_LOC
