@@ -207,9 +207,11 @@ def startup(srcfldr, startdt, enddt):
             aws_secret_access_key=credentials['SecretAccessKey'],
             aws_session_token=credentials['SessionToken'])    
     except:
+        with open('awskeys','r') as inf:
+            lis = inf.readlines()
         s3 = boto3.resource('s3',
-            aws_access_key_id='GARBAGE',
-            aws_secret_access_key='NOTATOKEN')
+            aws_access_key_id=lis[0],
+            aws_secret_access_key=lis[1])
 
     srcbucket, srcpth, outbucket, outpth, webbucket, webpth = getSourceAndTargets()
     srckey = f'{srcpth}/{srcfldr}/'
