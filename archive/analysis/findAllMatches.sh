@@ -20,7 +20,7 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # load the configuration and website keys
-source $here/../config/config.ini >/dev/null 2>&1
+source $here/../config.ini >/dev/null 2>&1
 source ~/venvs/${WMPL_ENV}/bin/activate
 
 rundate=$(cat $DATADIR/rundate.txt)
@@ -77,7 +77,6 @@ logger -s -t findAllMatches2 "Solving run done"
 logger -s -t findAllMatches2 "================"
 
 logger -s -t findAllMatches2 "run a quick check for any Lambdas that failed"
-source $SERVERAWSKEYS
 python -m utils.rerunFailedGetExtraFiles
 
 cd $here
@@ -99,7 +98,7 @@ echo $(basename $dailyrep) $evts $trajs $matches $rtim >>  $DATADIR/dailyreports
 
 # copy stats to S3 so the daily report can run
 if [ "$RUNTIME_ENV" == "PROD" ] ; then 
-    rsync -avz $DATADIR/dailyreports/ $MATCHDIR/RMSCorrelate/dailyreports/
+    aws s3 sync $DATADIR/dailyreports/ $UKMONSHAREDBUCKET/matches/RMSCorrelate/dailyreports/ --quiet
 fi 
 
 logger -s -t findAllMatches2 "update the Index page for the month and the year"

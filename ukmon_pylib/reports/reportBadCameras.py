@@ -114,7 +114,19 @@ if __name__ == '__main__':
             sendAnEmail.sendAnEmail(mailrecip, latemsg1.format(statid, dayslate), subj)
             mailmsg = mailmsg + '{} {} {}\n'.format(row['stationid'], row['ts'], row['eMail'])
 
-    logcli = boto3.client('logs', region_name='eu-west-2')
+
+    sts_client = boto3.client('sts')
+    assumed_role_object=sts_client.assume_role(
+        RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+        RoleSessionName="AssumeRoleSession1")
+    
+    # Use the temporary credentials that AssumeRole returns to connections
+    credentials=assumed_role_object['Credentials']        
+    logcli = boto3.client('logs', 
+        aws_access_key_id=credentials['AccessKeyId'],
+        aws_secret_access_key=credentials['SecretAccessKey'],
+        aws_session_token=credentials['SessionToken'], 
+        region_name='eu-west-2')
 
     chkdt = datetime.datetime.now() + datetime.timedelta(days=-1)
     chkdt = chkdt.replace(hour=0, minute=0, second=0, microsecond=0)

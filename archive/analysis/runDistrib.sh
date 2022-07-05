@@ -16,7 +16,7 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # load the configuration
-source $here/../config/config.ini >/dev/null 2>&1
+source $here/../config.ini >/dev/null 2>&1
 
 if [ $# -gt 0 ] ; then
     if [ "$1" != "" ] ; then
@@ -32,9 +32,6 @@ if [ $# -gt 0 ] ; then
 fi
 begdate=$(date --date="-$MATCHSTART days" '+%Y%m%d')
 rundate=$(date --date="-$MATCHEND days" '+%Y%m%d')
-
-source $SERVERAWSKEYS
-AWS_DEFAULT_REGION=eu-west-2 
 
 logger -s -t runDistrib "checking correlation server status and starting it"
 stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
@@ -80,7 +77,7 @@ logger -s -t runDistrib "job run, stop the server again"
 aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 
 logger -s -t runDistrib "monitoring and waiting for completion"
-source $SERVERAWSKEYS
+
 targdir=$MATCHDIR/distrib
 python -c "from traj.distributeCandidates import monitorProgress as mp; mp('${rundate}','${targdir}'); "
 
@@ -106,5 +103,5 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
 else
     echo "trajectory database is size zero... not proceeding with copy"
 fi 
-rsync -avz $MATCHDIR/distrib/logs/ $SRC/logs/distrib/
+aws s3 sync $UKMONSHAREDBUCKET/matches/distrib/logs $SRC/logs/distrib --quiet
 logger -s -t runDistrib "done"

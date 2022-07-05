@@ -25,22 +25,9 @@ resource "aws_ecr_repository" "trajsolverrepo" {
     "billingtag" = "ukmon"
   }
 }
-# create an ECR repository for the extrafiles image
-resource "aws_ecr_repository" "extrafilesrepo" {
-  name                 = "mjmm-repo1"
-  image_tag_mutability = "MUTABLE"
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-  tags = {
-    "billingtag" = "ukmon"
-  }
-}
-
-# create an ECR repository for the simplegui image
-resource "aws_ecr_repository" "simpleguirepo" {
-  name                 = "ukmon/simplegui"
+# create an ECR repository for the trajsolver test images
+resource "aws_ecr_repository" "trajsolvertestrepo" {
+  name                 = "ukmon/trajsolvertest"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
@@ -55,9 +42,43 @@ resource "aws_ecr_repository" "simpleguirepo" {
   }
 }
 
+# create an ECR repository for the extrafiles image
+resource "aws_ecr_repository" "extrafilesrepo" {
+  name                 = "mjmm-repo1"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+  tags = {
+    "billingtag" = "ukmon"
+  }
+}
+
 
 resource "aws_ecr_lifecycle_policy" "policy1" {
   repository = aws_ecr_repository.trajsolverrepo.name
+  policy     = <<EOF
+{
+    "rules": [
+        {
+            "rulePriority": 1,
+                        "description": "Keep only latest two versions images",
+            "selection": {
+                "tagStatus": "any",
+                "countType": "imageCountMoreThan",
+                "countNumber": 2
+            },
+            "action": {
+                "type": "expire"
+            }
+        }
+    ]
+}
+EOF
+}
+resource "aws_ecr_lifecycle_policy" "trajssolvertestpolicy" {
+  repository = aws_ecr_repository.trajsolvertestrepo.name
   policy     = <<EOF
 {
     "rules": [
@@ -100,33 +121,12 @@ resource "aws_ecr_lifecycle_policy" "getfilespolicy" {
 EOF
 }
 
-resource "aws_ecr_lifecycle_policy" "simpleguipolicy" {
-  repository = aws_ecr_repository.simpleguirepo.name
-  policy     = <<EOF
-{
-    "rules": [
-        {
-            "rulePriority": 1,
-                        "description": "Keep only latest two versions images",
-            "selection": {
-                "tagStatus": "any",
-                "countType": "imageCountMoreThan",
-                "countNumber": 2
-            },
-            "action": {
-                "type": "expire"
-            }
-        }
-    ]
-}
-EOF
-}
 
 output "trajsolverid" {
   value = aws_ecr_repository.trajsolverrepo.repository_url
 }
-output "simpleguiid" {
-  value = aws_ecr_repository.simpleguirepo.repository_url
+output "trajsolvertestid" {
+  value = aws_ecr_repository.trajsolvertestrepo.repository_url
 }
 output "extrafilesid" {
   value = aws_ecr_repository.extrafilesrepo.repository_url

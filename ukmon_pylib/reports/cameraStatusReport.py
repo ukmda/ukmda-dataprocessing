@@ -39,6 +39,8 @@ def getLastUpdateDate(pth, skipfldrs):
                 info = camdets.getFolder(fldr)
                 camtype = camdets.getCameraType(fldr)
                 flist = os.listdir(os.path.join(pth, fldr))
+                if len(flist) == 0: 
+                    continue 
                 lastentry = sorted(flist, key=datesortkey)[-1]
                 loc, cam = info.split('/')
                 lastdt = datetime.datetime.strptime(lastentry[7:22],'%Y%m%d_%H%M%S')

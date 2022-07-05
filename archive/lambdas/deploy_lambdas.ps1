@@ -9,13 +9,13 @@ set-location $PSScriptRoot
 
 $env:AWS_DEFAULT_REGION='eu-west-2'
 
-# cd $PSScriptRoot/samfunctions/fetchECSV
+# cd $PSScriptRoot/fetchECSV
 # sam build 
 # sam deploy
 # cd $PSScriptRoot
 
 $env:AWS_DEFAULT_REGION='eu-west-2'
-# cd $PSScriptRoot/samfunctions/searchArchive
+# cd $PSScriptRoot/searchArchive
 # sam build 
 # sam deploy
 # cd $PSScriptRoot

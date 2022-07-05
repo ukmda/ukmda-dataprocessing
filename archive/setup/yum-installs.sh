@@ -12,6 +12,7 @@ sudo yum install -y s3fs-fuse
 sudo yum install -y python38-devel
 sudo yum install -y python3-tkinter
 sudo yum install -y amazon-efs-utils
+sudo yum install libtiff-devel
 
 mkdir -P data/RMSCorrelate/trajectories
 

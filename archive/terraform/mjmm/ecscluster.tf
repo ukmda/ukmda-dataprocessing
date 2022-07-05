@@ -65,7 +65,7 @@ resource "aws_ecs_cluster_capacity_providers" "trajsolver_cap" {
 }
 
 data "template_file" "task_json_template" {
-  template = file("trajsolver_container.json")
+  template = file("files/trajsolver/trajsolver_container.json")
   vars = {
     acctid   = data.aws_caller_identity.current.account_id
     regionid = "eu-west-2"
@@ -87,8 +87,8 @@ resource "aws_ecs_task_definition" "trajsolver_task" {
     billingtag = "ukmon"
   }
   requires_compatibilities = ["FARGATE"]
-  execution_role_arn       = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
-  task_role_arn            = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
+  execution_role_arn       = aws_iam_role.ecstaskrole.arn 
+  task_role_arn            = aws_iam_role.ecstaskrole.arn 
   runtime_platform {
     operating_system_family = "LINUX"
   }
@@ -128,6 +128,14 @@ resource "aws_iam_role" "ecstaskrole" {
       },
       "Effect": "Allow",
       "Sid": ""
+    },
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
     }
   ]
 }
@@ -160,6 +168,35 @@ resource "aws_iam_role_policy" "container_logging_policy" {
 }
 EOF
 }
+
+resource "aws_iam_role_policy_attachment" "xacctaccessecs" {
+  role       = aws_iam_role.ecstaskrole.name
+  policy_arn = aws_iam_policy.crossacctpolicyecs.arn
+}
+
+resource "aws_iam_policy" "crossacctpolicyecs" {
+  name = "CrossAcctPolForECSRole"
+  policy = jsonencode(
+    {
+      Statement = [
+        {
+          Action = [
+            "sts:AssumeRole",
+          ]
+          Effect = "Allow"
+          Resource = [
+            "arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+          ]
+        },
+      ]
+      Version = "2012-10-17"
+    }
+  )
+  tags = {
+    "billingtag" = "ukmon"
+  }
+}
+
 
 
 # security group for the service to use
