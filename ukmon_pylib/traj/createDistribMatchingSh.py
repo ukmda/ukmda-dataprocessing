@@ -128,15 +128,12 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         refreshTrajectories(outf, matchstart, matchend, outpath)
 
         outf.write('logger -s -t execdistrib syncing the raw data from shared S3\n')
-        #shkey = getKeyForBucket(shbucket)
-        #outf.write(f'source {shkey}\n')
-        # database from last successful run
         outf.write(f'aws s3 cp {srcpath}/processed_trajectories.json {calcdir}/processed_trajectories.json --quiet\n')
         outf.write(f'ls -ltr {calcdir}/*.json\n')
         # camera data - no need to replicate it for an historical date
         if matchend < 7:
             outf.write('logger -s -t execdistrib updating camera data\n')
-            outf.write(f'time aws s3 sync {shbucket}/matches/RMSCorrelate {calcdir} --exclude "*" --include "UK*" --quiet\n')
+            outf.write(f'time aws s3 sync {shbucket}/matches/RMSCorrelate {calcdir} --exclude "*" --include "UK*" --include "BE*" --quiet\n')
 
         outf.write('logger -s -t execdistrib starting correlator to update existing matches and create candidates\n')
         outf.write(f'mkdir -p {calcdir}/candidates\n')
@@ -147,13 +144,12 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         outf.write(f'cp {calcdir}/processed_trajectories.json {calcdir}/trajdb/processed_trajectories.json.{rundatestr}\n')
 
         outf.write('logger -s -t execdistrib Syncing the database back to shared S3\n')
-        #outf.write(f'source {shkey}\n')
         outf.write(f'if [ -s {calcdir}/processed_trajectories.json ] ; then\n')
         outf.write(f'aws s3 cp {calcdir}/processed_trajectories.json {srcpath}/processed_trajectories.json --quiet\n')
         outf.write('else echo "bad database file" ; fi \n')
 
         outf.write('logger -s -t execdistrib distributing candidates and launching containers\n')
-        outf.write('source ~/.ssh/marks-keys\n')
+        #outf.write('source ~/.ssh/marks-keys\n')
         outf.write(f'time python -m traj.distributeCandidates {rundatestr} {calcdir}/candidates {srcpath}\n')
 
         createDensityPlots(outf, calcdir, rundatestr[:4], rundatestr[:6])
