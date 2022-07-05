@@ -14,7 +14,14 @@ hooks:
   AfterInstall:
     - location: archive/codeDeploy/setPermissions.sh
 permissions:
-  - object: /home/ec2-user/test
+  - object: /home/ec2-user/test/website
+    pattern: "*.sh"
+    owner: ec2-user
+    group: ec2-user
+    mode: 754
+    type:
+      - file
+  - object: /home/ec2-user/test/analysis
     pattern: "*.sh"
     owner: ec2-user
     group: ec2-user
