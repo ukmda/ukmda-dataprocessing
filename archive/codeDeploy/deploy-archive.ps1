@@ -21,4 +21,8 @@ $repo= "markmac99/ukmon-shared"
 
 $commitid = $(git rev-parse HEAD)
 
-echo "aws deploy create-deployment --application-name $appname --deployment-group $depgroup --github-location repository=$repo,commitId=$commitid"
+$depid = (aws deploy create-deployment --application-name $appname --deployment-group $depgroup --github-location repository=$repo,commitId=$commitid)
+
+$dep = ($depid |convertfrom-json).deploymentId
+sleep 5
+(aws deploy get-deployment --deployment-id $dep | convertfrom-json).deploymentInfo

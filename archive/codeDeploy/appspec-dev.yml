@@ -10,15 +10,15 @@ files:
   - source: archive/utils/
     destination: /home/ec2-user/dev/utils/
   - source: archive/shwrinfo/
-    destination: /home/ec2-user/dev/shwrinfo/
+    destination: /home/ec2-user/dev/data/shwrinfo/
   - source: archive/website/
     destination: /home/ec2-user/dev/website/
 hooks:
   BeforeInstall:
-    - location: archive/codeDeploy/before-install.sh
+    - location: archive/codeDeploy/before-install-dev.sh
       timeout: 900
   AfterInstall:
-    - location: archive/codeDeploy/setPermissions.sh
+    - location: archive/codeDeploy/post-install-dev.sh
 permissions:
   - object: /home/ec2-user/dev/website
     pattern: "*.sh"
