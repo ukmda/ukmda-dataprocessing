@@ -210,8 +210,26 @@ def lambda_handler(event, context):
 
 if __name__ == '__main__':
     doff = 1
+    if len(sys.argv) == 1:
+        doff = int(sys.argv[1])
+        a = 1
+        b = 2
+        lambda_handler(a, b)
     if len(sys.argv) > 1:
         doff = int(sys.argv[1])
-    a = 1
-    b = 2
-    lambda_handler(a, b)
+        reppth = sys.argv[2]
+        outpth = sys.argv[3]
+        repdtstr = (datetime.date.today() - datetime.timedelta(days=doff-1)).strftime('%Y%m%d.txt')
+        dailyrep = os.path.join(reppth, repdtstr)
+        statfile = os.path.join(reppth, 'stats.txt')
+        _, _, body, _ = LookForMatchesRMS(doff, dailyrep, statfile)
+
+        #body = body.replace('assets/img/logo.svg', 'latest/dailyreports/dailyreportsidx.html')
+        if doff == 1:
+            outfname = 'report_latest.html'
+        else:
+            yest = datetime.date.today() - datetime.timedelta(days=doff-1)
+            outfname = f'{yest.strftime("report_%Y%m%d.html")}'
+        with open(os.path.join(outpth, outfname), 'w') as outf:
+            outf.write('<a href=/latest/dailyreports/dailyreportsidx.html>Index of daily Reports</a><br>\n')
+            outf.write(body)

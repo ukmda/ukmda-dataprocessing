@@ -40,8 +40,10 @@ echo "cell.innerHTML = \"<a href="$prefix/$curryr/ALL/index.html">$i Full Year</
 echo "var cell = row.insertCell(1);" >> $repidx
 echo "cell.innerHTML = \"<a href="$prefix/$curryr/orbits/index.html">Trajectories and Orbits</a>\";" >> $repidx
 echo "var cell = row.insertCell(2);" >> $repidx
-echo "cell.innerHTML = \"<a href="$prefix/$curryr/fireballs/index.html">Fireballs</a>\";" >> $repidx
+echo "cell.innerHTML = \"<a href="/latest/dailyreports/dailyreport.html">Daily Report</a>\";" >> $repidx
 echo "var cell = row.insertCell(3);" >> $repidx
+echo "cell.innerHTML = \"<a href="$prefix/$curryr/fireballs/index.html">Fireballs</a>\";" >> $repidx
+echo "var cell = row.insertCell(4);" >> $repidx
 echo "cell.innerHTML = \"<a href="$prefix/$curryr/stations/index.html">Stations</a>\";" >> $repidx
 
 if [ -f $curryr/tmp.txt ] ; then rm -f $curryr/tmp.txt ; fi

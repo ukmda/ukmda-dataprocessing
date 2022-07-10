@@ -36,6 +36,8 @@ else
     logger -s -t nightlyJob 'no tty, triggering report' 
     aws lambda invoke --function-name 822069317839:function:dailyReport --region eu-west-1 --log-type None $SRC/logs/dailyReport.log
 fi
+# add daily report to the website
+$SRC/website/publishDailyReport.sh 
 
 logger -s -t nightlyJob "create monthly and shower extracts for the website"
 ${SRC}/website/createMthlyExtracts.sh ${mth}
