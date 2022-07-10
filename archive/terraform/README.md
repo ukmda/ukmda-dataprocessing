@@ -1,13 +1,11 @@
 #Terraform 
 
-UKMON Terraform Modules
-=======================
+## UKMON Terraform Modules
 All infrastructure has been built with Terraform. 
 
 For historical reasons the infrastructure is split across two accounts. Data are stored in the "empireelements" account which also manages end-user access, while compute is in the "markmcintyreastro" account. Each is managed by its own set of terraform code. 
 
-empireelements Account
-----------------------
+### empireelements Account
 
 **S3 Buckets**  
 Managed by *s3.tf*:
@@ -31,7 +29,6 @@ Managed by *iam.tf*:
 Managed by *iam.tf*:
 (coming soon)
 
-markmcintyreastro Account
--------------------------
+### markmcintyreastro Account
 This account holds all compute resources and some APIs. 
 
