@@ -1,6 +1,5 @@
 FROM continuumio/miniconda3
 
-COPY requirements.txt ./
 RUN conda install -y -c conda-forge numpy scipy matplotlib cython pytz pyqt
 RUN conda install -y -c conda-forge jplephem ephem
 RUN conda install -y -c conda-forge basemap basemap-data-hires
