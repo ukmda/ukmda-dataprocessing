@@ -131,10 +131,10 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         outf.write(f'aws s3 cp {srcpath}/processed_trajectories.json {calcdir}/processed_trajectories.json --quiet\n')
         outf.write(f'ls -ltr {calcdir}/*.json\n')
         # camera data - no need to replicate it for an historical date
-        if matchend < 7:
+        if matchend < 90:
             outf.write('logger -s -t execdistrib updating camera data\n')
             outf.write(f'time aws s3 sync {shbucket}/matches/RMSCorrelate {calcdir} --exclude "*" --include "UK*" --include "BE*" --quiet\n')
-
+        
         outf.write('logger -s -t execdistrib starting correlator to update existing matches and create candidates\n')
         outf.write(f'mkdir -p {calcdir}/candidates\n')
         outf.write(f'rm {calcdir}/candidates/*.pickle >/dev/null 2>&1\n')
