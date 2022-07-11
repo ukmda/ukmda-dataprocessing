@@ -10,6 +10,7 @@ Resources:
       FunctionName: searchArchive
       Policies: AmazonS3ReadOnlyAccess
       Timeout: 60
+      Description: Function to search the Archive for events matching user-supplied criteria
       Environment:
         Variables:
           SRCHBUCKET: ukmeteornetworkarchive
