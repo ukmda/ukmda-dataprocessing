@@ -7,6 +7,8 @@ Resources:
     Properties:
       Handler: fetchECSV.lambda_handler
       Runtime: python3.8
+      FunctionName: fetchECSV
+      Description: API backend that retrieves an ECSV file for a detection
       Timeout: 30
       Policies: AmazonS3ReadOnlyAccess
       Events:
