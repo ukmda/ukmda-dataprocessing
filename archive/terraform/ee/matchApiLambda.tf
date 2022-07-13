@@ -31,17 +31,35 @@ resource "aws_lambda_function" "matchapilambda" {
   }
 }
 
-/*
 
-resource "aws_api_gateway_rest_api" "matchapi_apig" {
-  body = jsonencode({
+
+resource "aws_api_gateway_rest_api" "matchapi_apigateway" {
+  body     = file("files/matchApiJson/ukmonMatchApi.json")
+  name     = "ukmonMatchApi"
+  provider = aws.eu-west-1-prov
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+  tags = {
+    Name       = "ukmonMatchApi"
+    billingtag = "ukmon"
+  }
+}
+
+
+/*
+jsonencode({
     openapi = "3.0.1"
     info = {
-      title   = "example"
-      version = "1.0"
+      title       = "ukmonMatchApi"
+      description = "return info about daily matches"
+      version     = "2021-02-15T19:23:10Z"
     }
+    host     = "oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com"
+    basePath = "/prod"
+    schemes  = ["https"]
     paths = {
-      "/path1" = {
+      "/" = {
         get = {
           x-amazon-apigateway-integration = {
             httpMethod           = "GET"
@@ -54,10 +72,4 @@ resource "aws_api_gateway_rest_api" "matchapi_apig" {
     }
   })
 
-  name = "example"
-
-  endpoint_configuration {
-    types = ["REGIONAL"]
-  }
-}
 */
