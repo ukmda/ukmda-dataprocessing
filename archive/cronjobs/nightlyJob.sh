@@ -47,13 +47,6 @@ logger -s -t nightlyJob "update annual bright event/fireball page"
 #requires search index to have been updated first 
 ${SRC}/website/createFireballPage.sh ${yr} -3.99
 
-logger -s -t nightlyJob "update the R version of the camera info file"
-python << EOD
-import fileformats.CameraDetails as cc
-s = cc.SiteInfo()
-s.saveAsR('${RCODEDIR}/CONFIG/StationList.r')
-EOD
-
 logger -s -t nightlyJob "update the monthly and annual reports"
 $SRC/analysis/showerReport.sh ALL ${mth} force
 $SRC/analysis/showerReport.sh ALL ${yr} force
