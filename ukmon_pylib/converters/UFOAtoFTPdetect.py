@@ -251,7 +251,7 @@ if __name__ == '__main__':
                 ymd = None
             print(yr, ym, ymd)
             ci = cdet.SiteInfo()
-            ufos = ci.getUFOCameras()
+            ufos = ci.getUFOCameras(True)
             for cam in ufos:
                 site = cam['Site']
                 camid = cam['CamID']
