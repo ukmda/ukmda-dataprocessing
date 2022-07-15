@@ -24,11 +24,11 @@ class SiteInfo:
         self.camdets = numpy.loadtxt(fname, delimiter=',', skiprows=1, dtype=CameraDetails)
         #print(self.camdets)
 
-    def getCameraOffset(self, statid):
+    def getCameraOffset(self, statid, activeonly=True):
         spls=statid.split('_')
         statid = statid.encode('utf-8')
-        if statid not in self.camdets['CamID']:
-            return -1
+        #if statid not in self.camdets['CamID']:
+        #    return -1
         cam = numpy.where(self.camdets['CamID'] == statid) 
         if len(cam[0]) == 0:
             statid = statid.upper()
@@ -43,6 +43,8 @@ class SiteInfo:
             return -1
         else:
             c = cam[0][0]
+            if activeonly is True and self.camdets[c]['active'] != 1:
+                return -1
             return c
 
     def GetSiteLocation(self, camname):
@@ -108,7 +110,7 @@ class SiteInfo:
         if c < 0:
             return False
         else:
-            if self.camdets[c]['active'] == 0: 
+            if self.camdets[c]['active'] != 1: 
                 return False
             return True
 
@@ -128,7 +130,7 @@ class SiteInfo:
         cams = []
 
         for row in self.camdets:
-            if isactive is True and row['active'] == 0: 
+            if isactive is True and row['active'] != 1: 
                 continue
             if row[0][:1] != '#':
                 # print(row)
@@ -183,27 +185,6 @@ class SiteInfo:
                         tmpcams = tmpcams + cname + ' ' 
             return tmpcams.strip()
 
-    def saveAsR(self, outfname):
-        with open(outfname, 'w') as outf:
-            outf.write('stations <- list(\n')
-            cams = numpy.unique(self.camdets['Site'])
-            for cam in cams:
-                outf.write('"{}",c('.format(cam.decode('utf-8')))
-                rws = self.camdets[self.camdets['Site'] == cam]
-                for rw in rws:
-                    if rw['camtyp'] == 1:
-                        outf.write('"{}_{}"'.format(rw['LID'].decode('utf-8'), rw['SID'].decode('utf-8')))
-                    else:
-                        outf.write('"{}"'.format(rw['LID'].decode('utf-8')))
-                    if rw != rws[-1]:
-                        outf.write(',')
-                    else:
-                        outf.write(')')
-                if cam != cams[-1]:
-                    outf.write(',\n')
-                else:
-                    outf.write('\n)')
-    
     def getStationsAtSite(self, sitename, onlyactive=False):
         idlist = []
         bsite = sitename.encode('utf-8')
