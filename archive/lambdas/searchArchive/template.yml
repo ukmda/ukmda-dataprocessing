@@ -6,8 +6,21 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: searchArchive.lambda_handler
-      Runtime: python3.7
+      Runtime: python3.8
+      FunctionName: searchArchive
+      Policies: AmazonS3ReadOnlyAccess
+      Timeout: 60
+      Description: Function to search the Archive for events matching user-supplied criteria
+      Environment:
+        Variables:
+          SRCHBUCKET: ukmeteornetworkarchive
+      Events:
+        HttpGet:
+          Type: Api
+          Properties:
+            Path: '/'
+            Method: get
       Tags:
         billingtag: "ukmon"
     Metadata:
-      BuildMethod: python3.7
+      BuildMethod: python3.8

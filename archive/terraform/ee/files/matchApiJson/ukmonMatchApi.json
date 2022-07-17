@@ -1,37 +1,51 @@
 {
-  "swagger" : "2.0",
+  "openapi" : "3.0.1",
   "info" : {
+    "title" : "ukmonMatchApi",
     "description" : "return info about daily matches",
-    "version" : "2021-02-15T19:23:10Z",
-    "title" : "ukmonMatchApi"
+    "version" : "2021-02-15T19:23:10Z"
   },
-  "host" : "oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com",
-  "basePath" : "/prod",
-  "schemes" : [ "https" ],
+  "servers" : [ {
+    "url" : "https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/{basePath}",
+    "variables" : {
+      "basePath" : {
+        "default" : "/prod"
+      }
+    }
+  } ],
   "paths" : {
     "/" : {
       "get" : {
-        "produces" : [ "application/json" ],
         "parameters" : [ {
           "name" : "reqval",
           "in" : "query",
           "required" : true,
-          "type" : "string"
+          "schema" : {
+            "type" : "string"
+          }
         }, {
           "name" : "reqtyp",
           "in" : "query",
           "required" : true,
-          "type" : "string"
+          "schema" : {
+            "type" : "string"
+          }
         } ],
         "responses" : {
           "200" : {
             "description" : "200 response",
-            "schema" : {
-              "$ref" : "#/definitions/Empty"
-            },
             "headers" : {
               "Access-Control-Allow-Origin" : {
-                "type" : "string"
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Empty"
+                }
               }
             }
           }
@@ -54,23 +68,31 @@
         }
       },
       "options" : {
-        "consumes" : [ "application/json" ],
-        "produces" : [ "application/json" ],
         "responses" : {
           "200" : {
             "description" : "200 response",
-            "schema" : {
-              "$ref" : "#/definitions/Empty"
-            },
             "headers" : {
               "Access-Control-Allow-Origin" : {
-                "type" : "string"
+                "schema" : {
+                  "type" : "string"
+                }
               },
               "Access-Control-Allow-Methods" : {
-                "type" : "string"
+                "schema" : {
+                  "type" : "string"
+                }
               },
               "Access-Control-Allow-Headers" : {
-                "type" : "string"
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Empty"
+                }
               }
             }
           }
@@ -95,10 +117,12 @@
       }
     }
   },
-  "definitions" : {
-    "Empty" : {
-      "type" : "object",
-      "title" : "Empty Schema"
+  "components" : {
+    "schemas" : {
+      "Empty" : {
+        "title" : "Empty Schema",
+        "type" : "object"
+      }
     }
   },
   "x-amazon-apigateway-request-validators" : {

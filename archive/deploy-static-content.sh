@@ -14,7 +14,7 @@ if [[ "$1" != "dev" && "$1" != "prod" ]] ; then
 else
     if [ "$1" == "prod" ] ; then
         # need to escape the slashes in the URL
-        newurl='https:\/\/lx6dt0krxj.execute-api.eu-west-1.amazonaws.com\/prod'
+        newurl='https:\/\/40luvfh1od.execute-api.eu-west-1.amazonaws.com\/Prod'
         targbuck=s3://ukmeteornetworkarchive/
         source ~/.ssh/ukmonarchive-keys
     else

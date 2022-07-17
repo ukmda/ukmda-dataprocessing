@@ -567,3 +567,6 @@ archive/containers/gui/awskeys
 archive/terraform/ee/ukmonreadonly.key
 .cache_ggshield
 replacements.txt
+archive/lambdas/apis-mm.txt
+archive/lambdas/apis-ee.txt
+usermgmt/windows/createUserKeyAWS.ps1
