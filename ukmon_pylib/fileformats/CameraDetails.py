@@ -35,8 +35,11 @@ class SiteInfo:
             cam = numpy.where(self.camdets['CamID'] == statid) 
         if len(cam[0]) == 0:
             cam = numpy.where(self.camdets['dummycode'] == statid) 
-        if len(cam[0]) ==0:
-            cam = numpy.where(numpy.logical_and(self.camdets['LID']==spls[0].encode('utf-8'), self.camdets['SID']==spls[1].encode('utf-8')))
+        if len(cam[0]) == 0:
+            try:
+                cam = numpy.where(numpy.logical_and(self.camdets['LID']==spls[0].encode('utf-8'), self.camdets['SID']==spls[1].encode('utf-8')))
+            except: 
+                pass
 
         # if we can't find the camera, assume its inactive
         if len(cam[0]) == 0:
@@ -47,30 +50,11 @@ class SiteInfo:
                 return -1
             return c
 
-    def GetSiteLocation(self, camname):
-        camname = camname.encode('utf-8')
-        eles = camname.split(b'_')
-        if len(eles) > 2:
-            lid = eles[0].strip() + b'_' + eles[1].strip()
-        else:
-            lid = eles[0].strip()
-        if len(eles) > 1:
-            sid = camname.split(b'_')[len(eles)-1].strip()
-            # print(lid, sid)
-            cam = numpy.where((self.camdets['LID'] == lid) & (self.camdets['SID'] == sid))
-            if len(cam[0]) == 0:
-                sid = sid.upper()
-                lid = lid.upper()
-                cam = numpy.where((self.camdets['LID'] == lid) & (self.camdets['SID'] == sid))
+    def GetSiteLocation(self, camname, activeonly=True):
+        c = self.getCameraOffset(camname, activeonly)
+        if c == -1:
+            return 0,0,0,0,'unknown'
 
-        else:
-            cam = numpy.where((self.camdets['LID'] == lid))
-        if len(cam[0]) == 0:
-            cam = numpy.where((self.camdets['dummycode'] == lid))
-            if len(cam[0]) == 0:
-                return 0, 0, 0, 0, camname.decode('utf-8')
-        #print(cam)
-        c = cam[0][0]
         longi = self.camdets[c]['Longi']
         lati = self.camdets[c]['Lati']
         alti = self.camdets[c]['Alti']
