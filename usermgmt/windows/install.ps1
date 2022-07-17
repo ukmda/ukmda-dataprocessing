@@ -11,6 +11,6 @@ robocopy $psscriptroot $targ req* *.py station* check* daily*
 $isadm=(conda env list  | select-string "ukmon-admin")
 if ($isadm.count -eq 0) {
     conda env create -n ukmon-admin python=3-8
+    conda activate ukmon-admin
+    pip install -r $targ/requirements.txt
 }
-conda activate ukmon-admin
-pip install -r $targ/requirements.txt
