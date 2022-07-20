@@ -199,6 +199,13 @@ class SiteInfo:
             camlist.append({'Site':rw['Site'].decode('utf-8'), 'CamID':rw['CamID'].decode('utf-8'), 'dummycode':rw['dummycode'].decode('utf-8'), 'ufoid':ufoname})
         return camlist
 
+    def getCameraLocAndDir(self, camid, activeonly=True):
+        c = self.getCameraOffset(camid, activeonly=activeonly)
+        if c < 0:
+            return ''
+        else:
+            return self.camdets[c]['Site'].decode('utf_8') + '_' + self.camdets[c]['SID'].decode('utf_8')
+
 
 
 def main(sitename):
