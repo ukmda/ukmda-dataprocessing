@@ -20,13 +20,13 @@ alias startcalc='~/prod/utils/stopstart-calcengine.sh start'
 alias stopcalc='~/prod/utils/stopstart-calcengine.sh stop'
 
 function dev {
-	~/dev/config/config.ini >/dev/null 2>&1 
+	source ~/dev/config.ini >/dev/null
 	source ~/venvs/$WMPL_ENV/bin/activate
 	PS1="(wmpl) (dev) [\W]\$ "
 	cd ~/dev
 }
 function prd {
-	source ~/prod/config/config.ini >/dev/null 2>&1
+	source ~/prod/config.ini >/dev/null
 	source ~/venvs/$WMPL_ENV/bin/activate
 	PS1="(wmpl) (prd) [\W]\$ "
 	cd ~/prod
