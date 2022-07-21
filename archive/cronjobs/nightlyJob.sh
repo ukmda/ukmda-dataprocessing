@@ -106,6 +106,9 @@ python -m metrics.timingMetrics $nightlog 'N' >> $SRC/logs/perfNightly.csv
 # check for bad stations
 $SRC/analysis/getBadStations.sh
 
+# update the costs page
+$SRC/website/costReport.sh
+
 # set time of next run
 python $PYLIB/utils/getNextBatchStart.py 120
 

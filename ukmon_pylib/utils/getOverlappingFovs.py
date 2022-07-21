@@ -1,7 +1,6 @@
 # 
 # 
 #
-#from genericpath import exists
 import os
 import sys
 import glob
@@ -24,7 +23,6 @@ def checkKMLOverlap(k1, k2):
 
 
 def getOverlappingCameras(srcfolder, kmlpat):
-
     kmllist = glob.glob1(srcfolder, kmlpat)
     kmllist2 = kmllist
     matches = []
@@ -32,15 +30,16 @@ def getOverlappingCameras(srcfolder, kmlpat):
     for refkml in kmllist:
         currmatches=[]
         refcam,_ = os.path.splitext(refkml)
-        currmatches.append(refcam)
+        currmatches.append(refcam[:6])
         #print('checking ', refcam)
         for testkml in kmllist2:
             if testkml != refkml:
                 testcam,_ = os.path.splitext(testkml)
                 #print('comparing to ', testcam)
-                if checkKMLOverlap(refkml, testkml) is True:
-                    currmatches.append(testcam)
+                if checkKMLOverlap(os.path.join(srcfolder, refkml), os.path.join(srcfolder, testkml)) is True:
+                    currmatches.append(testcam[:6])
         matches.append(currmatches)
+        print(currmatches)
 
     return matches
 
@@ -49,3 +48,4 @@ if __name__ == '__main__':
     src = sys.argv[1]
     targ = sys.argv[2]
     matches = getOverlappingCameras(src, '*-25km.kml')
+    print(matches)

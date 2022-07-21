@@ -84,12 +84,16 @@
     </script>
 
     <div class="container">
-        <h2>Individual Station Coverage Maps</h2>
+        <h2>Station Coverage Maps</h2>
         <p>
             To use this page, select a camera from the dropdown, then select an altitude.
             Click on Show to reveal the coverage of that camera at that altitude.
-            <br>
-            Note: If no coverage is displayed then the camera has not yet been calibrated.
+            To check for overlap select a second camera and click Show again. 
+            Note that the field of view will remain
+            centred on the first camera and the second may not be visible - if they don't overlap. 
+            You can click on a shaded area to see which camera it relates to. 
+        </p><p>
+            If no coverage is displayed then the camera has not yet been calibrated.
         </p>
         <p>
             You can also click the links below to see total coverage at different altitudes:
@@ -100,11 +104,19 @@
 
         <form id="selectStation" onsubmit="return formSubmit()">
             <div id="stationsplaceholder"></div>
-            <label for="statselect">Station</label>
+            <label for="statselect">Station 1</label>
             <select class="bootstrap-select" id="statselect" name="statselect">
                 <script>
                     $(function () {
                         $("#statselect").load("/search/activestatopts.html");
+                    });
+                </script>
+            </select>
+            <label for="statselect2">Station 2</label>
+            <select class="bootstrap-select" id="statselect2" name="statselect2">
+                <script>
+                    $(function () {
+                        $("#statselect2").load("/search/activestatopts.html");
                     });
                 </script>
             </select>
@@ -129,15 +141,20 @@
         <div id="capture"></div>
         <script>
             var strstat;
+            var strstat2;
             var height;
             function formSubmit() {
-                console.log('in formSubmit');
+                //console.log('in formSubmit');
                 var e = document.getElementById('statselect');
                 strstat = e.options[e.selectedIndex].text;
                 selidx = e.selectedIndex;
+
+                var e = document.getElementById('statselect2');
+                strstat2 = e.options[e.selectedIndex].text;
+
                 var e = document.getElementById('heightsel');
                 height = e.options[e.selectedIndex].text;
-                console.log('station is', strstat, 'height ', height)
+                console.log('station is', strstat, 'height ', height, 'station 2', strstat2)
 
                 loc = document.getElementById('statloc');
                 locsel = document.getElementById('statlocsel');
@@ -158,22 +175,15 @@
             }
 
             function initMap() {
-                var sn = getParameterByName('statselect');
+                //var sn = getParameterByName('statselect');
                 var map;
                 map = new google.maps.Map(document.getElementById('map'), {
                     center: new google.maps.LatLng(54.0, 1.5),
                     zoom: 2,
                     mapTypeId: 'terrain'
                 });
-                //var strstat;
-                //if (sn != 1 ) {
-                //    var e = document.getElementById('statselect');
-                //    console.log('selectedIndex data ', e.options);
-                //    //strstat = e.options[e.selectedIndex].text;
-                //    strstat = e.options[sn-1].value;
-                //}
                 var src1 = 'https://archive.ukmeteornetwork.co.uk/img/kmls/' + strstat + '-' + height + '.kml';
-                console.log(src1);
+                //console.log(src1);
 
                 var kmlLayer = new google.maps.KmlLayer(src1, {
                     suppressInfoWindows: true,
@@ -186,38 +196,22 @@
                     var testimonial = document.getElementById('capture');
                     testimonial.innerHTML = content;
                 });
-                /*
-                var kmlLayer2 = new google.maps.KmlLayer(src2, {
-                    suppressInfoWindows: true,
-                    preserveViewport: false,
-                    map: map
-                });
-                kmlLayer2.addListener('click', function (event) {
-                    var content = event.featureData.infoWindowHtml;
-                    var testimonial = document.getElementById('capture');
-                    testimonial.innerHTML = content;
-                });
-                var kmlLayer3 = new google.maps.KmlLayer(src3, {
-                    suppressInfoWindows: true,
-                    preserveViewport: false,
-                    map: map
-                });
-                kmlLayer3.addListener('click', function (event) {
-                    var content = event.featureData.infoWindowHtml;
-                    var testimonial = document.getElementById('capture');
-                    testimonial.innerHTML = content;
-                });
-                var kmlLayer4 = new google.maps.KmlLayer(src4, {
-                    suppressInfoWindows: true,
-                    preserveViewport: false,
-                    map: map
-                });
-                kmlLayer4.addListener('click', function (event) {
-                    var content = event.featureData.infoWindowHtml;
-                    var testimonial = document.getElementById('capture');
-                    testimonial.innerHTML = content;
-                });
-                */
+                if (strstat2 != '')
+                {
+                    var src2 = 'https://archive.ukmeteornetwork.co.uk/img/kmls/' +strstat2 + '-' + height + '.kml';
+
+                    var kmlLayer = new google.maps.KmlLayer(src2, {
+                        suppressInfoWindows: true,
+                        preserveViewport: true,
+                        map: map
+                    });
+                    kmlLayer.addListener('click', function (event) {
+                        var content = event.featureData.infoWindowHtml;
+                        console.log(content)
+                        var testimonial = document.getElementById('capture');
+                        testimonial.innerHTML = content;
+                    });
+                }
             }
         </script>
         <script async

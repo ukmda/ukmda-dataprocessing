@@ -1,2 +1,5 @@
 destdir: /home/ec2-user/prod
 env: PROD
+websitebucket: ukmeteornetworkarchive
+api_id: 40luvfh1od
+api_svc: Prod

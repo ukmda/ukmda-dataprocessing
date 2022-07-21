@@ -60,7 +60,7 @@ def getSvcName(svc):
     return svcname
 
 
-def drawBarChart(costsfile):
+def drawBarChart(costsfile, typflag):
     outdir, fname =os.path.split(costsfile)
     fn, _ = os.path.splitext(fname)
     #accid = spls[1]
@@ -83,10 +83,16 @@ def drawBarChart(costsfile):
 
     # create plot
     fig, ax = plt.subplots()
+    fig.set_size_inches(23.2, 8.26)
     width = 0.35       # the width of the bars: can also be len(x) sequence
     labs = []
+    i = 0
     for lab in labels:
-        labs.append(lab[8:10])
+        if i % 7 == 0:
+            labs.append(lab[8:10]+'-'+lab[5:7])
+        else:
+            labs.append(' ')
+        i += 1
 
     numdays = len(labels)
     # run through services adding them to the graph
@@ -104,15 +110,20 @@ def drawBarChart(costsfile):
         if sum(vals) > 0.1: 
             svcname = getSvcName(svc)
             #print(svcname, vals)
-            ax.bar(labs, vals, width, label=svcname, bottom=bottoms)
+            ax.bar(labels, vals, width, label=svcname, bottom=bottoms, tick_label = labs)
             bottoms += vals
-    
+
     #maxy = np.ceil(max(s3cost)+max(ec2cost))
     totcost = np.round(sum(fltrdata['cost']),2)
 
     ax.set_ylabel('Cost ($)')
     ax.set_xlabel('Day of Month')
-    ax.set_title(f'Cost for month starting {mthdate}: total ${totcost:.2f}')
+    if typflag == 0:
+        ax.set_title(f'Cost for month starting {mthdate}: total ${totcost:.2f}')
+    else:
+        avg = totcost/typflag
+        title = f'Cost for last {typflag} days: total \${totcost:.2f}, average \${avg:.2f}' # noqa:W605
+        ax.set_title(title)
     ax.legend()
 
     fname = os.path.join(outdir, f'{fn}.jpg')
@@ -120,7 +131,7 @@ def drawBarChart(costsfile):
     plt.show()
 
 
-def getAllBillingData(ceclient, dtwanted, endwanted, regionid, outdir):
+def getAllBillingData(ceclient, dtwanted, endwanted, regionid, outdir, typflag):
     accid = boto3.client('sts').get_caller_identity()['Account']
     startdt = dtwanted.strftime('%Y-%m-%d')
     if endwanted is None:
@@ -141,7 +152,10 @@ def getAllBillingData(ceclient, dtwanted, endwanted, regionid, outdir):
 
     tagval = os.getenv('COSTTAG', default='billingtag')
 
-    costsfile = os.path.join(outdir, f'costs-{accid}-{startdt[:7]}.csv')
+    if typflag == 0:
+        costsfile = os.path.join(outdir, f'costs-{accid}-{startdt[:7]}.csv')
+    else:
+        costsfile = os.path.join(outdir, f'costs-{accid}-{typflag}-days.csv')
 
     with open(costsfile,'w') as outf:
         outf.write('Date,Service,Tag,Amount\n')
@@ -163,23 +177,33 @@ if __name__ == '__main__':
         exit(0)
     outdir = sys.argv[1]
     regionid = sys.argv[2]
+    typflag = 0
     if len(sys.argv)> 3:
         mthwanted = int(sys.argv[3])
         curdt = datetime.date.today()
-        if int(mthwanted) > 12:
-            yr = int(str(mthwanted)[:4])
-            mth = int(str(mthwanted)[4:])
+        if mthwanted > 12:
+            if mthwanted < 365:
+                # its a number of days back to look
+                endwanted = curdt - datetime.timedelta(days=1)
+                dtwanted = endwanted - relativedelta.relativedelta(days=mthwanted+1)
+                typflag = mthwanted
+            else:
+                # its a specific month in YYYYMM format
+                yr = int(str(mthwanted)[:4])
+                mth = int(str(mthwanted)[4:])
+                dtwanted = curdt.replace(day=1).replace(month=mth).replace(year=yr)
+                endwanted = dtwanted + relativedelta.relativedelta(months=1)
         else:
             yr = curdt.year
             mth = int(mthwanted)
+            dtwanted = curdt.replace(day=1).replace(month=mth).replace(year=yr)
+            endwanted = dtwanted + relativedelta.relativedelta(months=1)
 
-        if yr >= curdt.year and mth > curdt.month:
+        if endwanted >= curdt:
             print("can't request for a future date, requesting for this month instead")
             yr = curdt.year
             mth = curdt.month
 
-        dtwanted = curdt.replace(day=1).replace(month=mth).replace(year=yr)
-        endwanted = dtwanted + relativedelta.relativedelta(months=1)
     else:
         endwanted = datetime.date.today() - datetime.timedelta(days=1)
         dtwanted = endwanted.replace(day=1)
@@ -188,6 +212,6 @@ if __name__ == '__main__':
     myconfig = Config(region_name=regionid)
     ceclient = boto3.client('ce', config=myconfig)
 
-    costsfile, accid = getAllBillingData(ceclient, dtwanted, endwanted, regionid, outdir)
+    costsfile, accid = getAllBillingData(ceclient, dtwanted, endwanted, regionid, outdir, typflag)
 
-    drawBarChart(costsfile)
+    drawBarChart(costsfile, typflag)
