@@ -88,7 +88,10 @@ resource "aws_iam_policy" "userpol1" {
     {
       Statement = [
         {
-          Action   = "ce:GetCostAndUsage"
+          Action   = [
+            "ce:GetCostAndUsage",
+            "ce:GetDimensionValues"
+            ]
           Effect   = "Allow"
           Resource = "*"
           Sid      = "VisualEditor0"

@@ -22,29 +22,35 @@ export PYTHONPATH=$PYLIB
 
 export AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id --profile Mark)
 export AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key --profile Mark)
+python -m metrics.costMetrics $SRC/costs eu-west-2 90
 
+export AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id --profile ukmonarchive)
+export AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key --profile ukmonarchive)
 python -m metrics.costMetrics $SRC/costs eu-west-2 90
 
 export AWS_ACCESS_KEY_ID=
 export AWS_SECRET_ACCESS_KEY=
 
-cp $SRC/costs/costs-317976261112-90-days.jpg $DATADIR/reports
+cp $SRC/costs/costs-*-90-days.jpg $DATADIR/reports
+
 costfile=$DATADIR/reports/costs.html
 imgfile=/reports/costs-317976261112-90-days.jpg
+imgfile2=/reports/costs-822069317839-90-days.jpg
 
 cp $TEMPLATES/header.html $costfile
 echo "<h3>Daily running costs</h3>" >> $costfile
 echo "<p>This page shows daily running costs by service of the Archive and Calculation Engine, in USD " >> $costfile
-echo "</p><p>Note that the cost of s3://ukmon-shared is not included.</p>" >> $costfile
-echo "<a href=$imgfile><img src=$imgfile width=100%></a>" >> $costfile
+echo "<a href=$imgfile><img src=$imgfile width=100%></a><br>" >> $costfile
+echo "<a href=$imgfile2><img src=$imgfile2 width=100%></a><br>" >> $costfile
 
 if [ -f $DATADIR/shwrinfo/costnotes.html ] ; then 
-    echo '<p>\n' >> $costfile
+    echo '<p>' >> $costfile
     cat $DATADIR/shwrinfo/costnotes.html >> $costfile
-    echo '</p>\n' >> $costfile
+    echo '</p>' >> $costfile
 fi 
 
 cat $TEMPLATES/footer.html >> $costfile
 
 aws s3 cp $costfile $WEBSITEBUCKET/reports/ --quiet
-aws s3 cp $DATADIR/reports/costs-317976261112-90-days.jpg $WEBSITEBUCKET/reports/ --quiet
+aws s3 cp $DATADIR/$imgfile $WEBSITEBUCKET/reports/ --quiet
+aws s3 cp $DATADIR/$imgfile2 $WEBSITEBUCKET/reports/ --quiet
