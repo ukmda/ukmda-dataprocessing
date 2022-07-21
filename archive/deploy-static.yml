@@ -14,9 +14,10 @@
       s3_sync:
         bucket: "{{ websitebucket }}"
         file_root: "{{ srcdir }}/archive/static_content/"
-        key_prefix: "/"
-        #permission: 
+        #key_prefix: "/"
+        permission: "bucket-owner-full-control"
         region: "eu-west-2"
+        mode: push
     - name: Copy searchdialog to s3
       tags: [dev,prod]
       aws_s3:
@@ -26,7 +27,7 @@
         src: "{{srcdir}}/archive/website/templates/searchdialog-{{env}}.js"
         object: "/data/searchdialog.js"
         region: "eu-west-2"
-        permission: 'bucket-owner-full-control'
+        permission: "bucket-owner-full-control"
         mode: put
-        overwrite: yes
+        overwrite: "true"
   
