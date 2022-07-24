@@ -78,6 +78,6 @@ resource "aws_s3_bucket_ownership_controls" "ukmonarch_objownrule" {
   bucket = aws_s3_bucket.archsite.id
 
   rule {
-    object_ownership = "BucketOwnerPreferred"
+    object_ownership = "BucketOwnerEnforced"
   }
 }
