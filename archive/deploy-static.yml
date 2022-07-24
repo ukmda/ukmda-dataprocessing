@@ -12,6 +12,7 @@
     - name: sync to S3
       tags: [dev,prod]
       s3_sync:
+        profile: "ukmonshared"
         bucket: "{{ websitebucket }}"
         file_root: "{{ srcdir }}/archive/static_content/"
         #key_prefix: "/"
@@ -20,9 +21,8 @@
         mode: push
     - name: Copy searchdialog to s3
       tags: [dev,prod]
-      aws_s3:
-        #aws_access_key: "{{ lookup('env','aws_key') }}"
-        #aws_secret_key: "{{ lookup('env','aws_secret') }}"
+      amazon.aws.s3_object:
+        profile: "ukmonshared"
         bucket: "{{ websitebucket }}"
         src: "{{srcdir}}/archive/website/templates/searchdialog-{{env}}.js"
         object: "/data/searchdialog.js"
