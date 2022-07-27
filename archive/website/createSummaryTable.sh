@@ -51,6 +51,7 @@ numcams=$(python -c "from fileformats import CameraDetails as cd; print(len(cd.S
 cat $TEMPLATES/frontpage.html | sed "s/#NUMCAMS#/$numcams/g" > $DATADIR/newindex.html
 
 logger -s -t createSummaryTable "copying to website"
+aws s3 cp $DATADIR/latest/coverage-maps.html $WEBSITEBUCKET/latest/ --quiet
 aws s3 cp $DATADIR/summarytable.js  $WEBSITEBUCKET/data/ --quiet
 aws s3 cp $DATADIR/coverage-100km.html  $WEBSITEBUCKET/data/ --quiet
 aws s3 cp $DATADIR/coverage-70km.html  $WEBSITEBUCKET/data/ --quiet

@@ -40,7 +40,7 @@ def decodeApiKey(enckey):
     return apikey.decode('utf-8')
 
 
-def enodeApiKey(plainkey):
+def encodeApiKey(plainkey):
     key = open(os.path.expanduser('~/.ssh/gmap.key'), 'rb').read()
     f = Fernet(key)
     apikey = f.encrypt(plainkey.encode('utf-8'))
