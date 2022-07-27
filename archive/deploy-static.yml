@@ -15,8 +15,7 @@
         profile: "ukmonshared"
         bucket: "{{ websitebucket }}"
         file_root: "{{ srcdir }}/archive/static_content/"
-        #key_prefix: "/"
-        permission: "bucket-owner-full-control"
+        #permission: "bucket-owner-full-control"
         region: "eu-west-2"
         mode: push
     - name: Copy searchdialog to s3
