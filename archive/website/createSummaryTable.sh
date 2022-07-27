@@ -39,6 +39,8 @@ python -m utils.makeCoverageMap $ARCHDIR/../kmls $DATADIR
 export KMLTEMPLATE="*100km.kml"
 python -m utils.makeCoverageMap $ARCHDIR/../kmls $DATADIR
 
+python -c "from utils.makeCoverageMap import createCoveragePage as ccp ; ccp() ;"
+
 logger -s -t createSummaryTable "create year-to-date barchart"
 pushd $DATADIR
 python -m reports.createAnnualBarChart  $DATADIR/matched/matches-full-${yr}.parquet.gzip ${yr}
