@@ -39,8 +39,8 @@ def processFolder(dir_path, threshold):
     #print(manFFs)
     #print(autoFFs)
 
-    inManNotInAuto = list(set(manFFs).difference(autoFFs))
-    inAutoNotInMan = list(set(autoFFs).difference(manFFs))
+    inAutoNotInMan = list(set(manFFs).difference(autoFFs))
+    inManNotInAuto = list(set(autoFFs).difference(manFFs))
 
     print(f'selected manually but not by ML {inManNotInAuto}')
     print(f'selected by ML but not manually {inAutoNotInMan}')
