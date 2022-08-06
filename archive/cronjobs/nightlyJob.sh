@@ -114,4 +114,6 @@ python $PYLIB/utils/getNextBatchStart.py 120
 
 logger -s -t nightlyJob "Finished"
 
-$SRC/analysis/getLogData.sh $rundate
+# grab the logs for the website - run this last to capture the above Finished messae
+$SRC/analysis/getLogData.sh
+
