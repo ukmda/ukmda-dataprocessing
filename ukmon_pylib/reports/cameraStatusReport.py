@@ -7,6 +7,8 @@ import os
 import fileformats.CameraDetails as cc
 import datetime
 import numpy
+import glob
+import pandas as pd 
 
 
 def datesortkey(x):
@@ -87,6 +89,26 @@ def getLastUpdateDate(pth, skipfldrs):
     print('var outer_div = document.getElementById("camrep");')
     print('outer_div.appendChild(table);')
     print('})')
+    return 
+
+
+def getNonContributingCameras():
+    si = cc.SiteInfo()
+    activecams = si.getActiveCameras()
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    platepars = glob.glob(os.path.join(datadir,'consolidated','platepars','*.json'))
+    cams = []
+    for pp in platepars:
+        _, fn = os.path.split(pp)
+        cams.append(os.path.splitext(fn)[0])
+    allcams = []
+    for cam in activecams:
+        allcams.append(cam['CamID'].decode('utf-8'))
+    missing=list(set(allcams).difference(cams))
+    owners = pd.read_csv(os.path.join(datadir, 'admin','stationdetails.csv'))
+    missingcams = owners.loc[owners['camid'].isin(missing)]
+    missingcams = missingcams.sort_values(by=['camid'])
+    return missingcams
 
 
 if __name__ == '__main__':
