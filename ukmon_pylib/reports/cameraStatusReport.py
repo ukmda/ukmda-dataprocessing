@@ -7,7 +7,7 @@ import os
 import fileformats.CameraDetails as cc
 import datetime
 import numpy
-import glob
+#import glob
 import pandas as pd 
 
 
@@ -19,13 +19,14 @@ def statsortkey(x):
     return x[0]
 
 
-def getLastUpdateDate(pth, skipfldrs):
+def getLastUpdateDate(pth, skipfldrs, includenever=False):
     """ Create a status report showing the last update date of each camera that
     is providing data
 
     Args:
         pth (str): path containing the camera data folders
         skipfldrs (list): list of folders to ignore eg ['trajectories','dailyreports']
+        includenever (bool) default false, include cameras that have never uploaded
         
     """
     camdets = cc.SiteInfo()
@@ -39,12 +40,15 @@ def getLastUpdateDate(pth, skipfldrs):
             isactive = camdets.checkCameraActive(fldr)
             if isactive is True:
                 info = camdets.getFolder(fldr)
+                loc, cam = info.split('/')
                 camtype = camdets.getCameraType(fldr)
                 flist = os.listdir(os.path.join(pth, fldr))
                 if len(flist) == 0: 
+                    # camera has never uploaded
+                    lastdt = datetime.datetime(1970,1,1)
+                    stati.append([loc, cam, lastdt, 'mediumpurple'])
                     continue 
                 lastentry = sorted(flist, key=datesortkey)[-1]
-                loc, cam = info.split('/')
                 lastdt = datetime.datetime.strptime(lastentry[7:22],'%Y%m%d_%H%M%S')
                 lateness = (now - lastdt).days
                 if camtype == 1:
@@ -60,9 +64,23 @@ def getLastUpdateDate(pth, skipfldrs):
                     stati.append([loc, cam, lastdt, 'darkorange'])
                 else:
                     stati.append([loc, cam, lastdt, 'white'])
+                    
+    if includenever is True:
+        for cam in camdets.getActiveCameras()['dummycode']:
+            cam = cam.decode('utf-8')
+            if cam not in fldrlist:
+                info = camdets.getFolder(cam)
+                loc, cam = info.split('/')
+                lastdt = datetime.datetime(1970,1,1)
+                stati.append([loc, cam, lastdt, 'mediumpurple'])
+
     stati = numpy.vstack((stati))
     stati = stati[stati[:,1].argsort()]
     stati = stati[stati[:,0].argsort(kind='mergesort')]
+    return stati
+
+
+def createStatusReportJSfile(stati):
     print('$(function() {')
     print('var table = document.createElement("table");')
     print('table.className="table table-striped table-bordered table-hover table-condensed";')
@@ -93,23 +111,20 @@ def getLastUpdateDate(pth, skipfldrs):
 
 
 def getNonContributingCameras():
-    si = cc.SiteInfo()
-    activecams = si.getActiveCameras()
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-    platepars = glob.glob(os.path.join(datadir,'consolidated','platepars','*.json'))
-    cams = []
-    for pp in platepars:
-        _, fn = os.path.split(pp)
-        cams.append(os.path.splitext(fn)[0])
-    allcams = []
-    for cam in activecams:
-        allcams.append(cam['CamID'].decode('utf-8'))
-    missing=list(set(allcams).difference(cams))
+    pth = '/home/ec2-user/ukmon-shared/matches/RMSCorrelate'
+    skipfldrs = ['plots','trajectories','dailyreports']
+    cams = getLastUpdateDate(pth, skipfldrs, includenever=True)
+
+    df = pd.DataFrame(cams, columns=['loc','camid','date','colour'])
+    missing = df[df.date ==datetime.datetime(1970,1,1)]
+    
     owners = pd.read_csv(os.path.join(datadir, 'admin','stationdetails.csv'))
-    missingcams = owners.loc[owners['camid'].isin(missing)]
+    missingcams = owners.loc[owners['camid'].isin(missing.camid)]
     missingcams = missingcams.sort_values(by=['camid'])
     return missingcams
 
 
 if __name__ == '__main__':
-    getLastUpdateDate(sys.argv[1],['plots','trajectories','dailyreports'])
+    stati = getLastUpdateDate(sys.argv[1],['plots','trajectories','dailyreports'])
+    createStatusReportJSfile(stati)
