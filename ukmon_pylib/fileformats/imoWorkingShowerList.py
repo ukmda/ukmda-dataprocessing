@@ -93,7 +93,7 @@ class IMOshowerList:
             start = self.getStart(shwname, yr)
             end = self.getEnd(shwname, yr) + datetime.timedelta(days=3)
             if datetotest > start and datetotest < end:
-                if majorOnly is False or (majorOnly is True and shwname in mm.mmajorlist):
+                if majorOnly is False or (majorOnly is True and shwname in mm.majorlist):
                     activelist.append(shwname)
                 elif inclMinor is True and shwname in mm.minorlist:
                     activelist.append(shwname)
