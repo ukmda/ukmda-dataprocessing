@@ -552,7 +552,10 @@ if __name__ == '__main__':
         velDistribution(mtch, shwrname, outdir, 'vs')
         longest = distanceDistribution(mtch, shwrname, outdir)
         slowest = durationDistribution(mtch, shwrname, outdir)
-        lowest = ablationDistribution(mtch, shwrname, outdir)
+        if mth is not None:
+            lowest = ablationDistribution(mtch, shwrname, outdir)
+        else:
+            lowest = min(mtch['_H2'])
         if shwr != 'ALL':
             semimajorDistribution(mtch, shwrname, outdir)
             radiantDistribution(mtch, shwrname, outdir)
