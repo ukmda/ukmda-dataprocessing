@@ -27,54 +27,21 @@ logger -s -t createShwrExtracts "starting"
 
 if [ $# -gt 0 ] ; then
     ymd=$1
-    yrs=${ymd:0:4}   
-    mths=${ymd:4:2}
+    yrs=${ymd:0:4}
 else
     yrs="2021 2020"
 fi 
-shwrs=$(PYTHONPATH=$PYLIB python -c "from fileformats import imoWorkingShowerList as imo; sl = imo.IMOshowerList();print(sl.getMajorShowers(True, True));")
-
 
 cd ${DATADIR}/matched
-logger -s -t createShwrExtracts "creating matched extracts"
-
+logger -s -t createShwrExtracts "creating annual shower extracts"
 for yr in $yrs
 do
-    if compgen -G "$DATADIR/matched/matches-full-${yr}.csv" > /dev/null ; then 
-        for shwr in $shwrs
-        do
-            logger -s -t createShwrExtracts "doing $yr $shwr"
-            python -m reports.extractShowerCsv $yr $shwr 'M'
-        done
-    fi
-done
-cd ${DATADIR}/consolidated
-logger -s -t createShwrExtracts "creating UFO detections"
-for yr in $yrs
-do
-    if compgen -G "$DATADIR/consolidated/M_${yr}-unified.csv" > /dev/null ; then 
-        for shwr in $shwrs
-        do
-            logger -s -t createShwrExtracts "doing $yr $shwr"
-            python -m reports.extractShowerCsv $yr $shwr 'U'
-        done
-    fi
-done
-cd ${DATADIR}/consolidated
-logger -s -t createShwrExtracts "creating RMS detections"
-for yr in $yrs
-do
-    if compgen -G "$DATADIR/single/singles-${yr}.csv" > /dev/null ; then 
-        for shwr in $shwrs
-        do
-            logger -s -t createShwrExtracts "doing $yr $shwr"
-            python -m reports.extractShowerCsv $yr $shwr 'R'
-        done
-    fi
+    python -c "from reports import extractors as ex; ex.extractAllShowersData($yr);"
 done
 
 logger -s -t createShwrExtracts "done gathering data, creating tables"
 
+shwrs=$(python -c "from fileformats import imoWorkingShowerList as imo; sl = imo.IMOshowerList();print(sl.getMajorShowers(True, True));")
 for shwr in $shwrs
 do 
     now=$(date '+%Y-%m-%d %H:%M:%S')
