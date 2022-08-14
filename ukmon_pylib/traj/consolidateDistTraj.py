@@ -16,10 +16,11 @@ class dummyMeteorObsRMS(object):
 
 
 # merge a distributed engine DB back into the master DB
-def mergeDatabases(srcdir, srcdb, masterpth, masterfile):
+def mergeDatabases(srcdir, srcdb, masterpth, masterfile, mastdb = None):
     newdb = os.path.join(srcdir, srcdb)
     mergedb = DatabaseJSON(newdb)
-    mastdb = DatabaseJSON(masterfile)
+    if mastdb is None:
+        mastdb = DatabaseJSON(masterfile)
     mastdb.db_file_path = masterfile
     # merge successful trajectories
     for traj in mergedb.trajectories:
@@ -43,7 +44,7 @@ def mergeDatabases(srcdir, srcdb, masterpth, masterfile):
             mastdb.addPairedObservation(met_obs)
     # save the master DB again
     mastdb.save()
-    return
+    return mastdb
 
 
 # utility to patch the database to have the right trajectory folder
@@ -110,8 +111,13 @@ if __name__ == '__main__':
 
     flist = glob.glob1(srcdir, f'{rundt}*.json')
     flist.sort()
+    mastdb = None
     for fl in flist:
         #countDataInDb(os.path.join(srcdir, fl))
-        print(fl)
-        mergeDatabases(srcdir, fl, masterpth, masterdb)
+        tstamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        print(f'{tstamp} processing {fl}')
+        sys.stdout.flush()
+        mastdb = mergeDatabases(srcdir, fl, masterpth, masterdb, mastdb)
+
+    print('patching path in mastdb')        
     patchTrajDB(masterdb, masterpth, oldstr='/home/ec2-user/prod/data/distrib')
