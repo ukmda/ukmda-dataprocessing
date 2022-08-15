@@ -570,3 +570,5 @@ replacements.txt
 archive/lambdas/apis-mm.txt
 archive/lambdas/apis-ee.txt
 usermgmt/windows/createUserKeyAWS.ps1
+archive/lambdas/matchPickle/pythoncode/WesternMeteorPyLib/**
+archive/lambdas/matchPickle/pythoncode/*.npy
