@@ -68,8 +68,10 @@
         <p>
         <li><a href=#Matches>Matches API</a></li>
         <li><a href=#Detections>Detections API</a></li>
+        <li><a href=#Pickles>Full Trajectory API</a></li>
         <li><a href=#MatchExamples>Matches Examples</a></li>
         <li><a href=#DetExamples>Detections Examples</a></li>
+        <li><a href=#PickleExample>Full Trajectory Example</a></li>
         </p>
         <h3 id="Matches">Matched Data API</h3>
         <p>
@@ -88,6 +90,7 @@
         but it can also be processed in any other programming language capable of parsing JSON
         or saved to a file. See below for some examples.
         <hr>
+
         <h3 id="Detections">Detections API</h3>
         <p>
             The following data are available: 
@@ -102,27 +105,44 @@
         <li>stat: Station ID eg UK0001</li>
         <li>dt: Datetime in the format YYYY-mm-ddTHH:MM:SS.uuuuuu, for example
             2021-12-22T05:34:54.856791
-            <p>
-                The time can be given to the nearest second or fraction of a second (down to microseconds).
+        <p>
+            The time can be given to the nearest second or fraction of a second (down to microseconds).
+        </p>
+        <h4>Returns</h4>
+        <p>
+            Data are returned in Astropy ECSV format and can be saved directly into a file
+            as shown in the example below. Note that if more than
+            one event matches, then the returned data will be a concatenation of multiple ECSV datasets and
+            you will need to either split the data into individual files or make a new
+            API request with sufficient time granularity to retrieve only one event.
+        </p>
+        <hr>
+
+        <h3 id="Pickles">Full Trajectory API</h3>
+        <p>
+            The following data are available: 
             </p>
-            <h4>Returns</h4>
-            <p>
-                Data are returned in Astropy ECSV format and can be saved directly into a file
-                as shown in the example below. Note that if more than
-                one event matches, then the returned data will be a concatenation of multiple ECSV datasets and
-                you will need to either split the data into individual files or make a new
-                API request with sufficient time granularity to retrieve only one event.
-            </p>
-            <hr>
-            <h2>Examples</h2>
-            <h4 id="DetExamples">Detections API - Windows Powershell or Linux Bash</h4>
-            <pre>
+            <li>Full trajectory solution data in JSON format </li><p>
+        </p>
+        <h4>URL</h4>
+        <p>https://crsnzpt82c.execute-api.eu-west-1.amazonaws.com/Prod/getpickle</p>
+        <h4>Parameters</h4>
+        <li>reqval: Trajectory ID eg 20220814_205940.252_UK</li>
+        <h4>Returns</h4>
+        <p>
+            JSON data containing the complete trajectory solution.
+        </p>
+        <hr>
+
+        <h2>Examples</h2>
+        <h4 id="DetExamples">Detections API - Windows Powershell or Linux Bash</h4>
+        <pre>
 PS> wget "https://jpaq0huazc.execute-api.eu-west-1.amazonaws.com/Prod/getecsv?stat=UK0025&dt=2021-07-17T02:41:05.05" -O test.ecsv
-            </pre>
-            <p>Returns the ECSV format data for the detection from Camera UK0025 at 02:41:05.05 on 2021/07/17</p>
-            <h4>Detections API - Python</h4>
-            This example shows how to handle multiple datasets being returned
-            <pre>
+        </pre>
+        <p>Returns the ECSV format data for the detection from Camera UK0025 at 02:41:05.05 on 2021/07/17</p>
+        <h4>Detections API - Python</h4>
+        This example shows how to handle multiple datasets being returned
+        <pre>
 import requests
 
 apiurl='https://jpaq0huazc.execute-api.eu-west-1.amazonaws.com/Prod/getecsv?stat={}&dt={}'
@@ -164,9 +184,9 @@ orbname
 20211121_003704.344_UK
 20211121_011116.433_UK
 .....
-</pre>
-            Retrieve details for event 20211121_032219.699_UK and extract the visual magnitude
-            <pre>
+        </pre>
+        Retrieve details for event 20211121_032219.699_UK and extract the visual magnitude
+        <pre>
 PS> curl "https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod?reqtyp=detail&reqval=20211121_032219.699_UK" > 20211121_032219.699_UK.txt
 PS> (get-content .\20211121_032219.699_UK.txt | convertfrom-json -ashashtable)._mag
 -0.93
@@ -186,10 +206,10 @@ $ cat 20211121_032219.699_UK.txt | jq ._mag
 "-0.93"
 $ curl "https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod?reqtyp=detail&reqval=20211121_032219.699_UK" | jq ._mag
 "-0.93"
-</pre>
+        </pre>
 
-            <h4>Match API Python Example</h4>
-            <pre>
+        <h4>Match API Python Example</h4>
+        <pre>
 import pandas as pd 
 
 apiurl = 'https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod'
@@ -219,17 +239,18 @@ df = pd.DataFrame(details)
 df = df.sort_values(by=['_mag'])
 print(df)
         </pre>
-
-            <hr>
-            <div id="copyrite-placeholder"></div>
-            <script>
-                $(function () {
-                    $("#copyrite-placeholder").load("/templates/copyright.html");
-                });
-            </script>
-
+        <h4 id="PickleExample">Full Trajectory API Example</h4>
+        <pre>
+            curl "https://crsnzpt82c.execute-api.eu-west-1.amazonaws.com/Prod/getpickle?reqval=20220814_205940.252_UK"
+        </pre>
+        
+        <hr>
+        <div id="copyrite-placeholder"></div>
+        <script>
+            $(function () {
+                $("#copyrite-placeholder").load("/templates/copyright.html");
+            });
+        </script>
     </div>
-
 </body>
-
 </html>
