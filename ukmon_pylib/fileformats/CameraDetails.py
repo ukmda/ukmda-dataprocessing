@@ -207,7 +207,6 @@ class SiteInfo:
             return self.camdets[c]['Site'].decode('utf_8') + '_' + self.camdets[c]['SID'].decode('utf_8')
 
 
-
 def main(sitename):
     ci = SiteInfo()
     spls = sitename.split('_')

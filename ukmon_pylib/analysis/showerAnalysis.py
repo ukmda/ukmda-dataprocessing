@@ -17,6 +17,12 @@ MEDIUM_SIZE = 10
 BIGGER_SIZE = 12
 
 
+def logMessage(msg):
+    dtstr = datetime.datetime.now().strftime('%b %d %H:%M:%S')
+    print(f'<13>{dtstr} {msg}')
+    return
+
+
 def getStatistics(sngldta, matchdta, outdir):
     numcams = len(sngldta.groupby('ID').size())
     numsngl = len(sngldta)
@@ -29,7 +35,7 @@ def getStatistics(sngldta, matchdta, outdir):
 
 
 def stationGraph(dta, shwrname, outdir, maxStats=20):
-    print('creating count by station')
+    logMessage('creating count by station')
     # set paper size so fonts look good
     plt.clf()
     fig = plt.gcf()
@@ -47,7 +53,7 @@ def stationGraph(dta, shwrname, outdir, maxStats=20):
 
 
 def showerGraph(dta, s_or_m, outdir, maxshwrs=30):
-    print('creating {} count by shower'.format(s_or_m))
+    logMessage('creating {} count by shower'.format(s_or_m))
     # set paper size so fonts look good
     plt.clf()
     fig = plt.gcf()
@@ -71,7 +77,7 @@ def showerGraph(dta, s_or_m, outdir, maxshwrs=30):
 
 
 def timeGraph(dta, shwrname, outdir, binmins=10):
-    print('Creating single station binned graph')
+    logMessage('Creating single station binned graph')
     fname = os.path.join(outdir, '02_stream_plot_timeline_single.jpg')
     if shwrname == "All Showers":
         # we already have this graph
@@ -112,7 +118,7 @@ def timeGraph(dta, shwrname, outdir, binmins=10):
 
 
 def matchesGraphs(dta, shwrname, outdir, binmins=60):
-    print('Creating matches binned graph')
+    logMessage('Creating matches binned graph')
     # set paper size so fonts look good
     plt.clf()
     fig = plt.gcf()
@@ -173,7 +179,7 @@ def matchesGraphs(dta, shwrname, outdir, binmins=60):
 
 
 def velDistribution(dta, shwrname, outdir, vg_or_vs, binwidth=0.2):
-    print('Creating velocity distribution histogram')
+    logMessage('Creating velocity distribution histogram')
     plt.clf()
 
     if vg_or_vs == 'vg':
@@ -210,7 +216,7 @@ def velDistribution(dta, shwrname, outdir, vg_or_vs, binwidth=0.2):
 
 
 def durationDistribution(dta, shwrname, outdir, binwidth=0.2):
-    print('Creating duration distribution histogram')
+    logMessage('Creating duration distribution histogram')
     plt.clf()
 
     max_dist = 100 # maximum sensible value - data over this is borked
@@ -247,7 +253,7 @@ def durationDistribution(dta, shwrname, outdir, binwidth=0.2):
 
 
 def distanceDistribution(dta, shwrname, outdir, binwidth=1.0):
-    print('Creating distance distribution histogram')
+    logMessage('Creating distance distribution histogram')
     plt.clf()
 
     max_dist = 100 # maximum sensible value - data over this is borked
@@ -284,7 +290,7 @@ def distanceDistribution(dta, shwrname, outdir, binwidth=1.0):
 
 
 def ablationDistribution(dta, shwrname, outdir):
-    print('Creating ablation zone distribution histogram')
+    logMessage('Creating ablation zone distribution histogram')
     plt.clf()
 
     idx = '_H1'
@@ -316,7 +322,7 @@ def ablationDistribution(dta, shwrname, outdir):
 
 
 def radiantDistribution(dta, shwrname, outdir):
-    print('Creating radiant scatterplot')
+    logMessage('Creating radiant scatterplot')
     plt.clf()
 
     idx = '_ra_o'
@@ -352,7 +358,7 @@ def radiantDistribution(dta, shwrname, outdir):
 
 
 def semimajorDistribution(dta, shwrname, outdir, binwidth=0.5):
-    print('Creating semimajor axis histogram')
+    logMessage('Creating semimajor axis histogram')
     plt.clf()
 
     magdf=pd.DataFrame(dta['_a'])
@@ -383,7 +389,7 @@ def semimajorDistribution(dta, shwrname, outdir, binwidth=0.5):
 
 
 def magDistributionAbs(dta, shwrname, outdir, binwidth=0.2):
-    print('Creating matches abs mag histogram')
+    logMessage('Creating matches abs mag histogram')
     plt.clf()
 
     bestvmag = min(dta['_mag'])
@@ -412,7 +418,7 @@ def magDistributionAbs(dta, shwrname, outdir, binwidth=0.2):
 
 
 def magDistributionVis(dta, shwrname, outdir, binwidth=0.2):
-    print('Creating detections visual mag histogram')
+    logMessage('Creating detections visual mag histogram')
 
     magdf=pd.DataFrame(dta['Mag'])
     bins=np.arange(-6,6+binwidth,binwidth)
@@ -546,7 +552,10 @@ if __name__ == '__main__':
         velDistribution(mtch, shwrname, outdir, 'vs')
         longest = distanceDistribution(mtch, shwrname, outdir)
         slowest = durationDistribution(mtch, shwrname, outdir)
-        lowest = ablationDistribution(mtch, shwrname, outdir)
+        if mth is not None:
+            lowest = ablationDistribution(mtch, shwrname, outdir)
+        else:
+            lowest = min(mtch['_H2'])
         if shwr != 'ALL':
             semimajorDistribution(mtch, shwrname, outdir)
             radiantDistribution(mtch, shwrname, outdir)

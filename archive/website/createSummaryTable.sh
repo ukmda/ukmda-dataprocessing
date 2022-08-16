@@ -39,6 +39,8 @@ python -m utils.makeCoverageMap $ARCHDIR/../kmls $DATADIR
 export KMLTEMPLATE="*100km.kml"
 python -m utils.makeCoverageMap $ARCHDIR/../kmls $DATADIR
 
+python -c "from utils.makeCoverageMap import createCoveragePage as ccp ; ccp() ;"
+
 logger -s -t createSummaryTable "create year-to-date barchart"
 pushd $DATADIR
 python -m reports.createAnnualBarChart  $DATADIR/matched/matches-full-${yr}.parquet.gzip ${yr}
@@ -49,6 +51,7 @@ numcams=$(python -c "from fileformats import CameraDetails as cd; print(len(cd.S
 cat $TEMPLATES/frontpage.html | sed "s/#NUMCAMS#/$numcams/g" > $DATADIR/newindex.html
 
 logger -s -t createSummaryTable "copying to website"
+aws s3 cp $DATADIR/latest/coverage-maps.html $WEBSITEBUCKET/latest/ --quiet
 aws s3 cp $DATADIR/summarytable.js  $WEBSITEBUCKET/data/ --quiet
 aws s3 cp $DATADIR/coverage-100km.html  $WEBSITEBUCKET/data/ --quiet
 aws s3 cp $DATADIR/coverage-70km.html  $WEBSITEBUCKET/data/ --quiet

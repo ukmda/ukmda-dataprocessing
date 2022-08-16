@@ -90,8 +90,47 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
     cp -f $targdir/*.json $DATADIR/distrib
     cp -f $DATADIR/distrib/processed_trajectories.json $DATADIR/distrib/prev_processed_trajectories.json
 
-    python -m traj.consolidateDistTraj $DATADIR/distrib $DATADIR/distrib/processed_trajectories.json $rundate
+    numtoconsol=$(ls -1 $DATADIR/distrib/${rundate}*.json | wc -l)
+    if [ $numtoconsol -gt 20 ] ; then 
+        logger -s -t runDistrib "restarting calcserver to consolidate results"
+        stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
+        if [ $stat -eq 80 ]; then 
+            aws ec2 start-instances --instance-ids $SERVERINSTANCEID
+        fi
+        logger -s -t runDistrib "waiting for the server to be ready"
+        while [ "$stat" -ne 16 ]; do
+            sleep 5
+            echo "checking"
+            stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
+        done
 
+        scp -i $SERVERSSHKEY $DATADIR/distrib/processed_trajectories.json ec2-user@$privip:data/distrib
+        while [ $? -ne 0 ] ; do
+            # in case the server isn't responding to ssh sessions yet
+            sleep 10
+            echo "server not responding yet, retrying"
+            scp -i $SERVERSSHKEY $DATADIR/distrib/processed_trajectories.json ec2-user@$privip:data/distrib
+        done 
+        scp -i $SERVERSSHKEY $targdir/${rundate}*.json ec2-user@$privip:data/distrib
+        
+        echo "#!/bin/bash" > /tmp/execConsol.sh
+        echo "export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib:/home/ec2-user/src/ukmon_pylib" >> /tmp/execConsol.sh
+        echo "python -m traj.consolidateDistTraj ~/data/distrib/ ~/data/distrib/processed_trajectories.json" >> /tmp/execConsol.sh
+        chmod +x /tmp/execConsol.sh
+        scp -i $SERVERSSHKEY /tmp/execConsol.sh ec2-user@$privip:data/distrib
+        ssh -i $SERVERSSHKEY ec2-user@$privip "data/distrib/execConsol.sh"
+
+        scp -i $SERVERSSHKEY ec2-user@$privip:data/distrib/processed_trajectories.json $DATADIR/distrib
+
+        ssh -i $SERVERSSHKEY ec2-user@$privip "rm -f data/distrib/*.json"
+
+        logger -s -t runDistrib "stopping calcserver again"
+        aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
+
+        python -c "from traj.consolidateDistTraj import patchTrajDB ; patchTrajDB('./processed_trajectories.json','/home/ec2-user/ukmon-shared/matches/RMSCorrelate', '/home/ec2-user/data/distrib');"
+    else
+        python -m traj.consolidateDistTraj $DATADIR/distrib $DATADIR/distrib/processed_trajectories.json $rundate
+    fi 
     cp $DATADIR/distrib/processed_trajectories.json $targdir
     gzip < $DATADIR/distrib/processed_trajectories.json > $DATADIR/trajdb/processed_trajectories.json.${rundate}.gz
     logger -s -t runDistrib "compressing the processed data"

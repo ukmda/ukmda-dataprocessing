@@ -15,8 +15,12 @@ if len(sys.argv) > 1:
 if len(sys.argv) > 2:
     batchname = sys.argv[2]
 
-st,dur=captureDuration(51.88,-1.31,80) 
-dawn=st + datetime.timedelta(seconds=dur)
+st, dur=captureDuration(51.88,-1.31,80) 
+if st is True:
+    # the batch too too long to run so just quit
+    exit(0)
+
+dawn = st + datetime.timedelta(seconds=dur)
 starttime = dawn + datetime.timedelta(minutes=offset)
 print('Setting batch start time to', starttime.strftime('%H:%M'))
 

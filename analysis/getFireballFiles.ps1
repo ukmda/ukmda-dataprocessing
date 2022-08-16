@@ -42,7 +42,7 @@ $uniqueids = (Write-Output $ids | sort-object | get-unique)
 
 foreach ($id in $uniqueids)
 {
-    Write-Output python -c "from analysis.gatherDetectionData import getFtpAndPlate; getFtpAndPlate('${id}', '${dt}', '${hm}', '${fbdate}')"
+    python -c "from analysis.gatherDetectionData import getFtpAndPlate; getFtpAndPlate('${id}', '${dt}', '${hm}', '${fbdate}')"
 }
 
 # job done

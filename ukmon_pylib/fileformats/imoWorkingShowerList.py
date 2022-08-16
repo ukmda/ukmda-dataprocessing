@@ -6,9 +6,8 @@ import xmltodict
 import datetime
 import os
 
-
-majorlist = ['QUA', 'LYR', 'ETA', 'SDA', 'PER', 'ORI', 'NTA', 'STA', 'LEO', 'GEM', 'URS']
-minorlist = ['CAP','AUR','SPE','OCT','DRA','EGE','MON']
+# imported from $SRC/share
+import majorminor as mm
 
 
 class IMOshowerList:
@@ -94,14 +93,14 @@ class IMOshowerList:
             start = self.getStart(shwname, yr)
             end = self.getEnd(shwname, yr) + datetime.timedelta(days=3)
             if datetotest > start and datetotest < end:
-                if majorOnly is False or (majorOnly is True and shwname in majorlist):
+                if majorOnly is False or (majorOnly is True and shwname in mm.majorlist):
                     activelist.append(shwname)
-                elif inclMinor is True and shwname in minorlist:
+                elif inclMinor is True and shwname in mm.minorlist:
                     activelist.append(shwname)
         return activelist
 
     def getMajorShowers(self, includeSpo=False, stringFmt=False):
-        majlist = majorlist 
+        majlist = mm.majorlist 
         if includeSpo is True:
             majlist.append('spo')
         if stringFmt is True:

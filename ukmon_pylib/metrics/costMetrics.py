@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from dateutil import relativedelta
 import pandas as pd
+import matplotlib.ticker as plticker
+
 
 csvdtype = np.dtype([('dt', 'U10'), ('service','U64'), ('tag', 'U32'), ('cost', '<f8')])
 
@@ -125,6 +127,10 @@ def drawBarChart(costsfile, typflag):
         title = f'Cost for last {typflag} days: total \${totcost:.2f}, average \${avg:.2f}' # noqa:W605
         ax.set_title(title)
     ax.legend()
+    loc = plticker.MultipleLocator(base=7.0)
+    ax.xaxis.set_major_locator(loc)
+    plt.grid(which='major', alpha=0.5)
+    plt.grid(which='minor', alpha=0.2)
 
     fname = os.path.join(outdir, f'{fn}.jpg')
     plt.savefig(fname)

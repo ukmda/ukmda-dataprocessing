@@ -40,6 +40,13 @@ def decodeApiKey(enckey):
     return apikey.decode('utf-8')
 
 
+def encodeApiKey(plainkey):
+    key = open(os.path.expanduser('~/.ssh/gmap.key'), 'rb').read()
+    f = Fernet(key)
+    apikey = f.encrypt(plainkey.encode('utf-8'))
+    return apikey.decode('utf-8')
+
+
 def makeCoverageMap(kmlsource, outdir, showMarker=False, useName=False):
     apikey = os.getenv('APIKEY')
     apikey = decodeApiKey(apikey)
@@ -70,6 +77,19 @@ def makeCoverageMap(kmlsource, outdir, showMarker=False, useName=False):
         print(outdir, outpth, outfname)
         gmap.draw(os.path.join(outpth, outfname))
     return
+
+
+def createCoveragePage():
+    apikey = os.getenv('APIKEY')
+    apikey = decodeApiKey(apikey)
+    templdir = os.getenv('TEMPLATES', default='/home/ec2-user/prod/website/templates')
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    with open(os.path.join(templdir, 'coverage-maps.html'), 'r') as inf:
+        lis = inf.readlines()
+    with open(os.path.join(datadir, 'latest','coverage-maps.html'), 'w') as outf:
+        for li in lis:
+            outf.write(li.replace('{{MAPSAPIKEY}}', apikey))
+    return     
 
 
 if __name__ == '__main__':
