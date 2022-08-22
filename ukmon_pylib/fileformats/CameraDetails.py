@@ -3,6 +3,8 @@ import numpy
 import sys
 import os
 import numpy as np
+import glob 
+import json
 
 
 # defines the data content of a UFOAnalyser CSV file
@@ -205,6 +207,30 @@ class SiteInfo:
             return ''
         else:
             return self.camdets[c]['Site'].decode('utf_8') + '_' + self.camdets[c]['SID'].decode('utf_8')
+
+
+'''
+creating and managing the more-accurate camera location info
+'''
+
+
+def getCamLocDirFov(camid):
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data/')
+    camdb = json.load(open(os.path.join(datadir, 'admin', 'cameraLocs.json')))
+    return camdb[camid]
+
+
+def updateCamLocDirFovDB():
+    camdb = {}
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data/')
+    ppfiles = glob.glob(os.path.join(datadir, 'consolidated','platepars', '*.json'))
+    for ppf in ppfiles:
+        pp = json.load(open(ppf))
+        camid = pp['station_code']
+        camdb.update({camid: {'lat': pp['lat'], 'lon': pp['lon'], 'ele': pp['elev'],
+            'az': pp['az_centre'], 'alt': pp['alt_centre'], 'fov_h': pp['fov_h'], 'fov_v': pp['fov_v']}})
+    with open(os.path.join(datadir, 'admin', 'cameraLocs.json'), 'w') as outf:
+        json.dump(camdb, outf, indent=4)
 
 
 def main(sitename):
