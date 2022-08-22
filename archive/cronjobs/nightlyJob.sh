@@ -17,6 +17,8 @@ echo $rundate > $DATADIR/rundate.txt
 logger -s -t nightlyJob "update search index files with singleton data"
 $SRC/analysis/createSearchable.sh
 
+python -c "from fileformats.CameraDetails import updateCamLocDirFovDB; updateCamLocDirFovDB();"
+
 # run this only once as it scoops up all unprocessed data
 logger -s -t nightlyJob "looking for matching events and solving their trajectories"
 matchlog=matches-$(date +%Y%m%d-%H%M%S).log
