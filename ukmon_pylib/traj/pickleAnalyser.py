@@ -476,6 +476,9 @@ def createAdditionalOutput(traj, outdir):
     # calculate the values
     amag, vmag, mass, id, cod, shwrname, orb, shower_obj, lg, bg, vg, _ = calcAdditionalValues(traj)
 
+    if id != -1:
+        iau_link= f'https://www.ta3.sk/IAUC22DB/MDC2007/Roje/pojedynczy_obiekt.php?kodstrumienia={id:05d}'
+
     # create Summary report for webpage
     #print('creating summary report')
     summrpt = os.path.join(outdir, 'summary.html')
@@ -487,7 +490,12 @@ def createAdditionalOutput(traj, outdir):
             dt = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             f.write(f'Updated: {dt}\n\n')
             if orb is not None:
-                f.write('shower ID {:d} {:s} ({:s})\n'.format(id, cod, shwrname))
+                if id == -1:
+                    f.write('shower ID {:d} {:s} ({:s})\n'.format(id, cod, shwrname))
+                else:
+                    f.write('shower ID {:d} {:s} '.format(id, cod))
+                    f.write('<a href={:s}>({:s})</a>\n'.format(iau_link, shwrname))
+
                 if orb.L_g is not None:
                     f.write('Lg {:.2f}&deg; Bg {:.2f}&deg; Vg {:.2f}km/s\n'.format(lg, bg, vg / 1000))
 
