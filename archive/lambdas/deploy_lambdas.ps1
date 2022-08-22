@@ -15,8 +15,8 @@ $env:AWS_DEFAULT_REGION='eu-west-1'
 # sam deploy --profile ukmon-markmcintyre
 # cd $PSScriptRoot
 
-$env:AWS_DEFAULT_REGION='eu-west-1'
+$env:AWS_DEFAULT_REGION='eu-west-2'
 # cd $PSScriptRoot/getExtraFilesV2
 # sam build 
-# sam deploy --profile ukmon-markmcintyre
+# sam deploy --profile default
 # cd $PSScriptRoot
