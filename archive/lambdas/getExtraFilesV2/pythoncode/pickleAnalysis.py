@@ -433,6 +433,10 @@ def calcAdditionalValues(traj):
             _, shwrname, _, _ = getShowerDets(cod)
     else:
         # no orbit was calculated
+        lg = 0
+        bg = 0
+        vg = 0
+        shower_obj = None
         id = -1
         cod = 'spo'
         shwrname='Sporadic'
