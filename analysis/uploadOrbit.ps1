@@ -49,7 +49,7 @@ if ((test-path $args[1]) -eq "True" )
     $yd=$newname.substring(0,8)
 }
 $srcpath="$fbfldr/$fbdate/trajectories/$yr/$ym/$yd/$newname"
-pause
+
 # sort out the jpegs
 out-file -filepath $srcpath/extrajpgs.html
 $jpgs=(get-item $fbfldr/$fbdate/*.jpg).name
@@ -81,22 +81,22 @@ aws s3 sync "$srcpath" "s3://$targ" --include "*" --exclude "*.jpg" --exclude "*
 # push the pickle and report to ukmon-shared
 $targ="ukmon-shared/matches/RMSCorrelate/trajectories/$yr/$ym/$yd/$newname"
 $pickle=(get-item "$srcpath/*.pickle").name
-aws s3 cp "$srcpath/$pickle" "s3://$targ/" 
+aws s3 cp "$srcpath/$pickle" "s3://$targ/" --profile ukmon-markmcintyre
 $repfile=(get-item "$srcpath/*report.txt").name
-aws s3 cp "$srcpath/$repfile" "s3://$targ/" 
+aws s3 cp "$srcpath/$repfile" "s3://$targ/" --profile ukmon-markmcintyre
 
 
 # push the jpgs and mp4s to the website
 $targ="ukmeteornetworkarchive/img/single/$yr/$ym/"
-aws s3 sync "$fbfldr/$fbdate" "s3://$targ" --exclude "*" --include "*.jpg"
+aws s3 sync "$fbfldr/$fbdate" "s3://$targ" --exclude "*" --include "*.jpg" --profile ukmon-markmcintyre
 $targ="ukmeteornetworkarchive/img/mp4/$yr/$ym/"
-aws s3 sync "$fbfldr/$fbdate" "s3://$targ" --exclude "*" --include "*.mp4"
+aws s3 sync "$fbfldr/$fbdate" "s3://$targ" --exclude "*" --include "*.mp4" --profile ukmon-markmcintyre
 
 # add row to dailyreport file
 $pf=(Get-ChildItem "$srcpath/*.pickle").fullname
 $pf=$pf.replace('\','/')
 $env:DATADIR="f:/videos/meteorcam/ukmondata"
-aws s3 cp s3://ukmon-shared/consolidated/camera-details.csv $env:DATADIR/consolidated/
+aws s3 cp s3://ukmon-shared/consolidated/camera-details.csv $env:DATADIR/consolidated/  --profile ukmon-markmcintyre
 $newl=(python -c "import reports.reportOfLatestMatches as rml ; print(rml.processLocalFolder('$pf','/home/ec2-user/ukmon-shared/matches/RMSCorrelate'))")
 
 $dlyfile="$yd.txt"
