@@ -29,7 +29,7 @@ if [ "$dy" != "" ] ; then
     targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${yr}${mth}/${ym}
     orblist=$(aws s3 ls $targ/ | egrep -v "html|plots|png" | awk '{print $2}')
     domth=1
-    doplt=0
+    doplt=2
     rm -f $DATADIR/orbits/$yr/$ym.txt
 elif [ "$mth" != "" ] ; then
     displstr=${yr}-${mth}
@@ -57,6 +57,21 @@ echo "<div class=\"container\">" >> $idxfile
 echo "<h2>Matched Event Orbit and Trajectory Reports for $displstr</h2>" >> $idxfile
 echo "$msg2<hr>" >> $idxfile
 echo "$msg<hr>" >> $idxfile
+
+if [ $doplt -eq 2 ]
+then
+echo "<h3>Density, Velocity and Solar Longitude for the current period</h3>" >> $idxfile
+echo "Click on the charts to see a larger gallery view" >> $idxfile
+echo "<div class=\"top-img-container\">" >> $idxfile
+echo "<a href=\"./plots/scecliptic_density.png\"><img src=\"./plots/scecliptic_density.png\" width=\"30%\"></a>" >> $idxfile
+echo "<a href=\"./plots/scecliptic_sol.png\"><img src=\"./plots/scecliptic_sol.png\" width=\"30%\"></a>" >> $idxfile
+echo "<a href=\"./plots/scecliptic_vg.png\"><img src=\"./plots/scecliptic_vg.png\" width=\"30%\"></a>" >> $idxfile
+echo "</div>" >> $idxfile
+echo "<script> \$('.top-img-container').magnificPopup({ " >> $idxfile
+echo "delegate: 'a', type: 'image', image:{verticalFit:false}, gallery:{enabled:true} }); " >> $idxfile
+echo "</script>" >> $idxfile
+fi
+
 echo "<table class=\"table table-striped table-bordered table-hover table-condensed\"><tr>" >> $idxfile
 j=0
 
@@ -93,6 +108,17 @@ echo "<script> \$('.top-img-container').magnificPopup({ " >> $idxfile
 echo "delegate: 'a', type: 'image', image:{verticalFit:false}, gallery:{enabled:true} }); " >> $idxfile
 echo "</script>" >> $idxfile
 fi
+
+if [ $doplt -eq 2 ]
+then
+echo "<pre>" >> $idxfile
+aws s3 cp s3://ukmeteornetworkarchive/reports/${yr}/orbits/${ym:0:6}/${ym}/plots/trajectory_summary.txt /tmp/${ym}_summ.txt --quiet
+tr -d '\015' < /tmp/${ym}_summ.txt  >> $idxfile
+cat ${ym}_summ.txt >> $idxfile
+echo "</pre>" >> $idxfile
+rm -f /tmp/${ym}_summ.txt
+fi
+
 
 cat $TEMPLATES/footer.html >> $idxfile
 

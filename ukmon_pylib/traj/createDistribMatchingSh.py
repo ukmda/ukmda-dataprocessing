@@ -76,19 +76,32 @@ def pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webpath):
         outf.write('fi\n')
     outf.write(f'aws s3 sync trajectories/{yr}/plots {webpath}/reports/{yr}/orbits/plots --quiet\n')
     outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth:02d}/plots {webpath}/reports/{yr}/orbits/{yr}{mth:02d}/plots --quiet\n')
+    outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}/plots {webpath}/reports/{yr}/orbits/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}/plots --quiet\n')
     return 
 
 
-def createDensityPlots(outf, calcdir, yr, ym):
+def createDensityPlots(outf, calcdir, yr, ym, ymd, ymd2):
     outf.write('logger -s -t execdistrib creating density plots\n')
     outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot  {calcdir}/trajectories/{yr} -p -s 30\n')
     outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot  {calcdir}/trajectories/{yr}/{ym} -p -s 30\n')
+    outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot  {calcdir}/trajectories/{yr}/{ym}/{ymd} -p -s 30\n')
+    outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot  {calcdir}/trajectories/{yr}/{ym}/{ymd2} -p -s 30\n')
     outf.write(f'mkdir -p {calcdir}/trajectories/{yr}/plots\n')
-    outf.write(f'mv {calcdir}/trajectories/{yr}/*.png {calcdir}/trajectories/{yr}/plots\n')
+    outf.write(f'rm -f {calcdir}/trajectories/{yr}/world_map.png\n')
+    outf.write(f'mv {calcdir}/trajectories/{yr}/sc*.png {calcdir}/trajectories/{yr}/plots\n')
     outf.write(f'mv {calcdir}/trajectories/{yr}/trajectory_summary.txt {calcdir}/trajectories/{yr}/plots\n')
     outf.write(f'mkdir -p {calcdir}/trajectories/{yr}/{ym}/plots\n')
-    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/*.png {calcdir}/trajectories/{yr}/{ym}/plots\n')
+    outf.write(f'rm -f {calcdir}/trajectories/{yr}/{ym}/world_map.png\n')
+    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/sc*.png {calcdir}/trajectories/{yr}/{ym}/plots\n')
     outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/trajectory_summary.txt {calcdir}/trajectories/{yr}/{ym}/plots\n')
+    outf.write(f'mkdir -p {calcdir}/trajectories/{yr}/{ym}/{ymd}/plots\n')
+    outf.write(f'rm -f {calcdir}/trajectories/{yr}/{ym}/{ymd}/world_map.png\n')
+    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/sc*.png {calcdir}/trajectories/{yr}/{ym}/{ymd}/plots\n')
+    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/trajectory_summary.txt {calcdir}/trajectories/{yr}/{ym}/{ymd}/plots\n')
+    outf.write(f'mkdir -p {calcdir}/trajectories/{yr}/{ym}/{ymd2}/plots\n')
+    outf.write(f'rm -f {calcdir}/trajectories/{yr}/{ym}/{ymd2}/world_map.png\n')
+    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/sc*.png {calcdir}/trajectories/{yr}/{ym}/{ymd2}/plots\n')
+    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/trajectory_summary.txt {calcdir}/trajectories/{yr}/{ym}/{ymd2}/plots\n')
 
     return
 
@@ -113,6 +126,8 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
     startdtstr = startdt.strftime('%Y%m%d-080000')
     enddtstr = enddt.strftime('%Y%m%d-080000')
     rundatestr = enddt.strftime('%Y%m%d')
+    prevdt = enddt + datetime.timedelta(days=-1)
+    prevdatestr = (prevdt).strftime('%Y%m%d')
     
     calcdir = '/home/ec2-user/ukmon-shared/matches/RMSCorrelate' # hardcoded!
 
@@ -152,7 +167,7 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         #outf.write('source ~/.ssh/marks-keys\n')
         outf.write(f'time python -m traj.distributeCandidates {rundatestr} {calcdir}/candidates {srcpath}\n')
 
-        createDensityPlots(outf, calcdir, rundatestr[:4], rundatestr[:6])
+        createDensityPlots(outf, calcdir, rundatestr[:4], rundatestr[:6], rundatestr[:8], prevdatestr)
 
         pushUpdatedTrajectoriesShared(outf, matchstart, matchend, shbucket)
         pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webbucket)
