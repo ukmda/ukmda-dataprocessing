@@ -9,6 +9,25 @@ import glob
 import json
 
 
+def summariseAMonth(dir_path, currmth):
+    camlist = {'UK0006','UK000F','UK001L','UK002F'}
+    print('cam, month, total, falseneg, falsepos')
+    for cam in camlist:            
+        dir_path = os.path.normpath(dir_path)
+        base_path = os.path.join(dir_path, cam, 'MLChecks')
+        mldb = os.path.join(base_path, 'mlcheck.json')
+        dbjson = json.load(open(mldb, 'r'))
+        keys=[d for d in dbjson if d.startswith(currmth)]
+        tmpjs = {}
+        for k in keys:
+            tmpjs[k] = dbjson[k]
+        total=sum([d['total'] for d in tmpjs.values()])
+        totneg=sum([d['falseneg'] for d in tmpjs.values()])
+        totpos=sum([d['falsepos'] for d in tmpjs.values()])
+        print(f'{cam}, {currmth}, {total}, {totneg}, {totpos}')
+    return
+
+
 def writeDB(dir_path, results):
     dir_path = os.path.normpath(dir_path)
     base_path = os.path.join(os.path.split(os.path.split(dir_path)[0])[0], 'MLChecks')
