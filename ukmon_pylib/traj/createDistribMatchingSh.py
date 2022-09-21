@@ -52,6 +52,7 @@ def pushUpdatedTrajectoriesShared(outf, matchstart, matchend, targpath):
         outf.write(f'if [ -d {trajloc} ] ; then \n')
         # outf.write(f'source {thiskey}\n')
         outf.write(f'aws s3 sync {trajloc} {targpath}/matches/RMSCorrelate/{trajloc} --exclude "*" --include "*.pickle" --include "*report.txt" --quiet\n')
+        outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}/plots {targpath}/matches/RMSCorrelate/trajectories/${yr}/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}/plots --quiet\n')
         outf.write('fi\n')
     outf.write(f'aws s3 sync trajectories/{yr}/plots {targpath}/matches/RMSCorrelate/trajectories/{yr}/plots --quiet\n')
     outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth:02d}/plots {targpath}/matches/RMSCorrelate/trajectories/{yr}/{yr}{mth:02d}/plots --quiet\n')
@@ -74,9 +75,9 @@ def pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webpath):
         # outf.write(f'source {thiskey}\n')
         outf.write(f'aws s3 sync {trajloc} {webpath}/{targloc} --quiet\n')
         outf.write('fi\n')
+        outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}/plots {webpath}/reports/{yr}/orbits/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}/plots --quiet\n')
     outf.write(f'aws s3 sync trajectories/{yr}/plots {webpath}/reports/{yr}/orbits/plots --quiet\n')
     outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth:02d}/plots {webpath}/reports/{yr}/orbits/{yr}{mth:02d}/plots --quiet\n')
-    outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}/plots {webpath}/reports/{yr}/orbits/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}/plots --quiet\n')
     return 
 
 
@@ -86,22 +87,26 @@ def createDensityPlots(outf, calcdir, yr, ym, ymd, ymd2):
     outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot  {calcdir}/trajectories/{yr}/{ym} -p -s 30\n')
     outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot  {calcdir}/trajectories/{yr}/{ym}/{ymd} -p -s 30\n')
     outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot  {calcdir}/trajectories/{yr}/{ym}/{ymd2} -p -s 30\n')
+    
     outf.write(f'mkdir -p {calcdir}/trajectories/{yr}/plots\n')
     outf.write(f'rm -f {calcdir}/trajectories/{yr}/world_map.png\n')
     outf.write(f'mv {calcdir}/trajectories/{yr}/sc*.png {calcdir}/trajectories/{yr}/plots\n')
     outf.write(f'mv {calcdir}/trajectories/{yr}/trajectory_summary.txt {calcdir}/trajectories/{yr}/plots\n')
+
     outf.write(f'mkdir -p {calcdir}/trajectories/{yr}/{ym}/plots\n')
     outf.write(f'rm -f {calcdir}/trajectories/{yr}/{ym}/world_map.png\n')
     outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/sc*.png {calcdir}/trajectories/{yr}/{ym}/plots\n')
     outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/trajectory_summary.txt {calcdir}/trajectories/{yr}/{ym}/plots\n')
+
     outf.write(f'mkdir -p {calcdir}/trajectories/{yr}/{ym}/{ymd}/plots\n')
     outf.write(f'rm -f {calcdir}/trajectories/{yr}/{ym}/{ymd}/world_map.png\n')
-    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/sc*.png {calcdir}/trajectories/{yr}/{ym}/{ymd}/plots\n')
-    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/trajectory_summary.txt {calcdir}/trajectories/{yr}/{ym}/{ymd}/plots\n')
+    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/{ymd}/sc*.png {calcdir}/trajectories/{yr}/{ym}/{ymd}/plots\n')
+    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/{ymd}/trajectory_summary.txt {calcdir}/trajectories/{yr}/{ym}/{ymd}/plots\n')
+
     outf.write(f'mkdir -p {calcdir}/trajectories/{yr}/{ym}/{ymd2}/plots\n')
     outf.write(f'rm -f {calcdir}/trajectories/{yr}/{ym}/{ymd2}/world_map.png\n')
-    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/sc*.png {calcdir}/trajectories/{yr}/{ym}/{ymd2}/plots\n')
-    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/trajectory_summary.txt {calcdir}/trajectories/{yr}/{ym}/{ymd2}/plots\n')
+    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/{ymd2}/sc*.png {calcdir}/trajectories/{yr}/{ym}/{ymd2}/plots\n')
+    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/{ymd2}/trajectory_summary.txt {calcdir}/trajectories/{yr}/{ym}/{ymd2}/plots\n')
 
     return
 
