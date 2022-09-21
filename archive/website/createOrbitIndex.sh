@@ -58,8 +58,9 @@ echo "<h2>Matched Event Orbit and Trajectory Reports for $displstr</h2>" >> $idx
 echo "$msg2<hr>" >> $idxfile
 echo "$msg<hr>" >> $idxfile
 
-if [ $doplt -eq 2 ]
-then
+if [ $doplt -eq 2 ] ; then
+aws s3 ls ${targ}/plots/scecliptic_density.png
+if [ $? -eq 0 ] ; then 
 echo "<h3>Density, Velocity and Solar Longitude for the current period</h3>" >> $idxfile
 echo "Click on the charts to see a larger gallery view" >> $idxfile
 echo "<div class=\"top-img-container\">" >> $idxfile
@@ -70,6 +71,7 @@ echo "</div>" >> $idxfile
 echo "<script> \$('.top-img-container').magnificPopup({ " >> $idxfile
 echo "delegate: 'a', type: 'image', image:{verticalFit:false}, gallery:{enabled:true} }); " >> $idxfile
 echo "</script>" >> $idxfile
+fi
 fi
 
 echo "<table class=\"table table-striped table-bordered table-hover table-condensed\"><tr>" >> $idxfile
@@ -95,8 +97,7 @@ fi
 echo "</tr></table>" >> $idxfile
 echo "</div>" >> $idxfile
 
-if [ $doplt -eq 1 ]
-then
+if [ $doplt -eq 1 ] ; then
 echo "<h3>Density, Velocity and Solar Longitude for the current period</h3>" >> $idxfile
 echo "Click on the charts to see a larger gallery view" >> $idxfile
 echo "<div class=\"top-img-container\">" >> $idxfile
@@ -112,11 +113,12 @@ fi
 if [ $doplt -eq 2 ]
 then
 echo "<pre>" >> $idxfile
-aws s3 cp s3://ukmeteornetworkarchive/reports/${yr}/orbits/${ym:0:6}/${ym}/plots/trajectory_summary.txt /tmp/${ym}_summ.txt --quiet
+aws s3 cp ${targ}/plots/trajectory_summary.txt /tmp/${ym}_summ.txt --quiet
+if [ -f /tmp/${ym}_summ.txt ] ; then 
 tr -d '\015' < /tmp/${ym}_summ.txt  >> $idxfile
-cat ${ym}_summ.txt >> $idxfile
 echo "</pre>" >> $idxfile
 rm -f /tmp/${ym}_summ.txt
+fi 
 fi
 
 
