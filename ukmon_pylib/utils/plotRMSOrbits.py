@@ -41,6 +41,6 @@ def processFile(inf, outdir):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print('usage: python plotCAMSOrbits source_file target_folder')
+        print('usage: python plotRMSOrbits source_file target_folder')
 
     processFile(sys.argv[1], sys.argv[2])
