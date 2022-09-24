@@ -145,6 +145,7 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         outf.write(f'cd {calcdir}\n')
         outf.write('df -h . \n')
 
+        # fetch anythig thats new from S3
         refreshTrajectories(outf, matchstart, matchend, outpath)
 
         outf.write('logger -s -t execdistrib syncing the raw data from shared S3\n')
@@ -172,6 +173,9 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         #outf.write('source ~/.ssh/marks-keys\n')
         outf.write(f'time python -m traj.distributeCandidates {rundatestr} {calcdir}/candidates {srcpath}\n')
 
+        # do this again to fetch todays results
+        refreshTrajectories(outf, matchstart, matchend, outpath)
+        
         createDensityPlots(outf, calcdir, rundatestr[:4], rundatestr[:6], rundatestr[:8], prevdatestr)
 
         pushUpdatedTrajectoriesShared(outf, matchstart, matchend, shbucket)
