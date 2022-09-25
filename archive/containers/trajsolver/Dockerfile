@@ -11,4 +11,6 @@ ENV PROJ_LIB ./
 RUN pip install boto3
 COPY *.py ./
 
+#COPY awskeys ./
+
 ENTRYPOINT ["python", "trajsolver.py"]

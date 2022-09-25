@@ -196,17 +196,25 @@ def startup(srcfldr, startdt, enddt):
 
     sts_client = boto3.client('sts')
 
-    assumed_role_object=sts_client.assume_role(
-        RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
-        RoleSessionName="AssumeRoleSession1")
-    
-    credentials=assumed_role_object['Credentials']
+    try: 
+        assumed_role_object=sts_client.assume_role(
+            RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+            RoleSessionName="AssumeRoleSession1")
 
-    s3 = boto3.resource('s3',
-        aws_access_key_id=credentials['AccessKeyId'],
-        aws_secret_access_key=credentials['SecretAccessKey'],
-        aws_session_token=credentials['SessionToken'])    
-    
+        credentials=assumed_role_object['Credentials']
+
+        s3 = boto3.resource('s3',
+            aws_access_key_id=credentials['AccessKeyId'],
+            aws_secret_access_key=credentials['SecretAccessKey'],
+            aws_session_token=credentials['SessionToken'])    
+    except:
+        with open('awskeys','r') as inf:
+            lis = inf.readlines()
+        s3 = boto3.resource('s3',
+            aws_access_key_id=lis[0].strip(),
+            aws_secret_access_key=lis[1].strip(),
+            region_name = 'eu-west-2')
+
     srcbucket, srcpth, outbucket, outpth, webbucket, webpth = getSourceAndTargets()
     srckey = f'{srcpth}/{srcfldr}/'
 
@@ -249,4 +257,4 @@ if __name__ == '__main__':
     else:
         d1 = sys.argv[2]+'-080000'
         d2 = sys.argv[3]+'-080000'
-    startup(sys.argv[1], d1, d2)
+    startup(sys.argv[1].strip(), d1, d2)
