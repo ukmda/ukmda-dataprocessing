@@ -186,7 +186,7 @@ def pushToWebsite(s3, localfldr, webbucket, webfldr, outbucket, outpth):
 
 
 # starting point for the process
-def startup(srcfldr, startdt, enddt):
+def startup(srcfldr, startdt, enddt, isTest=False):
     print(f'processing {srcfldr}')
     print(f"Starting at {datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}")
 
@@ -216,6 +216,9 @@ def startup(srcfldr, startdt, enddt):
             region_name = 'eu-west-2')
 
     srcbucket, srcpth, outbucket, outpth, webbucket, webpth = getSourceAndTargets()
+    if isTest is True:
+        outpth = os.path.join(outpth, 'test')
+        
     srckey = f'{srcpth}/{srcfldr}/'
 
     print(f'fetching data from {srckey}')
@@ -251,10 +254,14 @@ if __name__ == '__main__':
     if len(sys.argv) < 4:
         # default time range
         rdt = sys.argv[1]
+        isTest = False
+        if 'test' in rdt:
+            rdt = rdt[5:]
+            isTest = True
         rdt = datetime.datetime.strptime(rdt[:8], '%Y%m%d')
         d1 = (rdt + datetime.timedelta(days = -2)).strftime('%Y%m%d')+'-080000'
         d2 = (rdt + datetime.timedelta(days = 1)).strftime('%Y%m%d')+'-080000'
     else:
         d1 = sys.argv[2]+'-080000'
         d2 = sys.argv[3]+'-080000'
-    startup(sys.argv[1].strip(), d1, d2)
+    startup(sys.argv[1].strip(), d1, d2, isTest)
