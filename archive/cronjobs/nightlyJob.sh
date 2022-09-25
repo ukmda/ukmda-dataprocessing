@@ -85,9 +85,6 @@ cd $DATADIR
 aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --region eu-west-2 --quiet
 aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/ --region eu-west-2 --quiet
 
-logger -s -t nightlyJob "create station reports"
-$SRC/analysis/stationReports.sh
-
 python -m metrics.camMetrics $rundate
 cat $DATADIR/reports/camuploadtimes.csv  | sort -n -t ',' -k2 > /tmp/tmp444.txt
 mv -f /tmp/tmp444.txt $DATADIR/reports/camuploadtimes.csv
@@ -117,6 +114,12 @@ python $PYLIB/utils/getNextBatchStart.py 150
 
 logger -s -t nightlyJob "Finished"
 
-# grab the logs for the website - run this last to capture the above Finished messae
+# grab the logs for the website - run this last to capture the above Finished message
 $SRC/analysis/getLogData.sh
+
+# create station reports. This takes hours hence done after everything else
+logger -s -t nightlyJob "create station reports"
+$SRC/analysis/stationReports.sh
+
+
 
