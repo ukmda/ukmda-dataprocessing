@@ -251,10 +251,10 @@ def startup(srcfldr, startdt, enddt, isTest=False):
 
 
 if __name__ == '__main__':
+    isTest = False
     if len(sys.argv) < 4:
         # default time range
         rdt = sys.argv[1]
-        isTest = False
         if 'test' in rdt:
             rdt = rdt[5:]
             isTest = True
