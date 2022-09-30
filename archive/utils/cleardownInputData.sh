@@ -14,6 +14,8 @@ if [ $((currmth-ym)) -lt 2 ] ; then echo "cant clear down current or last month"
 
 echo "Getting list of files for ${ym}"
 find $MATCHDIR/RMSCorrelate -maxdepth 2 -name "UK????_${ym}*"  -type d -exec ls -1d {} \; > /tmp/cleardown${ym}.txt
+find $MATCHDIR/RMSCorrelate -maxdepth 2 -name "BE????_${ym}*"  -type d -exec ls -1d {} \; >> /tmp/cleardown${ym}.txt
+find $MATCHDIR/RMSCorrelate -maxdepth 2 -name "IE????_${ym}*"  -type d -exec ls -1d {} \; >> /tmp/cleardown${ym}.txt
 
 
 if [ -f $DATADIR/olddata/rawdata-${ym}.tar.gz ] ; then 
@@ -34,5 +36,9 @@ else
         rm -Rv $fname
     done
     echo "now rm /tmp/cleardown${ym}.txt"
+    aws s3 cp $DATADIR/olddata/rawdata-${ym}.tar.gz s3://ukmon-shared-backup/analysisbackup/
+    if [ $? -eq 0 ] ; then 
+        rm -f $DATADIR/olddata/rawdata-${ym}.tar.gz
+    fi 
+    echo done
 fi
-echo done
