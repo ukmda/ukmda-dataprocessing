@@ -11,4 +11,9 @@ ENV PROJ_LIB ./
 RUN pip install boto3
 COPY *.py ./
 
+# uncomment this to test the container locally eg with "docker run -t trajsolver 20220924_01"
+# where 20220924_01 is a folder in s3://ukmon-shared/matches/distrib containing pairing pickles 
+
+#COPY awskeys ./
+
 ENTRYPOINT ["python", "trajsolver.py"]

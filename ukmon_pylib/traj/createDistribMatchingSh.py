@@ -46,15 +46,15 @@ def pushUpdatedTrajectoriesShared(outf, matchstart, matchend, targpath):
     for d in range(matchend, matchstart+1):
         thisdt=datetime.datetime.now() + datetime.timedelta(days=-d)
         yr = thisdt.year
-        mth = thisdt.month
-        dy = thisdt.day
-        trajloc=f'trajectories/{yr}/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}'
+        ym=thisdt.strftime('%Y%m')
+        ymd=thisdt.strftime('%Y%m%d')
+        trajloc=f'trajectories/{yr}/{ym}/{ymd}'
         outf.write(f'if [ -d {trajloc} ] ; then \n')
-        # outf.write(f'source {thiskey}\n')
         outf.write(f'aws s3 sync {trajloc} {targpath}/matches/RMSCorrelate/{trajloc} --exclude "*" --include "*.pickle" --include "*report.txt" --quiet\n')
+        outf.write(f'aws s3 sync {trajloc}/plots {targpath}/matches/RMSCorrelate/{trajloc}/plots --quiet\n')
         outf.write('fi\n')
     outf.write(f'aws s3 sync trajectories/{yr}/plots {targpath}/matches/RMSCorrelate/trajectories/{yr}/plots --quiet\n')
-    outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth:02d}/plots {targpath}/matches/RMSCorrelate/trajectories/{yr}/{yr}{mth:02d}/plots --quiet\n')
+    outf.write(f'aws s3 sync trajectories/{yr}/{ym}/plots {targpath}/matches/RMSCorrelate/trajectories/{yr}/{ym}/plots --quiet\n')
     return 
 
 
@@ -66,29 +66,47 @@ def pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webpath):
     for d in range(matchend, matchstart+1):
         thisdt=datetime.datetime.now() + datetime.timedelta(days=-d)
         yr = thisdt.year
-        mth = thisdt.month
-        dy = thisdt.day
-        trajloc=f'trajectories/{yr}/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}'
-        targloc=f'reports/{yr}/orbits/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}'
+        ym=thisdt.strftime('%Y%m')
+        ymd=thisdt.strftime('%Y%m%d')
+        trajloc=f'trajectories/{yr}/{ym}/{ymd}'
+        targloc=f'reports/{yr}/orbits/{ym}/{ymd}'
         outf.write(f'if [ -d {trajloc} ] ; then \n')
-        # outf.write(f'source {thiskey}\n')
         outf.write(f'aws s3 sync {trajloc} {webpath}/{targloc} --quiet\n')
+        outf.write(f'ssh ukmonhelper /home/ec2-user/prod/website/createOrbitIndex.sh {ymd}\n')
         outf.write('fi\n')
+        outf.write(f'aws s3 sync {trajloc}/plots {webpath}/{targloc}/plots --quiet\n')
     outf.write(f'aws s3 sync trajectories/{yr}/plots {webpath}/reports/{yr}/orbits/plots --quiet\n')
-    outf.write(f'aws s3 sync trajectories/{yr}/{yr}{mth:02d}/plots {webpath}/reports/{yr}/orbits/{yr}{mth:02d}/plots --quiet\n')
+    outf.write(f'aws s3 sync trajectories/{yr}/{ym}/plots {webpath}/reports/{yr}/orbits/{ym}/plots --quiet\n')
     return 
 
 
-def createDensityPlots(outf, calcdir, yr, ym):
+def createDensityPlots(outf, calcdir, enddt):
     outf.write('logger -s -t execdistrib creating density plots\n')
+    yr = enddt.year
+    ym = enddt.strftime('%Y%m')
+
     outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot  {calcdir}/trajectories/{yr} -p -s 30\n')
     outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot  {calcdir}/trajectories/{yr}/{ym} -p -s 30\n')
     outf.write(f'mkdir -p {calcdir}/trajectories/{yr}/plots\n')
-    outf.write(f'mv {calcdir}/trajectories/{yr}/*.png {calcdir}/trajectories/{yr}/plots\n')
+    outf.write(f'rm -f {calcdir}/trajectories/{yr}/world_map.png\n')
+    outf.write(f'mv {calcdir}/trajectories/{yr}/sc*.png {calcdir}/trajectories/{yr}/plots\n')
     outf.write(f'mv {calcdir}/trajectories/{yr}/trajectory_summary.txt {calcdir}/trajectories/{yr}/plots\n')
+
     outf.write(f'mkdir -p {calcdir}/trajectories/{yr}/{ym}/plots\n')
-    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/*.png {calcdir}/trajectories/{yr}/{ym}/plots\n')
+    outf.write(f'rm -f {calcdir}/trajectories/{yr}/{ym}/world_map.png\n')
+    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/sc*.png {calcdir}/trajectories/{yr}/{ym}/plots\n')
     outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/trajectory_summary.txt {calcdir}/trajectories/{yr}/{ym}/plots\n')
+
+    for i in range(5):
+        thisdt = enddt + datetime.timedelta(days=-i)
+        yr = thisdt.year
+        ym = thisdt.strftime('%Y%m')
+        ymd = thisdt.strftime('%Y%m%d')
+        outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot  {calcdir}/trajectories/{yr}/{ym}/{ymd} -p -s 30\n')    
+        outf.write(f'mkdir -p {calcdir}/trajectories/{yr}/{ym}/{ymd}/plots\n')
+        outf.write(f'rm -f {calcdir}/trajectories/{yr}/{ym}/{ymd}/world_map.png\n')
+        outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/{ymd}/sc*.png {calcdir}/trajectories/{yr}/{ym}/{ymd}/plots\n')
+        outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/{ymd}/trajectory_summary.txt {calcdir}/trajectories/{yr}/{ym}/{ymd}/plots\n')
 
     return
 
@@ -113,7 +131,7 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
     startdtstr = startdt.strftime('%Y%m%d-080000')
     enddtstr = enddt.strftime('%Y%m%d-080000')
     rundatestr = enddt.strftime('%Y%m%d')
-    
+
     calcdir = '/home/ec2-user/ukmon-shared/matches/RMSCorrelate' # hardcoded!
 
     srcpath, outpath, webpath = getTrajsolverPaths()
@@ -125,6 +143,7 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         outf.write(f'cd {calcdir}\n')
         outf.write('df -h . \n')
 
+        # fetch anythig thats new from S3
         refreshTrajectories(outf, matchstart, matchend, outpath)
 
         outf.write('logger -s -t execdistrib syncing the raw data from shared S3\n')
@@ -152,7 +171,10 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         #outf.write('source ~/.ssh/marks-keys\n')
         outf.write(f'time python -m traj.distributeCandidates {rundatestr} {calcdir}/candidates {srcpath}\n')
 
-        createDensityPlots(outf, calcdir, rundatestr[:4], rundatestr[:6])
+        # do this again to fetch todays results
+        refreshTrajectories(outf, matchstart, matchend, outpath)
+        
+        createDensityPlots(outf, calcdir, enddt)
 
         pushUpdatedTrajectoriesShared(outf, matchstart, matchend, shbucket)
         pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webbucket)

@@ -14,10 +14,10 @@ def deleteDuplicate(trajname):
             df = pd.read_parquet(fname)
         else:
             print('unable to load datafile')
-            exit(0)
+            return 0
     else:
         print("can only be done for 2022 onwards")
-        exit(0)
+        return 0
     idx = df[df.orbname==trajname].index
     if len(idx) > 0:
         df = df.drop(index=idx)
@@ -26,9 +26,10 @@ def deleteDuplicate(trajname):
         df.to_csv(csvfname, index=False)
 
         deleteWebPage(trajname)
+        return 1
     else:
         print(f'no match for {trajname}')
-    return
+        return 0
 
 
 def deleteWebPage(trajname):

@@ -6,6 +6,41 @@ from RMS.MLFilter import filterFTPdetectinfo
 import os
 import shutil
 import glob
+import json
+
+
+def summariseAMonth(dir_path, currmth):
+    camlist = {'UK0006','UK000F','UK001L','UK002F'}
+    print('cam, month, total, falseneg, falsepos')
+    for cam in camlist:            
+        dir_path = os.path.normpath(dir_path)
+        base_path = os.path.join(dir_path, cam, 'MLChecks')
+        mldb = os.path.join(base_path, 'mlcheck.json')
+        dbjson = json.load(open(mldb, 'r'))
+        keys=[d for d in dbjson if d.startswith(currmth)]
+        tmpjs = {}
+        for k in keys:
+            tmpjs[k] = dbjson[k]
+        total=sum([d['total'] for d in tmpjs.values()])
+        totneg=sum([d['falseneg'] for d in tmpjs.values()])
+        totpos=sum([d['falsepos'] for d in tmpjs.values()])
+        print(f'{cam}, {currmth}, {total}, {totneg}, {totpos}')
+    return
+
+
+def writeDB(dir_path, results):
+    dir_path = os.path.normpath(dir_path)
+    base_path = os.path.join(os.path.split(os.path.split(dir_path)[0])[0], 'MLChecks')
+    currdt = os.path.split(dir_path)[1]
+    currdt = currdt[7:15]
+    mldb = os.path.join(base_path, 'mlcheck.json')
+    if os.path.isfile(mldb):
+        dbjson = json.load(open(mldb, 'r'))
+    else:
+        dbjson = {}
+    dbjson[currdt] = results
+    json.dump(dbjson, open(mldb, 'w'), indent=2)
+    return 
 
 
 def processFolder(dir_path, threshold, kpng):
@@ -17,14 +52,15 @@ def processFolder(dir_path, threshold, kpng):
 
     if not os.path.isfile(os.path.join(dir_path, ftp_name)):
         print(f'Unable to open FTP file from {dir_path}')
-        return 0
+        return {'total': 0, 'falseneg': 0, 'falsepos': 0}
     conf_path = dir_path.replace('ArchivedFiles','ConfirmedFiles')
     if not os.path.isfile(os.path.join(conf_path, ftp_name)):
         print(f'Unable to open FTP file from {conf_path}')
-        return 0
+        return {'total': 0, 'falseneg': 0, 'falsepos': 0}
 
-    _, _, manualFTP = FTPdetectinfo.readFTPdetectinfo(dir_path, ftp_name, True)
-    _,_, autoFTP = FTPdetectinfo.readFTPdetectinfo(conf_path, ftp_name, True)
+    # auto FTP is the one in ArchivedFiles
+    _, _, autoFTP = FTPdetectinfo.readFTPdetectinfo(dir_path, ftp_name, True)
+    _,_, manualFTP = FTPdetectinfo.readFTPdetectinfo(conf_path, ftp_name, True)
 
     manFFs=[]
     for ff in manualFTP:
@@ -36,36 +72,45 @@ def processFolder(dir_path, threshold, kpng):
         autoFFs.append(ff[0])
     autoFFs = list(set(autoFFs))
 
-    inAutoNotInMan = list(set(manFFs).difference(autoFFs))
-    inManNotInAuto = list(set(autoFFs).difference(manFFs))
+    inManNotInAuto = list(set(manFFs).difference(autoFFs))
+    inAutoNotInMan = list(set(autoFFs).difference(manFFs))
+
+    totaldets = len(autoFFs)
+    falsenegs = len(inManNotInAuto)
+    falseposs = len(inAutoNotInMan)
+
+    results = {'total': totaldets, 'falseneg': falsenegs, 'falsepos': falseposs}
 
     print(f'rejected by ML {inManNotInAuto}')
     print(f'selected by ML {inAutoNotInMan}')
     if len(inManNotInAuto) > 0 or len(inAutoNotInMan) > 0: 
         out_dir = dir_path.replace('ArchivedFiles','MLChecks')
+        out_dir = os.path.split(out_dir)[0]
         os.makedirs(out_dir, exist_ok=True)
+        os.makedirs(os.path.join(out_dir,'falsepos'), exist_ok=True)
+        os.makedirs(os.path.join(out_dir,'falseneg'), exist_ok=True)
 
         for ff in inManNotInAuto:
             srcfile = os.path.join(dir_path, ff.replace('.fits','.jpg'))
-            targfile = os.path.join(out_dir, ff.replace('.fits','_artefact.jpg'))
+            targfile = os.path.join(out_dir, 'falseneg', ff.replace('.fits','_artefact.jpg'))
             shutil.copy2(srcfile, targfile)
             if os.path.exists(os.path.join(dir_path, 'temp_png_dir','artefacts')):
                 flist = glob.glob(os.path.join(dir_path, 'temp_png_dir','artefacts', ff.replace('.fits','*.png')))
                 for fl in flist:
                     _, fname = os.path.split(fl)
-                    targfile = os.path.join(out_dir, fname)
+                    targfile = os.path.join(out_dir, 'falseneg', fname)
                     shutil.copy2(fl, targfile)
         for ff in inAutoNotInMan:
             srcfile = os.path.join(dir_path, ff.replace('.fits','.jpg'))
-            targfile = os.path.join(out_dir, ff.replace('.fits','_meteor.jpg'))
+            targfile = os.path.join(out_dir, 'falsepos', ff.replace('.fits','_meteor.jpg'))
             shutil.copy2(srcfile, targfile)
             if os.path.exists(os.path.join(dir_path, 'temp_png_dir','meteors')):
                 flist = glob.glob(os.path.join(dir_path, 'temp_png_dir','meteors', ff.replace('.fits','*.png')))
                 for fl in flist:
                     _, fname = os.path.split(fl)
-                    targfile = os.path.join(out_dir, fname)
+                    targfile = os.path.join(out_dir, 'falsepos', fname)
                     shutil.copy2(fl, targfile)
-    return
+    return results
 
 
 def filterResults(fname):
@@ -139,4 +184,6 @@ if __name__ == '__main__':
         kpng = cml_args.keep_pngs
 
     dir_path = cml_args.dir_path[0]
-    processFolder(dir_path, threshold, kpng)
+    results = processFolder(dir_path, threshold, kpng)
+
+    writeDB(dir_path, results)
