@@ -20,14 +20,17 @@ def MakeFileWritable(ymd, hms, sid, lid):
 def AddHeader(body, bodytext, stats):
     rtstr = datetime.datetime.strptime(stats[4], '%H:%M:%S').strftime('%Hh%Mm')
     body = body + '<br>Today we examined {} detections, found {} potential matches and confirmed {} in {}.<br>'.format(stats[1], stats[2], stats[3], rtstr)
-    body = body + 'Up to the 100 brightest matched events are shown below. '
-    body = body + 'Note that this may include older data for which a new match has been found.<br>'
-    body = body + 'Click each link to see analysis of these events.<br>'
-    body = body + '<table border=\"0\">'
-    body = body + '<tr><td><b>Event</b></td><td><b>Shwr</b></td><td><b>Vis Mag</b></td><td><b>Stations</b></td></tr>'
-    bodytext = bodytext + 'Events: {}, Trajectories: {}. Matches {}'.format(stats[1], stats[2], stats[3])
-    bodytext = bodytext + 'The following multiple detections were found in UKMON Live the last 24 hour period,\n'
-    bodytext = bodytext + 'Note that this may include older data for which a new match has been found.\n'
+    if int(stats[3]) > 0:
+        body = body + 'Up to the 100 brightest matched events are shown below. '
+        body = body + 'Note that this may include older data for which a new match has been found.<br>'
+        body = body + 'Click each link to see analysis of these events.<br>'
+        bodytext = bodytext + 'Events: {}, Trajectories: {}. Matches {}'.format(stats[1], stats[2], stats[3])
+        bodytext = bodytext + 'The following multiple detections were found in UKMON Live the last 24 hour period,\n'
+        bodytext = bodytext + 'Note that this may include older data for which a new match has been found.\n'
+        body = body + '<table border=\"0\">'
+        body = body + '<tr><td><b>Event</b></td><td><b>Shwr</b></td><td><b>Vis Mag</b></td><td><b>Stations</b></td></tr>'
+    else:
+        body = body + '<table border=\"0\">'
     return body, bodytext
 
 
@@ -99,8 +102,8 @@ def LookForMatchesRMS(doff, dayfile, statsfile):
             #body, bodytext = AddBlank(body, bodytext)
             body, bodytext = AddRowRMS(body, bodytext, li)
         if len(lines) == 0:
-            body = '<tr><td>No matches today</td></tr>'
-            bodytext = 'No matches today'
+            body = body + '<tr><td>There were no matches today</td></tr>'
+            bodytext = bodytext + 'No matches today'
             # domail = True
     
     body, bodytext = addFooter(body, bodytext)
