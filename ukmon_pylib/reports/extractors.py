@@ -79,7 +79,7 @@ def createUFOSingleMonthlyExtract(yr, mth=None, shwr=None, dta=None):
     return 
 
 
-def createRMSSingleMonthlyExtract(yr, mth=None, shwr=None, dta=None):
+def createRMSSingleMonthlyExtract(yr, mth=None, shwr=None, dta=None, withshower=False):
     """ creates the RMS single-station data for sharing through the website.
         Note target location is hardcoded. 
     Args:
@@ -100,18 +100,30 @@ def createRMSSingleMonthlyExtract(yr, mth=None, shwr=None, dta=None):
         locdta = dta[dta['M']==mth]
         os.makedirs(os.path.join(datadir, 'browse', 'monthly'), exist_ok=True)
         locdta = locdta.sort_values(by=['D','h','mi','s'])
-        locdta=locdta.drop(columns=['AngVel','Shwr','Filename','Dtstamp'])
+        if withshower is False:
+            locdta=locdta.drop(columns=['AngVel','Filename','Dtstamp'])
+        else:
+            locdta=locdta.drop(columns=['AngVel','Shwr','Filename','Dtstamp'])
         locdta.Ver='R91'
         if len(locdta) > 0:
-            locdta.to_csv(os.path.join(datadir, 'browse', 'monthly', '{}{:02d}-detections-rms.csv'.format(yr, mth)), index=False)
+            if withshower is False:
+                locdta.to_csv(os.path.join(datadir, 'browse', 'monthly', '{}{:02d}-rms-shwr.csv'.format(yr, mth)), index=False)
+            else:
+                locdta.to_csv(os.path.join(datadir, 'browse', 'monthly', '{}{:02d}-detections-rms.csv'.format(yr, mth)), index=False)
     elif shwr is not None:
         locdta = dta[dta['Shwr']==shwr]
         os.makedirs(os.path.join(datadir, 'browse', 'showers'), exist_ok=True)
         locdta = locdta.sort_values(by=['D','h','mi','s'])
-        locdta=locdta.drop(columns=['AngVel','Shwr','Filename','Dtstamp'])
+        if withshower is False:
+            locdta=locdta.drop(columns=['AngVel','Shwr','Filename','Dtstamp'])
+        else:
+            locdta=locdta.drop(columns=['AngVel','Filename','Dtstamp'])
         locdta.Ver='R91'
         if len(locdta) > 0:
-            locdta.to_csv(os.path.join(datadir, 'browse', 'showers', '{}-{}-detections-rms.csv'.format(yr, shwr)), index=False)
+            if withshower is False:
+                locdta.to_csv(os.path.join(datadir, 'browse', 'showers', '{}-{}-rms-shwr.csv'.format(yr, shwr)), index=False)
+            else:
+                locdta.to_csv(os.path.join(datadir, 'browse', 'showers', '{}-{}-detections-rms.csv'.format(yr, shwr)), index=False)
 
     return 
 
@@ -164,7 +176,8 @@ if __name__ == '__main__':
         tomth = mth + int(sys.argv[3])
 
     for m in range(mth, tomth):
-        print('processing', yr, mth)
+        print('processing', yr, m)
         createUFOSingleMonthlyExtract(yr, mth=m)
         createRMSSingleMonthlyExtract(yr, mth=m)
+        createRMSSingleMonthlyExtract(yr, mth=m, withshower=True)
         createSplitMatchFile(yr, mth=m)
