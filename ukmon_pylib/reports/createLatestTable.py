@@ -49,6 +49,8 @@ def createLatestTable(jpglist, outdir):
                 outf.write(f'cell.innerHTML = "<a href=./{fname}.jpg><img src=./{fname}.jpg width=100%></a>";\n')
                 outf.write('var cell = row.insertCell(2);\n')
                 outf.write(f'cell.innerHTML = "<a href=./{fname}.png><img src=./{fname}.png width=100%></a>";\n')
+                outf.write('var cell = row.insertCell(3);\n')
+                outf.write(f'cell.innerHTML = "<a href=./{fname}_cal.jpg><img src=./{fname}_cal.jpg width=100%></a>";\n')
             else:
                 print(f'camera {fname} inactive')
 
