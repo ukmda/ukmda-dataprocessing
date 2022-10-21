@@ -14,8 +14,17 @@
   <link href="/css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
   <link href="/css/plugins/timeline.css" rel="stylesheet">
   <link href="/css/plugins/morris.css" rel="stylesheet">
-  <link href="/css/dragontail.css" rel="stylesheet" >
+  <link href="/css/dragontail.css" rel="stylesheet">
 
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-D5710EJL12"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-D5710EJL12');
+  </script>
 </head>
 
 <body>
@@ -36,26 +45,28 @@
 
   <div class="container">
     <h2>Welcome to the UKMON data archive.</h2>
-    <p>Use the menus above or click a link in the table below the graph to 
-      access reports on annual activity, shower activity and individual 
-      stations in our network. You can also search for detections matching 
-      certain criteria, and download data for your own analysis. 
+    <p>Use the menus above or click a link in the table below the graph to
+      access reports on annual activity, shower activity and individual
+      stations in our network. You can also search for detections matching
+      certain criteria, and download data for your own analysis.
       The downloadable data are in UFO compatible CSV format. </p>
-      <h3>Coverage</h3>
-      <p> We currently have #NUMCAMS# cameras in the network, the locations of which are shown at the foot of
-        this page. Camera Coverage can be seen <a href="latest/coverage-maps.html">here</a>, 
-        and status can be checked <a href="latest/index.html">here</a>. </p>
-        <h3>Summary Data</h3>
-        <p>The graph below shows activity year to date and the table summarises our entire dataset. 
-          You can also see an excellent map of all detections <a href="https://tammojan.github.io/meteormap/">here</a>, courtesy of Tammo Jan. 
-          Use your mouse to drag the map around. 
-        </p>
-        <p>
-        Note: the data here are released under the <a href= "https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> license, so if you are using the data 
-        whether for scientific or other purposes, your must reference this web site and UKMON 
-        in your work.
-      </p>
-      </p>
+    <h3>Coverage</h3>
+    <p> We currently have #NUMCAMS# cameras in the network, the locations of which are shown at the foot of
+      this page. Camera Coverage can be seen <a href="latest/coverage-maps.html">here</a>,
+      and status can be checked <a href="latest/index.html">here</a>. </p>
+    <h3>Summary Data</h3>
+    <p>The graph below shows activity year to date and the table summarises our entire dataset.
+      You can also see an excellent map of all detections <a href="https://tammojan.github.io/meteormap/">here</a>,
+      courtesy of Tammo Jan.
+      Use your mouse to drag the map around.
+    </p>
+    <p>
+      Note: the data here are released under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+      license, so if you are using the data
+      whether for scientific or other purposes, your must reference this web site and UKMON
+      in your work.
+    </p>
+    </p>
     <img src="./YearToDate.jpg" width="80%">
     <hr>
     <div id="summarytable" class="table-responsive"></div>

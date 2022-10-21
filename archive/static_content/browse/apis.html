@@ -25,6 +25,15 @@
     <!-- Morris Charts CSS -->
     <link href="/css/plugins/morris.css" rel="stylesheet">
 
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-D5710EJL12"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-D5710EJL12');
+  </script>
 </head>
 
 <body>
@@ -81,7 +90,7 @@
         <li>Details of a specific matched event.</li>
         <br>
         <h4>URL</h4>
-        <p>https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod</p>
+        <p>https://api.ukmeteornetwork.co.uk/matches</p>
         <h4>Parameters</h4>
         <li>reqtyp: can be either 'matches' or 'details'</li>
         <li>reqval: either a date in yyyymmdd format or a specific event eg 20211121_032219.699_UK</li>
@@ -100,7 +109,7 @@
             combine data from different sources.
         </p>
         <h4>URL</h4>
-        <p>https://jpaq0huazc.execute-api.eu-west-1.amazonaws.com/Prod/getecsv</p>
+        <p>https://api.ukmeteornetwork.co.uk/getecsv</p>
         <h4>Parameters</h4>
         <li>stat: Station ID eg UK0001</li>
         <li>dt: Datetime in the format YYYY-mm-ddTHH:MM:SS.uuuuuu, for example
@@ -125,7 +134,7 @@
             <li>Full trajectory solution data in JSON format </li><p>
         </p>
         <h4>URL</h4>
-        <p>https://crsnzpt82c.execute-api.eu-west-1.amazonaws.com/Prod/getpickle</p>
+        <p>https://api.ukmeteornetwork.co.uk/pickle/getpickle</p>
         <h4>Parameters</h4>
         <li>reqval: Trajectory ID eg 20220814_205940.252_UK</li>
         <h4>Returns</h4>
@@ -137,7 +146,7 @@
         <h2>Examples</h2>
         <h4 id="DetExamples">Detections API - Windows Powershell or Linux Bash</h4>
         <pre>
-PS> wget "https://jpaq0huazc.execute-api.eu-west-1.amazonaws.com/Prod/getecsv?stat=UK0025&dt=2021-07-17T02:41:05.05" -O test.ecsv
+PS> wget "https://api.ukmeteornetwork.co.uk/getecsv?stat=UK0025&dt=2021-07-17T02:41:05.05" -O test.ecsv
         </pre>
         <p>Returns the ECSV format data for the detection from Camera UK0025 at 02:41:05.05 on 2021/07/17</p>
         <h4>Detections API - Python</h4>
@@ -145,7 +154,7 @@ PS> wget "https://jpaq0huazc.execute-api.eu-west-1.amazonaws.com/Prod/getecsv?st
         <pre>
 import requests
 
-apiurl='https://jpaq0huazc.execute-api.eu-west-1.amazonaws.com/Prod/getecsv?stat={}&dt={}'
+apiurl='https://api.ukmeteornetwork.co.uk/getecsv?stat={}&dt={}'
 stat ='UK0025'
 dt = '2021-07-17T02:41:05.05'
 res = requests.get(apiurl.format(stat, dt))
@@ -173,7 +182,7 @@ if res.status_code == 200:
             <h4 id="MatchExamples">Match API Windows Example</h4>
             Get all matches for 2021-11-21
             <pre>
-PS> curl "https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod?reqtyp=matches&reqval=20211121" > matches-20211121.txt
+PS> curl "https://api.ukmeteornetwork.co.uk/matches?reqtyp=matches&reqval=20211121" > matches-20211121.txt
 PS> get-content .\matches-20211121.txt | convertfrom-json
 
 orbname
@@ -187,7 +196,7 @@ orbname
         </pre>
         Retrieve details for event 20211121_032219.699_UK and extract the visual magnitude
         <pre>
-PS> curl "https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod?reqtyp=detail&reqval=20211121_032219.699_UK" > 20211121_032219.699_UK.txt
+PS> curl "https://api.ukmeteornetwork.co.uk/matches?reqtyp=detail&reqval=20211121_032219.699_UK" > 20211121_032219.699_UK.txt
 PS> (get-content .\20211121_032219.699_UK.txt | convertfrom-json -ashashtable)._mag
 -0.93
 </pre>
@@ -195,16 +204,16 @@ PS> (get-content .\20211121_032219.699_UK.txt | convertfrom-json -ashashtable)._
             that this will download the whole dataset then discard it. So if
             you expect to use more than one value, its better to save the results in a file and query it later.
             <pre>
-PS> (curl "https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod?reqtyp=detail&reqval=20211121_032219.699_UK" | convertfrom-json -ashashtable)._mag
+PS> (curl "https://api.ukmeteornetwork.co.uk/matches?reqtyp=detail&reqval=20211121_032219.699_UK" | convertfrom-json -ashashtable)._mag
   -0.93
 </pre>
             <h4>Match API Linux Bash Example</h4>
             Retrieve details for event 20211121_032219.699_UK and extract the visual magnitude
             <pre>
-$ curl "https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod?reqtyp=detail&reqval=20211121_032219.699_UK" > 20211121_032219.699_UK.txt
+$ curl "https://api.ukmeteornetwork.co.uk/matches?reqtyp=detail&reqval=20211121_032219.699_UK" > 20211121_032219.699_UK.txt
 $ cat 20211121_032219.699_UK.txt | jq ._mag
 "-0.93"
-$ curl "https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod?reqtyp=detail&reqval=20211121_032219.699_UK" | jq ._mag
+$ curl "https://api.ukmeteornetwork.co.uk/matches?reqtyp=detail&reqval=20211121_032219.699_UK" | jq ._mag
 "-0.93"
         </pre>
 
@@ -212,7 +221,7 @@ $ curl "https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod?reqtyp=detai
         <pre>
 import pandas as pd 
 
-apiurl = 'https://oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com/prod'
+apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
 
 # get all matched events for a given date
 reqtyp = 'matches'
@@ -241,7 +250,7 @@ print(df)
         </pre>
         <h4 id="PickleExample">Full Trajectory API Example</h4>
         <pre>
-            curl "https://crsnzpt82c.execute-api.eu-west-1.amazonaws.com/Prod/getpickle?reqval=20220814_205940.252_UK"
+            curl "https://api.ukmeteornetwork.co.uk/pickle/getpickle?reqval=20220814_205940.252_UK"
         </pre>
         
         <hr>

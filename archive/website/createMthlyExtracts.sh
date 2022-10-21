@@ -60,6 +60,7 @@ do
         ufobn=""
         rmsbn=""
         matbn=""
+        rmsshwr=""
         if compgen -G "$DATADIR/browse/monthly/${yr}${mth}-detections-ufo.csv" > /dev/null ; then 
             ufodets=$(ls -1 $DATADIR/browse/monthly/${yr}${mth}-detections-ufo.csv)
             ufobn=$(basename $ufodets)
@@ -67,6 +68,10 @@ do
         if compgen -G "$DATADIR/browse/monthly/${yr}${mth}-detections-rms.csv" > /dev/null ; then 
             rmsdets=$(ls -1 $DATADIR/browse/monthly/${yr}${mth}-detections-rms.csv)
             rmsbn=$(basename $rmsdets)
+        fi
+        if compgen -G "$DATADIR/browse/monthly/${yr}${mth}-rms-shwr.csv" > /dev/null ; then 
+            rmsdets=$(ls -1 $DATADIR/browse/monthly/${yr}${mth}-rms-shwr.csv)
+            rmsshwr=$(basename $rmsdets)
         fi
         if compgen -G "$DATADIR/browse/monthly/${yr}${mth}-matches.csv" > /dev/null ; then 
             matches=$(ls -1 $DATADIR/browse/monthly/${yr}${mth}-matches.csv)
@@ -79,6 +84,8 @@ do
             echo "var cell = row.insertCell(1);" >> $idxfile
             echo "cell.innerHTML = \"<a href="./$rmsbn">$rmsbn</a>\";" >> $idxfile
             echo "var cell = row.insertCell(2);" >> $idxfile
+            echo "cell.innerHTML = \"<a href="./$rmsshwr">$rmsshwr</a>\";" >> $idxfile
+            echo "var cell = row.insertCell(3);" >> $idxfile
             echo "cell.innerHTML = \"<a href="./$matbn">$matbn</a>\";" >> $idxfile
         fi
     done
@@ -93,6 +100,9 @@ echo "var cell = row.insertCell(1);" >> $idxfile
 echo "cell.innerHTML = \"Detected RMS\";" >> $idxfile
 echo "cell.className = \"small\";" >> $idxfile
 echo "var cell = row.insertCell(2);" >> $idxfile
+echo "cell.innerHTML = \"Det RMS + Shwr\";" >> $idxfile
+echo "cell.className = \"small\";" >> $idxfile
+echo "var cell = row.insertCell(3);" >> $idxfile
 echo "cell.innerHTML = \"Matches\";" >> $idxfile
 echo "cell.className = \"small\";" >> $idxfile
 

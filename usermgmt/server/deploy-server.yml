@@ -21,6 +21,7 @@
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     with_items:
     - {src: '{{srcdir}}/addSftpUser.sh', dest: '{{destdir}}/', mode: '754', backup: yes, directory_mode: no }
+    - {src: '{{srcdir}}/update_keyfile.sh', dest: '{{destdir}}/', mode: '754', backup: yes, directory_mode: no }
     - {src: '{{srcdir}}/jsonToKeyFile.py', dest: '{{destdir}}/', mode: '644', backup: yes, directory_mode: no }
     - {src: '{{srcdir}}/ukmon.ini', dest: '{{destdir}}/', mode: '644', backup: yes, directory_mode: no }
     

@@ -19,10 +19,17 @@ def createKeyFile(inf, outp):
 
     outf = os.path.join(outp, fname.split('.')[0].lower() + '.key')
     with open(outf, 'w') as ouf:
-        ouf.write('export AWS_ACCESS_KEY_ID={}\n'.format(key))
-        ouf.write('export AWS_SECRET_ACCESS_KEY={}\n'.format(secr))
+        ouf.write(f'export AWS_ACCESS_KEY_ID={key}\n')
+        ouf.write(f'export AWS_SECRET_ACCESS_KEY={secr}\n')
         ouf.write('export AWS_DEFAULT_REGION=eu-west-1\n')
-        ouf.write('export CAMLOC="{}"\n'.format(user))
+        ouf.write(f'export CAMLOC="{user}"\n')
+        ouf.write(f'export S3FOLDER="archive/{user}/"\n')
+        ouf.write('export ARCHBUCKET=ukmon-shared\n')
+        ouf.write('export LIVEBUCKET=ukmon-live\n')
+        ouf.write('export WEBBUCKET=ukmeteornetworkarchive\n')
+        ouf.write('export ARCHREGION=eu-west-2\n')
+        ouf.write('export LIVEREGION=eu-west-1\n')
+        ouf.write('export MATCHDIR=matches/RMSCorrelate\n')
 
     with open(os.path.join(pth, '../arch/all.key'), 'r') as inf:
         lines = inf.readlines()

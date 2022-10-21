@@ -12,7 +12,7 @@ from Math import angleBetweenSphericalCoords, date2JD
 
 
 def loadFTPDetectInfo(ftpdetectinfo_file_name, time_offsets=None,
-        join_broken_meteors=True):
+        join_broken_meteors=True, locdata=None):
     """
 
     Arguments:
@@ -33,17 +33,22 @@ def loadFTPDetectInfo(ftpdetectinfo_file_name, time_offsets=None,
         meteor_list: [list] A list of MeteorObservation objects filled with data from the FTPdetectinfo file.
 
     """
-    dirname, fname = os.path.split(ftpdetectinfo_file_name)
-    cfgfile = os.path.join(dirname, '.config')    
-    cfg = crp.ConfigParser()
-    cfg.read(cfgfile)
-    lat = float(cfg['System']['latitude'].split()[0])
-    lon = float(cfg['System']['longitude'].split()[0])
-    height = float(cfg['System']['elevation'].split()[0])
-    statid= fname.split('_')[1]
     stations={}
+    if locdata is None:
+        dirname, fname = os.path.split(ftpdetectinfo_file_name)
+        cfgfile = os.path.join(dirname, '.config')    
+        cfg = crp.ConfigParser()
+        cfg.read(cfgfile)
+        lat = float(cfg['System']['latitude'].split()[0])
+        lon = float(cfg['System']['longitude'].split()[0])
+        height = float(cfg['System']['elevation'].split()[0])
+        statid= fname.split('_')[1]
+    else:
+        statid = locdata['station_code']
+        lat = float(locdata['lat'])
+        lon = float(locdata['lon'])
+        height = float(locdata['elev'])
     stations[statid] = [np.radians(lat), np.radians(lon), height*1000]
-
     meteor_list = []
 
     with open(ftpdetectinfo_file_name) as f:

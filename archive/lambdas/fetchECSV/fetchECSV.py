@@ -12,11 +12,7 @@ from ftpDetectInfo import loadFTPDetectInfo
 from Math import jd2Date
 
 
-if sys.platform == 'win32':
-    tmpdir = 'c:/temp'
-else:
-    tmpdir = '/tmp'
-
+tmpdir = os.getenv('TEMP', default='/tmp')
 isodate_format_entry = "%Y-%m-%dT%H:%M:%S.%f"
 isodate_format_file = "%Y-%m-%dT%H:%M:%S"
 
@@ -29,7 +25,6 @@ def createECSV(ftpFile, required_event = None):
     """
     out_str=''
 
-    meteors = loadFTPDetectInfo(ftpFile)
     outdir, _ = os.path.split(ftpFile)
     ppfilename = os.path.join(outdir, 'platepars_all_recalibrated.json')
     if not os.path.isfile(ppfilename):
@@ -40,6 +35,9 @@ def createECSV(ftpFile, required_event = None):
             platepars_recalibrated_dict = json.load(f)
         except:
             return 'malformed platepar file - cannot continue'
+    kvals = platepars_recalibrated_dict[list(platepars_recalibrated_dict.keys())[0]]
+    #print(kvals)
+    meteors = loadFTPDetectInfo(ftpFile, locdata=kvals)
 
     if required_event is not None:
         fmtstr=isodate_format_entry[:min(len(required_event)-2, 24)]
@@ -59,6 +57,7 @@ def createECSV(ftpFile, required_event = None):
         decis = spls[1]
         prec = pow(10, -len(decis))
 
+    #print(f' prec {prec}, reqevt {reqevt}')
     # find matching meteors. If more than one matches you will get multiple datasets concatenated
 
     for met in meteors:
@@ -72,9 +71,10 @@ def createECSV(ftpFile, required_event = None):
             continue
         evtdate = datetime.datetime.strptime(ffname[10:29], '%Y%m%d_%H%M%S_%f')
         obscalib = evtdate + datetime.timedelta(microseconds=(met.time_data[0]*1e6))
+        
         if reqevt > 0 and abs(obscalib.timestamp() - reqevt) >= prec:
             continue
-
+        #print('found match')
         azim, elev = platepar['az_centre'], platepar['alt_centre']
         fov_horiz, fov_vert = platepar['fov_h'], platepar['fov_v']
 
@@ -164,29 +164,14 @@ def createECSV(ftpFile, required_event = None):
         #with open(ecsv_file_path, 'w') as f:
         #    f.write(out_str)
 
-    if len(out_str) ==0:
-        out_str = 'not available'
+    if len(out_str) == 0:
+        out_str = 'issue getting data, check details'
     return out_str
 
 
 def fetchECSV(camid, reqevent):
     s3bucket='ukmon-shared'
     s3 = boto3.resource('s3')
-    # download the camera details file and find the location
-    s3object = 'consolidated/camera-details.csv'
-    camfname = os.path.join(tmpdir, 'camera-details.csv')
-    s3.meta.client.download_file(s3bucket, s3object, camfname)
-    loc=''
-    with open(camfname) as inf:
-        lis = inf.readlines()
-        for li in lis:
-            if camid in li:
-                loc = li.split(',')[0]
-                trucam = li.split(',')[1]
-                break
-    if loc == '':
-        print('camera not found')
-        return    
 
     # construct the path
     try:
@@ -196,40 +181,68 @@ def fetchECSV(camid, reqevent):
 
     if dt.hour < 12:
         dt = dt + datetime.timedelta(days=-1)
-    ym = f'{dt.year}{dt.month:02d}'
-    ymd = f'{dt.year}{dt.month:02d}{dt.day:02d}'   
-    s3path = f'archive/{loc}/{trucam}/{dt.year}/{ym}/{ymd}/'
+    ymd = dt.strftime('%Y%m%d')
+    pref = f'matches/RMSCorrelate/{camid}/{camid}_{ymd}'
 
-    # get the config, platepar and ftpfile
     localftpname = None
-    bucket = s3.Bucket(s3bucket)
-    for obj in bucket.objects.filter(Prefix = s3path):
+    ppname = None
+    cfgname = None
+    for _, obj in enumerate(s3.Bucket(s3bucket).objects.filter(Prefix=pref)):
+        fldr = obj.key.split('/')[3].strip()
         localf = os.path.basename(obj.key)
-        if localf == '.config':
-            cfgname = os.path.join(tmpdir, localf)
-            #print(localname)
-            s3.meta.client.download_file(s3bucket, obj.key, cfgname)
-        elif localf == 'platepars_all_recalibrated.json':
+        if f'FTPdetectinfo_{fldr}.txt' in obj.key:
+            localftpname = os.path.join(tmpdir, localf)
+            s3.meta.client.download_file(s3bucket, obj.key, localftpname)
+        elif 'platepars_all_recalibrated.json' in obj.key:
             ppname = os.path.join(tmpdir, localf)
-            #print(localname)
             s3.meta.client.download_file(s3bucket, obj.key, ppname)
 
-        elif 'FTPdetect' in localf and 'uncal' not in localf and 'backup' not in localf:
-            localftpname = os.path.join(tmpdir, localf)
-            #print(localftpname)
-            s3.meta.client.download_file(s3bucket, obj.key, localftpname)
+    if localftpname is None:
+        # download the camera details file and find the location
+        s3object = 'consolidated/camera-details.csv'
+        camfname = os.path.join(tmpdir, 'camera-details.csv')
+        s3.meta.client.download_file(s3bucket, s3object, camfname)
+        loc=''
+        with open(camfname) as inf:
+            lis = inf.readlines()
+            for li in lis:
+                if camid in li:
+                    loc = li.split(',')[0]
+                    trucam = li.split(',')[1]
+                    break
+        os.remove(camfname)
+        if loc == '':
+            print('camera not found')
+            return    
+        ym = f'{dt.year}{dt.month:02d}'
+        ymd = f'{dt.year}{dt.month:02d}{dt.day:02d}'   
+        s3path = f'archive/{loc}/{trucam}/{dt.year}/{ym}/{ymd}/'
 
+        print(f'no objects found at {pref}, trying alternate location {s3path}')
+        # get the config, platepar and ftpfile
+        localftpname = None
+        ppname = None
+        bucket = s3.Bucket(s3bucket)
+        for obj in bucket.objects.filter(Prefix = s3path):
+            localf = os.path.basename(obj.key)
+            if localf == 'platepars_all_recalibrated.json':
+                ppname = os.path.join(tmpdir, localf)
+                s3.meta.client.download_file(s3bucket, obj.key, ppname)
+            elif 'FTPdetect' in localf and 'uncal' not in localf and 'backup' not in localf:
+                localftpname = os.path.join(tmpdir, localf)
+                s3.meta.client.download_file(s3bucket, obj.key, localftpname)
+    
     # if we got the ftpfile, call createECSV
     if localftpname is not None:
         ecsvstr = createECSV(localftpname, reqevent)
-        removefiles(localftpname, ppname, cfgname, camfname)
+        removefiles(localftpname, ppname, cfgname)
         return ecsvstr
         
-    removefiles(localftpname, ppname, cfgname, camfname)
-    return 'not available'
+    removefiles(localftpname, ppname, cfgname)
+    return 'not available, check details'
 
 
-def removefiles(localftpname, ppname, cfgname, camfname):
+def removefiles(localftpname, ppname, cfgname):
     try:
         os.remove(localftpname)
     except:
@@ -242,18 +255,13 @@ def removefiles(localftpname, ppname, cfgname, camfname):
         os.remove(cfgname)
     except:
         pass
-    try:
-        os.remove(camfname)
-    except:
-        pass
-
 
 
 def lambda_handler(event, context):
     qs = event['queryStringParameters']
     stat = qs['stat']
     dt = qs['dt']
-    print(stat, dt)
+    #print(stat, dt)
     ecsvstr = fetchECSV(stat, dt)
     return {
         'statusCode': 200,
