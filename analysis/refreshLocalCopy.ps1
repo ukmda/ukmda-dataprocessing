@@ -16,6 +16,6 @@ if (Test-CommandExists wslx -eq $false)
     Write-Output "sorry, this script requires WSL to be enabled"
 }
 else {
-        write-output bash -c "./refresh_local_copy.sh $locf"
+    bash -c "./refresh_local_copy.sh $locf"
 }
 pop-location
