@@ -17,6 +17,7 @@ def createSplitMatchFile(yr, mth=None, shwr=None, matches=None):
         shwr (string): optional shower code. If provided, the data will be filtered 
         
     """
+    print('matches file')
     datadir = os.getenv('DATADIR')
     if matches is None:
         infname = os.path.join(datadir, 'matched',f'matches-full-{yr}.parquet.gzip')
@@ -53,6 +54,7 @@ def createUFOSingleMonthlyExtract(yr, mth=None, shwr=None, dta=None):
         shwr (string): optional shower code. If provided, the data will be filtered 
         
     """
+    print('ufo singles file')
     datadir = os.getenv('DATADIR')
     if dta is None:
         fname = os.path.join(datadir, 'consolidated','M_{}-unified.csv'.format(yr))
@@ -88,6 +90,7 @@ def createRMSSingleMonthlyExtract(yr, mth=None, shwr=None, dta=None, withshower=
         shwr (string): optional shower code. If provided, the data will be filtered 
         
     """
+    print(f'rms singles file, withshower {withshower}')
     datadir = os.getenv('DATADIR')
     if dta is None:
         fname = os.path.join(datadir, 'single','singles-{}.parquet.gzip'.format(yr))
@@ -129,6 +132,7 @@ def createRMSSingleMonthlyExtract(yr, mth=None, shwr=None, dta=None, withshower=
 
 
 def extractAllShowersData(yr):
+    print('showe data')
     sl = imo.IMOshowerList()
     showerlist = sl.getMajorShowers(True, True).strip().split(' ')
 
