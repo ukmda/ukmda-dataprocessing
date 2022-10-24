@@ -6,6 +6,8 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 source ~/venvs/$WMPL_ENV/bin/activate
 
+logger -s -t getBadStations "starting"
 aws s3 sync $UKMONSHAREDBUCKET/admin  $DATADIR/admin --dryrun --quiet 
 
 python -m reports.reportBadCameras 3
+logger -s -t getBadStations "finished"
