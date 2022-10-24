@@ -26,20 +26,32 @@ njstrs = ['nightlyJob: looking for matching',
     'nightlyJob: create the cover page',
     'nightlyJob: Finished',
     'stationReports: finished',
+    'createLatestTable: starting',
+    'createLatestTable: finished',
+    'cameraStatusReport: starting',
+    'cameraStatusReport: finished',
+    'getBadStations: starting',
+    'getBadStations: finished',
     'stationReports: running station reports']
 
 mlstrs=[
-    'findAllMatches: load the WMPL',
-    'findAllMatches: get all UFO data',
+    'findAllMatches1: load the WMPL',
+    'findAllMatches1: get all UFO data',
+    'findAllMatches1: create ukmon',
+    'findAllMatches1: set the date',
+    'findAllMatches1: solving for',
+    'findAllMatches1: actually run',
     'convertUfoToRms: finished',
-    'runDistrib: deploy the script to the server',
-    'runDistrib: starting correlator',
-    'runDistrib: done and syncing back',
-    'runDistrib: finished',
-    'findAllMatches: create text file containing',
-    'findAllMatches: update the website loop',
-    'findAllMatches: gather some stats',
-    'findAllMatches: Matching process finished'
+    'runDistrib: waiting for the server',
+    'runDistrib: running phase 1',
+    'runDistrib: monitoring and waiting',
+    'runDistrib: merging in the new json',
+    'runDistrib: done',
+    'findAllMatches2: check if',
+    'findAllMatches2: create text file containing',
+    'findAllMatches2: update the Index page',
+    'findAllMatches2: gather some stats',
+    'findAllMatches2: Matching process finished'
 ]
 
 
