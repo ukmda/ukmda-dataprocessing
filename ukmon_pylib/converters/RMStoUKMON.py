@@ -10,7 +10,6 @@ import argparse
 import datetime
 import json
 import numpy as np
-import re
 import pytz
 import glob
 
@@ -24,53 +23,57 @@ from RMS import Math
 import Utils.ShowerAssociation as sa
 import RMS.ConfigReader as cr
 from RMS.Routines import GreatCircle
+import fileformats.CameraDetails as cc
 
 
 def findUnprocessedFolders(dir_path, station_list, db, dbtime):
     """ Go through directories and find folders with unprocessed data. """
     processing_list = []
-    nowdt = int(datetime.datetime.now().strftime('%Y%m%d'))
-
+    nowdt = datetime.datetime.now().strftime('%Y%m%d-%H:%M:%S')
+    nowdtint = int(datetime.datetime.now().strftime('%Y%m%d'))
+    print(f'{nowdt}: starting findUnprocessedFolders')
     # Go through all station directories
     for station_name in station_list:
 
         station_path = os.path.join(dir_path, station_name)
 
         # Go through all directories in stations
-        for night_name in os.listdir(station_path):
+        if os.path.isdir(station_path):
+            for night_name in os.listdir(station_path):
 
-            night_path = os.path.join(station_path, night_name)
-            #print(f'checking {night_path}')
-            if night_path not in db: 
-                print('adding', night_path)
-                processing_list.append(night_path)                
-            else:
-                spls = night_name.split('_')
-                if int(spls[1]) > nowdt - 14:
-                    ftpf = glob.glob1(night_path, 'FTPdetect*') 
-                    if len(ftpf) > 0:
-                        ftpd = os.path.getmtime(os.path.join(night_path, ftpf[0]))
-                        if ftpd > dbtime:
-                            print('ftp newer, adding', night_path)
-                            processing_list.append(night_path)                
+                night_path = os.path.join(station_path, night_name)
+                #print(f'checking {night_path}')
+                if night_path not in db: 
+                    print('adding', night_path)
+                    processing_list.append(night_path)                
+                else:
+                    spls = night_name.split('_')
+                    if int(spls[1]) > nowdtint - 14:
+                        ftpf = glob.glob1(night_path, 'FTPdetect*') 
+                        if len(ftpf) > 0:
+                            ftpd = os.path.getmtime(os.path.join(night_path, ftpf[0]))
+                            if ftpd > dbtime:
+                                print('ftp newer, adding', night_path)
+                                processing_list.append(night_path)                
+    nowdt = datetime.datetime.now().strftime('%Y%m%d-%H:%M:%S')
+    print(f'{nowdt}: finished findUnprocessedFolders')
     return processing_list
 
 
 def loadStations(dir_path):
     """ Load the station names in the processing folder. """
 
+    nowdt = datetime.datetime.now().strftime('%Y%m%d-%H:%M:%S')
+    print(f'{nowdt}: starting loadStations')
     station_list = []
 
-    for dir_name in os.listdir(dir_path):
+    camdets = cc.SiteInfo()
+    cams = camdets.getActiveCameras()['CamID']
+    for c in cams:
+        station_list.append(c.decode('utf-8'))
 
-        # Check if the dir name matches the station name pattern
-        if os.path.isdir(os.path.join(dir_path, dir_name)):
-            if re.match("^[A-Z]{2}[A-Z0-9]{4}$", dir_name):
-                # print("Using station:", dir_name)
-                station_list.append(dir_name)
-            else:
-                print("Skipping directory:", dir_name)
-
+    nowdt = datetime.datetime.now().strftime('%Y%m%d-%H:%M:%S')
+    print(f'{nowdt}: finished loadStations')
     return station_list
 
 
@@ -289,19 +292,25 @@ def processManyFolders(in_dir, out_dir):
         db = inf.readlines()
     db = [li.strip() for li in db]
     processing_list = findUnprocessedFolders(in_dir, stations, db, lastmtime)
+
+    nowdt = datetime.datetime.now().strftime('%Y%m%d-%H:%M:%S')
+    print(f'{nowdt}: starting FTPdetectinfo2UkmonCsv loop')
+
     for fldr in processing_list:
         print(fldr)
         FTPdetectinfo2UkmonCsv(fldr, out_dir)
         with open(dbfile, 'a+') as outf:
             outf.write('{:s}\n'.format(fldr))
 
+    nowdt = datetime.datetime.now().strftime('%Y%m%d-%H:%M:%S')
+    print(f'{nowdt}: finished FTPdetectinfo2UkmonCsv loop')
     return
 
 
 if __name__ == "__main__":
 
     # Init the command line arguments parser
-    arg_parser = argparse.ArgumentParser(description="Converts the given FTPdetectinfo file into a ukmon-specific data format.")
+    arg_parser = argparse.ArgumentParser(description="Converts the given FTPdetectinfo or folder of files into a ukmon-specific data format.")
 
     arg_parser.add_argument('file_path', nargs='+', metavar='FILE_PATH', type=str, 
         help='Path to one or more FTPdetectinfo files.')
