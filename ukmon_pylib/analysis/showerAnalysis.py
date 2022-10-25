@@ -11,6 +11,7 @@ from matplotlib import pyplot as plt
 import datetime
 
 from utils import getShowerDates as sd
+from fileformats import imoWorkingShowerList as imo
 
 SMALL_SIZE = 8
 MEDIUM_SIZE = 10
@@ -477,15 +478,13 @@ if __name__ == '__main__':
 
     # select the required data
     if shwr != 'ALL':
-        id, shwrname, sl, dt = sd.getShowerDets(sys.argv[1])
+        sl = imo.IMOshowerList()
+        maxdt = sl.getEnd(shwr) + datetime.timedelta(days=10)
+        mindt = sl.getStart(shwr) + datetime.timedelta(days=-10)
+        id, shwrname, sl, dt = sd.getShowerDets(shwr)
         sngl = sngl[sngl['Shwr']==shwr]
-        # exclude data more than 60 days either side of peak - impacts showers near year end
-        peakdt = datetime.datetime.strptime('{}-{}'.format(yr, dt), '%Y-%m-%d')
-        if peakdt.month in [1,12]:
-            mindt = peakdt + datetime.timedelta(days=-60)
-            sngl = sngl[sngl.Dtstamp > mindt.timestamp()]
-            maxdt = peakdt + datetime.timedelta(days=60)
-            sngl = sngl[sngl.Dtstamp < maxdt.timestamp()]
+        sngl = sngl[sngl.Dtstamp > mindt.timestamp()]
+        sngl = sngl[sngl.Dtstamp < maxdt.timestamp()]
     else:
         shwrname = 'All Showers'
 
@@ -514,16 +513,13 @@ if __name__ == '__main__':
 
     # select the required data
     if shwr != 'ALL':
-        id, shwrname, sl, dt = sd.getShowerDets(sys.argv[1])
+        sl = imo.IMOshowerList()
+        maxdt = sl.getEnd(shwr) + datetime.timedelta(days=10)
+        mindt = sl.getStart(shwr) + datetime.timedelta(days=-10)
+        id, shwrname, sl, dt = sd.getShowerDets(shwr)
         mtch = mtch[mtch['_stream']==shwr]
-
-        # exclude data more than 60 days either side of peak - impacts showers near year end
-        peakdt = datetime.datetime.strptime('{}-{}'.format(yr, dt), '%Y-%m-%d')
-        if peakdt.month in [1,12]:
-            mindt = peakdt + datetime.timedelta(days=-60)
-            mtch = mtch[mtch.dtstamp > mindt.timestamp()]
-            maxdt = peakdt + datetime.timedelta(days=60)
-            mtch = mtch[mtch.dtstamp < maxdt.timestamp()]
+        mtch = mtch[mtch.dtstamp > mindt.timestamp()]
+        mtch = mtch[mtch.dtstamp < maxdt.timestamp()]
     else:
         shwrname = 'All Showers'
 
