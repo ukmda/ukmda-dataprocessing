@@ -6,6 +6,7 @@ import os
 import sys
 import pandas as pd
 from fileformats import imoWorkingShowerList as imo
+import datetime
 
 
 def createSplitMatchFile(yr, mth=None, shwr=None, matches=None):
@@ -17,7 +18,6 @@ def createSplitMatchFile(yr, mth=None, shwr=None, matches=None):
         shwr (string): optional shower code. If provided, the data will be filtered 
         
     """
-    print('matches file')
     datadir = os.getenv('DATADIR')
     if matches is None:
         infname = os.path.join(datadir, 'matched',f'matches-full-{yr}.parquet.gzip')
@@ -90,7 +90,7 @@ def createRMSSingleMonthlyExtract(yr, mth=None, shwr=None, dta=None, withshower=
         shwr (string): optional shower code. If provided, the data will be filtered 
         
     """
-    print(f'rms singles file, withshower {withshower}')
+    #print(f'rms singles file, withshower {withshower}')
     datadir = os.getenv('DATADIR')
     if dta is None:
         fname = os.path.join(datadir, 'single','singles-{}.parquet.gzip'.format(yr))
@@ -103,13 +103,13 @@ def createRMSSingleMonthlyExtract(yr, mth=None, shwr=None, dta=None, withshower=
         locdta = dta[dta['M']==mth]
         os.makedirs(os.path.join(datadir, 'browse', 'monthly'), exist_ok=True)
         locdta = locdta.sort_values(by=['D','h','mi','s'])
-        if withshower is False:
+        if withshower is True:
             locdta=locdta.drop(columns=['AngVel','Filename','Dtstamp'])
         else:
             locdta=locdta.drop(columns=['AngVel','Shwr','Filename','Dtstamp'])
         locdta.Ver='R91'
         if len(locdta) > 0:
-            if withshower is False:
+            if withshower is True:
                 locdta.to_csv(os.path.join(datadir, 'browse', 'monthly', '{}{:02d}-rms-shwr.csv'.format(yr, mth)), index=False)
             else:
                 locdta.to_csv(os.path.join(datadir, 'browse', 'monthly', '{}{:02d}-detections-rms.csv'.format(yr, mth)), index=False)
@@ -117,13 +117,13 @@ def createRMSSingleMonthlyExtract(yr, mth=None, shwr=None, dta=None, withshower=
         locdta = dta[dta['Shwr']==shwr]
         os.makedirs(os.path.join(datadir, 'browse', 'showers'), exist_ok=True)
         locdta = locdta.sort_values(by=['D','h','mi','s'])
-        if withshower is False:
-            locdta=locdta.drop(columns=['AngVel','Shwr','Filename','Dtstamp'])
-        else:
+        if withshower is True:
             locdta=locdta.drop(columns=['AngVel','Filename','Dtstamp'])
+        else:
+            locdta=locdta.drop(columns=['AngVel','Shwr','Filename','Dtstamp'])
         locdta.Ver='R91'
         if len(locdta) > 0:
-            if withshower is False:
+            if withshower is True:
                 locdta.to_csv(os.path.join(datadir, 'browse', 'showers', '{}-{}-rms-shwr.csv'.format(yr, shwr)), index=False)
             else:
                 locdta.to_csv(os.path.join(datadir, 'browse', 'showers', '{}-{}-detections-rms.csv'.format(yr, shwr)), index=False)
@@ -131,11 +131,20 @@ def createRMSSingleMonthlyExtract(yr, mth=None, shwr=None, dta=None, withshower=
     return 
 
 
-def extractAllShowersData(yr):
-    print('showe data')
+def extractAllShowersData(ymd):
+    print('getting shower data')
     sl = imo.IMOshowerList()
     showerlist = sl.getMajorShowers(True, True).strip().split(' ')
 
+    yr = str(ymd)[:4]
+    currdt = None
+    if ymd > 9999:
+        currdt = datetime.datetime.strptime(str(ymd), '%Y%m')
+        now = datetime.datetime.now()
+        if now.year == currdt.year and now.month == currdt.month:
+            currdt = currdt.replace(day = now.day)
+
+    print(f'processing data for {currdt}')
     datadir = os.getenv('DATADIR')
     infname = os.path.join(datadir, 'matched',f'matches-full-{yr}.parquet.gzip')
     if not os.path.isfile(infname):
@@ -144,8 +153,17 @@ def extractAllShowersData(yr):
     matches=pd.read_parquet(infname)
 
     for shwr in showerlist:
-        print(f'processing matches for {shwr}')
-        createSplitMatchFile(yr, shwr=shwr, matches=matches)
+        doit = True
+        if currdt is not None and shwr != 'spo':
+            edt = sl.getEnd(shwr) + datetime.timedelta(days=5)
+            sdt = sl.getStart(shwr) + datetime.timedelta(days=-5)
+            #print(f'{shwr} start {sdt} end {edt}')
+            if currdt > edt or currdt < sdt:
+                #print('skipping')
+                doit = False
+        if doit is True:
+            print(f'processing matches for {shwr}')
+            createSplitMatchFile(yr, shwr=shwr, matches=matches)
     del matches
 
     fname = os.path.join(datadir, 'consolidated','M_{}-unified.csv'.format(yr))
@@ -160,10 +178,20 @@ def extractAllShowersData(yr):
     rmssingles = pd.read_parquet(fname)
 
     for shwr in showerlist:
-        print(f'processing RMS singles for {shwr}')
-        createRMSSingleMonthlyExtract(yr, shwr=shwr, dta=rmssingles)
-        print(f'processing UFO singles for {shwr}')
-        createUFOSingleMonthlyExtract(yr, shwr=shwr, dta=ufosingles)
+        doit = True
+        if currdt is not None and shwr != 'spo':
+            edt = sl.getEnd(shwr) + datetime.timedelta(days=5)
+            sdt = sl.getStart(shwr) + datetime.timedelta(days=-5)
+            #print(f'{shwr} start {sdt} end {edt}')
+            if currdt > edt or currdt < sdt:
+                #print('skipping')
+                doit = False
+        if doit is True:
+            print(f'processing RMS singles for {shwr}')
+            createRMSSingleMonthlyExtract(yr, shwr=shwr, dta=rmssingles)
+            createRMSSingleMonthlyExtract(yr, shwr=shwr, dta=rmssingles, withshower=True)
+            print(f'processing UFO singles for {shwr}')
+            createUFOSingleMonthlyExtract(yr, shwr=shwr, dta=ufosingles)
     return 
 
 
