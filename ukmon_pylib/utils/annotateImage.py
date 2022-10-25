@@ -23,6 +23,20 @@ def annotateImage(img_path, title, metcount):
     my_image.save(img_path)
 
 
+def annotateImageArbitrary(img_path, message, color='#000'):
+    my_image = Image.open(img_path)
+    width, height = my_image.size
+    image_editable = ImageDraw.Draw(my_image)
+    fntheight=30
+    try:
+        fnt = ImageFont.truetype("arial.ttf", fntheight)
+    except:
+        fnt = ImageFont.truetype("DejaVuSans.ttf", fntheight)
+    #fnt = ImageFont.load_default()
+    image_editable.text((15,height-fntheight-15), message, font=fnt, fill=color)
+    my_image.save(img_path)
+
+
 if __name__ == '__main__':
     statid = sys.argv[2]
     if len(sys.argv) > 3:
