@@ -66,7 +66,7 @@ def createMDFiles(fbs, outdir, matchdir):
             print('md file exists, not replacing it')
         else:
             with open(os.path.join(outdir,fname), 'w') as outf:
-                outf.write('---\nlayout: fireball\n\n')
+                outf.write('---\nlayout: fireball\nsitemap: false\n\n')
                 outf.write('date: {}\n\n'.format(loctime.strftime('%Y-%m-%d %H:%M:%SZ')))
                 outf.write('showerID: {}\n'.format(fb.shower))
                 outf.write('bestmag: {:.1f}\n'.format(float(fb.mag)))

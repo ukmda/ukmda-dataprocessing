@@ -18,7 +18,7 @@ logger -s -t createLatestTable "starting"
 mkdir ${DATADIR}/latest > /dev/null 2>&1
 cd ${DATADIR}/latest
 
-aws s3 ls $WEBSITEBUCKET/latest/ | grep jpg > /tmp/jpglist.txt
+aws s3 ls $WEBSITEBUCKET/latest/ | grep jpg | grep -v cal > /tmp/jpglist.txt
 python -m reports.createLatestTable /tmp/jpglist.txt $DATADIR/latest
 rm -f /tmp/jpglist.txt
 

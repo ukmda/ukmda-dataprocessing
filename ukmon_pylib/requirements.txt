@@ -32,3 +32,5 @@ python-crontab
 simplekml
 astropy
 gitpython
+pymysql
+mysql-connector-python

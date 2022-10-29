@@ -40,6 +40,12 @@ do
 done
 
 logger -s -t createShwrExtracts "done gathering data, creating tables"
+# sync data so its all there to get a list of 
+aws s3 sync $DATADIR/browse/showers/  $WEBSITEBUCKET/browse/showers/ --quiet
+
+cd $DATADIR/browse/showers/
+# get a list of files on the website
+aws s3 ls $WEBSITEBUCKET/browse/showers/ | awk '{ print $4 }' | grep csv > /tmp/browseshwr.txt
 
 shwrs=$(python -c "from fileformats import imoWorkingShowerList as imo; sl = imo.IMOshowerList();print(sl.getMajorShowers(True, True));")
 for shwr in $shwrs
@@ -54,25 +60,13 @@ do
     echo "table.className = \"table table-striped table-bordered table-hover table-condensed\";" >> $idxfile
     echo "var header = table.createTHead();" >> $idxfile
     echo "header.className = \"h4\";" >> $idxfile
-    cd $DATADIR/browse/showers/
+
     yr=$(date +%Y)
     while [ $yr -gt 2012 ]
     do
-        ufobn=""
-        rmsbn=""
-        matbn=""
-        if compgen -G "$DATADIR/browse/showers/${yr}-${shwr}-detections-ufo.csv" > /dev/null ; then 
-            ufodets=$(ls -1 $DATADIR/browse/showers/${yr}-${shwr}-detections-ufo.csv)
-            ufobn=$(basename $ufodets)
-        fi
-        if compgen -G "$DATADIR/browse/showers/${yr}-${shwr}-detections-rms.csv" > /dev/null ; then 
-            rmsdets=$(ls -1 $DATADIR/browse/showers/${yr}-${shwr}-detections-rms.csv)
-            rmsbn=$(basename $rmsdets)
-        fi
-        if compgen -G "$DATADIR/browse/showers/${yr}-${shwr}-matches.csv" > /dev/null ; then 
-            matches=$(ls -1 $DATADIR/browse/showers/${yr}-${shwr}-matches.csv)
-            matbn=$(basename $matches)
-        fi
+        ufobn=$(grep ${yr}-${shwr}-detections-ufo.csv /tmp/browseshwr.txt)
+        rmsbn=$(grep ${yr}-${shwr}-detections-rms.csv /tmp/browseshwr.txt)
+        matbn=$(grep ${yr}-${shwr}-matches.csv /tmp/browseshwr.txt)
         echo "var row = table.insertRow(-1);" >> $idxfile
         echo "var cell = row.insertCell(0);" >> $idxfile
         echo "cell.innerHTML = \"<a href="./$ufobn">$ufobn</a>\";" >> $idxfile
@@ -98,6 +92,7 @@ do
     echo "})" >> $idxfile
     echo "js table created for $shwr"
 done
+\rm -f /tmp/browseshwr.txt
 
 logger -s -t createShwrExtracts "sending to website"
 aws s3 sync $DATADIR/browse/showers/  $WEBSITEBUCKET/browse/showers/ --quiet

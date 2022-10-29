@@ -21,12 +21,7 @@ def copyJpgToArchive(s3bucket, s3object):
     if x == -1: 
         y = s3object.find('FF_')
         if y == -1:
-            y = s3object.find('_stack_')
-            if y == -1:
-                # its not an interesting file
-                return 
-            else:
-                # its the stack file
+            if '_stack_'in s3object:
                 statid = os.path.basename(s3object)[0:6]
                 if statid[0] == '.': 
                     statid = os.path.basename(s3object)[2:8]
@@ -35,6 +30,18 @@ def copyJpgToArchive(s3bucket, s3object):
                 src = {'Bucket': s3bucket, 'Key': s3object}
                 print(s3object, outf)
                 s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src, ContentType="image/jpg", MetadataDirective='REPLACE')
+                return 
+            elif '_calib_report_astrometry' in s3object:
+                statid = os.path.basename(s3object)[0:6]
+                if statid[0] == '.': 
+                    statid = os.path.basename(s3object)[2:8]
+                outf = 'latest/{:s}_cal.jpg'.format(statid)
+                s3object = unquote_plus(s3object)
+                src = {'Bucket': s3bucket, 'Key': s3object}
+                print(s3object, outf)
+                s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src, ContentType="image/jpg", MetadataDirective='REPLACE')
+                return 
+            else:
                 return 
         else:
             # its an RMS file probably

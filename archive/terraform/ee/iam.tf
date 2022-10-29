@@ -150,4 +150,15 @@ output "key" { value = aws_iam_access_key.ukmro_key.id}
 output "secret" { 
   value = aws_iam_access_key.ukmro_key.secret
   sensitive = true
+}  
+
+# policy applied to all ukmon members to enable uploads 
+resource "aws_iam_policy" "ukmonsharedpol" {
+  name = "UKMON-shared"
+  description = "policy to allow single bucket access"
+  policy = file("files/policies/ukmon-shared.json") 
+  tags = {
+    "billingtag" = "ukmon"
   }
+}
+

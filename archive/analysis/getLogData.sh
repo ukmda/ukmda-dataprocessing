@@ -11,6 +11,15 @@ else
     logfile=$DATADIR/lastlog.html
 fi 
 
+# create performance metrics
+cd $SRC/logs
+matchlog=$( ls -1 ${SRC}/logs/matches-*.log | tail -1)
+python -m metrics.timingMetrics $matchlog 'M' >> $SRC/logs/perfMatching.csv
+
+nightlog=$( ls -1 ${SRC}/logs/nightlyJob-*.log | tail -1)
+python -m metrics.timingMetrics $nightlog 'N' >> $SRC/logs/perfNightly.csv
+
+
 lastlog=$(ls -1tr $SRC/logs/nightlyJob-${rundate}-*.log | tail -1)
 lastmtch=$(ls -1tr $SRC/logs/matches-${rundate}-*.log | tail -1)
 
