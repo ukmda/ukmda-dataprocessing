@@ -47,7 +47,6 @@ def getBestNMp4s(yr, mth, numtoget):
 
     if len(mp4df) > 0:
         mp4df = mp4df.drop_duplicates()
-        print(mp4df)
         mp4df = mp4df.sort_values(by=['mag']).head(numtoget)
         return list(mp4df.mp4)
     else:
