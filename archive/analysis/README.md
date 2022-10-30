@@ -27,8 +27,8 @@ Scans the logs to create a simplified version for publication on the website.
 ## getRMSSingleData
 Creates a UFO-analyser compatible version of the RMS single-station detections. 
 
-## reportYear
-Creates a shower report for the whole current year, by calling showerReport for each active shower year-to-date. 
+## reportActiveShowers
+Creates a shower report for any active showers, by calling showerReport for each active shower year-to-date. 
 
 ## runDistrib
 Called by findAllMatches to execute the distributed processing engine. 
