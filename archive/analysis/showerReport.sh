@@ -17,6 +17,8 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 source $HOME/venvs/${WMPL_ENV}/bin/activate
+logger -s -t showerReport "starting"
+$SRC/utils/clearCaches.sh
 
 if [ $# -lt 2 ] ; then
 	echo Usage: showerReport.sh GEM 2017 {force}
@@ -166,5 +168,6 @@ else
     if [ "$tstval" == "" ] ; then 
         ${SRC}/website/createReportIndex.sh ${yr}
     fi
+    $SRC/utils/clearCaches.sh
     logger -s -t showerReport "finished"    
 fi 
