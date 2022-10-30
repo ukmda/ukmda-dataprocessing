@@ -134,9 +134,11 @@ $SRC/website/costReport.sh
 python $PYLIB/utils/getNextBatchStart.py 150
 
 # create station reports. This takes hours hence done after everything else
-logger -s -t nightlyJob "create station reports"
-logger -s -t nightlyJob "RUNTIME $SECONDS stationReports"
-#$SRC/analysis/stationReports.sh
+if [ "$(date +%a)" == "Sun" ] ; then 
+    logger -s -t nightlyJob "create station reports"
+    logger -s -t nightlyJob "RUNTIME $SECONDS stationReports"
+    $SRC/analysis/stationReports.sh
+fi
 
 logger -s -t nightlyJob "clear down old logfiles etc"
 logger -s -t nightlyJob "RUNTIME $SECONDS clearSpace"
