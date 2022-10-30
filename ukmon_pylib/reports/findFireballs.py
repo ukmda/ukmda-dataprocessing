@@ -23,7 +23,8 @@ def markAsFireball(trajname, tof=True):
     if int(yr) > 2021:
         fname = os.path.join(datadir, 'matched','matches-full-{}.parquet.gzip'.format(yr))
         if os.path.isfile(fname):
-            df = pd.read_parquet(fname)
+            # cant select cols here as we write them all back in a few lines
+            df = pd.read_parquet(fname) 
         else:
             print('unable to load datafile')
             exit(0)
