@@ -15,6 +15,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 # load the configuration
 source $here/../config.ini >/dev/null 2>&1
 source $HOME/venvs/${WMPL_ENV}/bin/activate
+$SRC/utils/clearCaches.sh
 
 # get the date to operate for
 if [ $# -eq 0 ]; then
@@ -28,4 +29,5 @@ logger -s -t convertUfoToRms "starting"
 
 python -m converters.UFOAtoFTPdetect $ym $MATCHDIR/RMSCorrelate/
 
+$SRC/utils/clearCaches.sh
 logger -s -t convertUfoToRms "finished"

@@ -53,7 +53,7 @@ def stationGraph(dta, shwrname, outdir, maxStats=20):
     return len(grps)
 
 
-def showerGraph(dta, s_or_m, outdir, maxshwrs=30):
+def showerGraph(dta, s_or_m, outdir, shwrname='ALL', maxshwrs=30):
     logMessage('creating {} count by shower'.format(s_or_m))
     # set paper size so fonts look good
     plt.clf()
@@ -447,34 +447,33 @@ def magDistributionVis(dta, shwrname, outdir, binwidth=0.2):
     return min(magdf['Mag'])
 
 
-if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print('usage: python showerAnalysis.py GEM 2017')
-        exit(0)
-    yr=int(sys.argv[2])
-    shwr = sys.argv[1]
-
-    datadir = os.getenv('DATADIR')
-    if datadir is None:
-        print('define DATADIR first')
-        exit(1)
+def showerAnalysis(shwr, dtstr):
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
 
     # set up paths, files etc
-    outdir = os.path.join(datadir, 'reports', str(yr), shwr)
     # check if month was passed in
     mth = None
-    if yr > 9999:
+    if dtstr > 9999:
         ym = sys.argv[2]
         yr = int(ym[:4])
         mth = ym[4:6]
         outdir = os.path.join(datadir, 'reports', str(yr), shwr, mth)
-
+    else:
+        yr = dtstr
+        outdir = os.path.join(datadir, 'reports', str(yr), shwr)
+        
     os.makedirs(outdir, exist_ok=True)
 
+    cols = ['Shwr','Dtstamp','Y','M','ID','Mag']
+    filt = None
+    if shwr != 'ALL':
+        sl = imo.IMOshowerList()
+        maxdt = sl.getEnd(shwr) + datetime.timedelta(days=10)
+        mindt = sl.getStart(shwr) + datetime.timedelta(days=-10)
+
     # read the single-station data
-    singleFile = os.path.join(datadir, 'single', 'singles-{}.parquet.gzip'.format(yr))
-    sngl = pd.read_parquet(singleFile)
-    sngl = sngl[sngl['Y']==yr]
+    singleFile = os.path.join(datadir, 'single', f'singles-{yr}.parquet.gzip')
+    sngl = pd.read_parquet(singleFile, columns=cols, filters=filt)
 
     # select the required data
     if shwr != 'ALL':
@@ -507,9 +506,10 @@ if __name__ == '__main__':
         pass
     sngl = None
 
+    cols = ['_M_ut', '_stream','_Nos','_ID1','_vg','_vs','_dur','_LD21','_H1','_H2','_ra_o','_dc_o','_a','_mag','_localtime','_amag', 'dtstamp']
+    filt = None
     matchfile = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.gzip'.format(yr))
-    mtch = pd.read_parquet(matchfile)
-    mtch = mtch[mtch['_Y_ut']==yr]
+    mtch = pd.read_parquet(matchfile, columns=cols, filters=filt)
 
     # select the required data
     if shwr != 'ALL':
@@ -589,6 +589,17 @@ if __name__ == '__main__':
         outf.write('Single-station classifications rely on 2-dimensional analysis and are not reliable.\n')
         outf.write('Multi-station matching works in 3-D and identifies meteors missed in single-station.\n\n')
         outf.write('Events with a lowest altitude below about 30km are potential meteorite droppers\n')
+
+    return shwrname
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print('usage: python showerAnalysis.py GEM 2017')
+        exit(0)
+    yr=int(sys.argv[2])
+    shwr = sys.argv[1]
+    showerAnalysis(shwr, yr)
 
 # to possibly add : 
 # histogram of distance from radiant

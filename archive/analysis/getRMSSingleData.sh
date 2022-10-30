@@ -15,6 +15,7 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 source $HOME/venvs/${RMS_ENV}/bin/activate
+$SRC/utils/clearCaches.sh
 
 cd $RMS_LOC
 logger -s -t getRMSSingleData "starting"
@@ -35,10 +36,13 @@ do
     mv $i $outdir/processed
 done 
 
-# push to S3 bucket for future use by AWS tools
+logger -s -t getRMSSingleData "convert to parquet"
 source ~/venvs/${WMPL_ENV}/bin/activate
 python -m converters.toParquet $SRC/data/single/singles-${yr}.csv
+
+# push to S3 bucket for future use by AWS tools
 aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/single/ --exclude "*" --include "*.csv" --quiet
 aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/singlepq/ --exclude "*" --include "*.parquet.gzip" --quiet
 
+$SRC/utils/clearCaches.sh
 logger -s -t getRMSSingleData "finished"

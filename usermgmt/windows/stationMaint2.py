@@ -701,7 +701,7 @@ class demo(Frame):
     def getSSHkey(self, loc, dir):
         server='ukmonhelper'
         user='ec2-user'
-        tmpdir=os.getenv('TEMP')
+        tmpdir=os.getenv('TEMP', default='c:/temp')
         cameraname = (loc + '_' + dir).lower()
         k = paramiko.RSAKey.from_private_key_file(os.path.expanduser('~/.ssh/ukmonhelper'))
         c = paramiko.SSHClient()

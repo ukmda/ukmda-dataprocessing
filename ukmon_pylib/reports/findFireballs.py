@@ -15,15 +15,13 @@ from wmpl.Utils.TrajConversions import jd2Date
 # Manually mark a trajectoriy as a "fireball"
 #
 def markAsFireball(trajname, tof=True):
-    datadir = os.getenv('DATADIR')
-    if datadir == '' or datadir is None:
-        print('export DATADIR first')
-        exit(1)
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     yr=trajname[:4]
     if int(yr) > 2021:
         fname = os.path.join(datadir, 'matched','matches-full-{}.parquet.gzip'.format(yr))
         if os.path.isfile(fname):
-            df = pd.read_parquet(fname)
+            # cant select cols here as we write them all back in a few lines
+            df = pd.read_parquet(fname) 
         else:
             print('unable to load datafile')
             exit(0)
@@ -106,45 +104,44 @@ def findFBPre2020(df, outdir=None, mag=-4):
     return fbs
 
 
-if __name__ == '__main__':
-    datadir = os.getenv('DATADIR')
-    if datadir == '' or datadir is None:
-        print('export DATADIR first')
-        exit(1)
-    matchdir = os.getenv('MATCHDIR')
-    if matchdir == '' or matchdir is None:
-        print('export MATCHDIR first')
-        exit(1)
-
-    yr = int(sys.argv[1])
+def findFireballs(dtval, shwr, minmag=-3.99, matchdataset = None):
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    matchdir = os.getenv('MATCHDIR', default='/home/ec2-user/ukmon-shared/matches')
 
     # check if month was passed in
     mth = None
-    if yr > 9999:
-        ym = sys.argv[1]
-        yr = int(ym[:4])
-        mth = int(ym[4:6])
+    if dtval > 9999:
+        ym = dtval
+        yr = int(str(ym)[:4])
+        mth = int(str(ym)[4:6])
+    else:
+        yr = dtval
 
-    if yr > 2019:
-        fname = os.path.join(datadir, 'matched','matches-full-{}.parquet.gzip'.format(yr))
-        if os.path.isfile(fname):
-            df = pd.read_parquet(fname)
+    if matchdataset is None:
+        if yr > 2019:
+            cols = ['_stream','_mjd','_mag','_vg','url','mass','orbname','_M_ut','isfb']
+            filt = None
+            fname = os.path.join(datadir, 'matched',f'matches-full-{yr}.parquet.gzip')
+            if os.path.isfile(fname):
+                df = pd.read_parquet(fname, columns=cols, filters=filt)
+            else:
+                print('unable to load datafile')
+                exit(0)
         else:
-            print('unable to load datafile')
-            exit(0)
+            fname = os.path.join(datadir, 'matched',f'matches-{yr}.csv')
+            if os.path.isfile(fname):
+                df = pd.read_csv(fname, skipinitialspace=True)
+            else:
+                print('unable to load datafile')
+                exit(0)
+        # print('outdir is ', outdir)
+        if shwr != 'ALL':
+            df = df[df['_stream']==shwr]
+        if mth is not None:
+            df = df[df['_M_ut']==mth]
+
     else:
-        fname = os.path.join(datadir, 'matched','matches-{}.csv'.format(yr))
-        if os.path.isfile(fname):
-            df = pd.read_csv(fname, skipinitialspace=True)
-        else:
-            print('unable to load datafile')
-            exit(0)
-    
-    shwr = sys.argv[2]
-    if len(sys.argv) > 3:
-        mag = float(sys.argv[3])
-    else:
-        mag = -3.9
+        df = matchdataset
 
     if mag > 998:
         if mth is not None:
@@ -154,12 +151,6 @@ if __name__ == '__main__':
         matchdir = None
     else:
         outdir = os.path.join(datadir, 'reports',f'{yr}', 'fireballs')
-
-    # print('outdir is ', outdir)
-    if shwr != 'ALL':
-        df = df[df['_stream']==shwr]
-    if mth is not None:
-        df = df[df['_M_ut']==mth]
 
     if yr > 2019:
         fbs = findMatchedFireballs(df, outdir, mag)
@@ -173,3 +164,13 @@ if __name__ == '__main__':
             fbs.to_csv(outf, index=False, header=False, columns=['url','mag','shower','orbname'])
         if shwr == 'ALL' and yr > 2019 and matchdir is not None:
             createMDFiles(fbs, outdir, matchdir)
+
+
+if __name__ == '__main__':
+    dtval = int(sys.argv[1])
+    shwr = sys.argv[2]
+    if len(sys.argv) > 3:
+        mag = float(sys.argv[3])
+    else:
+        mag = -3.9
+    findFireballs(dtval, shwr, mag)

@@ -9,7 +9,8 @@ from fileformats.platepar import loadPlatepars
 
 def createDetectionsFile(eDate, datadir):
     yr = datetime.datetime.now().year
-    df = pd.read_parquet(os.path.join(datadir, 'single','singles-{}.parquet.gzip'.format(yr)))
+    cols = ['Dtstamp','ID']
+    df = pd.read_parquet(os.path.join(datadir, 'single',f'singles-{yr}.parquet.gzip'), columns=cols)
     sDate = eDate + datetime.timedelta(days = -3)
     df = df[df.Dtstamp >= sDate.timestamp()]
     df = df[df.Dtstamp <= eDate.timestamp()]
@@ -151,7 +152,7 @@ def createCameraFile(datadir):
 
 
 if __name__ == '__main__':
-    datadir = os.getenv('DATADIR')
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     if len(sys.argv) > 1:
         targdate = datetime.datetime.strptime(sys.argv[1], '%Y%m%d')
     else:

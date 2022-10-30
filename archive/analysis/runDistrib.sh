@@ -91,7 +91,7 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
     cp -f $DATADIR/distrib/processed_trajectories.json $DATADIR/distrib/prev_processed_trajectories.json
 
     numtoconsol=$(ls -1 $DATADIR/distrib/${rundate}*.json | wc -l)
-    if [ $numtoconsol -gt 20 ] ; then 
+    if [ $numtoconsol -gt 5 ] ; then 
         logger -s -t runDistrib "restarting calcserver to consolidate results"
         stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
         if [ $stat -eq 80 ]; then 

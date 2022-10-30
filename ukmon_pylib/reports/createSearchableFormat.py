@@ -16,7 +16,8 @@ def convertSingletoSrchable(datadir, year, outdir, weburl):
     # load the single-station combined data
     rmsuafile = os.path.join(datadir, 'single', 'singles-{}.parquet.gzip'.format(year))
     print(datetime.datetime.now(), f'read single file to get shower and mag: {rmsuafile}')
-    uadata = pd.read_parquet(rmsuafile)    
+    cols = ['Dtstamp','Shwr','Mag','ID','Y','M','Filename']
+    uadata = pd.read_parquet(rmsuafile, columns=cols)
 
     uadata = uadata.assign(ts = pd.to_datetime(uadata['Dtstamp'], unit='s', utc=True))
     uadata['LocalTime'] = [ts.strftime('%Y%m%d_%H%M%S') for ts in uadata.ts]
@@ -78,7 +79,7 @@ def convertSingletoSrchable(datadir, year, outdir, weburl):
     return resdf
 
 
-def convertMatchToSrchable(config, year, outdir, weburl):
+def convertMatchToSrchable(datadir, year, outdir, weburl):
     """ Convert matched data records to searchable format
 
     Args:
@@ -89,7 +90,8 @@ def convertMatchToSrchable(config, year, outdir, weburl):
     """
     print('reading merged match file')
     infile = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.gzip'.format(year))
-    newm = pd.read_parquet(infile)
+    cols = ['dtstamp','src','_stream','_mag','stations','url','img']
+    newm = pd.read_parquet(infile, columns=cols)
 
     outdf = pd.concat([newm['dtstamp'], newm['src'], newm['_stream'], newm['_mag'], newm['stations'], newm['url'], newm['img']], 
         axis=1, keys=['eventtime','source','shower','Mag','loccam','url','imgs'])
@@ -104,8 +106,8 @@ if __name__ == '__main__':
         print('usage: python createSearchableFormat.py year dest')
         exit(1)
     else:
-        datadir = os.getenv('DATADIR')
-        weburl = os.getenv('SITEURL')
+        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+        weburl = os.getenv('SITEURL', default='https://archive.ukmeteornetwork.co.uk')
 
         year =sys.argv[1]
 

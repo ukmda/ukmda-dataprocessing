@@ -14,7 +14,7 @@ def createSummaryTable(curryr):
         curryr (str): current year
 
     """
-    datadir = os.getenv('DATADIR')
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     fname = os.path.join(datadir, 'summarytable.js')
     with open(fname, 'w') as f:
         f.write('$(function() {\n')
@@ -28,14 +28,14 @@ def createSummaryTable(curryr):
             if yr > 2020:
                 srchfile = os.path.join(datadir, 'single', 'singles-{}.parquet.gzip'.format(yr))
                 if os.path.isfile(srchfile):
-                    sngl = pd.read_parquet(srchfile)
+                    sngl = pd.read_parquet(srchfile, columns=['Y'])
                     detections = len(sngl[sngl.Y==yr])
                 else:
                     detections = 0
 
                 srchfile = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.gzip'.format(yr))
                 if os.path.isfile(srchfile):
-                    mtch = pd.read_parquet(srchfile)
+                    mtch = pd.read_parquet(srchfile, columns=['_Y_ut'])
                     matches = len(mtch[mtch._Y_ut==yr])
                 else:
                     matches = 0

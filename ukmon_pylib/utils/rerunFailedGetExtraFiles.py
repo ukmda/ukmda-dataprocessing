@@ -13,7 +13,7 @@ templ = '{"Records": [{"s3": {"bucket": {"name": "ukmon-shared",\
 
 def findOtherBadEvents():
     evts = []
-    datadir=os.getenv('DATADIR')
+    datadir=os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     lastf = os.path.join(datadir,'dailyreports', 'latest.txt')
     with open(lastf, 'r') as inf:
         lis = inf.readlines()
@@ -32,7 +32,7 @@ def findOtherBadEvents():
 def findFailedEvents():
     session=boto3.Session(profile_name='default') # load default profile
     logcli = session.client('logs', region_name='eu-west-2')
-    datadir=os.getenv('DATADIR')
+    datadir=os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     lastf = os.path.join(datadir,'orbits', 'lastorbitcheck.txt')
     if os.path.isfile(lastf):
         with open(lastf, 'r') as inf:
@@ -79,8 +79,7 @@ def findFailedEvents():
 
 def checkFails(fails):
     s3 = boto3.client('s3', region_name='eu-west-2')
-    #s3bucket='ukmon-shared'
-    s3bucket='ukmeteornetworkarchive'
+    s3bucket=os.getenv('WEBSITEBUCKET', default='s3://ukmeteornetworkarchive')[5:]
     realfails = []
     for f in fails:
         # example f : matches/RMSCorrelate/trajectories/2022/202202/20220227/20220227_011240.522_UK
@@ -102,7 +101,7 @@ def rerunFails(fails):
     session = boto3.Session(profile_name='default')
     lambd = session.client('lambda', region_name='eu-west-2')
 
-    datadir=os.getenv('DATADIR')
+    datadir=os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     lastf = os.path.join(datadir,'orbits', 'lastorbitcheck.txt')
     with open(lastf, 'w') as outf:
         rundt = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')

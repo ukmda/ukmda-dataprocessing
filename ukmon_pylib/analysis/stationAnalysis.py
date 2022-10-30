@@ -136,7 +136,7 @@ def reportOneSite(yr, mth, loc, sngl, mful, idlist, outdir):
         when = f'{mth:02d}-{yr}'
 
     idxfile = os.path.join(outdir,'index.html')
-    templatedir=os.getenv('TEMPLATES')
+    templatedir=os.getenv('TEMPLATES', default='/home/ec2-user/prod/website/templates')
 
     shutil.copyfile(os.path.join(templatedir, 'header.html'), idxfile)
     outf = open(idxfile, 'a+')
@@ -261,7 +261,7 @@ def pushToWebsite(fuloutdir, outdir, websitebucket):
         locfname = fuloutdir + '/' + fi
         key = outdir + '/' + fi
         if os.path.isfile(locfname):
-            print(locfname, key)
+            #print(locfname, key)
             extraargs = getExtraArgs(fi)
             s3.meta.client.upload_file(locfname, websitebucket, key, ExtraArgs=extraargs) 
     return 
@@ -282,24 +282,15 @@ if __name__ == '__main__':
     # set up paths, files etc
     yr = int(ym[:4])
         
-    cifile = os.getenv('CAMINFO')
-    if cifile[:5] == 's3://':
-        print('reading via s3')
-        datadir = os.getenv('TMP')
-        if datadir is None:
-            datadir = '/tmp'
-        sngl = pd.read_parquet(f's3://ukmon-shared/matches/singlepq/singles-{yr}.parquet.gzip')
-        mful = pd.read_parquet(f's3://ukmon-shared/matches/matchedpq/matches-full-{yr}.parquet.gzip')
+    matchcols = ['_M_ut','_mag','_mjd','mjd','_stream','orbname','stations']
+    snglcols = ['ID','Shwr','Dtstamp','Ver', 'M']
+    cifile = os.getenv('CAMINFO', default='/home/ec2-user/ukmon-shared/consolidated/camera-details.csv')
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
 
-    else:
-        print('reading from local store')
-        datadir = os.getenv('DATADIR')
-        if datadir is None:
-            datadir='/home/ec2-user/prod/data'
-        sngl = pd.read_parquet(os.path.join(datadir, 'single', f'singles-{yr}.parquet.gzip'))
-        mful = pd.read_parquet(os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.gzip'))
-
+    sngl = pd.read_parquet(os.path.join(datadir, 'single', f'singles-{yr}.parquet.gzip'), columns=snglcols)
+    mful = pd.read_parquet(os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.gzip'), columns=matchcols)
     camlist = pd.read_csv(cifile)
+
     if len(sys.argv) > 2:
         locs = [sys.argv[2]]
     else:
@@ -323,17 +314,14 @@ if __name__ == '__main__':
         os.makedirs(outdir, exist_ok=True)
 
         numsngl, nummatch = reportOneSite(yr, mth, loc, sngl, mful, idlist, outdir)
-        print(numsngl, nummatch)
-        if cifile[:5] == 's3://':
-            print('push back then clean up')
-            websitebucket = os.getenv('WEBSITEBUCKET')
-            if websitebucket[:5] == 's3://':
-                websitebucket = websitebucket[5:]
-            shortoutdir = shortoutdir.replace('\\','/')
-            pushToWebsite(outdir, shortoutdir, websitebucket)
-            try:
-                shutil.rmtree(outdir)
-            except Exception:
-                print(f'unable to remove {outdir}')
-        else:
-            print(f'not pushing back to s3, files left in {outdir}')
+
+        #print('push back then clean up')
+        #websitebucket = os.getenv('WEBSITEBUCKET', default='s3://ukmeteornetworkarchive')
+        #if websitebucket[:5] == 's3://':
+        #    websitebucket = websitebucket[5:]
+        #shortoutdir = shortoutdir.replace('\\','/')
+        #pushToWebsite(outdir, shortoutdir, websitebucket)
+        #try:
+        #    shutil.rmtree(outdir)
+        #except Exception:
+        #    print(f'unable to remove {outdir}')

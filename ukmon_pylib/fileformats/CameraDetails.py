@@ -17,10 +17,7 @@ CameraDetails = numpy.dtype([('Site', 'S32'), ('CamID', 'S32'), ('LID', 'S16'),
 class SiteInfo:
     def __init__(self, fname=None):
         if fname is None:
-            datadir = os.getenv('DATADIR')
-            if datadir is None:
-                print('export DATADIR first')
-                exit(1)
+            datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
             fname = os.path.join(datadir, 'consolidated', 'camera-details.csv')
 
         self.camdets = numpy.loadtxt(fname, delimiter=',', skiprows=1, dtype=CameraDetails)

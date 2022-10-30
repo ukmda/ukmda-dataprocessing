@@ -16,6 +16,8 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
+logger -s -t createFireballPage "starting"
+$SRC/utils/clearCaches.sh
 
 if [ $# -eq 0 ]; then
     yr=$(date +%Y)
@@ -86,6 +88,5 @@ logger -s -t createFireballPage "copy to website"
 
 aws s3 sync $DATADIR/reports/$yr/fireballs/  $WEBSITEBUCKET/reports/$yr/fireballs/ --quiet
 
+$SRC/utils/clearCaches.sh
 logger -s -t createFireballPage "finished"
-
-

@@ -22,6 +22,8 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 # load the configuration and website keys
 source $here/../config.ini >/dev/null 2>&1
 source ~/venvs/${WMPL_ENV}/bin/activate
+logger -s -t findAllMatches1 "starting"
+$SRC/utils/clearCaches.sh
 
 rundate=$(cat $DATADIR/rundate.txt)
 
@@ -50,7 +52,7 @@ if [ $dom -lt 10 ] ; then
     lastmth=`date --date='-1 month' '+%Y%m'`
     $SRC/analysis/convertUfoToRms.sh $lastmth
 fi
-logger -s -t findAllMatches "create ukmon specific merged single-station data file"
+logger -s -t findAllMatches1 "create ukmon specific merged single-station data file"
 # this creates the parquet table for Athena
 $SRC/analysis/getRMSSingleData.sh
 
@@ -62,8 +64,10 @@ logger -s -t findAllMatches1 "solving for ${startdt} to ${enddt}"
 
 logger -s -t findAllMatches1 "actually run the matching process"
 $SRC/analysis/runDistrib.sh $MATCHSTART $MATCHEND
+logger -s -t findAllMatches1 "finished"
 
 
+logger -s -t findAllMatches2 "starting"
 logger -s -t findAllMatches2 "check if the solver had some sort of failiure"
 logf=$(ls -1tr $SRC/logs/matches-*.log | tail -1)
 success=$(grep "Total run time:" $logf)
@@ -108,4 +112,5 @@ logger -s -t findAllMatches2 "purge old logs"
 find $SRC/logs -name "matches*" -mtime +7 -exec gzip {} \;
 find $SRC/logs -name "matches*" -mtime +30 -exec rm -f {} \;
 
-logger -s -t findAllMatches2 "Matching process finished"
+$SRC/utils/clearCaches.sh
+logger -s -t findAllMatches2 "finished"

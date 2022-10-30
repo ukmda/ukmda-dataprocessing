@@ -50,10 +50,9 @@ def encodeApiKey(plainkey):
 def makeCoverageMap(kmlsource, outdir, showMarker=False, useName=False):
     apikey = os.getenv('APIKEY')
     apikey = decodeApiKey(apikey)
-    kmltempl = os.getenv('KMLTEMPLATE')
+    kmltempl = os.getenv('KMLTEMPLATE', default='*70km.kml')
     heightval = kmltempl[1:-4]
-    #datadir = os.getenv('DATADIR')
-    #print(apikey)
+
     gmap = gmplot.GoogleMapPlotter(52, -1.0, 5, apikey=apikey, 
         title=f'Camera Coverage at {heightval}', map_type='satellite')
 

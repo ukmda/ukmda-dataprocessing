@@ -16,6 +16,7 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 source $HOME/venvs/$WMPL_ENV/bin/activate
+$SRC/utils/clearCaches.sh
 
 if [ $# -eq 0 ]; then
     ym=$(date +%Y%m)
@@ -29,9 +30,10 @@ if [ "$2" != "" ] ; then
 else
     logger -s -t stationReports "running station reports for $ym for all stations"
 fi
-export CAMINFO=s3://ukmon-shared/consolidated/camera-details.csv
 python -m analysis.stationAnalysis $ym $loc
 python -m analysis.stationAnalysis $yr $loc
+
+aws s3 sync $DATADIR/reports/$yr/stations/  $WEBSITEBUCKET/reports/$yr/stations/ --quiet
 
 logger -s -t stationReports "station reports done creating index"
 
@@ -50,8 +52,7 @@ echo "cell.innerHTML = \"Station Reports\";" >> reportindex.js
 echo "var cell = row.insertCell(2);" >> reportindex.js
 j=0
 k=1
-statlist=$(aws s3 ls s3://ukmeteornetworkarchive/reports/2022/stations/ \
-    | egrep -v "index.html|reportindex.js" | awk '{print $2}')
+statlist=$(aws s3 ls $WEBSITEBUCKET/reports/$yr/stations/ | egrep -v "index.html|reportindex.js" | awk '{print $2}')
 for i in $statlist ; do
     if [ $j -eq 0 ] ; then echo "var row = table.insertRow($k);">> reportindex.js ; fi
     echo "var cell = row.insertCell(-1);" >> reportindex.js
@@ -72,5 +73,4 @@ aws s3 cp $DATADIR/reports/$yr/stations/reportindex.js  $WEBSITEBUCKET/reports/$
 aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --quiet
 
 logger -s -t stationReports "finished"
-
-
+$SRC/utils/clearCaches.sh

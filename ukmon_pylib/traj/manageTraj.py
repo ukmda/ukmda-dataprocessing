@@ -11,6 +11,7 @@ def deleteDuplicate(trajname):
     if int(yr) > 2021:
         fname = os.path.join(datadir, 'matched','matches-full-{}.parquet.gzip'.format(yr))
         if os.path.isfile(fname):
+            # cant select columns as we are going to write the whole lot back out
             df = pd.read_parquet(fname)
         else:
             print('unable to load datafile')

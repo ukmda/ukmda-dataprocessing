@@ -238,10 +238,7 @@ if __name__ == '__main__':
             # its a date
             ymdin = sys.argv[1]
             outroot = sys.argv[2]
-            archdir=os.getenv('ARCHDIR')
-            if len(archdir) == 0:
-                print('export ARCHDIR first')
-                exit(0)
+            archdir=os.getenv('ARCHDIR', default='/home/ec2-user/ukmon-shared/archive')
             
             yr = ymdin[:4] 
             ym = ymdin[:6] 

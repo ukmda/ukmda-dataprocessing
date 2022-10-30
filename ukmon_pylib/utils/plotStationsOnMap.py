@@ -120,7 +120,7 @@ def plotMap(srcpath, intersect):
 #    ax.add_feature(cfeature.LAKES, edgecolor='black')
 #    ax.add_feature(cfeature.RIVERS)
     ax.gridlines()
-    pylib=os.getenv('PYLIB')
+    pylib=os.getenv('PYLIB', default='/home/ec2-user/prod/ukmon_pylib')
     os.environ['CARTOPY_USER_BACKGROUNDS'] = os.path.join(pylib, 'share','maps')
     ax.background_img(name='BM', resolution='high', extent= [minn, maxn, mina, maxa])
 
@@ -155,7 +155,7 @@ def plotMap(srcpath, intersect):
         plt.plot(yi, xi, 'bx', markersize=10, linewidth=1)
 
     plt.tight_layout()
-    datadir = os.getenv('DATADIR')
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     if datadir is None:
         datadir='.'
     plt.savefig(os.path.join(datadir, 'stations.png'), dpi=200)

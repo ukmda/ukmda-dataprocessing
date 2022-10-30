@@ -111,19 +111,9 @@ def createDensityPlots(outf, calcdir, enddt):
     return
 
 
-#def getKeyForBucket(buck):
-#    shkey = os.getenv('UKMONSHAREDKEY')
-#    webkey = os.getenv('WEBSITEKEY')
-#    if 'ukmon-shared' in buck:
-#        thiskey = shkey
-#    else:
-#        thiskey = webkey
-#    return thiskey
-
-
 def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
-    shbucket = os.getenv('UKMONSHAREDBUCKET')
-    webbucket = os.getenv('WEBSITEBUCKET')
+    shbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmon-shared')
+    webbucket = os.getenv('WEBSITEBUCKET', default='s3://ukmeteornetworkarchive')
 
     startdt = datetime.datetime.now() + datetime.timedelta(days=-matchstart)
     enddt = datetime.datetime.now() + datetime.timedelta(days=-matchend)

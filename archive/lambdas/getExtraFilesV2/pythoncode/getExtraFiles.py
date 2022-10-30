@@ -32,9 +32,7 @@ def findSite(stationid, ddb):
 def generateExtraFiles(key, athena_client, archbucket, websitebucket, ddb, s3):
     fuloutdir, fname = os.path.split(key)
     _, orbname = os.path.split(fuloutdir)
-    tmpdir = os.getenv('TMP')
-    if tmpdir is None:
-        tmpdir ='/tmp'
+    tmpdir = os.getenv('TMP', default='/tmp')
 
     yr = orbname[:4]
     ym = orbname[:6]

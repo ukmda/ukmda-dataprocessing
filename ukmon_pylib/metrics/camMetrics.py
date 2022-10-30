@@ -155,11 +155,7 @@ def findRowCamTimings(stationid, uploaddate, ddb=None):
 
 def getDayCamTimings(uploaddate, ddb=None, outfile=None, datadir=None):
     if datadir is None:
-        try:
-            datadir = os.getenv('DATADIR')
-        except Exception:
-            print('define DATADIR first')
-            exit(1)
+        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     if not ddb:
         ddb = boto3.resource('dynamodb', region_name='eu-west-1') #, endpoint_url="http://thelinux:8000")
     table = ddb.Table('ukmon_uploadtimes')
@@ -228,11 +224,7 @@ def backPopulate(stationid):
 
 
 if __name__ == '__main__':
-    try:
-        datadir = os.getenv('DATADIR')
-    except Exception:
-        print('define DATADIR first')
-        exit(1)
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
 
     sts_client = boto3.client('sts')
     assumed_role_object=sts_client.assume_role(

@@ -91,6 +91,17 @@ resource "aws_security_group" "launch-wizard-4" {
       security_groups  = []
       self             = true
     },
+    {
+      cidr_blocks      = ["86.144.129.18/32"]
+      description      = "MariaDB"
+      from_port        = 3306
+      protocol         = "tcp"
+      to_port          = 3306
+      ipv6_cidr_blocks = []
+      prefix_list_ids  = []
+      security_groups  = []
+      self             = false
+    },
   ]
   egress = [
     {
