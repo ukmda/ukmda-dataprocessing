@@ -9,14 +9,18 @@ from traj.pickleAnalyser import getAllMp4s
 def getBestNMp4s(yr, mth, numtoget):
     datadir=os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     mf = os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.gzip')
-    matches = pd.read_parquet(mf)
+
+    # select only the columns we need
+    cols=['_Y_ut','_M_ut','_mag','url']
+    matches = pd.read_parquet(mf, columns=cols)
+
     matches = matches[matches._Y_ut == int(yr)]
     matches = matches[matches._M_ut == int(mth)]
     sepdata = matches.sort_values(by=['_mag'])
     sorteddata = sepdata.head(numtoget)
 
     tmpdir = os.getenv('TMP', default='/tmp')
-    wsbucket = os.getenv('UKMONSHAREDBUCKET')[5:]
+    wsbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmon-shared')[5:]
     s3 = boto3.resource('s3')
     mp4df = pd.DataFrame()
     for traj in sorteddata.url:
