@@ -1,9 +1,6 @@
 # python script to call TrackStack to stack several nights/cameras
 
-#import boto3
-#import argparse
 import os
-import sys
 import glob
 import datetime
 from Utils.TrackStack import trackStack
@@ -61,26 +58,26 @@ if __name__ == '__main__':
     arg_parser.add_argument('-o', '--outdir', metavar='OUTDIR', type=str,
         help="Where to save the output file.")
 
-    if len(sys.argv) < 3:
-        print('usage: python -m utils.multiTrackStack cam1,cam2,camN yyyymmdd,yyyymmdd [shwr] [outdir]')
-        print('use ALL for shower, if you want to also use outdir')
-        exit(1)
+    cml_args = arg_parser.parse_args()
+    cams = cml_args.cams[0]
+    if ',' in cams:
+        cams = cams.split(',')
+    else:
+        cams = [cams]
 
-    if ',' in sys.argv[1]:
-        cams = sys.argv[1].split(',')
+    dates = cml_args.dates[0]
+    if ',' in dates:
+        start, end = dates.split(',')
     else:
-        cams = [sys.argv[1]]
-    if ',' in sys.argv[2]:
-        start, end = sys.argv[2].split(',')
-    else:
-        start = sys.argv[2]
+        start = dates
         end = start
+
     shwr = None
-    if len(sys.argv) > 3:
-        shwr = sys.argv[3]
-        if shwr == 'ALL':
-            shwr = None 
+    if cml_args.shower:
+        shwr = cml_args.shower
+    
     outdir = '.'
-    if len(sys.argv) > 4:
-        outdir = sys.argv[4]
+    if cml_args.outdir:
+        outdir = cml_args.outdir
+
     multiTrackStack(cams, start, end, outdir, shwr)
