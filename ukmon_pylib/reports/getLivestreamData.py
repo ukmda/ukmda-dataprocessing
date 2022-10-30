@@ -27,7 +27,7 @@ def chopFilename(fname):
 
 
 def getLatestLiveFiles(daysback=None, df=None):
-    livebucket = os.getenv("UKMONLIVEBUCKET")[5:]
+    livebucket = os.getenv("UKMONLIVEBUCKET", default='s3://ukmon-live')[5:]
 
     if df is None:
         df=pd.DataFrame(columns=['eventtime','source','shower','Mag','loccam','url','imgs'])
@@ -71,7 +71,7 @@ def getLatestLiveFiles(daysback=None, df=None):
 
 
 if __name__ == '__main__':
-    datadir = os.getenv('DATADIR')
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     df = getLatestLiveFiles(-30)
     prvfile = os.path.join(datadir, 'ukmonlive', 'livefeed.csv')
     if os.path.isfile(prvfile):

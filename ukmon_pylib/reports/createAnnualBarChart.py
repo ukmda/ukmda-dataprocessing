@@ -52,7 +52,7 @@ if __name__ == '__main__':
         yr = sys.argv[2]
     else:
         yr=datetime.datetime.now().year
-        datadir=os.getenv('DATADIR')
+        datadir=os.getenv('DATADIR', default='/home/ec2-user/prod/data')
         fname = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.gzip'.format(yr))
         
     m = createBarChart(fname, yr)

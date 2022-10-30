@@ -136,7 +136,7 @@ def reportOneSite(yr, mth, loc, sngl, mful, idlist, outdir):
         when = f'{mth:02d}-{yr}'
 
     idxfile = os.path.join(outdir,'index.html')
-    templatedir=os.getenv('TEMPLATES')
+    templatedir=os.getenv('TEMPLATES', default='/home/ec2-user/prod/website/templates')
 
     shutil.copyfile(os.path.join(templatedir, 'header.html'), idxfile)
     outf = open(idxfile, 'a+')
@@ -261,7 +261,7 @@ def pushToWebsite(fuloutdir, outdir, websitebucket):
         locfname = fuloutdir + '/' + fi
         key = outdir + '/' + fi
         if os.path.isfile(locfname):
-            print(locfname, key)
+            #print(locfname, key)
             extraargs = getExtraArgs(fi)
             s3.meta.client.upload_file(locfname, websitebucket, key, ExtraArgs=extraargs) 
     return 
@@ -286,7 +286,6 @@ if __name__ == '__main__':
     snglcols = ['ID','Shwr','Dtstamp','Ver', 'M']
     cifile = os.getenv('CAMINFO', default='/home/ec2-user/ukmon-shared/consolidated/camera-details.csv')
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-    tmpdir = os.getenv('TMP', default='/tmp')
 
     sngl = pd.read_parquet(os.path.join(datadir, 'single', f'singles-{yr}.parquet.gzip'), columns=snglcols)
     mful = pd.read_parquet(os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.gzip'), columns=matchcols)
@@ -306,23 +305,22 @@ if __name__ == '__main__':
         if mth is None:
             sampleinterval="1M"
             shortoutdir = os.path.join('reports', str(yr), 'stations', loc)
-            outdir = os.path.join(tmpdir, shortoutdir)
+            outdir = os.path.join(datadir, shortoutdir)
         else:
             sampleinterval="30min"
             shortoutdir = os.path.join('reports', str(yr), 'stations', loc, f'{mth:02d}')
-            outdir = os.path.join(tmpdir, shortoutdir)
+            outdir = os.path.join(datadir, shortoutdir)
 
         os.makedirs(outdir, exist_ok=True)
 
         numsngl, nummatch = reportOneSite(yr, mth, loc, sngl, mful, idlist, outdir)
-        print(numsngl, nummatch)
 
-        print('push back then clean up')
-        websitebucket = os.getenv('WEBSITEBUCKET', default='s3://ukmeteornetworkarchive')
-        if websitebucket[:5] == 's3://':
-            websitebucket = websitebucket[5:]
-        shortoutdir = shortoutdir.replace('\\','/')
-        pushToWebsite(outdir, shortoutdir, websitebucket)
+        #print('push back then clean up')
+        #websitebucket = os.getenv('WEBSITEBUCKET', default='s3://ukmeteornetworkarchive')
+        #if websitebucket[:5] == 's3://':
+        #    websitebucket = websitebucket[5:]
+        #shortoutdir = shortoutdir.replace('\\','/')
+        #pushToWebsite(outdir, shortoutdir, websitebucket)
         #try:
         #    shutil.rmtree(outdir)
         #except Exception:

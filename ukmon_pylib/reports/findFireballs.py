@@ -15,10 +15,7 @@ from wmpl.Utils.TrajConversions import jd2Date
 # Manually mark a trajectoriy as a "fireball"
 #
 def markAsFireball(trajname, tof=True):
-    datadir = os.getenv('DATADIR')
-    if datadir == '' or datadir is None:
-        print('export DATADIR first')
-        exit(1)
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     yr=trajname[:4]
     if int(yr) > 2021:
         fname = os.path.join(datadir, 'matched','matches-full-{}.parquet.gzip'.format(yr))

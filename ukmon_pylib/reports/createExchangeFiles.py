@@ -152,7 +152,7 @@ def createCameraFile(datadir):
 
 
 if __name__ == '__main__':
-    datadir = os.getenv('DATADIR')
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     if len(sys.argv) > 1:
         targdate = datetime.datetime.strptime(sys.argv[1], '%Y%m%d')
     else:

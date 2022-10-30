@@ -53,10 +53,8 @@ def createTaskTemplate(rundate, buckname, clusdets, spandays=3):
 
 
 def getDebugStatus():
-    dbg = os.getenv('DEBUG')
-    if dbg is None:
-        return False
-    elif dbg == '1':
+    dbg = os.getenv('DEBUG', default='0')
+    if dbg == '1':
         return True
     else:
         return False
@@ -246,7 +244,7 @@ def getLogDetails(loggrp, thisarn, contname, region_name='eu-west-2'):
 if __name__ == '__main__':
     if len(sys.argv) < 4:
         rundt = datetime.datetime(2022,4,21)
-        matchdir = os.getenv('MATCHDIR')
+        matchdir = os.getenv('MATCHDIR', default='/home/ec2-user/ukmon-shared/matches')
         srcdir = os.path.join(matchdir, 'RMSCorrelate', 'candidates')
         targdir = os.path.join(matchdir, 'distrib')
     else:

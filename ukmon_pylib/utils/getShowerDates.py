@@ -43,7 +43,7 @@ def loadJenniskensShowers(dir_path, file_name):
 
 def refreshShowerData():
     updateOrbitFiles()
-    abs_path = os.getenv('WMPL_LOC')
+    abs_path = os.getenv('WMPL_LOC', default='/home/ec2-user/src/WesternMeteorPyLib')
     jenniskens_shower_table_file = os.path.join(abs_path, 'wmpl', 'share', 'ShowerLookUpTable.txt')
     jenniskens_shower_table_npy = os.path.join(abs_path, 'wmpl', 'share', 'ShowerLookUpTable.npy')
     jenniskens_shower_list = loadJenniskensShowers(*os.path.split(jenniskens_shower_table_file))

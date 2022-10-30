@@ -14,9 +14,7 @@ class IMOshowerList:
 
     def __init__(self, fname=None):
         if fname is None:
-            datadir = os.getenv('DATADIR')
-            if datadir is None:
-                datadir='/home/ec2-user/prod/data'
+            datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
             fname = os.path.join(datadir, '..', 'share', 'IMO_Working_Meteor_Shower_List.xml')
 
         with open(fname) as fd:
