@@ -16,6 +16,7 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 source $HOME/venvs/$WMPL_ENV/bin/activate
+$SRC/utils/clearCaches.sh
 
 if [ $# -eq 0 ]; then
     ym=$(date +%Y%m)
@@ -72,5 +73,4 @@ aws s3 cp $DATADIR/reports/$yr/stations/reportindex.js  $WEBSITEBUCKET/reports/$
 aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --quiet
 
 logger -s -t stationReports "finished"
-
-
+$SRC/utils/clearCaches.sh

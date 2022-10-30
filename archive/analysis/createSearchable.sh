@@ -17,6 +17,8 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config.ini >/dev/null 2>&1
 source ~/venvs/$WMPL_ENV/bin/activate
+logger -s -t createSearchable "starting"
+$SRC/utils/clearCaches.sh
 
 if [ $# -lt 1 ] ; then
     yr=$(date +%Y)
@@ -26,7 +28,6 @@ fi
 
 mkdir -p $DATADIR/searchidx
 cd $SRC/analysis
-logger -s -t createSearchable "creating searchable format files"
 
 python -m reports.createSearchableFormat $yr /tmp
 cp -f /tmp/${yr}-allevents.* $DATADIR/searchidx/
@@ -37,4 +38,5 @@ rm -f /tmp/${yr}-allevents.*
 
 aws s3 sync $DATADIR/searchidx/ $WEBSITEBUCKET/search/indexes/ --quiet
 
-logger -s -t createSearchable "done"
+$SRC/utils/clearCaches.sh
+logger -s -t createSearchable "finished"

@@ -13,8 +13,9 @@
 #   synced to the website
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-
 source $here/../config.ini >/dev/null 2>&1
+logger -s -t createMthlyExtracts "starting"
+$SRC/utils/clearCaches.sh
 
 if [ $# -gt 0 ] ; then
     ymd=$1
@@ -38,6 +39,7 @@ do
     rsync -avz ${DATADIR}/consolidated/P_${yr}*.csv $DATADIR/browse/annual/
     python -m reports.extractors $yr $mth $endmths
 done
+$SRC/utils/clearCaches.sh
 
 logger -s -t createMthlyExtracts "done gathering data, creating monthly table"
 idxfile=$DATADIR/browse/monthly/browselist.js

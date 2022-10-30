@@ -20,6 +20,7 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 source ~/venvs/$WMPL_ENV/bin/activate
+$SRC/utils/clearCaches.sh
 
 mkdir -p $DATADIR/browse/showers
 
@@ -97,4 +98,5 @@ done
 logger -s -t createShwrExtracts "sending to website"
 aws s3 sync $DATADIR/browse/showers/  $WEBSITEBUCKET/browse/showers/ --quiet
 
+$SRC/utils/clearCaches.sh
 logger -s -t createShwrExtracts "finished"

@@ -18,6 +18,7 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 source $HOME/venvs/${WMPL_ENV}/bin/activate
+$SRC/utils/clearCaches.sh
 
 yr=$1
 if [ "$yr" == "" ] ; then
@@ -26,7 +27,7 @@ fi
 
 cd ${DATADIR}
 # consolidate UFO and RMS original CSVs.
-logger -s -t consolidateOutput "getting latest consolidated information"
+logger -s -t consolidateOutput "starting"
 aws s3 sync s3://ukmon-shared/consolidated/ ${DATADIR}/consolidated --quiet --exclude 'temp/*'
 
 logger -s -t consolidateOutput "Consolidating RMS and UFO CSVs"
@@ -88,4 +89,5 @@ aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matchedpq/ --quiet --ex
 aws s3 sync $DATADIR/matched/ $WEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.gzip" --exclude "*.bkp" --quiet
 aws s3 sync $DATADIR/single/ $WEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.gzip" --exclude "*.bkp" --quiet
 
-logger -s -t consolidateOutput "consolidation done"
+$SRC/utils/clearCaches.sh
+logger -s -t consolidateOutput "finished"
