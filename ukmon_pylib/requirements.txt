@@ -34,3 +34,4 @@ astropy
 gitpython
 pymysql
 mysql-connector-python
+pyarrow
