@@ -14,7 +14,8 @@ import boto3
 def gatherDetectionData(dttime):
     yr = dttime[:4]
     snglfile = f's3://ukmon-shared/matches/singlepq/singles-{yr}.parquet.gzip'
-    sngl = pd.read_parquet(snglfile)
+    cols = ['Filename','ID','dtstamp']
+    sngl = pd.read_parquet(snglfile, columns=cols)
     fltr = sngl[sngl.Filename.str.contains(dttime)]
     idlist = pd.concat([fltr.ID, fltr.Filename], axis=1).drop_duplicates()
     idlist['dtstamp'] = [d[10:25] for d in idlist.Filename]

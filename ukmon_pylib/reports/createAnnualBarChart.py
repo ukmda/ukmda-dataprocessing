@@ -15,7 +15,8 @@ def createBarChart(fname, yr):
     if not os.path.isfile(fname):
         print('{} missing', fname)
         return None
-    matches = pd.read_parquet(fname)
+    cols = ['_mjd']
+    matches = pd.read_parquet(fname, columns=cols)
     matches = matches.sort_values(by=['_mjd'])
     v1=int(matches['_mjd'][0])
     v2=int(matches['_mjd'][len(matches)-1])+2

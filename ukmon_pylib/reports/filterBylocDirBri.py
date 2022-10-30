@@ -88,7 +88,8 @@ if __name__ == '__main__':
     obj = s3.Object('ukmon-shared','admin/cameraLocs.json')
     camdb = json.load(obj.get()['Body']) 
 
-    df = pd.read_parquet(f"s3://ukmon-shared/matches/singlepq/singles-{yr}.parquet.gzip")
+    cols = ['Lat','Long','Filename','Az1','Dtstamp']
+    df = pd.read_parquet(f"s3://ukmon-shared/matches/singlepq/singles-{yr}.parquet.gzip", columns=cols)
 
     df = filterByDtstamp(df, dt)
     df['cam_dir'] = [bearingBfromA(lat, lon, ll, lg) for ll,lg in zip(df.Lat, df.Long)]

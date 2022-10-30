@@ -19,8 +19,9 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config.ini >/dev/null 2>&1
 source $HOME/venvs/${WMPL_ENV}/bin/activate
+$SRC/utils/clearCaches.sh
 
-logger -s -t createSummaryTable "creating summary table"
+logger -s -t createSummaryTable "starting"
 cd $DATADIR
 
 yr=$(date +%Y)
@@ -61,4 +62,6 @@ aws s3 cp $DATADIR/Annual-${yr}.jpg $WEBSITEBUCKET/YearToDate.jpg --quiet
 aws s3 cp $DATADIR/newindex.html $WEBSITEBUCKET/index.html --quiet
 aws s3 cp $SRC/website/templates/header.html $WEBSITEBUCKET/templates/ --quiet
 aws s3 cp $SRC/website/templates/footer.html $WEBSITEBUCKET/templates/ --quiet
+
+$SRC/utils/clearCaches.sh
 logger -s -t createSummaryTable "finished"
