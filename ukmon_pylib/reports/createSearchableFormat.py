@@ -94,7 +94,7 @@ def convertMatchToSrchable(datadir, year, outdir, weburl):
     infile = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.gzip'.format(year))
     cols = ['dtstamp','src','_stream','_mag','stations','url','img', '_Y_ut']
     newm = pd.read_parquet(infile, columns=cols)
-    newm = newm[newm['_Y_ut']==int(yr)] 
+    newm = newm[newm['_Y_ut']==int(year)] 
 
     outdf = pd.concat([newm['dtstamp'], newm['src'], newm['_stream'], newm['_mag'], newm['stations'], newm['url'], newm['img']], 
         axis=1, keys=['eventtime','source','shower','Mag','loccam','url','imgs'])
