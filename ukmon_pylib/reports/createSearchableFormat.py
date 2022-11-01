@@ -18,6 +18,8 @@ def convertSingletoSrchable(datadir, year, outdir, weburl):
     print(datetime.datetime.now(), f'read single file to get shower and mag: {rmsuafile}')
     cols = ['Dtstamp','Shwr','Mag','ID','Y','M','Filename']
     uadata = pd.read_parquet(rmsuafile, columns=cols)
+    # handle any database pollution
+    uadata = uadata[uadata['Y']==int(year)]
 
     uadata = uadata.assign(ts = pd.to_datetime(uadata['Dtstamp'], unit='s', utc=True))
     uadata['LocalTime'] = [ts.strftime('%Y%m%d_%H%M%S') for ts in uadata.ts]
@@ -90,8 +92,9 @@ def convertMatchToSrchable(datadir, year, outdir, weburl):
     """
     print('reading merged match file')
     infile = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.gzip'.format(year))
-    cols = ['dtstamp','src','_stream','_mag','stations','url','img']
+    cols = ['dtstamp','src','_stream','_mag','stations','url','img', '_Y_ut']
     newm = pd.read_parquet(infile, columns=cols)
+    newm = newm[newm['_Y_ut']==int(yr)] 
 
     outdf = pd.concat([newm['dtstamp'], newm['src'], newm['_stream'], newm['_mag'], newm['stations'], newm['url'], newm['img']], 
         axis=1, keys=['eventtime','source','shower','Mag','loccam','url','imgs'])

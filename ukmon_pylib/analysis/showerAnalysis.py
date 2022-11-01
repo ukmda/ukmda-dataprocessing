@@ -475,6 +475,8 @@ def showerAnalysis(shwr, dtstr):
     singleFile = os.path.join(datadir, 'single', f'singles-{yr}.parquet.gzip')
     sngl = pd.read_parquet(singleFile, columns=cols, filters=filt)
 
+    sngl = sngl[sngl['Y']==int(yr)] # just in case there's some pollution in the database
+
     # select the required data
     if shwr != 'ALL':
         sl = imo.IMOshowerList()

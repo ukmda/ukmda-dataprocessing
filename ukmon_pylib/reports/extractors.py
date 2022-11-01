@@ -25,6 +25,7 @@ def createSplitMatchFile(yr, mth=None, shwr=None, matches=None):
             return 
         #cols = ['_M_ut','_stream',]
         matches=pd.read_parquet(infname)
+        matches = matches[matches['_Y_ut']==int(yr)] 
 
     ofname = os.path.join(datadir, 'matched',f'matches-{yr}.csv')
     if mth is not None:
@@ -98,6 +99,8 @@ def createRMSSingleMonthlyExtract(yr, mth=None, shwr=None, dta=None, withshower=
         if not os.path.isfile(fname):
             return 
         dta = pd.read_parquet(fname)
+        dta = dta[dta['Y']==int(yr)] # just in case there's some pollution in the database
+
 
     #locdta = dta[dta.ID.str.contains('UK0')]
     if mth is not None:
@@ -151,7 +154,9 @@ def extractAllShowersData(ymd):
     if not os.path.isfile(infname):
         print(f'unable to open {infname}')
         return 
-    matches=pd.read_parquet(infname)
+    matches = pd.read_parquet(infname)
+    # in case database is polluted
+    matches = matches[matches['_Y_ut']==int(yr)] 
 
     for shwr in showerlist:
         doit = True
@@ -177,6 +182,7 @@ def extractAllShowersData(ymd):
         print(f'unable to open {fname}')
         return 
     rmssingles = pd.read_parquet(fname)
+    rmssingles = rmssingles[rmssingles['Y']==int(yr)] # just in case there's some pollution in the database
 
     for shwr in showerlist:
         doit = True

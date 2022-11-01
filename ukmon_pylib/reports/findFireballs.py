@@ -119,11 +119,12 @@ def findFireballs(dtval, shwr, minmag=-3.99, matchdataset = None):
 
     if matchdataset is None:
         if yr > 2019:
-            cols = ['_stream','_mjd','_mag','_vg','url','mass','orbname','_M_ut','isfb']
+            cols = ['_stream','_mjd','_mag','_vg','url','mass','orbname','_M_ut','isfb', '_Y_ut']
             filt = None
             fname = os.path.join(datadir, 'matched',f'matches-full-{yr}.parquet.gzip')
             if os.path.isfile(fname):
                 df = pd.read_parquet(fname, columns=cols, filters=filt)
+                df = df[df['_Y_ut']==int(yr)] 
             else:
                 print('unable to load datafile')
                 exit(0)
