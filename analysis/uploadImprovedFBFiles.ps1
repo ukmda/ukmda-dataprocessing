@@ -16,6 +16,8 @@ $ini=get-inicontent analysis.ini
 $stationdetails=$ini['fireballs']['stationdets']
 $fbfldr=$ini['fireballs']['localfolder']
 
+$awsprofile=$ini['aws']['awsprofile']
+
 $dt = [string]$args[0]
 $cam = $args[1]
 $tf = $cam + '_' + $dt + '_180000'
@@ -34,12 +36,9 @@ if ((test-path $targpth\platepars_all_recalibrated.json) -eq 0)
     & $PSScriptRoot\makePPallFromPP.ps1 $args[0] $args[1]
 }
 
-# load the AWS keyfile
-. $ini['website']['awskey'] 
-
-aws s3 cp $targpth/platepar_cmn2010.cal s3://ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/
-aws s3 cp $targpth/platepars_all_recalibrated.json s3://ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/
-aws s3 cp $targpth/*.ecsv s3://ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/ 
+aws s3 cp $targpth/platepar_cmn2010.cal s3://ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/ --profile $awsprofile
+aws s3 cp $targpth/platepars_all_recalibrated.json s3://ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/ --profile $awsprofile
+aws s3 cp $targpth/*.ecsv s3://ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/  --profile $awsprofile
 # must upload FTP file last
-aws s3 cp $targpth/FTPdetect*manual.txt s3://ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/ 
+aws s3 cp $targpth/FTPdetect*manual.txt s3://ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/  --profile $awsprofile
 Set-Location $Loc
