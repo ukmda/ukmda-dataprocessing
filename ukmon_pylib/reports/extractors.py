@@ -56,7 +56,7 @@ def createUFOSingleMonthlyExtract(yr, mth=None, shwr=None, dta=None):
         shwr (string): optional shower code. If provided, the data will be filtered 
         
     """
-    print('ufo singles file')
+    # print('ufo singles file')
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     if dta is None:
         fname = os.path.join(datadir, 'consolidated','M_{}-unified.csv'.format(yr))

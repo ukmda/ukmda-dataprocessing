@@ -42,7 +42,7 @@ def createBarChart(fname, yr):
     fig = plt.gcf()
     fig.set_size_inches(12, 5)
     fig.tight_layout()
-
+    #plt.gca().invert_yaxis()
     plt.savefig('Annual-{}.jpg'.format(yr), dpi=100)
 
     return matches
