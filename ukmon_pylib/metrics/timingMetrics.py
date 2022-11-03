@@ -1,116 +1,139 @@
 #
 # nightly job metrics
 #
+import pandas as pd
 import sys
 import os
 import datetime
 import matplotlib.pyplot as plt
+import glob
 
 
-njstrs = ['nightlyJob: looking for matching',
-    'nightlyJob: starting',
-    'nightlyJob: forcing consolidation of',
-    'nightlyJob: Create density',
-    "nightlyJob: getting list of single jpg files"
-    'nightlyJob: update shower associations',
-    'createMthlyExtracts: gathering annual',
-    'createMthlyExtracts: finished',
-    'createShwrExtracts: starting',
-    'createShwrExtracts: finished',
-    'createSearchable: creating',
-    'createSearchable: done',
-    'consolidateOutput: getting',
-    'consolidateOutput: consolidation done',
-    'nightlyJob: update search index',
-    'updateSearchIndex: finished',
-    'monthlyReports: getting latest combined files',
-    'monthlyReports: Getting single detections',
-    'monthlyReports: running ALL report for 2021',
-    'nightlyJob: update other relevant showers',
-    'nightlyJob: create the cover page',
-    'nightlyJob: Finished',
-    'stationReports: finished',
-    'createLatestTable: starting',
-    'createLatestTable: finished',
-    'cameraStatusReport: starting',
-    'cameraStatusReport: finished',
-    'getBadStations: starting',
-    'getBadStations: finished',
-    'stationReports: running station reports']
-
-mlstrs=[
-    'findAllMatches1: load the WMPL',
-    'findAllMatches1: get all UFO data',
-    'findAllMatches1: create ukmon',
-    'findAllMatches1: set the date',
-    'findAllMatches1: solving for',
-    'findAllMatches1: actually run',
-    'convertUfoToRms: finished',
-    'getRMSSingleData: starting',
-    'getRMSSingleData: finished',
-    'runDistrib: waiting for the server',
-    'runDistrib: running phase 1',
-    'runDistrib: monitoring and waiting',
-    'runDistrib: merging in the new json',
-    'runDistrib: restarting calcserver',
-    'runDistrib: stopping calcserver again',
-    'runDistrib: done',
-    'findAllMatches2: check if',
-    'findAllMatches2: create text file containing',
-    'findAllMatches2: update the Index page',
-    'findAllMatches2: gather some stats',
-    'findAllMatches2: Matching process finished'
-]
-
-
-def graphOfData(logf, typ):
-    if typ == 'M':
-        with open(logf,'r') as inf:
-            loglines = inf.readlines()
-        times = []
-        events = []
-        elapsed = []
-        daystart=0
-        for li in loglines:
-            spls = li.split(',')
-            dtstamp = datetime.datetime.strptime(spls[0]+'_'+spls[1], '%Y%m%d_%H:%M:%S')
-            times.append(dtstamp)
-            events.append(spls[2].strip())
-            if 'nightlyJob: starting' in li:
-                print('resetting at ', dtstamp)
-                daystart = dtstamp
-            evttime = (dtstamp - daystart).seconds
-            elapsed.append(evttime)
-        #fig, ax = plt.subplots()
-        le = len(times)
-        t1 = times[le - 16:]
-        e1 = elapsed[le - 16:]
-        print(t1, e1)
-        plt.plot(t1, e1)    
-        plt.show()    
-        plt.savefig('./timings.jpg')
-        #return times, events, elapsed 
-
-
-
-def getLogStats(logf, typ):
+def graphOfData(logf, dtstr):
     with open(logf,'r') as inf:
+        lis = inf.readlines()
+    dta = [li for li in lis if dtstr in li]
+
+    # note: timings in log are the start times of the process
+    # so we offset the labels by 1 to align with the end times
+    times = []
+    events = ['start']
+    elapsed = []
+    lasttime = 0
+    for li in dta:
+        spls = li.split(',')
+        elapsed.append(int(spls[2]))        # runtime so far
+        events.append(spls[4].strip())      # event name
+        times.append(int(spls[2])-lasttime) # duration of event
+        lasttime = int(spls[2])
+    
+    # add two dummy end-time values
+    elapsed.append(elapsed[-1])
+    times.append(0)
+
+    fig, ax = plt.subplots()
+    width = 0.35       
+    nowdt = datetime.datetime.now()
+
+    ax.set_ylabel('Task')
+    ax.set_xlabel('Duration (s)')
+    ax.set_title('Batch Phases: Last updated {}'.format(nowdt.strftime('%Y-%m-%d %H:%M:%S')))
+    ax.barh(events, times, width)
+    fig = plt.gcf()
+    fig.set_size_inches(12, 12)
+    fig.tight_layout()
+    plt.gca().invert_yaxis()
+    logname, _ = os.path.splitext(os.path.basename(logf))
+    plt.savefig(f'./{dtstr}-{logname}.jpg', dpi=100)
+
+
+
+def getLogStats(nightlogf, matchlogf):
+    with open(nightlogf,'r') as inf:
         loglines = inf.readlines()
     
-    logf = os.path.basename(logf)
+    logf = os.path.basename(nightlogf)
     spls = logf.split('-')
     thisdy= spls[1]
-    if typ=='M':
-        matchstrs = mlstrs
-    else:
-        matchstrs = njstrs
+    matchstr = 'RUNTIME'    
 
+    # <13>Nov  1 11:49:55 nightlyJob: RUNTIME 10554 showerReport ALL 202211
+    startFAM = 0
+    startRD = 0
+    dts = []
+    tss = []
+    tsks = []
+    secs = []
+    msgs = []
     for li in loglines:
-        if any(msg in li for msg in matchstrs):
-            ts = li[11:19]
-            msg=li[20:].strip()
-            print('{},{},{}'.format(thisdy, ts, msg))
+        if matchstr in li:
+            spls = li.split(' ')
+            msg = ''
+            for s in range(7, len(spls)):
+                msg = msg + ' ' + spls[s]
+            if 'start findAllMatches' in msg:
+                startFAM = int(spls[6])
+            dts.append(thisdy)
+            tss.append(spls[3])
+            tsks.append(spls[4].replace(':',''))
+            secs.append(int(spls[6]))
+            msgs.append(msg.strip())
 
+    with open(matchlogf,'r') as inf:
+        loglines = inf.readlines()
+    
+    # scan for findAllMatches data first
+    for li in loglines:
+        if matchstr in li:
+            spls = li.split(' ')
+            if 'runDistrib' in spls[4]: 
+                continue
+            msg = ''
+            for s in range(7, len(spls)):
+                msg = msg + ' ' + spls[s]
+            if 'start runDistrib' in msg:
+                startRD = int(spls[6])
+            dts.append(thisdy)
+            tss.append(spls[3])
+            tsks.append(spls[4].replace(':',''))
+            secs.append(int(spls[6])+startFAM)
+            msgs.append(msg.strip())
+
+    # rescan for runDistrib data
+    for li in loglines:
+        if matchstr in li:
+            spls = li.split(' ')
+            if 'runDistrib' not in spls[4]: 
+                continue
+            msg = ''
+            for s in range(7, len(spls)):
+                msg = msg + ' ' + spls[s]
+            dts.append(thisdy)
+            tss.append(spls[3])
+            tsks.append(spls[4].replace(':',''))
+            secs.append(int(spls[6]) + startFAM + startRD)
+            msgs.append(msg.strip())
+
+    df = pd.DataFrame(zip(dts,tss,secs,tsks,msgs), columns=['dts','tss','secs','tsk','msgs'])
+    df = df.sort_values(by=['tss'])
+    #print(df)
+    df.to_csv('perfNightly.csv', mode='a', header=False, index=False)
+    
 
 if __name__ == '__main__':
-    getLogStats(sys.argv[1],sys.argv[2])
+    dtstr = sys.argv[1]
+    logdir = os.path.join(os.getenv('SRC', default='/home/ec2-user/prod'), 'logs')
+    logs = glob.glob(os.path.join(logdir, f'*{dtstr}*.log'))
+    nightf = None
+    matchf = None
+    for fn in logs:
+        if 'matches' in fn:
+            matchf = fn
+        if 'nightlyJob' in fn:
+            nightf = fn
+    if nightf is None or matchf is None:
+        print('logfile missing')
+        print(nightf, matchf)
+    else:        
+        getLogStats(nightf, matchf)
+        graphOfData('perfNightly.csv', dtstr)

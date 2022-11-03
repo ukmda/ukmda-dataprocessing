@@ -13,19 +13,13 @@ fi
 
 # create performance metrics
 cd $SRC/logs
-matchlog=$( ls -1 ${SRC}/logs/matches-*.log | tail -1)
-python -m metrics.timingMetrics $matchlog 'M' >> $SRC/logs/perfMatching.csv
-
-nightlog=$( ls -1 ${SRC}/logs/nightlyJob-*.log | tail -1)
-python -m metrics.timingMetrics $nightlog 'N' >> $SRC/logs/perfNightly.csv
-
+python -m metrics.timingMetrics $rundate
 
 lastlog=$(ls -1tr $SRC/logs/nightlyJob-${rundate}-*.log | tail -1)
 lastmtch=$(ls -1tr $SRC/logs/matches-${rundate}-*.log | tail -1)
 
-egrep "nightlyJob|consolidateOutput|createMthlyExtracts|createShwrExtracts|createSearchable|createFireballPage|showerReport|reportYear|createSummaryTable|createLatestTable|stationReports" $lastlog > /tmp/logmsgs.txt
-egrep "findAllMatches1|convertUfoToRms|getRMSSingleData|runDistrib" $lastmtch > /tmp/matchpt1.txt
-egrep "findAllMatches2|updateIdexPages|createOrbitIndex" $lastmtch > /tmp/matchpt2.txt
+egrep "RUNTIME" $lastlog > /tmp/logmsgs.txt
+egrep "RUNTIME" $lastmtch > /tmp/matches.txt
 
 python -m reports.findFailedMatches $rundate
 
@@ -41,11 +35,10 @@ echo "</p>" >> $logfile
 echo "<h2 id=batch>Batch Job Report</h2>" >> $logfile
 echo "<p>This section shows the output of the daily batch.</p>">> $logfile
 echo "<pre>" >> $logfile
-head -2 /tmp/logmsgs.txt >> $logfile
-cat /tmp/matchpt1.txt >> $logfile
-cat /tmp/matchpt2.txt >> $logfile
+head -3 /tmp/logmsgs.txt >> $logfile
+cat /tmp/matches.txt >> $logfile
 len=$(wc -l /tmp/logmsgs.txt|awk '{print $1}')
-len=$((len-2))
+len=$((len-3))
 tail -$len /tmp/logmsgs.txt >> $logfile
 echo "</pre>" >> $logfile
 
@@ -79,7 +72,7 @@ cat $DATADIR/failed/${rundate}_failed.txt >> $logfile
 echo "</pre>" >> $logfile
 
 cat $TEMPLATES/footer.html >> $logfile
-rm /tmp/matchpt1.txt /tmp/matchpt2.txt /tmp/logmsgs.txt
+rm /tmp/matches.txt /tmp/logmsgs.txt
 
 if [ ! -d $DATADIR/lastlogs ] ; then mkdir $DATADIR/lastlogs ; fi
 if [ "$1" == "" ] ; then 
