@@ -14,12 +14,9 @@ fi
 # create performance metrics
 cd $SRC/logs
 python -m metrics.timingMetrics $rundate
+aws s3 cp $rundate-perfNightly.jpg $WEBSITEBUCKET/reports/batchcharts/ --quiet
 
-lastlog=$(ls -1tr $SRC/logs/nightlyJob-${rundate}-*.log | tail -1)
 lastmtch=$(ls -1tr $SRC/logs/matches-${rundate}-*.log | tail -1)
-
-egrep "RUNTIME" $lastlog > /tmp/logmsgs.txt
-egrep "RUNTIME" $lastmtch > /tmp/matches.txt
 
 python -m reports.findFailedMatches $rundate
 
@@ -29,17 +26,14 @@ echo "Jump to:<p>" >> $logfile
 echo "<li><a href=#correl>Correlation Results</a></li>" >> $logfile
 echo "<li><a href=#uncal>Uncalibrated Data</a></li>" >> $logfile
 echo "<li><a href=#fails>Match Fails</a></li>" >> $logfile
+echo "<li><a href=#graph>Batch Timing Chart</a></li>" >> $logfile
 echo "<li><a href=/reports/lastlogs/index.html>Previous Logs</a></li>" >> $logfile
 echo "</p>" >> $logfile
 
 echo "<h2 id=batch>Batch Job Report</h2>" >> $logfile
 echo "<p>This section shows the output of the daily batch.</p>">> $logfile
 echo "<pre>" >> $logfile
-head -3 /tmp/logmsgs.txt >> $logfile
-cat /tmp/matches.txt >> $logfile
-len=$(wc -l /tmp/logmsgs.txt|awk '{print $1}')
-len=$((len-3))
-tail -$len /tmp/logmsgs.txt >> $logfile
+grep $rundate $SRC/logs/perfNightly.csv >> $logfile
 echo "</pre>" >> $logfile
 
 echo "<h2 id=correl>Correlator Report</h2>" >> $logfile
@@ -70,9 +64,11 @@ echo "<a href=https://github.com/markmac99/ukmon-pitools/wiki/Trajectory-Solver-
 echo "<pre>" >> $logfile
 cat $DATADIR/failed/${rundate}_failed.txt >> $logfile
 echo "</pre>" >> $logfile
+echo "<h2 id=graph>Chart of Batch Element Runtimes</h2>" >> $logfile
+echo "<p>This section shows the runtime of the different jobs in the batch</p>" >> $logfile
+echo "<p><a href=/reports/batchcharts/$rundate-perfNightly.jpg><img src=/reports/batchcharts/$rundate-perfNightly.jpg width=300\%></a></p>"  >> $logfile
 
 cat $TEMPLATES/footer.html >> $logfile
-rm /tmp/matches.txt /tmp/logmsgs.txt
 
 if [ ! -d $DATADIR/lastlogs ] ; then mkdir $DATADIR/lastlogs ; fi
 if [ "$1" == "" ] ; then 
