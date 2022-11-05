@@ -2,6 +2,16 @@
 # bucket notifications that trigger lambdas
 # 
 
+# lambda running in MJMM account but invoked from EE account
+data "aws_lambda_function" "getextraorbitfiles" {
+  provider = aws.mjmmacct
+  function_name = "getExtraOrbitFilesV2"
+}
+
+data "aws_lambda_function" "ftptoukmon" {
+  function_name = "ftpToUkmon"
+}
+
 resource "aws_s3_bucket_notification" "ukmonshared_notification" {
   bucket = aws_s3_bucket.ukmonshared.id
 
@@ -47,7 +57,7 @@ resource "aws_s3_bucket_notification" "ukmonshared_notification" {
     filter_suffix = ".csv"
   }
   lambda_function {
-    lambda_function_arn = "arn:aws:lambda:eu-west-2:317976261112:function:getExtraOrbitFilesV2"
+    lambda_function_arn = data.aws_lambda_function.getextraorbitfiles.arn
     id                  = "pickles"
     events = [
       "s3:ObjectCreated:*"
@@ -63,6 +73,7 @@ resource "aws_s3_bucket_notification" "ukmonshared_notification" {
     filter_prefix       = "archive/"
     filter_suffix       = ".config"
   }
+  /*
   lambda_function {
     lambda_function_arn = aws_lambda_function.ftptoukmonlambda.arn
     id                  = "ftptoukmon"
@@ -70,7 +81,7 @@ resource "aws_s3_bucket_notification" "ukmonshared_notification" {
     filter_prefix       = "matches/RMSCorrelate/"
     filter_suffix       = ".txt"
   }
-
+*/
 }
 
 # lambda permissions to allow functions to be executed from S3
@@ -124,6 +135,7 @@ resource "aws_lambda_permission" "permloguploadlambda" {
   source_account = "822069317839"
   source_arn     = aws_s3_bucket.ukmonshared.arn
 }
+/*
 resource "aws_lambda_permission" "permftptoukmonlambda" {
   statement_id   = "AllowExecutionFromS3Bucket"
   action         = "lambda:InvokeFunction"
@@ -132,3 +144,4 @@ resource "aws_lambda_permission" "permftptoukmonlambda" {
   source_account = "822069317839"
   source_arn     = aws_s3_bucket.ukmonshared.arn
 }
+*/

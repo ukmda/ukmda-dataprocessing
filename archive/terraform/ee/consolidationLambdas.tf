@@ -181,6 +181,7 @@ resource "aws_lambda_function" "logcamuploadtimelambda" {
     billingtag = "ukmon"
   }
 }
+/*
 # update camera table when an upload occurs
 data "archive_file" "ftptoukmonlambdazip" {
   type        = "zip"
@@ -208,3 +209,4 @@ resource "aws_lambda_function" "ftptoukmonlambda" {
     billingtag = "ukmon"
   }
 }
+*/
