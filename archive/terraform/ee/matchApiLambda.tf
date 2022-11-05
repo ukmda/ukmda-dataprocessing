@@ -45,31 +45,3 @@ resource "aws_api_gateway_rest_api" "matchapi_apigateway" {
     billingtag = "ukmon"
   }
 }
-
-
-/*
-jsonencode({
-    openapi = "3.0.1"
-    info = {
-      title       = "ukmonMatchApi"
-      description = "return info about daily matches"
-      version     = "2021-02-15T19:23:10Z"
-    }
-    host     = "oaa3lqdkvf.execute-api.eu-west-1.amazonaws.com"
-    basePath = "/prod"
-    schemes  = ["https"]
-    paths = {
-      "/" = {
-        get = {
-          x-amazon-apigateway-integration = {
-            httpMethod           = "GET"
-            payloadFormatVersion = "1.0"
-            type                 = "HTTP_PROXY"
-            uri                  = "https://ip-ranges.amazonaws.com/ip-ranges.json"
-          }
-        }
-      }
-    }
-  })
-
-*/

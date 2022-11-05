@@ -181,3 +181,30 @@ resource "aws_lambda_function" "logcamuploadtimelambda" {
     billingtag = "ukmon"
   }
 }
+# update camera table when an upload occurs
+data "archive_file" "ftptoukmonlambdazip" {
+  type        = "zip"
+  source_dir  = "${path.root}/files/ftptoukmon/"
+  output_path = "${path.root}/files/ftptoukmon.zip"
+}
+
+resource "aws_lambda_function" "ftptoukmonlambda" {
+  function_name    = "ftpToUkmon"
+  description      = "Updates dynamodb with the camera upload time"
+  filename         = data.archive_file.ftptoukmonlambdazip.output_path
+  source_code_hash = data.archive_file.ftptoukmonlambdazip.output_base64sha256
+  handler          = "ftpToUkmon.lambda_handler"
+  runtime          = "python3.8"
+  memory_size      = 128
+  timeout          = 60
+  role             = aws_iam_role.S3FullAccess.arn
+  publish          = false
+
+  ephemeral_storage {
+    size = 512
+  }
+  tags = {
+    Name       = "ftpToUkmon"
+    billingtag = "ukmon"
+  }
+}
