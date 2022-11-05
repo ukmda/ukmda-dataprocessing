@@ -1,0 +1,11 @@
+numpy
+scipy
+matplotlib
+cython
+jplephem
+pyephem
+basemap
+pyyaml
+pyswarms
+keras
+pytz

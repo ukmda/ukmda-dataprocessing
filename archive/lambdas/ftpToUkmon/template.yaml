@@ -1,0 +1,35 @@
+# remember to add inline policy to the Lambda to allow s3 bucket to invoke 
+# then add s3 trigger on the properties page of the bucket
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  python3.8
+
+  SAM Template for ftpToUkmon
+
+Globals:
+  Function:
+    Timeout: 180
+    MemorySize: 512
+    
+Resources:
+  ftoToUkmon:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Architectures:
+        - x86_64
+      FunctionName: ftpToUkmon
+      Description: Converts Ftpdetect info into ukmon-format data
+      Environment:
+        Variables:
+          ARCBUCKET: ukmon-shared
+          MPLCONFIGDIR: /tmp/mpl
+      Tags:
+        billingtag: "ukmon"
+      Role: arn:aws:iam::822069317839:role/S3FullAccess
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: ./pythoncode
+      DockerTag: python3.8-v1
