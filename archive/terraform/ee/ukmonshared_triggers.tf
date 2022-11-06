@@ -8,7 +8,7 @@ data "aws_lambda_function" "getextraorbitfiles" {
   function_name = "getExtraOrbitFilesV2"
 }
 
-data "aws_lambda_function" "ftptoukmon" {
+data "aws_lambda_function" "ftptoukmonlambda" {
   function_name = "ftpToUkmon"
 }
 
@@ -73,15 +73,15 @@ resource "aws_s3_bucket_notification" "ukmonshared_notification" {
     filter_prefix       = "archive/"
     filter_suffix       = ".config"
   }
-  /*
+  
   lambda_function {
-    lambda_function_arn = aws_lambda_function.ftptoukmonlambda.arn
+    lambda_function_arn = data.aws_lambda_function.ftptoukmonlambda.arn
     id                  = "ftptoukmon"
     events              = ["s3:ObjectCreated:*"]
     filter_prefix       = "matches/RMSCorrelate/"
     filter_suffix       = ".txt"
   }
-*/
+
 }
 
 # lambda permissions to allow functions to be executed from S3
@@ -135,13 +135,12 @@ resource "aws_lambda_permission" "permloguploadlambda" {
   source_account = "822069317839"
   source_arn     = aws_s3_bucket.ukmonshared.arn
 }
-/*
+
 resource "aws_lambda_permission" "permftptoukmonlambda" {
   statement_id   = "AllowExecutionFromS3Bucket"
   action         = "lambda:InvokeFunction"
-  function_name  = aws_lambda_function.ftptoukmonlambda.arn
+  function_name  = data.aws_lambda_function.ftptoukmonlambda.arn
   principal      = "s3.amazonaws.com"
   source_account = "822069317839"
   source_arn     = aws_s3_bucket.ukmonshared.arn
 }
-*/
