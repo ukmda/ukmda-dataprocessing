@@ -331,7 +331,7 @@ def estimateMeteorHeight(config, meteor_obj, shower):
 
 
 
-def showerAssociation(config, ftpdetectinfo_list):
+def showerAssociation(config, ftpdetectinfo_path):
     """ Do single station shower association based on radiant direction and height. 
     
     Arguments:
@@ -347,14 +347,7 @@ def showerAssociation(config, ftpdetectinfo_list):
     shower_list = [Shower(shower_entry) for shower_entry in shower_table]
 
     # Load FTPdetectinfos
-    meteor_data = []
-    for ftpdetectinfo_path in ftpdetectinfo_list:
-
-        if not os.path.isfile(ftpdetectinfo_path):
-            print('No such file:', ftpdetectinfo_path)
-            continue
-
-        meteor_data += readFTPdetectinfo(*os.path.split(ftpdetectinfo_path))
+    meteor_data = readFTPdetectinfo(*os.path.split(ftpdetectinfo_path))
 
     if not len(meteor_data):
         return {}, []
@@ -365,7 +358,7 @@ def showerAssociation(config, ftpdetectinfo_list):
 
     for meteor in meteor_data:
 
-        ff_name, cam_code, meteor_No, n_segments, fps, hnr, mle, binn, px_fm, rho, phi, meteor_meas = meteor
+        ff_name, cam_code, meteor_No, _, fps, _, _, _, _, _, _, meteor_meas = meteor
 
         # Skip very short meteors
         if len(meteor_meas) < 4:
@@ -383,7 +376,7 @@ def showerAssociation(config, ftpdetectinfo_list):
         # Infill the meteor structure
         for entry in meteor_meas:
             
-            calib_status, frame_n, x, y, ra, dec, azim, elev, inten, mag = entry
+            _, frame_n, _, _, ra, dec, _, _, _, mag = entry
 
             # Compute the Julian data of every point
             jd = datetime2JD(filenameToDatetime(ff_name) + datetime.timedelta(seconds=float(frame_n)/fps))
@@ -403,8 +396,10 @@ def showerAssociation(config, ftpdetectinfo_list):
         # Go through all showers in the list and find the best match
         best_match_shower = None
         best_match_dist = np.inf
+        #print(f'meteor {meteor_obj.ff_name} {meteor_obj.jdt_ref} {meteor_obj.lasun} {meteor_obj.radiant_ra} {meteor_obj.radiant_dec}')
+        #print('==============')
         for shower in shower_list:
-
+            #print(f'{shower.name}')
             ### Solar longitude filter
             # If the shower doesn't have a stated beginning or end, check if the meteor is within a preset
             # threshold solar longitude difference
@@ -412,7 +407,6 @@ def showerAssociation(config, ftpdetectinfo_list):
 
                 shower.lasun_beg = (shower.lasun_max - config.shower_lasun_threshold) % 360
                 shower.lasun_end = (shower.lasun_max + config.shower_lasun_threshold) % 360
-
 
             # Filter out all showers which are not active    
             if not isAngleBetween(np.radians(shower.lasun_beg), np.radians(meteor_obj.lasun), np.radians(shower.lasun_end)):
@@ -427,10 +421,10 @@ def showerAssociation(config, ftpdetectinfo_list):
             meteor_fixed_ht = 100000 # 100 km
             shower.computeApparentRadiant(config.latitude, config.longitude, meteor_obj.jdt_ref, 
                 meteor_fixed_ht=meteor_fixed_ht)
-
+            #print(f'shower ra/dec {shower.ra} {shower.dec}')
             # Compute the angle between the meteor radiant and the great circle normal
             radiant_separation = meteor_obj.angularSeparationFromGC(shower.ra, shower.dec)
-
+            #print(f'radiant separation {radiant_separation}')
 
             # Make sure the meteor is within the radiant distance threshold
             if radiant_separation > config.shower_max_radiant_separation:
@@ -444,7 +438,7 @@ def showerAssociation(config, ftpdetectinfo_list):
             end_separation = np.degrees(angularSeparationVect(shower.radiant_vector,
                 meteor_obj.meteor_end_cartesian))
 
-
+            #print(f'separations {begin_separation} {end_separation}')
             # Make sure the beginning of the meteor is closer to the radiant than it's end
             if begin_separation > end_separation:
                 continue
@@ -482,6 +476,7 @@ def showerAssociation(config, ftpdetectinfo_list):
 
 
             ### ###
+            #print(f'meteor heights {meteor_ht_m1} {meteor_ht} {meteor_ht_p1}')
 
             # If all heights (even those with +/- 1 frame) are outside the height range, reject the meteor
             if ((meteor_ht_p1 < filter_end_ht) or (meteor_ht_p1 > filter_beg_ht)) and \
@@ -500,6 +495,7 @@ def showerAssociation(config, ftpdetectinfo_list):
 
             # Take the shower that's closest to the great circle if there are multiple candidates
             if radiant_separation < best_match_dist:
+                #print('selecting new shower')
                 best_match_dist = radiant_separation
                 best_match_shower = copy.deepcopy(shower)
 

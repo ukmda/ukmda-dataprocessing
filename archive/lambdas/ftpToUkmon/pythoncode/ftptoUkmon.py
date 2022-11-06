@@ -260,7 +260,7 @@ def ftpToUkmon(s3bucket, s3object):
         print(f'.config file is missing for {pth}')
         return 
 
-    print('got files')
+    #print('got files')
 
     FTPdetectinfo2UkmonCsv(tmpdir)
 

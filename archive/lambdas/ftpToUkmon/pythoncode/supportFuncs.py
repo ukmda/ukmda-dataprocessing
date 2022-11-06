@@ -30,21 +30,26 @@ def raDec2AltAz(ra, dec, jd, lat, lon):
     """ Convert right ascension and declination to azimuth (+east of sue north) and altitude. 
 
     Arguments:
-        ra: [float] right ascension in radians
-        dec: [float] declination in radians
+        ra: [float] right ascension in degrees
+        dec: [float] declination in degrees
         jd: [float] Julian date
-        lat: [float] latitude in radians
-        lon: [float] longitude in radians
+        lat: [float] latitude in degrees
+        lon: [float] longitude in degrees
 
     Return:
         (azim, elev): [tuple]
-            azim: [float] azimuth (+east of due north) in radians
-            elev: [float] elevation above horizon in radians
+            azim: [float] azimuth (+east of due north) in degrees
+            elev: [float] elevation above horizon in degrees
 
         """
 
     # Calculate Local Sidereal Time
-    lst = np.radians(JD2LST(jd, np.degrees(lon))[0])
+    lst = np.radians(JD2LST(jd, lon)[0])
+
+    ra = np.radians(ra)
+    dec = np.radians(dec)
+    lat = np.radians(lat)
+    lon = np.radians(lon)
 
     # Calculate the hour angle
     ha = lst - ra
@@ -582,6 +587,8 @@ def loadConfigFromDirectory(pth, cfgname='.config'):
 
 
 def geocentricToApparentRadiantAndVelocity(ra_g, dec_g, vg, lat, lon, elev, jd, include_rotation=True):
+
+    #print(f'entry ra/dec vg lat lon elev jd {ra_g}, {dec_g}, {vg}, {lat}, {lon}, {elev}, {jd}')
     # Compute ECI coordinates of the meteor state vector
     state_vector = geo2Cartesian(lat, lon, elev, jd)
     eci_x, eci_y, eci_z = state_vector
@@ -593,6 +600,7 @@ def geocentricToApparentRadiantAndVelocity(ra_g, dec_g, vg, lat, lon, elev, jd, 
     ### Uncorrect for zenith attraction ###
     # Compute the radiant in the local coordinates
     azim, elev = raDec2AltAz(ra_g, dec_g, jd, lat_geocentric, lon)
+    #print(lat_geocentric, azim, elev)
     # Compute the zenith angle
     eta = np.radians(90.0 - elev)
     # Numerically correct for zenith attraction
@@ -605,7 +613,9 @@ def geocentricToApparentRadiantAndVelocity(ra_g, dec_g, vg, lat, lon, elev, jd, 
         delta_zc = 2*math.atan((v_init - vg)*math.tan(zc/2.0)/(v_init + vg))
         diff = zc + delta_zc - eta
     # Compute the uncorrected geocentric radiant for zenith attraction
+    #print(zc)
     ra, dec = altAz2RADec(azim, 90.0 - np.degrees(zc), jd, lat_geocentric, lon)
+    #print(f'uncorrected ra/dec {ra}, {dec}')
     # Apply the rotation correction
     if include_rotation:
         # Calculate the velocity of the Earth rotation at the position of the reference trajectory point (m/s)
