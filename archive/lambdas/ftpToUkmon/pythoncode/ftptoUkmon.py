@@ -9,7 +9,6 @@ import pytz
 import json
 from tempfile import mkdtemp
 from shutil import rmtree
-
 import numpy as np
 
 from supportFuncs import datetime2JD, altAz2RADec, polarToCartesian, cartesianToPolar
@@ -39,8 +38,8 @@ def writeUkmonCsv(dir_path, file_name, data):
     """
     with open(os.path.join(dir_path, file_name), 'w') as f:
 
-        # Write the header
-        f.write("Ver,Y,M,D,h,m,s,Mag,Dur,Az1,Alt1,Az2,Alt2,Ra1,Dec1,Ra2,Dec2,ID,Long,Lat,Alt,Tz,AngVel,Shwr,Filename,Dtstamp\n")
+        # Write the header - no
+        #f.write("Ver,Y,M,D,h,m,s,Mag,Dur,Az1,Alt1,Az2,Alt2,Ra1,Dec1,Ra2,Dec2,ID,Long,Lat,Alt,Tz,AngVel,Shwr,Filename,Dtstamp\n")
 
         # Write meteor data to file
         for line in data:
@@ -67,8 +66,15 @@ def writeUkmonCsv(dir_path, file_name, data):
                 peak_mag, duration, azim1, alt1, azim2, alt2, ra1, dec1, ra2, dec2, cam_code, lon, lat, 
                 elev, UT_corr, angvel, shwr, fname, dtstamp))
 
+    s3 = boto3.resource('s3')
+    s3bucket = os.getenv('ARCHBUCKET', default='ukmon-shared')
+    outdir = os.getenv('OUTDIR', default='matches/single/new')
+    outn = outdir + '/' + file_name
+    fullname = os.path.join(dir_path, file_name)
+    s3.meta.client.upload_file(fullname, s3bucket, outn, ExtraArgs={'ContentType': 'text/csv'})
 
-def FTPdetectinfo2UkmonCsv(dir_path, out_path, config=None):
+
+def FTPdetectinfo2UkmonCsv(dir_path):
     """ Convert the FTPdetectinfo file into a ukmon specific CSV file. 
         
     Arguments:
@@ -112,9 +118,8 @@ def FTPdetectinfo2UkmonCsv(dir_path, out_path, config=None):
         print(f'Ignoring {ftpdetectinfo_name} as no meteors')
         return
     
-    # load a default config file then overwrite the bits of importance
-    if config is None:
-        config = loadConfigFromDirectory('.config', '.')
+    # load the config file then overwrite the bits of importance
+    config = loadConfigFromDirectory(dir_path, '.config')
 
     fflst = list(platepars_recalibrated_dict.keys())
     if len(fflst) > 0: 
@@ -124,7 +129,7 @@ def FTPdetectinfo2UkmonCsv(dir_path, out_path, config=None):
         config.longitude = pp1['lon']
         config.elevation = pp1['elev']
         # get the shower associations
-        shwrs = showerAssociation(config, [os.path.join(dir_path,ftpdetectinfo_name)])
+        shwrs = showerAssociation(config, os.path.join(dir_path,ftpdetectinfo_name))
     else:
         print(f'Ignoring {ftpdetectinfo_name} as platepar file empty')
         return 
@@ -212,8 +217,8 @@ def FTPdetectinfo2UkmonCsv(dir_path, out_path, config=None):
         angVel = np.degrees(angLength)/duration
 
         ufo_meteor_list.append([dt1, peak_mag, duration, azim1[0], alt1[0], azim2[0], alt2[0], 
-            ra1[0], dec1[0], ra2[0], dec2[0], cam_code, pp.lon, pp.lat, pp.elev, pp.UT_corr, 
-            shwr, ff_name, angVel[0]])
+            ra1, dec1, ra2, dec2, cam_code, pp.lon, pp.lat, pp.elev, pp.UT_corr, 
+            shwr, ff_name, angVel])
 
 
     # Construct a file name for the UFO file, which is the FTPdetectinfo file without the FTPdetectinfo 
@@ -221,7 +226,7 @@ def FTPdetectinfo2UkmonCsv(dir_path, out_path, config=None):
     ufo_file_name = ftpdetectinfo_name.replace('FTPdetectinfo_', 'ukmon_').replace('.txt', '') + '.csv'
 
     # Write the ukmon-specific output file
-    writeUkmonCsv(out_path, ufo_file_name, ufo_meteor_list)
+    writeUkmonCsv(dir_path, ufo_file_name, ufo_meteor_list)
 
 
 def ftpToUkmon(s3bucket, s3object):

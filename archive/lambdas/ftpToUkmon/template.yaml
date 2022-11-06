@@ -14,7 +14,7 @@ Globals:
     MemorySize: 512
     
 Resources:
-  ftoToUkmon:
+  ftpToUkmon:
     Type: AWS::Serverless::Function
     Properties:
       PackageType: Image
@@ -24,11 +24,12 @@ Resources:
       Description: Converts Ftpdetect info into ukmon-format data
       Environment:
         Variables:
-          ARCBUCKET: ukmon-shared
+          ARCHBUCKET: ukmon-shared
+          OUTDIR: matches/single/new
           MPLCONFIGDIR: /tmp/mpl
       Tags:
         billingtag: "ukmon"
-      Role: arn:aws:iam::822069317839:role/S3FullAccess
+      Role: arn:aws:iam::822069317839:role/lambda-s3-full-access-role
     Metadata:
       Dockerfile: Dockerfile
       DockerContext: ./pythoncode

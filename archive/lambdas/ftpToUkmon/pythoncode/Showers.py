@@ -7,7 +7,7 @@ import os
 import json
 import numpy as np
 
-from RMS.Astrometry.Conversions import geocentricToApparentRadiantAndVelocity
+from supportFuncs import geocentricToApparentRadiantAndVelocity
 from supportFuncs import jd2SolLonSteyaert
 
 

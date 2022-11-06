@@ -1,8 +1,3 @@
 numpy
 scipy
 pytz
-json
-tempfile
-shutil
-copy
-

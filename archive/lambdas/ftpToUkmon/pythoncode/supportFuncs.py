@@ -27,31 +27,41 @@ EARTH = EARTH_CONSTANTS()
 
 
 def raDec2AltAz(ra, dec, jd, lat, lon):
-    """ Calculate the reference azimuth and altitude of the centre of the FOV from the given RA/Dec.
+    """ Convert right ascension and declination to azimuth (+east of sue north) and altitude. 
+
     Arguments:
-        ra:  [float] Right ascension in degrees.
-        dec: [float] Declination in degrees.
-        jd: [float] Reference Julian date.
-        lat: [float] Latitude +N in degrees.
-        lon: [float] Longitude +E in degrees.
+        ra: [float] right ascension in radians
+        dec: [float] declination in radians
+        jd: [float] Julian date
+        lat: [float] latitude in radians
+        lon: [float] longitude in radians
+
     Return:
-        (azim, elev): [tuple of float]: Azimuth and elevation (degrees).
-    """
-    ra = np.radians(ra)
-    dec = np.radians(dec)
-    lat = np.radians(lat)
-    lon = np.radians(lon)
+        (azim, elev): [tuple]
+            azim: [float] azimuth (+east of due north) in radians
+            elev: [float] elevation above horizon in radians
 
-    # Compute azim and elev using a fast cython function
-    if isinstance(ra, float) or isinstance(ra, int) or isinstance(ra, np.float64):
-        azim, elev = cyraDec2AltAz(ra, dec, jd, lat, lon)
+        """
 
-    elif isinstance(ra, np.ndarray):
-        # Compute it for numpy arrays
-        azim, elev = cyraDec2AltAz_vect(ra, dec, jd, lat, lon)
+    # Calculate Local Sidereal Time
+    lst = np.radians(JD2LST(jd, np.degrees(lon))[0])
 
-    else:
-        raise TypeError("ra must be a number or np.ndarray, given: {}".format(type(ra)))
+    # Calculate the hour angle
+    ha = lst - ra
+
+    # Constrain the hour angle to [-pi, pi] range
+    ha = (ha + np.pi) % (2*np.pi) - np.pi
+
+    # Calculate the azimuth
+    azim = np.pi + np.arctan2(np.sin(ha), np.cos(ha)*np.sin(lat) - np.tan(dec)*np.cos(lat))
+
+    # Calculate the sine of elevation
+    sin_elev = np.sin(lat)*np.sin(dec) + np.cos(lat)*np.cos(dec)*np.cos(ha)
+
+    # Wrap the sine of elevation in the [-1, +1] range
+    sin_elev = (sin_elev + 1) % 2 - 1
+
+    elev = np.arcsin(sin_elev)
 
     return np.degrees(azim), np.degrees(elev)
 
@@ -302,7 +312,7 @@ def filenameToDatetime(file_name):
     ms = int(file_name[i + 3])
 
 
-    return datetime.datetime(year, month, day, hour, minute, seconds, ms*1000)
+    return datetime(year, month, day, hour, minute, seconds, ms*1000)
 
 
 def readFTPdetectinfo(ff_directory, file_name, ret_input_format=False):
@@ -429,83 +439,50 @@ def readFTPdetectinfo(ff_directory, file_name, ret_input_format=False):
 
 def vectNorm(vect):
     """ Convert a given vector to a unit vector. """
-
     return vect/vectMag(vect)
 
 
 def vectMag(vect):
     """ Calculate the magnitude of the given vector. """
-
     return np.sqrt(inner1d(vect, vect))
 
 
 def raDec2Vector(ra, dec):
-    """ Convert stellar equatorial coordinates to a vector with X, Y and Z components.
-    @param ra: [float] right ascension in degrees
-    @param dec: [float] declination in degrees
-    @return (x, y, z): [tuple of floats]
-    """
-
+    """ Convert stellar equatorial coordinates to a vector with X, Y and Z components."""
     ra_rad = math.radians(ra)
     dec_rad = math.radians(dec)
-
     xt = math.cos(dec_rad)*math.cos(ra_rad)
     yt = math.cos(dec_rad)*math.sin(ra_rad)
     zt = math.sin(dec_rad)
-
     return xt, yt, zt
 
 
 def vector2RaDec(eci):
-    """ Convert Earth-centered intertial vector to right ascension and declination.
-    Arguments:
-        eci: [3 element ndarray] Vector coordinates in Earth-centered inertial system
-    Return:
-        (ra, dec): [tuple of floats] right ascension and declinaton (degrees)
-    """
-
+    """ Convert Earth-centered intertial vector to right ascension and declination. """
     # Normalize the ECI coordinates
     eci = vectNorm(eci)
-
     # Calculate declination
     dec = np.arcsin(eci[2])
-
     # Calculate right ascension
     ra = np.arctan2(eci[1], eci[0]) % (2*np.pi)
-
     return np.degrees(ra), np.degrees(dec)
 
 
 def isAngleBetween(left, ang, right):
-    """ Checks if ang is between the angle on the left and right. 
-    
-    Arguments:
-        left: [float] Left (counter-clockwise) angle (radians).
-        ang: [float] Angle to check (radians),
-        right: [float] Right (clockwise) angle (radiant).
-
-    Return:
-        [bool] True if the angle is in between, false otherwise.
-    """
-
+    """ Checks if ang is between the angle on the left and right. """
     if right - left < 0:
         right = right - left + 2*np.pi
     else:
         right = right - left
-
-
     if ang - left < 0:
         ang = ang - left + 2*np.pi
     else:
         ang = ang - left
-
-
     return ang < right
 
 
 def angularSeparationVect(vect1, vect2):
     """ Calculates angle between vectors in radians. """
-
     return np.abs(np.arccos(np.dot(vect1, vect2)))
 
 
@@ -590,7 +567,7 @@ def loadConfigFromDirectory(pth, cfgname='.config'):
     with open(cfgfile, 'r') as inf:
         lis = inf.readlines()
     for li in lis:
-        spls = lis.split(' ')
+        spls = li.split(' ')
         if 'latitude:' in spls[0]:
             cfgobj.latitude = float(spls[1])
         if 'longitude:' in spls[0]:
@@ -599,134 +576,75 @@ def loadConfigFromDirectory(pth, cfgname='.config'):
             cfgobj.elevation = float(spls[1])
         if 'fps:' in spls[0]:
             cfgobj.fps = float(spls[1])
-    cfgobj.shower_path = pth
+    cfgobj.shower_path = '.'
 
     return cfgobj
 
 
 def geocentricToApparentRadiantAndVelocity(ra_g, dec_g, vg, lat, lon, elev, jd, include_rotation=True):
-    """ Converts the geocentric into apparent meteor radiant and velocity. The conversion is not perfect
-        as the zenith attraction correction should be done after the radiant has been derotated for Earth's
-        velocity, but it's precise to about 0.1 deg.
-
-    Arguments:
-        ra_g: [float] Geocentric right ascension (deg).
-        dec_g: [float] Declination (deg).
-        vg: [float] Geocentric velocity (m/s).
-        lat: [float] State vector latitude (deg)
-        lon: [float] State vector longitude (deg).
-        ele: [float] State vector elevation (meters).
-        jd: [float] Julian date.
-    Keyword arguments:
-        include_rotation: [bool] Whether the velocity should be corrected for Earth's rotation.
-            True by default.
-    Return:
-        (ra, dec, v_init): Apparent radiant (deg) and velocity (m/s).
-    """
-
     # Compute ECI coordinates of the meteor state vector
     state_vector = geo2Cartesian(lat, lon, elev, jd)
-
     eci_x, eci_y, eci_z = state_vector
-
     # Assume that the velocity at infinity corresponds to the initial velocity
     v_init = np.sqrt(vg**2 + (2*6.67408*5.9722)*1e13/vectMag(state_vector))
-
     # Calculate the geocentric latitude (latitude which considers the Earth as an elipsoid) of the reference
     # trajectory point
     lat_geocentric = np.degrees(math.atan2(eci_z, math.sqrt(eci_x**2 + eci_y**2)))
-
     ### Uncorrect for zenith attraction ###
-
     # Compute the radiant in the local coordinates
     azim, elev = raDec2AltAz(ra_g, dec_g, jd, lat_geocentric, lon)
-
     # Compute the zenith angle
     eta = np.radians(90.0 - elev)
-
     # Numerically correct for zenith attraction
     diff = 10e-5
     zc = eta
     while diff > 10e-6:
         # Update the zenith distance
         zc -= diff
-
         # Calculate the zenith attraction correction
         delta_zc = 2*math.atan((v_init - vg)*math.tan(zc/2.0)/(v_init + vg))
         diff = zc + delta_zc - eta
-
     # Compute the uncorrected geocentric radiant for zenith attraction
     ra, dec = altAz2RADec(azim, 90.0 - np.degrees(zc), jd, lat_geocentric, lon)
-
-    ### ###
-
     # Apply the rotation correction
     if include_rotation:
         # Calculate the velocity of the Earth rotation at the position of the reference trajectory point (m/s)
         v_e = 2*math.pi*vectMag(state_vector)*math.cos(np.radians(lat_geocentric))/86164.09053
-
         # Calculate the equatorial coordinates of east from the reference position on the trajectory
         azimuth_east = 90.0
         altitude_east = 0
         ra_east, dec_east = altAz2RADec(azimuth_east, altitude_east, jd, lat, lon)
-
         # Compute the radiant vector in ECI coordinates of the apparent radiant
         v_ref_vect = v_init*np.array(raDec2Vector(ra, dec))
-
         v_ref_nocorr = np.zeros(3)
-
         # Calculate the derotated reference velocity vector/radiant
         v_ref_nocorr[0] = v_ref_vect[0] + v_e*np.cos(np.radians(ra_east))
         v_ref_nocorr[1] = v_ref_vect[1] + v_e*np.sin(np.radians(ra_east))
         v_ref_nocorr[2] = v_ref_vect[2]
-
         # Compute the radiant without Earth's rotation included
         ra_norot, dec_norot = vector2RaDec(vectNorm(v_ref_nocorr))
         v_init_norot = vectMag(v_ref_nocorr)
-
         ra = ra_norot
         dec = dec_norot
         v_init = v_init_norot
-
     return ra, dec, v_init
 
 
 def geo2Cartesian(lat, lon, h, julian_date):
-    """ Convert geographical Earth coordinates to Cartesian ECI coordinate system (Earth center as origin).
-        The Earth is considered as an elipsoid.
-    
-    Arguments:
-        lat_rad: [float] Latitude of the observer in degrees (+N), WGS84.
-        lon_rad: [float] Longitde of the observer in degrees (+E), WGS84.
-        h: [int or float] Elevation of the observer in meters (WGS84 convention).
-        julian_date: [float] Julian date, epoch J2000.0.
-    
-    Return:
-        (x, y, z): [tuple of floats] A tuple of X, Y, Z Cartesian ECI coordinates in meters.
-        
-    """
-
     lat_rad = np.radians(lat)
     lon_rad = np.radians(lon)
-
     # Calculate ECEF coordinates
     ecef_x, ecef_y, ecef_z = latLonAlt2ECEF(lat_rad, lon_rad, h)
-
-
     # Get Local Sidreal Time
     LST_rad = math.radians(JD2LST(julian_date, np.degrees(lon_rad))[0])
-
     # Calculate the Earth radius at given latitude
     Rh = math.sqrt(ecef_x**2 + ecef_y**2 + ecef_z**2)
-
     # Calculate the geocentric latitude (latitude which considers the Earth as an elipsoid)
     lat_geocentric = math.atan2(ecef_z, math.sqrt(ecef_x**2 + ecef_y**2))
-
     # Calculate Cartesian ECI coordinates (in meters), in the epoch of date
     x = Rh*np.cos(lat_geocentric)*np.cos(LST_rad)
     y = Rh*np.cos(lat_geocentric)*np.sin(LST_rad)
     z = Rh*np.sin(lat_geocentric)
-
     return x, y, z
 
 
@@ -744,17 +662,20 @@ def altAz2RADec(azim, elev, jd, lat, lon):
             RA: [float] right ascension (degrees)
             dec: [float] declination (degrees)
     """
+    lst = np.radians(JD2LST(jd, lon)[0])
+    
     azim = np.radians(azim)
     elev = np.radians(elev)
     lat = np.radians(lat)
     lon = np.radians(lon)
 
-    if isinstance(azim, float) or isinstance(azim, int) or isinstance(azim, np.float64):
-        ra, dec = cyaltAz2RADec(azim, elev, jd, lat, lon)
-    elif isinstance(azim, np.ndarray):
-        ra, dec = cyaltAz2RADec_vect(azim, elev, jd, lat, lon)
-    else:
-        raise TypeError("azim must be a number or np.ndarray, given: {}".format(type(azim)))
+    ha = math.atan2(-math.sin(azim), math.tan(elev)*math.cos(lat) - math.cos(azim)*math.sin(lat))
+    
+    # Calculate right ascension
+    ra = (lst - ha + 2*np.pi) % (2*np.pi)
+
+    # Calculate declination
+    dec = math.asin(math.sin(lat)*math.sin(elev) + math.cos(lat)*math.cos(elev)*math.cos(azim))
 
     return np.degrees(ra), np.degrees(dec)
 
@@ -784,24 +705,8 @@ def latLonAlt2ECEF(lat, lon, h):
 
 
 def JD2LST(julian_date, lon):
-    """ Convert Julian date to Local Sidreal Time and Greenwich Sidreal Time.
-
-    Arguments;
-        julian_date: [float] decimal julian date, epoch J2000.0
-        lon: [float] longitude of the observer in degrees
-
-    Return:
-        [tuple]: (LST, GST): [tuple of floats] a tuple of Local Sidreal Time and Greenwich Sidreal Time
-            (degrees)
-    """
-
     t = (julian_date - J2000_JD.days)/36525.0
-
-    # Greenwich Sidreal Time
     GST = 280.46061837 + 360.98564736629*(julian_date - 2451545) + 0.000387933*t**2 - ((t**3)/38710000)
     GST = (GST + 360) % 360
-
-    # Local Sidreal Time
     LST = (GST + lon + 360) % 360
-
     return LST, GST
