@@ -30,7 +30,7 @@ if [ ! -f $mrgfile ] ; then
 fi 
 ls -1 $outdir/*.csv | while read i
 do
-#    sed '1d' $i >> $mrgfile
+    cat $i >> $mrgfile
     mv $i $outdir/processed
 done 
 
