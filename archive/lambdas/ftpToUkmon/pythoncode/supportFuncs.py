@@ -572,15 +572,16 @@ def loadConfigFromDirectory(pth, cfgname='.config'):
     with open(cfgfile, 'r') as inf:
         lis = inf.readlines()
     for li in lis:
-        spls = li.split(' ')
-        if 'latitude:' in spls[0]:
-            cfgobj.latitude = float(spls[1])
-        if 'longitude:' in spls[0]:
-            cfgobj.longitude = float(spls[1])
-        if 'elevation:' in spls[0]:
-            cfgobj.elevation = float(spls[1])
-        if 'fps:' in spls[0]:
-            cfgobj.fps = float(spls[1])
+        spls = li.split()
+        if len(spls) > 0:
+            if 'latitude:' in spls[0]:
+                cfgobj.latitude = float(spls[1])
+            if 'longitude:' in spls[0]:
+                cfgobj.longitude = float(spls[1])
+            if 'elevation:' in spls[0]:
+                cfgobj.elevation = float(spls[1])
+            if 'fps:' in spls[0]:
+                cfgobj.fps = float(spls[1])
     cfgobj.shower_path = '.'
 
     return cfgobj

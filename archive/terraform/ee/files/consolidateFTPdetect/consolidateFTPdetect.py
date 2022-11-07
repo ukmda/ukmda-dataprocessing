@@ -5,6 +5,7 @@
 import boto3
 import os
 from urllib.parse import unquote_plus
+import time
 
 
 def copyFiles(s3bucket, s3object, target, maxdetcount):
@@ -45,32 +46,45 @@ def copyFiles(s3bucket, s3object, target, maxdetcount):
     plap = pth +'/platepars_all_recalibrated.json'
     outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/platepars_all_recalibrated.json'
     src = {'Bucket': s3bucket, 'Key': plap}
-    try:
-        response = s3c.head_object(Bucket=s3bucket, Key=plap)
-        if response['ContentLength'] > 100: 
-            s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
-    except:
+    # allow for platepar and config being uploaded after the ftpdetect
+    for i in range(11):
+        try:
+            response = s3c.head_object(Bucket=s3bucket, Key=plap)
+            if response['ContentLength'] > 100: 
+                s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
+            break
+        except:
+            time.sleep(1)
+    if i == 10:
         print(f'platepars_all is missing for {pth}')
 
     pth, _ = os.path.split(s3object)
     plap = pth +'/.config'
-    try:
-        response = s3c.head_object(Bucket=s3bucket, Key=plap)
-        if response['ContentLength'] > 100: 
-            outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/.config'
-            src = {'Bucket': s3bucket, 'Key': plap}
-            s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
-    except:
+    for i in range(11):
+        try:
+            response = s3c.head_object(Bucket=s3bucket, Key=plap)
+            if response['ContentLength'] > 100: 
+                outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/.config'
+                src = {'Bucket': s3bucket, 'Key': plap}
+                s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
+            break
+        except:
+            time.sleep(1)
+    if i == 10:
         print(f'config is missing for {pth}')
 
-    try:
-        plap = pth +'/platepar_cmn2010.cal'
-        response = s3c.head_object(Bucket=s3bucket, Key=plap)
-        if response['ContentLength'] > 100: 
-            outf = 'consolidated/platepars/' + bits[1] + '.json'
-            src = {'Bucket': s3bucket, 'Key': plap}
-            s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
-    except:
+    for i in range(11):
+        try:
+            plap = pth +'/platepar_cmn2010.cal'
+            response = s3c.head_object(Bucket=s3bucket, Key=plap)
+            if response['ContentLength'] > 100: 
+                outf = 'consolidated/platepars/' + bits[1] + '.json'
+                src = {'Bucket': s3bucket, 'Key': plap}
+                s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
+            break
+        except:
+            time.sleep(1)
+    if i == 10:
         print(f'platepar missing for {pth}')
 
     return 0

@@ -4,7 +4,6 @@
 import pandas as pd
 import sys
 import os
-import datetime
 import matplotlib.pyplot as plt
 import glob
 
@@ -12,7 +11,7 @@ import glob
 def graphOfData(logf, dtstr):
     with open(logf,'r') as inf:
         lis = inf.readlines()
-    dta = [li for li in lis if dtstr in li]
+    dta = [li for li in lis if li[:8]==dtstr]
 
     # note: timings in log are the start times of the process
     # so we offset the labels by 1 to align with the end times
@@ -33,15 +32,16 @@ def graphOfData(logf, dtstr):
 
     fig, ax = plt.subplots()
     width = 0.35       
-    nowdt = datetime.datetime.now()
 
     ax.set_ylabel('Task')
     ax.set_xlabel('Duration (s)')
-    ax.set_title('Batch Phases: Last updated {}'.format(nowdt.strftime('%Y-%m-%d %H:%M:%S')))
+    ax.set_title('Batch Phases: {}'.format(dtstr))
     ax.barh(events, times, width)
     fig = plt.gcf()
     fig.set_size_inches(12, 12)
     fig.tight_layout()
+    plt.xlim([0,5000])
+    plt.grid(axis='x')
     plt.gca().invert_yaxis()
     logname, _ = os.path.splitext(os.path.basename(logf))
     plt.savefig(f'./{dtstr}-{logname}.jpg', dpi=100)
