@@ -7,6 +7,7 @@ import os
 import datetime
 import pytz
 import json
+import time
 from tempfile import mkdtemp
 from shutil import rmtree
 import numpy as np
@@ -242,21 +243,29 @@ def ftpToUkmon(s3bucket, s3object):
 
     s3c = boto3.client('s3')
     ppn = os.path.join(pth, 'platepars_all_recalibrated.json')
-    try:
-        response = s3c.head_object(Bucket=s3bucket, Key=ppn)
-        if response['ContentLength'] > 100: 
-            outn = os.path.join(tmpdir, 'platepars_all_recalibrated.json')
-            s3.meta.client.download_file(s3bucket, ppn, outn)
-    except:
+    for i in range(11):
+        try:
+            response = s3c.head_object(Bucket=s3bucket, Key=ppn)
+            if response['ContentLength'] > 100: 
+                outn = os.path.join(tmpdir, 'platepars_all_recalibrated.json')
+                s3.meta.client.download_file(s3bucket, ppn, outn)
+            break
+        except:
+            time.sleep(1)
+    if i == 10:
         print(f'platepars_all is missing for {pth}')
         return 
     cfg = os.path.join(pth, '.config')
-    try:
-        response = s3c.head_object(Bucket=s3bucket, Key=cfg)
-        if response['ContentLength'] > 100: 
-            outn = os.path.join(tmpdir, '.config')
-            s3.meta.client.download_file(s3bucket, cfg, outn)
-    except:
+    for i in range(11):
+        try:
+            response = s3c.head_object(Bucket=s3bucket, Key=cfg)
+            if response['ContentLength'] > 100: 
+                outn = os.path.join(tmpdir, '.config')
+                s3.meta.client.download_file(s3bucket, cfg, outn)
+            break
+        except:
+            time.sleep(1)
+    if i == 10:
         print(f'.config file is missing for {pth}')
         return 
 
