@@ -248,7 +248,7 @@ def ftpToUkmon(s3bucket, s3object):
     with open(os.path.join(tmpdir, fn), 'r') as inf:
         lis = inf.readlines()
     if len(lis) == 0:
-        print('missing content in FTP file')
+        print(f'missing content in FTP file {pth}')
         return 0
     metcount = int(lis[0].strip().split()[3])
 
@@ -259,7 +259,7 @@ def ftpToUkmon(s3bucket, s3object):
             break
     
     if metcount == 0 or recal is False:
-        print('Meteorcount 0 or data uncalibrated, not continuing')
+        print(f'Meteorcount 0 or data uncalibrated in {pth}')
         rmtree(tmpdir)
         return 
 
