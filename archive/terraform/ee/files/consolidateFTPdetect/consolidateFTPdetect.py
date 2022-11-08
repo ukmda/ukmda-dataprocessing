@@ -30,62 +30,76 @@ def copyFiles(s3bucket, s3object, target, maxdetcount):
 
     # check for too many events to be realistic data
     s3.meta.client.download_file(s3bucket, s3object, '/tmp/tmp.txt')
+    metcount = 0
+    recal = False
     with open('/tmp/tmp.txt') as inf:
-        li = inf.readline().strip()
-    metcount = int(li.split(' ')[3])
+        lis = inf.readlines()
+    if len(lis) == 0:
+        print('missing content in FTP file')
+        return 0
+    metcount = int(lis[0].strip().split()[3])
     if metcount > maxdetcount:
         _, fn = os.path.split(s3object)
         print('too many events ({}) in {}'.format(metcount, fn))
         return 0
-
-    src = {'Bucket': s3bucket, 'Key': s3object}
-    s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
-
+    # check data recalibrated 
+    for li in lis:
+        if 'Recalibrated' in li:
+            recal = True
+            break
+    
     s3c = boto3.client('s3')
     pth, _ = os.path.split(s3object)
-    plap = pth +'/platepars_all_recalibrated.json'
-    outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/platepars_all_recalibrated.json'
-    src = {'Bucket': s3bucket, 'Key': plap}
-    # allow for platepar and config being uploaded after the ftpdetect
-    for i in range(11):
-        try:
-            response = s3c.head_object(Bucket=s3bucket, Key=plap)
-            if response['ContentLength'] > 100: 
-                s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
-            break
-        except:
-            time.sleep(1)
-    if i == 10:
-        print(f'platepars_all is missing for {pth}')
 
-    pth, _ = os.path.split(s3object)
-    plap = pth +'/.config'
+    # only copy the platepar if some data was recalibrated
+    if recal is True:
+        plap = pth +'/platepars_all_recalibrated.json'
+        outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/platepars_all_recalibrated.json'
+        src = {'Bucket': s3bucket, 'Key': plap}
+
+        # loop to allow for platepar and config being uploaded after the Lambda triggers
+        for i in range(11):
+            try:
+                response = s3c.head_object(Bucket=s3bucket, Key=plap)
+                if response['ContentLength'] > 100: 
+                    s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
+                break
+            except:
+                time.sleep(1)
+        if i == 10 and recal is True:
+            print(f'platepars_all is missing for {pth}')
+
+    cfgf = pth +'/.config'
+    outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/.config'
+    src = {'Bucket': s3bucket, 'Key': cfgf}
     for i in range(11):
         try:
-            response = s3c.head_object(Bucket=s3bucket, Key=plap)
+            response = s3c.head_object(Bucket=s3bucket, Key=cfgf)
             if response['ContentLength'] > 100: 
-                outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/.config'
-                src = {'Bucket': s3bucket, 'Key': plap}
                 s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
             break
         except:
             time.sleep(1)
-    if i == 10:
+    if i == 10 and recal is True:
         print(f'config is missing for {pth}')
 
+    plas = pth +'/platepar_cmn2010.cal'
+    outf = 'consolidated/platepars/' + bits[1] + '.json'
+    src = {'Bucket': s3bucket, 'Key': plas}
     for i in range(11):
         try:
-            plap = pth +'/platepar_cmn2010.cal'
-            response = s3c.head_object(Bucket=s3bucket, Key=plap)
+            response = s3c.head_object(Bucket=s3bucket, Key=plas)
             if response['ContentLength'] > 100: 
-                outf = 'consolidated/platepars/' + bits[1] + '.json'
-                src = {'Bucket': s3bucket, 'Key': plap}
                 s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
             break
         except:
             time.sleep(1)
-    if i == 10:
+    if i == 10 and recal is True:
         print(f'platepar missing for {pth}')
+
+    # copy FTP file last as its the trigger for further Lambdas
+    src = {'Bucket': s3bucket, 'Key': s3object}
+    s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
 
     return 0
 
