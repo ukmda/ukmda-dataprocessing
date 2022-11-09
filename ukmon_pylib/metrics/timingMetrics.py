@@ -45,6 +45,7 @@ def graphOfData(logf, dtstr):
     plt.gca().invert_yaxis()
     logname, _ = os.path.splitext(os.path.basename(logf))
     plt.savefig(f'./{dtstr}-{logname}.jpg', dpi=100)
+    plt.close()
 
 
 

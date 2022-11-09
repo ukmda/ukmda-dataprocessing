@@ -35,6 +35,7 @@ def processFile(inf, outdir):
     plotOrbits(orb_elements, evttime, color_scheme='light')
     plt.savefig(os.path.join(outdir, evttime.strftime('%Y%m%d')+'.png'))
     plt.show()
+    plt.close()
 
     return 
 

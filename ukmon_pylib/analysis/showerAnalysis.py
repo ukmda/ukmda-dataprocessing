@@ -50,6 +50,7 @@ def stationGraph(dta, shwrname, outdir, maxStats=20):
     fname = os.path.join(outdir, '01_streamcounts_plot_by_station.jpg')
     plt.title('Count of single observations by station ({})'.format(shwrname))
     plt.savefig(fname)
+    plt.close()
     return len(grps)
 
 
@@ -74,6 +75,7 @@ def showerGraph(dta, s_or_m, outdir, shwrname='ALL', maxshwrs=30):
         fname = os.path.join(outdir, '01_streamcounts_plot_shower_{}.jpg'.format(s_or_m))
         plt.title('Top {} showers - {} events ({})'.format(maxshwrs, s_or_m, shwrname))
         plt.savefig(fname)
+        plt.close()
     return len(grps)
 
 
@@ -115,6 +117,7 @@ def timeGraph(dta, shwrname, outdir, binmins=10):
     plt.tight_layout()
 
     plt.savefig(fname)
+    plt.close()
     return len(dta)
 
 
@@ -171,6 +174,7 @@ def matchesGraphs(dta, shwrname, outdir, binmins=60):
     plt.title('Number of Matched Observations ({})'.format(shwrname))
     plt.tight_layout()
     plt.savefig(fname)
+    plt.close()
 
     nummatched = 0
     for index,row in matchgrps.items():
@@ -213,6 +217,7 @@ def velDistribution(dta, shwrname, outdir, vg_or_vs, binwidth=0.2):
     plt.title('{} Distribution in bins of width {} ({})'.format(title, binwidth, shwrname))
     plt.tight_layout()
     plt.savefig(fname)
+    plt.close()
     return 
 
 
@@ -250,6 +255,7 @@ def durationDistribution(dta, shwrname, outdir, binwidth=0.2):
     plt.title('{} Distribution ({})'.format(title, shwrname))
     plt.tight_layout()
     plt.savefig(fname)
+    plt.close()
     return maxlen
 
 
@@ -287,6 +293,7 @@ def distanceDistribution(dta, shwrname, outdir, binwidth=1.0):
     plt.title('{} Distribution ({})'.format(title, shwrname))
     plt.tight_layout()
     plt.savefig(fname)
+    plt.close()
     return maxlen
 
 
@@ -319,6 +326,7 @@ def ablationDistribution(dta, shwrname, outdir):
     plt.title('{} Distribution ({})'.format(title, shwrname))
     plt.tight_layout()
     plt.savefig(fname)
+    plt.close()
     return min(magdf[idx2])
 
 
@@ -355,6 +363,7 @@ def radiantDistribution(dta, shwrname, outdir):
     plt.title('{} Distribution ({})'.format(title, shwrname))
     plt.tight_layout()
     plt.savefig(fname)
+    plt.close()
     return 
 
 
@@ -386,6 +395,7 @@ def semimajorDistribution(dta, shwrname, outdir, binwidth=0.5):
     plt.title('Semimajor Axis Distribution in bins of width {} ({})'.format(binwidth, shwrname))
     plt.tight_layout()
     plt.savefig(fname)
+    plt.close()
     return 
 
 
@@ -415,6 +425,7 @@ def magDistributionAbs(dta, shwrname, outdir, binwidth=0.2):
     plt.title('Abs Magnitude Distribution in bins of width {} ({})'.format(binwidth, shwrname))
     plt.tight_layout()
     plt.savefig(fname)
+    plt.close()
     return min(magdf['_amag']), bestvmag
 
 
@@ -444,6 +455,7 @@ def magDistributionVis(dta, shwrname, outdir, binwidth=0.2):
     plt.title('Visual Magnitude Distribution in bins of width {} ({})'.format(binwidth, shwrname))
     plt.tight_layout()
     plt.savefig(fname)
+    plt.close()
     return min(magdf['Mag'])
 
 
@@ -454,9 +466,9 @@ def showerAnalysis(shwr, dtstr):
     # check if month was passed in
     mth = None
     if dtstr > 9999:
-        ym = sys.argv[2]
-        yr = int(ym[:4])
-        mth = ym[4:6]
+        ym = dtstr
+        yr = int(str(dtstr)[:4])
+        mth = str(ym)[4:6]
         outdir = os.path.join(datadir, 'reports', str(yr), shwr, mth)
     else:
         yr = dtstr
@@ -479,9 +491,6 @@ def showerAnalysis(shwr, dtstr):
 
     # select the required data
     if shwr != 'ALL':
-        sl = imo.IMOshowerList()
-        maxdt = sl.getEnd(shwr) + datetime.timedelta(days=10)
-        mindt = sl.getStart(shwr) + datetime.timedelta(days=-10)
         id, shwrname, sl, dt = sd.getShowerDets(shwr)
         sngl = sngl[sngl['Shwr']==shwr]
         sngl = sngl[sngl.Dtstamp > mindt.timestamp()]
@@ -515,9 +524,6 @@ def showerAnalysis(shwr, dtstr):
 
     # select the required data
     if shwr != 'ALL':
-        sl = imo.IMOshowerList()
-        maxdt = sl.getEnd(shwr) + datetime.timedelta(days=10)
-        mindt = sl.getStart(shwr) + datetime.timedelta(days=-10)
         id, shwrname, sl, dt = sd.getShowerDets(shwr)
         mtch = mtch[mtch['_stream']==shwr]
         mtch = mtch[mtch.dtstamp > mindt.timestamp()]

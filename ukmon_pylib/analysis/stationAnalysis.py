@@ -102,6 +102,7 @@ def timeGraph(dta, loc, outdir, when, sampleinterval):
     try:
         plt.tight_layout()
         plt.savefig(fname)
+        plt.close()
         return 'station_plot_timeline_single.jpg'
     except:
         return ''
@@ -125,6 +126,7 @@ def shwrGraph(dta, loc, outdir, when):
     plt.title('Shower meteors observed by {} in {}'.format(loc, when))
     plt.tight_layout()
     plt.savefig(fname)
+    plt.close()
 
     return 'showers_by_station.jpg'
 

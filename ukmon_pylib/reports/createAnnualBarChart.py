@@ -44,6 +44,7 @@ def createBarChart(fname, yr):
     fig.tight_layout()
     #plt.gca().invert_yaxis()
     plt.savefig('Annual-{}.jpg'.format(yr), dpi=100)
+    plt.close()
 
     return matches
 
