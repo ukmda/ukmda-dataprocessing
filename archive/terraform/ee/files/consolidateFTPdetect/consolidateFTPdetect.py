@@ -10,14 +10,17 @@ import time
 
 def copyFiles(s3bucket, s3object, target, maxdetcount):
     s3 = boto3.resource('s3')
-    x = s3object.find('FTPdetect')
-    y = s3object.find('backup')
-    z = s3object.find('detected')
-    if x == -1 or y > 0 or z > 0:
+#    x = s3object.find('FTPdetect')
+#    y = s3object.find('backup')
+#    z = s3object.find('detected')
+
+    if 'FTPdetectinfo' not in s3object or 'backup' in s3object or 'detected' in s3object \
+            or 'uncalibrated' in s3object: 
         # its not a calibrated FTPdetect file so ignore it
+        print(f'not a relevant file {s3object}')
         return 0
     
-    ftpname = s3object[x:]
+    _, ftpname = os.path.split(s3object)
 
     bits = ftpname.split('_')
     mus = bits[4][:6]
@@ -98,6 +101,7 @@ def copyFiles(s3bucket, s3object, target, maxdetcount):
         print(f'platepar missing for {pth}')
 
     # copy FTP file last as its the trigger for further Lambdas
+    outf = 'matches/RMSCorrelate/' + bits[1] + '/' + outdir + '/' + ftpname    
     src = {'Bucket': s3bucket, 'Key': s3object}
     s3.meta.client.copy_object(Bucket=target, Key=outf, CopySource=src)
 
