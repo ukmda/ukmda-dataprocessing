@@ -15,9 +15,6 @@ mth=$(date +%Y%m)
 yr=$(date +%Y)
 echo $rundate > $DATADIR/rundate.txt
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start createSearchable pass1"
-$SRC/analysis/createSearchable.sh
-
 python -c "from fileformats.CameraDetails import updateCamLocDirFovDB; updateCamLocDirFovDB();"
 aws s3 cp $DATADIR/admin/cameraLocs.json s3://ukmon-shared/admin/ --region eu-west-2
 
@@ -31,8 +28,8 @@ $SRC/utils/clearCaches.sh
 logger -s -t nightlyJob "RUNTIME $SECONDS start consolidateOutput"
 $SRC/analysis/consolidateOutput.sh ${yr}
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start createSearchable pass2"
-$SRC/analysis/createSearchable.sh
+logger -s -t nightlyJob "RUNTIME $SECONDS start createSearchable pass 2"
+$SRC/analysis/createSearchable.sh $yr 2
 
 logger -s -t nightlyJob "RUNTIME $SECONDS start createStationList"
 $SRC/website/createStationList.sh

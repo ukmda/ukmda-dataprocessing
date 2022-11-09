@@ -57,6 +57,10 @@ logger -s -t findAllMatches "RUNTIME $SECONDS start getRMSSingleData"
 # this creates the parquet table for Athena
 $SRC/analysis/getRMSSingleData.sh
 
+logger -s -t findAllMatches "RUNTIME $SECONDS start createSearchable pass 1"
+yr=$(date +%Y)
+$SRC/analysis/createSearchable.sh $yr 1
+
 startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
 enddt=$(date --date="-$MATCHEND days" '+%Y%m%d-080000')
 logger -s -t findAllMatches "RUNTIME $SECONDS solving for ${startdt} to ${enddt}"
