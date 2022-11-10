@@ -68,16 +68,16 @@ def getLogStats(nightlogf, matchlogf):
     msgs = []
     for li in loglines:
         if matchstr in li:
-            spls = li.split(' ')
+            spls = li.split()
             msg = ''
-            for s in range(7, len(spls)):
+            for s in range(6, len(spls)):
                 msg = msg + ' ' + spls[s]
             if 'start findAllMatches' in msg:
-                startFAM = int(spls[6])
+                startFAM = int(spls[5])
             dts.append(thisdy)
-            tss.append(spls[3])
-            tsks.append(spls[4].replace(':',''))
-            secs.append(int(spls[6]))
+            tss.append(spls[2])
+            tsks.append(spls[3].replace(':',''))
+            secs.append(int(spls[5]))
             msgs.append(msg.strip())
 
     with open(matchlogf,'r') as inf:
@@ -86,33 +86,33 @@ def getLogStats(nightlogf, matchlogf):
     # scan for findAllMatches data first
     for li in loglines:
         if matchstr in li:
-            spls = li.split(' ')
-            if 'runDistrib' in spls[4]: 
+            spls = li.split()
+            if 'runDistrib' in spls[3]: 
                 continue
             msg = ''
-            for s in range(7, len(spls)):
+            for s in range(6, len(spls)):
                 msg = msg + ' ' + spls[s]
             if 'start runDistrib' in msg:
-                startRD = int(spls[6])
+                startRD = int(spls[5])
             dts.append(thisdy)
-            tss.append(spls[3])
-            tsks.append(spls[4].replace(':',''))
-            secs.append(int(spls[6])+startFAM)
+            tss.append(spls[2])
+            tsks.append(spls[3].replace(':',''))
+            secs.append(int(spls[5])+startFAM)
             msgs.append(msg.strip())
 
     # rescan for runDistrib data
     for li in loglines:
         if matchstr in li:
-            spls = li.split(' ')
-            if 'runDistrib' not in spls[4]: 
+            spls = li.split()
+            if 'runDistrib' not in spls[3]: 
                 continue
             msg = ''
-            for s in range(7, len(spls)):
+            for s in range(6, len(spls)):
                 msg = msg + ' ' + spls[s]
             dts.append(thisdy)
-            tss.append(spls[3])
-            tsks.append(spls[4].replace(':',''))
-            secs.append(int(spls[6]) + startFAM + startRD)
+            tss.append(spls[2])
+            tsks.append(spls[3].replace(':',''))
+            secs.append(int(spls[5]) + startFAM + startRD)
             msgs.append(msg.strip())
 
     df = pd.DataFrame(zip(dts,tss,secs,tsks,msgs), columns=['dts','tss','secs','tsk','msgs'])
