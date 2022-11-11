@@ -89,7 +89,7 @@ if __name__ == '__main__':
     camdb = json.load(obj.get()['Body']) 
 
     cols = ['Lat','Long','Filename','Az1','Dtstamp','Y']
-    df = pd.read_parquet(f"s3://ukmon-shared/matches/singlepq/singles-{yr}.parquet.gzip", columns=cols)
+    df = pd.read_parquet(f"s3://ukmon-shared/matches/singlepq/singles-{yr}.parquet.snap", columns=cols)
     df = df[df['Y']==int(yr)]
 
     df = filterByDtstamp(df, dt)

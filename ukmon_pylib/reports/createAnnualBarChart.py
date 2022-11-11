@@ -56,7 +56,7 @@ if __name__ == '__main__':
     else:
         yr=datetime.datetime.now().year
         datadir=os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-        fname = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.gzip'.format(yr))
+        fname = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.snap'.format(yr))
         
     m = createBarChart(fname, yr)
 #    print(m.selectByMag(minMag=-2))

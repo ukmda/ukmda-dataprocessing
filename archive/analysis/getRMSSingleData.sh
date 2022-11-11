@@ -41,7 +41,7 @@ python -m converters.toParquet $SRC/data/single/singles-${yr}.csv
 # push to S3 bucket for future use by AWS tools
 logger -s -t getRMSSingleData "copy to S3 bucket"
 aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/single/ --exclude "*" --include "*.csv" --exclude "new/*" --quiet
-aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/singlepq/ --exclude "*" --include "*.parquet.gzip" --quiet
+aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/singlepq/ --exclude "*" --include "*.parquet.snap" --quiet
 
 $SRC/utils/clearCaches.sh
 logger -s -t getRMSSingleData "finished"

@@ -289,8 +289,8 @@ if __name__ == '__main__':
     cifile = os.getenv('CAMINFO', default='/home/ec2-user/ukmon-shared/consolidated/camera-details.csv')
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
 
-    sngl = pd.read_parquet(os.path.join(datadir, 'single', f'singles-{yr}.parquet.gzip'), columns=snglcols)
-    mful = pd.read_parquet(os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.gzip'), columns=matchcols)
+    sngl = pd.read_parquet(os.path.join(datadir, 'single', f'singles-{yr}.parquet.snap'), columns=snglcols)
+    mful = pd.read_parquet(os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.snap'), columns=matchcols)
     camlist = pd.read_csv(cifile)
 
     sngl = sngl[sngl['Y']==int(yr)] # just in case there's some pollution in the database

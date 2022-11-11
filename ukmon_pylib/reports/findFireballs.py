@@ -18,7 +18,7 @@ def markAsFireball(trajname, tof=True):
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     yr=trajname[:4]
     if int(yr) > 2021:
-        fname = os.path.join(datadir, 'matched','matches-full-{}.parquet.gzip'.format(yr))
+        fname = os.path.join(datadir, 'matched','matches-full-{}.parquet.snap'.format(yr))
         if os.path.isfile(fname):
             # cant select cols here as we write them all back in a few lines
             df = pd.read_parquet(fname) 
@@ -30,7 +30,7 @@ def markAsFireball(trajname, tof=True):
         exit(0)
     print(f'setting {trajname} to {tof}')
     df.loc[df.orbname==trajname, ['isfb']] = tof
-    df.to_parquet(fname)
+    df.to_parquet(fname, compression='snappy')
     csvfname = os.path.join(datadir, 'matched','matches-full-{}.csv'.format(yr))
     df.to_csv(csvfname, index=False)
 
@@ -121,7 +121,7 @@ def findFireballs(dtval, shwr, minmag=-3.99, matchdataset = None):
         if yr > 2019:
             cols = ['_stream','_mjd','_mag','_vg','url','mass','orbname','_M_ut','isfb', '_Y_ut']
             filt = None
-            fname = os.path.join(datadir, 'matched',f'matches-full-{yr}.parquet.gzip')
+            fname = os.path.join(datadir, 'matched',f'matches-full-{yr}.parquet.snap')
             if os.path.isfile(fname):
                 df = pd.read_parquet(fname, columns=cols, filters=filt)
                 df = df[df['_Y_ut']==int(yr)] 

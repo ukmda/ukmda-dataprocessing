@@ -26,14 +26,14 @@ def createSummaryTable(curryr):
         for yr in range(int(curryr), 2012, -1):
 
             if yr > 2020:
-                srchfile = os.path.join(datadir, 'single', 'singles-{}.parquet.gzip'.format(yr))
+                srchfile = os.path.join(datadir, 'single', 'singles-{}.parquet.snap'.format(yr))
                 if os.path.isfile(srchfile):
                     sngl = pd.read_parquet(srchfile, columns=['Y'])
                     detections = len(sngl[sngl.Y==yr])
                 else:
                     detections = 0
 
-                srchfile = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.gzip'.format(yr))
+                srchfile = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.snap'.format(yr))
                 if os.path.isfile(srchfile):
                     mtch = pd.read_parquet(srchfile, columns=['_Y_ut'])
                     matches = len(mtch[mtch._Y_ut==yr])

@@ -14,7 +14,7 @@ def convertSingletoSrchable(datadir, year, weburl):
     print(datetime.datetime.now(), 'single-detection searchable index start')
 
     # load the single-station combined data
-    rmsuafile = os.path.join(datadir, 'single', 'singles-{}.parquet.gzip'.format(year))
+    rmsuafile = os.path.join(datadir, 'single', 'singles-{}.parquet.snap'.format(year))
     print(datetime.datetime.now(), f'read single file to get shower and mag: {rmsuafile}')
     cols = ['Dtstamp','Shwr','Mag','ID','Y','M','Filename']
     uadata = pd.read_parquet(rmsuafile, columns=cols)
@@ -87,7 +87,7 @@ def convertMatchToSrchable(datadir, year):
         
     """
     print(datetime.datetime.now(), 'reading merged match file')
-    infile = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.gzip'.format(year))
+    infile = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.snap'.format(year))
     cols = ['dtstamp','src','_stream','_mag','stations','url','img', '_Y_ut']
     newm = pd.read_parquet(infile, columns=cols)
     newm = newm[newm['_Y_ut']==int(year)] 

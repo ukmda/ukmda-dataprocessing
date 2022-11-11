@@ -20,7 +20,7 @@ def createSplitMatchFile(yr, mth=None, shwr=None, matches=None):
     """
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     if matches is None:
-        infname = os.path.join(datadir, 'matched',f'matches-full-{yr}.parquet.gzip')
+        infname = os.path.join(datadir, 'matched',f'matches-full-{yr}.parquet.snap')
         if not os.path.isfile(infname):
             return 
         #cols = ['_M_ut','_stream',]
@@ -95,7 +95,7 @@ def createRMSSingleMonthlyExtract(yr, mth=None, shwr=None, dta=None, withshower=
     #print(f'rms singles file, withshower {withshower}')
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     if dta is None:
-        fname = os.path.join(datadir, 'single','singles-{}.parquet.gzip'.format(yr))
+        fname = os.path.join(datadir, 'single','singles-{}.parquet.snap'.format(yr))
         if not os.path.isfile(fname):
             return 
         dta = pd.read_parquet(fname)
@@ -150,7 +150,7 @@ def extractAllShowersData(ymd):
 
     print(f'processing data for {currdt}')
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-    infname = os.path.join(datadir, 'matched',f'matches-full-{yr}.parquet.gzip')
+    infname = os.path.join(datadir, 'matched',f'matches-full-{yr}.parquet.snap')
     if not os.path.isfile(infname):
         print(f'unable to open {infname}')
         return 
@@ -177,7 +177,7 @@ def extractAllShowersData(ymd):
         print(f'unable to open {fname}')
         return 
     ufosingles = pd.read_csv(fname, skipinitialspace=True)
-    fname = os.path.join(datadir, 'single','singles-{}.parquet.gzip'.format(yr))
+    fname = os.path.join(datadir, 'single','singles-{}.parquet.snap'.format(yr))
     if not os.path.isfile(fname):
         print(f'unable to open {fname}')
         return 

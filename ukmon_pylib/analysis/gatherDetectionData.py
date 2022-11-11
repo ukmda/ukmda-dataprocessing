@@ -13,7 +13,7 @@ import boto3
 
 def gatherDetectionData(dttime):
     yr = dttime[:4]
-    snglfile = f's3://ukmon-shared/matches/singlepq/singles-{yr}.parquet.gzip'
+    snglfile = f's3://ukmon-shared/matches/singlepq/singles-{yr}.parquet.snap'
     cols = ['Filename','ID','Dtstamp','Y']
     sngl = pd.read_parquet(snglfile, columns=cols)
     sngl = sngl[sngl['Y']==int(yr)] # just in case there's some pollution in the database

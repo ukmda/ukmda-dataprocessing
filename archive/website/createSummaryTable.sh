@@ -44,7 +44,7 @@ python -c "from utils.makeCoverageMap import createCoveragePage as ccp ; ccp() ;
 
 logger -s -t createSummaryTable "create year-to-date barchart"
 pushd $DATADIR
-python -m reports.createAnnualBarChart  $DATADIR/matched/matches-full-${yr}.parquet.gzip ${yr}
+python -m reports.createAnnualBarChart  $DATADIR/matched/matches-full-${yr}.parquet.snap ${yr}
 popd
 
 # update index page

@@ -484,7 +484,7 @@ def showerAnalysis(shwr, dtstr):
         mindt = sl.getStart(shwr) + datetime.timedelta(days=-10)
 
     # read the single-station data
-    singleFile = os.path.join(datadir, 'single', f'singles-{yr}.parquet.gzip')
+    singleFile = os.path.join(datadir, 'single', f'singles-{yr}.parquet.snap')
     sngl = pd.read_parquet(singleFile, columns=cols, filters=filt)
 
     sngl = sngl[sngl['Y']==int(yr)] # just in case there's some pollution in the database
@@ -519,7 +519,7 @@ def showerAnalysis(shwr, dtstr):
 
     cols = ['_M_ut', '_stream','_Nos','_ID1','_vg','_vs','_dur','_LD21','_H1','_H2','_ra_o','_dc_o','_a','_mag','_localtime','_amag', 'dtstamp']
     filt = None
-    matchfile = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.gzip'.format(yr))
+    matchfile = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.snap'.format(yr))
     mtch = pd.read_parquet(matchfile, columns=cols, filters=filt)
 
     # select the required data

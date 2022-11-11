@@ -18,4 +18,4 @@ if 'match' in fn:
 if 'single' in fn:
     df = df.drop_duplicates()
 
-df.to_parquet(fn + '.parquet.gzip', compression='gzip')
+df.to_parquet(fn + '.parquet.snap', compression='snappy')
