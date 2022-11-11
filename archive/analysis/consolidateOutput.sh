@@ -83,11 +83,11 @@ EOD3
 
 python -m converters.toParquet $DATADIR/matched/matches-full-${yr}.csv
 
-aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matched/ --include "*" --exclude "*.gzip" --exclude "*.bkp" --quiet 
-aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matchedpq/ --quiet --exclude "*" --include "*.gzip" --exclude "*.bkp"
+aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matched/ --include "*" --exclude "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet 
+aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matchedpq/ --quiet --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip"
 
-aws s3 sync $DATADIR/matched/ $WEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.gzip" --exclude "*.bkp" --quiet
-aws s3 sync $DATADIR/single/ $WEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.gzip" --exclude "*.bkp" --quiet
+aws s3 sync $DATADIR/matched/ $WEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet
+aws s3 sync $DATADIR/single/ $WEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet
 
 $SRC/utils/clearCaches.sh
 logger -s -t consolidateOutput "finished"
