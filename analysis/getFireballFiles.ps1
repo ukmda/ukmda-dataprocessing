@@ -13,7 +13,6 @@ set-location $PSScriptRoot
 $ini=get-inicontent analysis.ini
 
 $fbfldr=$ini['fireballs']['localfolder']
-$awskey=$ini['website']['awskey']
 
 conda activate $ini['wmpl']['wmpl_env']
 $wmplloc=$ini['wmpl']['wmpl_loc']
@@ -36,7 +35,6 @@ Write-Output "press Ctrl-C to stop now, or to gather ftp and platepar data"
 pause 
 set-location $fbfldr
 
-. $awskey
 $ids = get-content ${fbdate}\ids.txt
 $uniqueids = (Write-Output $ids | sort-object | get-unique)
 

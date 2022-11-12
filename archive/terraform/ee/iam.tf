@@ -162,3 +162,61 @@ resource "aws_iam_policy" "ukmonsharedpol" {
   }
 }
 
+
+
+# role and permissions used by Lambda 
+resource "aws_iam_role" "lambda-s3-full-access-role" {
+  name        = "lambda-s3-full-access-role"
+  description = "Allows lambda acccess to S3 buckets"
+  assume_role_policy = jsonencode(
+    {
+      Statement = [
+        {
+          Action = "sts:AssumeRole"
+          Effect = "Allow"
+          Principal = {
+            Service = "lambda.amazonaws.com"
+          }
+        },
+      ]
+      Version = "2012-10-17"
+    }
+  )
+}
+
+resource "aws_iam_role_policy_attachment" "aws_managed_policy_l1" {
+  role       = aws_iam_role.lambda-s3-full-access-role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
+resource "aws_iam_role_policy_attachment" "aws_managed_policy_l2" {
+  role       = aws_iam_role.lambda-s3-full-access-role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+}
+resource "aws_iam_role_policy_attachment" "aws_managed_policy_l3" {
+  role       = aws_iam_role.lambda-s3-full-access-role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy" "lambda_inline_policy_1" {
+  name   = "policygen-lambda-s3-full-access-role"
+  role   = aws_iam_role.lambda-s3-full-access-role.name
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Stmt1510183751000",
+            "Effect": "Allow",
+            "Action": [
+                "ses:SendEmail",
+                "ses:SendRawEmail"
+            ],
+            "Resource": [
+                "*"
+            ]
+        }
+    ]
+}
+EOF
+}
+

@@ -102,6 +102,7 @@ def timeGraph(dta, loc, outdir, when, sampleinterval):
     try:
         plt.tight_layout()
         plt.savefig(fname)
+        plt.close()
         return 'station_plot_timeline_single.jpg'
     except:
         return ''
@@ -125,6 +126,7 @@ def shwrGraph(dta, loc, outdir, when):
     plt.title('Shower meteors observed by {} in {}'.format(loc, when))
     plt.tight_layout()
     plt.savefig(fname)
+    plt.close()
 
     return 'showers_by_station.jpg'
 
@@ -282,14 +284,17 @@ if __name__ == '__main__':
     # set up paths, files etc
     yr = int(ym[:4])
         
-    matchcols = ['_M_ut','_mag','_mjd','mjd','_stream','orbname','stations']
-    snglcols = ['ID','Shwr','Dtstamp','Ver', 'M']
+    matchcols = ['_Y_ut','_M_ut','_mag','_mjd','mjd','_stream','orbname','stations']
+    snglcols = ['ID','Shwr','Dtstamp','Ver', 'M', 'Y']
     cifile = os.getenv('CAMINFO', default='/home/ec2-user/ukmon-shared/consolidated/camera-details.csv')
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
 
-    sngl = pd.read_parquet(os.path.join(datadir, 'single', f'singles-{yr}.parquet.gzip'), columns=snglcols)
-    mful = pd.read_parquet(os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.gzip'), columns=matchcols)
+    sngl = pd.read_parquet(os.path.join(datadir, 'single', f'singles-{yr}.parquet.snap'), columns=snglcols)
+    mful = pd.read_parquet(os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.snap'), columns=matchcols)
     camlist = pd.read_csv(cifile)
+
+    sngl = sngl[sngl['Y']==int(yr)] # just in case there's some pollution in the database
+    mful = mful[mful['_Y_ut']==int(yr)] 
 
     if len(sys.argv) > 2:
         locs = [sys.argv[2]]

@@ -19,12 +19,11 @@ set-location $PSScriptRoot
 $ini=get-inicontent analysis.ini
 set-location $loc
 
-$awskey=$ini['website']['awskey']
-. $awskey
-
 $fbfldr=$ini['fireballs']['localfolder']
 $fbdate=$args[0]
 set-location $fbfldr\$fbdate
+
+$awsprofile=$ini['aws']['awsprofile']
 
 $env:PYLIB=$ini['pylib']['pylib']
 conda activate $ini['wmpl']['wmpl_env']
@@ -76,27 +75,27 @@ if ($jpgs -is [array]) {
 
 # copy the trajectory solution over
 $targ="ukmeteornetworkarchive/reports/$yr/orbits/$ym/$yd/$newname"
-aws s3 sync "$srcpath" "s3://$targ" --include "*" --exclude "*.jpg" --exclude "*.mp4"
+aws s3 sync "$srcpath" "s3://$targ" --include "*" --exclude "*.jpg" --exclude "*.mp4" --profile $awsprofile
 
 # push the pickle and report to ukmon-shared
 $targ="ukmon-shared/matches/RMSCorrelate/trajectories/$yr/$ym/$yd/$newname"
 $pickle=(get-item "$srcpath/*.pickle").name
-aws s3 cp "$srcpath/$pickle" "s3://$targ/" --profile ukmon-markmcintyre
+aws s3 cp "$srcpath/$pickle" "s3://$targ/" --profile $awsprofile
 $repfile=(get-item "$srcpath/*report.txt").name
-aws s3 cp "$srcpath/$repfile" "s3://$targ/" --profile ukmon-markmcintyre
+aws s3 cp "$srcpath/$repfile" "s3://$targ/" --profile $awsprofile
 
 
 # push the jpgs and mp4s to the website
 $targ="ukmeteornetworkarchive/img/single/$yr/$ym/"
-aws s3 sync "$fbfldr/$fbdate" "s3://$targ" --exclude "*" --include "*.jpg" --profile ukmon-markmcintyre
+aws s3 sync "$fbfldr/$fbdate" "s3://$targ" --exclude "*" --include "*.jpg" --profile $awsprofile
 $targ="ukmeteornetworkarchive/img/mp4/$yr/$ym/"
-aws s3 sync "$fbfldr/$fbdate" "s3://$targ" --exclude "*" --include "*.mp4" --profile ukmon-markmcintyre
+aws s3 sync "$fbfldr/$fbdate" "s3://$targ" --exclude "*" --include "*.mp4" --profile $awsprofile
 
 # add row to dailyreport file
 $pf=(Get-ChildItem "$srcpath/*.pickle").fullname
 $pf=$pf.replace('\','/')
 $env:DATADIR="f:/videos/meteorcam/ukmondata"
-aws s3 cp s3://ukmon-shared/consolidated/camera-details.csv $env:DATADIR/consolidated/  --profile ukmon-markmcintyre
+aws s3 cp s3://ukmon-shared/consolidated/camera-details.csv $env:DATADIR/consolidated/  --profile $awsprofile
 $newl=(python -c "import reports.reportOfLatestMatches as rml ; print(rml.processLocalFolder('$pf','/home/ec2-user/ukmon-shared/matches/RMSCorrelate'))")
 
 $dlyfile="$yd.txt"

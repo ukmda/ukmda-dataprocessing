@@ -32,7 +32,7 @@ do
     echo export MATCHDIR=matches/RMSCorrelate >> $inif
   fi 
   statkeyf=$(echo $CAMLOC | tr '[:upper:]' '[:lower:]').key
-  diff $inif /home/ec2-user/keymgmt/live/$statkeyf
+  diff $inif /home/ec2-user/keymgmt/live/$statkeyf > /dev/null
   if [ $? -ne 0 ] ; then
     echo "updating master copy $statkeyf"
     \cp $inif /home/ec2-user/keymgmt/live/$statkeyf

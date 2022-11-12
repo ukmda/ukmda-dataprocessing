@@ -13,8 +13,7 @@ set-location $PSScriptRoot
 $ini=get-inicontent analysis.ini
 Set-Location $Loc
 
-# load the AWS keyfile
-. $ini['website']['awskey'] 
+$awsprofile=$ini['aws']['awsprofile']
 
 $stationdetails=$ini['fireballs']['stationdets'] 
 $fullftpfile = [string]$args[0]
@@ -32,14 +31,14 @@ $ymd=$dt
 Write-Output "Target location is $stn/$cam/$yr/$ym/$ymd/"
 if ((test-path $targpth/processed) -eq 0) { mkdir $targpth/processed}
 
-aws s3 cp $targpth/$ftpname s3://ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/
+aws s3 cp $targpth/$ftpname s3://ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/ --profile $awsprofile
 Move-Item $targpth/$ftpname $targpth/processed/ -Force
 
 if ((test-path $targpth/platepars_all_recalibrated.json) -eq 1){
     $x=(select-string -pattern UK005P -path .\platepars_all_recalibrated.json)
     if ($x.length -gt 0) 
     {
-        aws s3 cp $targpth/platepars_all_recalibrated.json s3://ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/
+        aws s3 cp $targpth/platepars_all_recalibrated.json s3://ukmon-shared/archive/$stn/$cam/$yr/$ym/$ymd/ --profile $awsprofile
         Move-Item $targpth/platepars_all_recalibrated.json $targpth/processed/platepars_all_recalibrated.json.$cam.$dt
     }
 }

@@ -8,7 +8,7 @@ from traj.pickleAnalyser import getAllMp4s
 
 def getBestNMp4s(yr, mth, numtoget):
     datadir=os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-    mf = os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.gzip')
+    mf = os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.snap')
 
     # select only the columns we need
     cols=['_Y_ut','_M_ut','_mag','url']

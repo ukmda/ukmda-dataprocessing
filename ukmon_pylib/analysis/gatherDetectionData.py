@@ -13,12 +13,14 @@ import boto3
 
 def gatherDetectionData(dttime):
     yr = dttime[:4]
-    snglfile = f's3://ukmon-shared/matches/singlepq/singles-{yr}.parquet.gzip'
-    cols = ['Filename','ID','dtstamp']
+    snglfile = f's3://ukmon-shared/matches/singlepq/singles-{yr}.parquet.snap'
+    cols = ['Filename','ID','Dtstamp','Y']
     sngl = pd.read_parquet(snglfile, columns=cols)
+    sngl = sngl[sngl['Y']==int(yr)] # just in case there's some pollution in the database
+
     fltr = sngl[sngl.Filename.str.contains(dttime)]
     idlist = pd.concat([fltr.ID, fltr.Filename], axis=1).drop_duplicates()
-    idlist['dtstamp'] = [d[10:25] for d in idlist.Filename]
+    idlist['Dtstamp'] = [d[10:25] for d in idlist.Filename]
     idlist['Filename']=idlist.Filename.replace('.fits','.jpg', regex=True)
     return idlist
 
@@ -41,7 +43,7 @@ def getECSVfiles(idlist, outpth):
     apiurl = 'https://jpaq0huazc.execute-api.eu-west-1.amazonaws.com/Prod/getecsv?stat={}&dt={}'
     for _,row in idlist.iterrows():
         stat =row.ID
-        dts = datetime.datetime.strptime(row.dtstamp, '%Y%m%d_%H%M%S')
+        dts = datetime.datetime.strptime(row.Dtstamp, '%Y%m%d_%H%M%S')
         dt = dts.strftime('%Y-%m-%dT%H:%M:%S')
         res = requests.get(apiurl.format(stat, dt))
         if res.status_code == 200:

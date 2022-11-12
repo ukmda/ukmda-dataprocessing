@@ -17,22 +17,20 @@ source $here/../config.ini >/dev/null 2>&1
 source $HOME/venvs/${RMS_ENV}/bin/activate
 $SRC/utils/clearCaches.sh
 
-cd $RMS_LOC
 logger -s -t getRMSSingleData "starting"
-indir=$MATCHDIR/RMSCorrelate
-outdir=$SRC/data/single/new
+indir=$MATCHDIR/single/new
+outdir=$DATADIR/single/new
 mkdir -p $outdir/processed > /dev/null 2>&1 
 
-python -m converters.RMStoUKMON $indir $outdir
-
+mv -f $indir/*.csv $outdir > /dev/null 2>&1
 yr=$(date +%Y)
 mrgfile=$DATADIR/single/singles-${yr}.csv
 if [ ! -f $mrgfile ] ; then 
-    echo "Ver,Y,M,D,h,m,s,Mag,Dur,Az1,Alt1,Az2,Alt2,Ra1,Dec1,Ra2,Dec2,ID,Long,Lat,Alt,Tz,AngVel,Shwr,Filename,Dtstamp" > $mrgfile
+    echo "Ver,Y,M,D,h,mi,s,Mag,Dur,Az1,Alt1,Az2,Alt2,Ra1,Dec1,Ra2,Dec2,ID,Long,Lat,Alt,Tz,AngVel,Shwr,Filename,Dtstamp" > $mrgfile
 fi 
 ls -1 $outdir/*.csv | while read i
 do
-    sed '1d' $i >> $mrgfile
+    cat $i >> $mrgfile
     mv $i $outdir/processed
 done 
 
@@ -41,8 +39,9 @@ source ~/venvs/${WMPL_ENV}/bin/activate
 python -m converters.toParquet $SRC/data/single/singles-${yr}.csv
 
 # push to S3 bucket for future use by AWS tools
-aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/single/ --exclude "*" --include "*.csv" --quiet
-aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/singlepq/ --exclude "*" --include "*.parquet.gzip" --quiet
+logger -s -t getRMSSingleData "copy to S3 bucket"
+aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/single/ --exclude "*" --include "*.csv" --exclude "new/*" --quiet
+aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/singlepq/ --exclude "*" --include "*.parquet.snap" --quiet
 
 $SRC/utils/clearCaches.sh
 logger -s -t getRMSSingleData "finished"
