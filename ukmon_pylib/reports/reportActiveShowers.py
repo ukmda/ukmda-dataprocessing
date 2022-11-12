@@ -51,9 +51,9 @@ def createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir):
             with open(os.path.join(outdir, 'reportindex.js'), 'w') as jsout:
                 jsout.write('$(function() {\n')
                 jsout.write('var table = document.createElement("table");\n')
-                jsout.write('table.className = \"table table-striped table-bordered table-hover table-condensed\";\n')
+                jsout.write('table.className = "table table-striped table-bordered table-hover table-condensed";\n')
                 jsout.write('var header = table.createTHead();\n')
-                jsout.write('header.className = \"h4\";\n')
+                jsout.write('header.className = "h4";\n')
                 jsout.write('var row = table.insertRow(-1);\n')
                 jsout.write('var cell = row.insertCell(0);\n')
                 jsout.write('cell.innerHTML = "Brightest Ten Events";\n')
@@ -62,10 +62,10 @@ def createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir):
                 for li in fblis:
                     jsout.write('var row = table.insertRow(-1);\n')
                     jsout.write('var cell = row.insertCell(0);\n')
-                    fldr, mag, shwr, bn = li.split(',')
-                    jsout.write(f'cell.innerHTML = "<a href="{fldr}">{bn}</a>";\n')
+                    fldr, mag, shwr, bn = li.strip().split(',')
+                    jsout.write(f'cell.innerHTML = "<a href={fldr}>{bn}</a>";\n')
                     jsout.write('var cell = row.insertCell(1);\n')
-                    jsout.write(f'cell.innerHTML = "{mag}";n')
+                    jsout.write(f'cell.innerHTML = "{mag}";\n')
                     jsout.write('var cell = row.insertCell(2);\n')
                     jsout.write(f'cell.innerHTML = "{shwr}";\n')
 
@@ -86,9 +86,9 @@ def createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir):
         outf.write('The graphs and histograms below show more information about the velocity, magnitude \n')
         outf.write('start and end altitude and other parameters. Click for larger view. \n')
         # add the charts and stuff
-        jpglist = glob.glob(os.path.join(outdir, '*.jpg'))
-        pnglist = glob.glob(os.path.join(outdir, '*.png'))
-        outf.write('div class="top-img-container">\n')
+        jpglist = glob.glob1(outdir, '*.jpg')
+        pnglist = glob.glob1(outdir, '*.png')
+        outf.write('<div class="top-img-container">\n')
         for j in jpglist:
             outf.write(f'<a href="./{j}"><img src="./{j}" width="20%"></a>\n')
         for j in pnglist:

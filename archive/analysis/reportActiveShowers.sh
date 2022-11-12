@@ -15,7 +15,7 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
-source ~/venvs/$RMS_ENV/bin/activate
+source ~/venvs/$WMPL_ENV/bin/activate
 logger -s -t reportActiveShowers "starting"
 
 if [ $# -eq 0 ]; then
@@ -25,7 +25,7 @@ else
 fi
 
 logger -s -t reportActiveShowers "report on active showers"
-python -m utils.reportActiveShowers 
+python -m reports.reportActiveShowers 
 
 python -m utils.getActiveShowers | while read shwr
 do 
