@@ -139,8 +139,3 @@ if __name__ == '__main__':
     else:
         ymd = datetime.datetime.now()
     shwrs = reportActiveShowers(ymd)
-    retval = ''
-    for sh in shwrs:
-        retval = retval + ' ' + sh
-
-    print(retval)

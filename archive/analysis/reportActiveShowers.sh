@@ -17,7 +17,6 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 source ~/venvs/$RMS_ENV/bin/activate
 logger -s -t reportActiveShowers "starting"
-$SRC/utils/clearCaches.sh
 
 if [ $# -eq 0 ]; then
     yr=$(date +%Y)
@@ -25,11 +24,11 @@ else
     yr=$1
 fi
 
-logger -s -t reportActiveShowers "get list of active showers"
-python -m utils.getActiveShowers | while read i 
+logger -s -t reportActiveShowers "report on active showers"
+python -m utils.reportActiveShowers 
+
+python -m utils.getActiveShowers | while read shwr
 do 
-    logger -s -t reportActiveShowers "processing $i for $yr"
-    $SRC/analysis/showerReport.sh $i $yr force
+    aws s3 sync $DATADIR/reports/${yr}/$shwr $WEBSITEBUCKET/reports/${yr}/${shwr} --quiet --profile ukmonshared
 done
-$SRC/utils/clearCaches.sh
 logger -s -t reportActiveShowers "finished"
