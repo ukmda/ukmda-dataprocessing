@@ -33,7 +33,7 @@ fi
 
 cd ${DATADIR}/matched
 logger -s -t createShwrExtracts "creating annual shower extracts"
-python -c "from reports import extractors as ex; ex.extractAllShowersData($ymd);"
+python -c "from reports import extractors as ex; ex.extractAllShowersData('$ymd');"
 
 logger -s -t createShwrExtracts "done gathering data, creating tables"
 # sync data so its all there to get a list of 
