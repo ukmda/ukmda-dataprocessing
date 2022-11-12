@@ -20,7 +20,6 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 source ~/venvs/$WMPL_ENV/bin/activate
-$SRC/utils/clearCaches.sh
 
 mkdir -p $DATADIR/browse/showers
 
@@ -28,17 +27,13 @@ logger -s -t createShwrExtracts "starting"
 
 if [ $# -gt 0 ] ; then
     ymd=$1
-    yrs=${ymd:0:4}
 else
-    yrs="2021 2020"
+    ymd=$(date +%Y%m%d)
 fi 
 
 cd ${DATADIR}/matched
 logger -s -t createShwrExtracts "creating annual shower extracts"
-for yr in $yrs
-do
-    python -c "from reports import extractors as ex; ex.extractAllShowersData($yr);"
-done
+python -c "from reports import extractors as ex; ex.extractAllShowersData($ymd);"
 
 logger -s -t createShwrExtracts "done gathering data, creating tables"
 # sync data so its all there to get a list of 
@@ -48,7 +43,7 @@ cd $DATADIR/browse/showers/
 # get a list of files on the website
 aws s3 ls $WEBSITEBUCKET/browse/showers/ | awk '{ print $4 }' | grep csv > /tmp/browseshwr.txt
 
-shwrs=$(python -c "from fileformats import imoWorkingShowerList as imo; sl = imo.IMOshowerList();print(sl.getMajorShowers(True, True));")
+shwrs=$(python -c "from utils.getActiveShowers import getActiveShowersStr ; getActiveShowersStr('${ymd}')")
 for shwr in $shwrs
 do 
     now=$(date '+%Y-%m-%d %H:%M:%S')
@@ -98,5 +93,4 @@ done
 logger -s -t createShwrExtracts "sending to website"
 aws s3 sync $DATADIR/browse/showers/  $WEBSITEBUCKET/browse/showers/ --quiet
 
-$SRC/utils/clearCaches.sh
 logger -s -t createShwrExtracts "finished"
