@@ -26,10 +26,10 @@ def createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir):
         # add the shower information file, if present
         shwrinfofile = os.path.join(datadir, 'shwrinfo', f'{shwr}.txt')
         if os.path.isfile(shwrinfofile):
-            outf.write('<pre>/\n')
+            outf.write('<pre>\n')
             with open(shwrinfofile, 'r') as inf:
                 for line in inf:
-                    outf.write(f'{line}\n')
+                    outf.write(f'{line}')
             outf.write('</pre>\n')
 
         # shower stats
@@ -130,7 +130,7 @@ def reportActiveShowers(ymd):
         outdir=os.path.join(datadir, 'reports', dtstr, shwr)
         findRelevantPngs(dtstr, shwr, trajdir, outdir)
         createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir)
-    return 
+    return shwrlist
 
 
 if __name__ == '__main__':
@@ -138,4 +138,9 @@ if __name__ == '__main__':
         ymd = datetime.datetime.strptime(sys.argv[1], '%Y%m%d')
     else:
         ymd = datetime.datetime.now()
-    reportActiveShowers(ymd)
+    shwrs = reportActiveShowers(ymd)
+    retval = ''
+    for sh in shwrs:
+        retval = retval + ' ' + sh
+
+    print(retval)
