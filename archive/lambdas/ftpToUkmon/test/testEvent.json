@@ -1,0 +1,15 @@
+{
+  "Records": [
+    {
+      "s3": {
+        "bucket": {
+          "name": "ukmon-shared",
+          "arn": "arn:aws:s3:::ukmon-shared"
+        },
+        "object": {
+          "key": "matches/RMSCorrelate/UK0006/UK0006_20221104_170703_850082/FTPdetectinfo_UK0006_20221104_170703_850082.txt"
+        }
+      }
+    }
+  ]
+}

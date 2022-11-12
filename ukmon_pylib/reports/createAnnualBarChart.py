@@ -15,8 +15,10 @@ def createBarChart(fname, yr):
     if not os.path.isfile(fname):
         print('{} missing', fname)
         return None
-    cols = ['_mjd']
+    cols = ['_mjd','_Y_ut']
     matches = pd.read_parquet(fname, columns=cols)
+    matches = matches[matches['_Y_ut']==int(yr)]
+
     matches = matches.sort_values(by=['_mjd'])
     v1=int(matches['_mjd'][0])
     v2=int(matches['_mjd'][len(matches)-1])+2
@@ -40,8 +42,9 @@ def createBarChart(fname, yr):
     fig = plt.gcf()
     fig.set_size_inches(12, 5)
     fig.tight_layout()
-
+    #plt.gca().invert_yaxis()
     plt.savefig('Annual-{}.jpg'.format(yr), dpi=100)
+    plt.close()
 
     return matches
 
@@ -53,7 +56,7 @@ if __name__ == '__main__':
     else:
         yr=datetime.datetime.now().year
         datadir=os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-        fname = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.gzip'.format(yr))
+        fname = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.snap'.format(yr))
         
     m = createBarChart(fname, yr)
 #    print(m.selectByMag(minMag=-2))

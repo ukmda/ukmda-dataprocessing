@@ -10,9 +10,9 @@ rsync -avz ukmonhelper:ukmon-shared/kmls/* kmls/
 rsync -avz ukmonhelper:prod/data/*.png .
 rsync -avz ukmonhelper:prod/data/*.jpg .
 rsync -avz ukmonhelper:prod/data/single/*.csv single/
-rsync -avz ukmonhelper:prod/data/single/*.gzip single/
+rsync -avz ukmonhelper:prod/data/single/*.snap single/
 rsync -avz ukmonhelper:prod/data/matched/*.csv matched/
-rsync -avz ukmonhelper:prod/data/matched/*.gzip matched/
+rsync -avz ukmonhelper:prod/data/matched/*.snap matched/
 rsync -avz ukmonhelper:prod/data/consolidated/ consolidated/
 rsync -avz ukmonhelper:prod/data/latest/ latest/
 rsync -avz ukmonhelper:prod/data/dailyreports/ dailyreports/

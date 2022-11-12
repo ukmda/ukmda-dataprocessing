@@ -160,6 +160,7 @@ def plotMap(srcpath, intersect):
         datadir='.'
     plt.savefig(os.path.join(datadir, 'stations.png'), dpi=200)
     plt.show()
+    plt.close()
 
 
 if __name__ == '__main__':

@@ -1,3 +1,5 @@
+#cartopy INSTALL THIS WITH CONDA
+# skip this
 #https://github.com/matplotlib/basemap/archive/master.zip
 basemap
 boto3
@@ -27,11 +29,11 @@ xmltodict
 tweepy
 fastparquet
 cryptography
-cartopy
 python-crontab
 simplekml
 astropy
 gitpython
 pymysql
 mysql-connector-python
-pyarrow
+pre-commit
+# pyarrow

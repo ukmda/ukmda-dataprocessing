@@ -9,7 +9,7 @@ def deleteDuplicate(trajname):
     datadir = os.getenv('DATADIR', default='/home/pi/prod/data')
     yr=trajname[:4]
     if int(yr) > 2021:
-        fname = os.path.join(datadir, 'matched','matches-full-{}.parquet.gzip'.format(yr))
+        fname = os.path.join(datadir, 'matched','matches-full-{}.parquet.snap'.format(yr))
         if os.path.isfile(fname):
             # cant select columns as we are going to write the whole lot back out
             df = pd.read_parquet(fname)
@@ -22,7 +22,7 @@ def deleteDuplicate(trajname):
     idx = df[df.orbname==trajname].index
     if len(idx) > 0:
         df = df.drop(index=idx)
-        df.to_parquet(fname)
+        df.to_parquet(fname, compression='snappy')
         csvfname = os.path.join(datadir, 'matched','matches-full-{}.csv'.format(yr))
         df.to_csv(csvfname, index=False)
 

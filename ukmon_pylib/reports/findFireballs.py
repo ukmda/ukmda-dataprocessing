@@ -18,7 +18,7 @@ def markAsFireball(trajname, tof=True):
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     yr=trajname[:4]
     if int(yr) > 2021:
-        fname = os.path.join(datadir, 'matched','matches-full-{}.parquet.gzip'.format(yr))
+        fname = os.path.join(datadir, 'matched','matches-full-{}.parquet.snap'.format(yr))
         if os.path.isfile(fname):
             # cant select cols here as we write them all back in a few lines
             df = pd.read_parquet(fname) 
@@ -30,7 +30,7 @@ def markAsFireball(trajname, tof=True):
         exit(0)
     print(f'setting {trajname} to {tof}')
     df.loc[df.orbname==trajname, ['isfb']] = tof
-    df.to_parquet(fname)
+    df.to_parquet(fname, compression='snappy')
     csvfname = os.path.join(datadir, 'matched','matches-full-{}.csv'.format(yr))
     df.to_csv(csvfname, index=False)
 
@@ -80,7 +80,7 @@ def createMDFiles(fbs, outdir, matchdir):
 #
 # Search the matched data for fireball events
 #
-def findMatchedFireballs(df, outdir=None, mag=-4):
+def findMatchedFireballs(df, mag=-4):
     fbs = df.sort_values(by='_mag')
     fbs = fbs.drop_duplicates(subset=['_mjd', '_mag'], keep='last')
     if mag == 999: 
@@ -95,7 +95,7 @@ def findMatchedFireballs(df, outdir=None, mag=-4):
 
 
 # old version of the above for older data
-def findFBPre2020(df, outdir=None, mag=-4):
+def findFBPre2020(df, mag=-4):
     df=df[df._mag < mag]
     fbs=pd.concat([df._localtime,df._mag,df._stream,df._vg,df._a,df._e,df._incl,df._peri,df._node,df._p], axis=1, 
         keys=['url','mag','shower','vg','a','e','incl','peri','node','p'])
@@ -104,7 +104,7 @@ def findFBPre2020(df, outdir=None, mag=-4):
     return fbs
 
 
-def findFireballs(dtval, shwr, minmag=-3.99, matchdataset = None):
+def findFireballs (dtval, shwr, minmag=-3.99, matchdataset = None):
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     matchdir = os.getenv('MATCHDIR', default='/home/ec2-user/ukmon-shared/matches')
 
@@ -119,11 +119,12 @@ def findFireballs(dtval, shwr, minmag=-3.99, matchdataset = None):
 
     if matchdataset is None:
         if yr > 2019:
-            cols = ['_stream','_mjd','_mag','_vg','url','mass','orbname','_M_ut','isfb']
+            cols = ['_stream','_mjd','_mag','_vg','url','mass','orbname','_M_ut','isfb', '_Y_ut']
             filt = None
-            fname = os.path.join(datadir, 'matched',f'matches-full-{yr}.parquet.gzip')
+            fname = os.path.join(datadir, 'matched',f'matches-full-{yr}.parquet.snap')
             if os.path.isfile(fname):
                 df = pd.read_parquet(fname, columns=cols, filters=filt)
+                df = df[df['_Y_ut']==int(yr)] 
             else:
                 print('unable to load datafile')
                 exit(0)
@@ -143,7 +144,7 @@ def findFireballs(dtval, shwr, minmag=-3.99, matchdataset = None):
     else:
         df = matchdataset
 
-    if mag > 998:
+    if minmag > 998:
         if mth is not None:
             outdir = os.path.join(datadir, 'reports',f'{yr:04d}', shwr, f'{mth:02d}')
         else:
@@ -153,9 +154,9 @@ def findFireballs(dtval, shwr, minmag=-3.99, matchdataset = None):
         outdir = os.path.join(datadir, 'reports',f'{yr}', 'fireballs')
 
     if yr > 2019:
-        fbs = findMatchedFireballs(df, outdir, mag)
+        fbs = findMatchedFireballs(df, minmag)
     else:
-        fbs = findFBPre2020(df, outdir, mag)
+        fbs = findFBPre2020(df, minmag)
 
     if len(fbs) > 0: 
         if outdir is not None:

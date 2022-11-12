@@ -222,10 +222,14 @@ def updateCamLocDirFovDB():
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data/')
     ppfiles = glob.glob(os.path.join(datadir, 'consolidated','platepars', '*.json'))
     for ppf in ppfiles:
-        pp = json.load(open(ppf))
-        camid = pp['station_code']
-        camdb.update({camid: {'lat': pp['lat'], 'lon': pp['lon'], 'ele': pp['elev'],
-            'az': pp['az_centre'], 'alt': pp['alt_centre'], 'fov_h': pp['fov_h'], 'fov_v': pp['fov_v']}})
+        try:
+            pp = json.load(open(ppf))
+            camid = pp['station_code']
+            camdb.update({camid: {'lat': pp['lat'], 'lon': pp['lon'], 'ele': pp['elev'],
+                'az': pp['az_centre'], 'alt': pp['alt_centre'], 'fov_h': pp['fov_h'], 'fov_v': pp['fov_v']}})
+        except:
+            # platepar was malformed
+            continue
     with open(os.path.join(datadir, 'admin', 'cameraLocs.json'), 'w') as outf:
         json.dump(camdb, outf, indent=4)
 

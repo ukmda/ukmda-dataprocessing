@@ -31,6 +31,7 @@ def trackToDistvsHeight(trackcsvfile):
     plt.plot(dists,alts)
     outname = trackcsvfile.replace('.csv','_dist_alt.png')
     plt.savefig(outname)
+    plt.close()
 
 
 def trackToTimevsVelocity(trackcsvfile):
@@ -64,6 +65,7 @@ def trackToTimevsVelocity(trackcsvfile):
     plt.plot(tims,vels)
     outname = trackcsvfile.replace('.csv','_tim_vel.png')
     plt.savefig(outname)
+    plt.close()
 
 
 def trackToTimevsHeight(trackcsvfile):
@@ -80,6 +82,7 @@ def trackToTimevsHeight(trackcsvfile):
     plt.plot(tims,alts)
     outname = trackcsvfile.replace('.csv','_time_alt.png')
     plt.savefig(outname)
+    plt.close()
 
 
 if __name__ == '__main__':

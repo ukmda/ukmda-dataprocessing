@@ -111,8 +111,9 @@ def filterSingleData(yr, ra=None, dra=5, dec=None, ddec=5, sollon=None, dsl=5, s
     mth = dt.month
     jdt = sollon2jd(yr, mth, sollon)
     pkdt = jd2Date(jdt, dt_obj=True)    
-    srcfile = f'https://archive.ukmeteornetwork.co.uk/browse/parquet/singles-{yr}.parquet.gzip'
-    df = pd.read_parquet(srcfile)
+    cols=['Ra1','Dec1','Ra2','Dec2','Dtstamp','Filename']
+    srcfile = f'https://archive.ukmeteornetwork.co.uk/browse/parquet/singles-{yr}.parquet.snap'
+    df = pd.read_parquet(srcfile, columns=cols)
     # filter by RA if requested
     if ra is not None:
         df = df[(df.Ra1 >= (ra - dra)) | (df.Ra2 >= (ra - dra))]
@@ -169,8 +170,9 @@ def filterMatchData(yr, ra=None, dra=5, dec=None, ddec=5, sollon=None, dsl=5, vg
     if vg is not None and (vg < 5 or sollon > 100):
         print('invalid vg - must be in the range 5<=vg<=99')
         return df
-    srcfile = f'https://archive.ukmeteornetwork.co.uk/browse/parquet/matches-full-{yr}.parquet.gzip'
-    df = pd.read_parquet(srcfile)
+    srcfile = f'https://archive.ukmeteornetwork.co.uk/browse/parquet/matches-full-{yr}.parquet.snap'
+    cols=['_ra_o','_dc_o','_vg','_sol','orbname']
+    df = pd.read_parquet(srcfile, columns=cols)
     # filter by RA if requested
     if ra is not None:
         df = df[df._ra_o >= (ra - dra)]

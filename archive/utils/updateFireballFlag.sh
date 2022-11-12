@@ -31,5 +31,5 @@ from reports.findFireballs import markAsFireball;
 markAsFireball('${orbname}', ${tof});
 EOD
 
-aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matched/ --quiet --include "*" --exclude "*.gzip" --exclude "*.bkp"
-aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matchedpq/ --quiet --exclude "*" --include "*.gzip" --exclude "*.bkp"
+aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matched/ --quiet --include "*" --exclude "*.snap" --exclude "*.bkp" --exclude "*.gzip"
+aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matchedpq/ --quiet --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip"

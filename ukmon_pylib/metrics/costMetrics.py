@@ -135,6 +135,7 @@ def drawBarChart(costsfile, typflag):
     fname = os.path.join(outdir, f'{fn}.jpg')
     plt.savefig(fname)
     plt.show()
+    plt.close()
 
 
 def getAllBillingData(ceclient, dtwanted, endwanted, regionid, outdir, typflag):
