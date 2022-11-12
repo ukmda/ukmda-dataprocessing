@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>UK Meteor Network Archive Station Maps</title>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Meteor Observation Data">
+    <meta name="author" content="Mark McIntyre">
+
+    <meta name="keywords" content="meteors,astronomy,space" />
+    <!-- Bootstrap Core CSS -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="/css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="/css/dragontail.css" rel="stylesheet">
+
+    <!-- Timeline CSS -->
+    <link href="/css/plugins/timeline.css" rel="stylesheet">
+
+    <!-- Morris Charts CSS -->
+    <link href="/css/plugins/morris.css" rel="stylesheet">
+
+    <style>
+        html,
+        body {
+            height: 510px;
+            padding: 0;
+            margin: 0;
+        }
+
+        #map {
+            height: 500px;
+            width: 500px;
+            overflow: hidden;
+            float: left;
+            border: thin solid #333;
+        }
+
+        #capture {
+            height: 500px;
+            width: 200px;
+            overflow: hidden;
+            float: left;
+            background-color: #ECECFB;
+            border: thin solid #333;
+            border-left: none;
+        }
+    </style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-D5710EJL12"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-D5710EJL12');
+  </script>
+</head>
+
+<body>
+    <!-- jQuery -->
+    <script src="/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="/js/bootstrap.min.js"></script>
+
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="/js/plugins/metisMenu/metisMenu.min.js"></script>
+
+    <!-- Morris Charts JavaScript -->
+    <script src="/js/plugins/morris/raphael.min.js"></script>
+    <script src="/js/plugins/morris/morris.min.js"></script>
+
+    <script src="/js/constellation.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="/js/sb-admin-2.js"></script>
+
+    <div id="nav-placeholder"></div>
+
+    <script>
+        $(function () {
+            $("#nav-placeholder").load("/templates/navbar.html");
+        });
+    </script>
+
+    <div class="container">
+        <h2>Station Coverage Maps</h2>
+        <p><b>FUNCTIONALITY TEMPORARILY DISABLED</b></p>
+        <p>
+            To use this page, select a camera from the dropdown, then select an altitude.
+            Click on Show to reveal the coverage of that camera at that altitude.
+            To check for overlap select a second camera and click Show again. 
+            Note that the field of view will remain
+            centred on the first camera and the second may not be visible - if they don't overlap. 
+            You can click on a shaded area to see which camera it relates to. 
+        </p><p>
+            If no coverage is displayed then the camera has not yet been calibrated.
+        </p>
+        <p>
+            You can also click the links below to see total coverage at different altitudes:
+            <li><a href="/data/coverage-25km.html">Coverage at 25km</a> </li>
+            <li><a href="/data/coverage-70km.html">Coverage at 70km</a> </li>
+            <li><a href="/data/coverage-100km.html">Coverage at 100km</a> </li>
+        </p>
+
+        <form id="selectStation" onsubmit="return formSubmit()">
+            <div id="stationsplaceholder"></div>
+            <label for="statselect">Station 1</label>
+            <select class="bootstrap-select" id="statselect" name="statselect">
+                <script>
+                    $(function () {
+                        $("#statselect").load("/search/activestatopts.html");
+                    });
+                </script>
+            </select>
+            <label for="statselect2">Station 2</label>
+            <select class="bootstrap-select" id="statselect2" name="statselect2">
+                <script>
+                    $(function () {
+                        $("#statselect2").load("/search/activestatopts.html");
+                    });
+                </script>
+            </select>
+            <label for="heightsel">Height</label>
+            <select class="bootstrap-select" id="heightsel" name="heightsel">
+                <option value="25km" selected="selected">25km</option>
+                <option value="70km">70km</option>
+                <option value="100km">100km</option>
+            </select>
+            <button type="submit">Show</button>
+            <label for="statloc">Station Location</label>
+            <input type="text" readonly="readonly" id="statloc">
+            <select class="bootstrap-select" id="statlocsel" name="stalocsel" disabled hidden>
+                <script>
+                    $(function () {
+                        $("#statlocsel").load("/search/activestatlocs.html");
+                    });
+                </script>
+            </select>
+        </form>
+        <div id="map"></div>
+        <div id="capture"></div>
+        <script>
+            var strstat;
+            var strstat2;
+            var height;
+            function formSubmit() {
+                //console.log('in formSubmit');
+                var e = document.getElementById('statselect');
+                strstat = e.options[e.selectedIndex].text;
+                selidx = e.selectedIndex;
+
+                var e = document.getElementById('statselect2');
+                strstat2 = e.options[e.selectedIndex].text;
+
+                var e = document.getElementById('heightsel');
+                height = e.options[e.selectedIndex].text;
+                console.log('station is', strstat, 'height ', height, 'station 2', strstat2)
+
+                loc = document.getElementById('statloc');
+                locsel = document.getElementById('statlocsel');
+                strloc = locsel.options[selidx].text;
+                loc.value = strloc;
+
+                initMap();
+                return false;
+            }
+            function getParameterByName(name, url) {
+                if (!url) url = window.location.href;
+                name = name.replace(/\\/g, '\\\\').replace(/[\[\]]/g, '\\$&');
+                var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                    results = regex.exec(url);
+                if (!results) return null;
+                if (!results[2]) return '';
+                return decodeURIComponent(results[2].replace(/\+/g, ' '));
+            }
+
+            function initMap() {
+                //var sn = getParameterByName('statselect');
+                var map;
+                map = new google.maps.Map(document.getElementById('map'), {
+                    center: new google.maps.LatLng(54.0, 1.5),
+                    zoom: 2,
+                    mapTypeId: 'terrain'
+                });
+                var src1 = 'https://archive.ukmeteornetwork.co.uk/img/kmls/' + strstat + '-' + height + '.kml';
+                //console.log(src1);
+
+                var kmlLayer = new google.maps.KmlLayer(src1, {
+                    suppressInfoWindows: true,
+                    preserveViewport: false,
+                    map: map
+                });
+                kmlLayer.addListener('click', function (event) {
+                    var content = event.featureData.infoWindowHtml;
+                    console.log(content)
+                    var testimonial = document.getElementById('capture');
+                    testimonial.innerHTML = content;
+                });
+                if (strstat2 != '')
+                {
+                    var src2 = 'https://archive.ukmeteornetwork.co.uk/img/kmls/' +strstat2 + '-' + height + '.kml';
+
+                    var kmlLayer = new google.maps.KmlLayer(src2, {
+                        suppressInfoWindows: true,
+                        preserveViewport: true,
+                        map: map
+                    });
+                    kmlLayer.addListener('click', function (event) {
+                        var content = event.featureData.infoWindowHtml;
+                        console.log(content)
+                        var testimonial = document.getElementById('capture');
+                        testimonial.innerHTML = content;
+                    });
+                }
+            }
+        </script>
+        <script async
+            src="https://maps.googleapis.com/maps/api/js?key={{MAPSAPIKEY}}&callback=initMap">
+            </script>
+    </div>
+</body>
+
+</html>

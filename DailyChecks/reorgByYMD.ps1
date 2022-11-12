@@ -2,19 +2,31 @@
 # and reorganize them into UFO-style yyyy\yyyymm\yyyymmdd folders
 # for easier searching
 
-# read the inifile
 $curloc=get-location
 set-location $PSScriptRoot
+# load the helper functions
+. .\helperfunctions.ps1
+# read the inifile
 if ($args.count -eq 0) {
-    $ini=get-content camera1.ini -raw | convertfrom-stringdata
-}else {
-    $ini=get-content $args[0] -raw | convertfrom-stringdata
+    $inifname='../TACKLEY_TC.ini'
 }
+else {
+    $inifname = $args[0]
+}
+$ini=get-inicontent $inifname
+$hostname=$ini['camera']['hostname']
+$maxage=$ini['camera']['maxage']
+$localfolder=$ini['camera']['localfolder']
 
-$srcpath=$ini.localfolder+'\'
-$age=[int]$ini.maxage
+$srcpath=$localfolder+'\'
+$age=[int]$maxage
 
 $arcpath=$srcpath + '\ConfirmedFiles\'
+#$numfiles= (dir $arcpath).count
+if (-not (test-path $arcpath) ) #-or $numfiles -eq 0)
+{
+    $arcpath=$srcpath + '\ArchivedFiles\'
+}
 $mindt = (get-date).AddDays(-$age)
 $dlist = (get-childitem -directory $arcpath | where-object {$_.creationtime -gt $mindt }).Name
 foreach ($dname in $dlist)
@@ -33,14 +45,18 @@ foreach ($dname in $dlist)
     write-output 'copying radiant data'
     $src=$arcpath+$dname +'\*radiants.*'
     copy-item $src $pth
+    $src=$arcpath+$dname +'\*assocs.*'
+    copy-item $src $pth
     write-output 'copying meteors data'
     $src=$arcpath+$dname +'\*meteors.*'
     copy-item $src $pth
     write-output 'copying thumbs'
     $src=$arcpath+$dname +'\*thumbs.jpg'
     copy-item $src $pth
-    write-output 'copying FTPdetect file'
+    write-output 'copying FTPdetect file and platepar'
     $src=$arcpath+$dname +'\FTP*.txt'
+    copy-item $src $pth
+    $src=$arcpath+$dname +'\platepar*'
     copy-item $src $pth
     $precs=$pth +'\FTP*pre-confirmation.txt'
     remove-item $precs
@@ -56,7 +72,7 @@ foreach ($dname in $dlist)
     copy-item $src $pth
 
     # if an all-night timelapse exists on the Pi, copy that too
-    $remotepath='\\meteorpi\RMS_share\ArchivedFiles\'
+    $remotepath='\\'+$hostname+'\RMS_data\ArchivedFiles\'
     $src = $remotepath+$dname+'\UK*.mp4'
     $exists = test-path $src
     $dest = $pth+'\UK*.mp4'

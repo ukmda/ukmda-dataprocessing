@@ -1,0 +1,27 @@
+---
+- hosts: ukmonhelper
+  vars:
+    srcdir: /mnt/e/dev/meteorhunting/UKMON-shared/usermgmt/server
+    destdir: /home/ec2-user/keymgmt
+  tasks:
+  - name: Ensures {{destdir}} exists
+    file: path={{destdir}} state=directory  
+  - name: Ensures {{destdir}}/rawkeys exists
+    file: path={{destdir}}/rawkeys state=directory  
+  - name: Ensures {{destdir}}/live exists
+    file: path={{destdir}}/live state=directory  
+  - name: Ensures {{destdir}}/arch exists
+    file: path={{destdir}}/arch state=directory  
+  - name: Ensures {{destdir}}/sshkeys exists
+    file: path={{destdir}}/sshkeys state=directory  
+  - name: Ensures {{destdir}}/inifs exists
+    file: path={{destdir}}/inifs state=directory  
+
+  - name: Copy files
+    copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
+    with_items:
+    - {src: '{{srcdir}}/addSftpUser.sh', dest: '{{destdir}}/', mode: '754', backup: yes, directory_mode: no }
+    - {src: '{{srcdir}}/update_keyfile.sh', dest: '{{destdir}}/', mode: '754', backup: yes, directory_mode: no }
+    - {src: '{{srcdir}}/jsonToKeyFile.py', dest: '{{destdir}}/', mode: '644', backup: yes, directory_mode: no }
+    - {src: '{{srcdir}}/ukmon.ini', dest: '{{destdir}}/', mode: '644', backup: yes, directory_mode: no }
+    

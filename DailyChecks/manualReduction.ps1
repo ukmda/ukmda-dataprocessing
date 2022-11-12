@@ -1,71 +1,62 @@
 # script to run manual meteor reduction for the Pi
-# args 
-#   yymmdd date to copy for 
-#   hhmmss time to copy for
 
-if($args.count -lt 3) {
-    echo "usage: manuaReduction srcdir srcfile camerainifile"
-    echo "eg manuaReduction 20200703 015505 UK006.ini"
+if($args.count -lt 2) {
+    Write-Output "usage: manuaReduction inifile datestr"
+    Write-Output "eg manuaReduction UK0006.ini 20200703"
     exit
 }
 
-$srcdir=$args[0]
-$srcfile=$args[1]
+set-location $PSScriptRoot
+# load the helper functions
+. .\helperfunctions.ps1
 
 # read the inifile
-set-location $PSScriptRoot
-if ($args.count -lt 3) {
-    $ini=get-content camera1.ini -raw | convertfrom-stringdata
-}else {
-    $ini=get-content $args[2] -raw | convertfrom-stringdata
-}
+$inifname = $args[0]
+$ini=get-inicontent $inifname
 
-#these details are specific to your camera and file system 
-# and are read from the ini file
-$cam=$ini.camera_name      
-$rootdir='\\'+$ini.hostname+'\RMS_Share\' 
-$datadir=$ini.localfolder
-$RMSloc=$ini.rms_loc
+$datadir=$ini['camera']['localfolder']
+$cam=$ini['camera']['camera_name']
+$RMSloc=$ini['rms']['rms_loc']
+$rmsenv=$ini['rms']['rms_env']
 
-#crate a folder under the datadir where you'll run manual reduction 
-# and make sure its empty if it already existed
-$targdir=$datadir+'\manual\'
-mkdir -force $targdir | out-null
-set-location $targdir
-remove-item *.*
+$localdir=$datadir +'\Interesting\'+ $args[1]
 
-# copy the required files from the CapturedFiles folder
-write-output 'copying FF file'
-$src=$rootdir +"CapturedFiles\"+ $cam+"_"+ $srcdir +"*\FF_"+$cam+"*"+$srcfile+"*.fits"
-Copy-item $src $targdir
-write-output 'copying bin file if present'
-$src=$rootdir +"CapturedFiles\"+ $cam+"_"+ $srcdir +"*\FR_"+$cam+"*"+$srcfile+"*.bin"
-Copy-item $src $targdir
-write-output 'copying platepar file'
-$src=$rootdir +"platepar*.cal"
-Copy-item $src $targdir
-write-output 'copying config file'
-$src=$rootdir +".config"
-Copy-item $src $targdir
 
-$ffpath=$targdir+'\FF*.fits'
+$ffpath=$localdir+'\FF*.fits'
 $ff=(Get-ChildItem $ffpath).fullname
 
 # run the manual reduction process
 set-location $RMSloc 
-python -m Utils.ManualReduction -c . $ff
+conda activate $rmsenv
+python -m Utils.ManualReduction $ff
 
 # find the new FTPfile and the original
-$ftppath=$targdir+'\FTPdetectinfo*manual.txt'
+$ftppath=$localdir+'\FTPdetectinfo*manual.txt'
 $ftp=(Get-ChildItem $ftppath).fullname
 
-$oldftppath=$datadir+"\ArchivedFiles\"+$cam+"_"+$srcdir+"*"+'\FTPdetectinfo*.txt'
-$oldftp=((Get-ChildItem $oldftppath).fullname)[0]
+$arcpath=$datadir + '\ConfirmedFiles\'+$cam+'_'+$args[1]+'*'
+if (-not (test-path $arcpath) )
+{
+    $arcpath=$datadir + '\ArchivedFiles\'+$cam+'_'+$args[1]+'*'
+}
+
+$oldftppath=$arcpath+'\FTPdetectinfo*.txt'
+$oldftp=((Get-ChildItem $oldftppath -exclude *backup*,*uncal*,*pre-con*).fullname)
+$fuloldpth=(Get-ChildItem $arcpath).fullname
 
 msg  /w $env:username "opening windows for you to edit the FTPdetect files - don't forget to change the meteor count!"
 
 notepad $ftp
 notepad $oldftp | out-null
 
-msg $env:username "You can now rerun the Confirmation process in CMN_BinViewer if desired"
-set-location $psscriptroot
+$jppath=$localdir+'\FF*.jpg'
+copy-item $jppath $fuloldpth
+copy-item $ff $fuloldpth
+
+python $PSScriptRoot\ufoShowerAssoc.py $oldftp
+$platepar=$localdir+'\platepar_cmn2010.cal'
+python -m Utils.RMS2UFO $oldftp $platepar
+
+Set-Location $PSScriptRoot
+.\reorgByYMD.ps1 $args[0]
+.\UploadToUkMon.ps1 $args[0]

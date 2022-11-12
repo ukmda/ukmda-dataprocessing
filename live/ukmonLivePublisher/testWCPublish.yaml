@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: Monitors ukmon-live and adds new events to the webpage
+Resources:
+  testWCPublish:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs12.x
+      CodeUri: .
+      Description: Monitors ukmon-live and adds new events to the webpage
+      MemorySize: 256
+      Timeout: 30
+      Role: 'arn:aws:iam::822069317839:role/lambda_basic_execution'
+      Events:
+        BucketEvent1:
+          Type: S3
+          Properties:
+            Bucket:
+              Ref: Bucket1
+            Events:
+              - 's3:ObjectCreated:*'
+              - 's3:ObjectRemoved:*'
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: jpg
+      Environment:
+        Variables:
+          AWS_MQTT_ENDPOINT: a1v8kpr7nxi3a1.iot.eu-west-1.amazonaws.com
+      Tags:
+        UKMonLive: '3'
+  Bucket1:
+    Type: 'AWS::S3::Bucket'

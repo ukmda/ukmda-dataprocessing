@@ -212,6 +212,7 @@ StyleCopReport.xml
 *.ilk
 *.meta
 *.obj
+*.o
 *.iobj
 *.pch
 *.pdb
@@ -233,6 +234,7 @@ StyleCopReport.xml
 *.pidb
 *.svclog
 *.scc
+*.exe
 
 # Chutzpah Test files
 _Chutzpah*
@@ -279,7 +281,7 @@ _TeamCity*
 !.axoCover/settings.json
 
 # Coverlet is a free, cross platform Code Coverage Tool
-coverage*[.json, .xml, .info]
+#coverage*[.json, .xml, .info]
 
 # Visual Studio code coverage results
 *.coverage
@@ -495,8 +497,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-NewAnalysis/test_data/platepar/skyFit_latest.state
-NewAnalysis/test_data/platepar/skyFit_latest.state
+ananalysis/test_data/platepar/skyFit_latest.state
+ananalysis/test_data/platepar/skyFit_latest.state
 DailyChecks/UK000F.ini
 DailyChecks/tackley_tc.ini
 DailyChecks/UK0006.ini
@@ -505,10 +507,68 @@ DailyChecks/tackley_ne.ini
 M*.jpg
 M*.xml
 # don't want to duplicate this into github
-ukmon-live/curate/numpy/**
-ukmon-live/curate/pytz/**
-ukmon-live/curate/numpy.libs/**
-ukmon-live/curate/ReadUFO*
+live/curate/numpy/**
+live/curate/pytz/**
+live/curate/numpy.libs/**
+live/curate/UFOHandler/*
+live/curate/curateEngine*
 notshared/**
-NewAnalysis/test_data/platepar/platepar_cmn2010_ne.cal
-NewAnalysis/test_data/platepar/skyFit_latest.state
+analysis/test_data/platepar/platepar_cmn2010_ne.cal
+analysis/test_data/platepar/skyFit_latest.state
+ukmon-live/getlogs/.ukmoncreds
+*.retry
+*.bkp
+*.rtf
+*/deploy*.ps1
+UKMonCPPTools/stacker/test/*
+analysis/deployToAWS.yml
+*.zip
+analysis/*.png
+analysis/*.pickle
+analysis/*.txt
+mp4s
+StandaloneCurator/.installed
+analysis/orbitSolver/testing
+analysis/FormatConverters/testing
+*/test_data/*
+archive/lambdas/pytz*
+archive/static_content/data/searchdialog.js
+ToDo*
+archive/costs/**/*.csv
+archive/costs/**/*.json
+archive/costs/plots/*.png
+archive/lambdas/.aws-sam/build.toml
+archive/costs/S3-size-empireelements.xlsx
+ukmon_pylib/share/maps/BM*.jpg
+ukmon_pylib/share/maps/BM*.png
+ukmon_pylib/share/maps/pop*.jpg
+archive/unused/**
+**/build.toml
+**/.terraform.lock.hcl
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/test/*.csv
+**/test/*.kml
+**/test/*.txt
+**/test/*.png
+**/test/*.html
+**/test/*.lst
+ukmon_pylib/tests/20220217_032206.832_UK/*
+unused/*
+*tfstate.lock.info
+archive/lambdas/getExtraFilesV2/pythoncode/WesternMeteorPyLib/*
+archive/containers/trajsolver/WesternMeteorPyLib/*
+archive/containers/trajsolver/awskeys
+archive/containers/trajsolvertest/WesternMeteorPyLib/*
+archive/containers/trajsolvertest/awskeys
+#ukmon_pylib/traj/clusdetails.txt
+**/*.pickle
+archive/containers/gui/awskeys
+archive/terraform/ee/ukmonreadonly.key
+.cache_ggshield
+replacements.txt
+archive/lambdas/apis-mm.txt
+archive/lambdas/apis-ee.txt
+usermgmt/windows/createUserKeyAWS.ps1
+archive/lambdas/matchPickle/pythoncode/WesternMeteorPyLib/**
+archive/lambdas/matchPickle/pythoncode/*.npy

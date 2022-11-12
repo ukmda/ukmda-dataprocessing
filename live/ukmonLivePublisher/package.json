@@ -1,0 +1,26 @@
+{
+  "name": "aws_test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "export IS_LOCAL=1 && export AWS_ACCESS_KEY_ID='AKIAJU3AM4QL2L3LU5HQ' && export AWS_ACCESS_KEY='ScGQ/cB6QmAA1sRh8zkYmLjDoClXtKA2g3RObOU4' && nodemon",
+    "zip": "zip -r test.zip ."
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^2.6.4",
+    "aws-mqtt": "^0.2.2",
+    "aws-mqtt-client": "^0.0.6",
+    "aws-sdk": "^2.231.1",
+    "fs": "0.0.1-security",
+    "moment": "^2.29.4",
+    "websocket": "^1.0.26"
+  },
+  "devDependencies": {
+    "dotenv": "^5.0.1",
+    "nodemon": "^2.0.19"
+  }
+}

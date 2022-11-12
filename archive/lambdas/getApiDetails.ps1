@@ -1,0 +1,23 @@
+# powershell script to get API details for use in other code
+
+$outf=$psscriptroot + "/apis-ee.txt"
+$apis=(aws apigateway get-rest-apis --profile ukmon-markmcintyre --region eu-west-1 | convertfrom-json)
+
+clear-content -path $outf
+foreach ($itm in $apis.items) {
+    $id = $itm.id
+    $nam = $itm.name  
+    $outstr = $nam + " " + $id
+    write-output $outstr >> $outf
+}
+
+$outf=$psscriptroot + "/apis-mm.txt"
+$apis=(aws apigateway get-rest-apis --profile default --region eu-west-1 | convertfrom-json)
+
+clear-content -path $outf
+foreach ($itm in $apis.items) {
+    $id = $itm.id
+    $nam = $itm.name  
+    $outstr = $nam + " " + $id
+    write-output $outstr >> $outf
+}

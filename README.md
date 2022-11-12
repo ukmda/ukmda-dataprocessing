@@ -1,27 +1,32 @@
 # UKmon-shared
 UKMon Shared code and libraries
+===============================
 
-FormatConverters
-===============
-various utilities and scripts to convert UFO style data into RMS style data for analysis with 
-the Python libraries
+analysis
+--------
+Some powershell scripts to analyse data with RMS or WMPL, and solve orbits after converting to RMS format. 
 
-UKmonCPPTools
-=============
-The live uploader, archiver and other tools written in C++
-These require the AWS API for C++ and Visual Studio 2019
+archive
+-------
+The code for archive.ukmeteornetwork.co.uk, including the data processing pipeline.
 
 DailyChecks
-===========
-Scripts to manage the Rpi RMS data, perform daily checks etc. This will be extended
-with python modules to analyse the UFO data. 
+-----------
+Scripts to run on a PC to manage the RMS and UFO data, perform daily checks etc. This makes use of
+python from the pylib folder to curate and process data. 
 
-UKMON-Archive
-=========================
-Python and other code to analyse data, find matches, display analysis, plot graphs etc.
-The Lambda functions etc used to create and search the UKMON shared archive
+docs
+----
+Incomplete documentation - to be filled out!
 
+live
+----
+Code relating to handling of the ukmon-live feed. Curatio, indexing and retrieval of logs for
+cost and other analysis. 
 
+ukmon_pylib
+-----------
+A python module containing functionality used across the website and other analytics. 
 
 
 

@@ -1,0 +1,5 @@
+#
+# requirements file for searchArchive
+#
+
+pytz

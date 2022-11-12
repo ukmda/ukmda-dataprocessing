@@ -1,0 +1,1 @@
+Ver,Group,LocalTime,Mag,Dur(sec),AV(deg/s),Loc_Cam,TZ(h),Y(UT),M(UT),D(UT),H(UT),M,S, Dir1, Alt1, Ra1, Dec1, Ra2, Dec2,alpha,delta, , , , , ,io,err1,err2,G1,dd(deg),dr(deg),Vo(km/s),dV(%),ra_m,dec_m,refs,errm,rat,dct,voo,vooerr,tmerr,sps,sN,drop

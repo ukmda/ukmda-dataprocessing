@@ -1,0 +1,32 @@
+---
+- hosts: localhost
+  vars:
+    srcdir: /mnt/e/dev/meteorhunting/UKmon-shared
+  tasks:
+    - name: import dev variables 
+      include_vars: ./dev-vars.yml
+      tags: dev
+    - name: import prod variables
+      include_vars: ./prod-vars.yml
+      tags: prod
+    - name: sync to S3
+      tags: [dev,prod]
+      s3_sync:
+        profile: "ukmonshared"
+        bucket: "{{ websitebucket }}"
+        file_root: "{{ srcdir }}/archive/static_content/"
+        #permission: "bucket-owner-full-control"
+        region: "eu-west-2"
+        mode: push
+    - name: Copy searchdialog to s3
+      tags: [dev,prod]
+      amazon.aws.s3_object:
+        profile: "ukmonshared"
+        bucket: "{{ websitebucket }}"
+        src: "{{srcdir}}/archive/website/templates/searchdialog-{{env}}.js"
+        object: "/data/searchdialog.js"
+        region: "eu-west-2"
+        permission: "bucket-owner-full-control"
+        mode: put
+        overwrite: "true"
+  

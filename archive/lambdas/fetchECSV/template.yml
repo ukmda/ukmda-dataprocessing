@@ -1,0 +1,23 @@
+# SAM build file for searchArchive
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Resources:
+  fetchECSV:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: fetchECSV.lambda_handler
+      Runtime: python3.8
+      FunctionName: fetchECSV
+      Description: API backend that retrieves an ECSV file for a detection
+      Timeout: 30
+      Policies: AmazonS3ReadOnlyAccess
+      Events:
+        HttpGet:
+          Type: Api
+          Properties:
+            Path: '/getecsv'
+            Method: get
+      Tags:
+        billingtag: "ukmon"
+    Metadata:
+      BuildMethod: python3.8
