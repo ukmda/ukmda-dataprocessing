@@ -62,7 +62,7 @@ $SRC/analysis/getRMSSingleData.sh
 
 logger -s -t findAllMatches "RUNTIME $SECONDS start createSearchable pass 1"
 yr=$(date +%Y)
-$SRC/analysis/createSearchable.sh $yr 1
+$SRC/analysis/createSearchable.sh $yr singles
 
 startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
 enddt=$(date --date="-$MATCHEND days" '+%Y%m%d-080000')

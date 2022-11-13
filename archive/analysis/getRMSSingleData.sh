@@ -25,23 +25,30 @@ mkdir -p $outdir/processed > /dev/null 2>&1
 mv -f $indir/*.csv $outdir > /dev/null 2>&1
 yr=$(date +%Y)
 mrgfile=$DATADIR/single/singles-${yr}.csv
+newsngl=$DATADIR/single/singles-${yr}-new.csv
 if [ ! -f $mrgfile ] ; then 
     echo "Ver,Y,M,D,h,mi,s,Mag,Dur,Az1,Alt1,Az2,Alt2,Ra1,Dec1,Ra2,Dec2,ID,Long,Lat,Alt,Tz,AngVel,Shwr,Filename,Dtstamp" > $mrgfile
 fi 
+# file containing only new data
+echo "Ver,Y,M,D,h,mi,s,Mag,Dur,Az1,Alt1,Az2,Alt2,Ra1,Dec1,Ra2,Dec2,ID,Long,Lat,Alt,Tz,AngVel,Shwr,Filename,Dtstamp" > $newsngl
+
 ls -1 $outdir/*.csv | while read i
 do
     cat $i >> $mrgfile
+    cat $i >> $newsngl
     mv $i $outdir/processed
 done 
 
 logger -s -t getRMSSingleData "convert to parquet"
 source ~/venvs/${WMPL_ENV}/bin/activate
-python -m converters.toParquet $SRC/data/single/singles-${yr}.csv
+python -m converters.toParquet $mrgfile
+python -m converters.toParquet $newsngl
+\rm -f $newsngl
 
 # push to S3 bucket for future use by AWS tools
 logger -s -t getRMSSingleData "copy to S3 bucket"
 aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/single/ --exclude "*" --include "*.csv" --exclude "new/*" --quiet
-aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/singlepq/ --exclude "*" --include "*.parquet.snap" --quiet
+aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/singlepq/ --exclude "*" --include "*.parquet.snap" --exclude "*new.parquet.snap" --quiet
 
 $SRC/utils/clearCaches.sh
 logger -s -t getRMSSingleData "finished"
