@@ -15,7 +15,6 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 source $HOME/venvs/${RMS_ENV}/bin/activate
-$SRC/utils/clearCaches.sh
 
 logger -s -t getRMSSingleData "starting"
 indir=$MATCHDIR/single/new
@@ -41,14 +40,17 @@ done
 
 logger -s -t getRMSSingleData "convert to parquet"
 source ~/venvs/${WMPL_ENV}/bin/activate
-python -m converters.toParquet $mrgfile
-python -m converters.toParquet $newsngl
-\rm -f $newsngl
+if [ -f $mrgfile ] ; then 
+    python -m converters.toParquet $mrgfile
+fi 
+if [ -f $newsngl ] ; then 
+    python -m converters.toParquet $newsngl
+    \rm -f $newsngl
+fi 
 
 # push to S3 bucket for future use by AWS tools
 logger -s -t getRMSSingleData "copy to S3 bucket"
 aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/single/ --exclude "*" --include "*.csv" --exclude "new/*" --quiet
 aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/singlepq/ --exclude "*" --include "*.parquet.snap" --exclude "*new.parquet.snap" --quiet
 
-$SRC/utils/clearCaches.sh
 logger -s -t getRMSSingleData "finished"
