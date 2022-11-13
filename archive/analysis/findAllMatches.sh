@@ -46,6 +46,9 @@ fi
 # folder for logs
 mkdir -p $SRC/logs > /dev/null 2>&1
 
+# trigger lambdas for any ftpdetects missed earlier
+python -c "from utils.rerunFailedLambdas import checkMissedFTPdetect ; checkMissedFTPdetect();"
+
 logger -s -t findAllMatches "RUNTIME $SECONDS start convertUfoToRms"
 $SRC/analysis/convertUfoToRms.sh
 dom=`date '+%d'`
@@ -80,8 +83,8 @@ then
 fi
 logger -s -t findAllMatches "RUNTIME $SECONDS Solving Run Done"
 
-logger -s -t findAllMatches "RUNTIME $SECONDS start rerunFailedGetExtraFiles"
-python -m utils.rerunFailedGetExtraFiles
+logger -s -t findAllMatches "RUNTIME $SECONDS start rerunFailedLambdas"
+python -m utils.rerunFailedLambdas
 
 cd $here
 logger -s -t findAllMatches "RUNTIME $SECONDS start reportOfLatestMatches"
