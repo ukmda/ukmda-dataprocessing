@@ -28,7 +28,9 @@ mkdir -p $DATADIR/searchidx
 
 python -m reports.createSearchableFormat $yr $whichpass
 
-cat $DATADIR/searchidx/${yr}-${whichpass}-new.csv >> $DATADIR/searchidx/${yr}-allevents.csv
+if [ -f $DATADIR/searchidx/${yr}-${whichpass}-new.csv ] ; then 
+    cat $DATADIR/searchidx/${yr}-${whichpass}-new.csv >> $DATADIR/searchidx/${yr}-allevents.csv
+fi 
 
 aws s3 sync  $DATADIR/searchidx/ $WEBSITEBUCKET/search/indexes/ --exclude "*" --include "*allevents.csv" --quiet 
 
