@@ -15,16 +15,14 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 logger -s -t createMthlyExtracts "starting"
-$SRC/utils/clearCaches.sh
 
 if [ $# -gt 0 ] ; then
     ymd=$1
-    yrs=${ymd:0:4}   
+    yr=${ymd:0:4}   
     mth=${ymd:4:2}
 else
-    yrs="2021 2020"
-    mth=01
-    endmths=12
+    yr=$(date +%Y)
+    mth=$(date +%m)
 fi 
 
 logger -s -t createMthlyExtracts "gathering annual data"
@@ -32,22 +30,20 @@ logger -s -t createMthlyExtracts "gathering annual data"
 cd $DATADIR/matched
 logger -s -t createMthlyExtracts "creating extracts"
 
-for yr in $yrs
-do
-    rsync -avz ${DATADIR}/matched/matches*${yr}.csv $DATADIR/browse/annual/
-    rsync -avz ${DATADIR}/consolidated/M_${yr}*.csv $DATADIR/browse/annual/
-    rsync -avz ${DATADIR}/consolidated/P_${yr}*.csv $DATADIR/browse/annual/
-    python -m reports.extractors $yr $mth $endmths
-done
-$SRC/utils/clearCaches.sh
+# sync the website with ukmon-shared so the annual data is all available
+# Essential as we're using the content of the website to build the pages
+aws s3 sync $UKMONSHAREDBUCKET/consolidated/ $WEBSITEBUCKET/browse/annual/ --exclude "*" --include "*unified.csv" --exclude "R*" --quiet
+aws s3 sync $UKMONSHAREDBUCKET/matches/matched/ $WEBSITEBUCKET/browse/annual/ --exclude "*" --include "*.csv" --quiet
+
+# this reads from the local copies, created by earlier steps in the batch and then synced to ukmon-shared
+python -m reports.extractors $yr $mth
+
+# sync the monthly extracts to the website so that it has the latest files - 
+# Essential as we're using the content of the website to build the pages
+aws s3 sync $DATADIR/browse/monthly/  $WEBSITEBUCKET/browse/monthly/ --quiet
 
 logger -s -t createMthlyExtracts "done gathering data, creating monthly table"
 idxfile=$DATADIR/browse/monthly/browselist.js
-
-# sync the raw data to the website so that it has the latest files - 
-# Essential as we're using the content of the website to build the pages
-aws s3 sync $DATADIR/browse/monthly/  $WEBSITEBUCKET/browse/monthly/ --quiet
-aws s3 sync $DATADIR/browse/annual/  $WEBSITEBUCKET/browse/annual/ --quiet
 
 echo "\$(function() {" > $idxfile
 echo "var table = document.createElement(\"table\");" >> $idxfile
