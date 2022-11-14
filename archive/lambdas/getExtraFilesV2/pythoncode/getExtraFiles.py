@@ -83,7 +83,7 @@ def generateExtraFiles(key, athena_client, archbucket, websitebucket, ddb, s3):
                 print(f'{mp4name} not found')
             site = findSite(id, ddb)
             fldr = site + '/' + id
-            findOtherFiles(edt, archbucket, outdir, fldr, s3)
+            findOtherFiles(edt, archbucket, websitebucket, outdir, fldr, s3)
 
     jpghtml.close()
     mp4html.close()
@@ -126,7 +126,7 @@ def generateExtraFiles(key, athena_client, archbucket, websitebucket, ddb, s3):
     return 
 
 
-def findOtherFiles(evtdate, archbucket, outdir, fldr, s3):
+def findOtherFiles(evtdate, archbucket, websitebucket, outdir, fldr, s3):
     # if the event is after midnight the folder will have the previous days date
     if evtdate.hour < 12:
         evtdate += timedelta(days=-1)
@@ -135,11 +135,14 @@ def findOtherFiles(evtdate, archbucket, outdir, fldr, s3):
     ymd = ym *100 + evtdate.day
 
     thispth = 'archive/{:s}/{:04d}/{:06d}/{:08d}/'.format(fldr, yr, ym, ymd)
+    corrpth = ''
     objlist = s3.meta.client.list_objects_v2(Bucket=archbucket,Prefix=thispth)
     if objlist['KeyCount'] > 0:
         keys = objlist['Contents']
         for k in keys:
             fname = k['Key']
+            if 'fieldsums' in fname or 'radiants' in fname or '.csv' in fname:
+                _, corrpth = os.path.split(fname)
             if '.csv' in fname or '.kml' in fname or 'FTPdetectinfo' in fname:
                 _, locfname = os.path.split(fname)
                 locfname = os.path.join(outdir, locfname)
@@ -151,11 +154,40 @@ def findOtherFiles(evtdate, archbucket, outdir, fldr, s3):
             keys = objlist['Contents']
             for k in keys:
                 fname = k['Key']
-                if '.csv' in fname or '.kml' in fname or 'FTPdetectinfo' in fname:
-                    _, locfname = os.path.split(fname)
-                    locfname = os.path.join(outdir, locfname)
-                    s3.meta.client.download_file(archbucket, fname, locfname)
+                if 'fieldsums' in fname or 'radiants' in fname or '.csv' in fname:
+                    _, corrpth = os.path.split(fname)
+            if '.csv' in fname or '.kml' in fname or 'FTPdetectinfo' in fname:
+                _, locfname = os.path.split(fname)
+                locfname = os.path.join(outdir, locfname)
+                s3.meta.client.download_file(archbucket, fname, locfname)
 
+    if len(corrpth) > 30:
+        corrpth = corrpth[:29]
+        statid = corrpth[:6]
+        for kml in ('25km.kml', '70km.kml', '100km.kml'):
+            fname = f'img/kmls/{statid}-{kml}'
+            locfname = os.path.join(outdir, f'{statid}-{kml}')
+            try:
+                s3.meta.client.download_file(websitebucket, fname, locfname)
+            except:
+                print(f'unable to collect {fname}')
+
+        thispth = f'matches/RMSCorrelate/{statid}/{corrpth}'
+        ftpf = f'{thispth}/FTPdetectinfo_{corrpth}.txt'
+        locfname = os.path.join(outdir, f'FTPdetectinfo_{corrpth}.txt')
+        try:
+            s3.meta.client.download_file(archbucket, ftpf, locfname)
+        except:
+            print(f'unable to collect {ftpf}')
+
+        ppf = f'{thispth}/platepars_all_recalibrated.json'
+        locfname = os.path.join(outdir, f'{statid}_platepars_all_recalibrated.json')
+        try:
+            s3.meta.client.download_file(archbucket, ppf, locfname)
+        except:
+            print(f'unable to collect {ppf}')
+    else:
+        print('unable to locate ftp, platepar or kmls')
     return
 
 
@@ -173,6 +205,7 @@ def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
     zipfile = ZipFile(zipfname, 'w')
 
     for f in flist:
+        #print(f)
         locfname = os.path.join(outdir, f)
         zipfile.write(locfname)
         # some files need to be pushed to the website, some to the archive bucket
@@ -350,6 +383,8 @@ def lambda_handler(event, context):
         aws_session_token=credentials['SessionToken']) 
 
     websitebucket = os.getenv('WEBSITEBUCKET')
+    if websitebucket[:3] == 's3:':
+        websitebucket = websitebucket[5:]
 
     # Get the object from the event and show its content type
     archbucket = event['Records'][0]['s3']['bucket']['name']

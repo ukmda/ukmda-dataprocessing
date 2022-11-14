@@ -81,7 +81,7 @@ def createOrbitPageIndex(fldr, websitebucket, s3):
 
         idxf.write("<pre>\n")
         repf = os.path.join(fldr, pref + 'report.txt')
-        print(repf)
+        #print(repf)
         if os.path.isfile(repf):
             with open(repf) as sumf:
                 lis = sumf.readlines()
