@@ -98,8 +98,11 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
         fi
         logger -s -t runDistrib "RUNTIME $SECONDS waiting for the server to be ready"
         while [ "$stat" -ne 16 ]; do
-            sleep 5
-            echo "checking"
+            sleep 30
+            if [ $stat -eq 80 ]; then 
+                aws ec2 start-instances --instance-ids $SERVERINSTANCEID
+            fi
+            echo "checking - status is ${stat}"
             stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
         done
 
