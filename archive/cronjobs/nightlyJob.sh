@@ -90,7 +90,7 @@ aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogin
 
 cd $DATADIR
 # do this manually when on PC required; closes #61
-#python $PYLIB/utils/plotStationsOnMap.py $CAMINFO
+#python $PYLIB/utils/plotStationsOnMap.py $DATADIR/consolidated/camera-details.csv
 aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/ --region eu-west-2 --quiet
 
 logger -s -t nightlyJob "RUNTIME $SECONDS start camMetrics"

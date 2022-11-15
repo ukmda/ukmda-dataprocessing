@@ -11,7 +11,6 @@ envname=$(echo $RUNTIME_ENV | tr '[:upper:]' '[:lower:]')
 SRC=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_srcdir --query Parameters[0].Value  | tr -d '"')
 ARCHDIR=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_archdir --query Parameters[0].Value  | tr -d '"')
 MATCHDIR=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_matchdir --query Parameters[0].Value  | tr -d '"')
-CAMINFO=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_caminfo --query Parameters[0].Value  | tr -d '"')
 SITEURL=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_siteurl --query Parameters[0].Value  | tr -d '"')
 WEBSITEBUCKET=s3://$(aws ssm get-parameters --region eu-west-2 --names ${envname}_websitebucket --query Parameters[0].Value  | tr -d '"')
 UKMONSHAREDBUCKET=s3://$(aws ssm get-parameters --region eu-west-2 --names ${envname}_sharedbucket --query Parameters[0].Value  | tr -d '"')
@@ -44,7 +43,6 @@ echo "RUNTIME_ENV=${RUNTIME_ENV}" >> ${CFGFILE}
 echo "SRC=${SRC}" >> ${CFGFILE}
 echo "ARCHDIR=${ARCHDIR}" >> ${CFGFILE}
 echo "MATCHDIR=${MATCHDIR}" >> ${CFGFILE}
-echo "CAMINFO=${CAMINFO}" >> ${CFGFILE}
 echo "SITEURL=${SITEURL}" >> ${CFGFILE}
 echo "WEBSITEBUCKET=${WEBSITEBUCKET}" >> ${CFGFILE}
 echo "UKMONSHAREDBUCKET=${UKMONSHAREDBUCKET}" >> ${CFGFILE}
@@ -66,7 +64,7 @@ echo "SERVERSSHKEY=${SERVERSSHKEY}" >> ${CFGFILE}
 echo "APIKEY=${APIKEY}" >> ${CFGFILE}
 echo "KMLTEMPLATE=${KMLTEMPLATE}" >> ${CFGFILE}
 echo "" >> ${CFGFILE}
-echo "export RUNTIME_ENV SRC ARCHDIR MATCHDIR CAMINFO SITEURL" >> ${CFGFILE}
+echo "export RUNTIME_ENV SRC ARCHDIR MATCHDIR SITEURL" >> ${CFGFILE}
 echo "export WEBSITEBUCKET UKMONSHAREDBUCKET UKMONSHAREDBUCKET" >> ${CFGFILE}
 echo "export PYLIB TEMPLATES RCODEDIR DATADIR BKPINSTANCEID AWS_DEFAULT_REGION" >> ${CFGFILE}
 echo "export RMS_ENV RMS_LOC WMPL_ENV WMPL_LOC" >> ${CFGFILE}
