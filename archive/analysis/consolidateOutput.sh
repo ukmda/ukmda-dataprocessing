@@ -28,10 +28,12 @@ fi
 cd ${DATADIR}
 # consolidate UFO and RMS original CSVs.
 logger -s -t consolidateOutput "starting"
-aws s3 sync s3://ukmon-shared/consolidated/ ${DATADIR}/consolidated --quiet --exclude 'temp/*'
+aws s3 sync s3://ukmon-shared/consolidated/ ${DATADIR}/consolidated --exclude "temp/*" --quiet
+aws s3 mv s3://ukmon-shared/consolidated/temp/ ${DATADIR}/consolidated/temp --recursive --quiet
 
 logger -s -t consolidateOutput "Consolidating RMS and UFO CSVs"
-consdir=$ARCHDIR/../consolidated/temp
+consdir=${DATADIR}/consolidated/temp
+mkdir -p ${DATADIR}/single/rawcsvs 
 ls -1 $consdir/*.csv | while read csvf
 do
     bn=$(basename $csvf)
@@ -43,14 +45,14 @@ do
         pref="M"
         yr=${bn:1:4}
     fi 
-    mrgfile=$DATADIR/consolidated/${pref}_${yr}-unified.csv
+    mrgfile=${DATADIR}/consolidated/${pref}_${yr}-unified.csv
     if [ ! -f $mrgfile ] ; then
         cat $csvf >> $mrgfile
     else
         #echo $bn $mrgfile
         sed '1d' $csvf >> $mrgfile
-        rm $csvf
     fi
+    mv $csvf ${DATADIR}/single/rawcsvs
 done
 
 logger -s -t consolidateOutput "pushing consolidated information back"
