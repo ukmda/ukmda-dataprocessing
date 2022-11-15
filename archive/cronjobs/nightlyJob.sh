@@ -29,7 +29,7 @@ logger -s -t nightlyJob "RUNTIME $SECONDS start consolidateOutput"
 $SRC/analysis/consolidateOutput.sh ${yr}
 
 logger -s -t nightlyJob "RUNTIME $SECONDS start createSearchable pass 2"
-$SRC/analysis/createSearchable.sh $yr 2
+$SRC/analysis/createSearchable.sh $yr matches
 
 logger -s -t nightlyJob "RUNTIME $SECONDS start createStationList"
 $SRC/website/createStationList.sh

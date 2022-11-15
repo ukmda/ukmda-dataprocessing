@@ -33,12 +33,14 @@ logger -s -t createSummaryTable "create a coverage map from the kmls"
 
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/geos/lib:/usr/local/proj4/lib
 export LD_LIBRARY_PATH
+mkdir -p $DATADIR/kmls
+aws s3 sync $WEBSITEBUCKET/img/kmls/ $DATADIR/kmls --quiet --profile ukmonshared
 export KMLTEMPLATE="*25km.kml"
-python -m utils.makeCoverageMap $ARCHDIR/../kmls $DATADIR
+python -m utils.makeCoverageMap $DATADIR/kmls $DATADIR
 export KMLTEMPLATE="*70km.kml"
-python -m utils.makeCoverageMap $ARCHDIR/../kmls $DATADIR
+python -m utils.makeCoverageMap $DATADIR/kmls $DATADIR
 export KMLTEMPLATE="*100km.kml"
-python -m utils.makeCoverageMap $ARCHDIR/../kmls $DATADIR
+python -m utils.makeCoverageMap $DATADIR/kmls $DATADIR
 
 python -c "from utils.makeCoverageMap import createCoveragePage as ccp ; ccp() ;"
 

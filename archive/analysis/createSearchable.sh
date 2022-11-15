@@ -22,13 +22,16 @@ logger -s -t createSearchable "starting"
 yr=$1
 whichpass=$2
 if [ "$yr"  == "" ] ; then yr=$(date +%Y) ; fi
-if [ "$whichpass" == "" ] ; then whichpass=1 ; fi
+if [ "$whichpass" == "" ] ; then whichpass=singles ; fi
 
 mkdir -p $DATADIR/searchidx
-cd $SRC/analysis
 
 python -m reports.createSearchableFormat $yr $whichpass
 
-aws s3 sync  $DATADIR/searchidx/ $WEBSITEBUCKET/search/indexes/ --exclude "*" --include "*.csv" --quiet 
+if [ -f $DATADIR/searchidx/${yr}-${whichpass}-new.csv ] ; then 
+    cat $DATADIR/searchidx/${yr}-${whichpass}-new.csv >> $DATADIR/searchidx/${yr}-allevents.csv
+fi 
+
+aws s3 sync  $DATADIR/searchidx/ $WEBSITEBUCKET/search/indexes/ --exclude "*" --include "*allevents.csv" --quiet 
 
 logger -s -t createSearchable "finished"

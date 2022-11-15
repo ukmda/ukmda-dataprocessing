@@ -16,6 +16,14 @@ def getActiveShowers(targdate, retlist=False):
         return listofshowers
 
 
+def getActiveShowersStr(targdatestr):
+    targdate = datetime.datetime.strptime(targdatestr, '%Y%m%d')
+    shwrs = getActiveShowers(targdate, retlist=True)
+    shwrs.append('spo')
+    for s in shwrs:
+        print(s)
+
+
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         targdate = datetime.datetime.strptime(sys.argv[1], '%Y%m%d')

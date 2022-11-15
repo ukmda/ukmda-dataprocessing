@@ -6,6 +6,7 @@ import os
 import sys
 import pandas as pd
 from fileformats import imoWorkingShowerList as imo
+from utils.getActiveShowers import getActiveShowers
 import datetime
 
 
@@ -137,18 +138,16 @@ def createRMSSingleMonthlyExtract(yr, mth=None, shwr=None, dta=None, withshower=
 
 def extractAllShowersData(ymd):
     print('getting shower data')
-    sl = imo.IMOshowerList()
-    showerlist = sl.getMajorShowers(True, True).strip().split(' ')
-
     yr = str(ymd)[:4]
-    currdt = None
-    if ymd > 9999:
-        currdt = datetime.datetime.strptime(str(ymd), '%Y%m')
-        now = datetime.datetime.now()
-        if now.year == currdt.year and now.month == currdt.month:
-            currdt = currdt.replace(day = now.day)
+    if int(ymd) > 9999:
+        ymd = datetime.datetime.strptime(ymd, '%Y%m%d')
+        showerlist = getActiveShowers(ymd, retlist=True)
+        showerlist.append('spo')
+    else:
+        sl = imo.IMOshowerList()
+        showerlist = sl.getMajorShowers(True, True).strip().split(' ')
 
-    print(f'processing data for {currdt}')
+    print(f'processing data for {ymd}')
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     infname = os.path.join(datadir, 'matched',f'matches-full-{yr}.parquet.snap')
     if not os.path.isfile(infname):
@@ -158,23 +157,9 @@ def extractAllShowersData(ymd):
     # in case database is polluted
     matches = matches[matches['_Y_ut']==int(yr)] 
 
-    for shwr in showerlist:
-        doit = True
-        if currdt is not None and shwr != 'spo':
-            edt = sl.getEnd(shwr) + datetime.timedelta(days=5)
-            sdt = sl.getStart(shwr) + datetime.timedelta(days=-5)
-            #print(f'{shwr} start {sdt} end {edt}')
-            if currdt > edt or currdt < sdt:
-                #print('skipping')
-                doit = False
-        if doit is True:
-            print(f'processing matches for {shwr}')
-            createSplitMatchFile(yr, shwr=shwr, matches=matches)
-    del matches
-
     fname = os.path.join(datadir, 'consolidated','M_{}-unified.csv'.format(yr))
     if not os.path.isfile(fname):
-        print(f'unable to open {fname}')
+        print(f'unable to open  {fname}')
         return 
     ufosingles = pd.read_csv(fname, skipinitialspace=True)
     fname = os.path.join(datadir, 'single','singles-{}.parquet.snap'.format(yr))
@@ -185,20 +170,14 @@ def extractAllShowersData(ymd):
     rmssingles = rmssingles[rmssingles['Y']==int(yr)] # just in case there's some pollution in the database
 
     for shwr in showerlist:
-        doit = True
-        if currdt is not None and shwr != 'spo':
-            edt = sl.getEnd(shwr) + datetime.timedelta(days=5)
-            sdt = sl.getStart(shwr) + datetime.timedelta(days=-5)
-            #print(f'{shwr} start {sdt} end {edt}')
-            if currdt > edt or currdt < sdt:
-                #print('skipping')
-                doit = False
-        if doit is True:
-            print(f'processing RMS singles for {shwr}')
-            createRMSSingleMonthlyExtract(yr, shwr=shwr, dta=rmssingles)
-            createRMSSingleMonthlyExtract(yr, shwr=shwr, dta=rmssingles, withshower=True)
-            print(f'processing UFO singles for {shwr}')
-            createUFOSingleMonthlyExtract(yr, shwr=shwr, dta=ufosingles)
+        print(f'processing matches for {shwr}')
+        createSplitMatchFile(yr, shwr=shwr, matches=matches)
+        print(f'processing RMS singles for {shwr}')
+        createRMSSingleMonthlyExtract(yr, shwr=shwr, dta=rmssingles)
+        createRMSSingleMonthlyExtract(yr, shwr=shwr, dta=rmssingles, withshower=True)
+        print(f'processing UFO singles for {shwr}')
+        createUFOSingleMonthlyExtract(yr, shwr=shwr, dta=ufosingles)
+    
     return 
 
 

@@ -10,13 +10,18 @@ import pandas as pd
 import datetime 
 
 
-def convertSingletoSrchable(datadir, year, weburl):
+def convertSingletoSrchable(datadir, year, weburl, newonly=True):
     print(datetime.datetime.now(), 'single-detection searchable index start')
 
     # load the single-station combined data
-    rmsuafile = os.path.join(datadir, 'single', 'singles-{}.parquet.snap'.format(year))
+    if newonly is False:
+        rmsuafile = os.path.join(datadir, 'single', f'singles-{year}.parquet.snap')
+    else:
+        rmsuafile = os.path.join(datadir, 'single', f'singles-{year}-new.parquet.snap')
     print(datetime.datetime.now(), f'read single file to get shower and mag: {rmsuafile}')
     cols = ['Dtstamp','Shwr','Mag','ID','Y','M','Filename']
+    if not os.path.isfile(rmsuafile):
+        return None,None
     uadata = pd.read_parquet(rmsuafile, columns=cols)
     # handle any database pollution
     uadata = uadata[uadata['Y']==int(year)]
@@ -73,11 +78,13 @@ def convertSingletoSrchable(datadir, year, weburl):
     rmsdata.loc[rmsdata.loccam=='UK000S','imgs']=f'{weburl}/img/missing-white.png'
     
     resdf = pd.concat([rmsdata,ufodata])
+    if newonly is True:
+        return resdf, rmsuafile
+    else:
+        return resdf, None
 
-    return resdf
 
-
-def convertMatchToSrchable(datadir, year):
+def convertMatchToSrchable(datadir, year, newonly=True):
     """ Convert matched data records to searchable format
 
     Args:
@@ -87,13 +94,21 @@ def convertMatchToSrchable(datadir, year):
         
     """
     print(datetime.datetime.now(), 'reading merged match file')
-    infile = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.snap'.format(year))
+    if newonly is False:
+        infile = os.path.join(datadir, 'matched', f'matches-full-{year}.parquet.snap')
+    else:
+        infile = os.path.join(datadir, 'searchidx', f'matches-full-{year}-new.parquet.snap')
     cols = ['dtstamp','src','_stream','_mag','stations','url','img', '_Y_ut']
+    if not os.path.isfile(infile):
+        return None,None
     newm = pd.read_parquet(infile, columns=cols)
     newm = newm[newm['_Y_ut']==int(year)] 
     outdf = pd.concat([newm['dtstamp'], newm['src'], newm['_stream'], newm['_mag'], newm['stations'], newm['url'], newm['img']], 
         axis=1, keys=['eventtime','source','shower','Mag','loccam','url','imgs'])
-    return outdf
+    if newonly is True:
+        return outdf, infile
+    else:
+        return outdf, None
 
 
 if __name__ == '__main__':
@@ -105,44 +120,27 @@ if __name__ == '__main__':
         weburl = os.getenv('SITEURL', default='https://archive.ukmeteornetwork.co.uk')
 
         year = sys.argv[1]
-        mode = int(sys.argv[2])
+        mode = sys.argv[2]
 
-        singlefile = os.path.join(datadir, 'searchidx', '{:s}-singles.parquet.snap'.format(year))
-        matchfile = os.path.join(datadir, 'searchidx', '{:s}-matches.parquet.snap'.format(year))
-        matchdf=None
-        fulldf = None
-        # if in mode 1, create a set of single-station data and merge with last match set
-        if mode == 1:
+        # create a set of single-station data and merge with last match set
+        if mode == 'singles':
             print(datetime.datetime.now(), 'converting single-station data')
-            fulldf = convertSingletoSrchable(datadir, year, weburl)
-            fulldf.to_parquet(singlefile, compression='snappy')
-            if os.path.isfile(matchfile): 
-                print(datetime.datetime.now(), 'loading and concatenating match data')
-                mtchdf = pd.read_parquet(matchfile)
-                fulldf = pd.concat([fulldf, mtchdf])
+            newsingles, fname = convertSingletoSrchable(datadir, year, weburl, True)
+            outfile = os.path.join(datadir, 'searchidx', '{:s}-singles-new.csv'.format(year))
+            if newsingles is not None: 
+                newsingles.to_csv(outfile, index=False, header=False)
+            if fname is not None:
+                os.remove(fname)
 
-        # if in mode 2, create a set of matched data and merge with last single-station set
-        elif mode == 2:
-            if os.path.isfile(singlefile): 
-                print(datetime.datetime.now(), 'loading single-station search data')
-                fulldf = pd.read_parquet(singlefile)
-            if int(year) > 2019:
-                print(datetime.datetime.now(), 'converting match data')
-                mtchdf = convertMatchToSrchable(datadir, year)
-                mtchdf.to_parquet(matchfile, compression='snappy')
-                if fulldf is not None:
-                    print(datetime.datetime.now(), 'merging single-station and match data')
-                    fulldf = pd.concat([fulldf, mtchdf])
-                else:
-                    fulldf = mtchdf
-
-        if fulldf is None and matchdf is None:
-            print(datetime.datetime.now(), 'no searchable data!')
-        else:        
-            # finally save a combined file for the search engine
-            print(datetime.datetime.now(), 'now save data')
-            outfile = os.path.join(datadir, 'searchidx', '{:s}-allevents.csv'.format(year))
-            fulldf.to_csv(outfile, index=False)
-            outfilepq = os.path.join(datadir, 'searchidx', '{:s}-allevents.parquet.snap'.format(year))
-            fulldf.to_parquet(outfilepq, compression='snappy')
-            print(datetime.datetime.now(), 'merged file saved')
+        # create a set of matched data and merge with last single-station set
+        elif mode == 'matches':
+            print(datetime.datetime.now(), 'converting match data')
+            newmatches, fname = convertMatchToSrchable(datadir, year, True)
+            outfile = os.path.join(datadir, 'searchidx', '{:s}-matches-new.csv'.format(year))
+            if newmatches is not None: 
+                newmatches.to_csv(outfile, index=False, header=False)
+            if fname is not None:
+                os.remove(fname)
+        
+        else:
+            print('usage: createSearchableFormat yyyy matches_or_singles')

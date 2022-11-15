@@ -61,7 +61,7 @@ def makeCoverageMap(kmlsource, outdir, showMarker=False, useName=False):
 
     for col, fn in zip(cols,flist):
         cn, lats, lngs = munchKML(os.path.join(kmlsource,fn))
-        print(cn, fn)
+        #print(cn, fn)
         gmap.polygon(lats, lngs, color=col, edge_width=1)
         if showMarker is True:
             gmap.text((max(lats)+min(lats))/2, (max(lngs)+min(lngs))/2, cn)
@@ -73,7 +73,7 @@ def makeCoverageMap(kmlsource, outdir, showMarker=False, useName=False):
     else:
         outpth = os.path.split(outdir)[0]
         outfname = os.path.split(outdir)[-1] + '.html'
-        print(outdir, outpth, outfname)
+        #print(outdir, outpth, outfname)
         gmap.draw(os.path.join(outpth, outfname))
     return
 
