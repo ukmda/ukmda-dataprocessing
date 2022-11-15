@@ -48,7 +48,7 @@ logger -s -t nightlyJob "RUNTIME $SECONDS start createMthlyExtracts"
 ${SRC}/website/createMthlyExtracts.sh ${mth}
 
 logger -s -t nightlyJob "RUNTIME $SECONDS start createShwrExtracts"
-${SRC}/website/createShwrExtracts.sh ${mth}
+${SRC}/website/createShwrExtracts.sh ${rundate}
 
 logger -s -t nightlyJob "RUNTIME $SECONDS start createFireballPage"
 #requires search index to have been updated first 
