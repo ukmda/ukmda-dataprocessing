@@ -36,4 +36,5 @@ gitpython
 pymysql
 mysql-connector-python
 pre-commit
+s3fs
 # pyarrow

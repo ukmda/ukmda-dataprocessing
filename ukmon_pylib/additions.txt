@@ -11,3 +11,4 @@ python-crontab
 simplekml
 astropy
 gitpython
+s3fs
