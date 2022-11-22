@@ -6,4 +6,4 @@ ENV LD_LIBRARY_PATH ./
 COPY *.py ./
 COPY *.csv ./
 
-CMD ["ftpToUkmon.lambda_handler"]
+CMD ["ftpToUkmon1.lambda_handler"]
