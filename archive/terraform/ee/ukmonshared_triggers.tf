@@ -4,7 +4,7 @@
 
 # lambda running in MJMM account but invoked from EE account
 data "aws_lambda_function" "getextraorbitfiles" {
-  provider = aws.mjmmacct
+  provider      = aws.mjmmacct
   function_name = "getExtraOrbitFilesV2"
 }
 
@@ -48,13 +48,9 @@ resource "aws_s3_bucket_notification" "ukmonshared_notification" {
   lambda_function {
     lambda_function_arn = aws_lambda_function.csvtriggerlambda.arn
     id                  = "CSVTrigger"
-    events = [
-      "s3:ObjectCreated:CompleteMultipartUpload",
-      "s3:ObjectCreated:Post",
-      "s3:ObjectCreated:Put"
-    ]
-    filter_prefix = "archive/"
-    filter_suffix = ".csv"
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "archive/"
+    filter_suffix       = ".csv"
   }
   lambda_function {
     lambda_function_arn = data.aws_lambda_function.getextraorbitfiles.arn
@@ -73,7 +69,7 @@ resource "aws_s3_bucket_notification" "ukmonshared_notification" {
     filter_prefix       = "archive/"
     filter_suffix       = ".config"
   }
-  
+
   lambda_function {
     lambda_function_arn = data.aws_lambda_function.ftptoukmonlambda.arn
     id                  = "ftptoukmon"
