@@ -17,11 +17,12 @@ source $here/../config.ini >/dev/null 2>&1
 source $HOME/venvs/${RMS_ENV}/bin/activate
 
 logger -s -t getRMSSingleData "starting"
-indir=$MATCHDIR/single/new
+indir=$UKMONSHAREDBUCKET/matches/single/new/
 outdir=$DATADIR/single/new
 mkdir -p $outdir/processed > /dev/null 2>&1 
 
-mv -f $indir/*.csv $outdir > /dev/null 2>&1
+aws s3 mv $indir $outdir --recursive --exclude "*" --include *.csv --quiet
+
 yr=$(date +%Y)
 mrgfile=$DATADIR/single/singles-${yr}.csv
 newsngl=$DATADIR/single/singles-${yr}-new.csv
