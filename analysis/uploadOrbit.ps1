@@ -5,7 +5,7 @@
 # args : arg1 fbdate arg2 target orbit
 
 $loc = Get-Location
-if ($args.count -lt 1) {
+if ($args.count -lt 2) {
     write-output "usage: uploadOrbit.ps1 fbdate orbitname"
     write-output "eg 20220107 20220107-212952.143_UK"
     write-output "eg 20220107  20220107-212952.143488"
