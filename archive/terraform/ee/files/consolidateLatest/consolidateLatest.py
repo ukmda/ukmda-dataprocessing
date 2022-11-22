@@ -20,6 +20,7 @@ def copyJpgToArchive(s3bucket, s3object):
     x = s3object.find('radiants')
     if x == -1: 
         # its not an interesting file
+        print(f'ignoring {s3object}')
         return 
     else:
         # its the radiants map file
