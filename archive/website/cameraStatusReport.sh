@@ -34,7 +34,7 @@ echo "<div id=\"camrep\" class=\"table-responsive\"></div>" >> $DATADIR/reports/
 echo "<script src=\"./camrep.js\"></script>" >> $DATADIR/reports/statrep.html
 cat $TEMPLATES/footer.html >> $DATADIR/reports/statrep.html
 
-python -m reports.cameraStatusReport $MATCHDIR/RMSCorrelate > $DATADIR/reports/camrep.js
+python -m reports.cameraStatusReport 
 
 aws s3 cp $DATADIR/reports/statrep.html $WEBSITEBUCKET/reports/ --quiet
 aws s3 cp $DATADIR/reports/camrep.js $WEBSITEBUCKET/reports/ --quiet

@@ -109,7 +109,7 @@ def addRowCamTimings(s3bucket, s3object, ftpname, ddb=None):
 
     table = ddb.Table('ukmon_uploadtimes')
     spls = ftpname.split('_')
-    print(spls[0], dtstamp)
+    #print(spls[0], dtstamp)
     if spls[-1] == 'manual.txt':
         manflag = '_man'
         manual = True
@@ -179,6 +179,7 @@ def getDayCamTimings(uploaddate, ddb=None, outfile=None, datadir=None):
             try:
                 rundts.append(item['rundate'])
             except:
+                print(f"2fudging rundate for {item['stationid']}")
                 estdt = f"{uploaddate}_{int(item['uploadtime']):06d}"
                 rundts.append(estdt)
 
