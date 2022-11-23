@@ -5,8 +5,6 @@ alias du='du -h'
 
 alias data='if [ "$SRC" == "" ] ; then echo select env first; else cd $SRC/data && pwd ; fi'
 alias logs='if [ "$SRC" == "" ] ; then echo select env first; else cd $SRC/logs && pwd ; fi'
-alias matchdir='if [ "$MATCHDIR" == "" ] ; then echo select env first; else cd $MATCHDIR/RMSCorrelate && pwd ; fi'
-alias arch='if [ "$ARCHDIR" == "" ] ; then echo select env first; else cd $ARCHDIR && pwd ; fi'
 
 alias tml='if [ "$SRC" == "" ] ; then echo select env first; else tail -f $(ls -1 $SRC/logs/matches-*.log | tail -1) ; fi'
 alias tnj='if [ "$SRC" == "" ] ; then echo select env first; else tail -f $(ls -1 $SRC/logs/nigh*.log | tail -1) ; fi'
