@@ -17,9 +17,10 @@ def createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir):
     templdir = os.getenv('TEMPLATES', default='/home/ec2-user/prod/website/templates')
     idxfile = os.path.join(outdir, 'index.html')
     shutil.copyfile(os.path.join(templdir,'header.html'), idxfile)
-    mth = None
-    if len(dtstr) > 4: 
-        mth = dtstr[4:6]
+
+    thismth = None
+    if len(dtstr) > 4:
+        thismth = dtstr[4:6]
         
     with open(idxfile, 'a') as outf:
         # header info
@@ -68,12 +69,12 @@ def createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir):
                 for li in fblis:
                     jsout.write('var row = table.insertRow(-1);\n')
                     jsout.write('var cell = row.insertCell(0);\n')
-                    fldr, mag, shwr, bn = li.strip().split(',')
+                    fldr, mag, fbshwr, bn = li.strip().split(',')
                     jsout.write(f'cell.innerHTML = "<a href={fldr}>{bn}</a>";\n')
                     jsout.write('var cell = row.insertCell(1);\n')
                     jsout.write(f'cell.innerHTML = "{mag}";\n')
                     jsout.write('var cell = row.insertCell(2);\n')
-                    jsout.write(f'cell.innerHTML = "{shwr}";\n')
+                    jsout.write(f'cell.innerHTML = "{fbshwr}";\n')
 
                 jsout.write('var outer_div = document.getElementById("summary");\n')
                 jsout.write('outer_div.appendChild(table);\n')
@@ -106,7 +107,7 @@ def createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir):
         outf.write('</script>\n')
 
         # links to monthly reports
-        if mth is None and shwr == 'ALL':
+        if thismth is None and shwr == 'ALL':
             outf.write('<h3>Monthly reports</h3>monthly reports can be found at the links below<br>')
             outf.write('<div id="mthtable" class="table-responsive"></div>\n')
             outf.write('<script src="./mthtable.js"></script><hr>\n')
@@ -156,6 +157,7 @@ def reportActiveShowers(ymd, thisshower=None, thismth=None):
     dtstr = ymd.strftime('%Y')
     if thismth is not None:
         dtstr = dtstr + thismth
+
     for shwr in shwrlist:
         print(f'processing {shwr} for {dtstr}')
         shwrname = showerAnalysis(shwr, int(dtstr))
@@ -179,7 +181,8 @@ if __name__ == '__main__':
     else:
         thisshower = None
     if len(sys.argv) > 3:
-        thismth = sys.argv[2]
+        thismth = sys.argv[3]
     else:
         thismth = None
+
     shwrs = reportActiveShowers(ymd, thisshower, thismth)
