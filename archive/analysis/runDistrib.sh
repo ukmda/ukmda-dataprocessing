@@ -77,8 +77,7 @@ aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 
 logger -s -t runDistrib "RUNTIME $SECONDS monitoring and waiting for completion"
 
-targdir=$MATCHDIR/distrib
-python -c "from traj.distributeCandidates import monitorProgress as mp; mp('${rundate}','${targdir}'); "
+python -c "from traj.distributeCandidates import monitorProgress as mp; mp('${rundate}'); "
 
 logger -s -t runDistrib "RUNTIME $SECONDS merging in the new json files"
 mkdir -p $DATADIR/distrib
@@ -144,5 +143,5 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
 else
     echo "trajectory database is size zero... not proceeding with copy"
 fi 
-aws s3 sync $UKMONSHAREDBUCKET/matches/distrib/logs $SRC/logs/distrib --quiet
-    logger -s -t runDistrib "RUNTIME $SECONDS finished runDistrib"
+#aws s3 sync $UKMONSHAREDBUCKET/matches/distrib/logs $SRC/logs/distrib --quiet
+logger -s -t runDistrib "RUNTIME $SECONDS finished runDistrib"

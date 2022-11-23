@@ -7,7 +7,6 @@
 import json
 import os
 import sys
-import shutil
 import glob
 import math
 import datetime
@@ -75,7 +74,7 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
     flist = glob.glob1(srcdir, '*.pickle')
     if len(flist) == 0:
         print('no candidates to process')
-        return 
+        return False
     flist.sort()
 
     # work out how many buckets i need
@@ -142,16 +141,22 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
     return True
 
 
-def monitorProgress(rundate, targdir):
+def monitorProgress(rundate):
     client = boto3.client('ecs', region_name='eu-west-2')
+    s3 = boto3.client('s3')
+    archbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmon-shared')[5:]
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
 
     templdir,_ = os.path.split(__file__)
     clusdets = getClusterDetails(templdir)
 
     # load the buckets, tasks and cluster name from the dump file
     rundate = datetime.datetime.strptime(rundate, '%Y%m%d')
-    picklefile = os.path.join(targdir, rundate.strftime('%Y%m%d') + '.pickle')
-    if not os.path.isfile(picklefile):
+    picklefile = os.path.join(datadir, 'distrib', rundate.strftime('%Y%m%d') + '.pickle')
+    rempickle = f"matches/distrib/{rundate.strftime('%Y%m%d')}.pickle"
+    try:
+        s3.download_file(archbucket, rempickle, picklefile)
+    except:
         print('no containers to monitor')
         return 
     dumpdata = pickle.load(open(picklefile,'rb'))
@@ -190,15 +195,20 @@ def monitorProgress(rundate, targdir):
                     taskcount -= 1
                     _, thisbuck = os.path.split(thisbuck)
                     try:
-                        shutil.rmtree(os.path.join(targdir, thisbuck))
+                        pref = f'matches/distrib/{thisbuck}'
+                        objects_to_delete = s3.list_objects(Bucket=archbucket, Prefix=pref)
+                        delete_keys = {'Objects' : []}
+                        delete_keys['Objects'] = [{'Key' : k} for k in [obj['Key'] for obj in objects_to_delete.get('Contents', [])]]
+                        s3.delete_objects(Bucket=archbucket, Delete=delete_keys)
                     except:
                         print('folder already removed')
                     print('task completed')
 
                     # collect the logs from CloudWatch 
                     realfname=None
-                    os.makedirs(os.path.join(targdir, 'logs'), exist_ok=True)
-                    tmpfname = os.path.join(targdir, 'logs', f'{thisarn[51:]}.log')
+                    logdir = os.path.join(datadir, '..', 'logs', 'distrib', 'logs')
+                    os.makedirs(logdir, exist_ok=True)
+                    tmpfname = os.path.join(logdir, f'{thisarn[51:]}.log')
                     with open(tmpfname, 'w') as outf:
                         for events in getLogDetails(loggrp, thisarn[51:], contname):
                             for evt in events:
@@ -208,7 +218,10 @@ def monitorProgress(rundate, targdir):
                                 if msg[:10] == 'processing':
                                     realfname = msg[11:].strip()
 
-                    os.rename(tmpfname, os.path.join(targdir, 'logs', f'{realfname}.log'))
+                    locname = os.path.join(logdir, f'{realfname}.log')
+                    os.rename(tmpfname, locname)
+                    remlog = f'matches/distrib/logs/{realfname}.log'
+                    s3.upload_file(Filename=locname, Bucket=archbucket, Key=remlog)
         if taskcount > 0:
             # wait 60s before checking again
             time.sleep(60.0)
@@ -244,9 +257,8 @@ def getLogDetails(loggrp, thisarn, contname, region_name='eu-west-2'):
 if __name__ == '__main__':
     if len(sys.argv) < 4:
         rundt = datetime.datetime(2022,4,21)
-        matchdir = os.getenv('MATCHDIR', default='/home/ec2-user/ukmon-shared/matches')
-        srcdir = os.path.join(matchdir, 'RMSCorrelate', 'candidates')
-        targdir = os.path.join(matchdir, 'distrib')
+        srcdir = '/home/ec2-user/ukmon-shared/matches/RMSCorrelate/candidates' # hardcoded on calcserver
+        targdir = 's3://ukmon-shared/matches/distrib'
     else:
         rundt = datetime.datetime.strptime(sys.argv[1], '%Y%m%d')
         srcdir = sys.argv[2]
