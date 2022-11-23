@@ -17,8 +17,14 @@ def createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir):
     templdir = os.getenv('TEMPLATES', default='/home/ec2-user/prod/website/templates')
     idxfile = os.path.join(outdir, 'index.html')
     shutil.copyfile(os.path.join(templdir,'header.html'), idxfile)
+    mth = None
+    if len(dtstr) > 4: 
+        mth = dtstr[4:6]
+        
     with open(idxfile, 'a') as outf:
         # header info
+        if shwrname == 'All Showers':
+            shwrname = f'Summary Statistics for All Showers for {dtstr}'
         outf.write(f'<h2>{shwrname}</h2>\n')
         outf.write('<a href="/reports/index.html">Back to report index</a><br>\n')
         #outf.write('</tr></table>')
@@ -99,6 +105,28 @@ def createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir):
         outf.write("delegate: 'a', type: 'image', image:{verticalFit:false}, gallery:{enabled:true} }); \n")
         outf.write('</script>\n')
 
+        # links to monthly reports
+        if mth is None and shwr == 'ALL':
+            outf.write('<h3>Monthly reports</h3>monthly reports can be found at the links below<br>')
+            outf.write('<div id="mthtable" class="table-responsive"></div>\n')
+            outf.write('<script src="./mthtable.js"></script><hr>\n')
+            mfname = os.path.join(outdir, 'mthtable.js')
+            with open(mfname, 'w') as mthf:
+                mthf.write('$(function() {\n')
+                mthf.write('var table = document.createElement(\"table\");\n')
+                mthf.write('table.className = \"table table-striped table-bordered table-hover table-condensed\";\n')
+
+                currmth = datetime.datetime.now().month            
+                for m in range(1,currmth+1):
+                    if m == 1 or m== 7:
+                        mthf.write('var row = table.insertRow(-1);\n')
+                    mthf.write('var cell = row.insertCell(-1);\n')
+                    mthf.write(f'cell.innerHTML = "<a href=./{m:02d}/index.html>{m:02d}</a>";\n')
+
+                mthf.write('var outer_div = document.getElementById(\"mthtable\");\n')
+                mthf.write('outer_div.appendChild(table);\n')
+                mthf.write('})\n')
+
         # page footer
         with open(os.path.join(templdir, 'footer.html')) as ftr:
             lis = ftr.readlines()
@@ -109,7 +137,7 @@ def createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir):
 
 
 def findRelevantPngs(dtstr, shwr, trajdir, outdir):
-    pngs = f'{trajdir}/{dtstr}/plots/*{shwr}.png'
+    pngs = f'{trajdir}/{dtstr[:4]}/plots/*{shwr}.png'
     plts = glob.glob(pngs)
     if len(plts) > 0:
         _, fnam = os.path.split(plts[0])
@@ -117,17 +145,25 @@ def findRelevantPngs(dtstr, shwr, trajdir, outdir):
     return
 
 
-def reportActiveShowers(ymd):
-    shwrlist = getActiveShowers(ymd, retlist=True)
+def reportActiveShowers(ymd, thisshower=None, thismth=None):
+    if thisshower is None:
+        shwrlist = getActiveShowers(ymd, retlist=True)
+    else:
+        shwrlist = [thisshower]
+
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     trajdir = os.getenv('MATCHDIR', default='/home/ec2-user/ukmon-shared/matches/RMSCorrelate/trajectories')
-    print(shwrlist)
     dtstr = ymd.strftime('%Y')
+    if thismth is not None:
+        dtstr = dtstr + thismth
     for shwr in shwrlist:
-        print(shwr)
+        print(f'processing {shwr} for {dtstr}')
         shwrname = showerAnalysis(shwr, int(dtstr))
         findFireballs(int(dtstr), shwr, 999)
-        outdir=os.path.join(datadir, 'reports', dtstr, shwr)
+        if thismth is None:
+            outdir=os.path.join(datadir, 'reports', dtstr, shwr)
+        else:
+            outdir=os.path.join(datadir, 'reports', dtstr[:4], shwr, thismth)
         findRelevantPngs(dtstr, shwr, trajdir, outdir)
         createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir)
     return shwrlist
@@ -138,4 +174,12 @@ if __name__ == '__main__':
         ymd = datetime.datetime.strptime(sys.argv[1], '%Y%m%d')
     else:
         ymd = datetime.datetime.now()
-    shwrs = reportActiveShowers(ymd)
+    if len(sys.argv) > 2:
+        thisshower = sys.argv[2]
+    else:
+        thisshower = None
+    if len(sys.argv) > 3:
+        thismth = sys.argv[2]
+    else:
+        thismth = None
+    shwrs = reportActiveShowers(ymd, thisshower, thismth)
