@@ -260,12 +260,6 @@ def addRowCamTimings(s3bucket, s3object):
 def ftpToUkmon(s3bucket, s3object):
     s3 = boto3.resource('s3')
 
-    if 'FTPdetectinfo' not in s3object or 'backup' in s3object or 'detected' in s3object \
-            or 'uncalibrated' in s3object: 
-        # its not a calibrated FTPdetect file so ignore it
-        print(f'not a relevant file {s3object}')
-        return 0
-    
     tmpdir = mkdtemp()
     pth, fn = os.path.split(s3object)
     s3.meta.client.download_file(s3bucket, s3object, os.path.join(tmpdir, fn))
@@ -331,6 +325,13 @@ def lambda_handler(event, context):
 
     s3bucket = record['s3']['bucket']['name']
     s3object = record['s3']['object']['key']
+
+    if 'FTPdetectinfo' not in s3object or 'backup' in s3object or 'detected' in s3object \
+            or 'uncalibrated' in s3object: 
+        # its not a calibrated FTPdetect file so ignore it
+        print(f'not a relevant file {s3object}')
+        return 0
+
     ftpToUkmon(s3bucket, s3object)
     addRowCamTimings(s3bucket, s3object)
 

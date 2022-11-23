@@ -197,6 +197,13 @@ resource "aws_iam_role_policy_attachment" "aws_managed_policy_l3" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+resource "aws_iam_role_policy_attachment" "aws_managed_policy_l4" {
+  role       = aws_iam_role.lambda-s3-full-access-role.name
+  policy_arn = "arn:aws:iam::822069317839:policy/ddbPermsForLambda"
+}
+
+
+
 resource "aws_iam_role_policy" "lambda_inline_policy_1" {
   name   = "policygen-lambda-s3-full-access-role"
   role   = aws_iam_role.lambda-s3-full-access-role.name
