@@ -77,6 +77,9 @@ ${SRC}/analysis/reportActiveShowers.sh ${yr}
 logger -s -t nightlyJob "RUNTIME $SECONDS start createSummaryTable"
 ${SRC}/website/createSummaryTable.sh
 
+logger -s -t nightlyJob "RUNTIME $SECONDS start camMetrics"
+python -m metrics.camMetrics $rundate
+
 logger -s -t nightlyJob "RUNTIME $SECONDS start cameraStatusReport"
 ${SRC}/website/cameraStatusReport.sh
 
@@ -92,11 +95,6 @@ cd $DATADIR
 # do this manually when on PC required; closes #61
 #python $PYLIB/utils/plotStationsOnMap.py $DATADIR/consolidated/camera-details.csv
 aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/ --region eu-west-2 --quiet
-
-logger -s -t nightlyJob "RUNTIME $SECONDS start camMetrics"
-python -m metrics.camMetrics $rundate
-cat $DATADIR/reports/camuploadtimes.csv  | sort -n -t ',' -k2 > /tmp/tmp444.txt
-mv -f /tmp/tmp444.txt $DATADIR/reports/camuploadtimes.csv
 
 rm -f $SRC/data/.nightly_running
 
