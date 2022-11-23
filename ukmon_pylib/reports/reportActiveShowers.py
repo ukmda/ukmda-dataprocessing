@@ -137,8 +137,8 @@ def createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir):
     return
 
 
-def findRelevantPngs(dtstr, shwr, trajdir, outdir):
-    pngs = f'{trajdir}/{dtstr[:4]}/plots/*{shwr}.png'
+def findRelevantPngs(shwr, pltdir, outdir):
+    pngs = f'{pltdir}/*{shwr}.png'
     plts = glob.glob(pngs)
     if len(plts) > 0:
         _, fnam = os.path.split(plts[0])
@@ -153,7 +153,7 @@ def reportActiveShowers(ymd, thisshower=None, thismth=None):
         shwrlist = [thisshower]
 
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-    trajdir = os.getenv('MATCHDIR', default='/home/ec2-user/ukmon-shared/matches/RMSCorrelate/trajectories')
+    pltdir=os.path.join(datadir, 'showerplots')
     dtstr = ymd.strftime('%Y')
     if thismth is not None:
         dtstr = dtstr + thismth
@@ -166,7 +166,7 @@ def reportActiveShowers(ymd, thisshower=None, thismth=None):
             outdir=os.path.join(datadir, 'reports', dtstr, shwr)
         else:
             outdir=os.path.join(datadir, 'reports', dtstr[:4], shwr, thismth)
-        findRelevantPngs(dtstr, shwr, trajdir, outdir)
+        findRelevantPngs(shwr, pltdir, outdir)
         createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir)
     return shwrlist
 
