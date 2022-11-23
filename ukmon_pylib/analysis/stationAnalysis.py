@@ -319,14 +319,3 @@ if __name__ == '__main__':
         os.makedirs(outdir, exist_ok=True)
 
         numsngl, nummatch = reportOneSite(yr, mth, loc, sngl, mful, idlist, outdir)
-
-        #print('push back then clean up')
-        #websitebucket = os.getenv('WEBSITEBUCKET', default='s3://ukmeteornetworkarchive')
-        #if websitebucket[:5] == 's3://':
-        #    websitebucket = websitebucket[5:]
-        #shortoutdir = shortoutdir.replace('\\','/')
-        #pushToWebsite(outdir, shortoutdir, websitebucket)
-        #try:
-        #    shutil.rmtree(outdir)
-        #except Exception:
-        #    print(f'unable to remove {outdir}')
