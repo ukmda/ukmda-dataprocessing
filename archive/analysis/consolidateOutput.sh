@@ -64,6 +64,8 @@ logger -s -t consolidateOutput "Getting latest trajectory data"
 # make sure target folders exist
 mkdir -p ${DATADIR}/orbits/$yr/fullcsv/processed/ > /dev/null 2>&1
 
+aws s3 sync ${UKMONSHAREDBUCKET}/matches/RMSCorrelate/trajectories/${yr}/plots/ $DATADIR/showerplots --exclude "*" --include "0*.png" --quiet
+
 # copy the orbit file for consolidation and reporting
 aws s3 mv ${UKMONSHAREDBUCKET}/matches/${yr}/fullcsv/  ${DATADIR}/orbits/${yr}/fullcsv --recursive --exclude "*" --include "*.csv" --quiet
 
