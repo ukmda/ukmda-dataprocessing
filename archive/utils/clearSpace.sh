@@ -12,7 +12,7 @@ logger -s -t cleanSpace "clean up old logs"
 find $SRC/logs -name "nightly*.gz" -mtime +60 -exec rm -f {} \;
 find $SRC/logs -name "nightly*.log" -mtime +7 -exec gzip {} \;
 
-find $SRC/logs/distrib -name "*.log" -mtime +30 -exec rm -f {} \;
+find $SRC/logs/distrib -name "*.log" -mtime +10 -exec rm -f {} \;
 
 find $SRC/logs -name "backup*.log" -mtime +30 -exec rm -f {} \;
 find $SRC/logs -name "getImo*.log" -mtime +70 -exec rm -f {} \;
