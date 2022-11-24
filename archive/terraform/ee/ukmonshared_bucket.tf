@@ -3,6 +3,7 @@ resource "aws_s3_bucket" "ukmonshared" {
   force_destroy = false
   tags = {
     "billingtag" = "ukmon"
+    "ukmontype"  = "datastore"
   }
 }
 
@@ -93,6 +94,23 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmonsharedlcp" {
 
     noncurrent_version_expiration {
       noncurrent_days = 2
+    }
+  }
+  rule {
+    id     = "purge distrib logs"
+    status = "Enabled"
+
+    expiration {
+      days                         = 30
+      expired_object_delete_marker = false
+    }
+
+    filter {
+      prefix = "matches/distrib/logs/"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 5
     }
   }
 }

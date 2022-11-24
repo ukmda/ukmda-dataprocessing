@@ -19,15 +19,14 @@ $SRC/utils/clearCaches.sh
 
 # get the date to operate for
 if [ $# -eq 0 ]; then
-    ym=$(date +%Y%m)
+    ym=$(date +%Y%m%d)
 else
     ym=$1
 fi
-yr=${ym:0:4}
 
 logger -s -t convertUfoToRms "starting"
 
-python -m converters.UFOAtoFTPdetect $ym $MATCHDIR/RMSCorrelate/
+python -m converters.UFOAtoFTPdetect $ym 30
 
 $SRC/utils/clearCaches.sh
 logger -s -t convertUfoToRms "finished"

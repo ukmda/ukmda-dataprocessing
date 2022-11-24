@@ -6,20 +6,10 @@ import sys
 import os
 import fileformats.CameraDetails as cc
 import datetime
-import numpy
-#import glob
 import pandas as pd 
 
 
-def datesortkey(x):
-    return x[:15]
-
-
-def statsortkey(x):
-    return x[0]
-
-
-def getLastUpdateDate(pth, skipfldrs, includenever=False):
+def getLastUpdateDate():
     """ Create a status report showing the last update date of each camera that
     is providing data
 
@@ -30,101 +20,81 @@ def getLastUpdateDate(pth, skipfldrs, includenever=False):
         
     """
     camdets = cc.SiteInfo()
+    cams = camdets.getActiveCameras()
+    sites=[]
+    ids = []
+    for c in cams:
+        sites.append(c['Site'].decode('utf-8'))
+        ids.append(c['CamID'].decode('utf-8'))
+    caminfo = pd.DataFrame(zip(sites,ids), columns=['Site','stationid'])
 
-    fldrlist = next(os.walk(pth))[1]
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    fldrlist = pd.read_csv(os.path.join(datadir,'reports','camuploadtimes.csv'), index_col=False)
 
-    stati=[]
     now = datetime.datetime.now()
-    for fldr in fldrlist:
-        if fldr not in (skipfldrs):
-            isactive = camdets.checkCameraActive(fldr)
-            if isactive is True:
-                info = camdets.getFolder(fldr)
-                loc, cam = info.split('/')
-                camtype = camdets.getCameraType(fldr)
-                flist = os.listdir(os.path.join(pth, fldr))
-                if len(flist) == 0: 
-                    # camera has never uploaded
-                    lastdt = datetime.datetime(1970,1,1)
-                    stati.append([loc, cam, lastdt, 'mediumpurple'])
-                    continue 
-                lastentry = sorted(flist, key=datesortkey)[-1]
-                lastdt = datetime.datetime.strptime(lastentry[7:22],'%Y%m%d_%H%M%S')
-                lateness = (now - lastdt).days
-                if camtype == 1:
-                    redthresh = 14
-                    amberthresh=7
-                else:
-                    redthresh = 3
-                    amberthresh=1
+    fldrlist['isactive'] = [camdets.checkCameraActive(f) for f in fldrlist.stationid]
+    fldrlist = fldrlist[fldrlist.isactive==True]
+    fldrlist.rundate.fillna(fldrlist.upddate.astype(str) + '_' + fldrlist.uploadtime.astype(str).str.pad(width=6,fillchar='0'), inplace=True)
+    fldrlist['dtstamp'] = [datetime.datetime.strptime(f,'%Y%m%d_%H%M%S') for f in fldrlist.rundate]
+    fldrlist = fldrlist.sort_values(by=['stationid','dtstamp'])
+    fldrlist.drop_duplicates(keep='last', subset=['stationid'], inplace=True)
+    fldrlist['lateness'] = [(now - f) for f in fldrlist.dtstamp ]
 
-                if lateness > redthresh:
-                    stati.append([loc, cam, lastdt, 'lightcoral'])
-                elif lateness > amberthresh:
-                    stati.append([loc, cam, lastdt, 'darkorange'])
-                else:
-                    stati.append([loc, cam, lastdt, 'white'])
-                    
-    if includenever is True:
-        for cam in camdets.getActiveCameras()['dummycode']:
-            cam = cam.decode('utf-8')
-            if cam not in fldrlist:
-                info = camdets.getFolder(cam)
-                loc, cam = info.split('/')
-                lastdt = datetime.datetime(1970,1,1)
-                stati.append([loc, cam, lastdt, 'mediumpurple'])
+    # create a colour column
+    fldrlist = fldrlist.assign(colour=fldrlist.rundate)
+    # mark status 
+    redthresh = datetime.timedelta(days=3)
+    amberthresh=datetime.timedelta(hours=36)
+    fldrlist.loc[fldrlist.lateness <= amberthresh, 'colour'] = 'white'
+    fldrlist.loc[fldrlist.lateness > amberthresh, 'colour'] = 'darkorange'
+    fldrlist.loc[fldrlist.lateness > redthresh, 'colour'] = 'lightcoral'
+    fldrlist.loc[fldrlist.lateness > datetime.timedelta(days=365), 'colour'] = 'mediumpurple'
 
-    stati = numpy.vstack((stati))
-    stati = stati[stati[:,1].argsort()]
-    stati = stati[stati[:,0].argsort(kind='mergesort')]
-    return stati
+    # drop unused columns
+    fldrlist = fldrlist.drop(columns=['lateness','dtstamp','isactive','manual', 'upddate','uploadtime'])
+
+    # now add the site name
+    fldrlist = fldrlist.merge(caminfo, on=['stationid'])
+    fldrlist = fldrlist.sort_values(by=['Site','stationid'])
+    
+    return fldrlist
 
 
 def createStatusReportJSfile(stati):
-    print('$(function() {')
-    print('var table = document.createElement("table");')
-    print('table.className="table table-striped table-bordered table-hover table-condensed";')
-    print('var header = table.createTHead();')
-    print('header.className = "h4";')
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    repfile = os.path.join(datadir, 'reports','camrep.js')
+    with open(repfile , 'w') as outf: 
+        outf.write('$(function() {\n')
+        outf.write('var table = document.createElement("table");\n')
+        outf.write('table.className="table table-striped table-bordered table-hover table-condensed";\n')
+        outf.write('var header = table.createTHead();\n')
+        outf.write('header.className = "h4";\n')
 
-    for s in stati:
-        print('var row = table.insertRow(-1);')
-        print('row.style.backgroundColor="{}";'.format(s[3])) 
-        print('var cell = row.insertCell(0);')
-        print('cell.innerHTML = "{}";'.format(s[0]))
-        print('var cell = row.insertCell(1);')
-        print('cell.innerHTML = "{}";'.format(s[1]))
-        print('var cell = row.insertCell(2);')
-        print('cell.innerHTML = "{}";'.format(s[2].strftime('%Y-%m-%d %H:%M:%S')))
+        for rw in stati.iterrows():
+            s = rw[1] # the tuple of data
+            outf.write('var row = table.insertRow(-1);\n')
+            outf.write('row.style.backgroundColor="{}";\n'.format(s.colour)) 
+            outf.write('var cell = row.insertCell(0);\n')
+            outf.write('cell.innerHTML = "{}";\n'.format(s.Site))
+            outf.write('var cell = row.insertCell(1);\n')
+            outf.write('cell.innerHTML = "{}";\n'.format(s.stationid))
+            outf.write('var cell = row.insertCell(2);\n')
+            rd = datetime.datetime.strptime(s.rundate, '%Y%m%d_%H%M%S')
+            outf.write('cell.innerHTML = "{}";\n'.format(rd.strftime('%Y-%m-%d %H:%M:%S')))
 
-    print('var row = table.insertRow(0);')
-    print('var cell = row.insertCell(0);')
-    print('cell.innerHTML = "Location";')
-    print('var cell = row.insertCell(1);')
-    print('cell.innerHTML = "Cam";')
-    print('var cell = row.insertCell(2);')
-    print('cell.innerHTML = "Date of Run";')
-    print('var outer_div = document.getElementById("camrep");')
-    print('outer_div.appendChild(table);')
-    print('})')
+        outf.write('var row = table.insertRow(0);\n')
+        outf.write('var cell = row.insertCell(0);\n')
+        outf.write('cell.innerHTML = "Location";\n')
+        outf.write('var cell = row.insertCell(1);\n')
+        outf.write('cell.innerHTML = "Cam";\n')
+        outf.write('var cell = row.insertCell(2);\n')
+        outf.write('cell.innerHTML = "Date of Run";\n')
+        outf.write('var outer_div = document.getElementById("camrep");\n')
+        outf.write('outer_div.appendChild(table);\n')
+        outf.write('})\n')
     return 
 
 
-def getNonContributingCameras():
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-    pth = '/home/ec2-user/ukmon-shared/matches/RMSCorrelate'
-    skipfldrs = ['plots','trajectories','dailyreports']
-    cams = getLastUpdateDate(pth, skipfldrs, includenever=True)
-
-    df = pd.DataFrame(cams, columns=['loc','camid','date','colour'])
-    missing = df[df.date ==datetime.datetime(1970,1,1)]
-    
-    owners = pd.read_csv(os.path.join(datadir, 'admin','stationdetails.csv'))
-    missingcams = owners.loc[owners['camid'].isin(missing.camid)]
-    missingcams = missingcams.sort_values(by=['camid'])
-    return missingcams
-
-
 if __name__ == '__main__':
-    stati = getLastUpdateDate(sys.argv[1],['plots','trajectories','dailyreports'])
+    stati = getLastUpdateDate()
     createStatusReportJSfile(stati)

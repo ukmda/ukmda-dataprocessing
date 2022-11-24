@@ -24,7 +24,7 @@ def getVMagCodeAndStations(picklename):
     try:
         traj = loadPickle(*os.path.split(picklename))
     except Exception:
-        print('no picklefile ', picklename)
+        print('no picklefile', picklename)
         return ''
 
     _, bestvmag, _, _, cod, _, _, _, _, _, _, stations = calcAdditionalValues(traj)
@@ -60,7 +60,7 @@ def getBestView(picklename):
         outdir, _ = os.path.split(picklename)
         traj = loadPickle(*os.path.split(picklename))
     except Exception:
-        print('no picklefile in ', outdir)
+        print('no picklefile', picklename)
         return ''
     else:
         _, statids, vmags = loadMagData(traj)

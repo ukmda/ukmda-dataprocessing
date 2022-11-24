@@ -4,7 +4,7 @@
 
 # lambda running in MJMM account but invoked from EE account
 data "aws_lambda_function" "getextraorbitfiles" {
-  provider = aws.mjmmacct
+  provider      = aws.mjmmacct
   function_name = "getExtraOrbitFilesV2"
 }
 
@@ -48,13 +48,9 @@ resource "aws_s3_bucket_notification" "ukmonshared_notification" {
   lambda_function {
     lambda_function_arn = aws_lambda_function.csvtriggerlambda.arn
     id                  = "CSVTrigger"
-    events = [
-      "s3:ObjectCreated:CompleteMultipartUpload",
-      "s3:ObjectCreated:Post",
-      "s3:ObjectCreated:Put"
-    ]
-    filter_prefix = "archive/"
-    filter_suffix = ".csv"
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "archive/"
+    filter_suffix       = ".csv"
   }
   lambda_function {
     lambda_function_arn = data.aws_lambda_function.getextraorbitfiles.arn
@@ -66,14 +62,6 @@ resource "aws_s3_bucket_notification" "ukmonshared_notification" {
     filter_suffix = ".pickle"
   }
 
-  lambda_function {
-    lambda_function_arn = aws_lambda_function.logcamuploadtimelambda.arn
-    id                  = "LogCamUploadTime"
-    events              = ["s3:ObjectCreated:*"]
-    filter_prefix       = "archive/"
-    filter_suffix       = ".config"
-  }
-  
   lambda_function {
     lambda_function_arn = data.aws_lambda_function.ftptoukmonlambda.arn
     id                  = "ftptoukmon"
@@ -121,16 +109,6 @@ resource "aws_lambda_permission" "permcsvtriggerlambda" {
   statement_id   = "AllowExecutionFromS3Bucket"
   action         = "lambda:InvokeFunction"
   function_name  = aws_lambda_function.csvtriggerlambda.arn
-  principal      = "s3.amazonaws.com"
-  source_account = "822069317839"
-  source_arn     = aws_s3_bucket.ukmonshared.arn
-}
-
-
-resource "aws_lambda_permission" "permloguploadlambda" {
-  statement_id   = "AllowExecutionFromS3Bucket"
-  action         = "lambda:InvokeFunction"
-  function_name  = aws_lambda_function.logcamuploadtimelambda.arn
   principal      = "s3.amazonaws.com"
   source_account = "822069317839"
   source_arn     = aws_s3_bucket.ukmonshared.arn

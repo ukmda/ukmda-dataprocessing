@@ -8,8 +8,9 @@ YYMMDD=20220120
 basepth=~/dev/data/RMSCorrelate
 mkdir $basepth
 
-cd $MATCHDIR/RMSCorrelate
-ls -1d UK*/*${YYYYMMDD}* | while read i ; do 
-    mkdir -p $basepth/$i
-    cp $i/* $basepth/$i
-done
+fldrs=$(aws s3 ls s3://ukmon-shared/matches/RMSCorrelate/ | egrep "UK|BE|IE" | awk '{print $2}')
+
+for fldr in $fldrs ; do
+    camid=${fldr:0:6}
+    aws s3 sync s3://ukmon-shared/matches/RMSCorrelate/${fldr} ${basepth}/${fldr} --exclude "*" --include "${camid}_${YYMMDD}*"    
+done 

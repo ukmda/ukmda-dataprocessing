@@ -16,7 +16,7 @@ yr=$(date +%Y)
 echo $rundate > $DATADIR/rundate.txt
 
 python -c "from fileformats.CameraDetails import updateCamLocDirFovDB; updateCamLocDirFovDB();"
-aws s3 cp $DATADIR/admin/cameraLocs.json s3://ukmon-shared/admin/ --region eu-west-2
+aws s3 cp $DATADIR/admin/cameraLocs.json $UKMONSHAREDBUCKET/admin/ --region eu-west-2
 
 # run this only once as it scoops up all unprocessed data
 logger -s -t nightlyJob "RUNTIME $SECONDS start findAllMatches"
@@ -48,7 +48,7 @@ logger -s -t nightlyJob "RUNTIME $SECONDS start createMthlyExtracts"
 ${SRC}/website/createMthlyExtracts.sh ${mth}
 
 logger -s -t nightlyJob "RUNTIME $SECONDS start createShwrExtracts"
-${SRC}/website/createShwrExtracts.sh ${mth}
+${SRC}/website/createShwrExtracts.sh ${rundate}
 
 logger -s -t nightlyJob "RUNTIME $SECONDS start createFireballPage"
 #requires search index to have been updated first 
@@ -77,6 +77,9 @@ ${SRC}/analysis/reportActiveShowers.sh ${yr}
 logger -s -t nightlyJob "RUNTIME $SECONDS start createSummaryTable"
 ${SRC}/website/createSummaryTable.sh
 
+logger -s -t nightlyJob "RUNTIME $SECONDS start camMetrics"
+python -m metrics.camMetrics $rundate
+
 logger -s -t nightlyJob "RUNTIME $SECONDS start cameraStatusReport"
 ${SRC}/website/cameraStatusReport.sh
 
@@ -90,13 +93,8 @@ aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogin
 
 cd $DATADIR
 # do this manually when on PC required; closes #61
-#python $PYLIB/utils/plotStationsOnMap.py $CAMINFO
+#python $PYLIB/utils/plotStationsOnMap.py $DATADIR/consolidated/camera-details.csv
 aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/ --region eu-west-2 --quiet
-
-logger -s -t nightlyJob "RUNTIME $SECONDS start camMetrics"
-python -m metrics.camMetrics $rundate
-cat $DATADIR/reports/camuploadtimes.csv  | sort -n -t ',' -k2 > /tmp/tmp444.txt
-mv -f /tmp/tmp444.txt $DATADIR/reports/camuploadtimes.csv
 
 rm -f $SRC/data/.nightly_running
 

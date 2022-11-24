@@ -83,8 +83,7 @@ def timeGraph(dta, shwrname, outdir, binmins=10):
     logMessage('Creating single station binned graph')
     fname = os.path.join(outdir, '02_stream_plot_timeline_single.jpg')
     if shwrname == "All Showers":
-        # we already have this graph
-        return len(dta)
+        binmins=1440
     # set paper size so fonts look good
     plt.clf()
     fig = plt.gcf()

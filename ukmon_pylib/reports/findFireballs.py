@@ -6,6 +6,9 @@
 import sys
 import os
 import pandas as pd
+import boto3
+from tempfile import mkdtemp
+from shutil import rmtree
 
 from traj.pickleAnalyser import getBestView
 from wmpl.Utils.TrajConversions import jd2Date
@@ -40,40 +43,55 @@ def markAsFireball(trajname, tof=True):
 #
 # Create MD files for the Jekyll website
 #
-def createMDFiles(fbs, outdir, matchdir):
+def createMDFiles(fbs, outdir, orbdir):
+    s3 = boto3.client('s3')
+    srcbucket=os.getenv('UKMONSHAREDBUCKET', default='s3://ukmon-shared')[5:]
+    tmpdir = mkdtemp()
     for _, fb in fbs.iterrows(): 
         loctime = jd2Date(fb.mjd + 2400000.5, dt_obj=True)
         trajdir = fb.orbname
         yr = trajdir[:4]
         ym = trajdir[:6]
         ymd = trajdir[:8]
-        pickledir = os.path.join(matchdir, 'RMSCorrelate', 'trajectories', yr, ym, ymd, trajdir)
-        if not os.path.exists(pickledir):
-            trajdir=loctime.strftime("%Y%m%d_%H%M%S.%f")
-            pickledir = os.path.join(matchdir, 'RMSCorrelate', 'trajectories', yr, ym, ymd, trajdir)
-        picklename = trajdir[:15] +'_trajectory.pickle'
-        bestimg = getBestView(os.path.join(pickledir, picklename))
-        if bestimg[:4] != 'img/':
-            pth, _ = os.path.split(fb.url)
+        pickledir = f'{orbdir}/RMSCorrelate/trajectories/{yr}/{ym}/{ymd}/{trajdir}'
+        try:
+            picklename = trajdir[:15] +'_trajectory.pickle'
+            fname = pickledir + '/' + picklename
+            pickfile = os.path.join(tmpdir, picklename)
+            s3.download_file(srcbucket, fname, pickfile)
+        except:
+            print(f'unable to collect {fname}')
         else:
-            pth = fb.url[:fb.url.find('reports/')]
-        bestimgurl = os.path.join(pth, bestimg)
+            fname = pickledir + '/jpgs.lst'
+            targfile = os.path.join(tmpdir, 'jpgs.lst')
+            try:
+                s3.download_file(srcbucket, fname, targfile)
+                bestimg = getBestView(pickfile)
+                #print(bestimg)
+                if bestimg[:4] != 'img/':
+                    pth, _ = os.path.split(fb.url)
+                else:
+                    pth = fb.url[:fb.url.find('reports/')]
+                bestimgurl = os.path.join(pth, bestimg)
+            except:
+                print('unable to collect jpgs.lst')
 
-        fname = loctime.strftime('%Y%m%d_%H%M%S') + '.md'
-        if os.path.isfile(os.path.join(outdir,fname)):
-            print('md file exists, not replacing it')
-        else:
-            with open(os.path.join(outdir,fname), 'w') as outf:
-                outf.write('---\nlayout: fireball\nsitemap: false\n\n')
-                outf.write('date: {}\n\n'.format(loctime.strftime('%Y-%m-%d %H:%M:%SZ')))
-                outf.write('showerID: {}\n'.format(fb.shower))
-                outf.write('bestmag: {:.1f}\n'.format(float(fb.mag)))
-                outf.write('mass: {:.5f}g\n'.format(float(fb.mass)*1000))
-                outf.write('vg: {:.2f}m/s\n'.format(float(fb.vg)))
-                outf.write('\n')
-                outf.write('archive-url: {}\n'.format(fb.url))
-                outf.write('bestimage: {}\n'.format(bestimgurl))
-                outf.write('\n---\n')
+            fname = loctime.strftime('%Y%m%d_%H%M%S') + '.md'
+            if os.path.isfile(os.path.join(outdir,fname)):
+                print('md file exists, not replacing it')
+            else:
+                with open(os.path.join(outdir,fname), 'w') as outf:
+                    outf.write('---\nlayout: fireball\nsitemap: false\n\n')
+                    outf.write('date: {}\n\n'.format(loctime.strftime('%Y-%m-%d %H:%M:%SZ')))
+                    outf.write('showerID: {}\n'.format(fb.shower))
+                    outf.write('bestmag: {:.1f}\n'.format(float(fb.mag)))
+                    outf.write('mass: {:.5f}g\n'.format(float(fb.mass)*1000))
+                    outf.write('vg: {:.2f}m/s\n'.format(float(fb.vg)))
+                    outf.write('\n')
+                    outf.write('archive-url: {}\n'.format(fb.url))
+                    outf.write('bestimage: {}\n'.format(bestimgurl))
+                    outf.write('\n---\n')
+    #rmtree(tmpdir)
     return
 
 
@@ -106,7 +124,7 @@ def findFBPre2020(df, mag=-4):
 
 def findFireballs (dtval, shwr, minmag=-3.99, matchdataset = None):
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-    matchdir = os.getenv('MATCHDIR', default='/home/ec2-user/ukmon-shared/matches')
+    orbdir = 'matches'
 
     # check if month was passed in
     mth = None
@@ -149,7 +167,7 @@ def findFireballs (dtval, shwr, minmag=-3.99, matchdataset = None):
             outdir = os.path.join(datadir, 'reports',f'{yr:04d}', shwr, f'{mth:02d}')
         else:
             outdir = os.path.join(datadir, 'reports',f'{yr:04d}', shwr)
-        matchdir = None
+        orbdir = None
     else:
         outdir = os.path.join(datadir, 'reports',f'{yr}', 'fireballs')
 
@@ -163,8 +181,9 @@ def findFireballs (dtval, shwr, minmag=-3.99, matchdataset = None):
             os.makedirs(outdir, exist_ok=True)
             outf = os.path.join(outdir, 'fblist.txt')
             fbs.to_csv(outf, index=False, header=False, columns=['url','mag','shower','orbname'])
-        if shwr == 'ALL' and yr > 2019 and matchdir is not None:
-            createMDFiles(fbs, outdir, matchdir)
+        if shwr == 'ALL' and yr > 2019 and orbdir is not None:
+            print('creating md files')
+            createMDFiles(fbs, outdir, orbdir)
 
 
 if __name__ == '__main__':

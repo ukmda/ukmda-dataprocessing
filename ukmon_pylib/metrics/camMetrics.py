@@ -109,7 +109,7 @@ def addRowCamTimings(s3bucket, s3object, ftpname, ddb=None):
 
     table = ddb.Table('ukmon_uploadtimes')
     spls = ftpname.split('_')
-    print(spls[0], dtstamp)
+    #print(spls[0], dtstamp)
     if spls[-1] == 'manual.txt':
         manflag = '_man'
         manual = True
@@ -167,6 +167,7 @@ def getDayCamTimings(uploaddate, ddb=None, outfile=None, datadir=None):
     updtims = []
     manuals = []
     upddts = []
+    rundts = []
     try:
         items = response['Items']
 
@@ -175,6 +176,12 @@ def getDayCamTimings(uploaddate, ddb=None, outfile=None, datadir=None):
             updtims.append(item['uploadtime'])
             manuals.append(item['manual'])
             upddts.append(uploaddate)
+            try:
+                rundts.append(item['rundate'])
+            except:
+                print(f"2fudging rundate for {item['stationid']}")
+                estdt = f"{uploaddate}_{int(item['uploadtime']):06d}"
+                rundts.append(estdt)
 
         if outfile is not None:
             with open(os.path.join(datadir, 'reports', outfile), 'w') as outf:
@@ -184,7 +191,7 @@ def getDayCamTimings(uploaddate, ddb=None, outfile=None, datadir=None):
 
     except Exception:
         print('record not found')
-    return statids, upddts, updtims, manuals
+    return statids, upddts, updtims, manuals, rundts
 
 
 # read a row based on stationid and datestamp
@@ -237,14 +244,14 @@ if __name__ == '__main__':
         aws_secret_access_key=credentials['SecretAccessKey'],
         aws_session_token=credentials['SessionToken'])
 
-    s,d,t,m = getDayCamTimings(sys.argv[1], ddb=ddb)
-    newdata=pd.DataFrame(zip(s,d,t,m), columns=['stationid','upddate','uploadtime','manual'])
+    s,d,t,m,r = getDayCamTimings(sys.argv[1], ddb=ddb)
+    newdata=pd.DataFrame(zip(s,d,t,m,r), columns=['stationid','upddate','uploadtime','manual','rundate'])
 
     outfile=os.path.join(datadir, 'reports', 'camuploadtimes.csv')
     if os.path.isfile(outfile):
         currdata = pd.read_csv(outfile)
         fulldf = currdata.append(newdata)
-        fulldf = fulldf.sort_values(by=['stationid','upddate','uploadtime'])
+        fulldf = fulldf.sort_values(by=['stationid','upddate','uploadtime','rundate'])
         fulldf = fulldf.drop_duplicates(subset=['stationid'], keep='last')
     else:
         fulldf = newdata

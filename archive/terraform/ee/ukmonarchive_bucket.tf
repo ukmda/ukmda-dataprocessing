@@ -3,6 +3,7 @@ resource "aws_s3_bucket" "archsite" {
   force_destroy = false
   tags = {
     "billingtag" = "ukmon"
+    "ukmontype"  = "archive"
   }
 }
 

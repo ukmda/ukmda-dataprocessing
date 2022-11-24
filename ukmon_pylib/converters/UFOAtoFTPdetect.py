@@ -11,6 +11,8 @@ import shutil
 import fnmatch
 import datetime
 import glob
+import boto3
+import tempfile
 from fileformats import ReadUFOAnalyzerXML as UA
 from fileformats import CameraDetails as cdet
 
@@ -86,7 +88,7 @@ def writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, alt
     fname = 'FF_' + sta + '_' + evttime.strftime('%Y%m%d_%H%M%S_') + ms + '_0000000.fits\n'
     ftpf.write(fname)
 
-    ftpf.write('UFO UKMON DATA recalibrated on: ')
+    ftpf.write('UFO UKMON DATA Recalibrated on: ')
     ftpf.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f UTC\n'))
     li = sta + ' 0001 {:04d} {:04.2f} '.format(fcount, fps) + '000.0 000.0  00.0 000.0 0000.0 0000.0\n'
     ftpf.write(li)
@@ -170,7 +172,7 @@ def convertFolder(fldr):
     return
 
 
-def convertUFOFolder(fldr, outfldr):
+def convertUFOFolder(fldr, outfldr, statid=None, ymd=None):
     """
     Read all the A.XML files and create an RMS ftpdetect file and platepars file
     """
@@ -180,28 +182,36 @@ def convertUFOFolder(fldr, outfldr):
         print('no a.xml files found')
         return 
 
-    _, ymd = os.path.split(fldr)
-    _, lid, sid, _, _, _ = axmls[0].getStationDetails()
+    if ymd is None:
+        _, ymd = os.path.split(fldr)
+
+    _, lid, sid, lat, lon, elev = axmls[0].getStationDetails()
     if lid == 'Blackfield' and sid == '':
         sid = 'c1'
 
-    ci = cdet.SiteInfo()
-    statid = ci.getDummyCode(lid, sid)
-    if statid == 'Unknown':
-        statid = 'XX9999'
+    if statid is None:
+        ci = cdet.SiteInfo()
+        statid = ci.getDummyCode(lid, sid)
+        if statid == 'Unknown':
+            statid = 'XX9999'
 
     arcdir = statid + '_' + ymd + '_180000_000000'
     ftpfile = 'FTPdetectinfo_' + arcdir + '.txt'
 
-    fulloutfldr = os.path.join(outfldr,statid, arcdir)
-    print('writing to', fulloutfldr)
-    os.makedirs(fulloutfldr, exist_ok=True)
+    if statid is None:
+        fulloutfldr = os.path.join(outfldr,statid, arcdir)
+        print('writing to', fulloutfldr)
+        os.makedirs(fulloutfldr, exist_ok=True)
+    else:
+        fulloutfldr = outfldr
 
-    plateparfile = open(os.path.join(fulloutfldr, 'platepars_all_recalibrated.json'), 'w')
+    ppfname = os.path.join(fulloutfldr, 'platepars_all_recalibrated.json')
+    plateparfile = open(ppfname, 'w')
     plateparfile.write('{\n')
 
     # create and populate the ftpdetectinfo file
     ftpfile = os.path.join(fulloutfldr, ftpfile)
+    #print(f'writing to {ppfname} and {ftpfile}')
     with open(ftpfile, 'w') as ftpf:
         writeFTPHeader(ftpf, metcount, stime, fldr)
         metno = 1
@@ -224,49 +234,102 @@ def convertUFOFolder(fldr, outfldr):
 
     plateparfile.write('\n}\n')
     plateparfile.close()
+    createConfigFile(fulloutfldr, statid, lat, lon, elev)
     return
+
+
+def createConfigFile(pth, statid, lat, lon, elev):
+    cfgfile = os.path.join(pth, '.config')
+    with open(cfgfile, 'w') as outf:
+        outf.write('this_is_a_dummy_config_file_for_ftptoukmon')
+        outf.write(f'StationID: {statid}\n')
+        outf.write(f'latitude: {lat}\n')
+        outf.write(f'longitude: {lon}\n')
+        outf.write(f'elevation: {elev}\n')
 
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('Usage python UFOtoFTPdetect.py srcfolder targfolder')
         print('  will convert all UFO A.xml files in srcfolder to a single FTPDetectInfo file in targfolder')
-        print('Usage python UFOtoFTPdetect.py yyyymmdd targfolder')
-        print('  will convert all UFO data for all cameras for the given date. dd is optional')
+        print('Usage python UFOtoFTPdetect.py yyyymmdd numdays')
+        print('  will convert all UFO data for all UFO cameras for the given date range')
     else:
-        if len(sys.argv[1]) < 9:
-            # its a date
-            ymdin = sys.argv[1]
-            outroot = sys.argv[2]
-            archdir=os.getenv('ARCHDIR', default='/home/ec2-user/ukmon-shared/archive')
-            
-            yr = ymdin[:4] 
-            ym = ymdin[:6] 
-            if len(ymdin) > 7:
-                ymd = ymdin[:8] 
+        try:
+            s3 = boto3.resource('s3')
+            start_dt = sys.argv[1]
+            if len(sys.argv) > 2:
+                numdays = int(sys.argv[2])
             else:
-                ymd = None
-            print(yr, ym, ymd)
+                end_dt = start_dt
+                numdays = 1
+            start_ymd = datetime.datetime.strptime(start_dt, '%Y%m%d')
+            start_yr = start_ymd.year
+            start_ym = start_ymd.strftime('%Y%m')
+
+            archbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmon-shared')
+            if archbucket[:5] == 's3://':
+                archbucket = archbucket[5:]
+            outroot = 'matches/RMSCorrelate'
             ci = cdet.SiteInfo()
             ufos = ci.getUFOCameras(True)
-            for cam in ufos:
-                site = cam['Site']
-                camid = cam['CamID']
-                dum = cam['dummycode']
-                if ymd is None:
-                    inroot = os.path.join(archdir,site, camid, yr, ym)
-                    days = glob.glob1(inroot, '*')
-                    for d in days:
-                        inpth = os.path.join(inroot, d)
-                        fils = glob.glob1(inpth, "*.*")
-                        if len(fils) > 0: 
-                            try:
-                                convertUFOFolder(inpth, outroot)
-                            except:
-                                continue
-                else:
-                    inpth = os.path.join(archdir,site, camid, yr, ym, ymd)
-                    convertUFOFolder(inpth, outroot)
-        else:
+
+            for dd in range(numdays):
+                thisdt = start_ymd + datetime.timedelta(days=dd)
+                yr = thisdt.year
+                ym = thisdt.strftime('%Y%m')
+                yd = thisdt.strftime('%Y%m%d')
+                print(yr, ym, yd)
+                for cam in ufos:
+                    tmpdir = tempfile.mkdtemp()
+                    site = cam['Site']
+                    camid = cam['CamID']
+                    dum = cam['dummycode']
+                    thispth = 'archive/{}/{}/{}/{}/{}/'.format(site, camid, yr, ym, yd)
+                    print(thispth)
+                    objlist = s3.meta.client.list_objects_v2(Bucket=archbucket,Prefix=thispth)
+                    if objlist['KeyCount'] > 0:
+                        keys = objlist['Contents']
+                        for k in keys:
+                            fname = k['Key']
+                            if 'A.XML' in fname:
+                                _, fn = os.path.split(fname)
+                                locfname = os.path.join(tmpdir, fn)
+                                s3.meta.client.download_file(archbucket, fname, locfname)
+                    while objlist['IsTruncated'] is True:
+                        contToken = objlist['NextContinuationToken'] 
+                        objlist = s3.meta.client.list_objects_v2(Bucket=archbucket,Prefix=thispth, ContinuationToken=contToken)
+                        if objlist['KeyCount'] > 0:
+                            keys = objlist['Contents']
+                            for k in keys:
+                                fname = k['Key']
+                                if 'A.XML' in fname:
+                                    _, fn = os.path.split(fname)
+                                    locfname = os.path.join(tmpdir, fn)
+                                    s3.meta.client.download_file(archbucket, fname, locfname)
+
+                    convertUFOFolder(tmpdir, tmpdir, dum, yd)
+                    arcdir = dum + '_' + yd + '_180000_000000'
+                    ftpfile = 'FTPdetectinfo_' + arcdir + '.txt'
+
+                    idxname = os.path.join(tmpdir, '.config')
+                    key = f'{outroot}/{dum}/{arcdir}/.config'
+                    extraargs = {'ContentType': 'text/plain'}
+                    print(f'uploading {key}')
+                    s3.meta.client.upload_file(idxname, archbucket, key, ExtraArgs=extraargs) 
+
+                    idxname = os.path.join(tmpdir, 'platepars_all_recalibrated.json')
+                    key = f'{outroot}/{dum}/{arcdir}/platepars_all_recalibrated.json'
+                    extraargs = {'ContentType': 'application/json'}
+                    print(f'uploading {key}')
+                    s3.meta.client.upload_file(idxname, archbucket, key, ExtraArgs=extraargs) 
+
+                    idxname = os.path.join(tmpdir, ftpfile)
+                    key = f'{outroot}/{dum}/{arcdir}/{ftpfile}'
+                    print(f'uploading {key}')
+                    extraargs = {'ContentType': 'text/plain'}
+                    s3.meta.client.upload_file(idxname, archbucket, key, ExtraArgs=extraargs) 
+
+        except:
             # its a folder
             convertUFOFolder(sys.argv[1], sys.argv[2])

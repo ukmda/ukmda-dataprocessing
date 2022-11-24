@@ -286,9 +286,9 @@ if __name__ == '__main__':
         
     matchcols = ['_Y_ut','_M_ut','_mag','_mjd','mjd','_stream','orbname','stations']
     snglcols = ['ID','Shwr','Dtstamp','Ver', 'M', 'Y']
-    cifile = os.getenv('CAMINFO', default='/home/ec2-user/ukmon-shared/consolidated/camera-details.csv')
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-
+    cifile = os.path.join(datadir,'consolidated','camera-details.csv')
+    
     sngl = pd.read_parquet(os.path.join(datadir, 'single', f'singles-{yr}.parquet.snap'), columns=snglcols)
     mful = pd.read_parquet(os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.snap'), columns=matchcols)
     camlist = pd.read_csv(cifile)
@@ -319,14 +319,3 @@ if __name__ == '__main__':
         os.makedirs(outdir, exist_ok=True)
 
         numsngl, nummatch = reportOneSite(yr, mth, loc, sngl, mful, idlist, outdir)
-
-        #print('push back then clean up')
-        #websitebucket = os.getenv('WEBSITEBUCKET', default='s3://ukmeteornetworkarchive')
-        #if websitebucket[:5] == 's3://':
-        #    websitebucket = websitebucket[5:]
-        #shortoutdir = shortoutdir.replace('\\','/')
-        #pushToWebsite(outdir, shortoutdir, websitebucket)
-        #try:
-        #    shutil.rmtree(outdir)
-        #except Exception:
-        #    print(f'unable to remove {outdir}')

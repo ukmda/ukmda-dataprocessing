@@ -77,8 +77,7 @@ aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 
 logger -s -t runDistrib "RUNTIME $SECONDS monitoring and waiting for completion"
 
-targdir=$MATCHDIR/distrib
-python -c "from traj.distributeCandidates import monitorProgress as mp; mp('${rundate}','${targdir}'); "
+python -c "from traj.distributeCandidates import monitorProgress as mp; mp('${rundate}'); "
 
 logger -s -t runDistrib "RUNTIME $SECONDS merging in the new json files"
 mkdir -p $DATADIR/distrib
@@ -86,7 +85,7 @@ cd $DATADIR/distrib
 
 # make sure the database isn't corrupt before overwriting it !! 
 if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then 
-    cp -f $targdir/*.json $DATADIR/distrib
+    aws s3 sync $UKMONSHAREDBUCKET/matches/distrib/ $DATADIR/distrib/ --exclude "*" --include "*.json" --quiet
     cp -f $DATADIR/distrib/processed_trajectories.json $DATADIR/distrib/prev_processed_trajectories.json
 
     numtoconsol=$(ls -1 $DATADIR/distrib/${rundate}*.json | wc -l)
@@ -98,8 +97,11 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
         fi
         logger -s -t runDistrib "RUNTIME $SECONDS waiting for the server to be ready"
         while [ "$stat" -ne 16 ]; do
-            sleep 5
-            echo "checking"
+            sleep 30
+            if [ $stat -eq 80 ]; then 
+                aws ec2 start-instances --instance-ids $SERVERINSTANCEID
+            fi
+            echo "checking - status is ${stat}"
             stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
         done
 
@@ -110,7 +112,7 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
             echo "server not responding yet, retrying"
             scp -i $SERVERSSHKEY $DATADIR/distrib/processed_trajectories.json ec2-user@$privip:data/distrib
         done 
-        scp -i $SERVERSSHKEY $targdir/${rundate}*.json ec2-user@$privip:data/distrib
+        scp -i $SERVERSSHKEY $DATADIR/distrib/${rundate}*.json ec2-user@$privip:data/distrib
         
         echo "#!/bin/bash" > /tmp/execConsol.sh
         echo "export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib:/home/ec2-user/src/ukmon_pylib" >> /tmp/execConsol.sh
@@ -126,20 +128,21 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
         logger -s -t runDistrib "stopping calcserver again"
         aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 
-        python -c "from traj.consolidateDistTraj import patchTrajDB ; patchTrajDB('./processed_trajectories.json','/home/ec2-user/ukmon-shared/matches/RMSCorrelate', '/home/ec2-user/data/distrib');"
+        python -c "from traj.consolidateDistTraj import patchTrajDB ; patchTrajDB('$DATADIR/distrib/processed_trajectories.json','/home/ec2-user/ukmon-shared/matches/RMSCorrelate', '/home/ec2-user/data/distrib');"
     else
         python -m traj.consolidateDistTraj $DATADIR/distrib $DATADIR/distrib/processed_trajectories.json $rundate
     fi 
+    # push the updated traj db to the S3 bucket
+    aws s3 cp $DATADIR/distrib/processed_trajectories.json $UKMONSHAREDBUCKET/matches/distrib/ --quiet
+
     logger -s -t runDistrib "RUNTIME $SECONDS compressing the procssed data"
-    cp $DATADIR/distrib/processed_trajectories.json $targdir
     gzip < $DATADIR/distrib/processed_trajectories.json > $DATADIR/trajdb/processed_trajectories.json.${rundate}.gz
-    if [ ! -d $targdir/done ] ; then mkdir $targdir/done ; fi
-    mv $targdir/${rundate}.pickle $DATADIR/distrib
-    tar czvf ${rundate}.tgz ${rundate}*.json ${rundate}.pickle
-    cp ${rundate}.tgz $targdir/done
-    rm -f $targdir/${rundate}*.json ${rundate}*.json ${rundate}.pickle
+    aws s3 mv $UKMONSHAREDBUCKET/matches/distrib/${rundate}.pickle $DATADIR/distrib --quiet
+    tar czvf $DATADIR/distrib/${rundate}.tgz $DATADIR/distrib/${rundate}*.json $DATADIR/distrib/${rundate}.pickle
+    aws s3 cp $DATADIR/distrib/${rundate}.tgz $UKMONSHAREDBUCKET/matches/distrib/done/ --quiet
+    rm -f $DATADIR/distrib/${rundate}*.json $DATADIR/distrib/${rundate}.pickle
+    aws s3 rm $UKMONSHAREDBUCKET/matches/distrib/ --exclude "*" --include "${rundate}*.json" --exclude "test/*" --recursive
 else
     echo "trajectory database is size zero... not proceeding with copy"
 fi 
-aws s3 sync $UKMONSHAREDBUCKET/matches/distrib/logs $SRC/logs/distrib --quiet
-    logger -s -t runDistrib "RUNTIME $SECONDS finished runDistrib"
+logger -s -t runDistrib "RUNTIME $SECONDS finished runDistrib"

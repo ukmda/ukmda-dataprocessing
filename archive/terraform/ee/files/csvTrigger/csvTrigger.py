@@ -18,14 +18,10 @@ def lambda_handler(event, context):
     target = 'ukmon-shared'
 
     _, fname = os.path.split(s3object)
-    #x = s3object.find('M20')
-    #if x == -1:
-    if fname[:3] !='M20':
-        # its not a standard ufoa file, check if its an rms file
-        x = fname.find('_20')
-        if x == -1:
-            # yep not interested
-            return 0
+    if fname[:3] !='M20' and fname[6:9] != '_20':
+        # yep not interested
+        print(f'ignoring {s3object}')
+        return 0
 
     outf = 'consolidated/temp/' + fname
     s3object = unquote_plus(s3object)

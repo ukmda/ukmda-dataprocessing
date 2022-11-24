@@ -1,0 +1,15 @@
+{
+  "Records": [
+    {
+      "s3": {
+        "bucket": {
+          "name": "ukmon-shared",
+          "arn": "arn:aws:s3:::ukmon-shared"
+        },
+        "object": {
+          "key": "KEYGOESHERE"
+        }
+      }
+    }
+  ]
+}

@@ -9,9 +9,6 @@ Collects all single station and match data and consolidates it into two files in
 ## convertUfoToRms
 Convert a folder of UFO data into RMS-compatible format
 
-## createDensityPlots
-(unused)
-
 ## createSearchable
 Creates a single file for the search engine, by consolidating the required information from the match and single station data. 
 
