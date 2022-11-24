@@ -195,7 +195,7 @@ def monitorProgress(rundate):
                     taskcount -= 1
                     _, thisbuck = os.path.split(thisbuck)
                     try:
-                        pref = f'matches/distrib/{thisbuck}'
+                        pref = f'matches/distrib/{thisbuck}/'
                         objects_to_delete = s3.list_objects(Bucket=archbucket, Prefix=pref)
                         delete_keys = {'Objects' : []}
                         delete_keys['Objects'] = [{'Key' : k} for k in [obj['Key'] for obj in objects_to_delete.get('Contents', [])]]
