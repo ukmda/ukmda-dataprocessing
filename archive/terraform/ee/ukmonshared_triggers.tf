@@ -63,14 +63,6 @@ resource "aws_s3_bucket_notification" "ukmonshared_notification" {
   }
 
   lambda_function {
-    lambda_function_arn = aws_lambda_function.logcamuploadtimelambda.arn
-    id                  = "LogCamUploadTime"
-    events              = ["s3:ObjectCreated:*"]
-    filter_prefix       = "archive/"
-    filter_suffix       = ".config"
-  }
-
-  lambda_function {
     lambda_function_arn = data.aws_lambda_function.ftptoukmonlambda.arn
     id                  = "ftptoukmon"
     events              = ["s3:ObjectCreated:*"]
@@ -117,16 +109,6 @@ resource "aws_lambda_permission" "permcsvtriggerlambda" {
   statement_id   = "AllowExecutionFromS3Bucket"
   action         = "lambda:InvokeFunction"
   function_name  = aws_lambda_function.csvtriggerlambda.arn
-  principal      = "s3.amazonaws.com"
-  source_account = "822069317839"
-  source_arn     = aws_s3_bucket.ukmonshared.arn
-}
-
-
-resource "aws_lambda_permission" "permloguploadlambda" {
-  statement_id   = "AllowExecutionFromS3Bucket"
-  action         = "lambda:InvokeFunction"
-  function_name  = aws_lambda_function.logcamuploadtimelambda.arn
   principal      = "s3.amazonaws.com"
   source_account = "822069317839"
   source_arn     = aws_s3_bucket.ukmonshared.arn
