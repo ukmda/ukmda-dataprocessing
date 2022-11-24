@@ -24,7 +24,6 @@ logger -s -t findAllMatches "RUNTIME $SECONDS start findAllMatches"
 source $here/../config.ini >/dev/null 2>&1
 source ~/venvs/${WMPL_ENV}/bin/activate
 logger -s -t findAllMatches1 "starting"
-$SRC/utils/clearCaches.sh
 
 rundate=$(cat $DATADIR/rundate.txt)
 
@@ -111,5 +110,4 @@ logger -s -t findAllMatches "RUNTIME $SECONDS start purgeLogs"
 find $SRC/logs -name "matches*" -mtime +7 -exec gzip {} \;
 find $SRC/logs -name "matches*" -mtime +30 -exec rm -f {} \;
 
-$SRC/utils/clearCaches.sh
 logger -s -t findAllMatches "RUNTIME $SECONDS finished findAllMatches"

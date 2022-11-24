@@ -9,6 +9,8 @@ import numpy
 import csv
 import json
 import shutil
+import tempfile
+import boto3
 
 import fileformats.CameraDetails as cd
 from traj.pickleAnalyser import getVMagCodeAndStations
@@ -59,7 +61,7 @@ def getListOfNewMatches(dir_path, tfile, prevtfile):
         ptrajs = json.load(inf)    
     newtrajs = {k:v for k,v in trajs['trajectories'].items() if k not in ptrajs['trajectories']}
     #print(len(newtrajs))
-    newdirs, _ = getTrajPaths(newtrajs)  
+    _, newdirs = getTrajPaths(newtrajs)  
     return newdirs
 
 
@@ -84,13 +86,17 @@ def findNewMatches(dir_path, out_path, offset, repdtstr, dbname):
     if os.path.isfile(matchlist) is True:
         matchlist = os.path.join(out_path, 'dailyreports', repdt.strftime('%Y%m%d_3.txt'))
 
+    s3 = boto3.client('s3')
+    srcbucket=os.getenv('UKMONSHAREDBUCKET', default='s3://ukmon-shared')[5:]
+    tmpdir = tempfile.mkdtemp()
     with open(matchlist, 'w') as outf:
         for trajdir in newdirs:
-            trajdir = trajdir.replace('/data/','/ukmon-shared/matches/')
+            trajdir = trajdir[trajdir.find('matches'):]
             _, picklename = os.path.split(trajdir)
-            picklename = os.path.join(trajdir, picklename[:15] +'_trajectory.pickle')
+            localpick = os.path.join(tmpdir, picklename)
+            s3.download_file(srcbucket, trajdir, localpick)
             try:
-                bestvmag, shwr, stationids = getVMagCodeAndStations(picklename)
+                bestvmag, shwr, stationids = getVMagCodeAndStations(localpick)
             except:
                 bestvmag, shwr, stationids = 0,'',['']
             stations=[]
@@ -110,6 +116,8 @@ def findNewMatches(dir_path, out_path, offset, repdtstr, dbname):
             outstr = outstr.strip()
             #print(outstr)
             outf.write('{}\n'.format(outstr))
+    
+    shutil.rmtree(tmpdir)
 
     # sort the data by magnitude
     with open(matchlist,'r') as f:
