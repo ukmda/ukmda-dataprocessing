@@ -92,7 +92,7 @@ def findNewMatches(dir_path, out_path, offset, repdtstr, dbname):
     with open(matchlist, 'w') as outf:
         for trajdir in newdirs:
             trajdir = trajdir[trajdir.find('matches'):]
-            _, picklename = os.path.split(trajdir)
+            trajpath, picklename = os.path.split(trajdir)
             localpick = os.path.join(tmpdir, picklename)
             s3.download_file(srcbucket, trajdir, localpick)
             try:
@@ -107,7 +107,7 @@ def findNewMatches(dir_path, out_path, offset, repdtstr, dbname):
 
             _, dname = os.path.split(trajdir)
             tstamp = datetime.datetime.strptime(dname[:15],'%Y%m%d_%H%M%S').timestamp()
-            outstr = '{},{:s},{:s},{:.1f}'.format(int(tstamp), trajdir, shwr, bestvmag)
+            outstr = '{},{:s},{:s},{:.1f}'.format(int(tstamp), trajpath, shwr, bestvmag)
 
             for f in stations:
                 if len(f) < 4:
