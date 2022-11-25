@@ -3,6 +3,7 @@ import boto3
 import os
 import sys
 import shutil
+import json
 from zipfile import ZipFile
 from datetime import datetime, timedelta
 from boto3.dynamodb.conditions import Key
@@ -11,7 +12,6 @@ from botocore.config import Config
 from wmpl.Utils.Pickling import loadPickle
 from pickleAnalysis import createAdditionalOutput
 from wmpl.Utils.TrajConversions import jd2Date
-import awsAthenaGlueRetr as agr
 from createOrbitPageIndex import createOrbitPageIndex
 
 
@@ -29,7 +29,7 @@ def findSite(stationid, ddb):
     return
 
 
-def generateExtraFiles(key, athena_client, archbucket, websitebucket, ddb, s3):
+def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
     fuloutdir, fname = os.path.split(key)
     _, orbname = os.path.split(fuloutdir)
     tmpdir = os.getenv('TMP', default='/tmp')
@@ -58,32 +58,29 @@ def generateExtraFiles(key, athena_client, archbucket, websitebucket, ddb, s3):
     mp4f = open(os.path.join(outdir, 'mpgs.lst'), 'w')
     #print('opened image list files')
     for obs in traj.observations:
-        dtref = jd2Date(obs.jdt_ref, dt_obj=True)
-        dtst = dtref.timestamp()
-        id = obs.station_id
-        matches = agr.read(f"SELECT dtstamp,filename FROM singlepq where id='{id}' and dtstamp > {dtst}-5 and dtstamp < {dtst}+5 ", 
-            archbucket, athena_client, 'ukmonsingledata')
-        if len(matches) > 0:
-            edt = datetime.fromtimestamp(matches.dtstamp[0])
-            ffname, _ = os.path.splitext(matches.filename[0])
-            jpgname=f'img/single/{edt.year}/{edt.year}{edt.month:02d}/{ffname}.jpg'
-            mp4name=f'img/mp4/{edt.year}/{edt.year}{edt.month:02d}/{ffname}.mp4'
+        js = json.loads(obs.comment)
+        ffname = js['ff_name']
+        spls = ffname.split('_')
+        id = spls[1]
+        dtstr = spls[2]
+        jpgname=f'img/single/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('fits','jpg')
+        mp4name=f'img/mp4/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('fits','mp4')
 
-            res = s3.meta.client.list_objects_v2(Bucket=websitebucket,Prefix=jpgname)
-            if res['KeyCount'] > 0:
-                jpgf.write(f'{jpgname}\n')
-                jpghtml.write(f'<a href="/{jpgname}"><img src="/{jpgname}" width="20%"></a>\n')
-            else:
-                print(f'{jpgname} not found')
-            res = s3.meta.client.list_objects_v2(Bucket=websitebucket,Prefix=mp4name)
-            if res['KeyCount'] > 0:
-                mp4f.write(f'{mp4name}\n')
-                mp4html.write(f'<a href="/{mp4name}"><video width="20%"><source src="/{mp4name}" width="20%" type="video/mp4"></video></a>\n')
-            else:
-                print(f'{mp4name} not found')
-            site = findSite(id, ddb)
-            fldr = site + '/' + id
-            findOtherFiles(edt, archbucket, websitebucket, outdir, fldr, s3)
+        res = s3.meta.client.list_objects_v2(Bucket=websitebucket,Prefix=jpgname)
+        if res['KeyCount'] > 0:
+            jpgf.write(f'{jpgname}\n')
+            jpghtml.write(f'<a href="/{jpgname}"><img src="/{jpgname}" width="20%"></a>\n')
+        else:
+            print(f'{jpgname} not found')
+        res = s3.meta.client.list_objects_v2(Bucket=websitebucket,Prefix=mp4name)
+        if res['KeyCount'] > 0:
+            mp4f.write(f'{mp4name}\n')
+            mp4html.write(f'<a href="/{mp4name}"><video width="20%"><source src="/{mp4name}" width="20%" type="video/mp4"></video></a>\n')
+        else:
+            print(f'{mp4name} not found')
+        site = findSite(id, ddb)
+        fldr = site + '/' + id
+        findOtherFiles(dtstr, archbucket, websitebucket, outdir, fldr, s3)
 
     jpghtml.close()
     mp4html.close()
@@ -126,15 +123,9 @@ def generateExtraFiles(key, athena_client, archbucket, websitebucket, ddb, s3):
     return 
 
 
-def findOtherFiles(evtdate, archbucket, websitebucket, outdir, fldr, s3):
-    # if the event is after midnight the folder will have the previous days date
-    if evtdate.hour < 12:
-        evtdate += timedelta(days=-1)
-    yr = evtdate.year
-    ym = evtdate.year * 100 + evtdate.month
-    ymd = ym *100 + evtdate.day
+def findOtherFiles(evtdt, archbucket, websitebucket, outdir, fldr, s3):
 
-    thispth = 'archive/{:s}/{:04d}/{:06d}/{:08d}/'.format(fldr, yr, ym, ymd)
+    thispth = f'archive/{fldr}/{evtdt[:4]}/{evtdt[:6]}/{evtdt[:8]}/'
     corrpth = ''
     objlist = s3.meta.client.list_objects_v2(Bucket=archbucket,Prefix=thispth)
     if objlist['KeyCount'] > 0:
@@ -315,17 +306,13 @@ if __name__ == '__main__':
     # ARN and a role session name.
     assumed_role_object=sts_client.assume_role(
         RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
-        RoleSessionName="AssumeRoleSession1")
+        RoleSessionName="GetExtraFilesV2")
     
     # From the response that contains the assumed role, get the temporary 
     # credentials that can be used to make subsequent API calls
     credentials=assumed_role_object['Credentials']
     
     # Use the temporary credentials that AssumeRole returns to connections
-    athena_client = boto3.client(service_name='athena', region_name='eu-west-2',
-        aws_access_key_id=credentials['AccessKeyId'],
-        aws_secret_access_key=credentials['SecretAccessKey'],
-        aws_session_token=credentials['SessionToken'])
     s3 = boto3.resource('s3',
         aws_access_key_id=credentials['AccessKeyId'],
         aws_secret_access_key=credentials['SecretAccessKey'],
@@ -338,7 +325,7 @@ if __name__ == '__main__':
     archbucket = os.getenv('UKMONSHAREDBUCKET')
     websitebucket = os.getenv('WEBSITEBUCKET')
 
-    generateExtraFiles(key, athena_client, archbucket, websitebucket, ddb, s3)
+    generateExtraFiles(key, archbucket, websitebucket, ddb, s3)
     
 
 def lambda_handler(event, context):
@@ -363,16 +350,11 @@ def lambda_handler(event, context):
 
     assumed_role_object=sts_client.assume_role(
         RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
-        RoleSessionName="AssumeRoleSession1")
+        RoleSessionName="GetExtraFilesV2")
     
     credentials=assumed_role_object['Credentials']
     
     # Use the temporary credentials that AssumeRole returns to connections
-    athena_client = boto3.client(service_name='athena', region_name='eu-west-2',
-        aws_access_key_id=credentials['AccessKeyId'],
-        aws_secret_access_key=credentials['SecretAccessKey'],
-        aws_session_token=credentials['SessionToken'], 
-        config=config)
     s3 = boto3.resource('s3',
         aws_access_key_id=credentials['AccessKeyId'],
         aws_secret_access_key=credentials['SecretAccessKey'],
@@ -390,7 +372,7 @@ def lambda_handler(event, context):
     archbucket = event['Records'][0]['s3']['bucket']['name']
     key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'], encoding='utf-8')
     try:
-        generateExtraFiles(key, athena_client, archbucket, websitebucket, ddb, s3)
+        generateExtraFiles(key, archbucket, websitebucket, ddb, s3)
 
     except Exception as e:
         print(e)
