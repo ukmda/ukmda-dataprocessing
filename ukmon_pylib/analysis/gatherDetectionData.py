@@ -91,31 +91,22 @@ def getFtpAndPlate(camid, dtstr, tmstr, outdir):
     yr = dt.year
     ym = dt.strftime('%Y%m')
     ymd = dt.strftime('%Y%m%d')
-    srcfldr = f'archive/{site}/{camid}/{yr}/{ym}/{ymd}/'
 
-    s3 = boto3.resource('s3') #,
-    #    aws_access_key_id=credentials['AccessKeyId'],
-    #    aws_secret_access_key=credentials['SecretAccessKey'],
-    #    aws_session_token=credentials['SessionToken'])
+    s3 = boto3.resource('s3')
+
     archbucket = 'ukmon-shared'
-    for fname in ['platepar_cmn2010.cal','.config','platepars_all_recalibrated.json']:
-        locfname = os.path.join(targpath, fname)
-        remfname = srcfldr + fname
-        try:
-            s3.meta.client.download_file(archbucket, remfname, locfname)
-        except:
-            print(f'unable to download {fname}')
-    ftplist = s3.meta.client.list_objects_v2(Bucket=archbucket,Prefix=srcfldr+'FTP') 
-    if ftplist['KeyCount'] > 0:
-        keys = ftplist['Contents']
+    rmspref = f'matches/RMSCorrelate/{camid}/{camid}_{ymd}'
+    rmsflds = s3.meta.client.list_objects_v2(Bucket=archbucket,Prefix=rmspref) 
+    if rmsflds['KeyCount'] > 0:
+        keys = rmsflds['Contents']
         for k in keys:
-            fname = k['Key']
-            if 'FTPdetectinfo' in fname:
-                _, actfname = os.path.split(fname)
-                locfname = os.path.join(targpath, actfname)
-                s3.meta.client.download_file(archbucket, fname, locfname)
-    else:
-        print('unable to downlaod FTPdetect file')
+            keyname = k['Key']
+            _, fname = os.path.split(keyname)
+            locfname = os.path.join(targpath, fname)
+            try:
+                s3.meta.client.download_file(archbucket, keyname, locfname)
+            except:
+                print(f'unable to download {fname}')
 
     # now change the catalogue entry
     with open(os.path.join(targpath, '.config')) as inf:
