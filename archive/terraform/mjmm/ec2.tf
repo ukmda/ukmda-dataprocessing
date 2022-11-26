@@ -30,7 +30,7 @@ resource "aws_instance" "CalcEngine4ARM" {
       "billingtag" = "ukmon"
       "project"    = "UkmonHelperBigx2"
     }
-    volume_size = 40
+    volume_size = 50
   }
 }
 
