@@ -113,6 +113,23 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmonsharedlcp" {
       noncurrent_days = 5
     }
   }
+  rule {
+    id     = "purge distrib backups"
+    status = "Enabled"
+
+    expiration {
+      days                         = 60
+      expired_object_delete_marker = false
+    }
+
+    filter {
+      prefix = "matches/distrib/done/"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 10
+    }
+  }
 }
 
 resource "aws_s3_bucket_cors_configuration" "ukmonsharedcors" {
