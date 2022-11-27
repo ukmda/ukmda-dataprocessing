@@ -685,7 +685,7 @@ class demo(Frame):
         scpcli = SCPClient(c.get_transport())
         scpcli.put(os.path.join('jsonkeys', location + '.key'), 'keymgmt/rawkeys/live/')
         scpcli.put(os.path.join('sshkeys', cameraname + '.pub'), 'keymgmt/sshkeys/')
-        command = f'keymgmt/addSftpUser.sh {cameraname} {location} {oldcamname}'
+        command = f'/home/{user}/keymgmt/addSftpUser.sh {cameraname} {location} {oldcamname}'
         stdin, stdout, stderr = c.exec_command(command)
 
         infname = os.path.join('keymgmt/inifs/',cameraname + '.ini')
