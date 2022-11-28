@@ -254,6 +254,7 @@ if __name__ == '__main__':
     isTest = False
     if len(sys.argv) < 4:
         # default time range
+        srcfldr = sys.argv[1]
         rdt = sys.argv[1]
         if 'test' in rdt:
             rdt = rdt[5:]
@@ -262,6 +263,8 @@ if __name__ == '__main__':
         d1 = (rdt + datetime.timedelta(days = -2)).strftime('%Y%m%d')+'-080000'
         d2 = (rdt + datetime.timedelta(days = 1)).strftime('%Y%m%d')+'-080000'
     else:
+        srcfldr = sys.argv[1].strip()
         d1 = sys.argv[2]+'-080000'
         d2 = sys.argv[3]+'-080000'
-    startup(sys.argv[1].strip(), d1, d2, isTest)
+    print(f'running with {srcfldr}, {d1}, {d2}, {isTest}')
+    startup(srcfldr, d1, d2, isTest)
