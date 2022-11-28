@@ -16,7 +16,12 @@ import pickle
 
 
 def getClusterDetails(templdir):
-    clusdetails = os.path.join(templdir, 'clusdetails.txt')
+    sts = boto3.client('sts')
+    accid = sts.get_caller_identity()['Account']
+    if accid == '822069317839':
+        clusdetails = os.path.join(templdir, 'clusdetails-ee.txt')
+    else:
+        clusdetails = os.path.join(templdir, 'clusdetails.txt')
     with open(clusdetails) as inf:
         lis = inf.readlines()
     clusname = lis[0].strip()
@@ -258,7 +263,7 @@ if __name__ == '__main__':
     else:
         rundt = datetime.datetime.strptime(sys.argv[1], '%Y%m%d')
         srcdir = sys.argv[2]
-        targdir =sys.argv[3]
+        targdir = sys.argv[3]
 
     templdir,_ = os.path.split(__file__)
     clusdets = getClusterDetails(templdir)

@@ -77,7 +77,11 @@ aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 
 logger -s -t runDistrib "RUNTIME $SECONDS monitoring and waiting for completion"
 
+# set the profile to the EE account so we can monitor progress
+export AWS_PROFILE=ukmonshared
 python -c "from traj.distributeCandidates import monitorProgress as mp; mp('${rundate}'); "
+# and then clear it again
+unset AWS_PROFILE
 
 logger -s -t runDistrib "RUNTIME $SECONDS merging in the new json files"
 mkdir -p $DATADIR/distrib

@@ -129,7 +129,7 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
     with open(execmatchingsh, 'w') as outf:
         outf.write('#!/bin/bash\n')
         outf.write('source /home/ec2-user/venvs/wmpl/bin/activate\n')
-        outf.write('export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib:/home/ec2-user/src/ukmon_pylib/ukmon_pylib\n')
+        outf.write('export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib:/home/ec2-user/src/ukmon_pylib\n')
         outf.write(f'cd {calcdir}\n')
         outf.write('df -h . \n')
 
@@ -158,8 +158,9 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         outf.write('else echo "bad database file" ; fi \n')
 
         outf.write('logger -s -t execdistrib distributing candidates and launching containers\n')
-        #outf.write('source ~/.ssh/marks-keys\n')
+        outf.write('export AWS_PROFILE=ukmonshared\n')
         outf.write(f'time python -m traj.distributeCandidates {rundatestr} {calcdir}/candidates {srcpath}\n')
+        outf.write('unset AWS_PROFILE\n')
 
         # do this again to fetch todays results
         refreshTrajectories(outf, matchstart, matchend, outpath)
