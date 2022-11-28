@@ -44,6 +44,14 @@ resource "aws_iam_role" "S3FullAccess" {
           }
         },
         {
+          # give access to ecsTaskRole role used by ECS in EE account
+          Action = "sts:AssumeRole"
+          Effect = "Allow"
+          Principal = {
+            AWS     = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
+          }
+        },
+        {
           Action = "sts:AssumeRole"
           Effect = "Allow"
           Principal = {

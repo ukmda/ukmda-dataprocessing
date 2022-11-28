@@ -1,6 +1,6 @@
 # terraform to create ECS cluster
 
-/*
+
 # create a cluster
 resource "aws_ecs_cluster" "trajsolver" {
   name = "trajsolver"
@@ -197,7 +197,7 @@ resource "null_resource" "createECSdetails" {
     var.containername]))
   }
   provisioner "local-exec" {
-    command     = "echo $env:CLUSNAME $env:SECGRP $env:SUBNET $env:IAMROLE $env:LOGGRP $env:CONTNAME > ../../../ukmon_pylib/traj/clusdetails.txt"
+    command     = "echo $env:CLUSNAME $env:SECGRP $env:SUBNET $env:IAMROLE $env:LOGGRP $env:CONTNAME > ../../../ukmon_pylib/traj/clusdetails-ee.txt"
     interpreter = ["pwsh.exe", "-command"]
     environment = {
       CLUSNAME = "${aws_ecs_cluster.trajsolver.name}"
@@ -209,4 +209,3 @@ resource "null_resource" "createECSdetails" {
     }
   }
 }
-*/
