@@ -21,7 +21,7 @@ def getClusterDetails(templdir):
     if accid == '822069317839':
         clusdetails = os.path.join(templdir, 'clusdetails-ee.txt')
     else:
-        clusdetails = os.path.join(templdir, 'clusdetails.txt')
+        clusdetails = os.path.join(templdir, 'clusdetails-mm.txt')
     with open(clusdetails) as inf:
         lis = inf.readlines()
     clusname = lis[0].strip()

@@ -70,6 +70,13 @@ while [ $? -ne 0 ] ; do
     echo "server not responding yet, retrying"
     scp -i $SERVERSSHKEY $execMatchingsh ec2-user@$privip:/tmp
 done 
+# push the python and templates required
+rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/clusdetails-* ec2-user@$privip:src/ukmon_pylib/traj
+rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/taskrunner.json ec2-user@$privip:src/ukmon_pylib/traj
+rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/consolidateDistTraj.py ec2-user@$privip:src/ukmon_pylib/traj
+rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/distributeCandidates.py ec2-user@$privip:src/ukmon_pylib/traj
+
+# now run the script
 ssh -i $SERVERSSHKEY ec2-user@$privip $execMatchingsh
 
 logger -s -t runDistrib "RUNTIME $SECONDS job run, stop the server again"
