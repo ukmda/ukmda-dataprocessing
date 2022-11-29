@@ -90,28 +90,10 @@ resource "aws_ssm_parameter" "dev_srcdir" {
   }
 }
 
-resource "aws_ssm_parameter" "dev_archdir" {
-  name  = "dev_archdir"
-  type  = "String"
-  value = "/home/ec2-user/ukmon-shared/archive"
-  tags = {
-    "billingtag" = "ukmon"
-  }
-}
-
-resource "aws_ssm_parameter" "dev_matchdir" {
-  name  = "dev_matchdir"
-  type  = "String"
-  value = "/home/ec2-user/ukmon-shared/matches"
-  tags = {
-    "billingtag" = "ukmon"
-  }
-}
-
 resource "aws_ssm_parameter" "dev_caminfo" {
   name  = "dev_caminfo"
   type  = "String"
-  value = "/home/ec2-user/ukmon-shared/consolidated/camera-details.csv"
+  value = "/home/ec2-user/dev/data/consolidated/camera-details.csv"
   tags = {
     "billingtag" = "ukmon"
   }

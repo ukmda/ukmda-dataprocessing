@@ -90,28 +90,10 @@ resource "aws_ssm_parameter" "prod_srcdir" {
   }
 }
 
-resource "aws_ssm_parameter" "prod_archdir" {
-  name  = "prod_archdir"
-  type  = "String"
-  value = "/home/ec2-user/ukmon-shared/archive"
-  tags = {
-    "billingtag" = "ukmon"
-  }
-}
-
-resource "aws_ssm_parameter" "prod_matchdir" {
-  name  = "prod_matchdir"
-  type  = "String"
-  value = "/home/ec2-user/ukmon-shared/matches"
-  tags = {
-    "billingtag" = "ukmon"
-  }
-}
-
 resource "aws_ssm_parameter" "prod_caminfo" {
   name  = "prod_caminfo"
   type  = "String"
-  value = "/home/ec2-user/ukmon-shared/consolidated/camera-details.csv"
+  value = "/home/ec2-user/prod/data/consolidated/camera-details.csv"
   tags = {
     "billingtag" = "ukmon"
   }
