@@ -64,6 +64,11 @@ resource "aws_iam_role" "S3FullAccess" {
   )
 }
 
+resource "aws_iam_instance_profile" "S3FullAccess" {
+  name = "S3FullAccess"
+  role = aws_iam_role.S3FullAccess.name
+}
+
 resource "aws_iam_role_policy_attachment" "aws-managed-policy-attachment1" {
   role       = aws_iam_role.S3FullAccess.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
