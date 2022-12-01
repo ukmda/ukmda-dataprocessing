@@ -30,7 +30,7 @@ Resources:
           WEBURL: https://archive.ukmeteornetwork.co.uk
       Tags:
         billingtag: "ukmon"
-      Role: arn:aws:iam::317976261112:role/lambda-s3-full-access-role
+      Role: arn:aws:iam::822069317839:role/service-role/S3FullAccess
     Metadata:
       Dockerfile: Dockerfile
       DockerContext: ./pythoncode

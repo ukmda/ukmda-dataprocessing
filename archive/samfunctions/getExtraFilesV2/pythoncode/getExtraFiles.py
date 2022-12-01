@@ -7,7 +7,6 @@ import json
 from zipfile import ZipFile
 from datetime import datetime, timedelta
 from boto3.dynamodb.conditions import Key
-from botocore.config import Config
 
 from wmpl.Utils.Pickling import loadPickle
 from pickleAnalysis import createAdditionalOutput
@@ -339,31 +338,29 @@ def lambda_handler(event, context):
     # create a routing table on the VPC to send 0.0.0.0/0 to the NAT gw
     # attach the new subnet to the NAT gw
     # 
-    config = Config(
-        retries = {
-            'max_attempts': 10,
-            'mode': 'standard'
-        }
-    )
 
     sts_client = boto3.client('sts')
-
-    assumed_role_object=sts_client.assume_role(
-        RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
-        RoleSessionName="GetExtraFilesV2")
-    
-    credentials=assumed_role_object['Credentials']
-    
-    # Use the temporary credentials that AssumeRole returns to connections
-    s3 = boto3.resource('s3',
-        aws_access_key_id=credentials['AccessKeyId'],
-        aws_secret_access_key=credentials['SecretAccessKey'],
-        aws_session_token=credentials['SessionToken'])
-    ddb = boto3.resource('dynamodb', region_name='eu-west-1',
-        aws_access_key_id=credentials['AccessKeyId'],
-        aws_secret_access_key=credentials['SecretAccessKey'],
-        aws_session_token=credentials['SessionToken']) 
-
+    response = sts_client.get_caller_identity()['Account']
+    if response == '317976261112':
+        assumed_role_object=sts_client.assume_role(
+            RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+            RoleSessionName="GetExtraFilesV2")
+        
+        credentials=assumed_role_object['Credentials']
+        
+        # Use the temporary credentials that AssumeRole returns to connections
+        s3 = boto3.resource('s3',
+            aws_access_key_id=credentials['AccessKeyId'],
+            aws_secret_access_key=credentials['SecretAccessKey'],
+            aws_session_token=credentials['SessionToken'])
+        ddb = boto3.resource('dynamodb', region_name='eu-west-1',
+            aws_access_key_id=credentials['AccessKeyId'],
+            aws_secret_access_key=credentials['SecretAccessKey'],
+            aws_session_token=credentials['SessionToken']) 
+    else:
+        s3 = boto3.resource('s3')
+        ddb = boto3.resource('dynamodb', region_name='eu-west-1')
+        
     websitebucket = os.getenv('WEBSITEBUCKET')
     if websitebucket[:3] == 's3:':
         websitebucket = websitebucket[5:]
