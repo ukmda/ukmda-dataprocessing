@@ -4,7 +4,7 @@
 
 # lambda running in MJMM account but invoked from EE account
 data "aws_lambda_function" "getextraorbitfiles" {
-  provider      = aws.mjmmacct
+#  provider      = aws.mjmmacct
   function_name = "getExtraOrbitFilesV2"
 }
 
