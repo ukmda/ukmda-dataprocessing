@@ -3,7 +3,7 @@
 $loc = get-location
 set-location $psscriptroot
 
-$prof = "default"
+$prof = "ukmonshared"
 $imagename="trajsolver"
 $accid = (aws sts get-caller-identity --profile $prof | convertfrom-json).account
 $region = "eu-west-2"

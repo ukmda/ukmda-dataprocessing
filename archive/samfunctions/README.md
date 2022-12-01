@@ -1,7 +1,7 @@
 # Lambda functions
 
-This folder contains code for the three Lambdas that are deployed as SAM functions.  
-SAM is AWS's serverless application model.  Other lambdas as simpler and are deployed via Terraform. 
+This folder contains code for the Lambdas that are deployed as SAM functions.  
+SAM is AWS's serverless application model. Other lambdas as simpler and are deployed via Terraform. 
 
 ## fetchECSV
 This code creates an API gateway and lambda to create and download ECSV format files for individual detections. ECSV is the common data format used by multiple networks.
