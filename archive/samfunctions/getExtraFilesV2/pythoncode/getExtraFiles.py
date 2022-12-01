@@ -62,6 +62,7 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
         spls = ffname.split('_')
         id = spls[1]
         dtstr = spls[2]
+        tmstr = spls[3]
         jpgname=f'img/single/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('fits','jpg')
         mp4name=f'img/mp4/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('fits','mp4')
 
@@ -79,6 +80,10 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
             print(f'{mp4name} not found')
         site = findSite(id, ddb)
         fldr = site + '/' + id
+        evtdtval = datetime.strptime(f'{dtstr}_{tmstr}', '%Y%m%d_%H%M%S')
+        if evtdtval.hour < 13:
+            evtdtval = evtdtval + timedelta(days = -1)
+            dtstr = evtdtval.strftime('%Y%m%d')
         findOtherFiles(dtstr, archbucket, websitebucket, outdir, fldr, s3)
 
     jpghtml.close()
@@ -125,12 +130,14 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
 def findOtherFiles(evtdt, archbucket, websitebucket, outdir, fldr, s3):
 
     thispth = f'archive/{fldr}/{evtdt[:4]}/{evtdt[:6]}/{evtdt[:8]}/'
+    print(f'looking in {thispth}')
     corrpth = ''
     objlist = s3.meta.client.list_objects_v2(Bucket=archbucket,Prefix=thispth)
     if objlist['KeyCount'] > 0:
         keys = objlist['Contents']
         for k in keys:
             fname = k['Key']
+            #print(f'fname is {fname}')
             if 'fieldsums' in fname or 'radiants' in fname or '.csv' in fname:
                 _, corrpth = os.path.split(fname)
             if '.csv' in fname or '.kml' in fname or 'FTPdetectinfo' in fname:
@@ -144,6 +151,7 @@ def findOtherFiles(evtdt, archbucket, websitebucket, outdir, fldr, s3):
             keys = objlist['Contents']
             for k in keys:
                 fname = k['Key']
+                #print(f'fname is {fname}')
                 if 'fieldsums' in fname or 'radiants' in fname or '.csv' in fname:
                     _, corrpth = os.path.split(fname)
             if '.csv' in fname or '.kml' in fname or 'FTPdetectinfo' in fname:
@@ -360,7 +368,7 @@ def lambda_handler(event, context):
     else:
         s3 = boto3.resource('s3')
         ddb = boto3.resource('dynamodb', region_name='eu-west-1')
-        
+
     websitebucket = os.getenv('WEBSITEBUCKET')
     if websitebucket[:3] == 's3:':
         websitebucket = websitebucket[5:]
