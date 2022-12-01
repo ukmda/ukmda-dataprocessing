@@ -176,6 +176,26 @@ def rerunFails(fails):
     return 
 
 
+def resubmitPicklesForDay(dtstr):
+    s3 = boto3.client('s3')
+    session = boto3.Session(profile_name='default')
+    lambd = session.client('lambda', region_name='eu-west-2')
+    pref = f'matches/RMSCorrelate/trajectories/{dtstr[:4]}/{dtstr[:6]}/{dtstr}/'
+    res = s3.list_objects_v2(Bucket='ukmon-shared',Prefix=pref)
+    print(res)
+    if res['KeyCount'] > 0:
+        print(f"processing {res['KeyCount']} entries")
+        for k in res['Contents']:
+            if 'pickle' in k['Key']:
+                print(f"{k['Key']}")
+                thisevent = templ.replace('KEYHERE', k['Key'])
+                response = lambd.invoke(FunctionName='getExtraOrbitFilesV2',
+                    InvocationType='Event', Payload=thisevent )
+                print(response["StatusCode"])
+    else:
+        print('no keys found')
+    return
+
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         failedevts = [sys.argv[1]]
