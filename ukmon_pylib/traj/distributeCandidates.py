@@ -207,7 +207,7 @@ def monitorProgress(rundate):
 
                     # collect the logs from CloudWatch 
                     realfname=None
-                    logdir = os.path.join(datadir, '..', 'logs', 'distrib', 'logs')
+                    logdir = os.path.join(datadir, '..', 'logs', 'distrib')
                     os.makedirs(logdir, exist_ok=True)
                     tmpfname = os.path.join(logdir, f'{thisarn[51:]}.log')
                     with open(tmpfname, 'w') as outf:
