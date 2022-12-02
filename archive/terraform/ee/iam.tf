@@ -158,13 +158,13 @@ resource "aws_iam_user_policy" "ukmon_ro_pol" {
 resource "aws_iam_access_key" "ukmro_key" {
   user = aws_iam_user.ukmonreadonly.name
 }
-
+/*
 output "key" { value = aws_iam_access_key.ukmro_key.id}
 output "secret" { 
   value = aws_iam_access_key.ukmro_key.secret
   sensitive = true
 }  
-
+*/
 # policy applied to all ukmon members to enable uploads 
 resource "aws_iam_policy" "ukmonsharedpol" {
   name = "UKMON-shared"
