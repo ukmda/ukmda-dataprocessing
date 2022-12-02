@@ -3,32 +3,25 @@
 ## UKMON Terraform Modules
 All infrastructure has been built with Terraform. 
 
-For historical reasons the infrastructure is split across two accounts. Data are stored in the "empireelements" account which also manages end-user access, while compute is in the "markmcintyreastro" account. Each is managed by its own set of terraform code. 
+For historical reasons the infrastructure is split across two accounts. Data are stored in the "empireelements" account which also manages end-user access and the trajectory solver, while the batch server and system management server are in the "markmcintyreastro" account. Each is managed by its own set of terraform code. 
 
-### empireelements Account
+### empireelements Account (ee)
+Code in here creates the S3 buckets and adds triggers to execute Lambdas when files are delivered. Only the ukmon-shared and ukmeteornetworkarchive buckets are managed at present.
 
-**S3 Buckets**  
-Managed by *s3.tf*:
-* *ukmon-live* contains the files uploaded by the ukmon-live process. These are displayed on the main website. 
-* *ukmon-shared* contains the daily data uploads from cameras, as well as the data used and produced by consolidation and matching processes.  
-* *ukmeteornetworkarchive* contains the Data Archive website.  
+This account also holds the ECS cluster and container that runs the distributed trajectory solver, plus ECR repos for containers to manage data conversions and gathering for the website, and the APIs that expose our raw and results data to those interested (note that the containers themselves are built with AWS SAM). 
 
-Additionally *ukmeteornetwork.co.uk* contains the public UKMON website but this is not managed by Terraform. 
+Finally, this account hosts the EC2 instance that is used to initiate the trajectory solving
+process by distributing candidates and then consolidating the results. 
 
-**User Accounts and IAM Rules**  
-Managed by *iam.tf*:
-* user *s3accessforarchive*. This user has S3FullAccess permissions. 
-* user *ukmonarchive*. This user is used to execute the batch processes, and has access to Glue, Athena, DynamoDB, Cost Explorer, S3 and to run Lambdas. 
-* role *S3FullAccess* is used by some lambda functions and also granted to the other account. 
-* role *lambda_basic_execution* is used by some lambda functions.
-* role *dailyReportRole* is used by the Lambda that sends out the daily report. 
-* role *fetchECSV-fetchECSVRole-RB0AC508MNLZ* created by Cloudformation for the fetchECSV Lambda and API.
-* role *AWSGlueServiceRole-ukmoncrawler* used to create/update Glue catalogues for AWS Athena. 
+In support of this, there are the usual IAM roles and permissions, security groups, NACLs
+and keys.
 
-**IAM Policies**
-Managed by *iam.tf*:
-(coming soon)
+### markmcintyreastro Account (mm)
+This account hosts the EC2 instance used to trigger the batch and for management purposes. 
+This is a reserved instance but once the reservation expires we'll relocate it to the EE 
+account. 
 
-### markmcintyreastro Account
-This account holds all compute resources and some APIs. 
+Additionally, this account hosts a small server used to efficiently back up the data. 
 
+In support of this, there are the usual IAM roles and permissions, security groups, NACLs
+and keys.

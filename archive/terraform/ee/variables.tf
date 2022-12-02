@@ -13,7 +13,8 @@ variable "remote_profile" { default = "default"}
 variable "remote_account_id" { default = "317976261112" }
 variable "remote_region" {default = "eu-west-2"}
 
-variable "main_cidr" {default = "172.31.0.0/16" }
-variable mgmt_cidrs { default = "172.31.36.0/22" }
-variable lambda_cidrs { default = "172.31.32.0/22" }
-variable ec2_cidrs { default = "172.31.16.0/20" }
+variable "main_cidr" {default = "172.32.0.0/16" }
+variable mgmt_cidr { default = "172.32.36.0/22" }
+variable lambda_cidr { default = "172.32.32.0/22" }
+variable ec2_cidr { default = "172.32.16.0/20" }
+variable calcserverip { default = "172.32.16.136" }

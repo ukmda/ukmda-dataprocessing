@@ -34,7 +34,7 @@ resource "aws_eip" "calcserver" {
 resource "aws_network_interface" "calcserver_if" {
   subnet_id                 = aws_subnet.ec2_subnet.id
   description               = "Primary network interface"
-  private_ips               = ["172.31.16.136"]
+  private_ips               = [var.calcserverip]
   security_groups           = [aws_security_group.ec2_secgrp.id]
   ipv6_address_list_enabled = false
   tags = {

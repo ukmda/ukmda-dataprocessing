@@ -3,7 +3,7 @@
 #
 
 resource "aws_default_security_group" "main_sg" {
-  vpc_id                 = aws_vpc.default_vpc.id
+  vpc_id                 = aws_vpc.ec2_vpc.id
   revoke_rules_on_delete = false
   ingress = [
     {
@@ -43,7 +43,7 @@ resource "aws_default_security_group" "main_sg" {
 resource "aws_security_group" "ec2_secgrp" {
   name        = "ec2SecurityGroup"
   description = "Security Group for EC2 instances"
-  vpc_id      = aws_vpc.default_vpc.id
+  vpc_id      = aws_vpc.ec2_vpc.id
   ingress = [
     {
       cidr_blocks      = ["0.0.0.0/0"]
