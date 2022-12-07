@@ -28,3 +28,4 @@
     - {src: '{{srcdir}}/analysis/getVideoDataForYT.ps1', dest: '{{destdir}}/', mode: '755', backup: no, directory_mode: no }
     - {src: '{{srcdir}}/analysis/mp4retrConfig.ps1', dest: '{{destdir}}/', mode: '755', backup: no, directory_mode: no }
     - {src: '{{srcdir}}/archive/costs/getCostMetrics.ps1', dest: '{{destdir}}/', mode: '755', backup: no, directory_mode: no }
+    - {src: '{{srcdir}}/analysis/getGMNData.ps1', dest: '{{destdir}}/', mode: '755', backup: no, directory_mode: no }
