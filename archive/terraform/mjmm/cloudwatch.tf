@@ -67,10 +67,10 @@ resource "aws_cloudwatch_metric_alarm" "calcServerIdle" {
   alarm_description         = "CPUUtilization <= 0.5 for 6 datapoints within 30 minutes"
   insufficient_data_actions = []
   ok_actions                = []
-  datapoints_to_alarm       = 6
+  datapoints_to_alarm       = 4
   alarm_actions = [
     aws_sns_topic.ukmonalerts.arn,
-    "arn:aws:swf:eu-west-2:317976261112:action/actions/AWS_EC2.InstanceId.Stop/1.0",
+    "arn:aws:automate:${var.region}:ec2:stop",
   ]
   dimensions = {
     "InstanceId" = aws_instance.CalcEngine4ARM.id
