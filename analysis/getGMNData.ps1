@@ -13,12 +13,10 @@ push-location $PSScriptRoot
 $ini=get-inicontent analysis.ini
 
 $fbfldr=$ini['fireballs']['localfolder']
+$IDFILE=$ini['gmn']['idfile']
 
 set-Location $fbfldr
 
-#$yr=$dt.substring(0,4)
-
-$IDFILE="~/.ssh/gmnanalysis"
 $DT = $args[0]
 $CAMS = $args[1]
 $STATLIST=[system.string]::join(',',$CAMS)
@@ -32,14 +30,19 @@ ssh -i $IDFILE analysis@gmn.uwo.ca "rm -Rf event_extract/$DT"
 
 $rms_env=$ini['rms']['rms_env']
 conda activate $rms_env
+$rms_loc=$ini['rms']['rms_loc']
+set-location $rms_loc
 
-#$dtpth = $fbfldr + "/" + $yr + "/" + $dt
+# $yr=$dt.substring(0,4)
+# $dtpth = $fbfldr + "/" + $yr + "/" + $dt
 $dtpth = $fbfldr + "/" + $dt
 foreach ($cam in $cams) {
 	$frpth=$dtpth + "/" + $cam
 	if (test-path $frpth){
 		python -m Utils.FRbinViewer -x -f mp4 $frpth -c $frpth/.config
 		Move-Item $frpth/*.mp4 $dtpth -Force
+		python -m Utils.BatchFFtoImage $frpth jpg
+		Move-Item $frpth/*.jpg $dtpth -Force
 	}
 }
 
