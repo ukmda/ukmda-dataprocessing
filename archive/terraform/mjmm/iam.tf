@@ -16,6 +16,9 @@ resource "aws_iam_role" "S3FullAccess" {
       Version = "2012-10-17"
     }
   )
+  tags = {
+    "billingtag" = "ukmon"
+  }
 }
 
 resource "aws_iam_instance_profile" "S3FullAccess" {
