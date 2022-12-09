@@ -48,7 +48,7 @@ resource "aws_ssm_parameter" "dev_envname" {
 resource "aws_ssm_parameter" "dev_calcinstance" {
   name  = "dev_calcinstance"
   type  = "String"
-  value = "i-0da38ed8aea1a1d85"
+  value = "i-08cd1d5f6e1056f6b" #"i-0da38ed8aea1a1d85"
   tags = {
     "billingtag" = "ukmon"
   }

@@ -19,6 +19,9 @@ logger -s -t runDistrib "RUNTIME $SECONDS starting runDistrib"
 # load the configuration
 source $here/../config.ini >/dev/null 2>&1
 
+# set the profile to the EE account so we can run the server and monitor progress
+export AWS_PROFILE=ukmonshared
+
 if [ $# -gt 0 ] ; then
     if [ "$1" != "" ] ; then
         echo "selecting range"
@@ -84,11 +87,7 @@ aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 
 logger -s -t runDistrib "RUNTIME $SECONDS monitoring and waiting for completion"
 
-# set the profile to the EE account so we can monitor progress
-export AWS_PROFILE=ukmonshared
 python -c "from traj.distributeCandidates import monitorProgress as mp; mp('${rundate}'); "
-# and then clear it again
-unset AWS_PROFILE
 
 logger -s -t runDistrib "RUNTIME $SECONDS merging in the new json files"
 mkdir -p $DATADIR/distrib
@@ -156,4 +155,6 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
 else
     echo "trajectory database is size zero... not proceeding with copy"
 fi 
+# and then clear the profile again
+unset AWS_PROFILE
 logger -s -t runDistrib "RUNTIME $SECONDS finished runDistrib"
