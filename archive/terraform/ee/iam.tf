@@ -10,6 +10,13 @@ resource "aws_iam_role" "S3FullAccess" {
     {
       Statement = [
         {
+          Action = "sts:AssumeRole"
+          Effect = "Allow"
+          Principal = {
+            Service = "ec2.amazonaws.com"
+          }
+        },
+        {
           # not sure this one is used, double check 
           Action = "sts:AssumeRole"
           Effect = "Allow"
@@ -74,9 +81,19 @@ resource "aws_iam_role_policy_attachment" "aws-managed-policy-attachment1" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
 }
 
+resource "aws_iam_role_policy_attachment" "aws-managed-policy-attachment2" {
+  role       = aws_iam_role.S3FullAccess.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 resource "aws_iam_role_policy_attachment" "aws-managed-policy-attachment3" {
   role       = aws_iam_role.S3FullAccess.name
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "aws-managed-policy-attachment4" {
+  role       = aws_iam_role.S3FullAccess.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
 }
 
 resource "aws_iam_role_policy_attachment" "aws-mps3" {
@@ -238,5 +255,16 @@ resource "aws_iam_role_policy" "lambda_inline_policy_1" {
     ]
 }
 EOF
+}
+
+# role and permissions used cloudwatch to shutdown servers
+resource "aws_iam_service_linked_role" "cweventslrole" {
+  description = "Allows Cloudwatch Events to manage servers"
+  aws_service_name = "events.amazonaws.com"
+}
+
+resource "aws_iam_role_policy_attachment" "cweventspolicy" {
+  role       = aws_iam_service_linked_role.cweventslrole.name
+  policy_arn = "arn:aws:iam::aws:policy/aws-service-role/CloudWatchEventsServiceRolePolicy"
 }
 

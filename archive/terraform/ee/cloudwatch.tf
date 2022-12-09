@@ -26,6 +26,7 @@ resource "aws_cloudwatch_metric_alarm" "calcServerDiskSpace" {
   tags = {
     "billingtag" = "ukmon"
   }
+  actions_enabled           = true
 }
 
 resource "aws_cloudwatch_metric_alarm" "calcServerIdle" {
@@ -51,4 +52,6 @@ resource "aws_cloudwatch_metric_alarm" "calcServerIdle" {
   tags = {
     "billingtag" = "ukmon"
   }
+
+   actions_enabled           = true
 }
