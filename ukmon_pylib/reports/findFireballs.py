@@ -91,7 +91,7 @@ def createMDFiles(fbs, outdir, orbdir):
                     outf.write('archive-url: {}\n'.format(fb.url))
                     outf.write('bestimage: {}\n'.format(bestimgurl))
                     outf.write('\n---\n')
-    #rmtree(tmpdir)
+    rmtree(tmpdir)
     return
 
 
