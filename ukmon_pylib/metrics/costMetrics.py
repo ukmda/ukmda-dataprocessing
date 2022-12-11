@@ -191,7 +191,7 @@ if __name__ == '__main__':
         if mthwanted > 12:
             if mthwanted < 365:
                 # its a number of days back to look
-                endwanted = curdt - datetime.timedelta(days=1)
+                endwanted = curdt # - datetime.timedelta(days=1)
                 dtwanted = endwanted - relativedelta.relativedelta(days=mthwanted+1)
                 typflag = mthwanted
             else:
@@ -206,7 +206,7 @@ if __name__ == '__main__':
             dtwanted = curdt.replace(day=1).replace(month=mth).replace(year=yr)
             endwanted = dtwanted + relativedelta.relativedelta(months=1)
 
-        if endwanted >= curdt:
+        if endwanted > curdt:
             print("can't request for a future date, requesting for this month instead")
             yr = curdt.year
             mth = curdt.month

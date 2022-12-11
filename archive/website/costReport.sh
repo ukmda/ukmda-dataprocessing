@@ -23,16 +23,14 @@ export PYTHONPATH=$PYLIB
 numdays=90
 if [ $# -gt 1 ] ; then numdays = $1 ; fi
 
-export AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id --profile Mark)
-export AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key --profile Mark)
+export AWS_PROFILE=Mark
 python -m metrics.costMetrics $SRC/costs eu-west-2 $numdays
 
-export AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id --profile ukmonarchive)
-export AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key --profile ukmonarchive)
+export AWS_PROFILE=ukmonshared
 python -m metrics.costMetrics $SRC/costs eu-west-2 $numdays
 
-export AWS_ACCESS_KEY_ID=
-export AWS_SECRET_ACCESS_KEY=
+unset AWS_ACCESS_KEY_ID
+unset AWS_SECRET_ACCESS_KEY
 
 cp $SRC/costs/costs-*-90-days.jpg $DATADIR/reports
 
