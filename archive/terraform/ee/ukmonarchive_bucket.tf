@@ -82,3 +82,11 @@ resource "aws_s3_bucket_ownership_controls" "ukmonarch_objownrule" {
     object_ownership = "BucketOwnerEnforced"
   }
 }
+
+resource "aws_s3_bucket_logging" "ukmonwebsitelogs" {
+  bucket = aws_s3_bucket.archsite.id
+
+  target_bucket = aws_s3_bucket.logbucket.id
+  target_prefix = "archsite/"
+}
+
