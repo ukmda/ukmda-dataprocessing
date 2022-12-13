@@ -27,6 +27,7 @@ echo "<li><a href=#correl>Correlation Results</a></li>" >> $logfile
 echo "<li><a href=#uncal>Uncalibrated Data</a></li>" >> $logfile
 echo "<li><a href=#fails>Match Fails</a></li>" >> $logfile
 echo "<li><a href=#graph>Batch Timing Chart</a></li>" >> $logfile
+echo "<li><a href=./costs.html>Running Costs</a></li>" >> $logfile
 echo "<li><a href=/reports/lastlogs/index.html>Previous Logs</a></li>" >> $logfile
 echo "</p>" >> $logfile
 

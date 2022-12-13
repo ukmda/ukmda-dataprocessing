@@ -177,6 +177,19 @@ def getAllBillingData(ceclient, dtwanted, endwanted, regionid, outdir, typflag):
     return costsfile, accid
 
 
+def getLatestCost(costsfile, outdir, accid=None):
+    mm = pd.read_csv(costsfile)
+    mml=mm[mm.Date==max(mm.Date)]
+    mml = mml[mml.Tag.str.contains('ukmon')]
+    totcost = sum(mml.Amount)
+    if accid is None:
+        accid = boto3.client('sts').get_caller_identity()['Account']
+    costsfile = os.path.join(outdir, f'costs-{accid}-last.csv')
+    with open(costsfile,'w') as outf:
+        outf.write(f'{totcost:0.2f}\n')
+    return round(totcost,4)
+
+
 if __name__ == '__main__':
     if len(sys.argv) < 3:
         print('usage python getMetrics.py outdir regionId {month}')
@@ -191,7 +204,7 @@ if __name__ == '__main__':
         if mthwanted > 12:
             if mthwanted < 365:
                 # its a number of days back to look
-                endwanted = curdt # - datetime.timedelta(days=1)
+                endwanted = curdt  - datetime.timedelta(days=1)
                 dtwanted = endwanted - relativedelta.relativedelta(days=mthwanted+1)
                 typflag = mthwanted
             else:
@@ -222,3 +235,5 @@ if __name__ == '__main__':
     costsfile, accid = getAllBillingData(ceclient, dtwanted, endwanted, regionid, outdir, typflag)
 
     drawBarChart(costsfile, typflag)
+
+    getLatestCost(costsfile, outdir)

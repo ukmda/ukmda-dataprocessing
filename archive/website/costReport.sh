@@ -38,9 +38,18 @@ costfile=$DATADIR/reports/costs.html
 imgfile=/reports/costs-317976261112-90-days.jpg
 imgfile2=/reports/costs-822069317839-90-days.jpg
 
+v1=$(cat $SRC/costs/costs-317976261112-last.csv)
+v2=$(cat $SRC/costs/costs-822069317839-last.csv)
+
+lastfullcost=$(echo $v1 + $v2 | bc)
+
 cp $TEMPLATES/header.html $costfile
 echo "<h3>Daily running costs</h3>" >> $costfile
-echo "<p>This page shows daily running costs by service of the Archive and Calculation Engine, in USD " >> $costfile
+echo "<p>This page shows daily running costs by service of the Archive and Calculation Engine " >> $costfile
+echo "in USD and excluding VAT. Costs are split across two accounts for historical reasons. " >> $costfile
+echo "AWS cost data may lag by up to a day, so yesterday's costs data are incomplete. The " >> $costfile
+echo "last complete day's cost is \$${lastfullcost}" >> $costfile
+echo "</p><p>" >> $costfile
 echo "<a href=$imgfile><img src=$imgfile width=100%></a><br>" >> $costfile
 echo "<a href=$imgfile2><img src=$imgfile2 width=100%></a><br>" >> $costfile
 
