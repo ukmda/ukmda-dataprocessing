@@ -54,6 +54,7 @@
     - {src: '{{srcdir}}/archive/utils/', dest: '{{destdir}}/utils/', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/website/', dest: '{{destdir}}/website/', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/shwrinfo/', dest: '{{destdir}}/data/shwrinfo/', mode: '754', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/archive/share/', dest: '{{destdir}}/share/', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/database/', dest: '{{destdir}}/database/', mode: '754', backup: no, directory_mode: yes }
     #- {src: '{{srcdir}}/archive/website/templates/', dest: '/home/ec2-user/pylibs/templates/', mode: '754', backup: no, directory_mode: yes }
     #- {src: '{{srcdir}}/ukmon_pylib/wmplloc/', dest: '/home/ec2-user/pylibs/python/wmplloc/', mode: '754', backup: no, directory_mode: yes }
