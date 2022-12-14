@@ -120,7 +120,7 @@ def timeGraph(dta, shwrname, outdir, binmins=10):
     return len(dta)
 
 
-def matchesGraphs(dta, shwrname, outdir, binmins=60):
+def matchesGraphs(dta, shwrname, outdir, binmins=60, startdt=None, enddt=None, ticksep=24):
     logMessage('Creating matches binned graph')
     # set paper size so fonts look good
     plt.clf()
@@ -129,6 +129,10 @@ def matchesGraphs(dta, shwrname, outdir, binmins=60):
 
     # add a datetime column so i can bin the data
     mdta = dta.assign(dt = pd.to_datetime(dta['_localtime'], format='_%Y%m%d_%H%M%S'))
+    if startdt is not None and enddt is not None:
+        mdta = mdta[mdta.dt > startdt]
+        mdta = mdta[mdta.dt < enddt]
+
     # set the datetime to be the index
     mdta = mdta.set_index('dt')
     #select just the shower ID col
@@ -141,14 +145,18 @@ def matchesGraphs(dta, shwrname, outdir, binmins=60):
     ax = plt.gca()
     nbins=len(mbinned)/24
     if nbins > 1:
-        plt.locator_params(axis='x', nbins=len(mbinned)/24)
+        plt.locator_params(axis='x', nbins=len(mbinned)/ticksep)
         # set font size
         
         for lab in ax.get_xticklabels():
             lab.set_fontsize(SMALL_SIZE)
         
         # format x-axes
-        x_labels = mbinned.index.strftime('%b-%d')
+        if ticksep < 24:
+            x_labels = mbinned.index.strftime('%d %H:00')
+        else:
+            x_labels = mbinned.index.strftime('%b-%d')
+
         ax.set_xticklabels(x_labels)
 
     ax.set(xlabel="Date", ylabel="Count")
