@@ -25,9 +25,9 @@ else
 fi
 
 logger -s -t reportActiveShowers "report on active showers"
-python -m reports.reportActiveShowers 
+python -m reports.reportActiveShowers -m
 
-python -m utils.getActiveShowers | while read shwr
+python -m utils.getActiveShowers -m | while read shwr
 do 
     aws s3 sync $DATADIR/reports/${yr}/$shwr $WEBSITEBUCKET/reports/${yr}/${shwr} --quiet --profile ukmonshared
 done

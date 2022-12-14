@@ -7,6 +7,7 @@ import datetime
 import os
 import glob
 import shutil
+import argparse
 
 from utils.getActiveShowers import getActiveShowers
 from analysis.showerAnalysis import showerAnalysis
@@ -146,9 +147,9 @@ def findRelevantPngs(shwr, pltdir, outdir):
     return
 
 
-def reportActiveShowers(ymd, thisshower=None, thismth=None):
+def reportActiveShowers(ymd, thisshower=None, thismth=None, includeMinor=False):
     if thisshower is None:
-        shwrlist = getActiveShowers(ymd, retlist=True)
+        shwrlist = getActiveShowers(ymd, retlist=True, inclMinor=includeMinor)
     else:
         shwrlist = [thisshower]
 
@@ -172,17 +173,21 @@ def reportActiveShowers(ymd, thisshower=None, thismth=None):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        ymd = datetime.datetime.strptime(sys.argv[1], '%Y%m%d')
-    else:
-        ymd = datetime.datetime.now()
-    if len(sys.argv) > 2:
-        thisshower = sys.argv[2]
-    else:
-        thisshower = None
-    if len(sys.argv) > 3:
-        thismth = sys.argv[3]
-    else:
-        thismth = None
+    arg_parser = argparse.ArgumentParser(description='get list of active showers',
+        formatter_class=argparse.RawTextHelpFormatter)
+    arg_parser.add_argument('-d', '--targdate', metavar='TARGDATE', type=str,
+        help='Date to run for (default is today)')
+    arg_parser.add_argument('-s', '--shower', metavar='SHOWER', type=str,
+        help='Shower to process')
+    arg_parser.add_argument('-t', '--thismonth', metavar='THISMONTH', type=str,
+        help='Specific month to include')
+    arg_parser.add_argument('-m', '--includeminor', action="store_true",
+        help='include minor showers')
 
-    shwrs = reportActiveShowers(ymd, thisshower, thismth)
+    cml_args = arg_parser.parse_args()
+    if cml_args.targdate is not None:
+        targdate = datetime.datetime.strptime(cml_args.targdate, '%Y%m%d')
+    else:
+        targdate = datetime.datetime.now()
+
+    shwrs = reportActiveShowers(targdate, cml_args.shower, cml_args.thismonth, cml_args.includeminor)

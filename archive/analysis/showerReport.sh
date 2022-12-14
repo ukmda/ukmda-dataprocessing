@@ -38,11 +38,16 @@ else
     fi 
 
     if [ "$dy" == "" ] ; then dy=01 ; fi
-    if [ "$mth" == "" ] ; then rmth=01 ; else rmth=$mth ; fi
-
-    repdt=${yr}${rmth}${dy}
-
-    python -m reports.reportActiveShowers $repdt $shwr $mth
+    
+    if [ "$mth" == "" ] ; then 
+        rmth=01 
+        repdt=${yr}${rmth}${dy}
+        python -m reports.reportActiveShowers -d $repdt -s $shwr
+    else 
+        rmth=$mth 
+        repdt=${yr}${rmth}${dy}
+        python -m reports.reportActiveShowers -d $repdt -s $shwr -t $mth
+    fi
 
     cd $DATADIR/$outdir
 
