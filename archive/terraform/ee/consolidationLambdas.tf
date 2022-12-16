@@ -145,6 +145,11 @@ resource "aws_lambda_function" "ftpdetectlambda" {
   timeout          = 30
   role             = aws_iam_role.S3FullAccess.arn
   publish          = false
+  environment {
+    variables = {
+      "MAXDETS" = "750"
+    }
+  }
   ephemeral_storage {
     size = 512
   }
