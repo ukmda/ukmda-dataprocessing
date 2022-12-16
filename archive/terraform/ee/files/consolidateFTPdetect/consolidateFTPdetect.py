@@ -115,6 +115,6 @@ def lambda_handler(event, context):
     s3object = record['s3']['object']['key']
     target = 'ukmon-shared'
 
-    maxdetcount = 500
+    maxdetcount = int(os.getenv('MAXDETS', default=750))
     copyFiles(s3bucket, s3object, target, maxdetcount)
     return 0

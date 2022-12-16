@@ -573,3 +573,4 @@ usermgmt/windows/createUserKeyAWS.ps1
 archive/samfunctions/matchPickle/pythoncode/WesternMeteorPyLib/**
 archive/samfunctions/matchPickle/pythoncode/*.npy
 .terraform/
+archive/utils/tmp.json

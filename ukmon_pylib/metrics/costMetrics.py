@@ -131,6 +131,7 @@ def drawBarChart(costsfile, typflag):
     ax.xaxis.set_major_locator(loc)
     plt.grid(which='major', alpha=0.5)
     plt.grid(which='minor', alpha=0.2)
+    plt.ylim([0,20])
 
     fname = os.path.join(outdir, f'{fn}.jpg')
     plt.savefig(fname)

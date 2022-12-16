@@ -39,87 +39,90 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
     webpth = f'reports/{yr}/orbits/{ym}/{ymd}/{orbname}/'
         
     outdir = os.path.join(tmpdir, orbname)
-    os.makedirs(outdir, exist_ok=True)
-    locfname = os.path.join(outdir, fname)
+    try: 
+        os.makedirs(outdir, exist_ok=True)
+        locfname = os.path.join(outdir, fname)
 
-    s3.meta.client.download_file(archbucket, key, locfname)
-    traj = loadPickle(outdir, fname)
-    traj.save_results = True
+        s3.meta.client.download_file(archbucket, key, locfname)
+        traj = loadPickle(outdir, fname)
+        traj.save_results = True
 
-    #print('loaded pickle')
-    createAdditionalOutput(traj, outdir)
-    #print('created additional output')
-    # file to write JPGs html to, for performance benefits
-    jpghtml = open(os.path.join(outdir, 'jpgs.html'), 'w')
-    mp4html = open(os.path.join(outdir, 'mpgs.html'), 'w')
-    # loop over observations adding jpgs to the listing file
-    jpgf = open(os.path.join(outdir, 'jpgs.lst'), 'w')
-    mp4f = open(os.path.join(outdir, 'mpgs.lst'), 'w')
-    #print('opened image list files')
-    for obs in traj.observations:
-        js = json.loads(obs.comment)
-        ffname = js['ff_name']
-        spls = ffname.split('_')
-        id = spls[1]
-        dtstr = spls[2]
-        tmstr = spls[3]
-        jpgname=f'img/single/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('fits','jpg')
-        mp4name=f'img/mp4/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('fits','mp4')
+        #print('loaded pickle')
+        createAdditionalOutput(traj, outdir)
+        #print('created additional output')
+        # file to write JPGs html to, for performance benefits
+        jpghtml = open(os.path.join(outdir, 'jpgs.html'), 'w')
+        mp4html = open(os.path.join(outdir, 'mpgs.html'), 'w')
+        # loop over observations adding jpgs to the listing file
+        jpgf = open(os.path.join(outdir, 'jpgs.lst'), 'w')
+        mp4f = open(os.path.join(outdir, 'mpgs.lst'), 'w')
+        #print('opened image list files')
+        for obs in traj.observations:
+            js = json.loads(obs.comment)
+            ffname = js['ff_name']
+            spls = ffname.split('_')
+            id = spls[1]
+            dtstr = spls[2]
+            tmstr = spls[3]
+            jpgname=f'img/single/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('fits','jpg')
+            mp4name=f'img/mp4/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('fits','mp4')
 
-        res = s3.meta.client.list_objects_v2(Bucket=websitebucket,Prefix=jpgname)
-        if res['KeyCount'] > 0:
-            jpgf.write(f'{jpgname}\n')
-            jpghtml.write(f'<a href="/{jpgname}"><img src="/{jpgname}" width="20%"></a>\n')
-        else:
-            print(f'{jpgname} not found')
-        res = s3.meta.client.list_objects_v2(Bucket=websitebucket,Prefix=mp4name)
-        if res['KeyCount'] > 0:
-            mp4f.write(f'{mp4name}\n')
-            mp4html.write(f'<a href="/{mp4name}"><video width="20%"><source src="/{mp4name}" width="20%" type="video/mp4"></video></a>\n')
-        else:
-            print(f'{mp4name} not found')
-        site = findSite(id, ddb)
-        fldr = site + '/' + id
-        evtdtval = datetime.strptime(f'{dtstr}_{tmstr}', '%Y%m%d_%H%M%S')
-        if evtdtval.hour < 13:
-            evtdtval = evtdtval + timedelta(days = -1)
-            dtstr = evtdtval.strftime('%Y%m%d')
-        findOtherFiles(dtstr, archbucket, websitebucket, outdir, fldr, s3)
+            res = s3.meta.client.list_objects_v2(Bucket=websitebucket,Prefix=jpgname)
+            if res['KeyCount'] > 0:
+                jpgf.write(f'{jpgname}\n')
+                jpghtml.write(f'<a href="/{jpgname}"><img src="/{jpgname}" width="20%"></a>\n')
+            else:
+                print(f'{jpgname} not found')
+            res = s3.meta.client.list_objects_v2(Bucket=websitebucket,Prefix=mp4name)
+            if res['KeyCount'] > 0:
+                mp4f.write(f'{mp4name}\n')
+                mp4html.write(f'<a href="/{mp4name}"><video width="20%"><source src="/{mp4name}" width="20%" type="video/mp4"></video></a>\n')
+            else:
+                print(f'{mp4name} not found')
+            site = findSite(id, ddb)
+            fldr = site + '/' + id
+            evtdtval = datetime.strptime(f'{dtstr}_{tmstr}', '%Y%m%d_%H%M%S')
+            if evtdtval.hour < 13:
+                evtdtval = evtdtval + timedelta(days = -1)
+                dtstr = evtdtval.strftime('%Y%m%d')
+            findOtherFiles(dtstr, archbucket, websitebucket, outdir, fldr, s3)
 
-    jpghtml.close()
-    mp4html.close()
-    jpgf.close()
-    mp4f.close()
-    #print('created image lists')
-    repfname = locfname.replace('trajectory.pickle', 'report.txt')
-    key2 = key.replace('trajectory.pickle', 'report.txt')
-    s3.meta.client.download_file(archbucket, key2, repfname)
+        jpghtml.close()
+        mp4html.close()
+        jpgf.close()
+        mp4f.close()
+        #print('created image lists')
+        repfname = locfname.replace('trajectory.pickle', 'report.txt')
+        key2 = key.replace('trajectory.pickle', 'report.txt')
+        s3.meta.client.download_file(archbucket, key2, repfname)
 
-    key2 = webpth + 'extrajpgs.html'
-    locfname = os.path.join(outdir, 'extrajpgs.html')
-    try:
-        s3.meta.client.download_file(websitebucket, key2, locfname)
+        key2 = webpth + 'extrajpgs.html'
+        locfname = os.path.join(outdir, 'extrajpgs.html')
+        try:
+            s3.meta.client.download_file(websitebucket, key2, locfname)
+        except:
+            print('no extrajpgs.html')
+            pass
+        key2 = webpth + 'extrampgs.html'
+        locfname = os.path.join(outdir, 'extrampgs.html')
+        try:
+            s3.meta.client.download_file(websitebucket, key2, locfname)
+        except:
+            print('no extrampgs.html')
+            pass
+
+        # pushFilesBack creates the zipfile so we need to do this first
+        pushFilesBack(outdir, archbucket, websitebucket, fuloutdir, s3)
+        createOrbitPageIndex(outdir, websitebucket, s3)
+
+        idxname = os.path.join(outdir, 'index.html')
+        key = os.path.join(webpth, 'index.html')
+        extraargs = getExtraArgs('index.html')
+        s3.meta.client.upload_file(idxname, websitebucket, key, ExtraArgs=extraargs) 
+        #print('pushing to website')
+        #pushToWebsite(archbucket, fuloutdir, websitebucket, orbname, s3)
     except:
-        print('no extrajpgs.html')
-        pass
-    key2 = webpth + 'extrampgs.html'
-    locfname = os.path.join(outdir, 'extrampgs.html')
-    try:
-        s3.meta.client.download_file(websitebucket, key2, locfname)
-    except:
-        print('no extrampgs.html')
-        pass
-
-    # pushFilesBack creates the zipfile so we need to do this first
-    pushFilesBack(outdir, archbucket, websitebucket, fuloutdir, s3)
-    createOrbitPageIndex(outdir, websitebucket, s3)
-
-    idxname = os.path.join(outdir, 'index.html')
-    key = os.path.join(webpth, 'index.html')
-    extraargs = getExtraArgs('index.html')
-    s3.meta.client.upload_file(idxname, websitebucket, key, ExtraArgs=extraargs) 
-    #print('pushing to website')
-    #pushToWebsite(archbucket, fuloutdir, websitebucket, orbname, s3)
+        print(f'problem processing {orbname}')
     try:
         shutil.rmtree(outdir)
     except Exception:

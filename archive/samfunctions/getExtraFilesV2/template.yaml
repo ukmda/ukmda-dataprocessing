@@ -19,6 +19,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       PackageType: Image
+      EphemeralStorage: 
+        Size: 2048
       Architectures:
         - x86_64
       FunctionName: getExtraOrbitFilesV2
