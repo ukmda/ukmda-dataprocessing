@@ -18,6 +18,13 @@ resource "aws_s3_bucket_lifecycle_configuration" "bkp_lifecycle_rule" {
   }
 }
 
+resource "aws_s3_bucket_logging" "ukmslogging" {
+  bucket = aws_s3_bucket.ukmon-shared-backup.id
+
+  target_bucket = "mjmmauditing"
+  target_prefix = "ukmon-shared-backup/"
+}
+
 resource "aws_s3_bucket" "mjmm-ukmonarchive-co-uk" {
   bucket = "mjmm-ukmonarchive.co.uk"
   tags = {

@@ -1,0 +1,12 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "getExtraOrbitFilesV2"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1a0zaggp6lcd1"
+s3_prefix = "getExtraOrbitFilesV2"
+region = "eu-west-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+disable_rollback = true
+image_repository = "822069317839.dkr.ecr.eu-west-2.amazonaws.com/ukmon/extrafiles"

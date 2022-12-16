@@ -16,6 +16,9 @@ resource "aws_iam_role" "S3FullAccess" {
       Version = "2012-10-17"
     }
   )
+  tags = {
+    "billingtag" = "ukmon"
+  }
 }
 
 resource "aws_iam_instance_profile" "S3FullAccess" {
@@ -193,6 +196,19 @@ resource "aws_iam_role_policy" "stsAssumeLambda" {
 }
 
 
+# role and permissions used cloudwatch to shutdown servers
+resource "aws_iam_service_linked_role" "cweventslrole" {
+  description = "Allows Cloudwatch Events to manage servers"
+  aws_service_name = "events.amazonaws.com"
+}
+
+resource "aws_iam_role_policy_attachment" "cweventspolicy" {
+  role       = aws_iam_service_linked_role.cweventslrole.name
+  policy_arn = "arn:aws:iam::aws:policy/aws-service-role/CloudWatchEventsServiceRolePolicy"
+}
+
+
+
 # User, Policy and Roles used by ukmon-backup process. 
 # don't think this is used 
 resource "aws_iam_user" "ukmon-backup" {
@@ -239,3 +255,5 @@ resource "aws_iam_user_policy_attachment" "ukmon-shared-pol-attachment" {
   user       = aws_iam_user.ukmon-backup.name
   policy_arn = "arn:aws:iam::317976261112:policy/pol-ukmon-backup"
 }
+
+

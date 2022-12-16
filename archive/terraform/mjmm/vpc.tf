@@ -55,6 +55,11 @@ resource "aws_route_table" "default" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.main_igw.id
   }
+  route {
+    cidr_block                = "172.32.0.0/16"
+    vpc_peering_connection_id = "pcx-04bcbf8428c045637"
+  }
+
   tags = {
     "Name"     = "default"
     billingtag = "Management"
@@ -93,7 +98,7 @@ resource "aws_eip" "ukmonhelper" {
 resource "aws_network_interface" "ukmon_if" {
   subnet_id                 = aws_subnet.ec2Subnet.id
   private_ips               = ["172.31.12.116"]
-  security_groups           = [ aws_security_group.launch-wizard-4.id ]
+  security_groups           = [aws_security_group.launch-wizard-4.id]
   ipv6_address_list_enabled = false
   tags = {
     "Name"       = "ukmonhelper_if"
@@ -110,7 +115,7 @@ resource "aws_network_interface" "calcserver_if" {
   subnet_id                 = aws_subnet.ec2Subnet.id
   description               = "Primary network interface"
   private_ips               = ["172.31.12.136"]
-  security_groups           = [ aws_security_group.launch-wizard-4.id ]
+  security_groups           = [aws_security_group.launch-wizard-4.id]
   ipv6_address_list_enabled = false
   tags = {
     "Name"       = "calcserver_if"
@@ -122,3 +127,10 @@ resource "aws_network_interface" "calcserver_if" {
   }
 }
 
+resource "aws_vpc_peering_connection_accepter" "eetommpeering" {
+  vpc_peering_connection_id = "pcx-04bcbf8428c045637"
+  tags = {
+    "Name"       = "ee-to-mm-peering"
+    "billingtag" = "ukmon"
+  }
+}

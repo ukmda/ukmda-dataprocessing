@@ -1,7 +1,7 @@
 pandas
 numpy
 scipy
-matplotlib
+matplotlib==3.3.2
 cython
 jplephem
 pyephem

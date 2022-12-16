@@ -22,8 +22,8 @@ resource "aws_s3_bucket_policy" "ukmonsharedbp" {
           Effect = "Allow"
           Principal = {
             AWS = [
-              "arn:aws:iam::317976261112:role/S3FullAccess", # role used by EC2 instances
-              "arn:aws:iam::317976261112:role/lambda-s3-full-access-role", # role used by Lambda
+              "arn:aws:iam::317976261112:role/S3FullAccess", # role used by lambdas
+              "arn:aws:iam::317976261112:role/lambda-s3-full-access-role", # role used by SAM functions
               "arn:aws:iam::317976261112:role/ecsTaskExecutionRole", # role used by ECS tasks
               "arn:aws:iam::317976261112:user/Mary",
               "arn:aws:iam::317976261112:user/Mark",
@@ -113,6 +113,23 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmonsharedlcp" {
       noncurrent_days = 5
     }
   }
+  rule {
+    id     = "purge distrib backups"
+    status = "Enabled"
+
+    expiration {
+      days                         = 60
+      expired_object_delete_marker = false
+    }
+
+    filter {
+      prefix = "matches/distrib/done/"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 10
+    }
+  }
 }
 
 resource "aws_s3_bucket_cors_configuration" "ukmonsharedcors" {
@@ -144,5 +161,66 @@ resource "aws_s3_bucket_ownership_controls" "ukmonshare_objownrule" {
 
   rule {
     object_ownership = "BucketOwnerEnforced"
+  }
+}
+
+resource "aws_s3_bucket" "logbucket" {
+  bucket        = "ukmon-s3-access-logs"
+  force_destroy = false
+  tags = {
+    "billingtag" = "ukmon"
+    "ukmontype"  = "logs"
+  }
+}
+
+resource "aws_s3_bucket_logging" "ukmonsharedlogs" {
+  bucket = aws_s3_bucket.ukmonshared.id
+
+  target_bucket = aws_s3_bucket.logbucket.id
+  target_prefix = "ukmonshared/"
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "ukmonlogslcp" {
+  bucket = aws_s3_bucket.logbucket.id
+  rule {
+    status = "Enabled"
+    id     = "purge old versions"
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+    }
+  }
+  rule {
+    id     = "purge old ukmon-shared logs"
+    status = "Enabled"
+
+    expiration {
+      days                         = 10
+      expired_object_delete_marker = false
+    }
+
+    filter {
+      prefix = "ukmonshared/"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 5
+    }
+  }
+  rule {
+    id     = "purge old ukmeteornetworkarchive logs"
+    status = "Enabled"
+
+    expiration {
+      days                         = 10
+      expired_object_delete_marker = false
+    }
+
+    filter {
+      prefix = "archsite/"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 5
+    }
   }
 }

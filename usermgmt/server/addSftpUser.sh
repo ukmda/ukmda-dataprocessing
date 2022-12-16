@@ -12,8 +12,17 @@ cd /home/ec2-user/keymgmt
 # create the keyfiles in the required format
 python /home/ec2-user/keymgmt/jsonToKeyFile.py rawkeys/live/$shortid.key live
 
-# add a unix user and set their homedir to /var/sftp/userid
+# all-lowercase versions of the names
 userid="${userid,,}"
+shortid_l="${shortid,,}"
+
+if [ ! -f live/$shortid_l.key ] ; then 
+    echo "problem creating keyfile"
+    sleep 30
+    exit 1
+fi
+
+# add a unix user and set their homedir to /var/sftp/userid
 sudo useradd --system --shell /usr/sbin/nologin --groups sftp --home /var/sftp/$userid $userid
 sudo mkdir /var/sftp/$userid
 sudo chown root:sftp /var/sftp/$userid
@@ -33,10 +42,9 @@ sudo chown logupload:logupload /var/sftp/logupload/.ssh/authorized_keys
 rm /tmp/logul.pub
 
 # copy the files
-shortid_l="${shortid,,}"
 cat /home/ec2-user/keymgmt/ukmon.ini | sed "s/STATIONLOCATION/$userid/g" > /home/ec2-user/keymgmt/inifs/$userid.ini
 sudo cp /home/ec2-user/keymgmt/inifs/$userid.ini /var/sftp/$userid/ukmon.ini
-sudo cp /home/ec2-user/keymgmt/arch/$shortid_l.key /var/sftp/$userid/archive.key
+#sudo cp /home/ec2-user/keymgmt/arch/$shortid_l.key /var/sftp/$userid/archive.key
 sudo cp /home/ec2-user/keymgmt/live/$shortid_l.key /var/sftp/$userid/live.key
 
 # if we are moving a station, update the old ini file 

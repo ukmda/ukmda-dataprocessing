@@ -16,7 +16,12 @@ import pickle
 
 
 def getClusterDetails(templdir):
-    clusdetails = os.path.join(templdir, 'clusdetails.txt')
+    sts = boto3.client('sts')
+    accid = sts.get_caller_identity()['Account']
+    if accid == '822069317839':
+        clusdetails = os.path.join(templdir, 'clusdetails-ee.txt')
+    else:
+        clusdetails = os.path.join(templdir, 'clusdetails-mm.txt')
     with open(clusdetails) as inf:
         lis = inf.readlines()
     clusname = lis[0].strip()
@@ -63,8 +68,8 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
 
     clusname = clusdets[0]
 
-    client = boto3.client('ecs', region_name='eu-west-2')
-    status = client.describe_clusters(clusters=[clusname])
+    ecsclient = boto3.client('ecs', region_name='eu-west-2')
+    status = ecsclient.describe_clusters(clusters=[clusname])
     if len(status['clusters']) == 0:
         print('cluster not running!')
         return False
@@ -93,24 +98,20 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
 
     isDbg = getDebugStatus()
 
-    with open(os.path.expanduser('~/.ssh/ukmonarchive-keys'), 'r') as ukmkeyfile:
-        lis = ukmkeyfile.readlines()
-    access_key = lis[0].split('=')[1].strip()
-    secret_key = lis[1].split('=')[1].strip()
-    s3 = boto3.resource('s3', aws_access_key_id=access_key, aws_secret_access_key=secret_key)
+    s3 = boto3.client('s3')
     for i in range(0, numbucks):
         bucknames[i] = buckroot + f'_{i:02d}'
         filelist = flist[i::numbucks]
         for fli in filelist:
             src = os.path.join(srcdir, fli)
             dst = os.path.join(bucknames[i], fli)
-            s3.meta.client.upload_file(src, outbucket, dst)
+            s3.upload_file(src, outbucket, dst)
 
         taskjson = createTaskTemplate(rundate, bucknames[i], clusdets)
 
-        response = client.run_task(**taskjson)
+        response = ecsclient.run_task(**taskjson)
         while len(response['tasks']) == 0:
-            response = client.run_task(**taskjson)
+            response = ecsclient.run_task(**taskjson)
 
         taskarn = response['tasks'][0]['taskArn']
         taskarns[i] = taskarn
@@ -131,9 +132,9 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
     dst = buckroot + '.pickle'
 
     pickle.dump(dmpdata, open(src,'wb'))
-    s3.meta.client.upload_file(src, outbucket, dst)
+    s3.upload_file(src, outbucket, dst)
 
-    status = client.describe_clusters(clusters=[clusname])
+    status = ecsclient.describe_clusters(clusters=[clusname])
     rtc = status['clusters'][0]['runningTasksCount']
     ptc = status['clusters'][0]['pendingTasksCount']
     print(f'{rtc} running, {ptc} pending')
@@ -206,7 +207,7 @@ def monitorProgress(rundate):
 
                     # collect the logs from CloudWatch 
                     realfname=None
-                    logdir = os.path.join(datadir, '..', 'logs', 'distrib', 'logs')
+                    logdir = os.path.join(datadir, '..', 'logs', 'distrib')
                     os.makedirs(logdir, exist_ok=True)
                     tmpfname = os.path.join(logdir, f'{thisarn[51:]}.log')
                     with open(tmpfname, 'w') as outf:
@@ -262,7 +263,7 @@ if __name__ == '__main__':
     else:
         rundt = datetime.datetime.strptime(sys.argv[1], '%Y%m%d')
         srcdir = sys.argv[2]
-        targdir =sys.argv[3]
+        targdir = sys.argv[3]
 
     templdir,_ = os.path.split(__file__)
     clusdets = getClusterDetails(templdir)

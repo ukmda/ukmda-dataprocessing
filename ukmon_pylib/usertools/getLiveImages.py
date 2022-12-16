@@ -7,20 +7,20 @@ import boto3
 import tempfile
 
 
-def getLiveJpgs(dtstr):
-    tmppth = tempfile.mkdtemp()
+def getLiveJpgs(dtstr, outdir):
+    os.makedirs(outdir, exist_ok=True)
     s3 = boto3.client('s3')
     buck = os.getenv('UKMONLIVEBUCKET', default='s3://ukmon-live')[5:]
     x = s3.list_objects_v2(Bucket=buck,Prefix=f'M{dtstr}')
     if  x['KeyCount'] > 0:
-        print(f"found {x['KeyCount']} records, saving to {tmppth}")
+        print(f"found {x['KeyCount']} records, saving to {outdir}")
         for k in x['Contents']:
             key = k['Key']
             if '.jpg' in key:
                 print(key)
-                s3.download_file(buck, key, os.path.join(tmppth, key))
+                s3.download_file(buck, key, os.path.join(outdir, key))
     else:
         print('no records found')
 
 if __name__ == '__main__':
-    getLiveJpgs(sys.argv[1])
+    getLiveJpgs(sys.argv[1], sys.argv[2])

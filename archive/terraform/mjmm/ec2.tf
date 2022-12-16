@@ -30,10 +30,10 @@ resource "aws_instance" "CalcEngine4ARM" {
       "billingtag" = "ukmon"
       "project"    = "UkmonHelperBigx2"
     }
-    volume_size = 40
+    volume_size = 50
   }
 }
-
+/*
 resource "aws_instance" "x16coreAWS" {
   ami                  = "ami-03ac5a9b225e99b02"
   instance_type        = "c5.4xlarge"
@@ -46,7 +46,7 @@ resource "aws_instance" "x16coreAWS" {
     "project"    = "UKMonHelperBig"
   }
 }
-
+*/
 
 resource "aws_instance" "backuprunner" {
   ami                  = "ami-0d729d2846a86a9e7"

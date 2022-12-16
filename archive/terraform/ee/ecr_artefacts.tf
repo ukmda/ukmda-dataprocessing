@@ -196,7 +196,7 @@ resource "aws_ecr_lifecycle_policy" "ftpyoukmonpolicy" {
 }
 EOF
 }
-
+/*
 output "trajsolverid" {
   value = aws_ecr_repository.trajsolverrepo.repository_url
 }
@@ -209,3 +209,4 @@ output "extrafilesid" {
 output "sparkrepoid" {
   value = aws_ecr_repository.sparkrepo.repository_url
 }
+*/

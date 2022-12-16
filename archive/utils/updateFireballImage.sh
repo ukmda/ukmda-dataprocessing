@@ -21,8 +21,9 @@ source $here/../config.ini >/dev/null 2>&1
 source ~/venvs/$WMPL_ENV/bin/activate
 export PYTHONPATH=$PYLIB
 
-orbname=$1
+orbin=$1
 imgname=$2
+orbname=${orbin:0:15}
 yr=${orbname:0:4}
 
 if [[ "$orbname" == "" || "$imgname" == "" ]] ; then 
@@ -38,5 +39,5 @@ cat  ${tmp_dir}/${orbname}.md  | sed "s/${oldimg}/${imgname}/g" > ${tmp_dir}/new
 mv ${tmp_dir}/new_${orbname}.md ${tmp_dir}/${orbname}.md
 scp ${tmp_dir}/${orbname}.md ukmonhelper:prod/data/reports/${yr}/fireballs/
 aws s3 cp ${tmp_dir}/${orbname}.md $WEBSITEBUCKET/reports/${yr}/fireballs/
-rm -f ${tmp_dir}
+rm -Rf ${tmp_dir}
 ${SRC}/website/createFireballPage.sh ${yr} -3.99

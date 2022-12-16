@@ -19,6 +19,9 @@ logger -s -t runDistrib "RUNTIME $SECONDS starting runDistrib"
 # load the configuration
 source $here/../config.ini >/dev/null 2>&1
 
+# set the profile to the EE account so we can run the server and monitor progress
+export AWS_PROFILE=ukmonshared
+
 if [ $# -gt 0 ] ; then
     if [ "$1" != "" ] ; then
         echo "selecting range"
@@ -70,6 +73,13 @@ while [ $? -ne 0 ] ; do
     echo "server not responding yet, retrying"
     scp -i $SERVERSSHKEY $execMatchingsh ec2-user@$privip:/tmp
 done 
+# push the python and templates required
+rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/clusdetails-* ec2-user@$privip:src/ukmon_pylib/traj
+rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/taskrunner.json ec2-user@$privip:src/ukmon_pylib/traj
+rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/consolidateDistTraj.py ec2-user@$privip:src/ukmon_pylib/traj
+rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/distributeCandidates.py ec2-user@$privip:src/ukmon_pylib/traj
+
+# now run the script
 ssh -i $SERVERSSHKEY ec2-user@$privip $execMatchingsh
 
 logger -s -t runDistrib "RUNTIME $SECONDS job run, stop the server again"
@@ -145,4 +155,6 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
 else
     echo "trajectory database is size zero... not proceeding with copy"
 fi 
+# and then clear the profile again
+unset AWS_PROFILE
 logger -s -t runDistrib "RUNTIME $SECONDS finished runDistrib"

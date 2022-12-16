@@ -2,7 +2,7 @@
 # source the EE AWS keys
 . ~/.ssh/ukmon-markmcintyre.ps1
 
-$loggroups=@('consolidateKmls', 'consolidateJpgs', 'ConsolidateCSVs', 'consolidateLatest', 
+$loggroups=@('consolidateKmls', 'consolidateJpgs', 'consolidateLatest', 
     'consolidateFTPdetect','matchDataApiHandler','CSVTrigger','searchUKmon')
 
 foreach ($log in $loggroups) {

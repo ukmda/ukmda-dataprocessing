@@ -1,0 +1,44 @@
+{
+    "cluster": "trajsolver",
+    "count": 1,
+    "enableECSManagedTags": true,
+    "enableExecuteCommand": true,
+    "group": "trajsolvergrp",
+    "launchType": "FARGATE",
+    "networkConfiguration": {
+        "awsvpcConfiguration": {
+            "subnets":["subnet-0c224d5642fb71023"],
+            "securityGroups": ["sg-0d37a3b8ee1a3a1c6"],
+            "assignPublicIp": "ENABLED"
+        }
+    },
+    "overrides": {
+        "containerOverrides": [
+            {
+                "name": "trajcont",
+                "command": ["test/20220924_01","20220925"],
+                "environment": [
+                    {
+                        "name": "SRCPATH",
+                        "value": "s3://ukmon-shared/matches/distrib"
+                    },
+                    {
+                        "name": "OUTPATH",
+                        "value": "s3://ukmon-shared/matches/RMSCorrelate"
+                    },
+                    {
+                        "name": "WEBPATH",
+                        "value": "s3://ukmeteornetworkarchive/reports"
+                    }
+                ]
+            }
+        ],
+        "executionRoleArn": "arn:aws:iam::822069317839:role/ecsTaskExecutionRole",
+        "taskRoleArn": "arn:aws:iam::822069317839:role/ecsTaskExecutionRole"
+    },
+    "platformVersion": "LATEST",
+    "propagateTags": "TASK_DEFINITION",
+    "referenceId": "",
+    "startedBy": "cli",
+    "taskDefinition": "trajsolver"
+}
