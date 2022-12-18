@@ -498,9 +498,9 @@ class demo(Frame):
         #print(event)
 
     def mouse_motion(self, event):
-        #region = self.sheet.identify_region(event)
-        #row = self.sheet.identify_row(event, allow_end = False)
-        #column = self.sheet.identify_column(event, allow_end = False)
+        # region = self.sheet.identify_region(event)
+        # row = self.sheet.identify_row(event, allow_end = False)
+        # column = self.sheet.identify_column(event, allow_end = False)
         # print(region, row, column)
         pass
 
@@ -622,14 +622,17 @@ class demo(Frame):
             user, email, sshkey, id)
         if answer.data[0].strip() != '': 
             d = answer.data
+            rmsid = str(d[0]).upper()
+            location = str(d[4]).capitalize()
+            direction = str(d[5])
             cameraname = d[4].lower() + '_' + d[5].lower()
             with open(os.path.join('sshkeys', cameraname + '.pub'), 'w') as outf:
                 outf.write(d[8])
             rowdata=[d[4],d[0],d[0],d[5],'IMX291','Computar_4mm','1280','720',d[2],d[1],d[3],'2',d[0],'1']
             self.sheet.insert_row(values=rowdata, idx=0)
-            self.addNewAwsUser(d[4])
-            self.addNewUnixUser(d[4], d[5], oldloc)
-            self.addNewOwner(d[0],d[4],d[6],d[7])
+            self.addNewAwsUser(location)
+            self.addNewUnixUser(location, direction, oldloc)
+            self.addNewOwner(rmsid, location, d[6], d[7])
             self.datachanged = True
         return 
     
