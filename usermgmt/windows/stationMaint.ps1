@@ -9,6 +9,8 @@ if ($isadm.count -eq 0) {
     conda activate ukmon-admin
     pip install -r requirements.txt
 }
-
-conda activate ukmon-admin
+else
+{
+    conda activate ukmon-admin
+}
 python stationMaint2.py
