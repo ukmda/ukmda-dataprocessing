@@ -2,6 +2,45 @@
 # create a cluster for Spark
 #
 
+
+# create an ECR repository for spark images
+resource "aws_ecr_repository" "sparkrepo" {
+  name                 = "ukmon/spark"
+  image_tag_mutability = "MUTABLE"
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+  encryption_configuration {
+    encryption_type = "KMS"
+    kms_key         = aws_kms_key.container_key.arn
+  }
+  tags = {
+    "billingtag" = "ukmon"
+  }
+}
+
+resource "aws_ecr_lifecycle_policy" "sparkpolicy" {
+  repository = aws_ecr_repository.sparkrepo.name
+  policy     = <<EOF
+{
+    "rules": [
+        {
+            "rulePriority": 1,
+                        "description": "Keep only latest two versions images",
+            "selection": {
+                "tagStatus": "any",
+                "countType": "imageCountMoreThan",
+                "countNumber": 2
+            },
+            "action": {
+                "type": "expire"
+            }
+        }
+    ]
+}
+EOF
+}
+
 # some variables for the cluster and task defns
 variable "sparkloggroup" { default = "/ecs/sparkcont" }
 variable "sparkcontainername" { default = "sparkcont" }
@@ -52,25 +91,26 @@ resource "aws_ecs_task_definition" "spark_task" {
   }
 }
 
-# define a service to run the task
-#resource "aws_ecs_service" "trajsolver_service" {
-#  name                    = "trajsolver"
-#  cluster                 = aws_ecs_cluster.trajsolver.id
-#  task_definition         = aws_ecs_task_definition.trajsolver_task.arn
-#  desired_count           = 0
-#  enable_ecs_managed_tags = true
-#  wait_for_steady_state   = false
-#  launch_type             = "FARGATE"
-#  network_configuration {
-#    assign_public_ip = true
-#    security_groups = [
-#      aws_security_group.ecssecgrp.id
-#    ]
-#    subnets = [
-#      aws_subnet.ecs_subnet.id
-#    ]
-#  }
-#}
+/*
+resource "aws_ecs_service" "spark_service" {
+  name                    = "sparkservice"
+  cluster                 = aws_ecs_cluster.sparkcluster.id
+  task_definition         = aws_ecs_task_definition.spark_task.arn
+  desired_count           = 0
+  enable_ecs_managed_tags = true
+  wait_for_steady_state   = false
+  launch_type             = "FARGATE"
+  network_configuration {
+    assign_public_ip = true
+    security_groups = [
+      aws_security_group.sparksecgrp.id
+    ]
+    subnets = [
+      aws_subnet.ecs_subnet.id
+    ]
+  }
+}
+*/
 
 # iam role for the task to use
 resource "aws_iam_role" "sparktaskrole" {
