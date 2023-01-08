@@ -41,18 +41,18 @@ def createECSV(ftpFile, required_event = None):
 
     if required_event is not None:
         fmtstr=isodate_format_entry[:min(len(required_event)-2, 24)]
-        reqevt = datetime.datetime.strptime(required_event, fmtstr).timestamp()
-#        try:
-#            reqevt = datetime.datetime.strptime(required_event, isodate_format_entry).timestamp()
-#        except:
-#            reqevt = datetime.datetime.strptime(required_event, isodate_format_file).timestamp()
+        reqdate = datetime.datetime.strptime(required_event, fmtstr)
+        statid = ftpFile.split('_')[1]
+        reqstr = f'FF_{statid}_{reqdate.strftime("%Y%m%d_%H%M%S")}'
+        reqevt = reqdate.timestamp()
     else:
         reqevt = 0
+        reqstr = ''
 
     # check input precision
     spls = required_event.split('.')
     if len(spls) == 1:
-        prec = 10
+        prec = 11
     else:
         decis = spls[1]
         prec = pow(10, -len(decis))
@@ -72,8 +72,11 @@ def createECSV(ftpFile, required_event = None):
         evtdate = datetime.datetime.strptime(ffname[10:29], '%Y%m%d_%H%M%S_%f')
         obscalib = evtdate + datetime.timedelta(microseconds=(met.time_data[0]*1e6))
         
-        if reqevt > 0 and abs(obscalib.timestamp() - reqevt) >= prec:
+        if prec!=11 and reqevt > 0 and abs(obscalib.timestamp() - reqevt) >= prec:
             continue
+        if prec == 11 and reqstr not in ffname:
+            continue
+
         #print('found match')
         azim, elev = platepar['az_centre'], platepar['alt_centre']
         fov_horiz, fov_vert = platepar['fov_h'], platepar['fov_v']
