@@ -24,7 +24,7 @@ def writeNewFTPFile(srcname, metlist):
     if os.path.isfile(srcname):
         srcname = srcname[:-4] + '_new.txt'
     with open(srcname, 'w') as ftpf:
-        writeFTPHeader(ftpf, len(metlist), None, outdir, False)
+        writeFTPHeader(ftpf, len(metlist), outdir, False)
         metno = 1
         ffname = ''
         for met in metlist:
