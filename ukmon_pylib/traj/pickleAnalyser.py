@@ -503,10 +503,14 @@ def createAdditionalOutput(traj, outdir):
                 if orb.L_g is not None:
                     f.write('Lg {:.2f}&deg; Bg {:.2f}&deg; Vg {:.2f}km/s\n'.format(lg, bg, vg / 1000))
 
-                f.write('mass {:.5f}g, abs. mag {:.1f}\nbest visual mag {:.1f}\n'.format(mass * 1000, amag, vmag))
+                if mass*1000 < 10:
+                    f.write('mass {:.2}g, abs. mag {:.1f}\nbest visual mag {:.1f}\n'.format(mass * 1000, amag, vmag))
+                else:
+                    f.write('mass {:.0f}g, abs. mag {:.1f}\nbest visual mag {:.1f}\n'.format(mass * 1000, amag, vmag))
+                f.write('\nMass is a lower estimate based on the measured emitted energy and will significantly underestimate the mass of bright events.\n')
             else:
                 f.write('unable to calculate realistic shower details\n')
-            f.write('Path Details\n')
+            f.write('\nPath Details\n')
             f.write('------------\n')
             f.write('start {:.2f}&deg; {:.2f}&deg; {:.2f}km\n'.format(np.degrees(traj.rbeg_lon), np.degrees(traj.rbeg_lat), traj.rbeg_ele / 1000))
             f.write('end   {:.2f}&deg; {:.2f}&deg; {:.2f}km\n\n'.format(np.degrees(traj.rend_lon), np.degrees(traj.rend_lat), traj.rend_ele / 1000))
