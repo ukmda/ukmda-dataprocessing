@@ -1,3 +1,11 @@
+'''
+A bunch of python functions to scan historical data and find events to match against each other
+
+To reduce processing, i exclude all events that already got used in a solution. 
+
+
+'''
+
 import numpy as np
 import pandas as pd
 import datetime
@@ -20,15 +28,27 @@ from wmpl.Utils.Math import vectNorm, angleBetweenVectors, vectorFromPointDirect
 #from wmpl.Utils.TrajConversions import jd2Date, cartesian2Geo
 #from wmpl.Utils.Math import vectMag, findClosestPoints, generateDatetimeBins, meanAngle, angleBetweenSphericalCoords
 
+from wmpl.Trajectory.CorrelateRMS import MeteorObsRMS, PlateparDummy, MeteorPointRMS
+from wmpl.Utils.Pickling import loadPickle
+
 from fileformats.ftpDetectInfo import loadFTPDetectInfo, writeNewFTPFile
 
 
+# Dummy platepar structure needed by loadPlatePar
 class localPlateparDummy:
     def __init__(self, **entries):
         """ This class takes a platepar dictionary and converts it into an object. """
         self.__dict__.update(entries)
 
+# loads a platepars_all file from disk
+def loadPlatepar(ppdir, statid):
+    # Load a platepar into the dummy structure
+    ppfil = os.path.join(ppdir, f'{statid}.json')
+    ppj = json.load(open(ppfil, 'r'))
+    return localPlateparDummy(**ppj)
 
+
+# dummy trajectory constraints needed by the EventChecker class
 class localTrajectoryConstraints(object):
     def __init__(self):
         self.min_meas_pts = 4
@@ -54,6 +74,9 @@ class localTrajectoryConstraints(object):
         self.min_arcsec_err = 30.0
         self.bad_station_obs_ang_limit = 2.0
 
+
+# class to check for events that could match, based on
+# overlapping FOVs and not being too far apart or close together
 
 class EventChecker(object):
     def __init__(self, traj_constraints):
@@ -133,14 +156,7 @@ class EventChecker(object):
         else:
             return True
 
-
-def loadPlatepar(ppdir, statid):
-    # Load a platepar into the dummy structure
-    ppfil = os.path.join(ppdir, f'{statid}.json')
-    ppj = json.load(open(ppfil, 'r'))
-    return localPlateparDummy(**ppj)
-
-
+# functions to check stations - this one checks two stations 
 def checkTwoStations(datadir, stat1, stat2):
     # 
     # Check if two stations overlap
@@ -156,7 +172,7 @@ def checkTwoStations(datadir, stat1, stat2):
         return False
     return True
 
-
+# check all Clanfield station overlaps with a named station
 def checkClanfieldOverlaps(datadir, stat2):
     # 
     # Check all clanfield station overlas with stat2
@@ -177,7 +193,7 @@ def checkClanfieldOverlaps(datadir, stat2):
             return True
     return False
 
-
+# get a list of all stations that overlap with the named station
 def getOverlappingStations(datadir, stationid):
     #
     # Check all overlaps for all stations
@@ -200,6 +216,7 @@ def getOverlappingStations(datadir, stationid):
     return overlaps
 
 
+# not sure i need this
 def loadUFOdata(datadir, startdt, enddt, loc_cam):
     # 
     # load the simple CSV data for a specific camera between two dates
@@ -214,7 +231,7 @@ def loadUFOdata(datadir, startdt, enddt, loc_cam):
     cfd = cfd[cfd.Loc_Cam == loc_cam]
     return cfd
 
-
+# not sure i need this either
 def loadSingleData(datadir, camlist, startdt, enddt):
     #
     # Load consolidated RMS single-station data for a list of cameras between two dates
@@ -230,6 +247,9 @@ def loadSingleData(datadir, camlist, startdt, enddt):
     data = data[data.Dtstamp < enddt.timestamp()]
     return data
 
+##############################################
+# from here down is where we actually do stuff
+##############################################
 
 def getAllPickles(datadir, dtstr):
     #
@@ -297,7 +317,7 @@ def findUnused(datadir, startdt, enddt):
     if edt.year > sdt.year:
         emth += 12
     used = pd.DataFrame()
-    for m in range (smth, emth):
+    for m in range (smth, emth+1):
         yy = sdt.year
         mm = m
         if mm > 12: 
@@ -317,7 +337,7 @@ def findUnused(datadir, startdt, enddt):
         if checkClanfieldOverlaps(datadir, id) is True:
             overlapping.append(id)
     fltdata = fltdata[fltdata.ID.isin(overlapping)]
-    fltdata.to_parquet(f'all_unused.parquet-{startdt}-{enddt}.snap')
+    fltdata.to_parquet(os.path.join(datadir, 'historic', f'all_unused.parquet-{startdt}-{enddt}.snap'))
     return fltdata
 
 
@@ -359,71 +379,83 @@ def updateFTPForUnused(datadir, fltdata):
     ftpdir = os.path.join(datadir, 'historic')
     ftplist = [os.path.join(dp, f) for dp, dn, filenames in os.walk(ftpdir) for f in filenames if os.path.splitext(f)[1] == '.txt' and f[:3]=='FTP' and 'uncalibrated' not in f]
     for ftpfile in ftplist:
+        if 'UK99' in ftpfile:
+            continue
         outdir, fname = os.path.split(ftpfile)
         newname = os.path.join(outdir, f'old_{fname}')
+        if os.path.getsize(ftpfile) < 5:
+            print(f'replacing {ftpfile} with old file')
+            if os.path.isfile(newname):
+                os.remove(ftpfile)
+                os.rename(newname, ftpfile)
         if os.path.isfile(newname):
+            print(f'skipping {ftpfile}')
             continue 
         metlist = loadFTPDetectInfo(ftpfile, join_broken_meteors=False)
         if len(metlist) == 0:
+            print(f'skipping {ftpfile}')
             continue
         adjmetlist = [met for met in metlist if met.ff_name in unusedimgs]
+        print(f'updating {ftpfile}')
         writeNewFTPFile(ftpfile, adjmetlist)
     return 
 
 
 def prepDataForRange(startdt, enddt):
+    #
+    # Prepare historical data for a given date range by collecting the pickles,
+    # working out what has been used,  then collecting the FTPs and platepars,
+    # and finally removing the already-used meteors from the FTPs
+    #
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     sdt = datetime.datetime.strptime(startdt, '%Y%m')
     edt = datetime.datetime.strptime(enddt, '%Y%m')
     smth = sdt.month
     emth = edt.month
+    if edt.year > sdt.year:
+        emth += 12
+
     for m in range (smth, emth+1):
-        tdt = datetime.datetime(sdt.year, m, 1)
+        yy = sdt.year
+        mm = m
+        if mm > 12: 
+            mm -= 12
+            yy += 1
+        tdt = datetime.datetime(yy, mm, 1)
         dtstr = tdt.strftime('%Y%m')
-        #getAllPickles(datadir, dtstr)
+        getAllPickles(datadir, dtstr)
         getStatsAndImgs(datadir, dtstr)
     fltdata = findUnused(datadir, startdt, enddt)
     getRequiredFTPs(datadir, fltdata)
     updateFTPForUnused(datadir, fltdata)
 
 
+def moveInterestingCands():
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    pickledir = os.path.join(datadir, 'historic', 'candidates')
+    goodcandr =  os.path.join(datadir, 'historic', 'goodcands')
+    os.makedirs(goodcandr, exist_ok=True)
+    pickles = glob.glob(os.path.join(pickledir, '*.pickle'))
+    for pf in pickles:
+        cand = loadPickle(*os.path.split(pf))
+        for c in cand:
+            if 'UK99' in c[0].station_id:
+                if not os.path.isfile(os.path.join(goodcandr, os.path.split(pf)[1])):
+                    shutil.move(pf, goodcandr)
+                continue 
+    return     
+
 
 if __name__ == '__main__':
-    arg_parser = argparse.ArgumentParser(description='check a station for overlaps')
+    arg_parser = argparse.ArgumentParser(description='Reprocess a specific range to incorporate clanfield data')
 
-    arg_parser.add_argument('stations', type=str, help='Comma-separated list of stations: single station means compare to all')
+    arg_parser.add_argument('startdt', type=str, help='startdate in yyyymm format')
+    arg_parser.add_argument('enddt', type=str, help='enddate in yyyymm format')
 
     cml_args = arg_parser.parse_args()
 
-    stats = cml_args.stations.split(',')
+    startdt = cml_args.startdt
+    enddt = cml_args.enddt
 
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-    ppdir = os.path.join(datadir, 'consolidated','platepars')
-    if len(stats) > 1:
-        trajcons = localTrajectoryConstraints() # default set of constraints
-        checker = EventChecker(traj_constraints=trajcons)
-        rp = loadPlatepar(ppdir, stats[0])
-        tp = loadPlatepar(ppdir, stats[1])
-        fovcheck = checker.checkFOVOverlap(rp, tp)
-        distcheck = checker.stationRangeCheck(rp, tp)    
-        if fovcheck is True and distcheck is True:
-            print(f'{stats[0]} overlaps with {stats[1]}')
-    else:
-        ci = cd.SiteInfo()
-        loc_cam =  ci.getCameraLocAndDir(stats[0])
-        overlaps = getOverlappingStations(datadir, stats[0])
-        print(f'{stats[0]} overlaps with {len(overlaps)} stations')
-
-        startdt = datetime.datetime(2022,7,1)
-        enddt = datetime.datetime(2022,11,1)
-        cfd = loadUFOdata(datadir, startdt, enddt, loc_cam)
-        sngls = loadSingleData(datadir, overlaps, startdt, enddt)
-
-        keepers = []
-        for idx,rw in cfd.iterrows():
-            tmpd = sngls[abs(sngls.Dtstamp - rw.Dtstamp) < 5]
-            tmpd = tmpd.drop_duplicates()
-            if len(tmpd) > 0:
-                cfdsubset = {'Loc_Cam': rw.Loc_Cam, 'Dtstamp': rw.Dtstamp}
-                keepers.append({'cfd': cfdsubset, 'sngl': tmpd})
-
+    print(startdt, enddt)
+    #prepDataForRange(startdt, enddt)
