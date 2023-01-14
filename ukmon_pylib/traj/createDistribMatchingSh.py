@@ -134,7 +134,7 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         outf.write(f'cd {calcdir}\n')
         outf.write('df -h . \n')
 
-        # fetch anythig thats new from S3
+        # fetch anything thats new from S3
         refreshTrajectories(outf, matchstart, matchend, outpath)
 
         outf.write('logger -s -t execdistrib syncing the raw data from shared S3\n')

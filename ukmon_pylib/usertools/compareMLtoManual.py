@@ -2,7 +2,8 @@
 
 import argparse
 from RMS.Formats import FTPdetectinfo
-from RMS.MLFilter import filterFTPdetectinfo
+from RMS.MLFilter import filterFTPdetectinfoML
+import RMS.ConfigReader as cr
 import os
 import shutil
 import glob
@@ -48,7 +49,9 @@ def processFolder(dir_path, threshold, kpng):
 
     ftp_name = 'FTPdetectinfo_' + os.path.split(dir_path)[1] + '.txt'
 
-    filterFTPdetectinfo(os.path.join(dir_path, ftp_name), threshold=threshold, keep_pngs=kpng)
+    config = cr.loadConfigFromDirectory('.config', dir_path)
+
+    filterFTPdetectinfoML(config, os.path.join(dir_path, ftp_name), threshold=threshold, keep_pngs=kpng)
 
     if not os.path.isfile(os.path.join(dir_path, ftp_name)):
         print(f'Unable to open FTP file from {dir_path}')

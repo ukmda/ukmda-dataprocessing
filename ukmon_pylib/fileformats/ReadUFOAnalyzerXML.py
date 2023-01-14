@@ -326,6 +326,13 @@ class UAXml:
         pp = pp + '    "fov_v": {:f},\n'.format(fovv)
         pp = pp + '    "station_code": "{:s}",\n'.format(statid)
         pp = pp + '    "auto_recalibrated": true,\n'
+        pp = pp + '    "az_centre": 0,\n'
+        pp = pp + '    "alt_centre": 0,\n'
+        pp = pp + '    "rotation_from_horiz": 0,\n'
+        pp = pp + '    "pos_angle_ref": 0,\n'
+        pp = pp + '    "Ho": 0,\n'
+        pp = pp + '    "UT_corr": 0,\n'
+        pp = pp + '    "F_scale": 0,\n'
         pp = pp + '    "version": 2\n'
         pp = pp + '}'
 

@@ -10,11 +10,11 @@ import sys
 import shutil
 import fnmatch
 import datetime
-import glob
 import boto3
 import tempfile
 from fileformats import ReadUFOAnalyzerXML as UA
 from fileformats import CameraDetails as cdet
+from fileformats.ftpDetectInfo import writeFTPHeader, writeOneMeteor
 
 CAMINFOFILE = 'CameraSites.txt'
 CAMOFFSETSFILE = 'CameraTimeOffsets.txt'
@@ -58,52 +58,6 @@ def loadAXMLs(fldr):
     return axmls, metcount, evttime
 
 
-def writeFTPHeader(ftpf, metcount, stime, fldr):
-    """
-    Create the header of the FTPDetect file
-    """
-    l1 = 'Meteor Count = {:06d}\n'.format(metcount)
-    ftpf.write(l1)
-    ftpf.write('-----------------------------------------------------\n')
-    ftpf.write('Processed with UFOAnalyser\n')
-    ftpf.write('-----------------------------------------------------\n')
-    l1 = 'FF  folder = {:s}\n'.format(fldr)
-    ftpf.write(l1)
-    l1 = 'CAL folder = {:s}\n'.format(fldr)
-    ftpf.write(l1)
-    ftpf.write('-----------------------------------------------------\n')
-    ftpf.write('FF  file processed\n')
-    ftpf.write('CAL file processed\n')
-    ftpf.write('Cam# Meteor# #Segments fps hnr mle bin Pix/fm Rho Phi\n')
-    ftpf.write('Per segment:  Frame# Col Row RA Dec Azim Elev Inten Mag\n')
-
-
-def writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, alt, b, mag):
-    """
-    Write one meteor event into the file in FTPDetectInfo style
-    """
-    ftpf.write('-------------------------------------------------------\n')
-    ms = '{:03d}'.format(int(evttime.microsecond / 1000))
-
-    fname = 'FF_' + sta + '_' + evttime.strftime('%Y%m%d_%H%M%S_') + ms + '_0000000.fits\n'
-    ftpf.write(fname)
-
-    ftpf.write('UFO UKMON DATA Recalibrated on: ')
-    ftpf.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f UTC\n'))
-    li = sta + ' 0001 {:04d} {:04.2f} '.format(fcount, fps) + '000.0 000.0  00.0 000.0 0000.0 0000.0\n'
-    ftpf.write(li)
-
-    for i in range(len(fno)):
-        #    204.4909 0422.57 0353.46 262.3574 +16.6355 267.7148 +23.0996 000120 3.41
-        li = '{:08.4f} {:07.2f} {:07.2f} '.format(fno[i] - fno[0], 0, 0)  # UFO is timestamped as at the first detection
-        li += '{:s} {:s} {:s} {:s} '.format('{:.4f}'.format(ra[i]).zfill(8),
-            '{:+.4f}'.format(dec[i]).zfill(8),
-            '{:.4f}'.format(az[i]).zfill(8),
-            '{:+.4f}'.format(alt[i]).zfill(8))
-        li += '{:06d} {:.2f}\n'.format(int(b[i]), mag[i])
-        ftpf.write(li)
-
-
 def createStationHeader(fldr):
     statinfo = os.path.join(fldr, CAMINFOFILE)
     statf = open(statinfo, 'w')
@@ -137,7 +91,7 @@ def convertFolder(fldr):
     # create and populate the ftpdetectinfo file
     ftpfile = os.path.join(fldr, FTPFILE)
     with open(ftpfile, 'w') as ftpf:
-        writeFTPHeader(ftpf, metcount, stime, fldr)
+        writeFTPHeader(ftpf, metcount, fldr)
         metno = 1
         for thisxml in axmls:
             evttime = thisxml.getDateTime()
@@ -153,7 +107,7 @@ def convertFolder(fldr):
 
             for i in range(numobjs):
                 fno, tt, ra, dec, mag, fcount, alt, az, b, lsum = thisxml.getPathVector(i)
-                metno += 1
+                metno = 1
                 writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, alt, b, mag)
                 # print(fno, tt, ra, dec, alt, az, b, mag)
 
@@ -213,10 +167,11 @@ def convertUFOFolder(fldr, outfldr, statid=None, ymd=None):
     ftpfile = os.path.join(fulloutfldr, ftpfile)
     #print(f'writing to {ppfname} and {ftpfile}')
     with open(ftpfile, 'w') as ftpf:
-        writeFTPHeader(ftpf, metcount, stime, fldr)
+        writeFTPHeader(ftpf, metcount, fldr)
+        entrycount = 1
         metno = 1
         for thisxml in axmls:
-            if metno > 1: 
+            if entrycount > 1: 
                 plateparfile.write(',\n')
             evttime = thisxml.getDateTime()
             fps, cx, cy, isintl = thisxml.getCameraDetails()
@@ -226,26 +181,31 @@ def convertUFOFolder(fldr, outfldr, statid=None, ymd=None):
 
             for i in range(numobjs):
                 fno, tt, ra, dec, mag, fcount, alt, az, b, lsum = thisxml.getPathVector(i)
-                metno += 1
+                metno = 1
                 writeOneMeteor(ftpf, metno, statid, evttime, fcount, fps, fno, ra, dec, az, alt, b, mag)
-            
+            entrycount += 1
             pp = thisxml.makePlateParEntry(statid)
             plateparfile.write(pp)
 
     plateparfile.write('\n}\n')
     plateparfile.close()
-    createConfigFile(fulloutfldr, statid, lat, lon, elev)
+    createConfigFile(fulloutfldr, statid, lat, lon, elev, fps, cx, cy)
     return
 
 
-def createConfigFile(pth, statid, lat, lon, elev):
+def createConfigFile(pth, statid, lat, lon, elev, fps, cx, cy):
     cfgfile = os.path.join(pth, '.config')
     with open(cfgfile, 'w') as outf:
-        outf.write('this_is_a_dummy_config_file_for_ftptoukmon')
+        outf.write('; Dummy config file created from UFO data\n')
+        outf.write('[System]\n')
         outf.write(f'StationID: {statid}\n')
         outf.write(f'latitude: {lat}\n')
         outf.write(f'longitude: {lon}\n')
         outf.write(f'elevation: {elev}\n')
+        outf.write('\n[Capture]\n')
+        outf.write(f'width: {cx}\n')
+        outf.write(f'height: {cy}\n')
+        outf.write(f'fps: {fps}\n')
 
 
 if __name__ == '__main__':
@@ -256,12 +216,12 @@ if __name__ == '__main__':
         print('  will convert all UFO data for all UFO cameras for the given date range')
     else:
         try:
+            print('its a range')
             s3 = boto3.resource('s3')
             start_dt = sys.argv[1]
             if len(sys.argv) > 2:
                 numdays = int(sys.argv[2])
             else:
-                end_dt = start_dt
                 numdays = 1
             start_ymd = datetime.datetime.strptime(start_dt, '%Y%m%d')
             start_yr = start_ymd.year
@@ -274,7 +234,7 @@ if __name__ == '__main__':
             ci = cdet.SiteInfo()
             ufos = ci.getUFOCameras(True)
 
-            for dd in range(numdays):
+            for dd in range(0, numdays):
                 thisdt = start_ymd + datetime.timedelta(days=dd)
                 yr = thisdt.year
                 ym = thisdt.strftime('%Y%m')
@@ -312,24 +272,26 @@ if __name__ == '__main__':
                     arcdir = dum + '_' + yd + '_180000_000000'
                     ftpfile = 'FTPdetectinfo_' + arcdir + '.txt'
 
-                    idxname = os.path.join(tmpdir, '.config')
-                    key = f'{outroot}/{dum}/{arcdir}/.config'
-                    extraargs = {'ContentType': 'text/plain'}
-                    print(f'uploading {key}')
-                    s3.meta.client.upload_file(idxname, archbucket, key, ExtraArgs=extraargs) 
+                    if os.path.isfile(os.path.join(tmpdir, 'platepars_all_recalibrated.json')):
+                        idxname = os.path.join(tmpdir, '.config')
+                        key = f'{outroot}/{dum}/{arcdir}/.config'
+                        extraargs = {'ContentType': 'text/plain'}
+                        print(f'uploading {key}')
+                        s3.meta.client.upload_file(idxname, archbucket, key, ExtraArgs=extraargs) 
 
-                    idxname = os.path.join(tmpdir, 'platepars_all_recalibrated.json')
-                    key = f'{outroot}/{dum}/{arcdir}/platepars_all_recalibrated.json'
-                    extraargs = {'ContentType': 'application/json'}
-                    print(f'uploading {key}')
-                    s3.meta.client.upload_file(idxname, archbucket, key, ExtraArgs=extraargs) 
+                        idxname = os.path.join(tmpdir, 'platepars_all_recalibrated.json')
+                        key = f'{outroot}/{dum}/{arcdir}/platepars_all_recalibrated.json'
+                        extraargs = {'ContentType': 'application/json'}
+                        print(f'uploading {key}')
+                        s3.meta.client.upload_file(idxname, archbucket, key, ExtraArgs=extraargs) 
 
-                    idxname = os.path.join(tmpdir, ftpfile)
-                    key = f'{outroot}/{dum}/{arcdir}/{ftpfile}'
-                    print(f'uploading {key}')
-                    extraargs = {'ContentType': 'text/plain'}
-                    s3.meta.client.upload_file(idxname, archbucket, key, ExtraArgs=extraargs) 
+                        idxname = os.path.join(tmpdir, ftpfile)
+                        key = f'{outroot}/{dum}/{arcdir}/{ftpfile}'
+                        print(f'uploading {key}')
+                        extraargs = {'ContentType': 'text/plain'}
+                        s3.meta.client.upload_file(idxname, archbucket, key, ExtraArgs=extraargs) 
+                    shutil.rmtree(tmpdir)
 
         except:
-            # its a folder
+            print('its a folder')
             convertUFOFolder(sys.argv[1], sys.argv[2])

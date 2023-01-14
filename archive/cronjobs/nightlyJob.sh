@@ -5,7 +5,6 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 source $HOME/venvs/$WMPL_ENV/bin/activate
-$SRC/utils/clearCaches.sh
 
 logger -s -t nightlyJob "RUNTIME $SECONDS start nightlyJob"
 
@@ -22,8 +21,6 @@ aws s3 cp $DATADIR/admin/cameraLocs.json $UKMONSHAREDBUCKET/admin/ --region eu-w
 logger -s -t nightlyJob "RUNTIME $SECONDS start findAllMatches"
 matchlog=matches-$(date +%Y%m%d-%H%M%S).log
 ${SRC}/analysis/findAllMatches.sh > ${SRC}/logs/${matchlog} 2>&1
-
-$SRC/utils/clearCaches.sh
 
 logger -s -t nightlyJob "RUNTIME $SECONDS start consolidateOutput"
 $SRC/analysis/consolidateOutput.sh ${yr}

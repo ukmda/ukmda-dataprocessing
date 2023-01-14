@@ -8,8 +8,8 @@ import datetime
 import numpy as np
 import boto3
 
-from ftpDetectInfo import loadFTPDetectInfo
-from Math import jd2Date
+from fileformats.ftpDetectInfo import loadFTPDetectInfo
+from wmpl.Utils.TrajConversions import jd2Date
 
 
 tmpdir = os.getenv('TEMP', default='/tmp')
@@ -36,8 +36,9 @@ def createECSV(ftpFile, required_event = None):
         except:
             return 'malformed platepar file - cannot continue'
     kvals = platepars_recalibrated_dict[list(platepars_recalibrated_dict.keys())[0]]
-    #print(kvals)
     meteors = loadFTPDetectInfo(ftpFile, locdata=kvals)
+
+    #print(f'{len(meteors)} in file')
 
     if required_event is not None:
         fmtstr=isodate_format_entry[:min(len(required_event)-2, 24)]
@@ -47,7 +48,6 @@ def createECSV(ftpFile, required_event = None):
         reqevt = reqdate.timestamp()
     else:
         reqevt = 0
-        reqstr = ''
 
     # check input precision
     spls = required_event.split('.')
@@ -56,9 +56,6 @@ def createECSV(ftpFile, required_event = None):
     else:
         decis = spls[1]
         prec = pow(10, -len(decis))
-
-    #print(f' prec {prec}, reqevt {reqevt}')
-    # find matching meteors. If more than one matches you will get multiple datasets concatenated
 
     for met in meteors:
         # Reference time
@@ -72,7 +69,7 @@ def createECSV(ftpFile, required_event = None):
         evtdate = datetime.datetime.strptime(ffname[10:29], '%Y%m%d_%H%M%S_%f')
         obscalib = evtdate + datetime.timedelta(microseconds=(met.time_data[0]*1e6))
         
-        if prec!=11 and reqevt > 0 and abs(obscalib.timestamp() - reqevt) >= prec:
+        if reqevt > 0 and prec != 11 and abs(obscalib.timestamp() - reqevt) >= prec:
             continue
         if prec == 11 and reqstr not in ffname:
             continue
@@ -186,6 +183,7 @@ def fetchECSV(camid, reqevent):
         dt = dt + datetime.timedelta(days=-1)
     ymd = dt.strftime('%Y%m%d')
     pref = f'matches/RMSCorrelate/{camid}/{camid}_{ymd}'
+    #print(f'looking for {pref}')
 
     localftpname = None
     ppname = None
@@ -237,8 +235,10 @@ def fetchECSV(camid, reqevent):
     
     # if we got the ftpfile, call createECSV
     if localftpname is not None:
+        print(f'using {localftpname} and {ppname}')
         ecsvstr = createECSV(localftpname, reqevent)
-        removefiles(localftpname, ppname, cfgname)
+        if len(ecsvstr) != 0:
+            removefiles(localftpname, ppname, cfgname)
         return ecsvstr
         
     removefiles(localftpname, ppname, cfgname)

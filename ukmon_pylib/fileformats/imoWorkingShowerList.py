@@ -65,34 +65,51 @@ class IMOshowerList:
 					ds['ZHR'] = '3.0' 
 		return ds
 
-	def getStart(self, iaucode, yr=None):
+	def getStart(self, iaucode, currdt=None):
 		shower = self.getShowerByCode(iaucode)
-		now = datetime.datetime.today().year
-		if yr is not None:
-			now = yr
+		if currdt is None:
+			now = datetime.datetime.today().year
+			mth = datetime.datetime.today().month
+		else:
+			now = datetime.datetime.strptime(str(currdt), '%Y%m%d')
+			mth = now.month
+			now = now.year
 		startdate = datetime.datetime.strptime(shower['start'], '%b %d')
+		if iaucode == 'QUA' and mth !=12:
+			# quadrantids straddle yearend
+			now = now - 1
 		startdate = startdate.replace(year=now)
 		return startdate
 
-	def getEnd(self, iaucode, yr=None):
+	def getEnd(self, iaucode, currdt=None):
 		shower = self.getShowerByCode(iaucode)
-		now = datetime.datetime.today().year
-		if yr is not None:
-			now = yr
-		if iaucode == 'QUA':
-			now = now + 1
+		if currdt is None:
+			now = datetime.datetime.today().year
+			mth = datetime.datetime.today().month
+		else:
+			now = datetime.datetime.strptime(str(currdt), '%Y%m%d')
+			mth = now.month
+			now = now.year
 		enddate = datetime.datetime.strptime(shower['end'], '%b %d')
+		if iaucode == 'QUA' and mth == 12:
+			# quadrantids straddle yearend
+			now = now + 1
 		enddate = enddate.replace(year=now)
 		return enddate
 
-	def getPeak(self, iaucode, yr=None):
+	def getPeak(self, iaucode, currdt=None):
 		shower = self.getShowerByCode(iaucode)
-		now = datetime.datetime.today().year
-		if yr is not None:
-			now = yr
-		if iaucode == 'QUA':
-			now = now + 1
+		if currdt is None:
+			now = datetime.datetime.today().year
+			mth = datetime.datetime.today().month
+		else:
+			now = datetime.datetime.strptime(str(currdt), '%Y%m%d')
+			mth = now.month
+			now = now.year
 		enddate = datetime.datetime.strptime(shower['peak'], '%b %d')
+		if iaucode == 'QUA' and mth == 12:
+			# quadrantids straddle yearend
+			now = now + 1
 		enddate = enddate.replace(year=now)
 		return enddate
 
@@ -124,11 +141,8 @@ class IMOshowerList:
 		activelist = []
 		for shower in self.showerlist:
 			shwname = shower['IAU_code']
-			yr = datetotest.year
-			if shwname == 'QUA':
-				yr = yr-1
-			start = self.getStart(shwname, yr)
-			end = self.getEnd(shwname, yr) + datetime.timedelta(days=3)
+			start = self.getStart(shwname, datetotest.strftime('%Y%m%d'))
+			end = self.getEnd(shwname, datetotest.strftime('%Y%m%d')) + datetime.timedelta(days=3)
 			if datetotest > start and datetotest < end:
 				if majorOnly is False or (majorOnly is True and shwname in mm.majorlist):
 					activelist.append(shwname)

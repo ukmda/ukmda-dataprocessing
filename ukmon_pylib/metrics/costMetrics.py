@@ -127,7 +127,10 @@ def drawBarChart(costsfile, typflag):
         title = f'Cost for last {typflag} days: total \${totcost:.2f}, average \${avg:.2f}' # noqa:W605
         ax.set_title(title)
     ax.legend()
-    loc = plticker.MultipleLocator(base=7.0)
+    tickbase = 7
+    if numdays > 90:
+        tickbase = 14
+    loc = plticker.MultipleLocator(base=tickbase)
     ax.xaxis.set_major_locator(loc)
     plt.grid(which='major', alpha=0.5)
     plt.grid(which='minor', alpha=0.2)
@@ -165,6 +168,7 @@ def getAllBillingData(ceclient, dtwanted, endwanted, regionid, outdir, typflag):
     else:
         costsfile = os.path.join(outdir, f'costs-{accid}-{typflag}-days.csv')
 
+    tagstartdt = datetime.datetime(2022,2,25)
     with open(costsfile,'w') as outf:
         outf.write('Date,Service,Tag,Amount\n')
         for costs in getAllCostsAndUsage(ceclient, startdt, enddt, svcs, tagval):
@@ -174,6 +178,10 @@ def getAllBillingData(ceclient, dtwanted, endwanted, regionid, outdir, typflag):
                     svc = grp['Keys'][0]
                     tag = grp['Keys'][1]
                     amt = grp['Metrics']['BlendedCost']['Amount']
+                    dt = datetime.datetime.strptime(strt, '%Y-%m-%d')
+                    if accid == '822069317839' and 'Storage Service' in svc and dt < tagstartdt:
+                        tag = 'billingtag$ukmon'
+
                     outf.write(f'{strt}, {svc}, {tag}, {amt}\n')
     return costsfile, accid
 

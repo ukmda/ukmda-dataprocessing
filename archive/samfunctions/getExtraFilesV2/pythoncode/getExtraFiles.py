@@ -22,10 +22,10 @@ def findSite(stationid, ddb):
         if len(items) > 0:
             return items[0]['site']
         else:
-            return ''
+            return None
     except Exception:
         print('record not found')
-    return
+    return None
 
 
 def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
@@ -60,6 +60,13 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
         for obs in traj.observations:
             js = json.loads(obs.comment)
             ffname = js['ff_name']
+            # case when filename is nonstandard 
+            if 'FF_' not in ffname and 'FR_' not in ffname:
+                ffname = 'FF_' + ffname
+            ffname = ffname.replace('FR_', 'FF_').replace('.bin', '.fits')
+            if '.bin' not in ffname and '.fits' not in ffname:
+                ffname = ffname + '.fits'
+                
             spls = ffname.split('_')
             id = spls[1]
             dtstr = spls[2]
@@ -80,12 +87,13 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
             else:
                 print(f'{mp4name} not found')
             site = findSite(id, ddb)
-            fldr = site + '/' + id
-            evtdtval = datetime.strptime(f'{dtstr}_{tmstr}', '%Y%m%d_%H%M%S')
-            if evtdtval.hour < 13:
-                evtdtval = evtdtval + timedelta(days = -1)
-                dtstr = evtdtval.strftime('%Y%m%d')
-            findOtherFiles(dtstr, archbucket, websitebucket, outdir, fldr, s3)
+            if site is not None:
+                fldr = site + '/' + id
+                evtdtval = datetime.strptime(f'{dtstr}_{tmstr}', '%Y%m%d_%H%M%S')
+                if evtdtval.hour < 13:
+                    evtdtval = evtdtval + timedelta(days = -1)
+                    dtstr = evtdtval.strftime('%Y%m%d')
+                findOtherFiles(dtstr, archbucket, websitebucket, outdir, fldr, s3)
 
         jpghtml.close()
         mp4html.close()

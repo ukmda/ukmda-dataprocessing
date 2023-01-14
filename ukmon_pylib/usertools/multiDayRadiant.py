@@ -42,16 +42,42 @@ def multiDayRadiant(camlist, start, end, outdir=None, shwr=None):
     targdir, _ = os.path.split(dir_paths[-1])
     prevfiles = glob.glob1(targdir, '*radiants.png')
     if len(prevfiles) > 0:
+        if os.path.isfile(os.path.join(targdir, prevfiles[0]+'.tmp')):
+            os.remove(os.path.join(targdir, prevfiles[0]+'.tmp'))
         os.rename(os.path.join(targdir, prevfiles[0]), os.path.join(targdir, prevfiles[0]+'.tmp'))
+    prevfilestxt = glob.glob1(targdir, '*radiants.txt')
+    if len(prevfilestxt) > 0:
+        if os.path.isfile(os.path.join(targdir, prevfilestxt[0]+'.tmp')):
+            os.remove(os.path.join(targdir, prevfilestxt[0]+'.tmp'))
+        os.rename(os.path.join(targdir, prevfilestxt[0]), os.path.join(targdir, prevfilestxt[0]+'.tmp'))
 
     # Perform shower association
     associations, shower_counts = showerAssociation(config, dir_paths, 
         shower_code=shwr, show_plot=False, save_plot=True, plot_activity=True,
         flux_showers=False, color_map='gist_ncar')
-    shutil.copyfile(os.path.join(targdir, prevfiles[0]), os.path.join(outdir, prevfiles[0]))
+
+    newn = prevfiles[0]
+    if shwr is not None:
+        newn = shwr + newn[6:]
+    else:
+        newn = "ALL" + newn[6:]
+    shutil.copyfile(os.path.join(targdir, prevfiles[0]), os.path.join(outdir, newn))
     os.remove(os.path.join(targdir, prevfiles[0]))
+
     if len(prevfiles) > 0:
         os.rename(os.path.join(targdir, prevfiles[0])+'.tmp', os.path.join(targdir, prevfiles[0]))
+
+    newn = prevfilestxt[0]
+    if shwr is not None:
+        newn = shwr + newn[6:]
+    else:
+        newn = "ALL" + newn[6:]
+
+    shutil.copyfile(os.path.join(targdir, prevfilestxt[0]), os.path.join(outdir, newn))
+    os.remove(os.path.join(targdir, prevfilestxt[0]))
+
+    if len(prevfilestxt) > 0:
+        os.rename(os.path.join(targdir, prevfilestxt[0])+'.tmp', os.path.join(targdir, prevfilestxt[0]))
     return
 
 

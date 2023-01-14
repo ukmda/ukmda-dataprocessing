@@ -85,8 +85,11 @@ def createMDFiles(fbs, outdir, orbdir):
                     outf.write('date: {}\n\n'.format(loctime.strftime('%Y-%m-%d %H:%M:%SZ')))
                     outf.write('showerID: {}\n'.format(fb.shower))
                     outf.write('bestmag: {:.1f}\n'.format(float(fb.mag)))
-                    outf.write('mass: {:.5f}g\n'.format(float(fb.mass)*1000))
-                    outf.write('vg: {:.2f}m/s\n'.format(float(fb.vg)))
+                    if float(fb.mass)*1000 < 10:
+                        outf.write('mass: {:.2}g\n'.format(float(fb.mass)*1000))
+                    else:
+                        outf.write('mass: {:.0f}g\n'.format(float(fb.mass)*1000))
+                    outf.write('vg: {:.2f}km/s\n'.format(float(fb.vg)))
                     outf.write('\n')
                     outf.write('archive-url: {}\n'.format(fb.url))
                     outf.write('bestimage: {}\n'.format(bestimgurl))

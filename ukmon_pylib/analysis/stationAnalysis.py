@@ -208,7 +208,10 @@ def reportOneSite(yr, mth, loc, sngl, mful, idlist, outdir):
             #mthf.write('var header = table.createTHead();\n')
             #mthf.write('header.className = \"h4\";\n')
 
-            currmth = datetime.datetime.now().month            
+            currmth = datetime.datetime.now().month
+            if yr < datetime.datetime.now().year:
+                currmth = 12
+                
             for m in range(1,currmth+1):
                 if m == 1 or m== 7:
                     mthf.write('var row = table.insertRow(-1);\n')

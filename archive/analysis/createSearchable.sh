@@ -28,6 +28,10 @@ mkdir -p $DATADIR/searchidx
 
 python -m reports.createSearchableFormat $yr $whichpass
 
+if [ ! -f $DATADIR/searchidx/${yr}-allevents.csv ] ; then
+    echo "eventtime,source,shower,Mag,loccam,url,imgs" >> $DATADIR/searchidx/${yr}-allevents.csv
+fi 
+
 if [ -f $DATADIR/searchidx/${yr}-${whichpass}-new.csv ] ; then 
     cat $DATADIR/searchidx/${yr}-${whichpass}-new.csv >> $DATADIR/searchidx/${yr}-allevents.csv
 fi 

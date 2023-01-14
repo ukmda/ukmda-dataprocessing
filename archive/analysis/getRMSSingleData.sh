@@ -21,9 +21,14 @@ indir=$UKMONSHAREDBUCKET/matches/single/new/
 outdir=$DATADIR/single/new
 mkdir -p $outdir/processed > /dev/null 2>&1 
 
-aws s3 mv $indir $outdir --recursive --exclude "*" --include *.csv --quiet
+if [ $# -eq 0 ]; then
+    yr=$(date +%Y)
+else
+    yr=$1
+fi
 
-yr=$(date +%Y)
+aws s3 mv $indir $outdir --recursive --exclude "*" --include "ukmon_??????_${yr}*.csv" --quiet
+
 mrgfile=$DATADIR/single/singles-${yr}.csv
 newsngl=$DATADIR/single/singles-${yr}-new.csv
 if [ ! -f $mrgfile ] ; then 
@@ -32,7 +37,7 @@ fi
 # file containing only new data
 echo "Ver,Y,M,D,h,mi,s,Mag,Dur,Az1,Alt1,Az2,Alt2,Ra1,Dec1,Ra2,Dec2,ID,Long,Lat,Alt,Tz,AngVel,Shwr,Filename,Dtstamp" > $newsngl
 
-ls -1 $outdir/*.csv | while read i
+ls -1 $outdir/ukmon_??????_${yr}*.csv | while read i
 do
     cat $i >> $mrgfile
     cat $i >> $newsngl

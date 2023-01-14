@@ -6,14 +6,106 @@ import sys
 import os
 import numpy as np
 import configparser as crp
+import json
+import datetime
 
 from wmpl.Utils.TrajConversions import date2JD
 from wmpl.Formats.GenericFunctions import MeteorObservation
 from wmpl.Utils.Math import angleBetweenSphericalCoords
 
 
+def writeNewFTPFile(srcname, metlist):
+    outdir, fname = os.path.split(srcname)
+    newname = os.path.join(outdir, f'old_{fname}')
+    try:
+        os.rename(srcname, newname)
+    except:
+        pass
+    if os.path.isfile(srcname):
+        srcname = srcname[:-4] + '_new.txt'
+    with open(srcname, 'w') as ftpf:
+        writeFTPHeader(ftpf, len(metlist), outdir, False)
+        metno = 1
+        ffname = ''
+        for met in metlist:
+            if ffname == met.ff_name:
+                metno = metno + 1
+            else:
+                metno = 1
+                ffname = met.ff_name
+            writeOneMeteor(ftpf, metno, met.station_id, met.time_data, len(met.frames), met.fps, met.frames, 
+                np.degrees(met.ra_data), np.degrees(met.dec_data), 
+                np.degrees(met.azim_data), np.degrees(met.elev_data),
+                None, met.mag_data, False, met.x_data, met.y_data, met.ff_name)
+
+
+def writeFTPHeader(ftpf, metcount, fldr, ufo=True):
+    """
+    Create the header of the FTPDetect file
+    """
+    l1 = 'Meteor Count = {:06d}\n'.format(metcount)
+    ftpf.write(l1)
+    ftpf.write('-----------------------------------------------------\n')
+    if ufo is True:
+        ftpf.write('Processed with UFOAnalyser\n')
+    else:
+        ftpf.write('Processed with RMS 1.0\n')
+    ftpf.write('-----------------------------------------------------\n')
+    l1 = 'FF  folder = {:s}\n'.format(fldr)
+    ftpf.write(l1)
+    l1 = 'CAL folder = {:s}\n'.format(fldr)
+    ftpf.write(l1)
+    ftpf.write('-----------------------------------------------------\n')
+    ftpf.write('FF  file processed\n')
+    ftpf.write('CAL file processed\n')
+    ftpf.write('Cam# Meteor# #Segments fps hnr mle bin Pix/fm Rho Phi\n')
+    ftpf.write('Per segment:  Frame# Col Row RA Dec Azim Elev Inten Mag\n')
+
+
+def writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, alt, b, mag, 
+    ufo=True, x=None, y=None, ffname = None):
+    """
+    Write one meteor event into the file in FTPDetectInfo style
+    """
+    ftpf.write('-------------------------------------------------------\n')
+    if ffname is None:
+        ms = '{:03d}'.format(int(evttime.microsecond / 1000))
+
+        fname = 'FF_' + sta + '_' + evttime.strftime('%Y%m%d_%H%M%S_') + ms + '_0000000.fits\n'
+    else:
+        fname = ffname + '\n'
+    ftpf.write(fname)
+
+    if ufo is True:
+        ftpf.write('UFO UKMON DATA Recalibrated on: ')
+    else:
+        ftpf.write('RMS data reprocessed on: ' )
+    ftpf.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f UTC\n'))
+    li = f'{sta} {metno:04d} {fcount:04d} {fps:04.2f} 000.0 000.0  00.0 000.0 0000.0 0000.0\n'
+    ftpf.write(li)
+
+    for i in range(len(fno)):
+        #    204.4909 0422.57 0353.46 262.3574 +16.6355 267.7148 +23.0996 000120 3.41
+        bri = 0
+        if b is not None:
+            bri = int(b[i])
+        if ufo is True:
+            # UFO is timestamped as at the first detection
+            thisfn = fno[i] - fno[0]
+            thisx = 0
+            thisy = 0
+        else:
+            thisfn = fno[i]
+            thisx = x[i]
+            thisy = y[i]
+        li = f'{thisfn:.4f} {thisx:07.2f} {thisy:07.2f} '
+        li = li + f'{ra[i]:8.4f} {dec[i]:+7.4f} {az[i]:8.4f} '
+        li = li + f'{alt[i]:+7.4f} {bri:06d} {mag[i]:.02f}\n'
+        ftpf.write(li)
+
+
 def loadFTPDetectInfo(ftpdetectinfo_file_name, time_offsets=None,
-        join_broken_meteors=True):
+        join_broken_meteors=True, locdata=None):
     """
 
     Arguments:
@@ -34,17 +126,35 @@ def loadFTPDetectInfo(ftpdetectinfo_file_name, time_offsets=None,
         meteor_list: [list] A list of MeteorObservation objects filled with data from the FTPdetectinfo file.
 
     """
-    dirname, fname = os.path.split(ftpdetectinfo_file_name)
-    cfgfile = os.path.join(dirname, '.config')    
-    cfg = crp.ConfigParser()
-    cfg.read(cfgfile)
-    lat = float(cfg['System']['latitude'].split()[0])
-    lon = float(cfg['System']['longitude'].split()[0])
-    height = float(cfg['System']['elevation'].split()[0])
-    statid= fname.split('_')[1]
     stations={}
-    stations[statid] = [np.radians(lat), np.radians(lon), height*1000]
+    if locdata is None:
+        dirname, fname = os.path.split(ftpdetectinfo_file_name)
+        cfgfile = os.path.join(dirname, '.config')
+        cfg = crp.ConfigParser()
+        cfg.read(cfgfile)
+        try: 
+            lat = float(cfg['System']['latitude'].split()[0])
+            lon = float(cfg['System']['longitude'].split()[0])
+            height = float(cfg['System']['elevation'].split()[0])
+        except:
+            # try reading from platepars file
+            ppf = os.path.join(dirname, 'platepars_all_recalibrated.json')
+            if not os.path.isfile(ppf):
+                return []
+            js = json.load(open(ppf, 'r'))
+            if len(js) < 10:
+                return []
+            lat = js[list(js.keys())[0]]['lat']
+            lon = js[list(js.keys())[0]]['lon']
+            height = js[list(js.keys())[0]]['elev']
+        statid= fname.split('_')[1]
+    else:
+        statid = locdata['station_code']
+        lat = float(locdata['lat'])
+        lon = float(locdata['lon'])
+        height = float(locdata['elev'])
 
+    stations[statid] = [np.radians(lat), np.radians(lon), height*1000]
     meteor_list = []
 
     with open(ftpdetectinfo_file_name) as f:

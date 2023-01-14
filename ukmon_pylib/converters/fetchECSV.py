@@ -8,8 +8,8 @@ import datetime
 import numpy as np
 import boto3
 
-from ftpDetectInfo import loadFTPDetectInfo
-from Math import jd2Date
+from fileformats.ftpDetectInfo import loadFTPDetectInfo
+from wmpl.Utils.TrajConversions import jd2Date
 
 
 tmpdir = os.getenv('TEMP', default='/tmp')
@@ -36,30 +36,24 @@ def createECSV(ftpFile, required_event = None):
         except:
             return 'malformed platepar file - cannot continue'
     kvals = platepars_recalibrated_dict[list(platepars_recalibrated_dict.keys())[0]]
-    #print(kvals)
     meteors = loadFTPDetectInfo(ftpFile, locdata=kvals)
 
     if required_event is not None:
         fmtstr=isodate_format_entry[:min(len(required_event)-2, 24)]
-        reqdate = datetime.datetime.strptime(required_event, fmtstr)
-        statid = ftpFile.split('_')[1]
-        reqstr = f'FF_{statid}_{reqdate.strftime("%Y%m%d_%H%M%S")}'
-        reqevt = reqdate.timestamp()
+        reqevt = datetime.datetime.strptime(required_event, fmtstr).timestamp()
     else:
         reqevt = 0
-        reqstr = ''
 
+    print(reqevt)
     # check input precision
     spls = required_event.split('.')
     if len(spls) == 1:
-        prec = 11
+        prec = 10
     else:
         decis = spls[1]
         prec = pow(10, -len(decis))
-
-    #print(f' prec {prec}, reqevt {reqevt}')
-    # find matching meteors. If more than one matches you will get multiple datasets concatenated
-
+    print(required_event)
+    print(len(meteors))
     for met in meteors:
         # Reference time
         dt_ref = jd2Date(met.jdt_ref, dt_obj=True)
@@ -72,11 +66,8 @@ def createECSV(ftpFile, required_event = None):
         evtdate = datetime.datetime.strptime(ffname[10:29], '%Y%m%d_%H%M%S_%f')
         obscalib = evtdate + datetime.timedelta(microseconds=(met.time_data[0]*1e6))
         
-        if prec!=11 and reqevt > 0 and abs(obscalib.timestamp() - reqevt) >= prec:
+        if reqevt > 0 and abs(obscalib.timestamp() - reqevt) >= prec:
             continue
-        if prec == 11 and reqstr not in ffname:
-            continue
-
         #print('found match')
         azim, elev = platepar['az_centre'], platepar['alt_centre']
         fov_horiz, fov_vert = platepar['fov_h'], platepar['fov_v']
