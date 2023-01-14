@@ -2,14 +2,32 @@
 #
 # just consolidate solutions of distributed candidates 
 #
-# Used if consolidating a bunch of json trajdbs that were solved outside the normal process
+# Used if consolidating a bunch of candidates that were solved outside the normal process
 #
 # consumes: the trajdb and solution json files
 # creates: an updated trajdb and hopefully additional orbits
 #
 
+"""
+To use this function, first create the candidate pickle files, then copy them to the candidates
+folder on the calcserver and submit themto the distributed processing engine with the following:
+
+source /home/ec2-user/venvs/wmpl/bin/activate
+export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib:/home/ec2-user/src/ukmon_pylib
+export AWS_PROFILE=ukmonshared
+cd /home/ec2-user/ukmon-shared/matches/RMSCorrelate/candidates
+time python -m traj.distributeCandidates 20230113 /home/ec2-user/ukmon-shared/matches/RMSCorrelate/candidates s3://ukmon-shared/matches/distrib
+
+when this completes, logoff the calcserver and shut it down again
+On the ukmonhelper run this script to wait for the distrib processing to finish and then 
+merge in the data
+
+
+"""
+
+
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-logger -s -t runDistrib "RUNTIME $SECONDS starting runDistrib"
+logger -s -t onlyConsolDistrib "RUNTIME $SECONDS starting onlyConsolDistri"
 
 # load the configuration
 source $here/../config.ini >/dev/null 2>&1
@@ -19,6 +37,8 @@ export AWS_PROFILE=ukmonshared
 
 begdate=$(date --date="-$MATCHSTART days" '+%Y%m%d')
 rundate=$(date --date="-$MATCHEND days" '+%Y%m%d')
+
+python -c "from traj.distributeCandidates import monitorProgress as mp; mp('${rundate}'); "
 
 privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
 while [ "$privip" == "" ] ; do
@@ -33,12 +53,12 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
 
     numtoconsol=$(ls -1 $DATADIR/distrib/${rundate}*.json | wc -l)
     if [ $numtoconsol -gt 5 ] ; then 
-        logger -s -t runDistrib "RUNTIME $SECONDS restarting calcserver to consolidate results"
+        logger -s -t onlyConsolDistrib "RUNTIME $SECONDS restarting calcserver to consolidate results"
         stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
         if [ $stat -eq 80 ]; then 
             aws ec2 start-instances --instance-ids $SERVERINSTANCEID
         fi
-        logger -s -t runDistrib "RUNTIME $SECONDS waiting for the server to be ready"
+        logger -s -t onlyConsolDistrib "RUNTIME $SECONDS waiting for the server to be ready"
         while [ "$stat" -ne 16 ]; do
             sleep 30
             if [ $stat -eq 80 ]; then 
@@ -91,4 +111,3 @@ fi
 python -m reports.reportOfLatestMatches $DATADIR/distrib $DATADIR $MATCHEND $rundate processed_trajectories.json
 dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
 $SRC/website/updateIndexPages.sh $dailyrep
-
