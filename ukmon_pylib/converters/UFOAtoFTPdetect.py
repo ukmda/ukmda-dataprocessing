@@ -189,18 +189,23 @@ def convertUFOFolder(fldr, outfldr, statid=None, ymd=None):
 
     plateparfile.write('\n}\n')
     plateparfile.close()
-    createConfigFile(fulloutfldr, statid, lat, lon, elev)
+    createConfigFile(fulloutfldr, statid, lat, lon, elev, fps, cx, cy)
     return
 
 
-def createConfigFile(pth, statid, lat, lon, elev):
+def createConfigFile(pth, statid, lat, lon, elev, fps, cx, cy):
     cfgfile = os.path.join(pth, '.config')
     with open(cfgfile, 'w') as outf:
-        outf.write('; this_is_a_dummy_config_file_for_ftptoukmon\n')
+        outf.write('; Dummy config file created from UFO data\n')
+        outf.write('[System]\n')
         outf.write(f'StationID: {statid}\n')
         outf.write(f'latitude: {lat}\n')
         outf.write(f'longitude: {lon}\n')
         outf.write(f'elevation: {elev}\n')
+        outf.write('\n[Capture]\n')
+        outf.write(f'width: {cx}\n')
+        outf.write(f'height: {cy}\n')
+        outf.write(f'fps: {fps}\n')
 
 
 if __name__ == '__main__':
