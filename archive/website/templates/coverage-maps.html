@@ -54,15 +54,15 @@
             border-left: none;
         }
     </style>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-D5710EJL12"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-D5710EJL12"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-    gtag('config', 'G-D5710EJL12');
-  </script>
+        gtag('config', 'G-D5710EJL12');
+    </script>
 </head>
 
 <body>
@@ -98,11 +98,12 @@
         <p>
             To use this page, select a camera from the dropdown, then select an altitude.
             Click on Show to reveal the coverage of that camera at that altitude.
-            To check for overlap select a second camera and click Show again. 
+            To check for overlap select a second camera and click Show again.
             Note that the field of view will remain
-            centred on the first camera and the second may not be visible - if they don't overlap. 
-            You can click on a shaded area to see which camera it relates to. 
-        </p><p>
+            centred on the first camera and the second may not be visible - if they don't overlap.
+            You can click on a shaded area to see which camera it relates to.
+        </p>
+        <p>
             If no coverage is displayed then the camera has not yet been calibrated.
         </p>
         <p>
@@ -130,6 +131,14 @@
                     });
                 </script>
             </select>
+            <label for="statselect3">Station 3</label>
+            <select class="bootstrap-select" id="statselect3" name="statselect3">
+                <script>
+                    $(function () {
+                        $("#statselect3").load("/search/activestatopts.html");
+                    });
+                </script>
+            </select>
             <label for="heightsel">Height</label>
             <select class="bootstrap-select" id="heightsel" name="heightsel">
                 <option value="25km" selected="selected">25km</option>
@@ -152,6 +161,7 @@
         <script>
             var strstat;
             var strstat2;
+            var strstat3;
             var height;
             function formSubmit() {
                 //console.log('in formSubmit');
@@ -162,9 +172,12 @@
                 var e = document.getElementById('statselect2');
                 strstat2 = e.options[e.selectedIndex].text;
 
+                var e = document.getElementById('statselect3');
+                strstat3 = e.options[e.selectedIndex].text;
+
                 var e = document.getElementById('heightsel');
                 height = e.options[e.selectedIndex].text;
-                console.log('station is', strstat, 'height ', height, 'station 2', strstat2)
+                console.log('station is', strstat, 'height ', height, 'station 2', strstat2, 'station 3', strstat3)
 
                 loc = document.getElementById('statloc');
                 locsel = document.getElementById('statlocsel');
@@ -206,9 +219,8 @@
                     var testimonial = document.getElementById('capture');
                     testimonial.innerHTML = content;
                 });
-                if (strstat2 != '')
-                {
-                    var src2 = 'https://archive.ukmeteornetwork.co.uk/img/kmls/' +strstat2 + '-' + height + '.kml';
+                if (strstat2 != '') {
+                    var src2 = 'https://archive.ukmeteornetwork.co.uk/img/kmls/' + strstat2 + '-' + height + '.kml';
 
                     var kmlLayer = new google.maps.KmlLayer(src2, {
                         suppressInfoWindows: true,
@@ -222,11 +234,25 @@
                         testimonial.innerHTML = content;
                     });
                 }
+                if (strstat3 != '') {
+                    var src3 = 'https://archive.ukmeteornetwork.co.uk/img/kmls/' + strstat3 + '-' + height + '.kml';
+
+                    var kmlLayer = new google.maps.KmlLayer(src3, {
+                        suppressInfoWindows: true,
+                        preserveViewport: true,
+                        map: map
+                    });
+                    kmlLayer.addListener('click', function (event) {
+                        var content = event.featureData.infoWindowHtml;
+                        console.log(content)
+                        var testimonial = document.getElementById('capture');
+                        testimonial.innerHTML = content;
+                    });
+                }
             }
         </script>
-        <script async
-            src="https://maps.googleapis.com/maps/api/js?key={{MAPSAPIKEY}}&callback=initMap">
-            </script>
+        <script async src="https://maps.googleapis.com/maps/api/js?key={{MAPSAPIKEY}}&callback=initMap">
+        </script>
     </div>
 </body>
 
