@@ -25,10 +25,23 @@ def getLiveJpgs(dtstr, outdir):
                 key = key.replace('.xml', 'P.jpg')
                 if len(fn) < 5:
                     outkey = key
+                    spls = key.split('_')
+                    stationid = spls[4][:6].lower()
+                    dtime = key[1:16]
+                    patt = f'FF_{stationid}_{dtime}'
                 else:
                     outkey = fn.replace('.fits', '.jpg')
+                    patt = fn[:26]
+                    stationid = fn[3:9].lower()
                 print(key)
                 s3.download_file(buck, key, os.path.join(outdir, outkey))
+                txtf = os.path.join(f'{stationid}.txt')
+                if os.path.isfile(txtf):
+                    os.remove(txtf)
+                with open(txtf,'w') as outf:
+                    outf.write(f'{patt}\n{patt.replace("FF_", "FR_")}\n')
+
+
 
     else:
         print('no records found')
