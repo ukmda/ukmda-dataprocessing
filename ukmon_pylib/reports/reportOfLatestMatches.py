@@ -22,7 +22,7 @@ def processLocalFolder(trajdir, basedir):
     bestvmag, shwr, stationids = getVMagCodeAndStations(trajdir)
     stations=[]
     for statid in stationids:
-        _,_,_,_,loc = cinf.GetSiteLocation(statid)
+        loc = cinf.GetSiteLocation(statid)
         locbits = loc.split('/')
         stations.append(locbits[0])
 
@@ -101,7 +101,7 @@ def findNewMatches(dir_path, out_path, offset, repdtstr, dbname):
                 bestvmag, shwr, stationids = 0,'',['']
             stations=[]
             for statid in stationids:
-                _,_,_,_,loc = cinf.GetSiteLocation(statid)
+                loc = cinf.GetSiteLocation(statid)
                 locbits = loc.split('/')
                 stations.append(locbits[0])
 

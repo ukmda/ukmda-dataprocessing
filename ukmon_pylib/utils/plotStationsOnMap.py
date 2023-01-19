@@ -7,6 +7,7 @@ import os
 import sys
 import fnmatch
 import matplotlib.pyplot as plt
+import json 
 
 import cartopy.crs as ccrs
 
@@ -80,30 +81,16 @@ def plotMap(srcpath, intersect):
     lats = []
     longs = []
     stas = []
-    if 'camera-details.csv' in srcpath:
-        ci = cd.SiteInfo(srcpath)
-        ac = ci.getActiveCameras()
-        for cam in ac:
-            longs.append(cam['Longi'])
-            lats.append(cam['Lati'])
-            #stas.append(cam['CamID'].decode('utf-8'))
-            stas.append(' ')
-            maxn, minn = 5, -11
-            maxa, mina = 60.5, 49.5
 
+    jsdata = json.load(open(srcfile))
+    for cam in jsdata:
+        stas.append(cam)
+        thiscam = jsdata[cam]
+        lats.append(thiscam['lat'])
+        longs.append(thiscam['lon'])
+        maxn, minn = 5, -11
+        maxa, mina = 60.5, 49.5
 
-    else:
-        with open(os.path.join(srcpath, 'CameraSites.txt'), 'r') as f:
-            lis = f.readlines()
-        for li in lis:
-            if li[:1] == '#':
-                continue
-            dta = li.split(' ')
-            stas.append(dta[0])
-            lats.append(float(dta[1]))
-            longs.append(-float(dta[2]))
-            maxn, minn = max(longs) + 1, min(longs) - 1
-            maxa, mina = max(lats) + 1, min(lats) - 1
 
     mapproj = ccrs.AlbersEqualArea()
     fig = plt.gcf()
@@ -167,11 +154,11 @@ if __name__ == '__main__':
     # override PIL's image size limit
     Image.MAX_IMAGE_PIXELS = None
     if len(sys.argv) < 2:
-        print('Usage python plotStationsOnMap.py srcfile optional_intersect')
-        print('  will plot all stations in srcfile and optionally the intersections of any events')
+        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+        srcfile = os.path.join(datadir, 'admin', 'cameraLocs.json')
     else:
         srcfile = sys.argv[1]
-        intersect = False
-        if len(sys.argv) > 2:
-            intersect = True
-        plotMap(srcfile, intersect)
+    intersect = False
+    if len(sys.argv) > 2:
+        intersect = True
+    plotMap(srcfile, intersect)
