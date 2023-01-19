@@ -7,6 +7,8 @@ shortid=$2
 oldloc=$3
 if [ -z $2 ] ; then shortid=$1 ; fi 
 
+source ~/venvs/$WMPL_ENV/bin/activate
+
 keydir=/home/ec2-user/keymgmt
 cd $keydir
 
