@@ -14,6 +14,7 @@ def getLiveJpgs(dtstr, outdir=None, create_txt=False, buck_name=None):
     if buck_name is None:
         buck_name = os.getenv('UKMONLIVEBUCKET', default='s3://ukmon-live')[5:]
     s3 = boto3.client('s3')
+    print(f'looking for {dtstr} in {buck_name}')
     x = s3.list_objects_v2(Bucket=buck_name,Prefix=f'M{dtstr}')
     if  x['KeyCount'] > 0:
         print(f"found {x['KeyCount']} records, saving to {outdir}")

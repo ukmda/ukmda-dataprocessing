@@ -106,7 +106,7 @@ class fbCollector(Frame):
         self.grid(sticky="NSEW")  # Expand frame to all directions
         self.parent = parent
 
-        self.fb_dir, self.upload_bucket, self.upload_folder = self.readConfig()
+        self.fb_dir, self.upload_bucket, self.upload_folder, self.live_bucket = self.readConfig()
 
         self.patt = patt
         if patt is None:
@@ -127,7 +127,7 @@ class fbCollector(Frame):
         localcfg = configparser.ConfigParser()
         localcfg.read(config_file)
         print(f"Fireball folder is {localcfg['Fireballs']['basedir']}")
-        return localcfg['Fireballs']['basedir'], localcfg['Fireballs']['uploadbucket'], localcfg['Fireballs']['uploadfolder']
+        return localcfg['Fireballs']['basedir'], localcfg['Fireballs']['uploadbucket'], localcfg['Fireballs']['uploadfolder'], localcfg['Fireballs']['livebucket']
 
     def quitApplication(self):
         print('quitting')
@@ -293,7 +293,7 @@ class fbCollector(Frame):
         self.patt = thispatt
         self.dir_path = os.path.join(self.fb_dir, thispatt)
         print(f'getting data matching {thispatt}')
-        getLiveImages.getLiveJpgs(thispatt, outdir=self.dir_path, buck_name=self.upload_bucket)
+        getLiveImages.getLiveJpgs(thispatt, outdir=self.dir_path, buck_name=self.live_bucket)
         self.update_listbox(self.get_bin_list())
 
 
