@@ -113,5 +113,5 @@ def backPopulate():
     for li in lis:
         spls = li.split(',')
         loc = spls[0]
-        stationid = spls[12]
+        stationid = spls[5]
         addRow(stationid, loc, ddb)

@@ -9,9 +9,7 @@ import json
 
 # defines the data content of a UFOAnalyser CSV file
 CameraDetails = numpy.dtype([('Site', 'S32'), ('CamID', 'S32'), ('LID', 'S16'),
-    ('SID', 'S8'), ('Camera', 'S16'), ('Lens', 'S16'), ('xh', 'i4'),
-    ('yh', 'i4'), ('Longi', 'f8'), ('Lati', 'f8'), ('Alti', 'f8'), 
-    ('camtyp', 'i4'), ('dummycode','S6'),('active','i4')])
+    ('SID', 'S8'), ('camtyp', 'i4'), ('dummycode','S6'),('active','i4')])
 
 
 class SiteInfo:
