@@ -47,7 +47,8 @@ def deleteS3FilesByMonth(flist, archbucket):
 def deleteFromCalcServerByMonth(outfname):
     server='172.32.16.136'
     user='ec2-user'
-    k = paramiko.RSAKey.from_private_key_file(os.path.expanduser('~/.ssh/markskey.pem'))
+    serverkey = os.getenv('SERVERSSHKEY')
+    k = paramiko.RSAKey.from_private_key_file(serverkey)
     c = paramiko.SSHClient()
     c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     c.connect(hostname = server, username = user, pkey = k)
@@ -73,4 +74,4 @@ if __name__ == '__main__':
 
     mthfiles, outfname = findInputDataByMonth(dtstr, archbucket, outdir)
     deleteS3FilesByMonth(mthfiles, archbucket)
-    #deleteFromCalcServerByMonth(outfname)
+    deleteFromCalcServerByMonth(outfname)
