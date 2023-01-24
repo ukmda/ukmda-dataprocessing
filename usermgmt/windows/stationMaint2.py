@@ -461,9 +461,14 @@ class demo(Frame):
         scpcli.put(os.path.join('jsonkeys', location + '.key'), 'keymgmt/rawkeys/live/')
         scpcli.put(os.path.join('sshkeys', cameraname + '.pub'), 'keymgmt/sshkeys/')
         command = f'/home/{user}/keymgmt/addSftpUser.sh {cameraname} {location} {oldcamname}'
-        print('running remote command')
-        stdin, stdout, stderr = c.exec_command(command)
+        print(f'running {command}')
+        _, stdout, stderr = c.exec_command(command, timeout=10)
+        for line in iter(stdout.readline, ""):
+            print(line, end="")
+        for line in iter(stderr.readline, ""):
+            print(line, end="")
 
+        print('done, collecting output')
         infname = os.path.join('keymgmt/inifs/',cameraname + '.ini')
         outfname = os.path.join('./inifs', cameraname + '.ini')
         while os.path.isfile(outfname) is False:

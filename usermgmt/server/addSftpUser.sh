@@ -7,6 +7,7 @@ shortid=$2
 oldloc=$3
 if [ -z $2 ] ; then shortid=$1 ; fi 
 
+source ~/prod/config.ini
 source ~/venvs/$WMPL_ENV/bin/activate
 
 keydir=/home/ec2-user/keymgmt
@@ -17,9 +18,11 @@ logger -s -t addSftpUser "adding user $userid at $shortid $oldloc"
 # create the keyfiles in the required format
 counter=0
 ls $keydir/rawkeys/live/$shortid.key > /dev/null 2>&1
-while [ $? -ne 0 ] ; do
-    sleep 5
+while [[ $? -ne 0  && $counter -ne 5 ]] ; do
+    sleep 2
+    logger -s -t addSftpUser "waiting for raw key for $shortid"   
     ls $keydir/rawkeys/live/$shortid.key > /dev/null 2>&1
+    counter=$((counter + 1))
 done 
 if [ ! -f $keydir/rawkeys/live/$shortid.key ] ; then 
     logger -s -t addSftpUser "missing raw key for $shortid"   
