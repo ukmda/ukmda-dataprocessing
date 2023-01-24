@@ -38,22 +38,26 @@ def createECSV(ftpFile, required_event = None):
     kvals = platepars_recalibrated_dict[list(platepars_recalibrated_dict.keys())[0]]
     meteors = loadFTPDetectInfo(ftpFile, locdata=kvals)
 
+    #print(f'{len(meteors)} in file')
+
     if required_event is not None:
-        fmtstr=isodate_format_entry[:min(len(required_event)-2, 24)]
-        reqevt = datetime.datetime.strptime(required_event, fmtstr).timestamp()
+        fmtstr = isodate_format_entry[:min(len(required_event)-2, 24)]
+        reqdate = datetime.datetime.strptime(required_event, fmtstr)
+        statid = ftpFile.split('_')[1]
+        reqstr = f'FF_{statid}_{reqdate.strftime("%Y%m%d_%H%M%S")}'
+        reqevt = reqdate.timestamp()
+        # check input precision
+        spls = required_event.split('.')
+        if len(spls) == 1:
+            prec = 11
+        else:
+            decis = spls[1]
+            prec = pow(10, -len(decis))
     else:
         reqevt = 0
+        prec = 11
+        reqstr = 'FF'
 
-    print(reqevt)
-    # check input precision
-    spls = required_event.split('.')
-    if len(spls) == 1:
-        prec = 10
-    else:
-        decis = spls[1]
-        prec = pow(10, -len(decis))
-    print(required_event)
-    print(len(meteors))
     for met in meteors:
         # Reference time
         dt_ref = jd2Date(met.jdt_ref, dt_obj=True)
@@ -66,8 +70,11 @@ def createECSV(ftpFile, required_event = None):
         evtdate = datetime.datetime.strptime(ffname[10:29], '%Y%m%d_%H%M%S_%f')
         obscalib = evtdate + datetime.timedelta(microseconds=(met.time_data[0]*1e6))
         
-        if reqevt > 0 and abs(obscalib.timestamp() - reqevt) >= prec:
+        if reqevt > 0 and prec != 11 and abs(obscalib.timestamp() - reqevt) >= prec:
             continue
+        if prec == 11 and reqstr not in ffname:
+            continue
+
         #print('found match')
         azim, elev = platepar['az_centre'], platepar['alt_centre']
         fov_horiz, fov_vert = platepar['fov_h'], platepar['fov_v']
@@ -163,6 +170,25 @@ def createECSV(ftpFile, required_event = None):
     return out_str
 
 
+def ftpToECSV(ftpFile, outdir=None):
+    if outdir is None:
+        outdir, _ = os.path.split(ftpFile)
+    ecsvstr = createECSV(ftpFile)
+    ecsvs = ecsvstr.split('# %ECSV')
+    for ecsv in ecsvs:
+        if len(ecsv) < 10:
+            continue
+        data = '# %ECSV' + ecsv
+        evtdt = data.split('isodate_calib:')[1][0:29].strip().replace("'",'')
+        statid = data.split('camera_id:')[1][0:10].strip().replace("'",'').replace('}','')
+        evtdt = evtdt.replace('-','').replace('T','_').replace(':','').replace('.','_')
+        fname = os.path.join(outdir, f'FF_{statid}_{evtdt}_UKMON.ecsv')
+        with open(fname,'w') as outf:
+            outf.write(data)
+        print("ESCV file saved to:", fname)
+    return 
+
+
 def fetchECSV(camid, reqevent):
     s3bucket='ukmon-shared'
     s3 = boto3.resource('s3')
@@ -177,6 +203,7 @@ def fetchECSV(camid, reqevent):
         dt = dt + datetime.timedelta(days=-1)
     ymd = dt.strftime('%Y%m%d')
     pref = f'matches/RMSCorrelate/{camid}/{camid}_{ymd}'
+    #print(f'looking for {pref}')
 
     localftpname = None
     ppname = None
@@ -228,8 +255,10 @@ def fetchECSV(camid, reqevent):
     
     # if we got the ftpfile, call createECSV
     if localftpname is not None:
+        print(f'using {localftpname} and {ppname}')
         ecsvstr = createECSV(localftpname, reqevent)
-        removefiles(localftpname, ppname, cfgname)
+        if len(ecsvstr) != 0:
+            removefiles(localftpname, ppname, cfgname)
         return ecsvstr
         
     removefiles(localftpname, ppname, cfgname)

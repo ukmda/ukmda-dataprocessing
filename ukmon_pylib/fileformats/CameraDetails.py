@@ -61,9 +61,9 @@ class SiteInfo:
         site = self.camdets[c]['Site'].decode('utf-8').strip()
         camid = self.camdets[c]['CamID'].decode('utf-8').strip()
         if camid == '':
-            return lati, longi, alti, tz, site
+            return site
         else:
-            return lati, longi, alti, tz, site + '/' + camid
+            return site + '/' + camid
 
     def getDummyCode(self, lid, sid):
         lid = lid.encode('utf-8')

@@ -17,7 +17,6 @@ from datetime import timezone
 import boto3
 import shutil
 
-from fileformats import CameraDetails as cd
 from wmpl.Utils.Pickling import loadPickle
 
 from wmpl.Utils.Earth import greatCircleDistance

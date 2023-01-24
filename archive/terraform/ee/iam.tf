@@ -236,6 +236,16 @@ resource "aws_iam_policy" "ukmonsharedpol" {
     "billingtag" = "ukmon"
   }
 }
+##############################################################################
+# policy applied to all ukmon members to enable livefeed
+resource "aws_iam_policy" "ukmonlivepol" {
+  name        = "UkmonLive"
+  description = "Access to the ukmon-live s3 bucket for upload purposes"
+  policy      = file("files/policies/ukmonlive.json")
+  tags = {
+    "billingtag" = "ukmon"
+  }
+}
 
 ##############################################################################
 # role and permissions used by SAM functions 

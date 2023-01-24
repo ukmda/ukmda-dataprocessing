@@ -45,7 +45,7 @@ echo "var cell = row.insertCell(1);" >> reportindex.js
 echo "cell.innerHTML = \"Vis Mag\";" >> reportindex.js
 echo "var cell = row.insertCell(2);" >> reportindex.js
 echo "cell.innerHTML = \"Shower\";" >> reportindex.js
-echo "var cell = row.insertCell(2);" >> reportindex.js
+echo "var cell = row.insertCell(3);" >> reportindex.js
 echo "cell.innerHTML = \"Image Link\";" >> reportindex.js
 
 if [ -f ./fblist.txt ] ; then 

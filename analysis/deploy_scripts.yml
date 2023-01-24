@@ -29,3 +29,7 @@
     - {src: '{{srcdir}}/analysis/mp4retrConfig.ps1', dest: '{{destdir}}/', mode: '755', backup: no, directory_mode: no }
     - {src: '{{srcdir}}/archive/costs/getCostMetrics.ps1', dest: '{{destdir}}/', mode: '755', backup: no, directory_mode: no }
     - {src: '{{srcdir}}/analysis/getGMNData.ps1', dest: '{{destdir}}/', mode: '755', backup: no, directory_mode: no }
+    - {src: '{{srcdir}}/gui/fbCollector.ps1', dest: '{{destdir}}/', mode: '755', backup: no, directory_mode: no }
+    - {src: '{{srcdir}}/gui/fireballCollector.py', dest: '{{destdir}}/python/', mode: '755', backup: no, directory_mode: no }
+    - {src: '{{srcdir}}/gui/config.ini', dest: '{{destdir}}/python/', mode: '755', backup: no, directory_mode: no }
+    - {src: '{{srcdir}}/gui/noimage.jpg', dest: '{{destdir}}/python/', mode: '755', backup: no, directory_mode: no }
