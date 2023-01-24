@@ -50,11 +50,8 @@ class SiteInfo:
     def GetSiteLocation(self, camname, activeonly=True):
         c = self.getCameraOffset(camname, activeonly)
         if c == -1:
-            return 0,0,0,0,'unknown'
+            return 'unknown'
 
-        longi = self.camdets[c]['Longi']
-        lati = self.camdets[c]['Lati']
-        alti = self.camdets[c]['Alti']
         tz = 0  # camdets[c]['tz']
         site = self.camdets[c]['Site'].decode('utf-8').strip()
         camid = self.camdets[c]['CamID'].decode('utf-8').strip()
@@ -242,8 +239,8 @@ def main(sitename):
         lid = spls[1]
     print(ci.getDummyCode(sid, lid))
 
-    #lati, longi, alti, tz, site = ci.GetSiteLocation(site.encode('utf-8'))
-    #print(site, lati, longi, alti, tz)
+    #tz, site = ci.GetSiteLocation(site.encode('utf-8'))
+    #print(site, tz)
 
 
 if __name__ == '__main__':
