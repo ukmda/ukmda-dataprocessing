@@ -12,7 +12,6 @@ import json
 import cartopy.crs as ccrs
 
 from fileformats import ReadUFOAnalyzerXML as ua
-from fileformats import CameraDetails as cd
 
 from PIL import Image
 
