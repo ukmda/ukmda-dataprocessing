@@ -110,16 +110,16 @@ class SiteInfo:
         for row in self.camdets:
             if isactive is True and row['active'] != 1: 
                 continue
-            if row[0][:1] != '#':
+            if row['Site'][:1] != '#':
                 # print(row)
-                if row[1] == '':
-                    fldrs.append(row[0].decode('utf-8'))
+                if row['CamID'] == '':
+                    fldrs.append(row['Site'].decode('utf-8'))
                 else:
-                    fldrs.append(row[0].decode('utf-8') + '/' + row[1].decode('utf-8'))
-                if int(row[11]) == 1:
-                    cams.append(row[2].decode('utf-8') + '_' + row[3].decode('utf-8'))
+                    fldrs.append(row['Site'].decode('utf-8') + '/' + row['CamID'].decode('utf-8'))
+                if int(row['camtyp']) == 1:
+                    cams.append(row['LID'].decode('utf-8') + '_' + row['SID'].decode('utf-8'))
                 else:
-                    cams.append(row[2].decode('utf-8'))
+                    cams.append(row['LID'].decode('utf-8'))
         return cams, fldrs
 
     def getAllCamsStr(self, onlyActive=False):
@@ -229,7 +229,7 @@ def updateCamLocDirFovDB():
         json.dump(camdb, outf, indent=4)
 
 
-def main(sitename):
+def test_caminfo(sitename):
     ci = SiteInfo()
     spls = sitename.split('_')
     sid = spls[0]
@@ -244,4 +244,4 @@ def main(sitename):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    test_caminfo(sys.argv[1])
