@@ -14,9 +14,9 @@ $wmplloc=$ini['wmpl']['wmpl_loc']
 $env:pythonpath="$wmplloc;$env:pylib"
 
 set-location python
-python fireballCollector.py $args[1]
+python fireballCollector.py -d $args[1]
 
-explorer $fbfldr
+explorer "$fbfldr/$args[1]"
 
 Pop-Location
 
