@@ -3,3 +3,4 @@ env: PROD
 websitebucket: ukmeteornetworkarchive
 api_id: 40luvfh1od
 api_svc: Prod
+s3profile: ukmonshared
