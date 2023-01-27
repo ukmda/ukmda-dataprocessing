@@ -15,18 +15,11 @@
     <meta name="keywords" content="meteors,astronomy,space" />
     <!-- Bootstrap Core CSS -->
     <link href="/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- MetisMenu CSS -->
     <link href="/css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
-
-    <!-- Custom CSS -->
     <link href="/css/dragontail.css" rel="stylesheet">
-
-    <!-- Timeline CSS -->
     <link href="/css/plugins/timeline.css" rel="stylesheet">
-
-    <!-- Morris Charts CSS -->
     <link href="/css/plugins/morris.css" rel="stylesheet">
+    <link href="/css/font-awesome.min.css" rel="stylesheet" />
 
     <style>
         html,
@@ -68,20 +61,17 @@
 <body>
     <!-- jQuery -->
     <script src="/js/jquery.js"></script>
-
-    <!-- Bootstrap Core JavaScript -->
     <script src="/js/bootstrap.min.js"></script>
-
-    <!-- Metis Menu Plugin JavaScript -->
     <script src="/js/plugins/metisMenu/metisMenu.min.js"></script>
-
-    <!-- Morris Charts JavaScript -->
     <script src="/js/plugins/morris/raphael.min.js"></script>
     <script src="/js/plugins/morris/morris.min.js"></script>
 
-    <script src="/js/constellation.js"></script>
+    <!-- better datatable support -->
+    <script src="/js/jquery.dataTables.min.js"></script>
+    <script src="/js/dataTables.bootstrap.min.js"></script>
+    <script src="/js/stringMonthYear.js"></script>
 
-    <!-- Custom Theme JavaScript -->
+    <script src="/js/constellation.js"></script>
     <script src="/js/sb-admin-2.js"></script>
 
     <div id="nav-placeholder"></div>
@@ -94,13 +84,11 @@
 
     <div class="container">
         <h2>Station Coverage Maps</h2>
-        <p><b>FUNCTIONALITY TEMPORARILY DISABLED</b></p>
         <p>
-            To use this page, select a camera from the dropdown, then select an altitude.
-            Click on Show to reveal the coverage of that camera at that altitude.
-            To check for overlap select a second camera and click Show again.
+            To use this page, select a camera or cameras from the dropdown, then select an altitude.
+            Click on Show to reveal the coverage of those cameras at that altitude.
             Note that the field of view will remain
-            centred on the first camera and the second may not be visible - if they don't overlap.
+            centred on the first camera and the second or third may not be visible if they don't overlap.
             You can click on a shaded area to see which camera it relates to.
         </p>
         <p>
