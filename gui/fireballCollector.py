@@ -3,12 +3,16 @@
 #
 import os
 import sys
-import boto3
 import argparse
 import logging
 import logging.handlers
 import datetime
 import configparser
+import shutil
+
+import boto3
+import paramiko
+from scp import SCPClient
 
 import tkinter as tk
 import tkinter.filedialog as tkFileDialog
@@ -95,9 +99,8 @@ class ConstrainedEntry(StyledEntry):
 
         return True
 
-
 class fbCollector(Frame):
-    def __init__(self, parent, config_file, patt=None):
+    def __init__(self, parent, patt=None):
         Frame.__init__(self, parent, bg = global_bg)
         parent.configure(bg = global_bg)  # Set backgound color
         parent.grid_columnconfigure(0, weight=1)
@@ -106,7 +109,19 @@ class fbCollector(Frame):
         self.grid(sticky="NSEW")  # Expand frame to all directions
         self.parent = parent
 
-        self.fb_dir, self.upload_bucket, self.upload_folder, self.live_bucket = self.readConfig()
+        self.fb_dir = ''
+        self.upload_bucket = ''
+        self.upload_folder = ''
+        self.live_bucket = ''
+        self.gmn_key = ''
+        self.gmn_user = ''
+        self.gmn_server = ''
+        self.wmpl_loc = ''
+        self.wmpl_env= ''
+        self.rms_loc = ''
+        self.rms_env= ''
+
+        self.readConfig()
 
         self.patt = patt
         if patt is None:
@@ -127,7 +142,20 @@ class fbCollector(Frame):
         localcfg = configparser.ConfigParser()
         localcfg.read(config_file)
         print(f"Fireball folder is {localcfg['Fireballs']['basedir']}")
-        return localcfg['Fireballs']['basedir'], localcfg['Fireballs']['uploadbucket'], localcfg['Fireballs']['uploadfolder'], localcfg['Fireballs']['livebucket']
+        self.fb_dir = localcfg['Fireballs']['basedir']
+        self.upload_bucket = localcfg['Fireballs']['uploadbucket']
+        self.upload_folder = localcfg['Fireballs']['uploadfolder']
+        self.live_bucket = localcfg['Fireballs']['livebucket']
+
+        self.gmn_key = localcfg['Fireballs']['gmnkey']
+        self.gmn_user = localcfg['Fireballs']['gmnuser']
+        self.gmn_server = localcfg['Fireballs']['gmnserver']
+
+        self.wmpl_loc = localcfg['Fireballs']['wmpl_loc']
+        self.wmpl_env= localcfg['Fireballs']['wmpl_env']
+        self.rms_loc = localcfg['Fireballs']['rms_loc']
+        self.rms_env= localcfg['Fireballs']['rms_env']
+        return
 
     def quitApplication(self):
         print('quitting')
@@ -177,6 +205,8 @@ class fbCollector(Frame):
 
         # File menu
         fileMenu = Menu(self.menuBar, tearoff=0)
+        fileMenu.add_command(label="Load Folder", command=self.loadFolder)
+        fileMenu.add_command(label="Fetch from GMN", command=self.getGMNData)
         fileMenu.add_command(label="Exit", command=self.quitApplication)
         self.menuBar.add_cascade(label="File", underline=0, menu=fileMenu)
 
@@ -237,6 +267,10 @@ class fbCollector(Frame):
         self.listbox.delete(0, END)
         for line in sorted(bin_list):
             self.listbox.insert(END, line)
+    
+    def loadFolder(self):
+        bin_list = self.get_bin_list()
+        self.update_listbox(bin_list)
 
     def correct_datafile_name(self, line):
         if '.jpg' in line and 'noimage' not in line:
@@ -254,7 +288,6 @@ class fbCollector(Frame):
         log.info(f'removing {current_image}')
         os.remove(os.path.join(self.dir_path, current_image))
         self.update_listbox(self.get_bin_list())
-
 
     def update_image(self, thing):
         """ When selected, load a new image
@@ -279,7 +312,7 @@ class fbCollector(Frame):
         current_image = self.listbox.get(ACTIVE)
         if current_image == '':
             return 
-        print(f'marking {current_image}')
+        log.info(f'marking {current_image}')
         srcfile = getLiveImages.createTxtFile(current_image, self.dir_path)
         _, targfile = os.path.split(srcfile)
         s3 = boto3.client('s3')
@@ -287,14 +320,67 @@ class fbCollector(Frame):
         cur_index = int(self.listbox.curselection()[0])
         self.listbox.itemconfig(cur_index, fg = 'green')
 
-
     def get_data(self):
         thispatt = self.newpatt.get()
         self.patt = thispatt
         self.dir_path = os.path.join(self.fb_dir, thispatt)
-        print(f'getting data matching {thispatt}')
+        log.info(f'getting data matching {thispatt}')
         getLiveImages.getLiveJpgs(thispatt, outdir=self.dir_path, buck_name=self.live_bucket)
         self.update_listbox(self.get_bin_list())
+
+    def getGMNData(self):
+        camlist = [line for line in os.listdir(self.dir_path) if self.correct_datafile_name(line)]
+        dts=[]
+        camids=[]
+        for cam in camlist:
+            camid,_ = os.path.splitext(cam)
+            spls = camid.split('_')
+            if camid[:2] == 'FF':
+                camids.append(spls[1])
+                dts.append(camid[10:25])
+            else:
+                camids.append(spls[-1][:6])
+                dts.append(camid[1:16])
+        dts.sort()
+        dtstr = f'{dts[0]}.000000'
+        stationlist = ','.join(map(str, camids))
+        server=self.gmn_server
+        user=self.gmn_user
+        log.info(f'getting data from GMN')
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(self.gmn_key))
+        c = paramiko.SSHClient()
+        log.info(f'trying {user}@{server} with {self.gmn_key}')
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = user, pkey = k)
+        command = f'source ~/anaconda3/etc/profile.d/conda.sh && conda activate wmpl && python scripts/extract_fireball.py {dtstr} {stationlist}'
+        log.info(f'running {command}')
+        _, stdout, stderr = c.exec_command(command, timeout=900)
+        for line in iter(stdout.readline, ""):
+            print(line, end="")
+        for line in iter(stderr.readline, ""):
+            print(line, end="")
+        scpcli = SCPClient(c.get_transport())
+        print('done, collecting output')
+        indir = os.path.join(f'event_extract/{dtstr}/')
+        scpcli.get(indir, self.dir_path, recursive=True)
+        command = f'rm -Rf event_extract/{dtstr}'
+        log.info(f'running {command}')
+        _, stdout, stderr = c.exec_command(command, timeout=120)
+        for line in iter(stdout.readline, ""):
+            print(line, end="")
+        for line in iter(stderr.readline, ""):
+            print(line, end="")
+        dirs = os.listdir(os.path.join(self.dir_path, dtstr))
+        for d in dirs:
+            srcdir = os.path.join(self.dir_path, dtstr, d)
+            targ =  os.path.join(self.dir_path, d)
+            shutil.move(srcdir, targ)
+        try:
+            os.rmdir(os.path.join(self.dir_path, dtstr))
+        except:
+            pass
+        tkMessageBox.showinfo("Data Collected", 'data collected from GMN')
+        return
 
 
 if __name__ == '__main__':
@@ -332,7 +418,8 @@ if __name__ == '__main__':
     root = tk.Tk()
     root.geometry('+0+0')
     targdir = args.datepatt
+    print('patt is', targdir)
 
-    app = fbCollector(root, config_file, patt=targdir)
+    app = fbCollector(root, patt=targdir)
     root.protocol('WM_DELETE_WINDOW', app.quitApplication)
     root.mainloop()

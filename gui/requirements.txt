@@ -1,2 +1,4 @@
+# requirements for the fbCollector tool
 boto3
 Pillow
+paramiko
