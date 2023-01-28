@@ -47,7 +47,7 @@ echo "var cell = row.insertCell(4);" >> $repidx
 echo "cell.innerHTML = \"<a href="$prefix/$curryr/stations/index.html">Stations</a>\";" >> $repidx
 
 logger -s -t createReportIndex "creating shower statistics report"
-python -m analysis.summaryAnalysis $yr
+python -m analysis.summaryAnalysis $curryr
 echo "var row = table.insertRow(-1);" >> $repidx
 echo "var cell = row.insertCell(0);" >> $repidx
 echo "var cell = row.insertCell(1);" >> $repidx
@@ -55,7 +55,7 @@ echo "cell.innerHTML = \"<a href="$prefix/$curryr/showers/index.html">Shower Sta
 
 if [ -f $curryr/tmp.txt ] ; then rm -f $curryr/tmp.txt ; fi
 
-ls -1 $curryr | egrep -v "ALL|orbits|stations|fireballs|.js|.html" | while read j
+ls -1 $curryr | egrep -v "ALL|orbits|stations|fireballs|showers|.js|.html" | while read j
 do 
     python -m utils.getShowerDates $j >> $curryr/tmp.txt
 done
