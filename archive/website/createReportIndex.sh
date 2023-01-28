@@ -36,7 +36,7 @@ echo "header.className = \"h4\";" >> $repidx
 
 echo "var row = table.insertRow(-1);" >> $repidx
 echo "var cell = row.insertCell(0);" >> $repidx
-echo "cell.innerHTML = \"<a href="$prefix/$curryr/ALL/index.html">$i Full Year</a>\";" >> $repidx
+echo "cell.innerHTML = \"<a href="$prefix/$curryr/ALL/index.html">Full Year</a>\";" >> $repidx
 echo "var cell = row.insertCell(1);" >> $repidx
 echo "cell.innerHTML = \"<a href="$prefix/$curryr/orbits/index.html">Trajectories and Orbits</a>\";" >> $repidx
 echo "var cell = row.insertCell(2);" >> $repidx
@@ -45,6 +45,13 @@ echo "var cell = row.insertCell(3);" >> $repidx
 echo "cell.innerHTML = \"<a href="$prefix/$curryr/fireballs/index.html">Fireballs</a>\";" >> $repidx
 echo "var cell = row.insertCell(4);" >> $repidx
 echo "cell.innerHTML = \"<a href="$prefix/$curryr/stations/index.html">Stations</a>\";" >> $repidx
+
+logger -s -t createReportIndex "creating shower statistics report"
+python -m analysis.summaryAnalysis $yr
+echo "var row = table.insertRow(-1);" >> $repidx
+echo "var cell = row.insertCell(0);" >> $repidx
+echo "var cell = row.insertCell(1);" >> $repidx
+echo "cell.innerHTML = \"<a href="$prefix/$curryr/showers/index.html">Shower Statistics</a>\";" >> $repidx
 
 if [ -f $curryr/tmp.txt ] ; then rm -f $curryr/tmp.txt ; fi
 
