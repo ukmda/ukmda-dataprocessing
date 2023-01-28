@@ -18,6 +18,7 @@ from wmpl.Utils.Physics import calcMass
 from wmpl.Utils.Pickling import loadPickle
 from wmpl.Config import config
 from traj.ShowerAssociation import associateShower
+from wmpl.Utils.Earth import greatCircleDistance
 
 
 def getVMagCodeAndStations(picklename):
@@ -382,7 +383,6 @@ def draw3Dmap(traj, outdir):
     df = df.drop(columns=['times'])
     fig = plt.figure()
     ax = Axes3D(fig)
-    #_ = ax.plot_trisurf(df.lats, df.lons, df.alts, cmap=cm.jet, linewidth=2)
     _ = ax.plot(df.lats, df.lons, df.alts, linewidth=2)
     jpgname = os.path.join(outdir, dtstr[:15].replace('-','_') + '_3dtrack.png')
     plt.savefig(jpgname, dpi=200)
@@ -514,6 +514,14 @@ def createAdditionalOutput(traj, outdir):
             f.write('------------\n')
             f.write('start {:.2f}&deg; {:.2f}&deg; {:.2f}km\n'.format(np.degrees(traj.rbeg_lon), np.degrees(traj.rbeg_lat), traj.rbeg_ele / 1000))
             f.write('end   {:.2f}&deg; {:.2f}&deg; {:.2f}km\n\n'.format(np.degrees(traj.rend_lon), np.degrees(traj.rend_lat), traj.rend_ele / 1000))
+            tracklen = greatCircleDistance(traj.rbeg_lat, traj.rbeg_lon, traj.rend_lat, traj.rend_lon)*1000
+            vertdist = traj.rbeg_ele - traj.rend_ele
+            if abs(tracklen) < 1:
+                aoe = 90
+            else:
+                aoe = np.degrees(np.arctan(vertdist/tracklen))
+            f.write(f'approx track length {tracklen/1000:.1f} km\n')
+            f.write(f'approx angle of entry {aoe:.0f}&deg; from horizontal\n\n')
             f.write('Orbit Details\n')
             f.write('-------------\n')
             if orb.L_g is not None:
