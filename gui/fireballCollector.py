@@ -128,7 +128,7 @@ class fbCollector(Frame):
             self.dir_path = None
         else:
             self.dir_path = os.path.join(self.fb_dir, patt)
-        log.info(f"Fireball folder is {self.dir_path}")
+        log.info(f"Fireball folder is {self.fb_dir}")
 
         self.initUI()
 
@@ -147,9 +147,12 @@ class fbCollector(Frame):
         self.upload_folder = localcfg['Fireballs']['uploadfolder']
         self.live_bucket = localcfg['Fireballs']['livebucket']
 
-        self.gmn_key = localcfg['Fireballs']['gmnkey']
-        self.gmn_user = localcfg['Fireballs']['gmnuser']
-        self.gmn_server = localcfg['Fireballs']['gmnserver']
+        try: 
+            self.gmn_key = localcfg['Fireballs']['gmnkey']
+            self.gmn_user = localcfg['Fireballs']['gmnuser']
+            self.gmn_server = localcfg['Fireballs']['gmnserver']
+        except:
+            pass
 
         self.wmpl_loc = localcfg['Fireballs']['wmpl_loc']
         self.wmpl_env= localcfg['Fireballs']['wmpl_env']
@@ -206,21 +209,23 @@ class fbCollector(Frame):
         # File menu
         fileMenu = Menu(self.menuBar, tearoff=0)
         fileMenu.add_command(label="Load Folder", command=self.loadFolder)
-        fileMenu.add_command(label="Fetch from GMN", command=self.getGMNData)
+        fileMenu.add_command(label="Delete Folder", command=self.delFolder)
+        if self.gmn_key is not '' : 
+            fileMenu.add_command(label="Fetch from GMN", command=self.getGMNData)
         fileMenu.add_command(label="Exit", command=self.quitApplication)
         self.menuBar.add_cascade(label="File", underline=0, menu=fileMenu)
 
         # buttons
         self.save_panel = LabelFrame(self, text=' Image Selection ')
         self.save_panel.grid(row = 1, columnspan = 2, sticky='WE')
-        save_bmp = StyledButton(self.save_panel, text="Download", width = 8, command = lambda: self.get_data())
-        save_bmp.grid(row = 1, column = 1)
 
         self.newpatt = StringVar()
         self.newpatt.set(self.patt)
 
         self.patt_entry = StyledEntry(self.save_panel, textvariable = self.newpatt, width = 20)
-        self.patt_entry.grid(row = 1, column = 2, columnspan = 2, sticky = "W")
+        self.patt_entry.grid(row = 1, column = 1, columnspan = 2, sticky = "W")
+        save_bmp = StyledButton(self.save_panel, text="Get Images", width = 8, command = lambda: self.get_data())
+        save_bmp.grid(row = 1, column = 3)
 
         save_bmp = StyledButton(self.save_panel, text="Select", width = 8, command = lambda: self.save_image())
         save_bmp.grid(row = 1, column = 4)
@@ -258,6 +263,17 @@ class fbCollector(Frame):
     def get_bin_list(self):
         """ Get a list of image files in a given directory.
         """
+        if self.dir_path is None:
+            thispatt = self.patt_entry.get()
+            self.dir_path = os.path.join(self.fb_dir, thispatt)
+            if not os.path.isdir(self.dir_path):
+                dirname = tkFileDialog.askdirectory(parent=root,initialdir=self.fb_dir,
+                    title='Please select a directory')    
+                _, thispatt = os.path.split(dirname)
+                self.dir_path = os.path.join(self.fb_dir, thispatt)
+            self.patt = thispatt
+            self.newpatt.set(self.patt)
+
         bin_list = [line for line in os.listdir(self.dir_path) if self.correct_datafile_name(line)]
         return bin_list
 
@@ -271,6 +287,18 @@ class fbCollector(Frame):
     def loadFolder(self):
         bin_list = self.get_bin_list()
         self.update_listbox(bin_list)
+
+    def delFolder(self):
+        noimgdata = img.open(noimg_file).resize((640,360))
+        noimage = ImageTk.PhotoImage(noimgdata)
+        self.imagelabel.configure(image = noimage)
+        self.imagelabel.image = noimage
+        try:
+            shutil.rmtree(self.dir_path)
+            self.dir_path = self.fb_dir
+        except Exception as e:
+            print(f'unable to remove {self.dir_path}')
+            print(e)
 
     def correct_datafile_name(self, line):
         if '.jpg' in line and 'noimage' not in line:
@@ -298,10 +326,10 @@ class fbCollector(Frame):
         except:
             return 0
         
-        imgdata = img.open(self.current_image).resize((640,360))
-        thisimage = ImageTk.PhotoImage(imgdata)
-        self.imagelabel.configure(image = thisimage)
-        self.imagelabel.image = thisimage
+        with img.open(self.current_image).resize((640,360)) as imgdata:
+            thisimage = ImageTk.PhotoImage(imgdata)
+            self.imagelabel.configure(image = thisimage)
+            self.imagelabel.image = thisimage
 
         self.timestamp_label.configure(text = os.path.split(self.current_image)[1])
         return 
