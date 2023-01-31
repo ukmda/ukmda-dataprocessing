@@ -50,21 +50,39 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmonlogslcp" {
       noncurrent_days = 5
     }
   }
+}
+
+resource "aws_s3_bucket" "logbucket_w1" {
+  bucket        = "ukmon-s3-access-logs-w1"
+  force_destroy = false
+  tags = {
+    "billingtag" = "ukmon"
+    "ukmontype"  = "logs"
+  }
+  provider = aws.eu-west-1-prov
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "ukmonlogslcp_w1" {
+  bucket = aws_s3_bucket.logbucket_w1.id
+  provider = aws.eu-west-1-prov
+  rule {
+    status = "Enabled"
+    id     = "purge old versions"
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+    }
+  }
   rule {
     id     = "purge old ukmon-live logs"
     status = "Enabled"
 
     expiration {
-      days                         = 5
+      days                         = 10
       expired_object_delete_marker = false
     }
 
     filter {
       prefix = "ukmonlive/"
-    }
-
-    noncurrent_version_expiration {
-      noncurrent_days = 5
     }
   }
 }
