@@ -17,8 +17,8 @@
                 "s3:ListBucket"
             ],
             "Resource": [
-                "arn:aws:s3:::ukmon-shared",
-                "arn:aws:s3:::ukmeteornetworkarchive"
+                "${sharedarn}",
+                "${websitearn}"
             ]
         },
         {
@@ -30,11 +30,11 @@
                 "s3:DeleteObject"
             ],
             "Resource": [
-                "arn:aws:s3:::ukmon-shared/*",
-                "arn:aws:s3:::ukmeteornetworkarchive/latest/*",
-                "arn:aws:s3:::ukmeteornetworkarchive/img/kmls/*",
-                "arn:aws:s3:::ukmeteornetworkarchive/img/single/*",
-                "arn:aws:s3:::ukmeteornetworkarchive/img/mp4/*"
+                "${sharedarn}/*",
+                "${websitearn}/latest/*",
+                "${websitearn}/img/kmls/*",
+                "${websitearn}/img/single/*",
+                "${websitearn}/img/mp4/*"
             ]
         },
         {
@@ -45,7 +45,7 @@
                 "s3:GetObject",
                 "s3:DeleteObject"
             ],
-            "Resource": "arn:aws:s3:::ukmon-shared/admin/*"
+            "Resource": "${sharedarn}/admin/*"
         }
     ]
 }
