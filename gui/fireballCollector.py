@@ -210,7 +210,7 @@ class fbCollector(Frame):
         fileMenu = Menu(self.menuBar, tearoff=0)
         fileMenu.add_command(label="Load Folder", command=self.loadFolder)
         fileMenu.add_command(label="Delete Folder", command=self.delFolder)
-        if self.gmn_key is not '' : 
+        if self.gmn_key != '' : 
             fileMenu.add_command(label="Fetch from GMN", command=self.getGMNData)
         fileMenu.add_command(label="Exit", command=self.quitApplication)
         self.menuBar.add_cascade(label="File", underline=0, menu=fileMenu)
