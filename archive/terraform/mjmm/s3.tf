@@ -35,6 +35,12 @@ resource "aws_s3_bucket_lifecycle_configuration" "bkp_lifecycle_rule" {
   }
 }
 
+resource "aws_s3_bucket_versioning" "backup_versioning" {
+  bucket = aws_s3_bucket.ukmon-shared-backup.id
+  versioning_configuration {
+    status = "Suspended"
+  }
+}
 resource "aws_s3_bucket_logging" "ukmslogging" {
   bucket = aws_s3_bucket.ukmon-shared-backup.id
 
@@ -42,6 +48,7 @@ resource "aws_s3_bucket_logging" "ukmslogging" {
   target_prefix = "ukmon-shared-backup/"
 }
 
+########################################################################
 resource "aws_s3_bucket" "mjmm-ukmonarchive-co-uk" {
   bucket = "mjmm-ukmonarchive.co.uk"
   tags = {
