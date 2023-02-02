@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# script to update match data each night and then recalc any necessary orbits
+# script to clear out old log files and other old data
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
