@@ -266,13 +266,10 @@ class fbCollector(Frame):
         """ Get a list of image files in a given directory.
         """
         if self.dir_path is None:
-            thispatt = self.patt_entry.get()
+            dirname = tkFileDialog.askdirectory(parent=root,initialdir=self.fb_dir,
+                title='Please select a directory')    
+            _, thispatt = os.path.split(dirname)
             self.dir_path = os.path.join(self.fb_dir, thispatt)
-            if not os.path.isdir(self.dir_path):
-                dirname = tkFileDialog.askdirectory(parent=root,initialdir=self.fb_dir,
-                    title='Please select a directory')    
-                _, thispatt = os.path.split(dirname)
-                self.dir_path = os.path.join(self.fb_dir, thispatt)
             self.patt = thispatt
             self.newpatt.set(self.patt)
 
@@ -292,6 +289,7 @@ class fbCollector(Frame):
                 self.listbox.itemconfig(END, fg = 'green')
     
     def loadFolder(self):
+        self.dir_path = None
         bin_list = self.get_bin_list()
         for b in bin_list:
             self.selected[b] = (0, '')
@@ -425,12 +423,10 @@ class fbCollector(Frame):
         for d in dirs:
             srcdir = os.path.join(self.dir_path, dtstr, d)
             targ =  os.path.join(self.dir_path, d)
-            print(srcdir, targ)
-            shutil.move(srcdir, targ)
-        try:
-            os.rmdir(os.path.join(self.dir_path, dtstr))
-        except:
-            pass
+            os.makedirs(targ, exist_ok=True)
+            for f in os.listdir(srcdir):
+                shutil.copy(os.path.join(srcdir, f), targ)
+        shutil.rmtree(os.path.join(self.dir_path, dtstr))
         tkMessageBox.showinfo("Data Collected", 'data collected from GMN')
         return
 
