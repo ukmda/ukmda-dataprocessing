@@ -120,6 +120,7 @@ class fbCollector(Frame):
         self.wmpl_env= ''
         self.rms_loc = ''
         self.rms_env= ''
+        self.selected={}
 
         self.readConfig()
 
@@ -212,6 +213,7 @@ class fbCollector(Frame):
         fileMenu.add_command(label="Delete Folder", command=self.delFolder)
         if self.gmn_key != '' : 
             fileMenu.add_command(label="Fetch from GMN", command=self.getGMNData)
+        fileMenu.add_command(label="Fetch from UKMON", command=self.getUKMData)
         fileMenu.add_command(label="Exit", command=self.quitApplication)
         self.menuBar.add_cascade(label="File", underline=0, menu=fileMenu)
 
@@ -283,9 +285,16 @@ class fbCollector(Frame):
         self.listbox.delete(0, END)
         for line in sorted(bin_list):
             self.listbox.insert(END, line)
+            if line not in self.selected:
+                self.selected[line] = (0, '')
+            print(line, self.selected[line])
+            if self.selected[line][0] == 1:
+                self.listbox.itemconfig(END, fg = 'green')
     
     def loadFolder(self):
         bin_list = self.get_bin_list()
+        for b in bin_list:
+            self.selected[b] = (0, '')
         self.update_listbox(bin_list)
 
     def delFolder(self):
@@ -315,6 +324,7 @@ class fbCollector(Frame):
             return
         log.info(f'removing {current_image}')
         os.remove(os.path.join(self.dir_path, current_image))
+        self.selected[current_image] = (0,'')
         self.update_listbox(self.get_bin_list())
 
     def update_image(self, thing):
@@ -347,6 +357,7 @@ class fbCollector(Frame):
         s3.upload_file(srcfile, self.upload_bucket, f'{self.upload_folder}/{targfile}')
         cur_index = int(self.listbox.curselection()[0])
         self.listbox.itemconfig(cur_index, fg = 'green')
+        self.selected[current_image] = (1, srcfile)
 
     def get_data(self):
         thispatt = self.newpatt.get()
@@ -356,6 +367,18 @@ class fbCollector(Frame):
         getLiveImages.getLiveJpgs(thispatt, outdir=self.dir_path, buck_name=self.live_bucket)
         self.update_listbox(self.get_bin_list())
 
+    def getUKMData(self):
+        for s in self.selected:
+            if self.selected[s][0]==1:
+                txtf = self.selected[s][1]
+                camid,_ = os.path.splitext(txtf)
+                outdir = os.path.join(self.dir_path, camid.upper())
+                os.makedirs(outdir, exist_ok=True)
+                for li in open(txtf, 'r').readlines():
+                   getLiveImages.getFBFiles(li.strip(), outdir) 
+        tkMessageBox.showinfo("Data Collected", 'data collected from UKMON')
+        return 
+    
     def getGMNData(self):
         camlist = [line for line in os.listdir(self.dir_path) if self.correct_datafile_name(line)]
         dts=[]
@@ -402,6 +425,7 @@ class fbCollector(Frame):
         for d in dirs:
             srcdir = os.path.join(self.dir_path, dtstr, d)
             targ =  os.path.join(self.dir_path, d)
+            print(srcdir, targ)
             shutil.move(srcdir, targ)
         try:
             os.rmdir(os.path.join(self.dir_path, dtstr))
@@ -449,5 +473,7 @@ if __name__ == '__main__':
     print('patt is', targdir)
 
     app = fbCollector(root, patt=targdir)
+    root.iconbitmap(os.path.join(dir_,'ukmon.ico'))
     root.protocol('WM_DELETE_WINDOW', app.quitApplication)
+
     root.mainloop()

@@ -33,3 +33,4 @@
     - {src: '{{srcdir}}/gui/fireballCollector.py', dest: '{{destdir}}/python/', mode: '755', backup: no, directory_mode: no }
     - {src: '{{srcdir}}/gui/config.ini', dest: '{{destdir}}/python/', mode: '755', backup: no, directory_mode: no }
     - {src: '{{srcdir}}/gui/noimage.jpg', dest: '{{destdir}}/python/', mode: '755', backup: no, directory_mode: no }
+    - {src: '{{srcdir}}/gui/ukmon.ico', dest: '{{destdir}}/python/', mode: '755', backup: no, directory_mode: no }
