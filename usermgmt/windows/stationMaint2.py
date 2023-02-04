@@ -363,20 +363,20 @@ class demo(Frame):
             id = ''
             title = 'Add Camera'
             oldloc = ''
-        answer = infoDialog(self, title,curdata[0], user, email, sshkey, id)
+        answer = infoDialog(self, title, curdata[0], user, email, sshkey, id)
         if answer.data[0].strip() != '': 
             d = answer.data
             rmsid = str(d[0]).upper()
-            location = str(d[4]).capitalize()
-            direction = str(d[5])
-            cameraname = d[4].lower() + '_' + d[5].lower()
+            location = str(d[1]).capitalize()
+            direction = str(d[2])
+            cameraname = d[1].lower() + '_' + d[2].lower()
             with open(os.path.join('sshkeys', cameraname + '.pub'), 'w') as outf:
-                outf.write(d[8])
-            rowdata=[d[4],d[0],d[0],d[5],'2',d[0],'1']
+                outf.write(d[5])
+            rowdata=[d[1],d[0],d[0],d[2],'2',d[0],'1']
             self.sheet.insert_row(values=rowdata, idx=0)
             self.addNewAwsUser(location)
             self.addNewUnixUser(location, direction, oldloc)
-            self.addNewOwner(rmsid, location, d[6], d[7])
+            self.addNewOwner(rmsid, location, d[3], d[4])
             self.datachanged = True
         return 
     
