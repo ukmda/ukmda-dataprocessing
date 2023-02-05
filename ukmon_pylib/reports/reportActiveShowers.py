@@ -132,7 +132,14 @@ def createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir):
                 mthf.write('var table = document.createElement(\"table\");\n')
                 mthf.write('table.className = \"table table-striped table-bordered table-hover table-condensed\";\n')
 
-                currmth = datetime.datetime.now().month            
+                curryr = datetime.datetime.now().year
+                if curryr == dtstr[:4]:
+                    # if running for the current year, only lionk to months to date
+                    currmth = datetime.datetime.now().month      
+                else:
+                    # otherwise report the link to all months
+                    currmth = 12
+
                 for m in range(1,currmth+1):
                     if m == 1 or m== 7:
                         mthf.write('var row = table.insertRow(-1);\n')
