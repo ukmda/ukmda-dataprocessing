@@ -12,7 +12,7 @@ conda activate $ini['rms']['rms_env']
 $env:PYTHONPATH="$PYLIB"
 push-Location $ini['rms']['rms_loc']
 
-python -m utils.multiTrackStack $cams $dates $shwrs $outdir
+python -m usertools.multiTrackStack $cams $dates -s $shwrs -o $outdir
 Pop-Location
 
 
