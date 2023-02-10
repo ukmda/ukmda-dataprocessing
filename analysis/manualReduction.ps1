@@ -30,6 +30,11 @@ conda activate $ini['rms']['rms_env']
 $env:PYTHONPATH=$ini['rms']['rms_loc']
 push-Location $ini['rms']['rms_loc']
 python -m Utils.BatchFFtoImage $targpth jpg
+move-item $targpth\*.jpg $fbfldr\$dt -Force
+if (test-path "$targpth\*.fits") {
+    python -m Utils.FRbinViewer -x -f mp4 $targpth
+    move-item $targpth\*.mp4 $fbfldr\$dt -Force
+}
 python -m Utils.SkyFit2 $targpth -c $targpth\.config
 
 pop-location

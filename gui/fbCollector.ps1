@@ -24,6 +24,6 @@ $pth = $fbfldr.replace('/','\')
 explorer "$pth"
 
 Pop-Location
-pause
+#pause
 
 

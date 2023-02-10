@@ -78,9 +78,15 @@ if __name__ == '__main__':
     shwr = None
     if cml_args.shower:
         shwr = cml_args.shower
+        if shwr == 'ALL': # special case for ALLs
+            shwr = None
     
     outdir = '.'
     if cml_args.outdir:
         outdir = cml_args.outdir
 
-    multiTrackStack(cams, start, end, outdir, shwr, cml_args.scalefactor)
+    scalefactor = 1
+    if cml_args.scalefactor:
+        scalefactor = cml_args.scalefactor
+
+    multiTrackStack(cams, start, end, outdir, shwr, scalefactor)
