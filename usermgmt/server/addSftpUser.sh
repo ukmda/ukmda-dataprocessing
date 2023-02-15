@@ -55,6 +55,10 @@ sudo cp /tmp/tmp.pub /var/sftp/$userid/.ssh/authorized_keys
 sudo chown -R $userid:$userid /var/sftp/$userid/.ssh/authorized_keys
 rm /tmp/tmp.pub
 
+#create an empty client copy of the  ini file and make it writeable by the client
+sudo touch /var/sftp/$userid/ukmon.ini.client 
+sudo chown $userid:$userid /var/sftp/$userid/ukmon.ini.client 
+
 # add the key to logupload's authorized_keys file
 logger -s -t addSftpUser "Adding the key to loguploads authorized_keys"
 awk 1 $keydir/sshkeys/*.pub > /tmp/logul.pub
