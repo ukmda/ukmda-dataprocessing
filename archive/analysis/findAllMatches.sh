@@ -48,10 +48,6 @@ mkdir -p $SRC/logs > /dev/null 2>&1
 # trigger lambdas for any ftpdetects missed earlier
 python -c "from utils.rerunFailedLambdas import checkMissedFTPdetect ; checkMissedFTPdetect();"
 
-# not converting UFO to RMS automatically
-# I'll need to do this as a one-off if any UFO data is uploaded
-logger -s -t findAllMatches "RUNTIME $SECONDS start convertUfoToRms"
-
 logger -s -t findAllMatches "RUNTIME $SECONDS start getRMSSingleData"
 # this creates the parquet table for Athena
 $SRC/analysis/getRMSSingleData.sh
