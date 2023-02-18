@@ -17,12 +17,9 @@ import camTable as ct
 
 
 class infoDialog(simpledialog.Dialog):
-    def __init__(self, parent, title, location, lat, lon, ele, user, email, sshkey='', id=''):
+    def __init__(self, parent, title, location, user, email, sshkey='', id=''):
         self.data = []
         self.data.append(id)
-        self.data.append(lat)
-        self.data.append(lon)
-        self.data.append(ele)
         self.data.append(location)
         self.data.append('')
         self.data.append(user)
@@ -39,28 +36,10 @@ class infoDialog(simpledialog.Dialog):
         self.camid_box.insert(tk.END, self.data[0])
         self.camid_box.pack()
 
-        self.lat_label = tk.Label(frame, width=25, text="Latitude (+N)")
-        self.lat_label.pack()
-        self.lat_box = tk.Entry(frame, width=25)
-        self.lat_box.insert(tk.END, self.data[1])
-        self.lat_box.pack()
-
-        self.lon_label = tk.Label(frame, width=25, text="Longitude (-W)")
-        self.lon_label.pack()
-        self.lon_box = tk.Entry(frame, width=25)
-        self.lon_box.insert(tk.END, self.data[2])
-        self.lon_box.pack()
-
-        self.ele_label = tk.Label(frame, width=25, text="Elevation (m)")
-        self.ele_label.pack()
-        self.ele_box = tk.Entry(frame, width=25)
-        self.ele_box.insert(tk.END, self.data[3])
-        self.ele_box.pack()
-
         self.location_label = tk.Label(frame, width=25, text="Location")
         self.location_label.pack()
         self.location_box = tk.Entry(frame, width=25)
-        self.location_box.insert(tk.END, self.data[4])
+        self.location_box.insert(tk.END, self.data[1])
         self.location_box.pack()
 
         self.direction_label = tk.Label(frame, width=25, text="direction")
@@ -71,31 +50,28 @@ class infoDialog(simpledialog.Dialog):
         self.ownername_label = tk.Label(frame, width=25, text="owner name")
         self.ownername_label.pack()
         self.ownername_box = tk.Entry(frame, width=25)
-        self.ownername_box.insert(tk.END, self.data[6])
+        self.ownername_box.insert(tk.END, self.data[3])
         self.ownername_box.pack()
 
         self.email_label = tk.Label(frame, width=25, text="email address")
         self.email_label.pack()
         self.email_box = tk.Entry(frame, width=25)
-        self.email_box.insert(tk.END, self.data[7])
+        self.email_box.insert(tk.END, self.data[4])
         self.email_box.pack()
 
         self.sshkey_label = tk.Label(frame, width=25, text="SSH key")
         self.sshkey_label.pack()
         self.sshkey_box = tk.Entry(frame, width=50)
-        self.sshkey_box.insert(tk.END, self.data[8])
+        self.sshkey_box.insert(tk.END, self.data[5])
         self.sshkey_box.pack()
 
     def ok_pressed(self):
         self.data[0] = self.camid_box.get().strip()
-        self.data[1] = self.lat_box.get().strip()
-        self.data[2] = self.lon_box.get().strip()
-        self.data[3] = self.ele_box.get().strip()
-        self.data[4] = self.location_box.get().strip()
-        self.data[5] = self.direction_box.get().strip()
-        self.data[6] = self.ownername_box.get().strip()
-        self.data[7] = self.email_box.get().strip()
-        self.data[8] = self.sshkey_box.get().strip()
+        self.data[1] = self.location_box.get().strip()
+        self.data[2] = self.direction_box.get().strip()
+        self.data[3] = self.ownername_box.get().strip()
+        self.data[4] = self.email_box.get().strip()
+        self.data[5] = self.sshkey_box.get().strip()
         self.destroy()
 
     def cancel_pressed(self):
@@ -165,8 +141,8 @@ class demo(Frame):
         except:
             print('unable to get data files, using last good files')
 
-        self.caminfo = pandas.read_csv('caminfo/camera-details.csv')
-        self.caminfo = self.caminfo.sort_values(by=['active','camtype','camid'],ascending=[True,False,True])
+        self.caminfo = pandas.read_csv(self.localfile)
+        self.caminfo = self.caminfo.sort_values(by=['active','camtype','camid'],ascending=[True,False,False])
         self.data = self.caminfo.values.tolist()
         self.hdrs = self.caminfo.columns.tolist()
         self.datachanged = False
@@ -210,8 +186,8 @@ class demo(Frame):
             startup_select = (0,1,"rows"),
             data = self.data, 
             headers = self.hdrs, 
-            height = 500, 
-            width = 1200) 
+            height = 700, 
+            width = 700) 
 
         self.sheet.enable_bindings(("single_select", 
                                          "drag_select", 
@@ -387,21 +363,20 @@ class demo(Frame):
             id = ''
             title = 'Add Camera'
             oldloc = ''
-        answer = infoDialog(self, title,curdata[0],curdata[9],curdata[8],curdata[10], 
-            user, email, sshkey, id)
+        answer = infoDialog(self, title, curdata[0], user, email, sshkey, id)
         if answer.data[0].strip() != '': 
             d = answer.data
             rmsid = str(d[0]).upper()
-            location = str(d[4]).capitalize()
-            direction = str(d[5])
-            cameraname = d[4].lower() + '_' + d[5].lower()
+            location = str(d[1]).capitalize()
+            direction = str(d[2])
+            cameraname = d[1].lower() + '_' + d[2].lower()
             with open(os.path.join('sshkeys', cameraname + '.pub'), 'w') as outf:
-                outf.write(d[8])
-            rowdata=[d[4],d[0],d[0],d[5],'IMX291','Computar_4mm','1280','720',d[2],d[1],d[3],'2',d[0],'1']
+                outf.write(d[5])
+            rowdata=[d[1],d[0],d[0],d[2],'2',d[0],'1']
             self.sheet.insert_row(values=rowdata, idx=0)
             self.addNewAwsUser(location)
             self.addNewUnixUser(location, direction, oldloc)
-            self.addNewOwner(rmsid, location, d[6], d[7])
+            self.addNewOwner(rmsid, location, d[3], d[4])
             self.datachanged = True
         return 
     
@@ -461,9 +436,14 @@ class demo(Frame):
         scpcli.put(os.path.join('jsonkeys', location + '.key'), 'keymgmt/rawkeys/live/')
         scpcli.put(os.path.join('sshkeys', cameraname + '.pub'), 'keymgmt/sshkeys/')
         command = f'/home/{user}/keymgmt/addSftpUser.sh {cameraname} {location} {oldcamname}'
-        print('running remote command')
-        stdin, stdout, stderr = c.exec_command(command)
+        print(f'running {command}')
+        _, stdout, stderr = c.exec_command(command, timeout=10)
+        for line in iter(stdout.readline, ""):
+            print(line, end="")
+        for line in iter(stderr.readline, ""):
+            print(line, end="")
 
+        print('done, collecting output')
         infname = os.path.join('keymgmt/inifs/',cameraname + '.ini')
         outfname = os.path.join('./inifs', cameraname + '.ini')
         while os.path.isfile(outfname) is False:

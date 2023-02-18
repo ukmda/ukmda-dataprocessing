@@ -3,3 +3,4 @@ env: DEV
 websitebucket: mjmm-ukmonarchive.co.uk
 api_id: 0zbnc358p0
 api_svc: test
+s3profile: default

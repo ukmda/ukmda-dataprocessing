@@ -36,7 +36,7 @@ echo "header.className = \"h4\";" >> $repidx
 
 echo "var row = table.insertRow(-1);" >> $repidx
 echo "var cell = row.insertCell(0);" >> $repidx
-echo "cell.innerHTML = \"<a href="$prefix/$curryr/ALL/index.html">$i Full Year</a>\";" >> $repidx
+echo "cell.innerHTML = \"<a href="$prefix/$curryr/ALL/index.html">Full Year</a>\";" >> $repidx
 echo "var cell = row.insertCell(1);" >> $repidx
 echo "cell.innerHTML = \"<a href="$prefix/$curryr/orbits/index.html">Trajectories and Orbits</a>\";" >> $repidx
 echo "var cell = row.insertCell(2);" >> $repidx
@@ -46,9 +46,16 @@ echo "cell.innerHTML = \"<a href="$prefix/$curryr/fireballs/index.html">Fireball
 echo "var cell = row.insertCell(4);" >> $repidx
 echo "cell.innerHTML = \"<a href="$prefix/$curryr/stations/index.html">Stations</a>\";" >> $repidx
 
+logger -s -t createReportIndex "creating shower statistics report"
+python -m analysis.summaryAnalysis $curryr
+echo "var row = table.insertRow(-1);" >> $repidx
+echo "var cell = row.insertCell(0);" >> $repidx
+echo "var cell = row.insertCell(1);" >> $repidx
+echo "cell.innerHTML = \"<a href="$prefix/$curryr/showers/index.html">Shower Statistics</a>\";" >> $repidx
+
 if [ -f $curryr/tmp.txt ] ; then rm -f $curryr/tmp.txt ; fi
 
-ls -1 $curryr | egrep -v "ALL|orbits|stations|fireballs|.js|.html" | while read j
+ls -1 $curryr | egrep -v "ALL|orbits|stations|fireballs|showers|.js|.html" | while read j
 do 
     python -m utils.getShowerDates $j >> $curryr/tmp.txt
 done
@@ -108,4 +115,5 @@ else
         aws s3 cp $previdx  $WEBSITEBUCKET/reports/ --quiet
     fi 
 fi
+aws s3 sync ${DATADIR}/reports/$curryr/showers $WEBSITEBUCKET/reports/$curryr/showers
 logger -s -t createReportIndex "finished"

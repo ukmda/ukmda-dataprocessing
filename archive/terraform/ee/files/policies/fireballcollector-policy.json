@@ -11,31 +11,21 @@
         },
         {
             "Effect": "Allow",
-            "Action": [
-                "s3:ListBucket"
-            ],
+            "Action": "s3:ListBucket",
+            "Resource": "${livearn}"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "s3:GetObject",
             "Resource": [
-                "arn:aws:s3:::ukmon-live"
+                "${livearn}/*",
+                "${sharedarn}/fireballs/interesting/*"
             ]
         },
         {
             "Effect": "Allow",
-            "Action": [
-                "s3:GetObject"
-            ],
-            "Resource": [
-                "arn:aws:s3:::ukmon-live/*",
-                "arn:aws:s3:::ukmon-shared/fireballs/interesting/*"
-            ]
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:PutObject"
-            ],
-            "Resource": [
-                "arn:aws:s3:::ukmon-shared/fireballs/interesting/*"
-            ]
+            "Action": "s3:PutObject",
+            "Resource": "${sharedarn}/fireballs/interesting/*"
         }
     ]
 }

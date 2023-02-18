@@ -1,7 +1,7 @@
 #
 # Cloudwatch alarms etc
 #
-
+/*
 resource "aws_cloudwatch_metric_alarm" "calcServerDiskSpace" {
   alarm_name                = "CalcServer diskspace"
   comparison_operator       = "GreaterThanThreshold"
@@ -27,7 +27,7 @@ resource "aws_cloudwatch_metric_alarm" "calcServerDiskSpace" {
     "billingtag" = "ukmon"
   }
 }
-
+*/
 resource "aws_cloudwatch_metric_alarm" "ukmonhelperDiskSpace" {
   alarm_name                = "ukmonHelperDiskspace"
   comparison_operator       = "GreaterThanThreshold"
@@ -54,7 +54,7 @@ resource "aws_cloudwatch_metric_alarm" "ukmonhelperDiskSpace" {
   }
 }
 
-
+/*
 resource "aws_cloudwatch_metric_alarm" "calcServerIdle" {
   alarm_name                = "CalcServer idle shutdown"
   comparison_operator       = "LessThanOrEqualToThreshold"
@@ -79,3 +79,4 @@ resource "aws_cloudwatch_metric_alarm" "calcServerIdle" {
     "billingtag" = "ukmon"
   }
 }
+*/

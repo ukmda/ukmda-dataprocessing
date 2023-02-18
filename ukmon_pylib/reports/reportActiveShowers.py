@@ -59,12 +59,8 @@ def createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir):
             with open(os.path.join(outdir, 'reportindex.js'), 'w') as jsout:
                 jsout.write('$(function() {\n')
                 jsout.write('var table = document.createElement("table");\n')
-                jsout.write('table.className = "table table-striped table-bordered table-hover table-condensed";\n')
-                jsout.write('var header = table.createTHead();\n')
-                jsout.write('header.className = "h4";\n')
-                jsout.write('var row = table.insertRow(-1);\n')
-                jsout.write('var cell = row.insertCell(0);\n')
-                jsout.write('cell.innerHTML = "Brightest Ten Events";\n')
+                jsout.write('table.className = "table table-striped table-bordered table-hover table-condensed w-100";\n')
+                jsout.write('table.setAttribute("id", "brighttableid");')
                 with open(fbinfofile, 'r') as fbf:
                     fblis = fbf.readlines()
                 for li in fblis:
@@ -77,13 +73,31 @@ def createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir):
                     jsout.write('var cell = row.insertCell(2);\n')
                     jsout.write(f'cell.innerHTML = "{fbshwr}";\n')
 
+                jsout.write('var header = table.createTHead();\n')
+                jsout.write('var row = header.insertRow(0);\n')
+                jsout.write('var cell = row.insertCell(0);\n')
+                jsout.write('cell.innerHTML = "Brightest Ten Events";\n')
+                jsout.write('var cell = row.insertCell(1);\n')
+                jsout.write('cell.innerHTML = "Magnitude";\n')
+                jsout.write('var cell = row.insertCell(2);\n')
+                jsout.write('cell.innerHTML = "Shower";\n')
+
                 jsout.write('var outer_div = document.getElementById("summary");\n')
                 jsout.write('outer_div.appendChild(table);\n')
                 jsout.write('})\n')
+                jsout.write('$(document).ready(function() {\n')
+                jsout.write('$("#brighttableid").DataTable({\n')
+                jsout.write('columnDefs : [\n')
+                jsout.write('{ Type : "numeric", targets : [1]}\n')
+                jsout.write('	],\n')
+                jsout.write('order : [[ 1, "asc"],[2,"asc"]],\n')
+                jsout.write('paging: false\n')
+                jsout.write('});\n});\n')
+
 
             outf.write('<div class="row">\n')
             outf.write('<div class="col-lg-12">\n')
-            outf.write('    <div id="summary" class="table-responsive"></div>\n')
+            outf.write('    <div id="summary"></div>\n')
             outf.write('    <div id="reportindex"></div>\n')
             outf.write('</div>\n')
             outf.write('</div>\n')
@@ -118,7 +132,14 @@ def createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir):
                 mthf.write('var table = document.createElement(\"table\");\n')
                 mthf.write('table.className = \"table table-striped table-bordered table-hover table-condensed\";\n')
 
-                currmth = datetime.datetime.now().month            
+                curryr = datetime.datetime.now().year
+                if curryr == dtstr[:4]:
+                    # if running for the current year, only lionk to months to date
+                    currmth = datetime.datetime.now().month      
+                else:
+                    # otherwise report the link to all months
+                    currmth = 12
+
                 for m in range(1,currmth+1):
                     if m == 1 or m== 7:
                         mthf.write('var row = table.insertRow(-1);\n')

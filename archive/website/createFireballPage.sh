@@ -35,18 +35,8 @@ python -m reports.findFireballs ${yr} ALL $2
 
 echo "\$(function() {" > reportindex.js
 echo "var table = document.createElement(\"table\");" >> reportindex.js
-echo "table.className = \"table table-striped table-bordered table-hover table-condensed table-fixed\";" >> reportindex.js
-echo "var header = table.createTHead();" >> reportindex.js
-echo "header.className = \"h4\";" >> reportindex.js
-echo "var row = table.insertRow(-1);" >> reportindex.js
-echo "var cell = row.insertCell(0);" >> reportindex.js
-echo "cell.innerHTML = \"Fireball Reports\";" >> reportindex.js
-echo "var cell = row.insertCell(1);" >> reportindex.js
-echo "cell.innerHTML = \"Vis Mag\";" >> reportindex.js
-echo "var cell = row.insertCell(2);" >> reportindex.js
-echo "cell.innerHTML = \"Shower\";" >> reportindex.js
-echo "var cell = row.insertCell(3);" >> reportindex.js
-echo "cell.innerHTML = \"Image Link\";" >> reportindex.js
+echo "table.className = \"table table-striped table-bordered table-hover table-condensed w-100\";" >> reportindex.js
+echo "table.setAttribute(\"id\", \"fbtableid\");" >>reportindex.js
 
 if [ -f ./fblist.txt ] ; then 
     cat ./fblist.txt | while read i ; do
@@ -79,9 +69,30 @@ else
         echo "var cell = row.insertCell(0);" >> reportindex.js
         echo "cell.innerHTML = \"Data unavailable\";" >> reportindex.js
 fi 
+echo "var header = table.createTHead();" >> reportindex.js
+echo "var row = header.insertRow(0);" >> reportindex.js
+echo "var cell = row.insertCell(0);" >> reportindex.js
+echo "cell.innerHTML = \"Fireball Reports\";" >> reportindex.js
+echo "var cell = row.insertCell(1);" >> reportindex.js
+echo "cell.innerHTML = \"Vis Mag\";" >> reportindex.js
+echo "var cell = row.insertCell(2);" >> reportindex.js
+echo "cell.innerHTML = \"Shower\";" >> reportindex.js
+echo "var cell = row.insertCell(3);" >> reportindex.js
+echo "cell.innerHTML = \"Image Link\";" >> reportindex.js
+
 echo "var outer_div = document.getElementById(\"summary\");" >> reportindex.js
 echo "outer_div.appendChild(table);" >> reportindex.js
 echo "})" >> reportindex.js
+echo "\$(document).ready(function() {" >> reportindex.js
+# need single quotes here to allow the hash to be printed
+echo '$("#fbtableid").DataTable({' >> reportindex.js
+echo "columnDefs : [" >> reportindex.js
+echo "{ Type : \"numeric\", targets : [2]}" >> reportindex.js
+echo "	]," >> reportindex.js
+echo "order : [[ 1, \"asc\"],[2,\"desc\"]]," >> reportindex.js
+echo "paging: false" >> reportindex.js
+echo "});});" >> reportindex.js
+
 cp $TEMPLATES/fbreportindex.html index.html
 
 logger -s -t createFireballPage "copy to website"

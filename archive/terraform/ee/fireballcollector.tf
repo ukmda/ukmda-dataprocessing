@@ -36,9 +36,9 @@ resource "aws_iam_policy" "ukmon_fbcoll_pol" {
 
 data "template_file" "fbc_pol_templ" {
   template = file("files/policies/fireballcollector-policy.json")
-
   vars = {
-    ecsarn = aws_iam_role.ecstaskrole.arn
+    livearn = aws_s3_bucket.ukmonlive.arn
+    sharedarn = aws_s3_bucket.ukmonshared.arn
   }
 }
 
@@ -56,3 +56,9 @@ resource "aws_iam_policy" "fbc_assumerole_pol" {
     }
   )
 }
+
+resource "aws_iam_user_policy_attachment" "fbatt1" {
+  user = "MarkMcIntyre"
+  policy_arn = aws_iam_policy.fbc_assumerole_pol.arn
+}
+

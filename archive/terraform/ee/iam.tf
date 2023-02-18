@@ -157,91 +157,36 @@ resource "aws_iam_role_policy_attachment" "aws-mps5" {
 
 ##############################################################################
 ##############################################################################
-resource "aws_iam_user" "ukmonarchive" {
-  name = "ukmonarchive"
-}
-
-resource "aws_iam_policy" "userpol1" {
-  name = "CEforUkmonarchive"
-  policy = jsonencode(
-    {
-      Statement = [
-        {
-          Action = [
-            "ce:GetCostAndUsage",
-            "ce:GetDimensionValues"
-          ]
-          Effect   = "Allow"
-          Resource = "*"
-          Sid      = "VisualEditor0"
-        },
-      ]
-      Version = "2012-10-17"
-    }
-  )
-  tags = {
-    "billingtag" = "ukmon"
-  }
-}
-
-resource "aws_iam_user_policy_attachment" "ump1" {
-  user       = aws_iam_user.ukmonarchive.name
-  policy_arn = aws_iam_policy.userpol1.arn
-}
-
-##############################################################################
-# readonly user for GUI toolset
-resource "aws_iam_user" "ukmonreadonly" {
-  name = "ukmonreadonly"
-  tags = {
-    "billingtag" = "ukmon"
-  }
-}
-
-resource "aws_iam_user_policy" "ukmon_ro_pol" {
-  name = "ukmon_ro"
-  user = aws_iam_user.ukmonreadonly.name
-
-  policy = jsonencode(
-    {
-      Version = "2012-10-17"
-      Statement = [
-        {
-          Action = [
-            "s3:ListBucket",
-            "s3:GetObject",
-          ]
-          Effect = "Allow"
-          Resource = [
-            "${aws_s3_bucket.ukmonshared.arn}/*",
-            "${aws_s3_bucket.ukmonshared.arn}",
-          ]
-        }
-      ]
-    }
-  )
-}
-
-resource "aws_iam_access_key" "ukmro_key" {
-  user = aws_iam_user.ukmonreadonly.name
-}
-
-##############################################################################
 # policy applied to all ukmon members to enable uploads 
+data "template_file" "ukmshared_pol_templ" {
+  template = file("files/policies/ukmon-shared.json")
+  vars = {
+    sharedarn = aws_s3_bucket.ukmonshared.arn
+    websitearn = aws_s3_bucket.archsite.arn
+  }
+}
+
 resource "aws_iam_policy" "ukmonsharedpol" {
   name        = "UKMON-shared"
   description = "policy to allow single bucket access"
-  policy      = file("files/policies/ukmon-shared.json")
+  policy      = data.template_file.ukmshared_pol_templ.rendered
   tags = {
     "billingtag" = "ukmon"
   }
 }
 ##############################################################################
 # policy applied to all ukmon members to enable livefeed
+data "template_file" "ukmlive_pol_templ" {
+  template = file("files/policies/ukmonlive.json")
+  vars = {
+    livearn = aws_s3_bucket.ukmonlive.arn
+  }
+}
+
 resource "aws_iam_policy" "ukmonlivepol" {
   name        = "UkmonLive"
   description = "Access to the ukmon-live s3 bucket for upload purposes"
-  policy      = file("files/policies/ukmonlive.json")
+  policy      = data.template_file.ukmlive_pol_templ.rendered
   tags = {
     "billingtag" = "ukmon"
   }

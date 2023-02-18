@@ -4,6 +4,7 @@
 import os
 import sys
 import boto3
+import datetime
 from fileformats import ReadUFOCapXML as ufoc
 
 
@@ -42,6 +43,58 @@ def getLiveJpgs(dtstr, outdir=None, create_txt=False, buck_name=None):
                     createTxtFile(key, outdir)
     else:
         print('no records found')
+
+
+def getFBFiles(patt, outdir):
+    buck_name = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmon-shared')[5:]
+    s3 = boto3.client('s3')
+    print(f'looking for {patt} in {buck_name}')
+    fullpatt = f'fireballs/interesting/{patt}'
+    x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
+    if  x['KeyCount'] > 0:
+        for k in x['Contents']:
+            key = k['Key']
+            _, fname = os.path.split(key)
+            print(f"saving {fname} to {outdir.lower()}")
+            s3.download_file(buck_name, key, os.path.join(outdir, fname))
+    # platepar file
+    _, camid = os.path.split(outdir)
+    fullpatt = f'consolidated/platepars/{camid}'
+    x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
+    if  x['KeyCount'] > 0:
+        for k in x['Contents']:
+            key = k['Key']
+            fname = 'platepar_cmn2010.cal'
+            print(f"saving {fname} to {outdir.lower()}")
+            s3.download_file(buck_name, key, os.path.join(outdir, fname))
+    # config file
+    dtstr = patt[10:25]
+    gotcfg = False
+    fullpatt = f'matches/RMSCorrelate/{camid}/{camid}_{dtstr[:8]}'
+    x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
+    if  x['KeyCount'] > 0:
+        for k in x['Contents']:
+            key = k['Key']
+            fname = '.config'
+            if fname in key:
+                print(f"saving {fname} to {outdir.lower()}")
+                s3.download_file(buck_name, key, os.path.join(outdir, fname))
+                gotcfg = True
+    if gotcfg is False:
+        dt = datetime.datetime.strptime(dtstr, '%Y%m%d_%H%M%S')
+        dtstr = (dt +datetime.timedelta(days = -1)).strftime('%Y%m%d_%H%M%S')
+        fullpatt = f'matches/RMSCorrelate/{camid}/{camid}_{dtstr[:8]}'
+        x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
+        if  x['KeyCount'] > 0:
+            for k in x['Contents']:
+                key = k['Key']
+                fname = '.config'
+                if fname in key:
+                    print(f"saving {fname} to {outdir.lower()}")
+                    s3.download_file(buck_name, key, os.path.join(outdir, fname))
+                    gotcfg = True
+
+    return 
 
 
 def createTxtFile(fname, outdir):

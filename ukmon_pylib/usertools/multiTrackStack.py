@@ -8,7 +8,7 @@ import RMS.ConfigReader as cr
 import argparse
 
 
-def multiTrackStack(camlist, start, end, outdir=None, shwr=None):
+def multiTrackStack(camlist, start, end, outdir=None, shwr=None, scalefactor=None):
     locfld = os.getenv('LOCALFOLDER', default='f:/videos/meteorcam/fireballs')
     datadir, _ = os.path.split(locfld)
     if outdir is None:
@@ -38,7 +38,7 @@ def multiTrackStack(camlist, start, end, outdir=None, shwr=None):
         shwr = [shwr]
 
     trackStack(dir_paths, config, border=5, background_compensation=True, 
-        hide_plot=False, showers=shwr, darkbackground=False, out_dir=outdir)
+        hide_plot=False, showers=shwr, darkbackground=False, out_dir=outdir, scalefactor=scalefactor)
 
     return
 
@@ -58,6 +58,9 @@ if __name__ == '__main__':
     arg_parser.add_argument('-o', '--outdir', metavar='OUTDIR', type=str,
         help="Where to save the output file.")
 
+    arg_parser.add_argument('-f', '--scalefactor', metavar='SCALEFACTOR', type=int,
+        help="Scale factor to apply when creating canvas.")
+
     cml_args = arg_parser.parse_args()
     cams = cml_args.cams[0]
     if ',' in cams:
@@ -75,9 +78,15 @@ if __name__ == '__main__':
     shwr = None
     if cml_args.shower:
         shwr = cml_args.shower
+        if shwr == 'ALL': # special case for ALLs
+            shwr = None
     
     outdir = '.'
     if cml_args.outdir:
         outdir = cml_args.outdir
 
-    multiTrackStack(cams, start, end, outdir, shwr)
+    scalefactor = 1
+    if cml_args.scalefactor:
+        scalefactor = cml_args.scalefactor
+
+    multiTrackStack(cams, start, end, outdir, shwr, scalefactor)

@@ -10,7 +10,7 @@ resource "aws_instance" "ukmonhelper" {
     "project"    = "UKMonHelper"
   }
 }
-
+/*
 resource "aws_instance" "CalcEngine4ARM" {
   #ami                  = "ami-05c6a3a1350a69209"
   ami                  = "ami-0e15ed7362de6ef5b" # this is my AMI
@@ -33,6 +33,7 @@ resource "aws_instance" "CalcEngine4ARM" {
     volume_size = 50
   }
 }
+*/
 /*
 resource "aws_instance" "x16coreAWS" {
   ami                  = "ami-03ac5a9b225e99b02"

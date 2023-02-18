@@ -16,8 +16,31 @@ resource "aws_s3_bucket_lifecycle_configuration" "bkp_lifecycle_rule" {
       storage_class = "STANDARD_IA"
     }
   }
+  rule {
+    id     = "PurgeOldVersions"
+    status = "Enabled"
+
+    expiration {
+      days                         = 0
+      expired_object_delete_marker = true
+    }
+
+    filter {
+    }
+
+    noncurrent_version_expiration {
+      newer_noncurrent_versions = "1"
+      noncurrent_days           = 30
+    }
+  }
 }
 
+resource "aws_s3_bucket_versioning" "backup_versioning" {
+  bucket = aws_s3_bucket.ukmon-shared-backup.id
+  versioning_configuration {
+    status = "Suspended"
+  }
+}
 resource "aws_s3_bucket_logging" "ukmslogging" {
   bucket = aws_s3_bucket.ukmon-shared-backup.id
 
@@ -25,6 +48,7 @@ resource "aws_s3_bucket_logging" "ukmslogging" {
   target_prefix = "ukmon-shared-backup/"
 }
 
+########################################################################
 resource "aws_s3_bucket" "mjmm-ukmonarchive-co-uk" {
   bucket = "mjmm-ukmonarchive.co.uk"
   tags = {
@@ -32,21 +56,21 @@ resource "aws_s3_bucket" "mjmm-ukmonarchive-co-uk" {
   }
 }
 
-resource "aws_s3_bucket_acl" "mjmm-ukmon_acl"{
+resource "aws_s3_bucket_acl" "mjmm-ukmon_acl" {
   bucket = "mjmm-ukmonarchive.co.uk"
   acl    = "public-read"
 }
 
-resource "aws_s3_bucket_logging" "mjmm_ukmon_logging"{
-  bucket = "mjmm-ukmonarchive.co.uk"
+resource "aws_s3_bucket_logging" "mjmm_ukmon_logging" {
+  bucket        = "mjmm-ukmonarchive.co.uk"
   target_bucket = "mjmmauditing"
   target_prefix = "ukmon-archive-logs/"
 }
 
 resource "aws_s3_bucket_website_configuration" "mjmm_ukmon_website" {
   bucket = "mjmm-ukmonarchive.co.uk"
-  error_document { key = "error.html"}
-  index_document { suffix = "index.html"}
+  error_document { key = "error.html" }
+  index_document { suffix = "index.html" }
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "mjmm_ukmon_encryption" {

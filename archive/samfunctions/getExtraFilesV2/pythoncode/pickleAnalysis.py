@@ -17,6 +17,7 @@ from wmpl.Utils.SolarLongitude import date2JD
 from wmpl.Utils.TrajConversions import jd2Date    
 from wmpl.Utils.Physics import calcMass
 from ShowerAssociation import associateShower
+from wmpl.Utils.Earth import greatCircleDistance
 from wmpl.Config import config
 
 
@@ -327,33 +328,29 @@ def draw3Dmap(traj, outdir):
     alts = []
     lens = []
     # Go through observation from all stations
-    #print('loading observations')
     for obs in traj.observations:
         # Go through all observed points
         for i in range(obs.kmeas):
-            lats.append(np.degrees(obs.model_lat[i]))
-            lons.append(np.degrees(obs.model_lon[i]))
+            lats.append(round(np.degrees(obs.model_lat[i]),4))
+            lons.append(round(np.degrees(obs.model_lon[i]),4))
             alts.append(obs.model_ht[i])
             lens.append(obs.time_data[i])
-    #print('creating DF')
     df = pd.DataFrame({"lats": lats, "lons": lons, "alts": alts, "times": lens})
     df = df.sort_values(by=['times', 'lats'])
     dtstr = jd2Date(traj.jdt_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
-    #print('creating csv')
     csvname = os.path.join(outdir, dtstr + '_track.csv')
     df.to_csv(csvname, index=False)
-    #print('csv saved')
+    #print('plotting ')
     df = df.drop(columns=['times'])
-    #print('creating figure')
     fig = plt.figure()
-    ax = Axes3D(fig)
-    #print('made figure')
-    _ = ax.plot(df.lats, df.lons, df.alts, linewidth=2)
-    jpgname = os.path.join(outdir, dtstr[:15].replace('-','_') + '_3dtrack.png')
-    #print(f'saving figure {jpgname}')
-    plt.savefig(jpgname, dpi=200)
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot(df.lats, df.lons, df.alts, linewidth=2)
+    ax.set_xlabel('Latitude')
+    ax.set_ylabel('Longitude')
+    ax.set_zlabel('Altitude')
+    f3dname = os.path.join(outdir, dtstr[:15].replace('-','_') + '_3dtrack.png')
+    plt.savefig(f3dname, dpi=200)
     plt.close()
-    #print('done')
     return
 
 
@@ -481,6 +478,14 @@ def createAdditionalOutput(traj, outdir):
             f.write('------------\n')
             f.write('start {:.2f}&deg; {:.2f}&deg; {:.2f}km\n'.format(np.degrees(traj.rbeg_lon), np.degrees(traj.rbeg_lat), traj.rbeg_ele / 1000))
             f.write('end   {:.2f}&deg; {:.2f}&deg; {:.2f}km\n\n'.format(np.degrees(traj.rend_lon), np.degrees(traj.rend_lat), traj.rend_ele / 1000))
+            tracklen = greatCircleDistance(traj.rbeg_lat, traj.rbeg_lon, traj.rend_lat, traj.rend_lon)*1000
+            vertdist = traj.rbeg_ele - traj.rend_ele
+            if abs(tracklen) < 1:
+                aoe = 90
+            else:
+                aoe = np.degrees(np.arctan(vertdist/tracklen))
+            f.write(f'approx track length {tracklen/1000:.1f} km\n')
+            f.write(f'approx angle of entry {aoe:.0f}&deg; from horizontal\n\n')
             f.write('Orbit Details\n')
             f.write('-------------\n')
             if orb.L_g is not None:

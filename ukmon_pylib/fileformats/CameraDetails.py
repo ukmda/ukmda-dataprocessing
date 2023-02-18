@@ -9,9 +9,7 @@ import json
 
 # defines the data content of a UFOAnalyser CSV file
 CameraDetails = numpy.dtype([('Site', 'S32'), ('CamID', 'S32'), ('LID', 'S16'),
-    ('SID', 'S8'), ('Camera', 'S16'), ('Lens', 'S16'), ('xh', 'i4'),
-    ('yh', 'i4'), ('Longi', 'f8'), ('Lati', 'f8'), ('Alti', 'f8'), 
-    ('camtyp', 'i4'), ('dummycode','S6'),('active','i4')])
+    ('SID', 'S8'), ('camtyp', 'i4'), ('dummycode','S6'),('active','i4')])
 
 
 class SiteInfo:
@@ -52,11 +50,8 @@ class SiteInfo:
     def GetSiteLocation(self, camname, activeonly=True):
         c = self.getCameraOffset(camname, activeonly)
         if c == -1:
-            return 0,0,0,0,'unknown'
+            return 'unknown'
 
-        longi = self.camdets[c]['Longi']
-        lati = self.camdets[c]['Lati']
-        alti = self.camdets[c]['Alti']
         tz = 0  # camdets[c]['tz']
         site = self.camdets[c]['Site'].decode('utf-8').strip()
         camid = self.camdets[c]['CamID'].decode('utf-8').strip()
@@ -115,16 +110,16 @@ class SiteInfo:
         for row in self.camdets:
             if isactive is True and row['active'] != 1: 
                 continue
-            if row[0][:1] != '#':
+            if row['Site'][:1] != '#':
                 # print(row)
-                if row[1] == '':
-                    fldrs.append(row[0].decode('utf-8'))
+                if row['CamID'] == '':
+                    fldrs.append(row['Site'].decode('utf-8'))
                 else:
-                    fldrs.append(row[0].decode('utf-8') + '/' + row[1].decode('utf-8'))
-                if int(row[11]) == 1:
-                    cams.append(row[2].decode('utf-8') + '_' + row[3].decode('utf-8'))
+                    fldrs.append(row['Site'].decode('utf-8') + '/' + row['CamID'].decode('utf-8'))
+                if int(row['camtyp']) == 1:
+                    cams.append(row['LID'].decode('utf-8') + '_' + row['SID'].decode('utf-8'))
                 else:
-                    cams.append(row[2].decode('utf-8'))
+                    cams.append(row['LID'].decode('utf-8'))
         return cams, fldrs
 
     def getAllCamsStr(self, onlyActive=False):
@@ -234,7 +229,7 @@ def updateCamLocDirFovDB():
         json.dump(camdb, outf, indent=4)
 
 
-def main(sitename):
+def test_caminfo(sitename):
     ci = SiteInfo()
     spls = sitename.split('_')
     sid = spls[0]
@@ -244,9 +239,9 @@ def main(sitename):
         lid = spls[1]
     print(ci.getDummyCode(sid, lid))
 
-    #lati, longi, alti, tz, site = ci.GetSiteLocation(site.encode('utf-8'))
-    #print(site, lati, longi, alti, tz)
+    #tz, site = ci.GetSiteLocation(site.encode('utf-8'))
+    #print(site, tz)
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    test_caminfo(sys.argv[1])

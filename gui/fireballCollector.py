@@ -3,12 +3,16 @@
 #
 import os
 import sys
-import boto3
 import argparse
 import logging
 import logging.handlers
 import datetime
 import configparser
+import shutil
+
+import boto3
+import paramiko
+from scp import SCPClient
 
 import tkinter as tk
 import tkinter.filedialog as tkFileDialog
@@ -95,9 +99,8 @@ class ConstrainedEntry(StyledEntry):
 
         return True
 
-
 class fbCollector(Frame):
-    def __init__(self, parent, config_file, patt=None):
+    def __init__(self, parent, patt=None):
         Frame.__init__(self, parent, bg = global_bg)
         parent.configure(bg = global_bg)  # Set backgound color
         parent.grid_columnconfigure(0, weight=1)
@@ -106,14 +109,27 @@ class fbCollector(Frame):
         self.grid(sticky="NSEW")  # Expand frame to all directions
         self.parent = parent
 
-        self.fb_dir, self.upload_bucket, self.upload_folder, self.live_bucket = self.readConfig()
+        self.fb_dir = ''
+        self.upload_bucket = ''
+        self.upload_folder = ''
+        self.live_bucket = ''
+        self.gmn_key = ''
+        self.gmn_user = ''
+        self.gmn_server = ''
+        self.wmpl_loc = ''
+        self.wmpl_env= ''
+        self.rms_loc = ''
+        self.rms_env= ''
+        self.selected={}
+
+        self.readConfig()
 
         self.patt = patt
         if patt is None:
             self.dir_path = None
         else:
             self.dir_path = os.path.join(self.fb_dir, patt)
-        log.info(f"Fireball folder is {self.dir_path}")
+        log.info(f"Fireball folder is {self.fb_dir}")
 
         self.initUI()
 
@@ -127,7 +143,23 @@ class fbCollector(Frame):
         localcfg = configparser.ConfigParser()
         localcfg.read(config_file)
         print(f"Fireball folder is {localcfg['Fireballs']['basedir']}")
-        return localcfg['Fireballs']['basedir'], localcfg['Fireballs']['uploadbucket'], localcfg['Fireballs']['uploadfolder'], localcfg['Fireballs']['livebucket']
+        self.fb_dir = localcfg['Fireballs']['basedir']
+        self.upload_bucket = localcfg['Fireballs']['uploadbucket']
+        self.upload_folder = localcfg['Fireballs']['uploadfolder']
+        self.live_bucket = localcfg['Fireballs']['livebucket']
+
+        try: 
+            self.gmn_key = localcfg['Fireballs']['gmnkey']
+            self.gmn_user = localcfg['Fireballs']['gmnuser']
+            self.gmn_server = localcfg['Fireballs']['gmnserver']
+        except:
+            pass
+
+        self.wmpl_loc = localcfg['Fireballs']['wmpl_loc']
+        self.wmpl_env= localcfg['Fireballs']['wmpl_env']
+        self.rms_loc = localcfg['Fireballs']['rms_loc']
+        self.rms_env= localcfg['Fireballs']['rms_env']
+        return
 
     def quitApplication(self):
         print('quitting')
@@ -177,20 +209,25 @@ class fbCollector(Frame):
 
         # File menu
         fileMenu = Menu(self.menuBar, tearoff=0)
+        fileMenu.add_command(label="Load Folder", command=self.loadFolder)
+        fileMenu.add_command(label="Delete Folder", command=self.delFolder)
+        if self.gmn_key != '' : 
+            fileMenu.add_command(label="Fetch from GMN", command=self.getGMNData)
+        fileMenu.add_command(label="Fetch from UKMON", command=self.getUKMData)
         fileMenu.add_command(label="Exit", command=self.quitApplication)
         self.menuBar.add_cascade(label="File", underline=0, menu=fileMenu)
 
         # buttons
         self.save_panel = LabelFrame(self, text=' Image Selection ')
         self.save_panel.grid(row = 1, columnspan = 2, sticky='WE')
-        save_bmp = StyledButton(self.save_panel, text="Download", width = 8, command = lambda: self.get_data())
-        save_bmp.grid(row = 1, column = 1)
 
         self.newpatt = StringVar()
         self.newpatt.set(self.patt)
 
         self.patt_entry = StyledEntry(self.save_panel, textvariable = self.newpatt, width = 20)
-        self.patt_entry.grid(row = 1, column = 2, columnspan = 2, sticky = "W")
+        self.patt_entry.grid(row = 1, column = 1, columnspan = 2, sticky = "W")
+        save_bmp = StyledButton(self.save_panel, text="Get Images", width = 8, command = lambda: self.get_data())
+        save_bmp.grid(row = 1, column = 3)
 
         save_bmp = StyledButton(self.save_panel, text="Select", width = 8, command = lambda: self.save_image())
         save_bmp.grid(row = 1, column = 4)
@@ -228,6 +265,14 @@ class fbCollector(Frame):
     def get_bin_list(self):
         """ Get a list of image files in a given directory.
         """
+        if self.dir_path is None:
+            dirname = tkFileDialog.askdirectory(parent=root,initialdir=self.fb_dir,
+                title='Please select a directory')    
+            _, thispatt = os.path.split(dirname)
+            self.dir_path = os.path.join(self.fb_dir, thispatt)
+            self.patt = thispatt
+            self.newpatt.set(self.patt)
+
         bin_list = [line for line in os.listdir(self.dir_path) if self.correct_datafile_name(line)]
         return bin_list
 
@@ -237,6 +282,30 @@ class fbCollector(Frame):
         self.listbox.delete(0, END)
         for line in sorted(bin_list):
             self.listbox.insert(END, line)
+            if line not in self.selected:
+                self.selected[line] = (0, '')
+            print(line, self.selected[line])
+            if self.selected[line][0] == 1:
+                self.listbox.itemconfig(END, fg = 'green')
+    
+    def loadFolder(self):
+        self.dir_path = None
+        bin_list = self.get_bin_list()
+        for b in bin_list:
+            self.selected[b] = (0, '')
+        self.update_listbox(bin_list)
+
+    def delFolder(self):
+        noimgdata = img.open(noimg_file).resize((640,360))
+        noimage = ImageTk.PhotoImage(noimgdata)
+        self.imagelabel.configure(image = noimage)
+        self.imagelabel.image = noimage
+        try:
+            shutil.rmtree(self.dir_path)
+            self.dir_path = self.fb_dir
+        except Exception as e:
+            print(f'unable to remove {self.dir_path}')
+            print(e)
 
     def correct_datafile_name(self, line):
         if '.jpg' in line and 'noimage' not in line:
@@ -253,8 +322,8 @@ class fbCollector(Frame):
             return
         log.info(f'removing {current_image}')
         os.remove(os.path.join(self.dir_path, current_image))
+        self.selected[current_image] = (0,'')
         self.update_listbox(self.get_bin_list())
-
 
     def update_image(self, thing):
         """ When selected, load a new image
@@ -265,10 +334,10 @@ class fbCollector(Frame):
         except:
             return 0
         
-        imgdata = img.open(self.current_image).resize((640,360))
-        thisimage = ImageTk.PhotoImage(imgdata)
-        self.imagelabel.configure(image = thisimage)
-        self.imagelabel.image = thisimage
+        with img.open(self.current_image).resize((640,360)) as imgdata:
+            thisimage = ImageTk.PhotoImage(imgdata)
+            self.imagelabel.configure(image = thisimage)
+            self.imagelabel.image = thisimage
 
         self.timestamp_label.configure(text = os.path.split(self.current_image)[1])
         return 
@@ -279,22 +348,87 @@ class fbCollector(Frame):
         current_image = self.listbox.get(ACTIVE)
         if current_image == '':
             return 
-        print(f'marking {current_image}')
+        log.info(f'marking {current_image}')
         srcfile = getLiveImages.createTxtFile(current_image, self.dir_path)
         _, targfile = os.path.split(srcfile)
         s3 = boto3.client('s3')
         s3.upload_file(srcfile, self.upload_bucket, f'{self.upload_folder}/{targfile}')
         cur_index = int(self.listbox.curselection()[0])
         self.listbox.itemconfig(cur_index, fg = 'green')
-
+        self.selected[current_image] = (1, srcfile)
 
     def get_data(self):
         thispatt = self.newpatt.get()
         self.patt = thispatt
         self.dir_path = os.path.join(self.fb_dir, thispatt)
-        print(f'getting data matching {thispatt}')
+        log.info(f'getting data matching {thispatt}')
         getLiveImages.getLiveJpgs(thispatt, outdir=self.dir_path, buck_name=self.live_bucket)
         self.update_listbox(self.get_bin_list())
+
+    def getUKMData(self):
+        for s in self.selected:
+            if self.selected[s][0]==1:
+                txtf = self.selected[s][1]
+                camid,_ = os.path.splitext(txtf)
+                outdir = os.path.join(self.dir_path, camid.upper())
+                os.makedirs(outdir, exist_ok=True)
+                for li in open(txtf, 'r').readlines():
+                   getLiveImages.getFBFiles(li.strip(), outdir) 
+        tkMessageBox.showinfo("Data Collected", 'data collected from UKMON')
+        return 
+    
+    def getGMNData(self):
+        camlist = [line for line in os.listdir(self.dir_path) if self.correct_datafile_name(line)]
+        dts=[]
+        camids=[]
+        for cam in camlist:
+            camid,_ = os.path.splitext(cam)
+            spls = camid.split('_')
+            if camid[:2] == 'FF':
+                camids.append(spls[1])
+                dts.append(camid[10:25])
+            else:
+                camids.append(spls[-1][:6])
+                dts.append(camid[1:16])
+        dts.sort()
+        dtstr = f'{dts[0]}.000000'
+        stationlist = ','.join(map(str, camids))
+        server=self.gmn_server
+        user=self.gmn_user
+        log.info(f'getting data from GMN')
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(self.gmn_key))
+        c = paramiko.SSHClient()
+        log.info(f'trying {user}@{server} with {self.gmn_key}')
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = user, pkey = k)
+        command = f'source ~/anaconda3/etc/profile.d/conda.sh && conda activate wmpl && python scripts/extract_fireball.py {dtstr} {stationlist}'
+        log.info(f'running {command}')
+        _, stdout, stderr = c.exec_command(command, timeout=900)
+        for line in iter(stdout.readline, ""):
+            print(line, end="")
+        for line in iter(stderr.readline, ""):
+            print(line, end="")
+        scpcli = SCPClient(c.get_transport())
+        print('done, collecting output')
+        indir = os.path.join(f'event_extract/{dtstr}/')
+        scpcli.get(indir, self.dir_path, recursive=True)
+        command = f'rm -Rf event_extract/{dtstr}'
+        log.info(f'running {command}')
+        _, stdout, stderr = c.exec_command(command, timeout=120)
+        for line in iter(stdout.readline, ""):
+            print(line, end="")
+        for line in iter(stderr.readline, ""):
+            print(line, end="")
+        dirs = os.listdir(os.path.join(self.dir_path, dtstr))
+        for d in dirs:
+            srcdir = os.path.join(self.dir_path, dtstr, d)
+            targ =  os.path.join(self.dir_path, d)
+            os.makedirs(targ, exist_ok=True)
+            for f in os.listdir(srcdir):
+                shutil.copy(os.path.join(srcdir, f), targ)
+        shutil.rmtree(os.path.join(self.dir_path, dtstr))
+        tkMessageBox.showinfo("Data Collected", 'data collected from GMN')
+        return
 
 
 if __name__ == '__main__':
@@ -332,7 +466,10 @@ if __name__ == '__main__':
     root = tk.Tk()
     root.geometry('+0+0')
     targdir = args.datepatt
+    print('patt is', targdir)
 
-    app = fbCollector(root, config_file, patt=targdir)
+    app = fbCollector(root, patt=targdir)
+    root.iconbitmap(os.path.join(dir_,'ukmon.ico'))
     root.protocol('WM_DELETE_WINDOW', app.quitApplication)
+
     root.mainloop()

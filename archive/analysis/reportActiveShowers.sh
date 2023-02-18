@@ -31,4 +31,7 @@ python -m utils.getActiveShowers -m | while read shwr
 do 
     aws s3 sync $DATADIR/reports/${yr}/$shwr $WEBSITEBUCKET/reports/${yr}/${shwr} --quiet --profile ukmonshared
 done
+
+python -m analysis.summaryAnalysis ${yr}
+aws s3 sync $DATADIR/reports/${yr}/showers $WEBSITEBUCKET/reports/${yr}/showers --profile ukmonshared
 logger -s -t reportActiveShowers "finished"

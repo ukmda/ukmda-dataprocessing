@@ -75,6 +75,7 @@ resource "aws_internet_gateway" "main_igw" {
 }
 
 # ENI attached to the spare big server
+/*
 resource "aws_network_interface" "mainif" {
   subnet_id   = aws_subnet.subnet2.id
   private_ips = ["172.31.34.152"]
@@ -84,7 +85,7 @@ resource "aws_network_interface" "mainif" {
     "project"    = "UKMonHelperBig"
   }
 }
-
+*/
 # elastic IP attached to the ukmonhelper server
 resource "aws_eip" "ukmonhelper" {
   instance = aws_instance.ukmonhelper.id
@@ -111,6 +112,7 @@ resource "aws_network_interface" "ukmon_if" {
 }
 
 # elastic network interface attached to the calc server
+/*
 resource "aws_network_interface" "calcserver_if" {
   subnet_id                 = aws_subnet.ec2Subnet.id
   description               = "Primary network interface"
@@ -126,7 +128,7 @@ resource "aws_network_interface" "calcserver_if" {
     device_index = 0
   }
 }
-
+*/
 resource "aws_vpc_peering_connection_accepter" "eetommpeering" {
   vpc_peering_connection_id = "pcx-04bcbf8428c045637"
   tags = {
