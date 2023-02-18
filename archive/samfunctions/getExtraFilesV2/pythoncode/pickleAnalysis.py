@@ -331,8 +331,8 @@ def draw3Dmap(traj, outdir):
     for obs in traj.observations:
         # Go through all observed points
         for i in range(obs.kmeas):
-            lats.append(np.degrees(obs.model_lat[i]))
-            lons.append(np.degrees(obs.model_lon[i]))
+            lats.append(round(np.degrees(obs.model_lat[i]),4))
+            lons.append(round(np.degrees(obs.model_lon[i]),4))
             alts.append(obs.model_ht[i])
             lens.append(obs.time_data[i])
     df = pd.DataFrame({"lats": lats, "lons": lons, "alts": alts, "times": lens})
@@ -340,13 +340,16 @@ def draw3Dmap(traj, outdir):
     dtstr = jd2Date(traj.jdt_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
     csvname = os.path.join(outdir, dtstr + '_track.csv')
     df.to_csv(csvname, index=False)
-    print(f'plotting {len(df)} points')
+    #print('plotting ')
     df = df.drop(columns=['times'])
     fig = plt.figure()
-    ax = Axes3D(fig)
-    _ = ax.plot(df.lats, df.lons, df.alts, linewidth=2)
-    jpgname = os.path.join(outdir, dtstr[:15].replace('-','_') + '_3dtrack.png')
-    plt.savefig(jpgname, dpi=200)
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot(df.lats, df.lons, df.alts, linewidth=2)
+    ax.set_xlabel('Latitude')
+    ax.set_ylabel('Longitude')
+    ax.set_zlabel('Altitude')
+    f3dname = os.path.join(outdir, dtstr[:15].replace('-','_') + '_3dtrack.png')
+    plt.savefig(f3dname, dpi=200)
     plt.close()
     return
 
