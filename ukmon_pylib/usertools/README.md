@@ -20,6 +20,8 @@ Miscellany
 * plotTrack - plot various graphs from a CSV file of x,y,h,t
 * plotCAMSOrbits - plot orbits from CAMS data 
 * plotRMSOrbits - plot orbits from a bunch of RMS trajectories
+* toKML - converts a pickle file or a CSV of x,y,h,t data into a 3-D KML viewable on Google Maps
+
 
 
 Probably Redundant
