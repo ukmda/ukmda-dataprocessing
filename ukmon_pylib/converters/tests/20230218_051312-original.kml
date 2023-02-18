@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
+    <Document id="1">
+        <name>20230218_051312.kml</name>
+        <Placemark id="3">
+            <name/>
+            <Point id="2">
+                <coordinates>-2.8315077712629773,49.72193122686232,105409.80607584032</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+        <Placemark id="5">
+            <name/>
+            <Point id="4">
+                <coordinates>-2.8312090862758623,49.72216523872238,105327.39922788333</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+        <Placemark id="7">
+            <name/>
+            <Point id="6">
+                <coordinates>-2.8254729358453687,49.72647372694249,103810.52087442517</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+        <Placemark id="9">
+            <name/>
+            <Point id="8">
+                <coordinates>-2.823797655778435,49.72771530544772,103373.52599400483</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+        <Placemark id="11">
+            <name/>
+            <Point id="10">
+                <coordinates>-2.817888214091738,49.732149761665845,101813.18229362289</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+        <Placemark id="13">
+            <name/>
+            <Point id="12">
+                <coordinates>-2.816904586014403,49.732883978830806,101554.90289951747</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+        <Placemark id="15">
+            <name/>
+            <Point id="14">
+                <coordinates>-2.810605718999625,49.73760281644861,99895.3846482729</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+        <Placemark id="17">
+            <name/>
+            <Point id="16">
+                <coordinates>-2.8106286817895807,49.73759954413936,99896.52998654498</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+        <Placemark id="19">
+            <name/>
+            <Point id="18">
+                <coordinates>-2.8044263229891158,49.74224700661367,98262.88120336653</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+        <Placemark id="21">
+            <name/>
+            <Point id="20">
+                <coordinates>-2.803183636278959,49.74316919166439,97938.81555085885</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+        <Placemark id="23">
+            <name/>
+            <Point id="22">
+                <coordinates>-2.797098278937824,49.74773035191238,96336.39458665808</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+        <Placemark id="25">
+            <name/>
+            <Point id="24">
+                <coordinates>-2.7966321971995285,49.748083483516,96212.36109837548</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+        <Placemark id="27">
+            <name/>
+            <Point id="26">
+                <coordinates>-2.790370837408261,49.752772651173125,94565.794945245</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+        <Placemark id="29">
+            <name/>
+            <Point id="28">
+                <coordinates>-2.789268187270295,49.75359055708333,94278.67877778554</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+        <Placemark id="31">
+            <name/>
+            <Point id="30">
+                <coordinates>-2.783326825969027,49.758044991260874,92715.38107570173</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+        <Placemark id="33">
+            <name/>
+            <Point id="32">
+                <coordinates>-2.782957298342808,49.75832636558993,92616.65167962138</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+        <Placemark id="35">
+            <name/>
+            <Point id="34">
+                <coordinates>-2.7773512552367947,49.762534956675196,91140.3103359156</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+        <Placemark id="37">
+            <name/>
+            <Point id="36">
+                <coordinates>-2.7765745522245884,49.76311327260202,90937.49486915409</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+        <Placemark id="39">
+            <name/>
+            <Point id="38">
+                <coordinates>-2.7706761019015858,49.76753492107404,89387.18081597166</coordinates>
+                <extrude>1</extrude>
+                <altitudeMode>absolute</altitudeMode>
+            </Point>
+        </Placemark>
+    </Document>
+</kml>
