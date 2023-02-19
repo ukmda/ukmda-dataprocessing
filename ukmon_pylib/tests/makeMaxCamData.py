@@ -30,10 +30,11 @@ def gatherData(camlist, ymd, outdir, patt):
     for camid in camlist:
         if os.path.isdir(os.path.join(outdir, camid)):
             dirs = os.listdir(os.path.join(outdir, camid))
-            fils = os.listdir(os.path.join(outdir, camid, dirs[0]))
-            ftpfile = [f for f in fils if 'FTP' in f and 'old' not in f and 'new' not in f]
-            localftpfile = os.path.join(outdir, camid, dirs[0], ftpfile[0])
-            erdv.filterFTPforSpecificTime(localftpfile, patt)
+            if 'txt' not in dirs[0]:
+                fils = os.listdir(os.path.join(outdir, camid, dirs[0]))
+                ftpfile = [f for f in fils if 'FTP' in f and 'old' not in f and 'new' not in f]
+                localftpfile = os.path.join(outdir, camid, dirs[0], ftpfile[0])
+                erdv.filterFTPforSpecificTime(localftpfile, patt)
 
 
 if __name__ == '__main__':
