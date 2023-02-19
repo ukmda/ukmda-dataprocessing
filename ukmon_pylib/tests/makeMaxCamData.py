@@ -1,7 +1,8 @@
 # powershell script to get test data for the Max Cam process
 
 import os
-import sys
+import datetime
+import json
 import boto3
 import fileformats.extractRawDataOneEvent as erdv
 
@@ -36,9 +37,16 @@ def gatherData(camlist, ymd, outdir, patt):
 
 
 if __name__ == '__main__':
-    camlist = ['UK000S','UK0006','UK0035','UK003C','UK003D','UK0069', 
-            'UK006S','UK0070','UK007A','UK007H','UK007L','UK007Q']
-    dtstr = '20230112'
-    patt = '20230113_021451'
+    # get datafile with
+    # curl "https://api.ukmeteornetwork.co.uk/matches?reqtyp=detail&reqval=20230219_040224.504_UK" > .\MaxCams\19stationmatch.txt
+
+    js = json.load(open('MaxCams/19stationmatch.txt', 'r'))
+    camlist=js['stations'].split(';')
+    patt = js['_localtime'][1:]
+    if int(js['_h_ut']) < 12:
+        adjdate = datetime.datetime.strptime(patt[:8], '%Y%m%d') +datetime.timedelta(days =-1)
+        dtstr = adjdate.strftime('%Y%m%d')
+    else:
+        dtstr = patt[:8]
 
     gatherData(camlist, dtstr, 'MaxCams', patt)
