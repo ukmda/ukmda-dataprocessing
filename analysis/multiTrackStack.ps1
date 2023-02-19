@@ -1,4 +1,4 @@
-param ($cams, $dates, $shwrs="ALL", $outdir="c:/temp", $scalefactor=1)
+param ($cams, $dates, $shwrs="ALL", $outdir="c:/temp", $scalefactor=3, $constellations=1)
 
 # multi night multi camera trackstack
 
@@ -11,10 +11,14 @@ $PYLIB=$ini['pylib']['pylib']
 $RMSLOC=$ini['rms']['rms_loc']
 conda activate $ini['rms']['rms_env']
 $env:PYTHONPATH="$PYLIB;$RMSLOC"
-
-push-Location $ini['rms']['rms_loc']
-
-python -m usertools.multiTrackStack $cams $dates -s $shwrs -o $outdir -f $scalefactor
 Pop-Location
 
+$conflag=""
+if ($constellations -eq 1){
+    $conflag="--constellations"
+}
 
+push-Location $ini['rms']['rms_loc']
+Write-Output "$cams $dates $shwrs $outdir $scalefactor $conflag"
+python -m usertools.multiTrackStack $cams $dates -s $shwrs -o $outdir -f $scalefactor $conflag
+pop-location
