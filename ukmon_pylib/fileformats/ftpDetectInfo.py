@@ -16,7 +16,7 @@ from wmpl.Utils.Math import angleBetweenSphericalCoords
 
 def writeNewFTPFile(srcname, metlist):
     outdir, fname = os.path.split(srcname)
-    newname = os.path.join(outdir, f'old_{fname}')
+    newname = os.path.join(outdir, f'{fname}.old')
     try:
         os.rename(srcname, newname)
     except:
@@ -37,6 +37,7 @@ def writeNewFTPFile(srcname, metlist):
                 np.degrees(met.ra_data), np.degrees(met.dec_data), 
                 np.degrees(met.azim_data), np.degrees(met.elev_data),
                 None, met.mag_data, False, met.x_data, met.y_data, met.ff_name)
+    return srcname
 
 
 def writeFTPHeader(ftpf, metcount, fldr, ufo=True):
