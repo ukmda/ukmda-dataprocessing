@@ -27,14 +27,15 @@ def gatherData(camlist, ymd, outdir, patt):
                 cfgname = os.path.join(outdir, camid, fldr, localf)
                 s3.meta.client.download_file(s3bucket, obj.key, cfgname)
 
-    for camid in camlist:
-        if os.path.isdir(os.path.join(outdir, camid)):
-            dirs = os.listdir(os.path.join(outdir, camid))
-            if 'txt' not in dirs[0]:
-                fils = os.listdir(os.path.join(outdir, camid, dirs[0]))
-                ftpfile = [f for f in fils if 'FTP' in f and 'old' not in f and 'new' not in f]
-                localftpfile = os.path.join(outdir, camid, dirs[0], ftpfile[0])
-                erdv.filterFTPforSpecificTime(localftpfile, patt)
+    if patt is not None:
+        for camid in camlist:
+            if os.path.isdir(os.path.join(outdir, camid)):
+                dirs = os.listdir(os.path.join(outdir, camid))
+                if 'txt' not in dirs[0]:
+                    fils = os.listdir(os.path.join(outdir, camid, dirs[0]))
+                    ftpfile = [f for f in fils if 'FTP' in f and 'old' not in f and 'new' not in f]
+                    localftpfile = os.path.join(outdir, camid, dirs[0], ftpfile[0])
+                    erdv.filterFTPforSpecificTime(localftpfile, patt)
 
 
 if __name__ == '__main__':
@@ -50,4 +51,5 @@ if __name__ == '__main__':
     else:
         dtstr = patt[:8]
 
+    patt = None
     gatherData(camlist, dtstr, 'MaxCams', patt)
