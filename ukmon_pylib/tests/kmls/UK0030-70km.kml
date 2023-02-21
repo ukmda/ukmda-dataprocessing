@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='UTF-8'?><kml xmlns='http://earth.google.com/kml/2.1'><Folder><name>UK0030</name><open>1</open><Placemark id='UK0030'>
+                 <Style id='camera'>
+                  <LineStyle>
+                <width>1.5</width>
+                  </LineStyle>
+                  <PolyStyle>
+                <color>40000800</color>
+                  </PolyStyle>
+                </Style>
+                <styleUrl>#camera</styleUrl>
+<name>UK0030</name>
+                <description>Area height: 70 km
+
+    </description>
+    
+    <MultiGeometry>    <Polygon>
+        <extrude>0</extrude>
+        <altitudeMode>absolute</altitudeMode>
+        <outerBoundaryIs>
+            <LinearRing>
+                <coordinates>
+                    -4.112946,52.632645,70003
+                    -4.293101,53.081899,70006
+                    -3.582797,53.464754,70009
+                    -2.744153,54.204544,70017
+                    -2.305709,54.821655,70025
+                    -1.734469,54.288576,70018
+                    -1.357866,53.804910,70012
+                    -1.284620,53.227583,70007
+                    -0.585591,53.218101,70007
+                    0.075823,53.069980,70006
+                    1.226618,52.969272,70005
+                    -1.253722,51.823894,70000
+                    -1.458419,51.763006,70000
+                    -1.937984,51.710678,70000
+                    -2.324157,51.701582,70000
+                    -2.435099,51.764720,70000
+                    -2.591913,51.842251,70000
+                    -2.745284,51.906285,70000
+                    -2.900951,51.960849,70000
+                    -3.064485,52.008237,70001
+                    -3.242642,52.049690,70001
+                    -3.445294,52.085594,70001
+                    -3.687521,52.129322,70001
+                    -4.041559,52.388850,70002
+                </coordinates>
+            </LinearRing>
+        </outerBoundaryIs>
+    </Polygon>    </MultiGeometry>
+    </Placemark>
+    </Folder>
+    </kml> 

@@ -22,6 +22,23 @@ def checkKMLOverlap(k1, k2):
     return p1.intersects(p2)
 
 
+def getOverlapWith(srcfolder, kmlpat, refcam):
+    kmllist = glob.glob1(srcfolder, kmlpat)
+    currmatches=[]
+    refkml = f'{refcam}{kmlpat[1:]}'
+    currmatches.append(refcam[:6])
+    print('checking ', refkml)
+    for testkml in kmllist:
+        if testkml != refkml:
+            testcam,_ = os.path.splitext(testkml)
+            #print(testkml)
+            #print('comparing to ', testcam)
+            if checkKMLOverlap(os.path.join(srcfolder, refkml), os.path.join(srcfolder, testkml)) is True:
+                currmatches.append(testcam[:6])
+    return currmatches
+
+
+
 def getOverlappingCameras(srcfolder, kmlpat):
     kmllist = glob.glob1(srcfolder, kmlpat)
     kmllist2 = kmllist
@@ -39,8 +56,6 @@ def getOverlappingCameras(srcfolder, kmlpat):
                 if checkKMLOverlap(os.path.join(srcfolder, refkml), os.path.join(srcfolder, testkml)) is True:
                     currmatches.append(testcam[:6])
         matches.append(currmatches)
-        print(currmatches)
-
     return matches
 
 

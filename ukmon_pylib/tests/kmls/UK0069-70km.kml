@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='UTF-8'?><kml xmlns='http://earth.google.com/kml/2.1'><Folder><name>UK0069</name><open>1</open><Placemark id='UK0069'>
+                 <Style id='camera'>
+                  <LineStyle>
+                <width>1.5</width>
+                  </LineStyle>
+                  <PolyStyle>
+                <color>40000800</color>
+                  </PolyStyle>
+                </Style>
+                <styleUrl>#camera</styleUrl>
+<name>UK0069</name>
+                <description>Area height: 70 km
+
+    </description>
+    
+    <MultiGeometry>    <Polygon>
+        <extrude>0</extrude>
+        <altitudeMode>absolute</altitudeMode>
+        <outerBoundaryIs>
+            <LinearRing>
+                <coordinates>
+                    -0.517508,51.542630,70001
+                    0.000800,51.221892,70002
+                    0.737257,50.641607,70006
+                    1.199817,49.572454,70017
+                    -1.625615,47.967077,70047
+                    -2.234386,47.929824,70048
+                    -3.084577,48.279284,70040
+                    -3.833249,48.680305,70032
+                    -4.625376,48.921025,70027
+                    -5.173467,49.516198,70018
+                    -4.232446,50.480161,70007
+                    -3.701207,51.040639,70003
+                    -3.420857,51.364999,70002
+                    -2.765066,51.544133,70001
+                    -2.698897,51.539381,70001
+                    -2.475525,51.561602,70001
+                    -2.276753,51.589759,70001
+                    -2.080705,51.572184,70001
+                    -1.894898,51.615123,70001
+                    -1.686989,51.627499,70001
+                    -1.454375,51.650791,70001
+                    -1.163831,51.675513,70001
+                    -0.759541,51.708945,70000
+                </coordinates>
+            </LinearRing>
+        </outerBoundaryIs>
+    </Polygon>    </MultiGeometry>
+    </Placemark>
+    </Folder>
+    </kml> 

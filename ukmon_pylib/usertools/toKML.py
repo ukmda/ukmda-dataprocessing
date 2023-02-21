@@ -19,10 +19,11 @@ def trackCsvtoKML(trackcsvfile, trackdata=None):
             #columns are lat, long, height, times
             kml.newpoint(name='', coords=[(row[1], row[0], row[2])])
     else:
-        for i,r in tdets.iterrows():
+        for i,r in trackdata.iterrows():
             kml.newpoint(name='', coords=[(r[1], r[0], r[2])], extrude=1, altitudemode='absolute')
     outname = trackcsvfile.replace('.csv','.kml')
     kml.save(outname)
+    return kml
 
 
 def getTrackDetails(traj):
@@ -43,23 +44,32 @@ def getTrackDetails(traj):
     return df
 
 
+def getTrajPickle(trajname):
+    tmpdir = os.getenv('TMP', default='/tmp')
+    s3 = boto3.client('s3')
+    srcbucket = 'ukmon-shared'
+    orb = trajname
+    picklefile = orb[:15] + '_trajectory.pickle'
+    kmlfile = orb[:15] + '.kml'
+    yr = picklefile[:4]
+    ym = picklefile[:6]
+    ymd = picklefile[:8]
+    fname = f'matches/RMSCorrelate/trajectories/{yr}/{ym}/{ymd}/{orb}/{picklefile}'
+    localfile = os.path.join(tmpdir, picklefile)
+    s3.download_file(srcbucket, fname, localfile)
+    traj = loadPickle(*os.path.split(localfile))
+    try:
+        os.remove(localfile)
+    except:
+        print(f'unable to remove {localfile}')
+    return traj, kmlfile
+
+
 if __name__ == '__main__':
     ext = os.path.splitext(sys.argv[1])
     if ext == 'csv':
         trackCsvtoKML(sys.argv[1])
     else:
-        tmpdir = os.getenv('TMP', default='/tmp')
-        s3 = boto3.client('s3')
-        srcbucket = 'ukmon-shared'
-        orb = sys.argv[1]
-        picklefile = orb[:15] + '_trajectory.pickle'
-        kmlfile = orb[:15] + '.kml'
-        yr = picklefile[:4]
-        ym = picklefile[:6]
-        ymd = picklefile[:8]
-        fname = f'matches/RMSCorrelate/trajectories/{yr}/{ym}/{ymd}/{orb}/{picklefile}'
-        localfile = os.path.join(tmpdir, picklefile)
-        s3.download_file(srcbucket, fname, localfile)
-        traj = loadPickle(*os.path.split(localfile))
+        traj, kmlfile = getTrajPickle(sys.argv[1])
         tdets = getTrackDetails(traj)
-        trackCsvtoKML(kmlfile,tdets)
+        trackCsvtoKML(kmlfile, tdets)
