@@ -576,3 +576,6 @@ archive/samfunctions/matchPickle/pythoncode/*.npy
 archive/utils/tmp.json
 usermgmt/windows/caminfo/camera-details-new.csv
 usermgmt/windows/caminfo/stationdetails.csv
+ukmon_pylib/tests/MaxCams/**/*.old
+ukmon_pylib/tests/MaxCams/trajectories/**
+ukmon_pylib/tests/MaxCams/processed*

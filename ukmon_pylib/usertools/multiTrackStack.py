@@ -8,7 +8,7 @@ import RMS.ConfigReader as cr
 import argparse
 
 
-def multiTrackStack(camlist, start, end, outdir=None, shwr=None, scalefactor=None):
+def multiTrackStack(camlist, start, end, outdir=None, shwr=None, scalefactor=None, draw_constellations=False):
     locfld = os.getenv('LOCALFOLDER', default='f:/videos/meteorcam/fireballs')
     datadir, _ = os.path.split(locfld)
     if outdir is None:
@@ -38,7 +38,8 @@ def multiTrackStack(camlist, start, end, outdir=None, shwr=None, scalefactor=Non
         shwr = [shwr]
 
     trackStack(dir_paths, config, border=5, background_compensation=True, 
-        hide_plot=False, showers=shwr, darkbackground=False, out_dir=outdir, scalefactor=scalefactor)
+        hide_plot=False, showers=shwr, darkbackground=False, out_dir=outdir, scalefactor=scalefactor,
+        draw_constellations=draw_constellations)
 
     return
 
@@ -60,6 +61,8 @@ if __name__ == '__main__':
 
     arg_parser.add_argument('-f', '--scalefactor', metavar='SCALEFACTOR', type=int,
         help="Scale factor to apply when creating canvas.")
+
+    arg_parser.add_argument('--constellations', help="Overplot constellations", action="store_true")
 
     cml_args = arg_parser.parse_args()
     cams = cml_args.cams[0]
@@ -89,4 +92,4 @@ if __name__ == '__main__':
     if cml_args.scalefactor:
         scalefactor = cml_args.scalefactor
 
-    multiTrackStack(cams, start, end, outdir, shwr, scalefactor)
+    multiTrackStack(cams, start, end, outdir, shwr, scalefactor,draw_constellations=cml_args.constellations)
