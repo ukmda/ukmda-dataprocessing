@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8'?><kml xmlns='http://earth.google.com/kml/2.1'><Folder><name>UK003G</name><open>1</open><Placemark id='UK003G'>
+                 <Style id='camera'>
+                  <LineStyle>
+                <width>1.5</width>
+                  </LineStyle>
+                  <PolyStyle>
+                <color>40000800</color>
+                  </PolyStyle>
+                </Style>
+                <styleUrl>#camera</styleUrl>
+<name>UK003G</name>
+                <description>Area height: 70 km
+
+    </description>
+    
+    <MultiGeometry>    <Polygon>
+        <extrude>0</extrude>
+        <altitudeMode>absolute</altitudeMode>
+        <outerBoundaryIs>
+            <LinearRing>
+                <coordinates>
+                    -2.835078,52.229816,70002
+                    -3.027924,52.575930,70004
+                    -3.418671,53.160261,70008
+                    -4.387342,54.421395,70022
+                    -3.033642,55.878128,70047
+                    -2.556047,55.161012,70034
+                    -1.630849,54.349946,70021
+                    -0.916344,54.201209,70019
+                    0.494488,55.190373,70034
+                    0.536006,54.037667,70017
+                    0.069812,52.919229,70006
+                    0.576468,52.795019,70005
+                    2.837570,53.333216,70010
+                    2.942693,52.692849,70004
+                    2.105040,52.457527,70003
+                    0.718433,52.030373,70001
+                    0.042304,51.790450,70000
+                    -0.358466,51.624367,70000
+                    -0.778471,51.583512,70000
+                    -0.838359,51.616143,70000
+                    -1.026520,51.707343,70000
+                    -1.202652,51.778338,70000
+                    -1.374726,51.835710,70001
+                    -1.548789,51.882958,70001
+                    -1.730630,51.921932,70001
+                    -1.927051,51.953370,70001
+                    -2.147591,51.976935,70001
+                    -2.407897,51.990719,70001
+                    -2.777163,52.102231,70001
+                </coordinates>
+            </LinearRing>
+        </outerBoundaryIs>
+    </Polygon>    </MultiGeometry>
+    </Placemark>
+    </Folder>
+    </kml> 
