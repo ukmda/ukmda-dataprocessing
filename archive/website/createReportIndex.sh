@@ -55,9 +55,9 @@ echo "cell.innerHTML = \"<a href="$prefix/$curryr/showers/index.html">Shower Sta
 
 if [ -f $curryr/tmp.txt ] ; then rm -f $curryr/tmp.txt ; fi
 
-ls -1 $curryr | egrep -v "ALL|orbits|stations|fireballs|showers|.js|.html" | while read j
+aws s3 ls $WEBSITEBUCKET/reports/$curryr/ | egrep -v "ALL|orbits|stations|fireballs|showers|.js|.html" | awk '{print $2 }' | while read j
 do 
-    python -m utils.getShowerDates $j >> $curryr/tmp.txt
+    python -m utils.getShowerDates ${j:0:3} >> $curryr/tmp.txt
 done
 sort -n $curryr/tmp.txt > $curryr/shwrs.txt
 rm -f $curryr/tmp.txt
