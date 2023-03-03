@@ -55,6 +55,19 @@ resource "aws_ecr_repository" "extrafilesrepo" {
   }
 }
 
+# create an ECR repository for the simpleui image
+resource "aws_ecr_repository" "simpleuirepo" {
+  name                 = "ukmon/simpleui"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+  tags = {
+    "billingtag" = "mjmm"
+  }
+}
+
 
 resource "aws_ecr_lifecycle_policy" "policy1" {
   repository = aws_ecr_repository.trajsolverrepo.name
@@ -121,7 +134,30 @@ resource "aws_ecr_lifecycle_policy" "getfilespolicy" {
 EOF
 }
 
+resource "aws_ecr_lifecycle_policy" "simpleuipol" {
+  repository = aws_ecr_repository.simpleuirepo.name
+  policy     = <<EOF
+{
+    "rules": [
+        {
+            "rulePriority": 1,
+                        "description": "Keep only latest two versions images",
+            "selection": {
+                "tagStatus": "any",
+                "countType": "imageCountMoreThan",
+                "countNumber": 2
+            },
+            "action": {
+                "type": "expire"
+            }
+        }
+    ]
+}
+EOF
+}
 
+
+/*
 output "trajsolverid" {
   value = aws_ecr_repository.trajsolverrepo.repository_url
 }
@@ -131,3 +167,4 @@ output "trajsolvertestid" {
 output "extrafilesid" {
   value = aws_ecr_repository.extrafilesrepo.repository_url
 }
+*/
