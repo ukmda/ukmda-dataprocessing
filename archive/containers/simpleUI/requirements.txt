@@ -1,0 +1,15 @@
+Flask
+pandas
+numpy
+scipy
+matplotlib==3.3.2
+cython
+jplephem
+pyephem
+basemap
+pyyaml
+pyswarms
+keras
+pytz
+#cartopy
+basemap-data-hires
