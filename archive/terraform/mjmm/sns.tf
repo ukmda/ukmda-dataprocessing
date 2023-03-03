@@ -13,7 +13,7 @@ resource "aws_sns_topic" "ukmonalerts" {
 resource "aws_sns_topic_subscription" "ukmonsubs" {
   topic_arn                       = aws_sns_topic.ukmonalerts.arn
   protocol                        = "email"
-  endpoint                        = "mark.jm.mcintyre@cesmail.net"
+  endpoint                        = "markmcintyre99@googlemail.com"
   confirmation_timeout_in_minutes = 1
   endpoint_auto_confirms          = false
 }

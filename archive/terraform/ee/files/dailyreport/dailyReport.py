@@ -126,7 +126,7 @@ def sendMail(subj, body, bodytext, target, tmppth):
 
     deb = os.environ['DEBUG']
     if deb in ['True', 'TRUE', 'true']:
-        RECIPIENT = ['mark.jm.mcintyre@cesmail.net', 'mjmm456@gmail.com']
+        RECIPIENT = ['markmcintyre99@googlemail.com', 'mjmm456@gmail.com']
     else:
         try:
             memblist = os.path.join(tmppth,'dailyReportRecips.txt')
@@ -138,7 +138,7 @@ def sendMail(subj, body, bodytext, target, tmppth):
             RECIPIENT = recs
             print('DailyCheck: ', RECIPIENT)
         except:
-            RECIPIENT = ['mark.jm.mcintyre@cesmail.net', 'mjmm456@gmail.com']
+            RECIPIENT = ['markmcintyre99@googlemail.com', 'mjmm456@gmail.com']
 
     client = boto3.client('ses', region_name=AWS_REGION)
     try:

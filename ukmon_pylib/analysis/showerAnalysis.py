@@ -567,6 +567,7 @@ def showerAnalysis(shwr, dtstr):
             lowest = ablationDistribution(mtch, shwrname, outdir)
         else:
             lowest = min(mtch['_H2'])
+        lowest = max(0, lowest) # can't be underground
         if shwr != 'ALL':
             semimajorDistribution(mtch, shwrname, outdir)
             radiantDistribution(mtch, shwrname, outdir)
