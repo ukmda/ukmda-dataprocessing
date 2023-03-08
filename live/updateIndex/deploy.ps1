@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre 
+
 # powershell script to build and deploy the lambda function
 # 
 # remember to set AWS credentials  before running this or it'll fail

@@ -1,5 +1,7 @@
 param ($cams, $dates, $shwrs="ALL", $outdir="c:/temp", $scalefactor=3, $constellations=1)
 
+# Copyright (C) 2018-2023 Mark McIntyre 
+
 # multi night multi camera trackstack
 
 push-location $PSScriptRoot

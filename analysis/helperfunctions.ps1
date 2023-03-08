@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre 
+
 # helper functions
 
 Function Get-IniContent {  

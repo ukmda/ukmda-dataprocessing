@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre 
+
 # powershell script to grab new fireball videos, could be adapted for any user
 
 set-location $psscriptroot

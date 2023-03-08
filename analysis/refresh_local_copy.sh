@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre 
 
 locf=/mnt/f/videos/MeteorCam/ukmondata
 if [ $# -gt 1 ] ; then

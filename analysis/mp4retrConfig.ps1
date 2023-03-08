@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre 
+
 # ini file for video retrieval
 
 $TARGLOC='f:/videos/meteorcam/live/fb/'
