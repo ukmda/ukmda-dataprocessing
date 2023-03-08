@@ -1,4 +1,5 @@
 # script to run manual meteor reduction for the Pi
+# Copyright (C) 2018-2023 Mark McIntyre
 
 if($args.count -lt 2) {
     Write-Output "usage: manuaReduction inifile datestr"

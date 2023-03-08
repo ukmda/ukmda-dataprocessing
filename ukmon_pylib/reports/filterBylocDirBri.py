@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 # python module to retrieve data as seen from a specific place
 
 

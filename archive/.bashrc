@@ -1,4 +1,5 @@
 # .bashrc
+# Copyright (C) 2018-2023 Mark McIntyre
 
 # Source global definitions
 if [ -f /etc/bashrc ]; then

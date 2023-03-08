@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 # terraform to create ECS cluster
 
 #data used by the code in several places

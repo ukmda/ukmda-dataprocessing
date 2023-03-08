@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # analyse a UFO dataset using RMS - well, a start at it anyway ! 
 #

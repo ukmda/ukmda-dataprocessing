@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 # scan the live stream for potential matches
 
 import os

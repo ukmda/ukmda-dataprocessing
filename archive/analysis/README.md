@@ -35,3 +35,6 @@ Creates a report for one or more showers.
 
 ## stationReports
 Creates a report of data for one or all stations, for a month or year to date, which is then pushed to the website. 
+
+## Copyright
+All code Copyright (C) 2018-2023 Mark McIntyre#

@@ -1,6 +1,7 @@
 #
 # Create an annual bar chart of daily matches
 #
+# Copyright (C) 2018-2023 Mark McIntyre
 
 import sys
 import os

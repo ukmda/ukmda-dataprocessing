@@ -2,6 +2,7 @@
     trajectory solver on loaded data.
 
 """
+# Copyright (C) 2018-2023 Mark McIntyre
 
 from __future__ import print_function, division, absolute_import
 

@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 # srclist should be a list of folders on S3 containing ftpdetects 
 # eg
 # matches/RMSCorrelate/UK0006/UK0006_20221210_163357_815689/

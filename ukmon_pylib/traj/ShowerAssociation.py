@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 """ Associate the given meteor trajectory to a meteor shower. """
 
 

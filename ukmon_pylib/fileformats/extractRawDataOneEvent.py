@@ -1,4 +1,5 @@
 # script to create test data for WMPL 
+# Copyright (C) 2018-2023 Mark McIntyre
 
 import sys
 import datetime

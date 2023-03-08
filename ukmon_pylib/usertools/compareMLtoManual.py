@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 # compare ML and manual data to find differences, grab the relevant JPGs and flag them
 
 import argparse

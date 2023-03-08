@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 data "aws_caller_identity" "eeacct" {provider = aws.eeacct }
 
 # RESTRICT THESE PERMISSIONS!!

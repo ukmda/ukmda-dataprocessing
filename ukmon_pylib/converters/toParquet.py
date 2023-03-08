@@ -1,4 +1,5 @@
 # convert a csv file to parquet format
+# Copyright (C) 2018-2023 Mark McIntyre
 
 import sys
 import pandas as pd

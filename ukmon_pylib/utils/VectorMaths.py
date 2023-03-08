@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 # vector maths for comparing directions of meteors etc
 import numpy as np
 import math

@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # wrapper around extractors.createSplitMatchFile
 # to allow it to be called from bash scripts easily

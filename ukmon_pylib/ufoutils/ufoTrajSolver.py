@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 """ Loading CAMS file products, FTPDetectInfo and CameraSites files, running the
     trajectory solver on loaded data.
 

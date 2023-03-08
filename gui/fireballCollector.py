@@ -1,5 +1,6 @@
 #
 # UI to manage fireball data collection
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 import os
 import sys

@@ -24,3 +24,6 @@ Created in the MM  account.
 This lambda is triggered when an FTPdetect file is uploaded and converts the data into the
 UKMON internal format.
 Created in the EE account.
+
+## Copyright
+All code Copyright (C) 2018-2023 Mark McIntyre

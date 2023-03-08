@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # generate report of failed matches so i can quickly report on why something didn't solve
 #

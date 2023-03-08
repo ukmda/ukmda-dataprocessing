@@ -7,3 +7,6 @@ This docker image runs the trajectory solver for a subset of data supplied to it
 
 # trajsolvertest
 A test container for the above. 
+
+# Copyright
+All code Copyright (C) 2018-2023 Mark McIntyre

@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 resource "aws_s3_bucket" "ukmon-shared-backup" {
   bucket = "ukmon-shared-backup"
   tags = {

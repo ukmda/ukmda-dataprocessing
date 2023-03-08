@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # just consolidate solutions of distributed candidates 
 #

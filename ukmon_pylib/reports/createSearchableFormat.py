@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # python module to read data in various formats and create a format that can be searched
 # with S3 SQL statements from a lambda function. The lambda is invoked from a REST API

@@ -1,5 +1,6 @@
 #
 # Python code to create an index page for a single solution
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 
 import sys

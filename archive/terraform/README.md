@@ -25,3 +25,6 @@ Additionally, this account hosts a small server used to efficiently back up the 
 
 In support of this, there are the usual IAM roles and permissions, security groups, NACLs
 and keys.
+
+## Copyright
+All code Copyright (C) 2018-2023 Mark McIntyre

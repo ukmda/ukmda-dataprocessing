@@ -4,6 +4,8 @@
 # Usage: python UFOAtoFTPdetect myfolder
 #   will create an ftpdetect and stationinfo file for every A.xml file in "myfolder"
 #
+# Copyright (C) 2018-2023 Mark McIntyre
+
 
 import os
 import sys

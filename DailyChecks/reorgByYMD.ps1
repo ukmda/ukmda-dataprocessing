@@ -1,6 +1,7 @@
 # powershell script to grab interesting files from Pi Camera analysis
 # and reorganize them into UFO-style yyyy\yyyymm\yyyymmdd folders
 # for easier searching
+# Copyright (C) 2018-2023 Mark McIntyre
 
 $curloc=get-location
 set-location $PSScriptRoot

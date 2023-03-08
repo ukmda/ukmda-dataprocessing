@@ -1,3 +1,5 @@
+#!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # Convert a month's worth of UFO data to RMS format
 #

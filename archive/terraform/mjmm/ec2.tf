@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 resource "aws_instance" "ukmonhelper" {
   ami                  = "ami-0a669382ea0feb73a"
   instance_type        = "t3a.micro"

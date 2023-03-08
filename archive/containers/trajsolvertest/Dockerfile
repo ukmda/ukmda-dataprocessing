@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 FROM continuumio/miniconda3
 
 RUN conda install -y -c conda-forge numpy scipy matplotlib cython pytz pyqt

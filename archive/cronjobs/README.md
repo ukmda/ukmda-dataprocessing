@@ -17,3 +17,6 @@ curated and presented via our Youtube channel.
 ## runBackup
 This script backs up the UKMON archive. The process works by launching a dedicated EC2 instance that runs 
 a sync process at startup, then shuts itself down. This is a very efficient way to achieve the backup. The EC2 instance is defined in Terraform.  
+
+## Copyright
+All code Copyright (C) 2018-2023 Mark McIntyre

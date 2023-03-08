@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 import os
 import sys
 import base64

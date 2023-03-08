@@ -1,4 +1,5 @@
 # SAM build file for searchArchive
+# Copyright (C) 2018-2023 Mark McIntyre
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
 Resources:

@@ -3,7 +3,7 @@
 import numpy as np
 import math
 from datetime import datetime, timedelta, MINYEAR
-
+# Copyright (C) 2018-2023 Mark McIntyre
 
 # Define Julian epoch
 JULIAN_EPOCH = datetime(2000, 1, 1, 12) # J2000.0 noon

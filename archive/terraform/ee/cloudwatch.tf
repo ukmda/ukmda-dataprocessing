@@ -1,6 +1,7 @@
 #
 # Cloudwatch alarms etc
 #
+# Copyright (C) 2018-2023 Mark McIntyre
 
 resource "aws_cloudwatch_metric_alarm" "calcServerDiskSpace" {
   alarm_name                = "CalcServer diskspace"

@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # lambda function to be triggered when a png file arrives in ukmon-shared
 # to copy it to the 'latest' folder on the archive site

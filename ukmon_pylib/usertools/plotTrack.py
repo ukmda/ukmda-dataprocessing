@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 import sys
 import csv
 from matplotlib import pyplot as plt

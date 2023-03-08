@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 resource "aws_s3_bucket" "logbucket" {
   bucket        = "ukmon-s3-access-logs"
   force_destroy = false

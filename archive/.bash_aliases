@@ -1,4 +1,6 @@
 # bash aliases
+# Copyright (C) 2018-2023 Mark McIntyre
+
 alias h='history'
 alias df='df -h'
 alias du='du -h'

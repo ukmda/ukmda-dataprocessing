@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 
 if [ "$(whoami)" != "root" ] ; then 
   echo "must be run as root"

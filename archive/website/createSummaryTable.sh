@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 # Creates the table and bar chart that appear on the website homepage. 
 # Also creates the coverage map, and copies the logfile to the site. 
 #

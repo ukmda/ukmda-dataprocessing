@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # python code to read in an FTPdetect file and plot all the detections
 #

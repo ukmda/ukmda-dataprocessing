@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # script to get AWS cost metrics for ukmon tagged assets
 #

@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 # bash script to create daily, monthly or annual index page for orbit data
 #
 # Parameters

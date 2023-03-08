@@ -18,6 +18,7 @@ Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment; filename="userdata.txt"
 
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 for fldr in admin consolidated fireballs kmls videos matches archive
 do 
     /usr/bin/logger -s -t backupUkmon starting $fldr

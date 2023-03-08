@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 # curateCamera.py
 #
 # python script to validate data before uploading to ukon live

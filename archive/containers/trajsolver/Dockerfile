@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 FROM public.ecr.aws/lambda/python:3.8
 RUN yum -y update
 RUN pip install --upgrade pip

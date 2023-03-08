@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # create record of matches found in the last day (may contain older data now matched)
 #

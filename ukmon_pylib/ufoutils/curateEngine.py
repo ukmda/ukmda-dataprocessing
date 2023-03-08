@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 # engine that curates an xmil/jpg pair
 #
 

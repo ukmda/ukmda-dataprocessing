@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 import json
 userid = 'ukmonreadonly'
 keyid = 'ukmro_key'

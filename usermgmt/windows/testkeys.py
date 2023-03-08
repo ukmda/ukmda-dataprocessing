@@ -1,4 +1,4 @@
-
+# Copyright (C) 2018-2023 Mark McIntyre
 # test that the keys provide read and write access
 
 import boto3

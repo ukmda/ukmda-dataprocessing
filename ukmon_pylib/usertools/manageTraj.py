@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 # manage the trajectory database
 import os
 import pandas as pd

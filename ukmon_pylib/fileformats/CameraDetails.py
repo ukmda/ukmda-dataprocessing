@@ -1,4 +1,5 @@
 # Create a data type for the camera location details
+# Copyright (C) 2018-2023 Mark McIntyre
 import numpy
 import sys
 import os

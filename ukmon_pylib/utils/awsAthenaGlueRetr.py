@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 # Python module to access the single-station data held in a Glue database
 #
 # 

@@ -1,4 +1,5 @@
 # powershell script to add user to dailyReport email
+# Copyright (C) 2018-2023 Mark McIntyre
 
 set-location $psscriptroot
 aws s3 cp s3://ukmon-shared/admin/dailyReportRecips.txt ./caminfo/ --profile ukmon-markmcintyre

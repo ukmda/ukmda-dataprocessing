@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # Search for Fireballs and bright events in the archive
 # Default magnitude -4 or greater (either abs or observed)

@@ -1,5 +1,6 @@
 #
 # powershell script to launch the fireball data collector tool
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 push-location $PSScriptRoot
 

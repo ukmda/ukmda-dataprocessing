@@ -1,5 +1,6 @@
 #!/bin/bash
-
+# Copyright (C) 2018-2023 Mark McIntyre
+#
 # script to create single-station file for all RMS data
 #
 # Parameters

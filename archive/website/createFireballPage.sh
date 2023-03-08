@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 # Fireballs page
 #
 # Obtain a list of fireballs and create the page with links

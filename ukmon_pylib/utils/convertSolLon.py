@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # my own function to convert Solar Longitude to date, as the RMS/WMPL ones seem unstable
 #

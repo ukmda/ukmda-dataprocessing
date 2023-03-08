@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 #
 # python code to plot orbits given a CAMS style Orbit Info file
 #
