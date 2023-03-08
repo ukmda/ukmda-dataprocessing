@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre 
 #
 # powershell script to plot intersections on map
 #

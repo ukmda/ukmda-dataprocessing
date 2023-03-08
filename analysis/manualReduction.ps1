@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre 
 #
 # manually reduce one camera folder 
 #

@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre 
 #
 # powershell script to upload improved FTP file sent over by camera owner
 #

@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre 
+
 # script to curate UKMON live data as it arrives
 # note: requires Python 3.7 at present
 # note: see instructions at end of file on how to build and deploy

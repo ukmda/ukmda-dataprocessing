@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre 
 #
 # Powershell script to upload revised fireball data to the website
 #
