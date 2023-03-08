@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # python script to get all live JPGs for a specified time
 #

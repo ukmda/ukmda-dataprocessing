@@ -1,6 +1,7 @@
 #
 # Collect data for a potential match at a specific time
 #
+# Copyright (C) 2018-2023 Mark McIntyre
 # 
 import os 
 import sys

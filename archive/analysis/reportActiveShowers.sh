@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # Creates a report for each currently active shower in a particular year
 #

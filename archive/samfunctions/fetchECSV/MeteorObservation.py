@@ -1,7 +1,8 @@
 """ Function that adds common arguments for all input formats to the argument parser handle. """
 
 # Copied from WMPL but adjusted to remove dependencies
-import os
+# Copyright (C) 2018-2023 Mark McIntyre
+# import os
 import numpy as np
 from Math import J2000_JD, jd2Date, equatorialCoordPrecession_vect, raDec2AltAz_vect
 

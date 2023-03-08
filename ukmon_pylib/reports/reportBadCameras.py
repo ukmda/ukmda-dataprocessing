@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # Python script to get cameras with problems or that have not uploaded for X days
 #

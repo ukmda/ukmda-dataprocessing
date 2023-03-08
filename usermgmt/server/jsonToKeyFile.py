@@ -1,5 +1,6 @@
 #
 # Python module to create a ukmon keyfile from an AWS json file
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 
 import json

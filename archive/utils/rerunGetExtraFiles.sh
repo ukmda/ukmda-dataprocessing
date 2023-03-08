@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 
 if [ $# -lt 2 ] ; then
     fn=$DATADIR/dailyreports/latest.txt

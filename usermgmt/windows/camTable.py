@@ -1,6 +1,7 @@
 #
 # Create and access dynamodb tables containing camera upload timings etc
 #
+# Copyright (C) 2018-2023 Mark McIntyre
 
 import boto3
 from boto3.dynamodb.conditions import Key

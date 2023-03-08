@@ -1,5 +1,6 @@
 #
 # Load an FTPdetectInfo file - copied from RMS and amended to remove dependencies
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 
 import sys

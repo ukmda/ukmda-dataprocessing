@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 
 # reads from $DATADIR/single/new/processed to find list of files
 

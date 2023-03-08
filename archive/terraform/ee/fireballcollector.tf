@@ -1,5 +1,6 @@
 #
 # stuff to support the fireball Collector tool
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 resource "aws_iam_role" "fbc_role" {
   name        = "fireballCollector"

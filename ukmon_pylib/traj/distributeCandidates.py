@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # Used when running the correlator in 'distributed' mode. 
 # Pick up new groups of candidate trajectories and distribute them, 

@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 Content-Type: multipart/mixed; boundary="//"
 MIME-Version: 1.0
 

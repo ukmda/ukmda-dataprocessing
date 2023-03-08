@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre#
+
 from flask import Flask
 
 app = Flask(__name__)

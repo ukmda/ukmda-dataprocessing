@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 # Creates extracts of raw and matched data for each meteor shower in the selected year
 #
 # Note that the raw data is sourced from the consolidated raw UFO and RMS CSV files

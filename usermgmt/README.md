@@ -41,3 +41,6 @@ To disable a camera, change the Active column from 1 to today's date in YYYYMMDD
 
 # Disabling a location
 To disable a location, we revoke the corresponding AWS user's keys, and if necessary, delete the AWS user and Unix ID. No other user will be affected. This is not currently managed by the UI as it is a drastic action that we do not want to carry out accidentally! 
+
+# Copyright
+All code Copyright (C) 2018-2023 Mark McIntyre

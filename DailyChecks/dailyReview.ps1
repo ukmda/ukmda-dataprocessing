@@ -1,6 +1,7 @@
 # simple script to copy then display the most recent CMN/RMS meteor captures
 # if RMS is installed it will also run some postprocessing to generate
 # shower maps, JPGs and a UFO-Orbit-compatible detection file
+# Copyright (C) 2018-2023 Mark McIntyre
 
 set-location $PSScriptRoot
 # load the helper functions

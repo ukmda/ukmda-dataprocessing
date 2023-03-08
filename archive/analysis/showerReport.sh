@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # Create a report for the named shower and year or year+month
 #

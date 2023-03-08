@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 import argparse
 from importlib.resources import path
 import numpy as np

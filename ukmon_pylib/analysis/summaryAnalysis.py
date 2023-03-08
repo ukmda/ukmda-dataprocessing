@@ -1,7 +1,7 @@
 #
 #  Various summary analyses
 #  
-
+# Copyright (C) 2018-2023 Mark McIntyre
 
 import pandas as pd
 from traj import pickleAnalyser as pa

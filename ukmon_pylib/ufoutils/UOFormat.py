@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 # create a data type for UFO Orbit style CSV files
 import sys
 import os

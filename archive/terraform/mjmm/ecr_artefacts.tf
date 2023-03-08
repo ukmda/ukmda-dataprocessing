@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 # create ECR and ECS artefacts
 
 # encryption/decryption key in the AWS KMS keystore

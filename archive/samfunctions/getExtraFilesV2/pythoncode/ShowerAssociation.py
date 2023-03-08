@@ -1,5 +1,5 @@
 """ Associate the given meteor trajectory to a meteor shower. """
-
+# Copyright (C) 2018-2023 Mark McIntyre
 
 # from __future__ import print_function, division, absolute_import
 

@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # Script to find correlated events, solve for their trajectories and orbits,
 # then copy the results to the Archive website. 

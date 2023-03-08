@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 # Create extracts for sharing on the website.
 #
 # Parameters

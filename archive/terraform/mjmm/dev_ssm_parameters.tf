@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 # SSM parameters for use in the environment config
 
 resource "aws_ssm_parameter" "dev_websitebucket" {

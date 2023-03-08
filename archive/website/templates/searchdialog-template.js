@@ -1,4 +1,6 @@
 // initialize input widgets first
+// Copyright (C) 2018-2023 Mark McIntyre
+
 $('#selectInterval .time').timepicker({
     'showDuration': true,
     'timeFormat': 'g:ia'

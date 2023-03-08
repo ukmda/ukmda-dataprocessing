@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # Create a single searchable index file for matched, single and live data
 #

@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 
 if [[ "$1" != "PROD" && "$1" != "DEV" ]] ; then
     echo "must provide runtime env of PROD or DEV"

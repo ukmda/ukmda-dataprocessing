@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 # mark a matched event as a fireball
 #
 # Parameters

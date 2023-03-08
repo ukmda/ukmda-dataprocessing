@@ -1,6 +1,7 @@
 #
 # Python code to analyse meteor shower data
 #
+# Copyright (C) 2018-2023 Mark McIntyre
 
 import sys
 import os

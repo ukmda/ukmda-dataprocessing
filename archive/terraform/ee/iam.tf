@@ -1,5 +1,7 @@
 ##############################################################################
 # role for EC2 servers 
+# Copyright (C) 2018-2023 Mark McIntyre
+
 resource "aws_iam_role" "calcserverrole" {
   name        = "CalcServerRole"
   description = "Allows EC2 CalcServer to connect to resources"

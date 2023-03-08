@@ -1,6 +1,7 @@
 #
 # python script to help clear out archive data
 #
+# Copyright (C) 2018-2023 Mark McIntyre
 
 import os
 import sys

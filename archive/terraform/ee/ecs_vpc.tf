@@ -1,5 +1,6 @@
 #
 # Create a VPC for the use of ECS and possibly other assets
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 #data used by the code in several places
 data "aws_region" "current" {}

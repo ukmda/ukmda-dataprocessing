@@ -1,6 +1,8 @@
 #
 # nightly job metrics
 #
+# Copyright (C) 2018-2023 Mark McIntyre
+
 import pandas as pd
 import sys
 import os

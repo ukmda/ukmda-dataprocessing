@@ -1,4 +1,5 @@
 # powershell script to get API details for use in other code
+# Copyright (C) 2018-2023 Mark McIntyre
 
 $outf=$psscriptroot + "/apis-ee.txt"
 $apis=(aws apigateway get-rest-apis --profile ukmon-markmcintyre --region eu-west-1 | convertfrom-json)

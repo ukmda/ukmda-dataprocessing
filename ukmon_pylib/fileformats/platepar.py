@@ -1,6 +1,8 @@
 # 
 # class to read a single or multiple platepar files
 #
+# Copyright (C) 2018-2023 Mark McIntyre
+
 import json
 import os
 import glob

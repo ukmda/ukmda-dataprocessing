@@ -1,0 +1,70 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+# pyproject.toml
+
+[build-system]
+requires      = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ukmon_pylib"
+version = "2023.02.1"
+description = "UK Meteor Observation Network Python Library"
+readme = "README.md"
+authors = [{ name = "Mark McIntyre", email = "ukmon@markmcintyreastro.co.uk" }]
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+keywords = ["meteors", "ukmon"]
+dependencies = [
+    "astropy",
+    "boto3",
+    "cartopy",
+    "python-crontab",
+    "cryptography",
+    "fastparquet",
+    "gmplot",
+    "google-auth",
+    "google-auth-oauthlib",
+    "google-api-python-client",
+    "googleapis-common-protos",
+    "matplotlib==3.3.2",
+    "numpy",
+    "oauthlib",
+    "pandas",
+    "Pillow",
+    "paramiko",
+    "pytz",
+    "Shapely",
+    "simplekml",
+    "s3fs",
+    "xmltodict",
+    "behave",
+    "pytest"
+]
+requires-python = ">=3.7"
+
+[project.optional-dependencies]
+dev = ["bumpver", "gitpython", "behave", "pip-tools", "pytest"]
+
+[project.urls]
+Homepage = "https:/archive.ukmeteornetwork.co.uk/ukmon_pylib/"
+
+#[project.scripts]
+#realpython = "reader.__main__:main"
+
+[tool.bumpver]
+current_version = "2023.02.1"
+version_pattern = "YYYY.0M.PATCH"
+commit_message = "bump version {old_version} -> {new_version}"
+commit = true
+tag = true
+push = true
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = ['current_version = "{version}"',]
+"__init__.py" = ["{version}",]
+"README.md" = ["{version}",]
+

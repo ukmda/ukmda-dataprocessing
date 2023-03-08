@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 
 sudo sync
 sudo echo "1" > /tmp/1.txt

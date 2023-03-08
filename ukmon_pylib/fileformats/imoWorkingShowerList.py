@@ -1,6 +1,7 @@
 #
 # python module to read the IMO Working Shower short List
 #
+# Copyright (C) 2018-2023 Mark McIntyre
 
 import xmltodict
 import datetime

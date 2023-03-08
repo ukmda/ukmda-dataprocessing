@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 # python script to call TrackStack to stack several nights/cameras
 
 #import boto3

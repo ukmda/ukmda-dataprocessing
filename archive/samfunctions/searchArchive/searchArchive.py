@@ -1,4 +1,5 @@
 # python routine to search the S3 archive for specific criteria
+# Copyright (C) 2018-2023 Mark McIntyre
 
 import json
 import boto3

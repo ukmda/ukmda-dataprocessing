@@ -1,4 +1,5 @@
 # build script for the docker image
+# Copyright (C) 2018-2023 Mark McIntyre#
 
 $loc = get-location
 set-location $psscriptroot

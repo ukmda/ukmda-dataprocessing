@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 # terraform to create ECS cluster for the UI
 
 # some variables for the cluster and task defns

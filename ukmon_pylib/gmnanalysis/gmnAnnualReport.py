@@ -1,6 +1,8 @@
 #
 # simple code to analyse GMN data
 #
+# Copyright (C) 2018-2023 Mark McIntyre
+
 import os
 import sys
 import pandas as pd

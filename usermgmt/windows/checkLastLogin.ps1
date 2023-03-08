@@ -1,4 +1,5 @@
 # powershell script to check last access time of a user
+# Copyright (C) 2018-2023 Mark McIntyre
 
 $jsonlist=(aws iam list-users --profile ukmon-markmcintyre)
 $data=($jsonlist | convertfrom-json)

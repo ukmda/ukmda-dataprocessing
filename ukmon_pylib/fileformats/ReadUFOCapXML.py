@@ -1,6 +1,7 @@
 # Python class to parse a UFOCapture XML files
 #
 # disable some linter warnings
+# Copyright (C) 2018-2023 Mark McIntyre
 
 import xmltodict
 import numpy

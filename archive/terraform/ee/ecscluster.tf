@@ -1,5 +1,5 @@
 # terraform to create ECS cluster
-
+# Copyright (C) 2018-2023 Mark McIntyre
 
 # create a cluster
 resource "aws_ecs_cluster" "trajsolver" {

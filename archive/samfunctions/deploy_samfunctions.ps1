@@ -1,4 +1,5 @@
 # powershell script to build and deploy the lambda functions
+# Copyright (C) 2018-2023 Mark McIntyre
 # 
 set-location $PSScriptRoot
 

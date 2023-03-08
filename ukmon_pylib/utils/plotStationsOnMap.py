@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # Python routine to plot stations and vectors on a map of hte UK
 #

@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 # ssh keys
 resource "aws_key_pair" "marks_key2" {
   key_name = "marks_key2"

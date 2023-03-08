@@ -73,3 +73,7 @@ Flow in findAllMatches.sh
     idxpg --> gzi[Backup and gzip old trajectory databases]
     gzi --> d[FINISHED]
 ```
+
+Copyright
+---------
+All code Copyright (C) 2018-2023 Mark McIntyre

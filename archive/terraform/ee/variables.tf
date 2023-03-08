@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 variable "profile" {  default = "ukmonshared" }
 
 variable "websitebucket" { default = "ukmeteornetworkarchive" }

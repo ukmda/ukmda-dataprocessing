@@ -1,5 +1,6 @@
 #
 # Function to save an FTPdetect file and platepar as ECSV files
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 import os
 import sys

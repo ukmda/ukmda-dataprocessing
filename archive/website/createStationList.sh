@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 # bash script to create station list option HTML for the search page
 #
 # Parameters

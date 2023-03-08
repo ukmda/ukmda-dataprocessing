@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 '''
 A bunch of python functions to scan historical data and find events to match against each other
 

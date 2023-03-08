@@ -2,6 +2,8 @@
 # Script provided by Denis Vida to convert WMPL trajectory data from 
 # the pre Sept 2021 layout to the new layout
 #
+# Copyright (C) 2018-2023 Mark McIntyre
+
 import os
 import shutil
 import sys

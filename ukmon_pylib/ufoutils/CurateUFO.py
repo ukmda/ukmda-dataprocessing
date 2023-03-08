@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 """
 Curation of a folder or set of folders containing UFO data
 usage: python CurateUFO.py configfile.ini

@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 # script to pull IMO working shower XML file with shower dates and the WMPL static data
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"

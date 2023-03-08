@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 # script to backup then clear down orbits from the local disk. 
 

@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 resource "aws_instance" "calc_server" {
   ami                    = "ami-0e37df1ded87f1f10" # Calcserver AMI cloned from MM account
   instance_type          = "c6g.4xlarge"

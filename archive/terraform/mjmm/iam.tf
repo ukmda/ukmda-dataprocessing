@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 # Role and policies used by EC2 servers
 resource "aws_iam_role" "S3FullAccess" {
   name        = "S3FullAccess"

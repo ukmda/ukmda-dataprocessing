@@ -24,3 +24,6 @@ This folder contains some utility functions useful for managing the environment.
 ## The following are work in progress
 * monthlyClearDown.sh - should be run monthly to clear down old data 
 * createTestDataSet.sh - work in progress
+
+## Copyright
+All code Copyright (C) 2018-2023 Mark McIntyre

@@ -1,4 +1,5 @@
 # ACM certificates for API Gateway domain name
+# Copyright (C) 2018-2023 Mark McIntyre
 
 resource "aws_acm_certificate" "apicert" {
   domain_name       = "api.ukmeteornetwork.co.uk"

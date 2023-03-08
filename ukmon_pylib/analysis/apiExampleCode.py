@@ -1,6 +1,7 @@
 #
 # Example showing how to use the matchdata API from Python
 #
+# Copyright (C) 2018-2023 Mark McIntyre
 
 import pandas as pd 
 

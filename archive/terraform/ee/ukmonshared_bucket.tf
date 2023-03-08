@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 resource "aws_s3_bucket" "ukmonshared" {
   bucket        = var.sharedbucket
   force_destroy = false

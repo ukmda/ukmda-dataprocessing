@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 from tksheet import Sheet
 import tkinter as tk
 from tkinter import ttk
@@ -164,6 +166,9 @@ class demo(Frame):
         camMenu.add_command(label = "Remove Camera", command = self.delCamera)
         camMenu.add_separator()
         camMenu.add_command(label = "Remove Location", command = self.delOperator)
+        camMenu.add_separator()
+        camMenu.add_command(label = "Update SSH Key", command = self.newSSHkey)
+        camMenu.add_command(label = "Update AWS Key", command = self.newAWSkey)
 
         ownMenu = Menu(self.menuBar, tearoff=0)
         ownMenu.add_command(label = "View Owner Data", command = self.viewOwnerData)
@@ -335,7 +340,7 @@ class demo(Frame):
     def delOperator(self):
         tk.messagebox.showinfo(title="Information", message='Not implemented yet')
         return
-
+    
     def viewOwnerData(self):
         statOwnerDialog(self, self.statfile)
         return
@@ -379,7 +384,31 @@ class demo(Frame):
             self.addNewOwner(rmsid, location, d[3], d[4])
             self.datachanged = True
         return 
-    
+
+    def newSSHKey(self):
+        cursel = self.sheet.get_selected_cells()
+        cr = list(cursel)[0][0]
+        curdata = self.data[cr]
+        user,email = self.getUserDetails(curdata[1])
+        sshkey = ''
+        id = ''
+        title = 'Update SSH Key'
+        answer = infoDialog(self, title, curdata[0], user, email, sshkey, id)
+        if answer.data[0].strip() != '': 
+            d = answer.data
+            rmsid = str(d[0]).upper()
+            location = str(d[1]).capitalize()
+            direction = str(d[2])
+            cameraname = d[1].lower() + '_' + d[2].lower()
+            with open(os.path.join('sshkeys', cameraname + '.pub'), 'w') as outf:
+                outf.write(d[5])
+            self.addNewUnixUser(location, direction, updatemode=2)
+            self.datachanged = True
+        return 
+
+    def newAWSKey(self):
+        return 
+
     def addNewOwner(self, rmsid, location, user, email):
         print('adding new owner')
         caminfo = pandas.read_csv(self.locstatfile)
@@ -423,7 +452,7 @@ class demo(Frame):
         return 
 
 
-    def addNewUnixUser(self, location, direction, oldcamname=''):
+    def addNewUnixUser(self, location, direction, oldcamname='', updatemode=0):
         server='ukmonhelper'
         user='ec2-user'
         cameraname = location.lower() + '_' + direction.lower()
@@ -435,7 +464,7 @@ class demo(Frame):
         scpcli = SCPClient(c.get_transport())
         scpcli.put(os.path.join('jsonkeys', location + '.key'), 'keymgmt/rawkeys/live/')
         scpcli.put(os.path.join('sshkeys', cameraname + '.pub'), 'keymgmt/sshkeys/')
-        command = f'/home/{user}/keymgmt/addSftpUser.sh {cameraname} {location} {oldcamname}'
+        command = f'/home/{user}/keymgmt/addSftpUser.sh {cameraname} {location} {oldcamname} {updatemode}'
         print(f'running {command}')
         _, stdout, stderr = c.exec_command(command, timeout=10)
         for line in iter(stdout.readline, ""):

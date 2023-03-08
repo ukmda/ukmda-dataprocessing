@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2018-2023 Mark McIntyre
 cd /mnt/e/dev/meteorhunting/ukmon-shared/archive/containers/trajsolver/
 ssh ukmonhelper "cd src/wmpldev && git stash && git checkout forcontainer && git pull"
 rsync -avz ukmonhelper:src/wmpldev/* ./WesternMeteorPyLib/ --exclude "build/" --exclude "*.egg*" --exclude "dist/" --exclude ".git/" --exclude "__pycache__/"

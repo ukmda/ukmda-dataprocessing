@@ -1,4 +1,5 @@
 #  A class to handle UFO Analyser xml files
+# Copyright (C) 2018-2023 Mark McIntyre
 
 import sys
 import xmltodict
