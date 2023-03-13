@@ -24,7 +24,7 @@ if ($yn.tolower() -eq "y") {
     docker push ${registry}/${repo}:latest
 }
 
-write-output "To test the container do docker docker run  -p 8000:80 -d $imagefile" 
+write-output "To test the container do docker run  -p 8000:80 -d $imagename" 
 write-output "then goto localhost:8000"
 
 set-location $loc

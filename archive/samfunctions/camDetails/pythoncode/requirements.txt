@@ -1,6 +1,3 @@
 # Copyright (C) 2018-2023 Mark McIntyre
-Flask
 pandas
-numpy
-Flask-SQLAlchemy
-Faker
+boto3

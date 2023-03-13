@@ -588,3 +588,6 @@ ukmon_pylib/tests/usertools/2021-07-17T02_41_05_05_M003.ecsv
 ukmon_pylib/tests/usertools/2021-07-17T02_41_05_05_M002.ecsv
 ukmon_pylib/tests/usertools/2021-07-17T02_41_05_05_M004.ecsv
 ukmon_pylib/tests/usertools/20230202_014115.kml
+archive/containers/simpleUI/awskeys
+archive/samfunctions/camDetails/pythoncode/camDetails.py
+archive/samfunctions/camDetails/pythoncode/awskeys
