@@ -36,16 +36,6 @@
                 "${websitearn}/img/single/*",
                 "${websitearn}/img/mp4/*"
             ]
-        },
-        {
-            "Sid": "VisualEditor2",
-            "Effect": "Deny",
-            "Action": [
-                "s3:PutObject",
-                "s3:GetObject",
-                "s3:DeleteObject"
-            ],
-            "Resource": "${sharedarn}/admin/*"
         }
     ]
 }

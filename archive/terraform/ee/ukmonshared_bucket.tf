@@ -37,6 +37,28 @@ resource "aws_s3_bucket_policy" "ukmonsharedbp" {
           ]
           Sid = "DelegateS3Access"
         },
+        {
+            "Sid": "BlockAccessToAdmin",
+            "Effect": "Deny",
+            "Principal": "*",
+            "Action": "s3:*",
+            "Resource": "arn:aws:s3:::ukmon-shared/admin/*",
+            "Condition": {
+                "StringNotLike": {
+                    "aws:userId": [
+                        "AIDA36ZZGKDHZEZFXA7BB", # markmcintyre 
+                        "AIDA36ZZGKDH4LUPSQ3CB", # ash_vale
+                        "AIDA36ZZGKDHXYCBTWWC2", # eastbourne
+                        "AIDA36ZZGKDHZAWQZON7B", # loscoe
+                        "AIDA36ZZGKDH4LW3WF2GJ", # Church_Cro
+                        "AIDA36ZZGKDHWBV7ZQISQ", # chard
+                        "AIDA36ZZGKDHQ4TPUOLA2", # ukmon-rickzkm
+                        "AROAUUCG4WH4GFCTQIKH3:*", # S3FullAccess in MJMM account
+                        "822069317839"           # root account
+                      ]
+                }
+            }
+        }
       ]
       Version = "2012-10-17"
     }
