@@ -30,6 +30,13 @@
           "schema" : {
             "type" : "string"
           }
+        }, {
+          "name" : "statid",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
         } ],
         "responses" : {
           "200" : {

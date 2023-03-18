@@ -16,7 +16,7 @@ def lambda_handler(event, context):
     reqtyp = qs['reqtyp']
     reqval = qs['reqval']
 
-    if reqtyp not in ['matches','detail']:
+    if reqtyp not in ['matches','detail','station']:
         res = '{"invalid request type - must be one of \'matches\' or \'details\'"}'
     else:
         if reqtyp == 'matches':
@@ -29,6 +29,13 @@ def lambda_handler(event, context):
             idxfile = 'matches/matched/matches-full-{}.csv'.format(reqval[:4])
             res = '{"event not found"}'
             expr = "SELECT * from s3object s where s.orbname='{}'".format(reqval)
+            fhi = {"FileHeaderInfo": "Use"}
+        if reqtyp == 'station':
+            statid = qs['statid']
+            d1 = datetime.datetime.strptime(reqval, '%Y%m%d')
+            idxfile = 'matches/matched/matches-full-{:04d}.csv'.format(d1.year)
+            res = '{"no matches"}'
+            expr = "SELECT s.orbname from s3object s where s._localtime like '_{}%' and s.stations like '%{}%'".format(reqval, statid)
             fhi = {"FileHeaderInfo": "Use"}
 
         s3 = boto3.client('s3')
