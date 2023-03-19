@@ -46,15 +46,16 @@ resource "aws_s3_bucket_policy" "ukmonsharedbp" {
             "Condition": {
                 "StringNotLike": {
                     "aws:userId": [
-                        "AIDA36ZZGKDHZEZFXA7BB", # markmcintyre 
-                        "AIDA36ZZGKDH4LUPSQ3CB", # ash_vale
-                        "AIDA36ZZGKDHXYCBTWWC2", # eastbourne
-                        "AIDA36ZZGKDHZAWQZON7B", # loscoe
-                        "AIDA36ZZGKDH4LW3WF2GJ", # Church_Cro
-                        "AIDA36ZZGKDHWBV7ZQISQ", # chard
-                        "AIDA36ZZGKDHQ4TPUOLA2", # ukmon-rickzkm
+                        "AIDA36ZZGKDHZEZFXA7BB",  # markmcintyre 
+                        "AIDA36ZZGKDH4LUPSQ3CB",  # ash_vale
+                        "AIDA36ZZGKDHXYCBTWWC2",  # eastbourne
+                        "AIDA36ZZGKDHZAWQZON7B",  # loscoe
+                        "AIDA36ZZGKDH4LW3WF2GJ",  # Church_Cro
+                        "AIDA36ZZGKDHWBV7ZQISQ",  # chard
+                        "AIDA36ZZGKDHQ4TPUOLA2",  # ukmon-rickzkm
                         "AROAUUCG4WH4GFCTQIKH3:*", # S3FullAccess in MJMM account
-                        "822069317839"           # root account
+                        "AROA36ZZGKDHWAMYFNTWV:*", # DailyReportRole in EE account
+                        "822069317839"            # root account
                       ]
                 }
             }
