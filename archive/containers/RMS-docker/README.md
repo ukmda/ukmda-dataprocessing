@@ -9,17 +9,16 @@ The camera-specific configuration files (.config, mask.bmp, etc) are stored in a
 on the external volume along with a configuration script *configure_container.sh*. 
 The image is configured to run this script at startup. 
 
-As currently deployed, the script 
-copies the camera-specific configuration, SSH keys and other configuration data, updates
-the UKMON toolset, and installs some functionality specific to me. 
+As currently deployed, the script copies the camera-specific configuration, SSH keys 
+and other configuration data, updates the UKMON toolset, and installs some functionality specific to me. 
 
 ## RMS_data
 The use of the external filesystem allows RMS to write data directly back to the Host, removing 
-any need to copy or move data after each run, and keeping the container size small. However, you'll 
-need to implement some process on the host, to purge the CapturedFiles data periodically, as RMS typically
+any need to copy or move data after each run and keeping the container size small. However, you'll 
+need to implement some process on the host to purge the CapturedFiles data periodically, as RMS typically
 collects 10-20GB per night. 
 
 ## Updating RMS
-RMS is updated whenever the container is restarted, or whenever the image is rebuilt. To force an update, 
+RMS is updated whenever the container is restarted or whenever the image is rebuilt. To force an update, 
 restart the container.
 

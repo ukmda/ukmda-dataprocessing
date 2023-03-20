@@ -591,3 +591,5 @@ ukmon_pylib/tests/usertools/20230202_014115.kml
 archive/containers/simpleUI/awskeys
 archive/samfunctions/camDetails/pythoncode/camDetails.py
 archive/samfunctions/camDetails/pythoncode/awskeys
+archive/containers/RMS-docker/rms_docker.tar
+archive/containers/RMS-docker/Dockerfile_orig.txt

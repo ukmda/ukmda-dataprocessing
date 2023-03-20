@@ -50,7 +50,10 @@ git config core.sparseCheckout true
 echo "pi/" >> .git/info/sparse-checkout && git pull origin master
 chmod +x ~/mjmm/pi/*.sh
 cp ~/RMS_data/config/config.ini ~/mjmm/pi
+echo "/root/mjmm/pi/dailyPostProc.py" > ~/source/ukmon-pitools/extrascript
 
-########## Finally, start RMS 
+########## Finally, start RMS and the UKMON live monitor
 cd ~/source/RMS
-Scripts/RMS_StartCapture.sh -r
+Scripts/RMS_StartCapture.sh -r & 
+sleep 60
+~/source/ukmon-pitools/liveMonitor.sh
