@@ -18,14 +18,10 @@ RUN python3 setup.py install
 
 RUN apt-get install -y iputils-ping dnsutils
 RUN ln -s /usr/bin/python3 /usr/local/bin/python
-COPY configure_container.sh /root/source/
-
-RUN chmod +x /root/source/configure_container.sh
 
 WORKDIR /root/source
 RUN git clone https://github.com/markmac99/ukmon-pitools.git
-
 WORKDIR /root/source/RMS
 
 ENV DOCKER_RUNNING true 
-CMD ["/root/source/configure_container.sh"]
+CMD ["/root/RMS_data/config/configure_container.sh"]
