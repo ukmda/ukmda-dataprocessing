@@ -1,7 +1,7 @@
 # powershell script to run docker container
 
 if ($args.count -lt 1) {
-    write-output "usage: .\run.ps1 path\to\config"
+    write-output "usage: .\run.ps1 path\to\rmsdata"
     exit 1
 }
 $configloc=$args[0]
