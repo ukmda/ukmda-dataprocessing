@@ -5,5 +5,6 @@ if [ $# -lt 2 ] ; then
     exit 1
 fi
 configloc=$1
+cp configure_container.sh $configloc/config
 contid=$(docker run -v ${configloc}:/root/RMS_data -d -t rms_ubuntu)
 echo $contid > ${configloc}/containerid.txt

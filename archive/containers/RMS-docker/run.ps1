@@ -5,6 +5,6 @@ if ($args.count -lt 1) {
     exit 1
 }
 $configloc=$args[0]
-
+copy-item configure_container.sh $configloc\config
 $contid=(docker run -v ${configloc}:/root/RMS_data -d -t rms_ubuntu)
 Write-Output $contid > ${configloc}/containerid.txt
