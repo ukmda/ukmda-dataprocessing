@@ -1,4 +1,6 @@
 #!/bin/bash
+######## Start SSHD so we can login remotely ##########
+/usr/sbin/sshd -D -o ListenAddress=0.0.0.0 & 
 
 ######### RMS & Camera configuration - generic to all cameras
 cp ~/RMS_data/config/.config ~/source/RMS
@@ -20,8 +22,8 @@ git stash apply
 python setup.py install 
 ###### end of RMS and camera configuration
 
-# create some bash aliases - handy if you have to investigate issues
-#
+######### create some bash aliases - handy if you have to investigate issues
+
 touch ~/.bash_aliases
 echo "alias h='history'" >> ~/.bash_aliases 
 echo "alias du='du -h'" >> ~/.bash_aliases 
@@ -31,8 +33,9 @@ echo "alias logs='cd ~/RMS_data/logs && pwd'" >> ~/.bash_aliases
 echo "alias cap='cd ~/RMS_data/CapturedFiles && pwd'" >> ~/.bash_aliases 
 echo "alias arc='cd ~/RMS_data/ArchivedFiles && pwd'" >> ~/.bash_aliases 
 source ~/.bash_aliases
+######### end of generic configuration
 
-# UKMON-specific configuration 
+######### UKMON-specific configuration 
 chmod 0600 ~/.ssh/ukmon 
 chmod 0644 ~/.ssh/ukmon.pub
 chmod 0600 ~/.ssh/mjmm-data.key
@@ -43,7 +46,7 @@ if [ -f ~/RMS_data/config/dotimelapse ] ; then cp ~/RMS_data/config/dotimelapse 
 cd ~/source/ukmon-pitools
 ./refreshTools.sh
 
-# user-specific stuff, remove if not me!
+######### user-specific stuff, remove if not me!
 mkdir ~/mjmm && cd ~/mjmm && git init
 git remote add -f origin https://github.com/markmac99/pi-meteortools.git
 git config core.sparseCheckout true
@@ -52,9 +55,14 @@ chmod +x ~/mjmm/pi/*.sh
 cp ~/RMS_data/config/config.ini ~/mjmm/pi
 cd ~/mjmm/pi && pip install -r requirements.txt
 echo "/root/mjmm/pi/dailyPostProc.py" > ~/source/ukmon-pitools/extrascript
+echo "1" > ~/mjmm/pi/doistream
 
 ########## Finally, start RMS and the UKMON live monitor
 cd ~/source/RMS
 Scripts/RMS_StartCapture.sh -r & 
 sleep 60
-~/source/ukmon-pitools/liveMonitor.sh
+if [ -f ~/source/ukmon-pitools/liveMonitor.sh ] ; then 
+    ~/source/ukmon-pitools/liveMonitor.sh
+else
+    bash 
+fi 
