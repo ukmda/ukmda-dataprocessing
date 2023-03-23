@@ -1,4 +1,4 @@
-# powershell script to run docker container
+# powershell script to login to docker container
 
 if ($args.count -lt 1) {
     write-output "usage: .\login.ps1 path\to\rmsdata"

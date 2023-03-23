@@ -58,11 +58,9 @@ echo "/root/mjmm/pi/dailyPostProc.py" > ~/source/ukmon-pitools/extrascript
 echo "1" > ~/mjmm/pi/doistream
 
 ########## Finally, start RMS and the UKMON live monitor
+# do not use -r parameter as it'll restart in last night's folder
 cd ~/source/RMS
-Scripts/RMS_StartCapture.sh -r & 
+Scripts/RMS_StartCapture.sh & 
 sleep 60
-if [ -f ~/source/ukmon-pitools/liveMonitor.sh ] ; then 
-    ~/source/ukmon-pitools/liveMonitor.sh
-else
-    bash 
-fi 
+~/source/ukmon-pitools/liveMonitor.sh & 
+bash 
