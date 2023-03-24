@@ -47,12 +47,15 @@ cd ~/source/ukmon-pitools
 ./refreshTools.sh
 
 ######### user-specific stuff, remove if not me!
+chmod 0600 ~/.ssh/pikey
+chmod 0644 ~/.ssh/pikey.pub
 mkdir ~/mjmm && cd ~/mjmm && git init
 git remote add -f origin https://github.com/markmac99/pi-meteortools.git
 git config core.sparseCheckout true
 echo "pi/" >> .git/info/sparse-checkout && git pull origin master
 chmod +x ~/mjmm/pi/*.sh
 cp ~/RMS_data/config/config.ini ~/mjmm/pi
+cp ~/RMS_data/config/token.pickle ~/mjmm/pi
 cd ~/mjmm/pi && pip install -r requirements.txt
 echo "/root/mjmm/pi/dailyPostProc.py" > ~/source/ukmon-pitools/extrascript
 echo "1" > ~/mjmm/pi/doistream
