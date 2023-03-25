@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright (C) Mark McIntyre
+
 ######## Start SSHD so we can login remotely ##########
 /usr/sbin/sshd -D -o ListenAddress=0.0.0.0 & 
 
@@ -23,7 +25,6 @@ python setup.py install
 ###### end of RMS and camera configuration
 
 ######### create some bash aliases - handy if you have to investigate issues
-
 touch ~/.bash_aliases
 echo "alias h='history'" >> ~/.bash_aliases 
 echo "alias du='du -h'" >> ~/.bash_aliases 
@@ -64,6 +65,8 @@ echo "1" > ~/mjmm/pi/doistream
 # do not use -r parameter as it'll restart in last night's folder
 cd ~/source/RMS
 Scripts/RMS_StartCapture.sh & 
-sleep 120  # wait long enough to allow RMS to start fully
+# wait long enough to allow RMS to start fully before starting ukmon-live 
+sleep 120  
 ~/source/ukmon-pitools/liveMonitor.sh & 
+# finally run bash, so that the container remains alive 
 bash 

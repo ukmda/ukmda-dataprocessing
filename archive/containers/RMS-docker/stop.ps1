@@ -1,4 +1,5 @@
 # powershell script to stop docker container
+# Copyright (C) Mark McIntyre
 
 if ($args.count -lt 1) {
     write-output "usage: .\stop.ps1 path\to\rmsdata"

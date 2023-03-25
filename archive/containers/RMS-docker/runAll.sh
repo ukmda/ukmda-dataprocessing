@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright (C) Mark McIntyre
+# script to run multiple cameras
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd $here

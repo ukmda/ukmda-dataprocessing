@@ -1,4 +1,5 @@
 # script to stop docker container
+# Copyright (C) Mark McIntyre
 
 if [ "$1" ==  "" ] ; then
     echo "usage: ./run.sh path/to/rmsdata"

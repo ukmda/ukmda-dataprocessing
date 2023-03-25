@@ -20,13 +20,15 @@ collects 10-20GB per night.
 
 ## Updating RMS
 RMS is updated whenever the container is restarted or whenever the image is rebuilt. To force an update, 
-restart the container.
+restart the container. I am using cron to restart all the containers daily via the *runAll.sh* script
 
 ## Scripts
-* build.ps1 - builds the image. Note that you'll need Docker Desktop installed with WSL2 support enabled in order to build the container properly. 
-* * run.ps1 - run the image.
-* login.ps1 - login to the container.
-* stop.ps1 - stop the container.
+* build.* - builds the image. Note that you'll need Docker Desktop installed with WSL2 support enabled in order to build the container properly. 
+* runAll.sh - runs multiple containers.  I run this from cron to restart everything daily. 
+
+* run.* - run the image.
+* login.* - login to the container.
+* stop.* - stop the container.
 
 The last three all require a path to be passed, specifying where to find the container configuration. For example *.\run.ps1 f:\dockervols\uk0006* will look in the specified location for the container config, and *login.ps1 f:\dockervols\uk0006* will read from this location to determine which container to connect to. 
 

@@ -1,5 +1,6 @@
 #!/bin/bash
 #  script to login to RMS docker container
+# Copyright (C) Mark McIntyre
 
 if [ "$1" ==  "" ] ; then
     echo "usage: ./login.sh path/to/rmsdata"

@@ -1,4 +1,5 @@
 # powershell script to run docker container
+# Copyright (C) Mark McIntyre
 
 if ($args.count -lt 1) {
     write-output "usage: .\run.ps1 path\to\rmsdata"
