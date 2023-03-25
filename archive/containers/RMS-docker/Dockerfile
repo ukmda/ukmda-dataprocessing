@@ -29,6 +29,8 @@ RUN echo 'root:ubuntu' | chpasswd
 RUN ssh-keygen -A
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
 EXPOSE 22
+# curl needed for istraStream
+RUN apt-get install -y curl
 
 ENV DOCKER_RUNNING true 
 CMD ["/root/RMS_data/config/configure_container.sh"]

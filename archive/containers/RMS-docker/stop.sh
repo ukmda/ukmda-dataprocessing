@@ -1,6 +1,6 @@
 # script to stop docker container
 
-if [ $# -lt 2 ] ; then
+if [ "$1" ==  "" ] ; then
     echo "usage: ./run.sh path/to/rmsdata"
     exit 1
 fi

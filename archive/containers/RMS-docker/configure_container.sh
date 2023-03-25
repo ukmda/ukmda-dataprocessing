@@ -64,6 +64,6 @@ echo "1" > ~/mjmm/pi/doistream
 # do not use -r parameter as it'll restart in last night's folder
 cd ~/source/RMS
 Scripts/RMS_StartCapture.sh & 
-sleep 60
+sleep 120  # wait long enough to allow RMS to start fully
 ~/source/ukmon-pitools/liveMonitor.sh & 
 bash 
