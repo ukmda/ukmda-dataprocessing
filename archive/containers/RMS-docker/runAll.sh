@@ -9,5 +9,5 @@ rmsdata=/mnt/c/dockervols
 camlist="uk001l uk002f"
 
 for cam in $camlist ; do
-    echo ./run.sh $rmsdata/$cam
+    ./run.sh $rmsdata/$cam
 done 
