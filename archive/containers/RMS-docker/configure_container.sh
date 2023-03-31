@@ -15,6 +15,7 @@ chmod 0600 ~/.ssh
 cp ~/RMS_data/config/.ssh/* ~/.ssh
 chmod 0600 ~/.ssh/id_rsa
 chmod 0644 ~/.ssh/id_rsa.pub
+chmod 0600 ~/.ssh/known_hosts
 
 # Update RMS
 cd ~/source/RMS
@@ -39,8 +40,6 @@ source ~/.bash_aliases
 ######### UKMON-specific configuration 
 chmod 0600 ~/.ssh/ukmon 
 chmod 0644 ~/.ssh/ukmon.pub
-chmod 0600 ~/.ssh/mjmm-data.key
-chmod 0600 ~/.ssh/known_hosts
 cp ~/RMS_data/config/ukmon.ini ~/source/ukmon-pitools
 if [ -f ~/RMS_data/config/domp4s ] ; then cp ~/RMS_data/config/domp4s ~/source/ukmon-pitools ; fi
 if [ -f ~/RMS_data/config/dotimelapse ] ; then cp ~/RMS_data/config/dotimelapse ~/source/ukmon-pitools ; fi
@@ -50,6 +49,7 @@ cd ~/source/ukmon-pitools
 ######### user-specific stuff, remove if not me!
 chmod 0600 ~/.ssh/pikey
 chmod 0644 ~/.ssh/pikey.pub
+chmod 0600 ~/.ssh/mjmm-data.key
 mkdir ~/mjmm && cd ~/mjmm && git init
 git remote add -f origin https://github.com/markmac99/pi-meteortools.git
 git config core.sparseCheckout true
