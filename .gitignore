@@ -507,11 +507,11 @@ DailyChecks/tackley_ne.ini
 M*.jpg
 M*.xml
 # don't want to duplicate this into github
-live/curate/numpy/**
-live/curate/pytz/**
-live/curate/numpy.libs/**
-live/curate/UFOHandler/*
-live/curate/curateEngine*
+live/old_curate/numpy/**
+live/old_curate/pytz/**
+live/old_curate/numpy.libs/**
+live/old_curate/UFOHandler/*
+live/old_curate/curateEngine*
 notshared/**
 analysis/test_data/platepar/platepar_cmn2010_ne.cal
 analysis/test_data/platepar/skyFit_latest.state
