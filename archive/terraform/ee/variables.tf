@@ -5,7 +5,8 @@ variable "profile" {  default = "ukmonshared" }
 variable "websitebucket" { default = "ukmeteornetworkarchive" }
 variable "sharedbucket" { default = "ukmon-shared" }
 variable "livebucket" { default = "ukmon-live" }
-variable "region"{ default = "eu-west-2"}
+variable "region" { default = "eu-west-2"}
+variable "liveregion" { default="eu-west-1"}
 
 #data used by the code in several places
 data "aws_caller_identity" "current" {}
