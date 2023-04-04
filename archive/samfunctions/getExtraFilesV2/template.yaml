@@ -12,7 +12,7 @@ Description: >
 
 Globals:
   Function:
-    Timeout: 180
+    Timeout: 300
     MemorySize: 512
     
 Resources:

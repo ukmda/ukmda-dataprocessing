@@ -5,7 +5,7 @@ import os
 import sys
 import shutil
 import json
-from zipfile import ZipFile
+from zipfile import ZipFile, ZIP_DEFLATED
 from datetime import datetime, timedelta
 from boto3.dynamodb.conditions import Key
 
@@ -212,12 +212,12 @@ def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
     webpth = f'reports/{yr}/orbits/{ym}/{ymd}/{pth}/'
 
     zipfname = os.path.join(outdir, pth +'.zip')
-    zipfile = ZipFile(zipfname, 'w')
+    zipf = ZipFile(zipfname, 'w', compression=ZIP_DEFLATED, compresslevel=9)
 
     for f in flist:
         #print(f)
         locfname = os.path.join(outdir, f)
-        zipfile.write(locfname)
+        zipf.write(locfname)
         # some files need to be pushed to the website, some to the archive bucket
         if '3dtrack' in f:
             key = os.path.join(webpth, f)
@@ -237,7 +237,7 @@ def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
             extraargs = getExtraArgs(locfname)
             s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
 
-    zipfile.close()
+    zipf.close()
     # now we push the zipfile
     key = os.path.join(webpth, pth + '.zip')
     extraargs = getExtraArgs(zipfname)

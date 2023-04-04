@@ -147,7 +147,7 @@ class demo(Frame):
         self.caminfo = self.caminfo.sort_values(by=['active','camtype','camid'],ascending=[True,False,False])
         self.data = self.caminfo.values.tolist()
         self.hdrs = self.caminfo.columns.tolist()
-        self.datachanged = False
+        self.datachanged = True
      
         #self.parent = tk.Tk.__init__(self)
         self.parent.title('Station Maintenance')

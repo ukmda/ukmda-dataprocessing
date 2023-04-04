@@ -7,7 +7,7 @@
           "arn": "arn:aws:s3:::ukmon-shared"
         },
         "object": {
-          "key": "matches/RMSCorrelate/trajectories/2023/202301/20230113/20230113_021451.086_UK/20230113_021451_trajectory.pickle"
+          "key": "matches/RMSCorrelate/trajectories/2022/202212/20221214/20221214_234756.592_UK/20221214_234756_trajectory.pickle"
         }
       }
     }

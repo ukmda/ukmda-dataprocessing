@@ -91,3 +91,50 @@ resource "aws_s3_bucket_logging" "ukmonwebsitelogs" {
   target_prefix = "archsite/"
 }
 
+
+resource "aws_s3_bucket_lifecycle_configuration" "archsitelcp" {
+  bucket = aws_s3_bucket.archsite.id
+  rule {
+    status = "Enabled"
+    id     = "purge old versions"
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+    }
+  }
+  rule {
+    status = "Enabled"
+    id     = "Transition reports to IA"
+    filter {
+      prefix = "/reports"
+    }
+
+    transition {
+      days          = 45
+      storage_class = "STANDARD_IA"
+    }
+  }
+  rule {
+    status = "Enabled"
+    id     = "Transition images to IA"
+    filter {
+      prefix = "/img"
+    }
+
+    transition {
+      days          = 45
+      storage_class = "STANDARD_IA"
+    }
+  }
+  rule {
+    status = "Enabled"
+    id     = "Transition CSVs to IA"
+    filter {
+      prefix = "/browse"
+    }
+
+    transition {
+      days          = 45
+      storage_class = "STANDARD_IA"
+    }
+  }
+}
