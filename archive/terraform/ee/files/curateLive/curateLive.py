@@ -20,11 +20,13 @@ def storeInDDb(evtdets, camdets):
 
     # table partition key will be the night of capture
     if dtval.hour < 13:
-        partkey = int((dtval - datetime.timedelta(days=1)).strftime('%Y%M%d'))
+        partkey = int((dtval - datetime.timedelta(days=1)).strftime('%Y%m%d'))
     else:
         partkey = int(dtval.strftime('%Y%m%d'))
     #table sort key will be the timestamp because we can then easily do a range select
     sortkey = int(dtval.timestamp())
+
+    expdate = int((dtval + datetime.timedelta(days=3)).timestamp())
 
     ddb = boto3.resource('dynamodb', region_name='eu-west-2')
     table = ddb.Table('LiveBrightness')   
@@ -36,7 +38,8 @@ def storeInDDb(evtdets, camdets):
             'bave': bave,
             'bstd': bstd,
             'camid': camid,
-            'ffname': ffname
+            'ffname': ffname,
+            'ExpiryDate': expdate
         }   
     )    
     #print(response)
