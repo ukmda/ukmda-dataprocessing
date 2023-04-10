@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ukmon_pylib"
-current_version = "2023.04.2"
+version = "2023.04.2"
 description = "UK Meteor Network Python Library"
 readme = "README.md"
 authors = [{ name = "Mark McIntyre", email = "ukmon@markmcintyreastro.co.uk" }]
@@ -69,7 +69,7 @@ tag = true
 push = true
 
 [tool.bumpver.file_patterns]
-"pyproject.toml" = ['current_version = "{version}"',]
+"pyproject.toml" = ['version = "{version}"',]
 "ukmon_pylib/__init__.py" = ["{version}",]
 "ukmon_pylib/README.md" = ["{version}",]
 

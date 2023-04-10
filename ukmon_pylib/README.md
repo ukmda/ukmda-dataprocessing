@@ -1,5 +1,5 @@
 # ukmon_pylib 
-## Version 2023.04.1
+## Version 2023.04.2
 
 This library of python code contains the analytics and reporting engine behind the UKMON Archive website
 
