@@ -61,7 +61,7 @@ dev = ["bumpver", "gitpython", "behave", "pip-tools", "pytest"]
 packages = ["ukmon_pylib.utils", "ukmon_pylib.usertools"]
 
 [tool.bumpver]
-current_version = "2023.02.2"
+current_version = "2023.04.0"
 version_pattern = "YYYY.0M.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 commit = true
@@ -70,6 +70,6 @@ push = true
 
 [tool.bumpver.file_patterns]
 "pyproject.toml" = ['current_version = "{version}"',]
-"__init__.py" = ["{version}",]
-"README.md" = ["{version}",]
+"ukmon_pylib/__init__.py" = ["{version}",]
+"ukmon_pylib/README.md" = ["{version}",]
 
