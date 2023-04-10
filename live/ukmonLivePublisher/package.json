@@ -14,7 +14,7 @@
     "async": "^2.6.4",
     "aws-mqtt": "^0.2.2",
     "aws-mqtt-client": "^0.0.6",
-    "aws-sdk": "^2.231.1",
+    "aws-sdk": "^2.1354.0",
     "fs": "0.0.1-security",
     "moment": "^2.29.4",
     "websocket": "^1.0.26"
