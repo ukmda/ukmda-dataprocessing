@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ukmon_pylib"
-version = "2023.02.1"
+current_version = "2023.02.1"
 description = "UK Meteor Network Python Library"
 readme = "README.md"
 authors = [{ name = "Mark McIntyre", email = "ukmon@markmcintyreastro.co.uk" }]
