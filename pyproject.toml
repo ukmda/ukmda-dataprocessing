@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ukmon_pylib"
 version = "2023.02.1"
-description = "UK Meteor Observation Network Python Library"
+description = "UK Meteor Network Python Library"
 readme = "README.md"
 authors = [{ name = "Mark McIntyre", email = "ukmon@markmcintyreastro.co.uk" }]
 license = { file = "LICENSE" }
@@ -50,13 +50,18 @@ requires-python = ">=3.7"
 dev = ["bumpver", "gitpython", "behave", "pip-tools", "pytest"]
 
 [project.urls]
-Homepage = "https:/archive.ukmeteornetwork.co.uk/ukmon_pylib/"
+"Homepage" = "https://github.com/markmac99/UKMon-shared/ukmon_pylib/"
+"Bug Tracker" = "https://github.com/markmac99/UKMon-shared/issues"
 
 #[project.scripts]
 #realpython = "reader.__main__:main"
 
+[tool.setuptools]
+#package-dir = {"" = "ukmon_pylib"}
+packages = ["ukmon_pylib.utils", "ukmon_pylib.usertools"]
+
 [tool.bumpver]
-current_version = "2023.02.1"
+current_version = "2023.02.2"
 version_pattern = "YYYY.0M.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 commit = true

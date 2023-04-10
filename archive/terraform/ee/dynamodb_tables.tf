@@ -18,10 +18,15 @@ resource "aws_dynamodb_table" "live_bright_table" {
     type = "N"
   }
 
-#  ttl {
-#    attribute_name = "TimeToExist"
-#    enabled        = false
-#  }
+  #attribute {
+  #  name = "ExpiryDate"
+  #  type = "N"
+  #}
+
+  ttl {
+    attribute_name = "ExpiryDate"
+    enabled        = true
+  }
 /*
   global_secondary_index {
     name               = "GameTitleIndex"
