@@ -44,7 +44,7 @@ dependencies = [
     "behave",
     "pytest"
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 
 [project.optional-dependencies]
 dev = ["bumpver", "gitpython", "behave", "pip-tools", "pytest"]
