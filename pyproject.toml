@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ukmon_pylib"
-version = "2023.04.4"
+version = "2023.04.5"
 description = "UK Meteor Network Python Library"
 readme = "ukmon_pylib/README.md"
 authors = [{ name = "Mark McIntyre", email = "ukmon@markmcintyreastro.co.uk" }]
@@ -62,7 +62,7 @@ dev = ["bumpver", "gitpython", "behave", "pip-tools", "pytest"]
 packages = ["ukmon_pylib.utils", "ukmon_pylib.usertools"]
 
 [tool.bumpver]
-current_version = "2023.04.4"
+current_version = "2023.04.5"
 version_pattern = "YYYY.0M.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 commit = true
