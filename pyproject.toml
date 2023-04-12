@@ -21,7 +21,6 @@ classifiers = [
 keywords = ["meteors", "ukmon"]
 dependencies = [
     "boto3",
-    "cartopy",
     "fastparquet",
     "google-auth",
     "google-auth-oauthlib",

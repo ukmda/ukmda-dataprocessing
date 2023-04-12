@@ -28,5 +28,13 @@ ukmon_pylib
 -----------
 A python module containing functionality used across the website and other analytics. 
 
+The end-user library can be installed from Pypi. On Windows you will first need to install Shapely using conda. On Linux you should be able to simply install it with pip. 
+'''
+conda activate myenv
+conda install -c conda-forge Cartopy Shapely
+pip install ukmon_pylib
+'''
+
+
 
 
