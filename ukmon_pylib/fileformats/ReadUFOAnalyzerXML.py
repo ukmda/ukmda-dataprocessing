@@ -6,10 +6,7 @@ import xmltodict
 import datetime
 import math
 import numpy
-#try:
-from wmpl.Utils.TrajConversions import altAz2RADec, datetime2JD
-#except Exception:
-#    pass
+from utils.Math import datetime2JD, altAz2RADec
 
 
 class UAXml:

@@ -37,13 +37,13 @@ export LD_LIBRARY_PATH
 mkdir -p $DATADIR/kmls
 aws s3 sync $WEBSITEBUCKET/img/kmls/ $DATADIR/kmls --quiet --profile ukmonshared
 export KMLTEMPLATE="*25km.kml"
-python -m utils.makeCoverageMap $DATADIR/kmls $DATADIR
+python -m reports.makeCoverageMap $DATADIR/kmls $DATADIR
 export KMLTEMPLATE="*70km.kml"
-python -m utils.makeCoverageMap $DATADIR/kmls $DATADIR
+python -m reports.makeCoverageMap $DATADIR/kmls $DATADIR
 export KMLTEMPLATE="*100km.kml"
-python -m utils.makeCoverageMap $DATADIR/kmls $DATADIR
+python -m reports.makeCoverageMap $DATADIR/kmls $DATADIR
 
-python -c "from utils.makeCoverageMap import createCoveragePage as ccp ; ccp() ;"
+python -c "from reports.makeCoverageMap import createCoveragePage as ccp ; ccp() ;"
 
 logger -s -t createSummaryTable "create year-to-date barchart"
 pushd $DATADIR

@@ -17,6 +17,7 @@ Routines that create reports from the Match and Single-station data
 * reportActiveShowers.py - create reports of active showers
 * reportBadCameras.py - create reports of camera stati, in particular ones that seem bad
 * reportOfLatestMatches.py - create a report of latest matches, for emailing and posting to the site
+* makeCoverageMap.py - make the coverage maps showing all stations
 
 * filterByLocDirBri.py - WIP - filter events by various criteria for easier searches
 

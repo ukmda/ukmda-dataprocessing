@@ -18,7 +18,7 @@ def getLiveJpgs(dtstr, outdir=None, create_txt=False, buck_name=None):
     s3 = boto3.client('s3')
     print(f'looking for {dtstr} in {buck_name}')
     x = s3.list_objects_v2(Bucket=buck_name,Prefix=f'M{dtstr}')
-    if  x['KeyCount'] > 0:
+    if x['KeyCount'] > 0:
         print(f"found {x['KeyCount']} records, saving to {outdir}")
         for k in x['Contents']:
             key = k['Key']
@@ -30,14 +30,14 @@ def getLiveJpgs(dtstr, outdir=None, create_txt=False, buck_name=None):
                 key = key.replace('.xml', 'P.jpg')
                 if len(fn) < 5:
                     outkey = key
-                    spls = key.split('_')
-                    stationid = spls[-1][:6].lower()
-                    dtime = key[1:16]
-                    patt = f'FF_{stationid}_{dtime}'
+                    #spls = key.split('_')
+                    #stationid = spls[-1][:6].lower()
+                    #dtime = key[1:16]
+                    #patt = f'FF_{stationid}_{dtime}'
                 else:
                     outkey = fn.replace('.fits', '.jpg')
-                    patt = fn[:26]
-                    stationid = fn[3:9].lower()
+                    #patt = fn[:26]
+                    #stationid = fn[3:9].lower()
                 print(key)
                 s3.download_file(buck_name, key, os.path.join(outdir, outkey))
                 if create_txt is True:
@@ -52,7 +52,7 @@ def getFBFiles(patt, outdir):
     print(f'looking for {patt} in {buck_name}')
     fullpatt = f'fireballs/interesting/{patt}'
     x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
-    if  x['KeyCount'] > 0:
+    if x['KeyCount'] > 0:
         for k in x['Contents']:
             key = k['Key']
             _, fname = os.path.split(key)
@@ -62,7 +62,7 @@ def getFBFiles(patt, outdir):
     _, camid = os.path.split(outdir)
     fullpatt = f'consolidated/platepars/{camid}'
     x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
-    if  x['KeyCount'] > 0:
+    if x['KeyCount'] > 0:
         for k in x['Contents']:
             key = k['Key']
             fname = 'platepar_cmn2010.cal'
@@ -73,7 +73,7 @@ def getFBFiles(patt, outdir):
     gotcfg = False
     fullpatt = f'matches/RMSCorrelate/{camid}/{camid}_{dtstr[:8]}'
     x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
-    if  x['KeyCount'] > 0:
+    if x['KeyCount'] > 0:
         for k in x['Contents']:
             key = k['Key']
             fname = '.config'
@@ -86,7 +86,7 @@ def getFBFiles(patt, outdir):
         dtstr = (dt +datetime.timedelta(days = -1)).strftime('%Y%m%d_%H%M%S')
         fullpatt = f'matches/RMSCorrelate/{camid}/{camid}_{dtstr[:8]}'
         x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
-        if  x['KeyCount'] > 0:
+        if x['KeyCount'] > 0:
             for k in x['Contents']:
                 key = k['Key']
                 fname = '.config'
@@ -115,6 +115,7 @@ def createTxtFile(fname, outdir):
     with open(txtf,'w') as outf:
         outf.write(f'{patt}\n{patt.replace("FF_", "FR_")}\n')
     return txtf
+
 
 if __name__ == '__main__':
     getLiveJpgs(sys.argv[1])

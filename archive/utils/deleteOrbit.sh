@@ -7,7 +7,7 @@ source $here/../config.ini >/dev/null 2>&1
 traj=$1
 ymd=${traj:0:8}
 
-python -c "from usertools.manageTraj import deleteDuplicate as dd; dd('$traj'); "
+python -c "from maintenance.manageTraj import deleteDuplicate as dd; dd('$traj'); "
 if [ $? == 1 ] ; then 
     $SRC/website/createOrbitIndex.sh $ymd
 

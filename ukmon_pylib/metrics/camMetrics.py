@@ -11,97 +11,6 @@ from boto3.dynamodb.conditions import Key
 import pandas as pd
 
 
-def createCamTimingsTable(ddb=None):
-    
-    if not ddb:
-        ddb = boto3.resource('dynamodb', region_name='eu-west-1') #, endpoint_url="http://thelinux:8000")
-
-    # Create the DynamoDB table.
-    tbl='ukmon_uploadtimes'
-    try:
-        table = ddb.create_table(
-            TableName=tbl,
-            KeySchema=[
-                {
-                    'AttributeName': 'stationid',
-                    'KeyType': 'HASH'
-                },
-                {
-                    'AttributeName': 'dtstamp',
-                    'KeyType': 'RANGE'
-                },
-            ],
-            AttributeDefinitions=[
-                {
-                    'AttributeName': 'stationid', 'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'dtstamp', 'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'uploaddate', 'AttributeType': 'N'
-                }
-            ],
-            #ProvisionedThroughput={
-            #    'ReadCapacityUnits': 0,
-            #    'WriteCapacityUnits': 0
-            #},
-            BillingMode='PAY_PER_REQUEST',
-            GlobalSecondaryIndexes= [
-                {
-                    "IndexName": "uploaddate-stationid-index",
-                    "KeySchema": [
-                        {
-                            "AttributeName": "uploaddate",
-                            "KeyType": "HASH"
-                        },
-                        {
-                            "AttributeName": "stationid",
-                            "KeyType": "RANGE"
-                        }
-                    ],
-                    "Projection": {
-                        "ProjectionType": "ALL"
-                    },
-                    "IndexStatus": "ACTIVE",
-                    #"ProvisionedThroughput": {
-                    #    "NumberOfDecreasesToday": 0,
-                    #    "ReadCapacityUnits": 0,            
-                    #    "WriteCapacityUnits": 0
-                    #},
-                }
-            ]
-        )
-        table.meta.client.get_waiter('table_exists').wait(TableName=tbl)
-    except:
-        print(f'table {tbl} already exists')
-        table = ddb.Table(tbl)
-
-    # Wait until the table exists.
-    print(table.creation_date_time)
-    return 
-
-
-# Print out some data about the table - works for any table
-def testable(tbl, ddb=None):
-    if not ddb:
-        ddb = boto3.resource('dynamodb', region_name='eu-west-1') #, endpoint_url="http://thelinux:8000")
-    table = ddb.Table(tbl)
-    print(table.creation_date_time)
-    print(table.item_count)
-    return
-
-
-# delete a table - works for any table
-def deleteTable(tbl, ddb=None):
-    if not ddb:
-        ddb = boto3.resource('dynamodb') #, endpoint_url="http://thelinux:8000")
-    table = ddb.Table(tbl)
-    table.delete()
-    return 
-
-
-# add a row to the CamTimings table
 def addRowCamTimings(s3bucket, s3object, ftpname, ddb=None):
     s3c = boto3.client('s3')
     dtstamp = s3c.head_object(Bucket=s3bucket, Key=s3object)['LastModified']
@@ -127,6 +36,7 @@ def addRowCamTimings(s3bucket, s3object, ftpname, ddb=None):
             'uploaddate': int(uploaddate),
             'uploadtime': int(uploadtime),
             'manual': manual
+            #,'ExpiryDate', int(expirydate)
         }
     )    
     return 

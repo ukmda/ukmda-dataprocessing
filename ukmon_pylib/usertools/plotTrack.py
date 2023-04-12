@@ -5,7 +5,7 @@ import csv
 from matplotlib import pyplot as plt
 import numpy as np
 
-from wmpl.Utils.Earth import greatCircleDistance
+from utils.Math import greatCircleDistance
 
 
 def trackToDistvsHeight(trackcsvfile):

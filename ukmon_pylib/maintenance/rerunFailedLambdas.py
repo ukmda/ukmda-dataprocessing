@@ -88,7 +88,7 @@ def findOtherBadEvents():
 
 
 def findFailedEvents(prof='ukmonshared'):
-    session=boto3.Session(profile_name=prof) 
+    #session = boto3.Session(profile_name=prof) 
     logcli = boto3.client('logs', region_name='eu-west-2')
     datadir=os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     lastf = os.path.join(datadir,'orbits', 'lastorbitcheck.txt')
@@ -191,11 +191,12 @@ def resubmitPicklesForDay(dtstr, prof='ukmonshared'):
                 print(f"{k['Key']}")
                 thisevent = templ.replace('KEYHERE', k['Key'])
                 response = lambd.invoke(FunctionName='getExtraOrbitFilesV2',
-                    InvocationType='Event', Payload=thisevent )
+                    InvocationType='Event', Payload=thisevent)
                 print(response["StatusCode"])
     else:
         print('no keys found')
     return
+
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:

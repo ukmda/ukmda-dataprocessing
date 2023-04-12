@@ -1,6 +1,5 @@
 # Create a data type for the camera location details
 # Copyright (C) 2018-2023 Mark McIntyre
-import numpy
 import sys
 import os
 import numpy as np
@@ -9,7 +8,7 @@ import json
 
 
 # defines the data content of a UFOAnalyser CSV file
-CameraDetails = numpy.dtype([('Site', 'S32'), ('CamID', 'S32'), ('LID', 'S16'),
+CameraDetails = np.dtype([('Site', 'S32'), ('CamID', 'S32'), ('LID', 'S16'),
     ('SID', 'S8'), ('camtyp', 'i4'), ('dummycode','S6'),('active','i4')])
 
 
@@ -19,7 +18,7 @@ class SiteInfo:
             datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
             fname = os.path.join(datadir, 'consolidated', 'camera-details.csv')
 
-        self.camdets = numpy.loadtxt(fname, delimiter=',', skiprows=1, dtype=CameraDetails)
+        self.camdets = np.loadtxt(fname, delimiter=',', skiprows=1, dtype=CameraDetails)
         #print(self.camdets)
 
     def getCameraOffset(self, statid, activeonly=True):
@@ -27,15 +26,15 @@ class SiteInfo:
         statid = statid.encode('utf-8')
         #if statid not in self.camdets['CamID']:
         #    return -1
-        cam = numpy.where(self.camdets['CamID'] == statid) 
+        cam = np.where(self.camdets['CamID'] == statid) 
         if len(cam[0]) == 0:
             statid = statid.upper()
-            cam = numpy.where(self.camdets['CamID'] == statid) 
+            cam = np.where(self.camdets['CamID'] == statid) 
         if len(cam[0]) == 0:
-            cam = numpy.where(self.camdets['dummycode'] == statid) 
+            cam = np.where(self.camdets['dummycode'] == statid) 
         if len(cam[0]) == 0:
             try:
-                cam = numpy.where(numpy.logical_and(self.camdets['LID']==spls[0].encode('utf-8'), self.camdets['SID']==spls[1].encode('utf-8')))
+                cam = np.where(np.logical_and(self.camdets['LID']==spls[0].encode('utf-8'), self.camdets['SID']==spls[1].encode('utf-8')))
             except: 
                 pass
 
@@ -53,7 +52,6 @@ class SiteInfo:
         if c == -1:
             return 'unknown'
 
-        tz = 0  # camdets[c]['tz']
         site = self.camdets[c]['Site'].decode('utf-8').strip()
         camid = self.camdets[c]['CamID'].decode('utf-8').strip()
         if camid == '':
@@ -64,11 +62,11 @@ class SiteInfo:
     def getDummyCode(self, lid, sid):
         lid = lid.encode('utf-8')
         sid = sid.encode('utf-8')
-        cam = numpy.where((self.camdets['LID'] == lid) & (self.camdets['SID'] == sid))   
+        cam = np.where((self.camdets['LID'] == lid) & (self.camdets['SID'] == sid))   
         if len(cam[0]) == 0:
             sid = sid.upper()
             lid = lid.upper()
-            cam = numpy.where((self.camdets['LID'] == lid) & (self.camdets['SID'] == sid))
+            cam = np.where((self.camdets['LID'] == lid) & (self.camdets['SID'] == sid))
         if len(cam[0]) == 0:
             return 'Unknown'
         else:

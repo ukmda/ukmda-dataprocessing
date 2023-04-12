@@ -1,12 +1,12 @@
 # terraform to create the dynamodb tables
 
 resource "aws_dynamodb_table" "live_bright_table" {
-  name           = "LiveBrightness"
-  billing_mode   = "PAY_PER_REQUEST"
+  name         = "LiveBrightness"
+  billing_mode = "PAY_PER_REQUEST"
   #read_capacity  = 20
   #write_capacity = 20
-  hash_key       = "CaptureNight"
-  range_key      = "Timestamp"
+  hash_key  = "CaptureNight"
+  range_key = "Timestamp"
 
   attribute {
     name = "CaptureNight"
@@ -18,28 +18,82 @@ resource "aws_dynamodb_table" "live_bright_table" {
     type = "N"
   }
 
-  #attribute {
-  #  name = "ExpiryDate"
-  #  type = "N"
-  #}
-
   ttl {
     attribute_name = "ExpiryDate"
     enabled        = true
   }
-/*
-  global_secondary_index {
-    name               = "GameTitleIndex"
-    hash_key           = "GameTitle"
-    range_key          = "TopScore"
-    write_capacity     = 10
-    read_capacity      = 10
-    projection_type    = "INCLUDE"
-    non_key_attributes = ["UserId"]
-  }
-*/
   tags = {
-    Name        = "LiveBrightness"
+    Name       = "LiveBrightness"
+    billingtag = "ukmon"
+  }
+}
+
+resource "aws_dynamodb_table" "camera_table" {
+  name         = "ukmon_camdetails"
+  billing_mode = "PAY_PER_REQUEST"
+  #read_capacity  = 20
+  #write_capacity = 20
+  hash_key  = "stationid"
+  range_key = "site"
+  provider  = aws.eu-west-1-prov
+
+  attribute {
+    name = "stationid"
+    type = "S"
+  }
+
+  attribute {
+    name = "site"
+    type = "S"
+  }
+
+  #ttl {
+  #  attribute_name = "ExpiryDate"
+  #  enabled        = true
+  #}
+  tags = {
+    Name       = "ukmon_camdetails"
+    billingtag = "ukmon"
+  }
+}
+
+
+resource "aws_dynamodb_table" "uploadtimes_table" {
+  name         = "ukmon_uploadtimes"
+  billing_mode = "PAY_PER_REQUEST"
+  #read_capacity  = 20
+  #write_capacity = 20
+  hash_key  = "stationid"
+  range_key = "dtstamp"
+  provider  = aws.eu-west-1-prov
+
+  attribute {
+    name = "stationid"
+    type = "S"
+  }
+
+  attribute {
+    name = "dtstamp"
+    type = "S"
+  }
+
+  attribute {
+    name = "uploaddate"
+    type = "N"
+  }
+
+  global_secondary_index {
+    name               = "uploaddate-stationid-index"
+    hash_key           = "uploaddate"
+    range_key          = "stationid"
+    projection_type    = "ALL"
+  }
+  ttl {
+    attribute_name = "ExpiryDate"
+    enabled        = true
+  }
+  tags = {
+    Name       = "ukmon_uploadtimes"
     billingtag = "ukmon"
   }
 }

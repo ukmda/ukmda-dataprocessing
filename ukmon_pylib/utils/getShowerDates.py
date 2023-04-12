@@ -7,9 +7,13 @@ import sys
 import os
 import datetime
 
-from wmpl.Utils.TrajConversions import jd2Date
+from utils.Math import jd2Date
 from utils.convertSolLon import sollon2jd
-from UpdateOrbitFiles import updateOrbitFiles ## to update WMPL raw data files
+try:
+    from UpdateOrbitFiles import updateOrbitFiles ## to update WMPL raw data files
+    gotupdater = True
+except:
+    gotupdater = False
 
 
 def loadFullData(pth=None):
@@ -43,7 +47,8 @@ def loadJenniskensShowers(dir_path, file_name):
 
 
 def refreshShowerData():
-    updateOrbitFiles()
+    if gotupdater is True:
+        updateOrbitFiles()
     abs_path = os.getenv('WMPL_LOC', default='/home/ec2-user/src/WesternMeteorPyLib')
     jenniskens_shower_table_file = os.path.join(abs_path, 'wmpl', 'share', 'ShowerLookUpTable.txt')
     jenniskens_shower_table_npy = os.path.join(abs_path, 'wmpl', 'share', 'ShowerLookUpTable.npy')

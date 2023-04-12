@@ -91,7 +91,7 @@ aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogin
 
 cd $DATADIR
 # do this manually when on PC required; closes #61
-#python $PYLIB/utils/plotStationsOnMap.py $DATADIR/consolidated/camera-details.csv
+#python $PYLIB/maintenance/plotStationsOnMap.py $DATADIR/consolidated/camera-details.csv
 aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/ --region eu-west-2 --quiet
 
 rm -f $SRC/data/.nightly_running
@@ -103,7 +103,7 @@ logger -s -t nightlyJob "RUNTIME $SECONDS start costReport"
 $SRC/website/costReport.sh
 
 # set time of next run
-python $PYLIB/utils/getNextBatchStart.py 150
+python $PYLIB/maintenance/getNextBatchStart.py 150
 
 # create station reports. This takes hours hence done after everything else
 #if [ "$(date +%a)" == "Sun" ] ; then 

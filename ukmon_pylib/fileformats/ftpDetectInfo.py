@@ -10,9 +10,9 @@ import configparser as crp
 import json
 import datetime
 
-from wmpl.Utils.TrajConversions import date2JD
+from utils.Math import date2JD, angleBetweenSphericalCoords
+
 from wmpl.Formats.GenericFunctions import MeteorObservation
-from wmpl.Utils.Math import angleBetweenSphericalCoords
 
 
 def writeNewFTPFile(srcname, metlist):
@@ -65,7 +65,7 @@ def writeFTPHeader(ftpf, metcount, fldr, ufo=True):
 
 
 def writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, alt, b, mag, 
-    ufo=True, x=None, y=None, ffname = None):
+        ufo=True, x=None, y=None, ffname = None):
     """
     Write one meteor event into the file in FTPDetectInfo style
     """
@@ -81,7 +81,7 @@ def writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, alt
     if ufo is True:
         ftpf.write('UFO UKMON DATA Recalibrated on: ')
     else:
-        ftpf.write('RMS data reprocessed on: ' )
+        ftpf.write('RMS data reprocessed on: ')
     ftpf.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f UTC\n'))
     li = f'{sta} {metno:04d} {fcount:04d} {fps:04.2f} 000.0 000.0  00.0 000.0 0000.0 0000.0\n'
     ftpf.write(li)

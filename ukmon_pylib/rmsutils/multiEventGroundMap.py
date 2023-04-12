@@ -9,6 +9,7 @@ from wmpl.Utils.PlotMap_OSM import OSMMap
 
 RAD2DEG=57.2958
 
+
 def multiEventGroundMap(startdt, enddt, statid=None, shwr=None, outdir=None):
     yr = startdt[:4]
 
@@ -33,9 +34,9 @@ def multiEventGroundMap(startdt, enddt, statid=None, shwr=None, outdir=None):
     if statid is not None:
         dta = dta[dta.stations.str.contains(statid.upper())]
 
-    if len(dta) >  1:
-        lat_list = [ min(min(dta._lat1), min(dta._lat2))/RAD2DEG, max(max(dta._lat1), max(dta._lat2))/RAD2DEG]
-        lon_list = [ min(min(dta._lng1), min(dta._lng2))/RAD2DEG, max(max(dta._lng1), max(dta._lng2))/RAD2DEG]
+    if len(dta) > 1:
+        lat_list = [min(min(dta._lat1), min(dta._lat2))/RAD2DEG, max(max(dta._lat1), max(dta._lat2))/RAD2DEG]
+        lon_list = [min(min(dta._lng1), min(dta._lng2))/RAD2DEG, max(max(dta._lng1), max(dta._lng2))/RAD2DEG]
         # Init the map
         #print(lat_list, lon_list)
         m = OSMMap(lat_list, lon_list, border_size=50, color_scheme='dark')

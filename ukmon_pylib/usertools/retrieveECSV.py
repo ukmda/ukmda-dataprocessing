@@ -4,6 +4,7 @@ import requests
 import sys
 import os
 
+
 def getECSVs(stat, dt, savefiles=False, outdir='.'):
     apiurl='https://jpaq0huazc.execute-api.eu-west-1.amazonaws.com/Prod/getecsv?stat={}&dt={}'
     res = requests.get(apiurl.format(stat, dt))

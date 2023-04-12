@@ -4,7 +4,7 @@ import os
 import datetime
 import json
 import boto3
-import fileformats.extractRawDataOneEvent as erdv
+import rmsutils.extractRawDataOneEvent as erdv
 
 
 def gatherData(camlist, ymd, outdir, patt):

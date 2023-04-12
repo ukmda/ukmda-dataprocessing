@@ -21,12 +21,16 @@
 
 ../maintenance/dataMaintenance.py
 ../maintenance/sortToDateDirs.py
+../maintenance/rerunFailedLambdas.py
+../maintenance/plotStationsOnMap.py
+../maintenance/manageTraj.py
 
 ../metrics/camMetrics.py
 ../metrics/costMetrics.py
 ../metrics/tests/test_metrics.py
 ../metrics/timingMetrics.py
 ../metrics/volumeMetrics.py
+../utils/getMatchStats.py
 
 ../reports/cameraStatusReport.py
 ../reports/createAnnualBarChart.py
@@ -45,6 +49,7 @@
 ../reports/reportActiveShowers.py
 ../reports/reportBadCameras.py
 ../reports/reportOfLatestMatches.py
+../reports/makeCoverageMap.py
 
 ../traj/consolidateDistTraj.py
 ../traj/createDistribMatchingSh.py
@@ -64,12 +69,10 @@
 ../ufoutils/ufoTrajSolver.py
 ../ufoutils/UOFormat.py
 
-../usertools/compareMLtoManual.py
 ../usertools/drawFTPfile.py
 ../usertools/findNearDuplicates.py
 ../usertools/getLiveImages.py
 ../usertools/getOverlappingFovs.py
-../usertools/manageTraj.py
 ../usertools/multiDayRadiant.py
 ../usertools/multiEventGroundMap.py
 ../usertools/multiTrackStack.py
@@ -81,16 +84,10 @@
 ../usertools/toKML.py
 
 ../utils/annotateImage.py
-../utils/awsAthenaGlueRetr.py
-../utils/camTable.py
 ../utils/convertSolLon.py
 ../utils/getActiveShowers.py
-../utils/getMatchStats.py
 ../utils/getNextBatchStart.py
 ../utils/getShowerDates.py
-../utils/makeCoverageMap.py
-../utils/plotStationsOnMap.py
-../utils/rerunFailedLambdas.py
 ../utils/sendAnEmail.py
 ../utils/VectorMaths.py
 

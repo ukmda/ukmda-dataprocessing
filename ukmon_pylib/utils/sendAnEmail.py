@@ -2,7 +2,6 @@
 import os
 import sys
 import base64
-#from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from google.auth.transport.requests import Request
@@ -46,7 +45,7 @@ def create_message(sender, to, subject, message_text):
 
 
 def sendAnEmail(mailrecip, message, msgtype, files=None):
-    hname = 'ukmonhelper' # os.uname()[1]
+    hname = os.uname()[1]
 
     # email a summary to the mailrecip
     creds = getGmailCreds()

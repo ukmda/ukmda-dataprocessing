@@ -20,13 +20,9 @@ classifiers = [
 ]
 keywords = ["meteors", "ukmon"]
 dependencies = [
-    "astropy",
     "boto3",
     "cartopy",
-    "python-crontab",
-    "cryptography",
     "fastparquet",
-    "gmplot",
     "google-auth",
     "google-auth-oauthlib",
     "google-api-python-client",
@@ -36,13 +32,12 @@ dependencies = [
     "oauthlib",
     "pandas",
     "Pillow",
-    "paramiko",
     "pytz",
     "Shapely",
     "simplekml",
     "s3fs",
     "xmltodict",
-    "behave",
+    "requests",
     "pytest"
 ]
 requires-python = ">=3.7"
@@ -59,7 +54,7 @@ dev = ["bumpver", "gitpython", "behave", "pip-tools", "pytest"]
 
 [tool.setuptools]
 #package-dir = {"" = "ukmon_pylib"}
-packages = ["ukmon_pylib.utils", "ukmon_pylib.usertools"]
+packages = ["ukmon_pylib.utils", "ukmon_pylib.usertools", "ukmon_pylib.fileformats", "ukmon_pylib.rmsutils"]
 
 [tool.bumpver]
 current_version = "2023.04.5"

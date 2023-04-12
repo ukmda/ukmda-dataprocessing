@@ -5,33 +5,9 @@
 import sys
 import os
 import gmplot
-import xmltodict
 import glob
 from cryptography.fernet import Fernet
-from shapely.geometry import Polygon
-
-
-def munchKML(fname, return_poly=False):
-    with open(fname) as fd:
-        x = xmltodict.parse(fd.read())
-        cname = x['kml']['Folder']['name']
-        coords = x['kml']['Folder']['Placemark']['MultiGeometry']['Polygon']['outerBoundaryIs']['LinearRing']['coordinates']
-        coords = coords.split('\n')
-        if return_poly is False:
-            lats = []
-            lngs = []
-            for lin in coords:
-                s = lin.split(',')
-                lngs.append(float(s[0]))
-                lats.append(float(s[1]))
-            return cname, lats, lngs
-        else:
-            ptsarr=[]
-            for lin in coords:
-                s = lin.split(',')
-                ptsarr.append((float(s[0]), float(s[1])))
-            polyg = Polygon(ptsarr)
-            return cname, polyg 
+from utils.kmlHandlers import munchKML
 
 
 def decodeApiKey(enckey):

@@ -1,10 +1,10 @@
 # tests for usertools
 import os
-import simplekml
 
 from usertools.getOverlappingFovs import getOverlapWith
-from usertools.toKML import getTrajPickle, getTrackDetails, trackCsvtoKML
+from utils.kmlHandlers import getTrajPickle, getTrackDetails, trackCsvtoKML
 from usertools.retrieveECSV import getECSVs
+
 
 def test_fovchecker():
     srcfolder = './kmls'
@@ -17,7 +17,7 @@ def test_fovchecker():
                 'UK0056', 'UK0057', 'UK005J', 'UK005K', 'UK0061', 
                 'UK0066', 'UK006C', 'UK006E', 'UK006J', 'UK006T', 'UK0073', 
                 'UK007G', 'UK007J', 'UK007Y', 'UK0085', 'UK0087', 'UK0088']
-    assert (overlaps == expected)
+    assert overlaps == expected
 
 
 def test_toKML():
@@ -29,14 +29,13 @@ def test_toKML():
     trackCsvtoKML(kmlfile, tdets)
     orig = open(os.path.join('usertools','20230202_014115_baseline.kml')).readlines()
     newf = open(os.path.join('usertools','20230202_014115.kml')).readlines()
-    assert(orig == newf)
+    assert orig == newf
 
 
 def test_getECSVs():
     stat ='UK0025'
     dt = '2021-07-17T02:41:05.05'
-    getECSVs(stat, dt, savefiles=True, outdir='usertools' )
+    getECSVs(stat, dt, savefiles=True, outdir='usertools')
     orig = open(os.path.join('usertools','2021-07-17T02_41_05_05_M004_baseline.ecsv')).readlines()
     newf = open(os.path.join('usertools','2021-07-17T02_41_05_05_M004.ecsv')).readlines()
-    assert(orig == newf)
-
+    assert orig == newf

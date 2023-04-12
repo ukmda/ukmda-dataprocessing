@@ -4,7 +4,6 @@
 
 from fileformats import imoWorkingShowerList as iwsl
 import datetime
-import sys
 import argparse
 
 

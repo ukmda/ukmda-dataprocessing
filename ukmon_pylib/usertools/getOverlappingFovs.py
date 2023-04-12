@@ -6,7 +6,7 @@ import sys
 import glob
 
 
-from utils.makeCoverageMap import munchKML
+from utils.kmlHandlers import munchKML
 from shapely.geometry import Point
 
 
