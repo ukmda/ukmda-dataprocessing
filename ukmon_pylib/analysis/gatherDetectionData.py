@@ -89,8 +89,8 @@ def getFtpAndPlate(camid, dtstr, tmstr, outdir):
     tf2 = camid + '_' + dt2.strftime('%Y%m%d') + '_180000'
     targpath2 = os.path.join(outdir, camid, tf2)
     os.makedirs(targpath2, exist_ok=True)
-    yr = dt.year
-    ym = dt.strftime('%Y%m')
+    #yr = dt.year
+    #ym = dt.strftime('%Y%m')
     ymd = dt.strftime('%Y%m%d')
 
     s3 = boto3.resource('s3')

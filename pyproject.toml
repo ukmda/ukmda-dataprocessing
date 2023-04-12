@@ -1,5 +1,6 @@
 # Copyright (C) 2018-2023 Mark McIntyre
-# pyproject.toml
+
+# pyproject.toml for building the PYPI library of python code
 
 [build-system]
 requires      = ["setuptools>=61.0.0", "wheel"]
@@ -9,7 +10,7 @@ build-backend = "setuptools.build_meta"
 name = "ukmon_pylib"
 version = "2023.04.4"
 description = "UK Meteor Network Python Library"
-readme = "README.md"
+readme = "ukmon_pylib/README.md"
 authors = [{ name = "Mark McIntyre", email = "ukmon@markmcintyreastro.co.uk" }]
 license = { file = "LICENSE" }
 classifiers = [
@@ -44,7 +45,7 @@ dependencies = [
     "behave",
     "pytest"
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.7"
 
 [project.optional-dependencies]
 dev = ["bumpver", "gitpython", "behave", "pip-tools", "pytest"]

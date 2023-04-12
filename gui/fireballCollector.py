@@ -100,6 +100,7 @@ class ConstrainedEntry(StyledEntry):
 
         return True
 
+
 class fbCollector(Frame):
     def __init__(self, parent, patt=None):
         Frame.__init__(self, parent, bg = global_bg)
@@ -212,7 +213,7 @@ class fbCollector(Frame):
         fileMenu = Menu(self.menuBar, tearoff=0)
         fileMenu.add_command(label="Load Folder", command=self.loadFolder)
         fileMenu.add_command(label="Delete Folder", command=self.delFolder)
-        if self.gmn_key != '' : 
+        if self.gmn_key != '': 
             fileMenu.add_command(label="Fetch from GMN", command=self.getGMNData)
         fileMenu.add_command(label="Fetch from UKMON", command=self.getUKMData)
         fileMenu.add_command(label="Exit", command=self.quitApplication)
@@ -374,7 +375,7 @@ class fbCollector(Frame):
                 outdir = os.path.join(self.dir_path, camid.upper())
                 os.makedirs(outdir, exist_ok=True)
                 for li in open(txtf, 'r').readlines():
-                   getLiveImages.getFBFiles(li.strip(), outdir) 
+                    getLiveImages.getFBFiles(li.strip(), outdir) 
         tkMessageBox.showinfo("Data Collected", 'data collected from UKMON')
         return 
     
@@ -396,7 +397,7 @@ class fbCollector(Frame):
         stationlist = ','.join(map(str, camids))
         server=self.gmn_server
         user=self.gmn_user
-        log.info(f'getting data from GMN')
+        log.info('getting data from GMN')
         k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(self.gmn_key))
         c = paramiko.SSHClient()
         log.info(f'trying {user}@{server} with {self.gmn_key}')
@@ -423,7 +424,7 @@ class fbCollector(Frame):
         dirs = os.listdir(os.path.join(self.dir_path, dtstr))
         for d in dirs:
             srcdir = os.path.join(self.dir_path, dtstr, d)
-            targ =  os.path.join(self.dir_path, d)
+            targ = os.path.join(self.dir_path, d)
             os.makedirs(targ, exist_ok=True)
             for f in os.listdir(srcdir):
                 shutil.copy(os.path.join(srcdir, f), targ)
