@@ -7,14 +7,14 @@ requires      = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ukmon_pylib"
-version = "2023.04.9"
-description = "UK Meteor Network Python Library"
-readme = "ukmon_pylib/README.md"
+name = "ukmon_meteortools"
+version = "2023.04.1"
+description = "Python Tools for Meteor Data Analysis"
+readme = "meteortools/README.md"
 authors = [{ name = "Mark McIntyre", email = "ukmon@markmcintyreastro.co.uk" }]
 license = { file = "LICENSE" }
 classifiers = [
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Gnu Public License V3",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
 ]
@@ -55,10 +55,10 @@ dev = ["bumpver", "gitpython", "behave", "pip-tools", "pytest"]
 
 [tool.setuptools]
 #package-dir = {"" = "ukmon_pylib"}
-packages = ["ukmon_pylib.utils", "ukmon_pylib.usertools", "ukmon_pylib.fileformats", "ukmon_pylib.rmsutils"]
+packages = ["meteortools.utils", "meteortools.usertools", "meteortools.fileformats", "meteortools.rmsutils"]
 
 [tool.bumpver]
-current_version = "2023.04.9"
+current_version = "2023.04.1"
 version_pattern = "YYYY.0M.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 commit = true
