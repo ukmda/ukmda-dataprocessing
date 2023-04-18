@@ -1,14 +1,35 @@
 # Copyright (C) 2018-2023 Mark McIntyre
-#
-# annotate an image with station info and meteor count
-#
 
 from PIL import Image, ImageFont, ImageDraw 
-import sys
 import datetime
 
 
-def annotateImage(img_path, title, metcount):
+def annotateImage(img_path, statid, metcount, rundate=None):
+    """
+    Annotate an image with the station ID and date in the bottom left and meteor count in the 
+    bottom right
+
+    Arguments:
+        img_path:   [str] full path and filename of the image to be annotated
+        statid:     [str] station ID string to use
+        metcount:   [int] number of meteors in the image
+
+    
+    Keyword Args:
+        rundate:    [str] rundate in 'YYYYMM' or 'YYYYMMDD' format. Default is today. 
+
+    """
+    if rundate is not None:
+        if len(rundate) > 6:
+            now = datetime.datetime.strptime(rundate, '%Y%m%d')
+            title = '{} {}'.format(statid, now.strftime('%Y-%m-%d'))
+        else:
+            now = datetime.datetime.strptime(rundate, '%Y%m')
+            title = '{} {}'.format(statid, now.strftime('%Y-%m'))
+    else:
+        now = datetime.datetime.now()
+        title = '{} {}'.format(statid, now.strftime('%Y-%m-%d'))
+
     my_image = Image.open(img_path)
     width, height = my_image.size
     image_editable = ImageDraw.Draw(my_image)
@@ -25,6 +46,16 @@ def annotateImage(img_path, title, metcount):
 
 
 def annotateImageArbitrary(img_path, message, color='#000'):
+    """
+    Annotate an image with an arbitrary message in the selected colour
+    bottom right
+
+    Arguments:
+        img_path:   [str] full path and filename of the image to be annotated
+        message:    [str] message to put on the image
+        color:      [str] hex colour string, default '#000' which is white
+
+    """
     my_image = Image.open(img_path)
     width, height = my_image.size
     image_editable = ImageDraw.Draw(my_image)
@@ -36,18 +67,3 @@ def annotateImageArbitrary(img_path, message, color='#000'):
     #fnt = ImageFont.load_default()
     image_editable.text((15,height-fntheight-15), message, font=fnt, fill=color)
     my_image.save(img_path)
-
-
-if __name__ == '__main__':
-    statid = sys.argv[2]
-    if len(sys.argv) > 3:
-        if len(sys.argv[4]) > 6:
-            now = datetime.datetime.strptime(sys.argv[4], '%Y%m%d')
-            title = '{} {}'.format(statid, now.strftime('%Y-%m-%d'))
-        else:
-            now = datetime.datetime.strptime(sys.argv[4], '%Y%m')
-            title = '{} {}'.format(statid, now.strftime('%Y-%m'))
-    else:
-        now = datetime.datetime.now()
-        title = '{} {}'.format(statid, now.strftime('%Y-%m-%d'))
-    annotateImage(sys.argv[1], title, int(sys.argv[3]))

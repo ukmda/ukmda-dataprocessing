@@ -1,4 +1,7 @@
 # update the version number
+
+remove-item dist/*
+
 bumpver update --patch
 
 # build the package
