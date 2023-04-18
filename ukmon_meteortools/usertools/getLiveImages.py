@@ -6,10 +6,22 @@ import os
 import sys
 import boto3
 import datetime
-from fileformats import ReadUFOCapXML as ufoc
+from ukmon_meteortools.fileformats import ReadUFOCapXML as ufoc
 
 
 def getLiveJpgs(dtstr, outdir=None, create_txt=False, buck_name=None):
+    """
+    Retrieve live images from the ukmon website that match a pattern
+
+    Arguments:
+        dtstr:      [str] Date in YYYYMMDD_HHMMSS format. Partial strings allowed 
+        outdir:     [str] Where to save the file. Default is to create a folder named dtstr
+        create_txt: [bool] If true, create a text file containing the pattern matches
+        buck_name:  [str] S3 bucket to read. Default ukmon-live. 
+
+    Notes:
+        This function will fail if you do not have access to the bucket. 
+    """
     if outdir is None:
         outdir = dtstr
     os.makedirs(outdir, exist_ok=True)
@@ -50,6 +62,16 @@ def getLiveJpgs(dtstr, outdir=None, create_txt=False, buck_name=None):
 
 
 def getFBFiles(patt, outdir='.'):
+    """
+    Retrieve fireball files from the ukmon website that match a pattern
+
+    Arguments:
+        patt:      [str] pattern to match
+        outdir:     [str] Where to save the file. Default is '.''
+
+    Notes:
+        This function will fail if you do not have access to the ukmon-shared bucket. 
+    """
     buck_name = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmon-shared')[5:]
     s3 = boto3.client('s3')
     print(f'looking for {patt} in {buck_name}')
@@ -104,6 +126,18 @@ def getFBFiles(patt, outdir='.'):
 
 
 def createTxtFile(fname, outdir='.'):
+    """
+    Create a text file named after the cameraID, containing a list of fireball files 
+    to be retrieved from a remote camera
+
+    Arguments:
+        fname:  [str] the name of the FF file to be retrieved
+        outdir: [str] where to save the files. Default '.'
+
+    Notes:
+        the fname parameter should be the name of the live JPG for which you wish to 
+        retrieve the corresponding FF and FR files.
+    """
     if fname[0] == 'M':
         spls = fname.split('_')
         stationid = spls[-1][:6].lower()

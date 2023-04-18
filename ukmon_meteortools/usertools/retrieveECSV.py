@@ -6,6 +6,18 @@ import os
 
 
 def getECSVs(stationID, dateStr, savefiles=False, outdir='.'):
+    """
+    Retrieve a detection in ECSV format for the specified date
+
+    Arguments:
+        stationID:  [str] RMS Station ID code
+        dateStr:    [str] Date/time to retrieve for in ISO1601 format 
+                          eg 2021-07-17T02:41:05.05
+    
+    Keyword Arguments:
+        saveFiles:  [bool] save to file, or print to screen. Default False
+        outdir:     [str] path to save files into. Default '.'
+    """
     apiurl='https://jpaq0huazc.execute-api.eu-west-1.amazonaws.com/Prod/getecsv?stat={}&dt={}'
     res = requests.get(apiurl.format(stationID, dateStr))
     ecsvlines=''

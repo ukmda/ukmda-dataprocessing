@@ -6,11 +6,19 @@ import sys
 import glob
 
 
-from utils import munchKML
+from ukmon_meteortools.utils import munchKML
 from shapely.geometry import Point
 
 
 def pointInsideFov(latDegs,lngDegs, kmlFilename):
+    """
+    Test if a point is inside the field of view of a KML file
+
+    Arguments:
+        latDegs:        [degrees] latitude of the point
+        lngDegs:        [degrees] latitude of the point
+        kmlFileName:    [str] full path to the KML file to test
+    """
 
     c1, p1 = munchKML(kmlFilename, True)
     pt = Point(latDegs, lngDegs)
@@ -18,12 +26,28 @@ def pointInsideFov(latDegs,lngDegs, kmlFilename):
 
 
 def checkKMLOverlap(kmfile1, kmfile2):
+    """
+    Test if two KML files overlap
+
+    Arguments:
+        kmlfile1:       [str] full path to first KML file
+        kmlfile2:       [str] full path to second KML file
+    """
     _,p1 = munchKML(kmfile1, True)
     _,p2 = munchKML(kmfile2, True)
     return p1.intersects(p2)
 
 
 def getOverlapWith(srcfolder, kmlpattern='*-25km.kml', refcam='UK0006'):
+    """
+    Check for overlap between the named camera, and every KML file in a folder, at the pattern altitude
+
+    Arguments:
+        srcfolder:  [str] path to folder containing KML files to test. 
+        kmlpattern: [str] kml pattern to match. Default "*-25km.kml"
+        refcam:     [str] Cameraid to check against. Its KML must be in srcfolder
+     
+    """
     kmllist = glob.glob1(srcfolder, kmlpattern)
     currmatches=[]
     refkml = f'{refcam}{kmlpattern[1:]}'
@@ -41,6 +65,14 @@ def getOverlapWith(srcfolder, kmlpattern='*-25km.kml', refcam='UK0006'):
 
 
 def getOverlappingCameras(srcfolder, kmlpattern='*-25km.kml'):
+    """
+    Check for all overlaps in the folder at the pattern altitude
+
+    Arguments:
+        srcfolder:  [str] path to folder containing KML files to test. 
+        kmlpattern: [str] kml pattern to match. Default "*-25km.kml"
+     
+    """
     kmllist = glob.glob1(srcfolder, kmlpattern)
     kmllist2 = kmllist
     matches = []

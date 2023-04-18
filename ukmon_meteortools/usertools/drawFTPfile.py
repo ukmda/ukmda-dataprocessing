@@ -41,6 +41,14 @@ def readFTPfile(filename, h):
 
 
 def drawFTPFile(ftpfile, cfgfile=None):
+    """
+    Creates a simple graph of an FTPdetect file, showing the locations of each meteor.
+    Useful for diagnosing false detections. 
+
+    Arguments:
+        ftpfile:   [str] full path to the FTPdetect file.
+        cfgfile:   [str] full path to RMS config file to read image dimensions. Default is 1280x720.
+    """
     config = cr.ConfigParser()
     config.read(cfgfile)
     if len(config) == 1: 

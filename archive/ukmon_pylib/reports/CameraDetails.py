@@ -13,6 +13,11 @@ CameraDetails = np.dtype([('Site', 'S32'), ('CamID', 'S32'), ('LID', 'S16'),
 
 
 class SiteInfo:
+    """
+    Class to read and manage UKMON camera site information
+
+    Note that this class 
+    """
     def __init__(self, fname=None):
         if fname is None:
             datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')

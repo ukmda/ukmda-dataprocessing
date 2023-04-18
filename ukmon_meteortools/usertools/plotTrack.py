@@ -5,10 +5,16 @@ import csv
 from matplotlib import pyplot as plt
 import numpy as np
 
-from utils import greatCircleDistance
+from ukmon_meteortools.utils import greatCircleDistance
 
 
 def trackToDistvsHeight(trackcsvfile):
+    """
+    Plot a distance vs height graph from the supplied CSV file
+
+    Arguments:
+        trackcsvfile:   [str] full path to a CSV file containing columns of lat, long, height, time
+    """
     inputfile = csv.reader(open(trackcsvfile))
     dists = []
     alts = []
@@ -37,6 +43,12 @@ def trackToDistvsHeight(trackcsvfile):
 
 
 def trackToTimevsVelocity(trackcsvfile):
+    """
+    Plot a distance vs velocity graph from the supplied CSV file
+
+    Arguments:
+        trackcsvfile:   [str] full path to a CSV file containing columns of lat, long, height, time
+    """
     inputfile = csv.reader(open(trackcsvfile))
     dists = []
     tims = []
@@ -71,6 +83,12 @@ def trackToTimevsVelocity(trackcsvfile):
 
 
 def trackToTimevsHeight(trackcsvfile):
+    """
+    Plot a time vs height graph from the supplied CSV file
+
+    Arguments:
+        trackcsvfile:   [str] full path to a CSV file containing columns of lat, long, height, time
+    """
     inputfile = csv.reader(open(trackcsvfile))
     tims = []
     alts = []
