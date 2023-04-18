@@ -60,6 +60,12 @@ packages = ["ukmon_meteortools.utils", "ukmon_meteortools.usertools",
         "ukmon_meteortools.fileformats", "ukmon_meteortools.rmsutils", 
         "ukmon_meteortools.share"]
 
+#[tool.setuptools.packages.find]
+#where = ["ukmon_meteortools"]
+
+[tool.setuptools.package-data]
+"*" = ["*.npy", "*.xml"]
+
 [tool.bumpver]
 current_version = "2023.04.14"
 version_pattern = "YYYY.0M.PATCH"
