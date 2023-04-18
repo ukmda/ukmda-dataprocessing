@@ -7,8 +7,8 @@ import xmltodict
 import datetime
 import os
 import numpy as np
-from utils import jd2Date
-from utils import sollon2jd
+from ukmon_meteortools.utils import jd2Date
+from ukmon_meteortools.utils import sollon2jd
 
 # imported from $SRC/share
 try:

@@ -10,7 +10,7 @@ import configparser as crp
 import json
 import datetime
 
-from utils import date2JD, angleBetweenSphericalCoords
+from ukmon_meteortools.utils import date2JD, angleBetweenSphericalCoords
 
 
 class MeteorObservation(object):

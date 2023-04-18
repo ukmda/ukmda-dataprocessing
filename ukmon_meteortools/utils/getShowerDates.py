@@ -7,8 +7,7 @@ import sys
 import os
 import datetime
 
-from utils import jd2Date
-from utils import sollon2jd
+from ukmon_meteortools.utils import jd2Date, sollon2jd
 try:
     from UpdateOrbitFiles import updateOrbitFiles ## to update WMPL raw data files
     gotupdater = True

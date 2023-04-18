@@ -3,7 +3,7 @@
 # my own function to convert Solar Longitude to date, as the RMS/WMPL ones seem unstable
 #
 import numpy as np
-from utils import date2JD
+from ukmon_meteortools.utils import date2JD
 
 
 def sollon2jd(Year, Month, Long):
