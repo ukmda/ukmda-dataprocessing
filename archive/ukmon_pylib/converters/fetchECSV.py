@@ -10,7 +10,7 @@ import datetime
 import numpy as np
 import boto3
 
-from ukmon_pytools.fileformats.ftpDetectInfo import loadFTPDetectInfo
+from ukmon_meteortools.fileformats import loadFTPDetectInfo
 from wmpl.Utils.TrajConversions import jd2Date
 
 

@@ -4,7 +4,7 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 
 import os
-import ukmon_pytools.fileformats.CameraDetails as cc
+import reports.CameraDetails as cc
 import datetime
 import pandas as pd 
 

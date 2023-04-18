@@ -14,9 +14,9 @@ import fnmatch
 import datetime
 import boto3
 import tempfile
-from ukmon_pytools.fileformats import ReadUFOAnalyzerXML as UA
-from ukmon_pytools.fileformats import CameraDetails as cdet
-from ukmon_pytools.fileformats.ftpDetectInfo import writeFTPHeader, writeOneMeteor
+from ukmon_meteortools.fileformats import ReadUFOAnalyzerXML as UA
+from reports import CameraDetails as cdet
+from ukmon_meteortools.fileformats.ftpDetectInfo import writeFTPHeader, writeOneMeteor
 
 CAMINFOFILE = 'CameraSites.txt'
 CAMOFFSETSFILE = 'CameraTimeOffsets.txt'

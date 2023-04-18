@@ -6,7 +6,7 @@ import sys
 import csv
 import pandas as pd
 
-from ukmon_pytools.fileformats.platepar import loadPlatepars
+from ukmon_meteortools.fileformats import loadPlatepars
 
 
 def createDetectionsFile(eDate, datadir):

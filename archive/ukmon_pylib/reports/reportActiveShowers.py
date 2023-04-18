@@ -9,7 +9,7 @@ import glob
 import shutil
 import argparse
 
-from ukmon_pytools.utils.getActiveShowers import getActiveShowers
+from ukmon_meteortools.utils import getActiveShowers
 from analysis.showerAnalysis import showerAnalysis
 from reports.findFireballs import findFireballs
 

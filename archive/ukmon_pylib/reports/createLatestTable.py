@@ -3,7 +3,7 @@
 import sys
 import os
 import datetime
-import ukmon_pytools.fileformats.CameraDetails as cd
+import reports.CameraDetails as cd
 
 
 def createLatestTable(jpglist, outdir):

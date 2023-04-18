@@ -14,7 +14,7 @@ import glob
 import datetime
 
 from wmpl.Utils.TrajConversions import jd2Date
-from ukmon_pytools.utils.convertSolLon import sollon2jd
+from ukmon_meteortools.utils import sollon2jd
 from wmpl.Utils.Math import mergeClosePoints, angleBetweenSphericalCoords
 from wmpl.Utils.Physics import calcMass
 from wmpl.Utils.Pickling import loadPickle

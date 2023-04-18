@@ -24,7 +24,7 @@ from RMS import Math
 import Utils.ShowerAssociation as sa
 import RMS.ConfigReader as cr
 from RMS.Routines import GreatCircle
-import ukmon_pytools.fileformats.CameraDetails as cc
+import reports.CameraDetails as cc
 
 
 def findUnprocessedFolders(dir_path, station_list, db, dbtime):

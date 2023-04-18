@@ -13,7 +13,7 @@ import shutil
 import tempfile
 import boto3
 
-import ukmon_pytools.fileformats.CameraDetails as cd
+import reports.CameraDetails as cd
 from traj.pickleAnalyser import getVMagCodeAndStations
 
 
