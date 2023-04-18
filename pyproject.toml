@@ -57,7 +57,8 @@ dev = ["bumpver", "gitpython", "behave", "pip-tools", "pytest"]
 [tool.setuptools]
 #package-dir = {"" = "ukmon_pylib"}
 packages = ["ukmon_meteortools.utils", "ukmon_meteortools.usertools", 
-        "ukmon_meteortools.fileformats", "ukmon_meteortools.rmsutils"]
+        "ukmon_meteortools.fileformats", "ukmon_meteortools.rmsutils", 
+        "ukmon_meteortools.share"]
 
 [tool.bumpver]
 current_version = "2023.04.13"

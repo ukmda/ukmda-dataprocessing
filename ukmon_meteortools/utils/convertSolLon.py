@@ -6,7 +6,7 @@ from ukmon_meteortools.utils import date2JD
 
 def sollon2jd(Year, Month, Long):
     """
-    A function to calculate julian date from year, month and solar longitude. 
+    Calculate the julian date corresponding to a solar longitude. 
     Because Solar Longitude is relative to the Spring equinox, the exact date 
     of a given LS varies from year to year. 
 
@@ -14,6 +14,9 @@ def sollon2jd(Year, Month, Long):
         Year: [int] year you wish to calculate in.
         Month: [int] month you wish to calculate in.
         Long:  [float] The solar longitude to convert. 
+
+    Returns:
+        [float] julian date 
 
     Notes:
         The function is only stable for date ranges from 1900-2100. 

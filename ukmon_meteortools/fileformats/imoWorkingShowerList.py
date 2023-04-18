@@ -19,15 +19,31 @@ except:
 
 
 class IMOshowerList:
+    """
+    Class that loads and parses the IMO Working Shower list XML file
+
+    Notes:
+        During initialisation the class attempt to load IMO_Working_Meteor_Shower_list.xml from
+        $DATADIR/share, if it exists and if DATADIR is defined in your environment. Failing this,
+        it will use a reference copy that is distributed with this library. If you want to force
+        the library to use a newer version, define DATADIR and put the file in $DATADIR/share.
+
+        Not all known showers are in the IMO working list. If a shower is not in the Working List then 
+        this library will reference the full shower list curated by Peter Jenniskens. 
+        This contains debated and unconfirmed showers. 
+
+    """
     def __init__(self, fname=None, fullstreamname=None):
         if fname is None:
             datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
             fname = os.path.join(datadir, '..', 'share', 'IMO_Working_Meteor_Shower_List.xml')
+            if not os.path.isfile(fname):
+                datadir=os.path.split(os.path.abspath(__file__))[0]
+                fname = os.path.join(datadir, '..', 'share', 'IMO_Working_Meteor_Shower_List.xml')
         
-        with open(fname) as fd:
-            tmplist = xmltodict.parse(fd.read())
-            self.showerlist = tmplist['meteor_shower_list']['shower']
-            self.fullstreamdata = None
+        tmplist = xmltodict.parse(open(fname, 'rb').read())
+        self.showerlist = tmplist['meteor_shower_list']['shower']
+        self.fullstreamdata = None
 
     
     def getShowerByCode(self, iaucode):
@@ -42,6 +58,9 @@ class IMOshowerList:
             if self.fullstreamdata is None:
                 wmpldir = os.getenv('WMPL_LOC', default='/home/ec2-user/src/WesternMeteorPyLib')
                 fullstreamname = os.path.join(wmpldir, 'wmpl', 'share', 'streamfulldata.npy')
+                if not os.path.isfile(fullstreamname):
+                    datadir=os.path.split(os.path.abspath(__file__))[0]
+                    fullstreamname = os.path.join(datadir, '..', 'share', 'streamfulldata.npy')
                 self.fullstreamdata = np.load(fullstreamname)
             subset = self.fullstreamdata[np.where(self.fullstreamdata[:,3]==iaucode)]
             
