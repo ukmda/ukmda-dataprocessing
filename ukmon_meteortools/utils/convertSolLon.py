@@ -1,12 +1,23 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 #
-# my own function to convert Solar Longitude to date, as the RMS/WMPL ones seem unstable
-#
 import numpy as np
 from ukmon_meteortools.utils import date2JD
 
 
 def sollon2jd(Year, Month, Long):
+    """
+    A function to calculate julian date from year, month and solar longitude. 
+    Because Solar Longitude is relative to the Spring equinox, the exact date 
+    of a given LS varies from year to year. 
+
+    Parameters:
+        Year: [int] year you wish to calculate in.
+        Month: [int] month you wish to calculate in.
+        Long:  [float] The solar longitude to convert. 
+
+    Notes:
+        The function is only stable for date ranges from 1900-2100. 
+    """
 
     Long = np.radians(Long)
     N = Year - 2000
