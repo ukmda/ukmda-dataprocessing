@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ukmon_meteortools"
-version = "2023.04.13"
+version = "2023.04.14"
 description = "Python Tools for Meteor Data Analysis"
 readme = "ukmon_meteortools/README.md"
 authors = [{ name = "Mark McIntyre", email = "ukmon@markmcintyreastro.co.uk" }]
@@ -61,7 +61,7 @@ packages = ["ukmon_meteortools.utils", "ukmon_meteortools.usertools",
         "ukmon_meteortools.share"]
 
 [tool.bumpver]
-current_version = "2023.04.13"
+current_version = "2023.04.14"
 version_pattern = "YYYY.0M.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 commit = true
