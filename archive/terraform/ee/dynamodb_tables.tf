@@ -97,3 +97,59 @@ resource "aws_dynamodb_table" "uploadtimes_table" {
     billingtag = "ukmon"
   }
 }
+
+resource "aws_dynamodb_table" "live_table" {
+  name         = "live"
+  billing_mode = "PAY_PER_REQUEST"
+  provider  = aws.eu-west-1-prov
+
+  hash_key  = "image_name"
+  range_key = "timestamp"
+
+  attribute {
+    name = "image_name"
+    type = "S"
+  }
+  attribute {
+    name = "timestamp"
+    type = "S"
+  }
+  attribute {
+    name = "image_timestamp"
+    type = "S"
+  }
+  attribute {
+    name = "year"
+    type = "S"
+  }
+  attribute {
+    name = "month"
+    type = "S"
+  }
+  global_secondary_index {
+    name               = "year-image_timestamp-index"
+    hash_key           = "year"
+    range_key          = "image_timestamp"
+    projection_type    = "ALL"
+    non_key_attributes = []
+    read_capacity      = 0
+    write_capacity     = 0
+  }
+  global_secondary_index {
+    name               = "month-image_name-index"
+    hash_key           = "month"
+    range_key          = "image_name"
+    projection_type    = "ALL"
+    non_key_attributes = []
+    read_capacity      = 0
+    write_capacity     = 0
+  }
+  ttl {
+    attribute_name = "expiry_date"
+    enabled        = true
+  }
+  tags = {
+    Name       = "live"
+    billingtag = "ukmon"
+  }
+}
