@@ -55,8 +55,9 @@ else
     aws s3 sync $DATADIR/$outdir $WEBSITEBUCKET/$outdir --quiet
     logger -s -t showerReport "all done"
 
-    tstval=$(grep "$yr/$shwr" $DATADIR/reports/${yr}/reportindex.js)
-    if [ "$tstval" == "" ] ; then 
+    grep "$yr/$shwr" $DATADIR/reports/${yr}/reportindex.js > /dev/null
+    if [ $? -eq 1 ] ; then 
+        logger -s -t showerReport "updating annual index"
         ${SRC}/website/createReportIndex.sh ${yr}
     fi
     logger -s -t showerReport "finished"    

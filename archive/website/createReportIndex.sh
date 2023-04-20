@@ -105,6 +105,8 @@ if [ "$prefix" == "." ] ; then
     aws s3 cp $SRC/website/templates/reportindex.html $WEBSITEBUCKET/reports/index.html --quiet
     aws s3 cp $repidx  $WEBSITEBUCKET/reports/ --quiet
     aws s3 cp $previdx  $WEBSITEBUCKET/reports/ --quiet
+    cp $repidx $DATADIR/reports/${yr}/
+    cp $previdx $DATADIR/reports/${yr}/
 else
     aws s3 cp $SRC/website/templates/reportindex.html $WEBSITEBUCKET/reports/$curryr/index.html --quiet
     aws s3 cp $repidx  $WEBSITEBUCKET/reports/$curryr/ --quiet
