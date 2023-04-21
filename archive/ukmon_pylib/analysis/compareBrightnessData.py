@@ -53,10 +53,13 @@ def getMatchedData(yyyymmdd, outdir=None):
 
 
 if __name__ == '__main__':
-    dtval = int((datetime.datetime.now()+datetime.timedelta(days=-1)).strftime('%Y%m%d'))
     if len(sys.argv) < 2:
+        dtval = int((datetime.datetime.now()+datetime.timedelta(days=-1)).strftime('%Y%m%d'))
+    else:
+        dtval = int(sys.argv[1])
+    if len(sys.argv) < 3:
         outdir='.'
     else:
-        outdir=sys.argv[1]
+        outdir=sys.argv[2]
     print(dtval, outdir)
     getMatchedData(dtval, outdir)
