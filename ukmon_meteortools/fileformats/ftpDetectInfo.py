@@ -110,6 +110,17 @@ class MeteorObservation(object):
 
 
 def filterFTPforSpecificTime(ftpfile, dtstr):
+    """ filter FTPdetect file for a specific event, by time, and copy it into a new file
+
+    Arguments:
+        ftpfile - [string] full path to the ftpdetect file to filter
+        dtstr   - [string] date/time of required event in yyyymmdd_hhmmss format
+
+    Returns:
+        tuple containing 
+            full name of the new file containing just matching events
+            the number of matching events
+    """
     meteor_list = loadFTPDetectInfo(ftpfile, time_offsets=None, join_broken_meteors=True, locdata=None)
     refdt = datetime.datetime.strptime(dtstr, '%Y%m%d_%H%M%S')
     #print(refdt)
@@ -127,6 +138,18 @@ def filterFTPforSpecificTime(ftpfile, dtstr):
 
 
 def writeNewFTPFile(srcname, metlist):
+    """ creates an FTPDetect file from a list of MeteorObservation objects 
+
+    This function creates a replacement FTPdetect file 
+    
+    Arguments:
+        srcname     - [string] full path to the original FTP file
+        metlist     - list of MeteorObservation objects
+
+    Returns:
+        the full path to the created file
+
+    """
     outdir, fname = os.path.split(srcname)
     newname = os.path.join(outdir, f'{fname}.old')
     try:
@@ -219,7 +242,7 @@ def writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, alt
 
 def loadFTPDetectInfo(ftpdetectinfo_file_name, time_offsets=None,
         join_broken_meteors=True, locdata=None):
-    """
+    """ Loads an FTPDEtect file into a list of MeteorObservation objects
 
     Arguments:
         ftpdetectinfo_file_name: [str] Path to the FTPdetectinfo file.
