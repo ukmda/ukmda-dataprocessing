@@ -167,8 +167,8 @@ class demo(Frame):
         camMenu.add_separator()
         camMenu.add_command(label = "Remove Location", command = self.delOperator)
         camMenu.add_separator()
-        camMenu.add_command(label = "Update SSH Key", command = self.newSSHkey)
-        camMenu.add_command(label = "Update AWS Key", command = self.newAWSkey)
+        camMenu.add_command(label = "Update SSH Key", command = self.newSSHKey)
+        camMenu.add_command(label = "Update AWS Key", command = self.newAWSKey)
 
         ownMenu = Menu(self.menuBar, tearoff=0)
         ownMenu.add_command(label = "View Owner Data", command = self.viewOwnerData)
@@ -396,7 +396,6 @@ class demo(Frame):
         answer = infoDialog(self, title, curdata[0], user, email, sshkey, id)
         if answer.data[0].strip() != '': 
             d = answer.data
-            rmsid = str(d[0]).upper()
             location = str(d[1]).capitalize()
             direction = str(d[2])
             cameraname = d[1].lower() + '_' + d[2].lower()
@@ -407,6 +406,30 @@ class demo(Frame):
         return 
 
     def newAWSKey(self):
+        cursel = self.sheet.get_selected_cells()
+        cr = list(cursel)[0][0]
+        curdata = self.data[cr]
+        location = curdata[0]
+        keyf = os.path.join('jsonkeys', location + '.key')
+        oldkeyf = os.path.join('jsonkeys', location + '-prev.key')
+        csvf = os.path.join('csvkeys', location + '.csv')
+        shutil.copyfile(keyf, oldkeyf)
+        currkey = json.load(open(keyf, 'r'))
+        keyid = currkey['AccessKey']['AccessKeyId']
+        print(location, keyid)
+        affectedcamlist = self.caminfo[self.caminfo.site == location]
+        print(affectedcamlist)
+        return 
+
+        iamc = boto3.client('iam')
+        iamc.update_access_key(UserName=location, AccessKeyId=keyid, Status='Inactive')
+        key = iamc.create_access_key(UserName=location)
+        with open(keyf, 'w') as outf:
+            outf.write(json.dumps(key, indent=4, sort_keys=True, default=str))
+        with open(csvf,'w') as outf:
+            outf.write('Access key ID,Secret access key\n')
+            outf.write('{},{}\n'.format(key['AccessKey']['AccessKeyId'], key['AccessKey']['SecretAccessKey']))
+
         return 
 
     def addNewOwner(self, rmsid, location, user, email):
