@@ -18,10 +18,13 @@ except Exception:
 try:
     from .multiEventGroundMap import multiEventGroundMap
 except Exception:
-    print('unable to locate WMPL: ground maps and orbit plots will be unavailable')
+    print('multiEventGroundMap can only be run in a WMPL environment')
 try:
     from .plotCAMSOrbits import plotCAMSOrbits
+except Exception:
+    print('plotCAMSOrbits can only be run in a WMPL environment')
+try:
     from .plotRMSOrbits import plotRMSOrbits
 except Exception:
-    print('unable to locate WMPL: ground maps and orbit plots will be unavailable')
+    print('plotRMSOrbits can only be run in a WMPL environment')
 

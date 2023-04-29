@@ -6,25 +6,28 @@
 
 import sys
 import os
-from datetime import datetime
+import datetime
 from wmpl.Utils.PlotOrbits import plotOrbits
 import matplotlib.pyplot as plt
 
 
-def plotCAMSOrbits(orbitFile:str, outdir:str):
+def plotCAMSOrbits(orbitFile, outdir, hideplot=True):
     """
     plots a set of orbits from CAMS data, with one line per set of osculations 
 
     Arguments:
-        orbitFile: a file containing orbit details 
-        outdir: the location to write to. If not supplied, will write to the location of orbitFile
+        orbitFile:  [string] full path to CAMS orbit details file
+        outdir:     [string] the location to write to. defaults to folder of CAMS file
+        hideplot:   [bool] don't display the plot. Default true
+
+    Returns:
+        none
     """
     
-    evttime = datetime.now()
+    evttime = None
 
     # read in the data file as a list of lines
-    with open(orbitFile, 'r') as src:
-        lis = src.readlines()
+    lis = open(orbitFile, 'r').readlines()
     
     # create an empty array to contain the orbital elements
     orb_elements=[]
@@ -33,6 +36,8 @@ def plotCAMSOrbits(orbitFile:str, outdir:str):
     # elements we want
     for i in range(3,len(lis)):
         li = lis[i].split()
+        if evttime is None:
+            evttime = li[1]+'T'+li[2][:8]
         a = float(li[25])
         e = float(li[26])
         if a < 0:
@@ -46,9 +51,12 @@ def plotCAMSOrbits(orbitFile:str, outdir:str):
         orb_elements.append(elemline)
 
     # plot and save the orbits
-    plotOrbits(orb_elements, evttime, color_scheme='light')
-    plt.savefig(os.path.join(outdir, evttime.strftime('%Y%m%d')+'.png'))
-    plt.show()
+    
+    plotOrbits(orb_elements, datetime.datetime.strptime(evttime, '%Y-%m-%dT%H:%M:%S'), color_scheme='light')
+    evttime = evttime.replace(':','-')
+    plt.savefig(os.path.join(outdir, f'CAMS_{evttime}.png'))
+    if not hideplot:
+        plt.show()
     plt.close()
 
     return 
