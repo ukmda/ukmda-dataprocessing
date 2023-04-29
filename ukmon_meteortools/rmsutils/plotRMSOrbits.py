@@ -7,21 +7,43 @@
 import sys
 import os
 import pandas as pd
-from datetime import datetime
+import datetime
 from wmpl.Utils.PlotOrbits import plotOrbits
 import matplotlib.pyplot as plt
 
 
-def plotRMSOrbits(orbitFile:str, outdir:str):
-    evttime = datetime.now()
+def plotRMSOrbits(orbitFile, outdir=None, hideplot=True):
+    """
+    plots a set of orbits from RMS data, with one line per set of osculations 
+
+    Arguments:
+        orbitFile:  [string] full path to RMS orbit details file 
+        outdir:     [string] the location to write to. defaults to folder of source file
+        hideplot:   [bool] don't display the plot. Default true
+
+    Returns:
+        none
+
+    Notes: 
+        Orbitfile should be a csv file with the following labelled columns:
+            _a, _e, _incl, _peri, _node, _datetime
+
+        _datetime should be in the format YYYY-MM-DDTHH-MM-SS
+
+    """
+    if outdir is None:
+        outdir, _ = os.path.split(orbitFile)
+
+    evttime = None
 
     # read in the data file as a list of lines
     data = pd.read_csv(orbitFile)
-    avals = list(data['_a'])    
-    evals = list(data['_e'])    
-    ivals = list(data['_incl'])    
-    wvals = list(data['_peri'])    
-    nvals = list(data['_node'])    
+    avals = list(data['_a'])
+    evals = list(data['_e'])
+    ivals = list(data['_incl'])
+    wvals = list(data['_peri'])
+    nvals = list(data['_node'])
+    dvals = list(data['_datetime'])
     # create an empty array to contain the orbital elements
     orb_elements=[]
 
@@ -32,11 +54,14 @@ def plotRMSOrbits(orbitFile:str, outdir:str):
             elemline = [avals[i],evals[i],ivals[i],wvals[i],nvals[i]]
             # add the elements to the array
             orb_elements.append(elemline)
+        if evttime is None:
+            evttime = dvals[i]
 
     # plot and save the orbits
-    plotOrbits(orb_elements, evttime, color_scheme='light')
-    plt.savefig(os.path.join(outdir, evttime.strftime('%Y%m%d')+'.png'))
-    plt.show()
+    plotOrbits(orb_elements, datetime.datetime.strptime(evttime, '%Y-%m-%dT%H-%M-%S'), color_scheme='light')
+    plt.savefig(os.path.join(outdir, f'RMS_{evttime}.png'))
+    if not hideplot:
+        plt.show()
     plt.close()
 
     return 

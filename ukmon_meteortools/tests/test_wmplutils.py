@@ -21,5 +21,8 @@ def test_plotCAMSOrbits():
 
 
 def test_plotRMSOrbits():
-    #plotRMSOrbits()
-    assert 1==1
+    rmsfile = os.path.join(here, 'data', 'sampleRMSdata.txt')
+    outdir = os.path.join(here, 'data')
+    plotRMSOrbits(rmsfile, outdir, True)
+    assert os.path.isfile(os.path.join(outdir, 'RMS_2021-06-16T04-00-41.png'))
+    os.remove(os.path.join(outdir, 'RMS_2021-06-16T04-00-41.png'))

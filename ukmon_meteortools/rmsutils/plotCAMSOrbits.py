@@ -11,7 +11,7 @@ from wmpl.Utils.PlotOrbits import plotOrbits
 import matplotlib.pyplot as plt
 
 
-def plotCAMSOrbits(orbitFile, outdir, hideplot=True):
+def plotCAMSOrbits(orbitFile, outdir=None, hideplot=True):
     """
     plots a set of orbits from CAMS data, with one line per set of osculations 
 
@@ -23,6 +23,8 @@ def plotCAMSOrbits(orbitFile, outdir, hideplot=True):
     Returns:
         none
     """
+    if outdir is None:
+        outdir, _ = os.path.split(orbitFile)
     
     evttime = None
 
@@ -58,6 +60,10 @@ def plotCAMSOrbits(orbitFile, outdir, hideplot=True):
     if not hideplot:
         plt.show()
     plt.close()
+
+#    with open(os.path.join(outdir, 'sampleRMSdata.txt'), 'w') as outf:
+#        for li in orb_elements:
+#            outf.write(f'{li[0]},{li[1]},{li[2]},{li[3]},{li[4]},{evttime}\n')
 
     return 
 
