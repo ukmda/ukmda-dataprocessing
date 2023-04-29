@@ -28,6 +28,10 @@ def getGmailCreds():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
+            if not os.path.isfile(crdfile):
+                print('to use this function you must have stored your Google OAUTH2 secret json file in ~/.ssh/gmailcreds.json.')
+                print('To set up OAUTH2 go to your google cloud console, select APIs then Credentials, and add an OAUTH2 desktop client ID.')
+                return None
             flow = InstalledAppFlow.from_client_secrets_file(crdfile, SCOPES)
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
@@ -64,7 +68,6 @@ def sendAnEmail(mailrecip, message, msgtype, mailfrom, files=None):
                 creds: $HOME/.ssh/gmailcreds.json
 
             On Windows, $HOME corresponds to c:/users/yourid. If there is no .ssh folder, create it. 
-
         """
     
     if msgtype is None:
@@ -72,6 +75,8 @@ def sendAnEmail(mailrecip, message, msgtype, mailfrom, files=None):
 
     # email a summary to the mailrecip
     creds = getGmailCreds()
+    if not creds:
+        return 
     service = build('gmail', 'v1', credentials=creds)
 
     subj ='{:s}: {:s}'.format(msgtype, message[:30])
