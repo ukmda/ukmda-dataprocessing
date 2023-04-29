@@ -11,6 +11,20 @@ RAD2DEG=57.2958
 
 
 def multiEventGroundMap(startdt, enddt, statid=None, shwr=None, outdir=None):
+    """
+    Plots a ground track diagram of all events between two dates, with filters by station and shower
+
+    Arguments:
+        start:      [string] start date in YYYYMMDD format
+        end:        [string] end date in YYYYMMDD format
+        statid:     [string] station to filter for. Default all stations. 
+        shwr:       [string] Filter by shower eg PER. Default All showers. 
+        outdir:     [string] where to save the file to. if this parameter is omitted, the image will be displayed not saved
+
+    Output:
+        A jpg map of the detections. 
+
+    """
     yr = startdt[:4]
 
     cols=['_lat1', '_lng1','_lat2','_lng2','_stream','dtstamp', 'stations']
@@ -53,7 +67,7 @@ def multiEventGroundMap(startdt, enddt, statid=None, shwr=None, outdir=None):
             plt.savefig(os.path.join(outdir, f'{startdt}-{enddt}-{shwr}-{statid}.jpg'))
         else:
             plt.show()
-
+        plt.close()
     return 
 
 
