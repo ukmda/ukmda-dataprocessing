@@ -8,6 +8,7 @@ bumpver update --patch
 python -m build
 
 if ($LASTEXITCODE -eq 0 ) {
-    # upload the package to test-pypi
-    python -m twine upload --repository pypitest dist/*
+    $prod = read-host -prompt "(T)est or (P)rod?"
+    if ( $prod.ToUpper() -eq "P") {$repo = "pypi"} else {$repo = "pypitest"}
+    python -m twine upload --repository $repo dist/*
 }

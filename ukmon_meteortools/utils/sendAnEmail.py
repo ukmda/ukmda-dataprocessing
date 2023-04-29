@@ -51,7 +51,7 @@ def sendAnEmail(mailrecip, message, msgtype, mailfrom, files=None):
         Arguments:
             mailrecip:  [string] email address of recipient.
             message:    [string] the message to send.
-            msgtype:    [string] Prefix for the subject line, eg "test", "warning".
+            msgtype:    [string] Prefix for the subject line, eg Test, Warning.
             mailfrom:   [string] email address of sender. 
             files:      [list]   list of files to attach, not currently implemented.
 
