@@ -1,9 +1,5 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 
-# python script to call TrackStack to stack several nights/cameras
-
-#import boto3
-#import argparse
 import os
 import glob
 import datetime
@@ -13,9 +9,36 @@ import argparse
 import shutil
 
 
-def multiDayRadiant(camlist, start, end, outdir=None, shwr=None):
-    locfld = os.getenv('LOCALFOLDER', default='f:/videos/meteorcam/fireballs')
-    datadir, _ = os.path.split(locfld)
+def multiDayRadiant(camlist, start, end, outdir=None, shwr=None, datadir=None):
+    """
+    Create a multi-day and/or multi-camera radiant map, for cameras at the same geographic location. 
+
+    Arguments:
+        camlist:    [list] list of camera IDs eg ['UK0006','UK000F']
+        start:      [string] start date in YYYYMMDD format
+        end:        [string] end date in YYYYMMDD format
+        outdir:     [string] where to save the file to. Default is current directory
+        shwr:       [string] Filter by shower eg PER. Default all showers. 
+        datadir:    [string] Where to look for the data. Default f:/videos/meteorcam.
+
+    Notes:
+        The function expects data to be stored in RMS folder structures as follows
+            {datadir}/{cameraid}/ConfirmedFiles/{cameraid_date_time_*}
+
+        Each folder must contain FTPdetectinfo file, platepars_all file
+        The first-named folder must contain a valid RMS config file. 
+
+        It is assumed that all cameras are at the same location. The output for cameras
+        at different locations has not been tested. 
+
+    Output:
+        creates two files in outdir, a PNG containing an all-sky image of the radiants and 
+        meteor tracks, and a text file containing the same information
+
+    """
+    if datadir is None:
+        locfld = os.getenv('LOCALFOLDER', default='f:/videos/meteorcam/fireballs')
+        datadir, _ = os.path.split(locfld)
     if outdir is None:
         outdir = '.'
     print(f'stacking {camlist} for dates {start},{end}, reading from {datadir}, saving to {outdir}')
@@ -58,6 +81,8 @@ def multiDayRadiant(camlist, start, end, outdir=None, shwr=None):
         shower_code=shwr, show_plot=False, save_plot=True, plot_activity=True,
         flux_showers=False, color_map='gist_ncar')
 
+    prevfiles = glob.glob1(targdir, '*radiants.png')
+    prevfilestxt = glob.glob1(targdir, '*radiants.txt')
     newn = prevfiles[0]
     if shwr is not None:
         newn = shwr + newn[6:]

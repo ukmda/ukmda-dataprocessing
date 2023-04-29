@@ -3,15 +3,16 @@ import datetime
 import numpy as np
 import os
 
-here = os.path.split(os.path.abspath(__file__))[0]
-
-
 from ukmon_meteortools.utils import jd2Date, date2JD, datetime2JD, jd2DynamicalTimeJD, jd2LST, sollon2jd, \
     greatCircleDistance, angleBetweenSphericalCoords, calcApparentSiderealEarthRotation, \
-    calcNutationComponents, equatorialCoordPrecession,  raDec2AltAz, altAz2RADec, \
-    annotateImage, annotateImageArbitrary, \
-    getActiveShowers, getActiveShowersStr, getShowerDets, getShowerPeak, \
-    trackCsvtoKML, getTrackDetails, getTrajPickle, munchKML, sendAnEmail
+    raDec2AltAz, altAz2RADec, \
+    getActiveShowers, getShowerDets, getShowerPeak, \
+    trackCsvtoKML, munchKML
+# getActiveShowersStr, sendAnEmail, \
+# calcNutationComponents, equatorialCoordPrecession,  getTrackDetails, getTrajPickle, \
+# annotateImage, annotateImageArbitrary
+
+here = os.path.split(os.path.abspath(__file__))[0]
 
 
 def test_jd2Date():
