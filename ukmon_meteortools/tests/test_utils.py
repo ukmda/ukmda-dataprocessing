@@ -9,12 +9,9 @@ here = os.path.split(os.path.abspath(__file__))[0]
 from ukmon_meteortools.utils import jd2Date, date2JD, datetime2JD, jd2DynamicalTimeJD, jd2LST, sollon2jd, \
     greatCircleDistance, angleBetweenSphericalCoords, calcApparentSiderealEarthRotation, \
     calcNutationComponents, equatorialCoordPrecession,  raDec2AltAz, altAz2RADec, \
-    altAz2RADec_vect, raDec2AltAz_vect, equatorialCoordPrecession_vect, \
     annotateImage, annotateImageArbitrary, \
     getActiveShowers, getActiveShowersStr, getShowerDets, getShowerPeak, \
-    refreshShowerData, loadJenniskensShowers, loadDataFile, loadFullData, loadLookupTable, \
-    trackCsvtoKML, getTrackDetails, getTrajPickle, munchKML, \
-    sendAnEmail
+    trackCsvtoKML, getTrackDetails, getTrajPickle, munchKML, sendAnEmail
 
 
 def test_jd2Date():
