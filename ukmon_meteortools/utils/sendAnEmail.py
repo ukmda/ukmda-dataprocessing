@@ -63,7 +63,7 @@ def sendAnEmail(mailrecip, message, msgtype, mailfrom, files=None):
                 token: $HOME/.ssh/gmailtoken.json
                 creds: $HOME/.ssh/gmailcreds.json
 
-            On Windows, $HOME corresponds to c:\users\yourid. If there is no .ssh folder, create it. 
+            On Windows, $HOME corresponds to c:/users/yourid. If there is no .ssh folder, create it. 
 
         """
     
