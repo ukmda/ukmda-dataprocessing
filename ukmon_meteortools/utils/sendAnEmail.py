@@ -1,6 +1,7 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 import os
 import sys
+import platform
 import base64
 from email.mime.text import MIMEText
 
@@ -44,8 +45,29 @@ def create_message(sender, to, subject, message_text):
 
 
 
-def sendAnEmail(mailrecip, message, msgtype, files=None):
-    hname = os.uname()[1]
+def sendAnEmail(mailrecip, message, msgtype, mailfrom, files=None):
+    """ sends an email using gmail.
+    
+        Arguments:
+            mailrecip:  [string] email address of recipient.
+            message:    [string] the message to send.
+            msgtype:    [string] Prefix for the subject line, eg "test", "warning".
+            mailfrom:   [string] email address of sender. 
+            files:      [list]   list of files to attach, not currently implemented.
+
+        Returns:
+            Nothing, though a message is printed onscreen.
+
+        Notes:
+            You must have gmail OAUTH2 set up. The gmail credentials must be stored as follows:
+                token: $HOME/.ssh/gmailtoken.json
+                creds: $HOME/.ssh/gmailcreds.json
+
+            On Windows, $HOME corresponds to c:\users\yourid. If there is no .ssh folder, create it. 
+
+        """
+    
+    hname = platform.uname()[1]
 
     # email a summary to the mailrecip
     creds = getGmailCreds()
@@ -54,7 +76,9 @@ def sendAnEmail(mailrecip, message, msgtype, files=None):
     subj ='{:s}: {:s}'.format(hname, msgtype)
     message = '{:s}: {:s}'.format(msgtype, message)
 
-    mailmsg = create_message('mjmm456@gmail.com', mailrecip, subj, message)
+    mailfrom = 'mjmm456@gmail.com'
+
+    mailmsg = create_message(mailfrom, mailrecip, subj, message)
 
     try:
         retval = (service.users().messages().send(userId='me', body=mailmsg).execute())

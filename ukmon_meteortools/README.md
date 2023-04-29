@@ -1,10 +1,9 @@
 # ukmon_meteortools
-## Version 2023.04.16
+## Version 2023.04.17
 
 Python tools and utilities to work with meteor data from the UK Meteor Network
 
-Available submodules shown below. To get more information about each module or function 
-use Python's built-in help capability
+To get more information about the submodules and functions use Python's built-in help capability
 
 ``` python
 from ukmon_meteortools import utils

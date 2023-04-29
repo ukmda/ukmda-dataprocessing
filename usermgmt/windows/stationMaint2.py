@@ -418,7 +418,8 @@ class demo(Frame):
         keyid = currkey['AccessKey']['AccessKeyId']
         print(location, keyid)
         affectedcamlist = self.caminfo[self.caminfo.site == location]
-        print(affectedcamlist)
+        for _, cam in affectedcamlist.iterrows():
+            print(cam.site.lower(), cam.sid.lower())
         return 
 
         iamc = boto3.client('iam')
@@ -473,6 +474,52 @@ class demo(Frame):
             _ = iamc.attach_user_policy(UserName=location, PolicyArn=policyarn)
             _ = iamc.add_user_to_group(UserName=location, GroupName=group)
         return 
+
+
+    def updateKeyfile(self, location):
+        server='ukmonhelper'
+        user='ec2-user'
+        keyf = os.path.join('jsonkeys', location + '.key')
+        currkey = json.load(open(keyf, 'r'))
+        keyid = currkey['AccessKey']['AccessKeyId']
+        secid = currkey['AccessKey']['SecretAccessKey']
+        affectedcamlist = self.caminfo[self.caminfo.site == location]
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser('~/.ssh/ukmonhelper'))
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = user, pkey = k)
+        scpcli = SCPClient(c.get_transport())
+        # push the raw keyfile
+        scpcli.put(keyf, 'keymgmt/rawkeys/live/')
+
+        for _, cam in affectedcamlist.iterrows():
+            cameraname = cam.site.lower() + '_' + cam.site.lower()
+            # get live.key for the camera
+            livef=f'/var/sftp/{cameraname}/live.key'
+            localf = f'./keys/{location.lower()}.key'
+            scpcli.get(livef, localf)
+            # replace the key and secret
+            lis = open(localf, 'r').readlines()
+            newlis=[]            
+            for li in lis:
+                if 'AWS_ACCESS_KEY_ID' in li:
+                    newlis.append(f'export AWS_ACCESS_KEY_ID={keyid}\n')
+                if 'AWS_SECRET_ACCESS_KEY' in li:
+                    newlis.append(f'export AWS_SECRET_ACCESS_KEY={secid}\n')
+                else:
+                    newlis.append(li)
+            with open(localf, 'w') as outf:
+                for li in newlis:
+                    outf.write(li)
+            # reupload it to the central loc
+            scpcli.put(localf, 'keymgmt/live/')
+            command = f'sudo cp keymgmt/live/{location.lower()}.key /var/sftp/{cameraname}/'
+            print(f'running {command}')
+            _, stdout, stderr = c.exec_command(command, timeout=10)
+            for line in iter(stdout.readline, ""):
+                print(line, end="")
+            for line in iter(stderr.readline, ""):
+                print(line, end="")
 
 
     def addNewUnixUser(self, location, direction, oldcamname='', updatemode=0):
