@@ -67,16 +67,15 @@ def sendAnEmail(mailrecip, message, msgtype, mailfrom, files=None):
 
         """
     
-    hname = platform.uname()[1]
+    if msgtype is None:
+        msgtype = platform.uname()[1]
 
     # email a summary to the mailrecip
     creds = getGmailCreds()
     service = build('gmail', 'v1', credentials=creds)
 
-    subj ='{:s}: {:s}'.format(hname, msgtype)
+    subj ='{:s}: {:s}'.format(msgtype, message[:30])
     message = '{:s}: {:s}'.format(msgtype, message)
-
-    mailfrom = 'mjmm456@gmail.com'
 
     mailmsg = create_message(mailfrom, mailrecip, subj, message)
 
