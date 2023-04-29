@@ -87,7 +87,7 @@ def sendAnEmail(mailrecip, message, msgtype, mailfrom, files=None):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print('usage: sendAnEmail.py recipient "message in quotes" Alert|Warning|Error ')
+    if len(sys.argv) < 4:
+        print('usage: sendAnEmail.py recipient "message in quotes" Alert|Warning|Error sender ')
     else:
-        sendAnEmail(sys.argv[1], sys.argv[2], sys.argv[3])
+        sendAnEmail(sys.argv[1], sys.argv[2], sys.argv[3],sys.argv[4])

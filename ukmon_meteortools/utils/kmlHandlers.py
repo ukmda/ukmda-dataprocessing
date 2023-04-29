@@ -38,7 +38,20 @@ def munchKML(kmlFilename, return_poly=False):
             return cname, polyg 
 
 
-def trackCsvtoKML(trackcsvfile, trackdata=None):
+def trackCsvtoKML(trackcsvfile, trackdata=None, saveOutput=True):
+    """ 
+    Either reads a CSV file containing lat, long, height, time of an event and 
+    creates a 3d KML file from it or, if trackdata is populated, converts a Pandas dataframe containing
+    the same data. Output is written to disk unless saveOutput is false. 
+    
+    Arguments:
+        trackcsvfile:   [string] full path to the file to read from
+        trackdata:      [array] pandas dataframe containing the data. Default None
+        saveOutput:     [bool] write the KML file to disk. Default true
+
+    Returns:
+        the KML file as a tuple
+        """
     kml=simplekml.Kml()
     kml.document.name = trackcsvfile
     if trackdata is None:
@@ -50,7 +63,8 @@ def trackCsvtoKML(trackcsvfile, trackdata=None):
         for i,r in trackdata.iterrows():
             kml.newpoint(name='', coords=[(r[1], r[0], r[2])], extrude=1, altitudemode='absolute')
     outname = trackcsvfile.replace('.csv','.kml')
-    kml.save(outname)
+    if saveOutput:
+        kml.save(outname)
     return kml
 
 
