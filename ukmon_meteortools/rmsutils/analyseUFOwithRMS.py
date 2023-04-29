@@ -16,6 +16,9 @@ def analyseUFOwithRMS(config, ff_directory, ff_name):
         config: [string] An RMS-style config file for the  UFO camera
         ff_directory: [string] The location of the file to analyse
         ff_name: [string] A video file to analyse. 
+
+    Returns:
+        (star_list, meteor_list): tuble containing a list of stars and a list of meteors
         
     Note: the name of the video clip must be in %Y%m%d_%H%M%S.%f format. 
     """ 
@@ -24,8 +27,6 @@ def analyseUFOwithRMS(config, ff_directory, ff_name):
     mask=None
     _, star_list, meteor_list = detectStarsAndMeteors(ff_directory, ff_name, config, flat_struct, dark, mask)
 
-    print(star_list)
-    print(meteor_list)
     return star_list, meteor_list
 
    

@@ -3,14 +3,25 @@
 
 try: 
     from .multiDayRadiant import multiDayRadiant
-    from .analyseUFOwithRMS import analyseUFOwithRMS
+except Exception:
+    print('MultiDayRadiant can only be run from the RMS source folder')
+
+try: 
     from .multiTrackStack import multiTrackStack
-except:
-    print('Unable to locate RMS: you must be in the RMS folder when importing these utilities')
+except Exception:
+    print('multiTrackStack can only be run from an RMS environment')
+try: 
+    from .analyseUFOwithRMS import analyseUFOwithRMS
+except Exception:
+    print('analyseUFOwithRMS can only be run from an RMS environment')
+
 try:
     from .multiEventGroundMap import multiEventGroundMap
+except Exception:
+    print('unable to locate WMPL: ground maps and orbit plots will be unavailable')
+try:
     from .plotCAMSOrbits import plotCAMSOrbits
     from .plotRMSOrbits import plotRMSOrbits
-except:
+except Exception:
     print('unable to locate WMPL: ground maps and orbit plots will be unavailable')
 
