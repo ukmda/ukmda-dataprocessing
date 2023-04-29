@@ -10,7 +10,7 @@ import RMS.ConfigReader as cr
 import argparse
 
 
-def multiTrackStack(camlist, start, end, outdir=None, shwr=None, scalefactor=None, draw_constellations=False):
+def multiTrackStack(camlist, start, end, outdir=None, shwr=None, scale=None, draw_cons=False, noplot=True, datadir=None):
     """
     create a multi camera and/or multi night trackstack
 
@@ -20,13 +20,27 @@ def multiTrackStack(camlist, start, end, outdir=None, shwr=None, scalefactor=Non
         end: end date as a string yyyymmdd 
     
     Keyword Arguments: 
-        outdir: where to save the output, default same location as camera 1.
-        shwr: filter for a specific shower eg PER. Default all showers.
-        scalefactor: scale the image to avoid cropping. Default none.
-        draw_constellations: True = draw constellation stick figures. 
+        camlist:    [list] list of camera IDs eg ['UK0006','UK000F']
+        shwr:       [string] filter for a specific shower eg 'PER'. Default all showers.
+        scale:      [int] scale the image to avoid cropping. Default 1.
+        draw_cons:  [bool] Draw constellation stick figures. Default false
+        noplot:     [bool] Don't display the plot, just save it. Default true
+        datadir:    [string] where to read the data from. 
+
+    Notes:
+        The function expects data to be stored in RMS folder structures as follows
+            {datadir}/{cameraid}/ConfirmedFiles/{cameraid_date_time_*}
+
+        Each folder must contain FTPdetectinfo file, platepars_all file and FITS files
+        The first-named folder must contain a valid RMS config file. 
+
+        It is assumed that all cameras are at the same location. The output for cameras
+        at different locations has not been tested. 
+
     """
-    locfld = os.getenv('LOCALFOLDER', default='f:/videos/meteorcam/fireballs')
-    datadir, _ = os.path.split(locfld)
+    if datadir is None:
+        locfld = os.getenv('LOCALFOLDER', default='f:/videos/meteorcam/fireballs')
+        datadir, _ = os.path.split(locfld)
     if outdir is None:
         outdir = '.'
     print(f'stacking {camlist} for dates {start},{end}, reading from {datadir}, saving to {outdir}')
@@ -54,8 +68,17 @@ def multiTrackStack(camlist, start, end, outdir=None, shwr=None, scalefactor=Non
         shwr = [shwr]
 
     trackStack(dir_paths, config, border=5, background_compensation=True, 
-        hide_plot=False, showers=shwr, darkbackground=False, out_dir=outdir, scalefactor=scalefactor,
-        draw_constellations=draw_constellations)
+        hide_plot=noplot, showers=shwr, darkbackground=False, out_dir=outdir, scalefactor=scale,
+        draw_constellations=draw_cons)
+
+    if len(camlist) > 1:
+        bn = os.path.basename(dir_paths[-1])
+        outf = os.path.join(outdir, bn + "_track_stack.jpg")
+        bn = f'{len(camlist)}CAMS{bn[6:]}'
+        newf = os.path.join(outdir, bn + "_track_stack.jpg")
+        if os.path.isfile(newf):
+            os.remove(newf)
+        os.rename(outf, newf)
 
     return
 

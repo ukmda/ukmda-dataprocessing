@@ -84,25 +84,23 @@ def multiDayRadiant(camlist, start, end, outdir=None, shwr=None, datadir=None):
     prevfiles = glob.glob1(targdir, '*radiants.png')
     prevfilestxt = glob.glob1(targdir, '*radiants.txt')
     newn = prevfiles[0]
+    newntxt = prevfilestxt[0]
     if shwr is not None:
         newn = shwr + newn[6:]
+        newntxt = shwr + newntxt[6:]
     else:
         newn = "ALL" + newn[6:]
+        newntxt = "ALL" + newntxt[6:]
     shutil.copyfile(os.path.join(targdir, prevfiles[0]), os.path.join(outdir, newn))
+    shutil.copyfile(os.path.join(targdir, prevfilestxt[0]), os.path.join(outdir, newntxt))
     os.remove(os.path.join(targdir, prevfiles[0]))
+    os.remove(os.path.join(targdir, prevfilestxt[0]))
 
+    prevfiles = glob.glob1(targdir, '*radiants.png')
     if len(prevfiles) > 0:
         os.rename(os.path.join(targdir, prevfiles[0])+'.tmp', os.path.join(targdir, prevfiles[0]))
 
-    newn = prevfilestxt[0]
-    if shwr is not None:
-        newn = shwr + newn[6:]
-    else:
-        newn = "ALL" + newn[6:]
-
-    shutil.copyfile(os.path.join(targdir, prevfilestxt[0]), os.path.join(outdir, newn))
-    os.remove(os.path.join(targdir, prevfilestxt[0]))
-
+    prevfilestxt = glob.glob1(targdir, '*radiants.txt')
     if len(prevfilestxt) > 0:
         os.rename(os.path.join(targdir, prevfilestxt[0])+'.tmp', os.path.join(targdir, prevfilestxt[0]))
     return

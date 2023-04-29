@@ -26,4 +26,5 @@ def test_multiTrackStack():
     datadir=os.path.join(here, 'data','mdr')
     outdir=os.path.join(here, 'data')
     multiTrackStack(['UK0006','UK000F'], '20230421','20230423', outdir=outdir, datadir=datadir)
-    assert 1==0
+    assert os.path.isfile(os.path.join(outdir, '2CAMS_20230423_195211_138993_track_stack.jpg'))
+    #os.remove(os.path.join(outdir, 'UK000F_20230423_195211_138993_track_stack.jpg'))
