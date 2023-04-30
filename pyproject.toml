@@ -40,12 +40,13 @@ dependencies = [
     "requests",
     "pytest",
     "pyproj",
+    "pdoc",
     "Cython"
 ]
 requires-python = ">=3.7"
 
 [project.optional-dependencies]
-dev = ["bumpver", "gitpython", "behave", "pip-tools", "pytest"]
+dev = ["bumpver", "gitpython", "behave", "pip-tools"]
 
 [project.urls]
 "Homepage" = "https://github.com/markmac99/UKMon-shared/ukmon_meteortools/"
