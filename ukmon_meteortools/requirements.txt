@@ -42,3 +42,4 @@ s3fs
 # pyarrow
 pytest
 behave
+pdoc
