@@ -78,5 +78,5 @@ push = true
 [tool.bumpver.file_patterns]
 "pyproject.toml" = ['version = "{version}"',]
 "ukmon_meteortools/__init__.py" = ["{version}",]
-"ukmon_meteortools/README.md" = ["{version}",]
+#"ukmon_meteortools/README.md" = ["{version}",]
 

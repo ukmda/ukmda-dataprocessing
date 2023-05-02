@@ -6,17 +6,17 @@ import datetime
 
 def annotateImage(img_path, statid, metcount, rundate=None):
     """
-    Annotate an image with the station ID and date in the bottom left and meteor count in the 
-    bottom right
+    Annotate an image with the station ID and date in the bottom left and meteor count in the  
+    bottom right  
 
-    Arguments:
-        img_path:   [str] full path and filename of the image to be annotated
-        statid:     [str] station ID string to use
-        metcount:   [int] number of meteors in the image
+    Arguments:  
+        img_path:   [str] full path and filename of the image to be annotated  
+        statid:     [str] station ID string to use  
+        metcount:   [int] number of meteors in the image  
 
     
-    Keyword Args:
-        rundate:    [str] rundate in 'YYYYMM' or 'YYYYMMDD' format. Default is today. 
+    Keyword Args:  
+        rundate:    [str] rundate in 'YYYYMM' or 'YYYYMMDD' format. Default is today.   
 
     """
     if rundate is not None:
@@ -47,12 +47,12 @@ def annotateImage(img_path, statid, metcount, rundate=None):
 
 def annotateImageArbitrary(img_path, message, color='#000'):
     """
-    Annotate an image with an arbitrary message in the selected colour at the bottom left
+    Annotate an image with an arbitrary message in the selected colour at the bottom left  
 
-    Arguments:
-        img_path:   [str] full path and filename of the image to be annotated
-        message:    [str] message to put on the image
-        color:      [str] hex colour string, default '#000' which is black
+    Arguments:  
+        img_path:   [str] full path and filename of the image to be annotated  
+        message:    [str] message to put on the image  
+        color:      [str] hex colour string, default '#000' which is black  
 
     """
     my_image = Image.open(img_path)

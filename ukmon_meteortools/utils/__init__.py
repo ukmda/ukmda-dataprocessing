@@ -27,8 +27,6 @@ from .convertSolLon import sollon2jd
 from .getActiveShowers import getActiveShowers, getActiveShowersStr
 
 from .getShowerDates import getShowerDets, getShowerPeak
-#from .getShowerDates import loadJenniskensShowers, loadDataFile, loadFullData, refreshShowerData
-#from .getShowerDates import loadLookupTable
 
 from .kmlHandlers import trackCsvtoKML, getTrackDetails, getTrajPickle, munchKML
 

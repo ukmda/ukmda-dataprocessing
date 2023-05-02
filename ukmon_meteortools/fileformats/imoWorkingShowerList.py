@@ -19,17 +19,14 @@ except:
 
 class IMOshowerList:
     """
-    Class that loads and parses the IMO Working Shower list XML file
+    Class that loads and parses the IMO Working Shower list, or if needed, the unconfirmed list. 
+    Not all known showers are in the IMO working list. If a shower is not in the Working List then 
+    this library will reference the full shower list curated by Peter Jenniskens which contains 
+    debated and unconfirmed showers. 
 
-    Notes:
-        During initialisation the class attempt to load IMO_Working_Meteor_Shower_list.xml from
-        $DATADIR/share, if it exists and if DATADIR is defined in your environment. Failing this,
-        it will use a reference copy that is distributed with this library. If you want to force
-        the library to use a newer version, define DATADIR and put the file in $DATADIR/share.
-
-        Not all known showers are in the IMO working list. If a shower is not in the Working List then 
-        this library will reference the full shower list curated by Peter Jenniskens. 
-        This contains debated and unconfirmed showers. 
+    These list are updated whenever the library version is bumped, but if you want to override the files, define an 
+    environment variable DATADIR, and place your own copies of the files at $DATADIR/share. See the share submodule 
+    for more information. 
 
     """
     def __init__(self, fname=None, fullstreamname=None):

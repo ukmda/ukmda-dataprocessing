@@ -1,5 +1,4 @@
 # ukmon_meteortools
-## Version 2023.04.24
 
 Python tools and utilities to work with meteor data from the UK Meteor Network
 

@@ -16,6 +16,20 @@ except:
 
 
 def munchKML(kmlFilename, return_poly=False):
+    """ Load a KML file and return either a list of lats and longs, or a Shapely polygon  
+    
+    Arguments:  
+        kmlFilename:    [string] full path to the KML file to consume   
+        return_poly:    [bool] return a Shapely polygon? Default False  
+
+    
+    Returns:  
+        if return_poly is false, returns a tuple of (cameraname, lats, longs) where lats and longs are lists of the 
+        latitudes and longitudes in the KML file.  
+
+        If return_poly is true, returns a tuple of (cameranamem, shapely Polygon)  
+    """
+
     with open(kmlFilename) as fd:
         x = xmltodict.parse(fd.read())
         cname = x['kml']['Folder']['name']
@@ -41,16 +55,16 @@ def munchKML(kmlFilename, return_poly=False):
 def trackCsvtoKML(trackcsvfile, trackdata=None, saveOutput=True):
     """ 
     Either reads a CSV file containing lat, long, height, time of an event and 
-    creates a 3d KML file from it or, if trackdata is populated, converts a Pandas dataframe containing
-    the same data. Output is written to disk unless saveOutput is false. 
+    creates a 3d KML file from it or, if trackdata is populated, converts a Pandas dataframe containing 
+    the same data. Output is written to disk unless saveOutput is false.  
     
-    Arguments:
-        trackcsvfile:   [string] full path to the file to read from
-        trackdata:      [array] pandas dataframe containing the data. Default None
-        saveOutput:     [bool] write the KML file to disk. Default true
+    Arguments:  
+        trackcsvfile:   [string] full path to the file to read from  
+        trackdata:      [array] pandas dataframe containing the data. Default None  
+        saveOutput:     [bool] write the KML file to disk. Default true  
 
-    Returns:
-        the KML file as a tuple
+    Returns:  
+        the KML file as a tuple  
         """
     kml=simplekml.Kml()
     kml.document.name = trackcsvfile
@@ -69,6 +83,14 @@ def trackCsvtoKML(trackcsvfile, trackdata=None, saveOutput=True):
 
 
 def getTrackDetails(traj):
+    """ Get track details from a WMPL trajectory object  
+    
+    Arguments:  
+        traj:       a WMPL trajectory object containing observations  
+
+    Returns:  
+        a Pandas dataframe containing the lat, long, alt and time of each point on the trajectory, sorted by time. 
+    """
     lats = []
     lons = []
     alts = [] 
@@ -87,6 +109,16 @@ def getTrackDetails(traj):
 
 
 def getTrajPickle(trajname):
+    """ Retrieve a the pickled trajectory for a matched detection 
+    
+    Arguments:  
+        trajname:   [string] Name of the trajectory eg 20230502_025228.374_UK_BE
+
+    Returns:
+        tuple containing (traj object, kml filename)  
+
+
+    """
     tmpdir = os.getenv('TMP', default='/tmp')
     s3 = boto3.client('s3')
     srcbucket = 'ukmon-shared'

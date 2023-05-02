@@ -9,17 +9,17 @@ import argparse
 
 def getActiveShowers(targdate, retlist=False, inclMinor=False):
     """
-    Return a list of showers active at the specified date
+    Return a list of showers active at the specified date  
 
-    Arguments:
-        targdate:   [str] Date in YYYYMMDD format
+    Arguments:  
+        targdate:   [str] Date in YYYYMMDD format  
 
-    Keyword Arguments:
-        retlist:    [bool] return a list, or print to console. Default False=print
-        inclMinor:  [bool] include minor showers or only return major showers
+    Keyword Arguments:  
+        retlist:    [bool] return a list, or print to console. Default False=print  
+        inclMinor:  [bool] include minor showers or only return major showers  
 
-    Returns:
-        If retlist is true, returns a python list of shower short-codes eg ['PER','LYR']
+    Returns:  
+        If retlist is true, returns a python list of shower short-codes eg ['PER','LYR']  
 
     """
     sl = iwsl.IMOshowerList()
@@ -33,13 +33,13 @@ def getActiveShowers(targdate, retlist=False, inclMinor=False):
 
 def getActiveShowersStr(targdatestr):
     """
-    Prints a comma-separated list of showers active at the specified date
+    Prints a comma-separated list of showers active at the specified date  
 
-    Arguments:
-        targdate:   [str] Date in YYYYMMDD format
+    Arguments:  
+        targdate:   [str] Date in YYYYMMDD format  
 
-    Returns:
-        nothing
+    Returns:  
+        nothing  
 
     """
     targdate = datetime.datetime.strptime(targdatestr, '%Y%m%d')

@@ -8,18 +8,18 @@ def sollon2jd(Year, Month, Long):
     """
     Calculate the julian date corresponding to a solar longitude. 
     Because Solar Longitude is relative to the Spring equinox, the exact date 
-    of a given LS varies from year to year. 
+    of a given LS varies from year to year.  
 
-    Parameters:
-        Year: [int] year you wish to calculate in.
-        Month: [int] month you wish to calculate in.
-        Long:  [float] The solar longitude to convert. 
+    Parameters:  
+        Year: [int] year you wish to calculate in.  
+        Month: [int] month you wish to calculate in.  
+        Long:  [float] The solar longitude to convert.   
 
-    Returns:
-        [float] julian date 
+    Returns:  
+        [float] julian date  
 
-    Notes:
-        The function is only stable for date ranges from 1900-2100. 
+    Notes:  
+        The function is only stable for date ranges from 1900-2100.  
     """
 
     Long = np.radians(Long)

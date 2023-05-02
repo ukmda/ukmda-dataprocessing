@@ -15,15 +15,15 @@ except:
     gotupdater = False
 
 
-def loadFullData(pth=None):
-    return loadDataFile(1, pth)
+def _loadFullData(pth=None):
+    return _loadDataFile(1, pth)
 
 
-def loadLookupTable(pth=None):
-    return loadDataFile(2, pth)
+def _loadLookupTable(pth=None):
+    return _loadDataFile(2, pth)
 
 
-def loadJenniskensShowers(dir_path, file_name):
+def _loadJenniskensShowers(dir_path, file_name):
     """ Load the showers from the Jenniskens et al. (2018) table and init MeteorShower objects. """
     jenniskens_shower_list = []
     with open(os.path.join(dir_path, file_name), encoding='cp1252') as f:
@@ -45,13 +45,13 @@ def loadJenniskensShowers(dir_path, file_name):
     return np.array(jenniskens_shower_list)
 
 
-def refreshShowerData():
+def _refreshShowerData():
     if gotupdater is True:
         updateOrbitFiles()
     abs_path = os.getenv('WMPL_LOC', default='/home/ec2-user/src/WesternMeteorPyLib')
     jenniskens_shower_table_file = os.path.join(abs_path, 'wmpl', 'share', 'ShowerLookUpTable.txt')
     jenniskens_shower_table_npy = os.path.join(abs_path, 'wmpl', 'share', 'ShowerLookUpTable.npy')
-    jenniskens_shower_list = loadJenniskensShowers(*os.path.split(jenniskens_shower_table_file))
+    jenniskens_shower_list = _loadJenniskensShowers(*os.path.split(jenniskens_shower_table_file))
     np.save(jenniskens_shower_table_npy, jenniskens_shower_list)
     iau_shower_table_file = os.path.join(abs_path, 'wmpl', 'share', 'streamfulldata.csv')
     iau_shower_table_npy = os.path.join(abs_path, 'wmpl', 'share', 'streamfulldata.npy')
@@ -59,7 +59,7 @@ def refreshShowerData():
     np.save(iau_shower_table_npy, iau_shower_list)
 
 
-def loadDataFile(typ, pth=None):
+def _loadDataFile(typ, pth=None):
     if typ == 1:
         fname='streamfulldata.npy'
     elif typ == 2:
@@ -77,7 +77,15 @@ def loadDataFile(typ, pth=None):
 
 
 def getShowerDets(shwr):
-    sfd = loadFullData()
+    """ Get details of a shower 
+    
+    Arguments:  
+        shwr:   [string] three-letter shower code eg PER  
+         
+    Returns:  
+        (id, full name, peak solar longitude, peak date mm-dd)  
+    """
+    sfd = _loadFullData()
     sfdfltr = sfd[sfd[:,3] == shwr]
     mtch = [sh for sh in sfdfltr if sh[6] != '-2']
     if len(mtch) == 0:
@@ -95,13 +103,21 @@ def getShowerDets(shwr):
 
 
 def getShowerPeak(shwr):
+    """ Get date of a shower peak in MM-DD format
+    
+    Arguments:  
+        shwr:   [string] three-letter shower code eg PER  
+         
+    Returns:  
+        peak date mm-dd  
+    """
     _, _, _, pk = getShowerDets(shwr)
     return pk
 
  
 if __name__ == '__main__':
     if sys.argv[1] == 'refresh':
-        refreshShowerData()
+        _refreshShowerData()
         exit(0)
     else:
         id, nam, sl, dt = getShowerDets(sys.argv[1])
