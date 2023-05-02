@@ -9,7 +9,8 @@ import configparser as cr
 from matplotlib import pyplot as plt
 
 
-def readFTPfile(filename, h):
+def _readFTPfile(filename, h):
+    """ Internal function to load ftpfile into arrays """
     events = []
     with open(filename) as f:
         # Skip the header
@@ -42,12 +43,12 @@ def readFTPfile(filename, h):
 
 def drawFTPFile(ftpfile, cfgfile=None):
     """
-    Creates a simple graph of an FTPdetect file, showing the locations of each meteor.
-    Useful for diagnosing false detections. 
+    Creates a simple representation of an FTPdetect file, showing the locations of each meteor trail.  
+    Its like a stack of the night's detections but in a much simpler format. Useful for diagnosing false detections.   
 
-    Arguments:
-        ftpfile:   [str] full path to the FTPdetect file.
-        cfgfile:   [str] full path to RMS config file to read image dimensions. Default is 1280x720.
+    Arguments:  
+        ftpfile:   [str] full path to the FTPdetect file.  
+        cfgfile:   [str] full path to RMS config file to read image dimensions. Default is 1280x720.  
     """
     config = cr.ConfigParser()
     config.read(cfgfile)
@@ -58,7 +59,7 @@ def drawFTPFile(ftpfile, cfgfile=None):
         width = int(config['Capture']['width'])
         height = int(config['Capture']['height'])
     print('plotting field of view {}x{}'.format(width, height))
-    events = readFTPfile(ftpfile, height)
+    events = _readFTPfile(ftpfile, height)
     for ev in events: 
         plt.plot(ev['x'],ev['y'])
     pth, ftpf = os.path.split(ftpfile)

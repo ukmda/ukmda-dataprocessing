@@ -8,12 +8,14 @@ import numpy
 
 
 class UCXml:
+    """ Load and manage a UFOCapture XML file containing potential detections """
     MAXGAP = 50
 
     def setMaxGap(self, mg):
         self.MAXGAP = mg
 
     def __init__(self, fname):
+        """ Construct a UCXML object from fname """
         with open(fname) as fd:
             self.ucxml = xmltodict.parse(fd.read())
 

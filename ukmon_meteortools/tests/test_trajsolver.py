@@ -18,10 +18,10 @@ def test_trajsolverNoLimit():
     #subprocess.run(['cmd', '/c','move', f'{targdir}\\trajectory_summary.txt', outdir])
     orig = open(os.path.join(targdir, 'baseline','processed_trajectories.json.nolimit')).readlines()
     newf = open(os.path.join(outdir,'processed_trajectories.json')).readlines()
-    assert(orig==newf)
+    assert orig==newf
     orig = open(os.path.join(targdir, 'baseline','trajectory_summary.txt.nolimit')).readlines()
     newf = open(os.path.join(outdir,'trajectory_summary.txt')).readlines()
-    assert(orig==newf)
+    assert orig==newf 
 
 
 def test_trajsolverLimit():
@@ -37,7 +37,7 @@ def test_trajsolverLimit():
     #subprocess.run(['cmd', '/c','move', f'{targdir}\\trajectory_summary.txt', outdir])
     orig = open(os.path.join(targdir, 'baseline','processed_trajectories.json.limit6')).readlines()
     newf = open(os.path.join(outdir, 'processed_trajectories.json')).readlines()
-    assert(orig==newf)
+    assert orig==newf
     orig = open(os.path.join(targdir, 'baseline','trajectory_summary.txt.limit6')).readlines()
     newf = open(os.path.join(outdir, 'trajectory_summary.txt')).readlines()
-    assert(orig==newf)
+    assert orig==newf

@@ -8,25 +8,28 @@ import sys
 import os
 import pandas as pd
 import datetime
-from wmpl.Utils.PlotOrbits import plotOrbits
 import matplotlib.pyplot as plt
+try:
+    from wmpl.Utils.PlotOrbits import plotOrbits
+except:
+    print('WMPL not available')
 
 
 def plotRMSOrbits(orbitFile, outdir=None, hideplot=True):
     """
-    plots a set of orbits from RMS data, with one line per set of osculations 
+    plots a set of orbits from RMS data, with one line per set of osculations  
 
-    Arguments:
-        orbitFile:  [string] full path to RMS orbit details file 
-        outdir:     [string] the location to write to. defaults to folder of source file
-        hideplot:   [bool] don't display the plot. Default true
+    Arguments:  
+        orbitFile:  [string] full path to RMS orbit details file   
+        outdir:     [string] the location to write to. defaults to folder of source file  
+        hideplot:   [bool] don't display the plot. Default true  
 
-    Returns:
-        none
+    Returns:  
+        none  
 
-    Notes: 
-        Orbitfile should be a csv file with the following labelled columns:
-            _a, _e, _incl, _peri, _node, _datetime
+    Notes:   
+        Orbitfile should be a csv file with the following labelled columns:  
+            _a, _e, _incl, _peri, _node, _datetime  
 
         _datetime should be in the format YYYY-MM-DDTHH-MM-SS
 

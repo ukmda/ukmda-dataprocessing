@@ -10,10 +10,13 @@ from ukmon_meteortools.utils import greatCircleDistance
 
 def trackToDistvsHeight(trackcsvfile):
     """
-    Plot a distance vs height graph from the supplied CSV file
+    Plot a distance vs height graph from the supplied CSV file  
 
-    Arguments:
-        trackcsvfile:   [str] full path to a CSV file containing columns of lat, long, height, time
+    Arguments:  
+        trackcsvfile:   [str] full path to a CSV file containing columns of lat, long, height, time  
+
+    Returns:  
+        nothing, but it creates a PNG in the source folder containing the track plot  
     """
     inputfile = csv.reader(open(trackcsvfile))
     dists = []
@@ -44,10 +47,13 @@ def trackToDistvsHeight(trackcsvfile):
 
 def trackToTimevsVelocity(trackcsvfile):
     """
-    Plot a distance vs velocity graph from the supplied CSV file
+    Plot a distance vs velocity graph from the supplied CSV file  
 
-    Arguments:
-        trackcsvfile:   [str] full path to a CSV file containing columns of lat, long, height, time
+    Arguments:  
+        trackcsvfile:   [str] full path to a CSV file containing columns of lat, long, height, time  
+
+    Returns:  
+        nothing, but it creates a PNG in the source folder containing the track plot  
     """
     inputfile = csv.reader(open(trackcsvfile))
     dists = []
@@ -84,10 +90,13 @@ def trackToTimevsVelocity(trackcsvfile):
 
 def trackToTimevsHeight(trackcsvfile):
     """
-    Plot a time vs height graph from the supplied CSV file
+    Plot a time vs height graph from the supplied CSV file  
 
-    Arguments:
-        trackcsvfile:   [str] full path to a CSV file containing columns of lat, long, height, time
+    Arguments:  
+        trackcsvfile:   [str] full path to a CSV file containing columns of lat, long, height, time  
+
+    Returns:  
+        nothing, but it creates a PNG in the source folder containing the track plot  
     """
     inputfile = csv.reader(open(trackcsvfile))
     tims = []

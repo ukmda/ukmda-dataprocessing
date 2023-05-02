@@ -14,7 +14,7 @@ from googleapiclient.discovery import build
 SCOPES =['https://mail.google.com/']
 
 
-def getGmailCreds():
+def _getGmailCreds():
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -40,7 +40,7 @@ def getGmailCreds():
     return creds
 
 
-def create_message(sender, to, subject, message_text):
+def _create_message(sender, to, subject, message_text):
     msg = MIMEText(message_text)
     msg['to'] = to
     msg['from'] = sender
@@ -50,31 +50,31 @@ def create_message(sender, to, subject, message_text):
 
 
 def sendAnEmail(mailrecip, message, msgtype, mailfrom, files=None):
-    """ sends an email using gmail.
+    """ sends an email using gmail. 
     
-        Arguments:
-            mailrecip:  [string] email address of recipient.
-            message:    [string] the message to send.
-            msgtype:    [string] Prefix for the subject line, eg Test, Warning.
-            mailfrom:   [string] email address of sender. 
-            files:      [list]   list of files to attach, not currently implemented.
+        Arguments:  
+            mailrecip:  [string] email address of recipient.  
+            message:    [string] the message to send.  
+            msgtype:    [string] Prefix for the subject line, eg Test, Warning.  
+            mailfrom:   [string] email address of sender.   
+            files:      [list]   list of files to attach, not currently implemented.  
 
-        Returns:
-            Nothing, though a message is printed onscreen.
+        Returns:  
+            Nothing, though a message is printed onscreen.  
 
-        Notes:
-            You must have gmail OAUTH2 set up. The gmail credentials must be stored as follows:
-                token: $HOME/.ssh/gmailtoken.json
-                creds: $HOME/.ssh/gmailcreds.json
+        Notes:  
+            You must have gmail OAUTH2 set up. The gmail credentials must be stored as follows:  
+                token: $HOME/.ssh/gmailtoken.json  
+                creds: $HOME/.ssh/gmailcreds.json  
 
-            On Windows, $HOME corresponds to c:/users/yourid. If there is no .ssh folder, create it. 
+            On Windows, $HOME corresponds to c:/users/yourid. If there is no .ssh folder, create it.   
         """
     
     if msgtype is None:
         msgtype = platform.uname()[1]
 
     # email a summary to the mailrecip
-    creds = getGmailCreds()
+    creds = _getGmailCreds()
     if not creds:
         return 
     service = build('gmail', 'v1', credentials=creds)
@@ -82,7 +82,7 @@ def sendAnEmail(mailrecip, message, msgtype, mailfrom, files=None):
     subj ='{:s}: {:s}'.format(msgtype, message[:30])
     message = '{:s}: {:s}'.format(msgtype, message)
 
-    mailmsg = create_message(mailfrom, mailrecip, subj, message)
+    mailmsg = _create_message(mailfrom, mailrecip, subj, message)
 
     try:
         retval = (service.users().messages().send(userId='me', body=mailmsg).execute())

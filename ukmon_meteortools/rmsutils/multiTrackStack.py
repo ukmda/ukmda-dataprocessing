@@ -5,37 +5,40 @@
 import os
 import glob
 import datetime
-from Utils.TrackStack import trackStack
-import RMS.ConfigReader as cr
 import argparse
+try:
+    from Utils.TrackStack import trackStack
+    import RMS.ConfigReader as cr
+except Exception:
+    print('RMS not available')
 
 
 def multiTrackStack(camlist, start, end, outdir=None, shwr=None, scale=None, draw_cons=False, noplot=True, datadir=None):
     """
-    create a multi camera and/or multi night trackstack
+    create a multi camera and/or multi night trackstack  
 
-    Arguments:
-        camlist: a list of one or more cameras 
-        start: start date as a string yyyymmdd 
-        end: end date as a string yyyymmdd 
+    Arguments:  
+        camlist: a list of one or more cameras  
+        start: start date as a string yyyymmdd  
+        end: end date as a string yyyymmdd  
     
-    Keyword Arguments: 
-        camlist:    [list] list of camera IDs eg ['UK0006','UK000F']
-        shwr:       [string] filter for a specific shower eg 'PER'. Default all showers.
-        scale:      [int] scale the image to avoid cropping. Default 1.
-        draw_cons:  [bool] Draw constellation stick figures. Default false
-        noplot:     [bool] Don't display the plot, just save it. Default true
-        datadir:    [string] where to read the data from. 
+    Keyword Arguments:  
+        camlist:    [list] list of camera IDs eg ['UK0006','UK000F']  
+        shwr:       [string] filter for a specific shower eg 'PER'. Default all showers.  
+        scale:      [int] scale the image to avoid cropping. Default 1.  
+        draw_cons:  [bool] Draw constellation stick figures. Default false  
+        noplot:     [bool] Don't display the plot, just save it. Default true  
+        datadir:    [string] where to read the data from.   
 
-    Notes:
-        The function expects data to be stored in RMS folder structures as follows
-            {datadir}/{cameraid}/ConfirmedFiles/{cameraid_date_time_*}
+    Notes:  
+        The function expects data to be stored in RMS folder structures as follows  
+            {datadir}/{cameraid}/ConfirmedFiles/{cameraid_date_time_*}  
 
-        Each folder must contain FTPdetectinfo file, platepars_all file and FITS files
-        The first-named folder must contain a valid RMS config file. 
+        Each folder must contain an FTPdetectinfo file and a platepars_all file. 
+        The first-named folder must contain a valid RMS config file.  
 
-        It is assumed that all cameras are at the same location. The output for cameras
-        at different locations has not been tested. 
+        It is assumed that all cameras are at the same location. The output for cameras 
+        at different locations has not been tested.  
 
     """
     if datadir is None:

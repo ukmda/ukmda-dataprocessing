@@ -4,23 +4,26 @@
 #
 import os
 import argparse
-import RMS.ConfigReader as cr
-from RMS.DetectStarsAndMeteors import detectStarsAndMeteors
+try: 
+    import RMS.ConfigReader as cr
+    from RMS.DetectStarsAndMeteors import detectStarsAndMeteors
+except:
+    print('RMS not available')
 
 
 def analyseUFOwithRMS(config, ff_directory, ff_name):
     """
-    Analyse a UFO video clip using RMS, to get a list of stars and meteors
+    Analyse a UFO video clip using RMS, to get a list of stars and meteors  
 
     Arguments:
-        config: [string] An RMS-style config file for the  UFO camera
-        ff_directory: [string] The location of the file to analyse
-        ff_name: [string] A video file to analyse. 
+        config: [string] An RMS-style config file for the  UFO camera  
+        ff_directory: [string] The location of the file to analyse  
+        ff_name: [string] A video file to analyse.   
 
-    Returns:
-        (star_list, meteor_list): tuble containing a list of stars and a list of meteors
+    Returns:  
+        (star_list, meteor_list): tuple containing a list of stars and a list of meteors  
         
-    Note: the name of the video clip must be in %Y%m%d_%H%M%S.%f format. 
+    Note: the name of the video clip must be in %Y%m%d_%H%M%S.%f format.   
     """ 
     flat_struct=None
     dark=None

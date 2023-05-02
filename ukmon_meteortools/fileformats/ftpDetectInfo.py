@@ -13,113 +13,17 @@ import datetime
 from ukmon_meteortools.utils import date2JD, angleBetweenSphericalCoords
 
 
-class MeteorObservation(object):
-    """ Container for meteor observations. Lifted from WMPL
-        
-        The points in arrays are RA and Dec in J2000 epoch, in radians.
-
-        Arguments:
-            jdt_ref: [float] Reference Julian date when the relative time is t = 0s.
-            station_id: [str] Station ID.
-            latitude: [float] Latitude +N in radians.
-            longitude: [float] Longitude +E in radians.
-            height: [float] Elevation above sea level (MSL) in meters.
-            fps: [float] Frames per second.
-
-        Keyword arguments:
-            ff_name: [str] Name of the originating FF file.
-
-    """
-    def __init__(self, jdt_ref, station_id, latitude, longitude, height, fps, ff_name=None):
-
-        self.jdt_ref = jdt_ref
-        self.station_id = station_id
-        self.latitude = latitude
-        self.longitude = longitude
-        self.height = height
-        self.fps = fps
-
-        self.ff_name = ff_name
-
-        self.frames = []
-        self.time_data = []
-        self.x_data = []
-        self.y_data = []
-        self.azim_data = []
-        self.elev_data = []
-        self.ra_data = []
-        self.dec_data = []
-        self.mag_data = []
-        self.abs_mag_data = []
-
-
-
-    def addPoint(self, frame_n, x, y, azim, elev, ra, dec, mag):
-        """ Adds the measurement point to the meteor.
-
-        Arguments:
-            frame_n: [flaot] Frame number from the reference time.
-            x: [float] X image coordinate.
-            y: [float] X image coordinate.
-            azim: [float] Azimuth, J2000 in degrees.
-            elev: [float] Elevation angle, J2000 in degrees.
-            ra: [float] Right ascension, J2000 in degrees.
-            dec: [float] Declination, J2000 in degrees.
-            mag: [float] Visual magnitude.
-
-        """
-
-        self.frames.append(frame_n)
-
-        # Calculate the time in seconds w.r.t. to the reference JD
-        point_time = float(frame_n)/self.fps
-
-        self.time_data.append(point_time)
-
-        self.x_data.append(x)
-        self.y_data.append(y)
-
-        # Angular coordinates converted to radians
-        self.azim_data.append(np.radians(azim))
-        self.elev_data.append(np.radians(elev))
-        self.ra_data.append(np.radians(ra))
-        self.dec_data.append(np.radians(dec))
-        self.mag_data.append(mag)
-
-
-
-    def finish(self):
-        """ When the initialization is done, convert data lists to numpy arrays. """
-
-        self.frames = np.array(self.frames)
-        self.time_data = np.array(self.time_data)
-        self.x_data = np.array(self.x_data)
-        self.y_data = np.array(self.y_data)
-        self.azim_data = np.array(self.azim_data)
-        self.elev_data = np.array(self.elev_data)
-        self.ra_data = np.array(self.ra_data)
-        self.dec_data = np.array(self.dec_data)
-        self.mag_data = np.array(self.mag_data)
-
-        # Sort by frame
-        temp_arr = np.c_[self.frames, self.time_data, self.x_data, self.y_data, self.azim_data, 
-        self.elev_data, self.ra_data, self.dec_data, self.mag_data]
-        temp_arr = temp_arr[np.argsort(temp_arr[:, 0])]
-        self.frames, self.time_data, self.x_data, self.y_data, self.azim_data, self.elev_data, self.ra_data, \
-            self.dec_data, self.mag_data = temp_arr.T
-
-
 def filterFTPforSpecificTime(ftpfile, dtstr):
-    """ filter FTPdetect file for a specific event, by time, and copy it into a new file
+    """ filter FTPdetect file for a specific event, by time, and copy it into a new file  
 
-    Arguments:
-        ftpfile - [string] full path to the ftpdetect file to filter
-        dtstr   - [string] date/time of required event in yyyymmdd_hhmmss format
+    Arguments:  
+        ftpfile - [string] full path to the ftpdetect file to filter  
+        dtstr   - [string] date/time of required event in yyyymmdd_hhmmss format  
 
-    Returns:
-        tuple containing 
-            full name of the new file containing just matching events
-            the number of matching events
+    Returns:  
+        tuple containing  
+            full name of the new file containing just matching events  
+            the number of matching events  
     """
     meteor_list = loadFTPDetectInfo(ftpfile, time_offsets=None, join_broken_meteors=True, locdata=None)
     refdt = datetime.datetime.strptime(dtstr, '%Y%m%d_%H%M%S')
@@ -138,16 +42,14 @@ def filterFTPforSpecificTime(ftpfile, dtstr):
 
 
 def writeNewFTPFile(srcname, metlist):
-    """ creates an FTPDetect file from a list of MeteorObservation objects 
+    """ creates a FTPDetect file from a list of MeteorObservation objects  
+        
+    Arguments: 
+        srcname     - [string] full path to the original FTP file  
+        metlist     - list of MeteorObservation objects  
 
-    This function creates a replacement FTPdetect file 
-    
-    Arguments:
-        srcname     - [string] full path to the original FTP file
-        metlist     - list of MeteorObservation objects
-
-    Returns:
-        the full path to the created file
+    Returns: 
+        the full path to the created file 
 
     """
     outdir, fname = os.path.split(srcname)
@@ -159,7 +61,7 @@ def writeNewFTPFile(srcname, metlist):
     if os.path.isfile(srcname):
         srcname = srcname[:-4] + '_new.txt'
     with open(srcname, 'w') as ftpf:
-        writeFTPHeader(ftpf, len(metlist), outdir, False)
+        _writeFTPHeader(ftpf, len(metlist), outdir, False)
         metno = 1
         ffname = ''
         for met in metlist:
@@ -168,98 +70,33 @@ def writeNewFTPFile(srcname, metlist):
             else:
                 metno = 1
                 ffname = met.ff_name
-            writeOneMeteor(ftpf, metno, met.station_id, met.time_data, len(met.frames), met.fps, met.frames, 
+            _writeOneMeteor(ftpf, metno, met.station_id, met.time_data, len(met.frames), met.fps, met.frames, 
                 np.degrees(met.ra_data), np.degrees(met.dec_data), 
                 np.degrees(met.azim_data), np.degrees(met.elev_data),
                 None, met.mag_data, False, met.x_data, met.y_data, met.ff_name)
     return srcname
 
 
-def writeFTPHeader(ftpf, metcount, fldr, ufo=True):
-    """
-    Create the header of the FTPDetect file
-    """
-    l1 = 'Meteor Count = {:06d}\n'.format(metcount)
-    ftpf.write(l1)
-    ftpf.write('-----------------------------------------------------\n')
-    if ufo is True:
-        ftpf.write('Processed with UFOAnalyser\n')
-    else:
-        ftpf.write('Processed with RMS 1.0\n')
-    ftpf.write('-----------------------------------------------------\n')
-    l1 = 'FF  folder = {:s}\n'.format(fldr)
-    ftpf.write(l1)
-    l1 = 'CAL folder = {:s}\n'.format(fldr)
-    ftpf.write(l1)
-    ftpf.write('-----------------------------------------------------\n')
-    ftpf.write('FF  file processed\n')
-    ftpf.write('CAL file processed\n')
-    ftpf.write('Cam# Meteor# #Segments fps hnr mle bin Pix/fm Rho Phi\n')
-    ftpf.write('Per segment:  Frame# Col Row RA Dec Azim Elev Inten Mag\n')
-
-
-def writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, alt, b, mag, 
-        ufo=True, x=None, y=None, ffname = None):
-    """
-    Write one meteor event into the file in FTPDetectInfo style
-    """
-    ftpf.write('-------------------------------------------------------\n')
-    if ffname is None:
-        ms = '{:03d}'.format(int(evttime.microsecond / 1000))
-
-        fname = 'FF_' + sta + '_' + evttime.strftime('%Y%m%d_%H%M%S_') + ms + '_0000000.fits\n'
-    else:
-        fname = ffname + '\n'
-    ftpf.write(fname)
-
-    if ufo is True:
-        ftpf.write('UFO UKMON DATA Recalibrated on: ')
-    else:
-        ftpf.write('RMS data reprocessed on: ')
-    ftpf.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f UTC\n'))
-    li = f'{sta} {metno:04d} {fcount:04d} {fps:04.2f} 000.0 000.0  00.0 000.0 0000.0 0000.0\n'
-    ftpf.write(li)
-
-    for i in range(len(fno)):
-        #    204.4909 0422.57 0353.46 262.3574 +16.6355 267.7148 +23.0996 000120 3.41
-        bri = 0
-        if b is not None:
-            bri = int(b[i])
-        if ufo is True:
-            # UFO is timestamped as at the first detection
-            thisfn = fno[i] - fno[0]
-            thisx = 0
-            thisy = 0
-        else:
-            thisfn = fno[i]
-            thisx = x[i]
-            thisy = y[i]
-        li = f'{thisfn:.4f} {thisx:07.2f} {thisy:07.2f} '
-        li = li + f'{ra[i]:8.4f} {dec[i]:+7.4f} {az[i]:8.4f} '
-        li = li + f'{alt[i]:+7.4f} {bri:06d} {mag[i]:.02f}\n'
-        ftpf.write(li)
-
-
 def loadFTPDetectInfo(ftpdetectinfo_file_name, time_offsets=None,
         join_broken_meteors=True, locdata=None):
-    """ Loads an FTPDEtect file into a list of MeteorObservation objects
+    """ Loads an FTPDEtect file into a list of MeteorObservation objects  
 
-    Arguments:
-        ftpdetectinfo_file_name: [str] Path to the FTPdetectinfo file.
-        stations: [dict] A dictionary where the keys are stations IDs, and values are lists of:
-            - latitude +N in radians
-            - longitude +E in radians
-            - height in meters
+    Arguments:  
+        ftpdetectinfo_file_name: [str] Path to the FTPdetectinfo file.  
+        stations: [dict] A dictionary where the keys are stations IDs, and values are lists of:  
+            - latitude +N in radians  
+            - longitude +E in radians  
+            - height in meters  
         
 
-    Keyword arguments:
+    Keyword arguments:  
         time_offsets: [dict] (key, value) pairs of (stations_id, time_offset) for every station. None by 
             default.
         join_broken_meteors: [bool] Join meteors broken across 2 FF files.
 
 
-    Return:
-        meteor_list: [list] A list of MeteorObservation objects filled with data from the FTPdetectinfo file.
+    Return:  
+        meteor_list: [list] A list of MeteorObservation objects filled with data from the FTPdetectinfo file.  
 
     """
     stations={}
@@ -429,11 +266,11 @@ def loadFTPDetectInfo(ftpdetectinfo_file_name, time_offsets=None,
                     mag = None
 
                 # Add the measurement point to the current meteor 
-                current_meteor.addPoint(frame_n, x, y, azim, elev, ra, dec, mag)
+                current_meteor._addPoint(frame_n, x, y, azim, elev, ra, dec, mag)
 
         # Add the last meteor the the meteor list
         if current_meteor is not None:
-            current_meteor.finish()
+            current_meteor._finish()
             meteor_list.append(current_meteor)
 
     # Concatenate observations across different FF files ###
@@ -522,6 +359,151 @@ def loadFTPDetectInfo(ftpdetectinfo_file_name, time_offsets=None,
         meteor_list = [element for i, element in enumerate(meteor_list) if i not in merged_indices]
 
     return meteor_list
+
+
+class MeteorObservation(object):
+    """ Container for meteor observations.  
+    """
+    def __init__(self, jdt_ref, station_id, latitude, longitude, height, fps, ff_name=None):
+        """ Construct the MeteorObservation object.  
+        Arguments:  
+            jdt_ref: [float] Reference Julian date when the relative time is t = 0s.  
+            station_id: [str] Station ID.  
+            latitude: [float] Latitude +N in radians.  
+            longitude: [float] Longitude +E in radians.  
+            height: [float] Elevation above sea level (MSL) in meters. 
+            fps: [float] Frames per second. 
+
+        Keyword arguments:  
+            ff_name: [str] Name of the originating FF file. 
+        """
+        self.jdt_ref = jdt_ref
+        self.station_id = station_id
+        self.latitude = latitude
+        self.longitude = longitude
+        self.height = height
+        self.fps = fps
+        self.ff_name = ff_name
+        self.frames = []
+        self.time_data = []
+        self.x_data = []
+        self.y_data = []
+        self.azim_data = []
+        self.elev_data = []
+        self.ra_data = []
+        self.dec_data = []
+        self.mag_data = []
+        self.abs_mag_data = []
+
+    def _addPoint(self, frame_n, x, y, azim, elev, ra, dec, mag):
+        """ Adds the measurement point to the meteor.
+
+        Arguments:
+            frame_n: [flaot] Frame number from the reference time.
+            x: [float] X image coordinate.
+            y: [float] X image coordinate.
+            azim: [float] Azimuth, J2000 in degrees.
+            elev: [float] Elevation angle, J2000 in degrees.
+            ra: [float] Right ascension, J2000 in degrees.
+            dec: [float] Declination, J2000 in degrees.
+            mag: [float] Visual magnitude.
+        """
+        self.frames.append(frame_n)
+
+        # Calculate the time in seconds w.r.t. to the reference JD
+        point_time = float(frame_n)/self.fps
+        self.time_data.append(point_time)
+        self.x_data.append(x)
+        self.y_data.append(y)
+
+        # Angular coordinates converted to radians
+        self.azim_data.append(np.radians(azim))
+        self.elev_data.append(np.radians(elev))
+        self.ra_data.append(np.radians(ra))
+        self.dec_data.append(np.radians(dec))
+        self.mag_data.append(mag)
+
+    def _finish(self):
+        """ When the initialization is done, convert data lists to numpy arrays. """
+        self.frames = np.array(self.frames)
+        self.time_data = np.array(self.time_data)
+        self.x_data = np.array(self.x_data)
+        self.y_data = np.array(self.y_data)
+        self.azim_data = np.array(self.azim_data)
+        self.elev_data = np.array(self.elev_data)
+        self.ra_data = np.array(self.ra_data)
+        self.dec_data = np.array(self.dec_data)
+        self.mag_data = np.array(self.mag_data)
+        # Sort by frame
+        temp_arr = np.c_[self.frames, self.time_data, self.x_data, self.y_data, self.azim_data, 
+        self.elev_data, self.ra_data, self.dec_data, self.mag_data]
+        temp_arr = temp_arr[np.argsort(temp_arr[:, 0])]
+        self.frames, self.time_data, self.x_data, self.y_data, self.azim_data, self.elev_data, self.ra_data, \
+            self.dec_data, self.mag_data = temp_arr.T
+
+
+def _writeFTPHeader(ftpf, metcount, fldr, ufo=True):
+    """
+    Internal function to create the header of the FTPDetect file  
+    """
+    l1 = 'Meteor Count = {:06d}\n'.format(metcount)
+    ftpf.write(l1)
+    ftpf.write('-----------------------------------------------------\n')
+    if ufo is True:
+        ftpf.write('Processed with UFOAnalyser\n')
+    else:
+        ftpf.write('Processed with RMS 1.0\n')
+    ftpf.write('-----------------------------------------------------\n')
+    l1 = 'FF  folder = {:s}\n'.format(fldr)
+    ftpf.write(l1)
+    l1 = 'CAL folder = {:s}\n'.format(fldr)
+    ftpf.write(l1)
+    ftpf.write('-----------------------------------------------------\n')
+    ftpf.write('FF  file processed\n')
+    ftpf.write('CAL file processed\n')
+    ftpf.write('Cam# Meteor# #Segments fps hnr mle bin Pix/fm Rho Phi\n')
+    ftpf.write('Per segment:  Frame# Col Row RA Dec Azim Elev Inten Mag\n')
+
+
+def _writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, alt, b, mag, 
+        ufo=True, x=None, y=None, ffname = None):
+    """   Internal function to write one meteor event into the file in FTPDetectInfo style
+    """
+    ftpf.write('-------------------------------------------------------\n')
+    if ffname is None:
+        ms = '{:03d}'.format(int(evttime.microsecond / 1000))
+
+        fname = 'FF_' + sta + '_' + evttime.strftime('%Y%m%d_%H%M%S_') + ms + '_0000000.fits\n'
+    else:
+        fname = ffname + '\n'
+    ftpf.write(fname)
+
+    if ufo is True:
+        ftpf.write('UFO UKMON DATA Recalibrated on: ')
+    else:
+        ftpf.write('RMS data reprocessed on: ')
+    ftpf.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f UTC\n'))
+    li = f'{sta} {metno:04d} {fcount:04d} {fps:04.2f} 000.0 000.0  00.0 000.0 0000.0 0000.0\n'
+    ftpf.write(li)
+
+    for i in range(len(fno)):
+        #    204.4909 0422.57 0353.46 262.3574 +16.6355 267.7148 +23.0996 000120 3.41
+        bri = 0
+        if b is not None:
+            bri = int(b[i])
+        if ufo is True:
+            # UFO is timestamped as at the first detection
+            thisfn = fno[i] - fno[0]
+            thisx = 0
+            thisy = 0
+        else:
+            thisfn = fno[i]
+            thisx = x[i]
+            thisy = y[i]
+        li = f'{thisfn:.4f} {thisx:07.2f} {thisy:07.2f} '
+        li = li + f'{ra[i]:8.4f} {dec[i]:+7.4f} {az[i]:8.4f} '
+        li = li + f'{alt[i]:+7.4f} {bri:06d} {mag[i]:.02f}\n'
+        ftpf.write(li)
 
 
 if __name__ == '__main__':

@@ -3,21 +3,6 @@
 """
 Functions to load and manage various meteor file formats
 
-loadFTPDetectInfo
-WriteNewFTPFile
-filterFTPforSpecificTime
-MeteorObservation
-
-IMOShowerList
-majorlist
-minorlist
-
-loadPlatepars
-platepar
-
-UAXml
-UCXml
-
 """
 
 from .ftpDetectInfo import filterFTPforSpecificTime, writeNewFTPFile, loadFTPDetectInfo, MeteorObservation

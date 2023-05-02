@@ -3,33 +3,36 @@
 import os
 import glob
 import datetime
-from Utils.ShowerAssociation import showerAssociation
-import RMS.ConfigReader as cr
+try:
+    from Utils.ShowerAssociation import showerAssociation
+    import RMS.ConfigReader as cr
+except Exception:
+    print('RMS not available')
 import argparse
 import shutil
 
 
 def multiDayRadiant(camlist, start, end, outdir=None, shwr=None, datadir=None):
     """
-    Create a multi-day and/or multi-camera radiant map, for cameras at the same geographic location. 
+    Create a multi-day and/or multi-camera radiant map for cameras at the same geographic location. 
 
-    Arguments:
-        camlist:    [list] list of camera IDs eg ['UK0006','UK000F']
-        start:      [string] start date in YYYYMMDD format
-        end:        [string] end date in YYYYMMDD format
-        outdir:     [string] where to save the file to. Default is current directory
-        shwr:       [string] Filter by shower eg PER. Default all showers. 
-        datadir:    [string] Where to look for the data. Default f:/videos/meteorcam.
+    Arguments:  
+        camlist:    [list] list of camera IDs eg ['UK0006','UK000F']  
+        start:      [string] start date in YYYYMMDD format  
+        end:        [string] end date in YYYYMMDD format  
+        outdir:     [string] where to save the file to. Default is current directory  
+        shwr:       [string] Filter by shower eg PER. Default all showers.   
+        datadir:    [string] Where to look for the data. Default f:/videos/meteorcam.  
 
-    Notes:
-        The function expects data to be stored in RMS folder structures as follows
-            {datadir}/{cameraid}/ConfirmedFiles/{cameraid_date_time_*}
+    Notes:  
+        The function expects data to be stored in RMS folder structures as follows  
+            {datadir}/{cameraid}/ConfirmedFiles/{cameraid_date_time_*}  
 
-        Each folder must contain FTPdetectinfo file, platepars_all file
-        The first-named folder must contain a valid RMS config file. 
+        Each folder must contain an FTPdetectinfo file and a platepars_all file. 
+        The first-named folder must contain a valid RMS config file.  
 
-        It is assumed that all cameras are at the same location. The output for cameras
-        at different locations has not been tested. 
+        It is assumed that all cameras are at the same location. The output for cameras 
+        at different locations has not been tested.  
 
     Output:
         creates two files in outdir, a PNG containing an all-sky image of the radiants and 

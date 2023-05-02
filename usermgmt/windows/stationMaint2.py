@@ -81,7 +81,6 @@ class infoDialog(simpledialog.Dialog):
         self.data[0] = ''
         self.destroy()
 
-
     def buttonbox(self):
         self.ok_button = tk.Button(self, text='OK', width=5, command=self.ok_pressed)
         self.ok_button.pack(side="left")

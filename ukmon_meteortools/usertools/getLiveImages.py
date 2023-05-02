@@ -11,16 +11,16 @@ from ukmon_meteortools.fileformats import ReadUFOCapXML as ufoc
 
 def getLiveJpgs(dtstr, outdir=None, create_txt=False, buck_name=None):
     """
-    Retrieve live images from the ukmon website that match a pattern
+    Retrieve live images from the ukmon website that match a pattern  
 
-    Arguments:
-        dtstr:      [str] Date in YYYYMMDD_HHMMSS format. Partial strings allowed 
-        outdir:     [str] Where to save the file. Default is to create a folder named dtstr
-        create_txt: [bool] If true, create a text file containing the pattern matches
-        buck_name:  [str] S3 bucket to read. Default ukmon-live. 
+    Arguments:  
+        dtstr:      [str] Date in YYYYMMDD_HHMMSS format. Partial strings allowed  
+        outdir:     [str] Where to save the file. Default is to create a folder named dtstr  
+        create_txt: [bool] If true, create a text file containing the pattern matches  
+        buck_name:  [str] S3 bucket to read. Default ukmon-live.   
 
-    Notes:
-        This function will fail if you do not have access to the bucket. 
+    Notes:  
+        This function will fail if you do not have access to the bucket.   
     """
     if outdir is None:
         outdir = dtstr

@@ -1,30 +1,25 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 # flake8: noqa
 
-try: 
-    from .multiDayRadiant import multiDayRadiant
-except Exception:
-    print('MultiDayRadiant can only be run from the RMS source folder')
+"""
+The functions in this module require RMS and/or WMPL to be in the PythonPath.  
 
-try: 
-    from .multiTrackStack import multiTrackStack
-except Exception:
-    print('multiTrackStack can only be run from an RMS environment')
-try: 
-    from .analyseUFOwithRMS import analyseUFOwithRMS
-except Exception:
-    print('analyseUFOwithRMS can only be run from an RMS environment')
+Require RMS, and must be run from the source/RMS folder:  
+    multiDayRadiant  
+    multiTrackStack  
+    analyseUFOwithRMS  
 
-try:
-    from .multiEventGroundMap import multiEventGroundMap
-except Exception:
-    print('multiEventGroundMap can only be run in a WMPL environment')
-try:
-    from .plotCAMSOrbits import plotCAMSOrbits
-except Exception:
-    print('plotCAMSOrbits can only be run in a WMPL environment')
-try:
-    from .plotRMSOrbits import plotRMSOrbits
-except Exception:
-    print('plotRMSOrbits can only be run in a WMPL environment')
+Require WMPL:  
+    multiEventGroundMap  
+    plotCAMSOrbits  
+    plotRMSOrbits  
+
+"""
+
+from .multiDayRadiant import multiDayRadiant
+from .multiTrackStack import multiTrackStack
+from .analyseUFOwithRMS import analyseUFOwithRMS
+from .multiEventGroundMap import multiEventGroundMap
+from .plotCAMSOrbits import plotCAMSOrbits
+from .plotRMSOrbits import plotRMSOrbits
 

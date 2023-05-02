@@ -9,7 +9,9 @@ import glob
 
 
 class platepar:
+    """ Load and manage an RMS platepar object, used to map an image to the sky """
     def __init__(self, plateparfile):
+        """" Create and load a platepar object from a file plateparfile """
         with open(plateparfile, 'r') as pp:
             self.jsd = json.load(pp)
             try: 
@@ -46,16 +48,27 @@ class platepar:
                 print('invalid json file')
 
     def getLocation(self):
+        """ get the lat, lon and elevation from the platepar"""
         return [self.lat, self.lon, self.elev]
 
     def getView(self):
+        """ get the pointing direction (alt/az), field of view (h/v) and rotation """
         return [self.altcentre, self.azcentre, self.fov_h, self.fov_v, self.rot]
 
     def getResolution(self):
+        """ Get the reported camera resolution """
         return [self.xres, self.yres]
 
 
 def loadPlatepars(fldr):
+    """ Create a dictionary of multiple platepars  
+    
+    Arguments:  
+        fldr:   [string] A folder containing one or more platepar files  
+
+    Returns:  
+        a json dict containing each platepar indexed by the corresponding filename  
+    """
     platepars ='{'
     pth = os.path.join(fldr, '*.json')
     pps = glob.glob(pth)

@@ -7,21 +7,24 @@
 import sys
 import os
 import datetime
-from wmpl.Utils.PlotOrbits import plotOrbits
 import matplotlib.pyplot as plt
+try:
+    from wmpl.Utils.PlotOrbits import plotOrbits
+except:
+    print('WMPL not available')
 
 
 def plotCAMSOrbits(orbitFile, outdir=None, hideplot=True):
     """
-    plots a set of orbits from CAMS data, with one line per set of osculations 
+    plots a set of orbits from CAMS data, with one line per set of osculations  
 
-    Arguments:
-        orbitFile:  [string] full path to CAMS orbit details file
-        outdir:     [string] the location to write to. defaults to folder of CAMS file
-        hideplot:   [bool] don't display the plot. Default true
+    Arguments:  
+        orbitFile:  [string] full path to CAMS orbit details file  
+        outdir:     [string] the location to write to. defaults to folder of CAMS file  
+        hideplot:   [bool] don't display the plot. Default true  
 
-    Returns:
-        none
+    Returns:  
+        none  
     """
     if outdir is None:
         outdir, _ = os.path.split(orbitFile)

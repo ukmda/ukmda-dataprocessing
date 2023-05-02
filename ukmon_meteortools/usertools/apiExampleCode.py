@@ -3,6 +3,10 @@
 #
 # Copyright (C) 2018-2023 Mark McIntyre
 
+"""
+Examples showing how to use the APIs. 
+"""
+
 import pandas as pd
 
 apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
