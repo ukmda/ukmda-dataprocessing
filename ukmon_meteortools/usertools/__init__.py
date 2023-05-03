@@ -1,7 +1,7 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 # flake8: noqa
 
-from .apiExampleCode import apiurl, matchApiCall, detailApiCall1, detailApiCall2
+from .apiExampleCode import matchApiCall, detailApiCall1, detailApiCall2
 from .drawFTPfile import drawFTPFile
 from .findNearDuplicates import findNearDuplicates
 from .getLiveImages import getLiveJpgs, getFBFiles, createTxtFile
