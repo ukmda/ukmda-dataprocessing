@@ -40,7 +40,7 @@ def getLiveJpgs(dtstr, outdir=None, create_txt=False):
             _download(xmlurl, outdir)
             print(f'retrieved {jpgurl}')
             if create_txt:
-                _createTxtFile(img.image_name, outdir)
+                createTxtFile(img.image_name, outdir)
         except:
             print(f'{img.image_name} unavailable')
 
@@ -109,7 +109,7 @@ def getFBFiles(patt, outdir='.'):
     return 
 
 
-def _createTxtFile(fname, outdir='.'):
+def createTxtFile(fname, outdir='.'):
     """
     Create a text file named after the cameraID, containing a list of fireball files 
     to be retrieved from a remote camera
