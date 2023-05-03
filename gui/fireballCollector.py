@@ -24,7 +24,7 @@ from tkinter.ttk import Label, Style, LabelFrame, Scrollbar
 from PIL import Image as img
 from PIL import ImageTk
 
-from usertools import getLiveImages
+from ukmon_meteortools.usertools import getLiveImages
 
 config_file = ''
 noimg_file = ''
@@ -364,7 +364,7 @@ class fbCollector(Frame):
         self.patt = thispatt
         self.dir_path = os.path.join(self.fb_dir, thispatt)
         log.info(f'getting data matching {thispatt}')
-        getLiveImages.getLiveJpgs(thispatt, outdir=self.dir_path, buck_name=self.live_bucket)
+        getLiveImages.getLiveJpgs(thispatt, outdir=self.dir_path)
         self.update_listbox(self.get_bin_list())
 
     def getUKMData(self):

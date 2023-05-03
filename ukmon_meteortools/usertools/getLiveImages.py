@@ -6,10 +6,11 @@ import os
 import sys
 import boto3
 import datetime
-from ukmon_meteortools.fileformats import ReadUFOCapXML as ufoc
+import pandas as pd
+import requests
 
 
-def getLiveJpgs(dtstr, outdir=None, create_txt=False, buck_name=None):
+def getLiveJpgs(dtstr, outdir=None, create_txt=False):
     """
     Retrieve live images from the ukmon website that match a pattern  
 
@@ -17,48 +18,31 @@ def getLiveJpgs(dtstr, outdir=None, create_txt=False, buck_name=None):
         dtstr:      [str] Date in YYYYMMDD_HHMMSS format. Partial strings allowed  
         outdir:     [str] Where to save the file. Default is to create a folder named dtstr  
         create_txt: [bool] If true, create a text file containing the pattern matches  
-        buck_name:  [str] S3 bucket to read. Default ukmon-live.   
 
     Notes:  
-        This function will fail if you do not have access to the bucket.   
+        We only keep the last few thousand live images so this function will return nothing
+        for older data. 
     """
     if outdir is None:
         outdir = dtstr
     os.makedirs(outdir, exist_ok=True)
-    if buck_name is None:
-        buck_name = os.getenv('UKMONLIVEBUCKET', default='s3://ukmon-live')[5:]
-    s3 = boto3.client('s3')
-    print(f'looking for {dtstr} in {buck_name}')
-    try:
-        x = s3.list_objects_v2(Bucket=buck_name,Prefix=f'M{dtstr}')
-        if x['KeyCount'] > 0:
-            print(f"found {x['KeyCount']} records, saving to {outdir}")
-            for k in x['Contents']:
-                key = k['Key']
-                if '.xml' in key:
-                    s3.download_file(buck_name, key, os.path.join(outdir, key))
-                    x = ufoc.UCXml(os.path.join(outdir, key))
-                    fn = x.ucxml['ufocapture_record']['@cap'].strip()
-                    os.remove(os.path.join(outdir, key))
-                    key = key.replace('.xml', 'P.jpg')
-                    if len(fn) < 5:
-                        outkey = key
-                        #spls = key.split('_')
-                        #stationid = spls[-1][:6].lower()
-                        #dtime = key[1:16]
-                        #patt = f'FF_{stationid}_{dtime}'
-                    else:
-                        outkey = fn.replace('.fits', '.jpg')
-                        #patt = fn[:26]
-                        #stationid = fn[3:9].lower()
-                    print(key)
-                    s3.download_file(buck_name, key, os.path.join(outdir, outkey))
-                    if create_txt is True:
-                        createTxtFile(key, outdir)
-        else:
-            print('no records found')
-    except:
-        print('Error accessing AWS S3 - do you have access?')
+
+    apiurl = 'https://api.ukmeteornetwork.co.uk/liveimages/getlive'
+    liveimgs = pd.read_json(f'{apiurl}?pattern={dtstr}')
+
+    weburl = 'https://live.ukmeteornetwork.co.uk/'
+
+    for _, img in liveimgs.iterrows():
+        try:
+            jpgurl = f'{weburl}{img.image_name}'
+            _download(jpgurl, outdir)
+            xmlurl = jpgurl.replace('P.jpg', '.xml')
+            _download(xmlurl, outdir)
+            print(f'retrieved {jpgurl}')
+            if create_txt:
+                _createTxtFile(img.image_name, outdir)
+        except:
+            print(f'{img.image_name} unavailable')
 
 
 def getFBFiles(patt, outdir='.'):
@@ -125,7 +109,7 @@ def getFBFiles(patt, outdir='.'):
     return 
 
 
-def createTxtFile(fname, outdir='.'):
+def _createTxtFile(fname, outdir='.'):
     """
     Create a text file named after the cameraID, containing a list of fireball files 
     to be retrieved from a remote camera
@@ -154,6 +138,15 @@ def createTxtFile(fname, outdir='.'):
     with open(txtf,'w') as outf:
         outf.write(f'{patt}\n{patt.replace("FF_", "FR_")}\n')
     return txtf
+
+
+def _download(url, outdir):
+    get_response = requests.get(url, stream=True)
+    file_name = url.split("/")[-1]
+    with open(os.path.join(outdir, file_name), 'wb') as f:
+        for chunk in get_response.iter_content(chunk_size=4096):
+            if chunk: # filter out keep-alive new chunks
+                f.write(chunk)
 
 
 if __name__ == '__main__':

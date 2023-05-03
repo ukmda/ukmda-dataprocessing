@@ -9,26 +9,29 @@ Examples showing how to use the APIs.
 
 import pandas as pd
 
-apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
-
 
 def matchApiCall(reqtyp, reqval):
-    # get names of all matches for a given date
+    """get names of all matches for a given date"""
+    apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
     apicall = '{}?reqtyp={}&reqval={}'.format(apiurl, reqtyp, reqval)
     matchlist = pd.read_json(apicall, lines=True)
     return matchlist
 
 
 def detailApiCall1(reqtyp, reqval):
-    # get details of one event
+    """ get details of one event """
+    apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
     apicall = '{}?reqtyp={}&reqval={}'.format(apiurl, reqtyp, reqval)
     evtdetail = pd.read_json(apicall, typ='series')
     return evtdetail
 
 
 def detailApiCall2(reqtyp, matchlist):
-    # get details for the first five events in the match list
-    # and put them in a pandas dataframe, then sort by brightest
+    """
+    get details for the first five events in the match list 
+    and put them in a pandas dataframe, then sort by brightest
+    """
+    apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
     details = []
     for id in matchlist.head(5).orbname:
         reqval = id
@@ -37,6 +40,16 @@ def detailApiCall2(reqtyp, matchlist):
     df = pd.DataFrame(details)
     df = df.sort_values(by=['_mag'])
     return df
+
+
+def getLiveimageList(dtstr):
+    """ 
+    Get a list of livestream images matching a pattern YYYYMMDD_HHMMSS.  
+    The seconds and minutes parts are optional but huge amounts of data may get returned.  
+    """
+    apiurl = 'https://api.ukmeteornetwork.co.uk/liveimages/getlive'
+    liveimgs = pd.read_json(f'{apiurl}?pattern={dtstr}')
+    return liveimgs
 
 
 if __name__ == '__main__':
