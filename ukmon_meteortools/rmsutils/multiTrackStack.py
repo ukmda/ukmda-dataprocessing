@@ -18,17 +18,17 @@ def multiTrackStack(camlist, start, end, outdir=None, shwr=None, scale=None, dra
     create a multi camera and/or multi night trackstack  
 
     Arguments:  
-        camlist: a list of one or more cameras  
-        start: start date as a string yyyymmdd  
-        end: end date as a string yyyymmdd  
-    
-    Keyword Arguments:  
         camlist:    [list] list of camera IDs eg ['UK0006','UK000F']  
+        start:      [string] start date as a string yyyymmdd  
+        end:        [string] end date as a string yyyymmdd  
+    
+    Keyword Arguments: 
+        outdir:     [string] where to save to. Default current working directory.  
         shwr:       [string] filter for a specific shower eg 'PER'. Default all showers.  
         scale:      [int] scale the image to avoid cropping. Default 1.  
-        draw_cons:  [bool] Draw constellation stick figures. Default false  
-        noplot:     [bool] Don't display the plot, just save it. Default true  
-        datadir:    [string] where to read the data from.   
+        draw_cons:  [bool] Draw constellation stick figures. Default false.  
+        noplot:     [bool] Don't display the plot, just save it. Default true.  
+        datadir:    [string] Root of where to read the data from.   
 
     Notes:  
         The function expects data to be stored in RMS folder structures as follows  
@@ -39,6 +39,8 @@ def multiTrackStack(camlist, start, end, outdir=None, shwr=None, scale=None, dra
 
         It is assumed that all cameras are at the same location. The output for cameras 
         at different locations has not been tested.  
+
+        If you find the image is being cropped, try increasing scale. This will use more memory.  
 
     """
     if datadir is None:
