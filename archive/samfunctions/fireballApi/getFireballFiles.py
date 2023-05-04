@@ -50,8 +50,8 @@ def getFBfiles(patt):
             for k in x['Contents']:
                 key = k['Key']
                 url = s3.generate_presigned_url(ClientMethod='get_object', Params={'Bucket': buck_name,'Key': key}, ExpiresIn=300)
-                fname = key.split('/')[-1]
-                flist.append({'filename': fname, 'url': url})
+                #fname = key.split('/')[-1] # hardcoding it here
+                flist.append({'filename': 'platepar_cmn2010.cal', 'url': url})
         # config file
         dtstr = patt.split('_')[1]
         gotcfg = False
