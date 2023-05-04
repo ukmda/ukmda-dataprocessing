@@ -4,8 +4,6 @@
 #
 import os
 import sys
-import boto3
-import datetime
 import pandas as pd
 import requests
 
@@ -45,82 +43,56 @@ def getLiveJpgs(dtstr, outdir=None, create_txt=False):
             print(f'{img.image_name} unavailable')
 
 
-def getFBFiles(patt, outdir='.'):
+def getFBfiles(patt, outdir=None):
     """
-    Retrieve fireball files from the ukmon website that match a pattern
+    Retrieve fireball files from the ukmon website that match a pattern  
 
-    Arguments:
-        patt:      [str] pattern to match
-        outdir:     [str] Where to save the file. Default is '.''
+    Arguments:  
+        patt:      [str] pattern to match.  
+        outdir:     [str] Where to save the files. See notes.  
 
-    Notes:
-        This function will fail if you do not have access to the ukmon-shared bucket. 
+    Returns:  
+        a pandas dataframe containing the filenames and presigned URLs
+
+    Example:  
+        import pandas as pd  
+        df = getFBfiles('UK0006_20230421_2122', 'c:/temp/uk0006')  
+
+    Notes:  
+        The function retrieves the FF and FR files matching the pattern, plus the config and platepar 
+        for the camera, provided the files are available on our server.  
+        If outdir is not supplied, a folder will be created in the current working directory named
+        using the station ID code. 
     """
-    buck_name = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmon-shared')[5:]
-    s3 = boto3.client('s3')
-    print(f'looking for {patt} in {buck_name}')
-    fullpatt = f'fireballs/interesting/{patt}'
-    try:
-        x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
-        if x['KeyCount'] > 0:
-            for k in x['Contents']:
-                key = k['Key']
-                _, fname = os.path.split(key)
-                print(f"saving {fname} to {outdir.lower()}")
-                s3.download_file(buck_name, key, os.path.join(outdir, fname))
-        # platepar file
-        _, camid = os.path.split(outdir)
-        fullpatt = f'consolidated/platepars/{camid}'
-        x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
-        if x['KeyCount'] > 0:
-            for k in x['Contents']:
-                key = k['Key']
-                fname = 'platepar_cmn2010.cal'
-                print(f"saving {fname} to {outdir.lower()}")
-                s3.download_file(buck_name, key, os.path.join(outdir, fname))
-        # config file
-        dtstr = patt[10:25]
-        gotcfg = False
-        fullpatt = f'matches/RMSCorrelate/{camid}/{camid}_{dtstr[:8]}'
-        x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
-        if x['KeyCount'] > 0:
-            for k in x['Contents']:
-                key = k['Key']
-                fname = '.config'
-                if fname in key:
-                    print(f"saving {fname} to {outdir.lower()}")
-                    s3.download_file(buck_name, key, os.path.join(outdir, fname))
-                    gotcfg = True
-        if gotcfg is False:
-            dt = datetime.datetime.strptime(dtstr, '%Y%m%d_%H%M%S')
-            dtstr = (dt +datetime.timedelta(days = -1)).strftime('%Y%m%d_%H%M%S')
-            fullpatt = f'matches/RMSCorrelate/{camid}/{camid}_{dtstr[:8]}'
-            x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
-            if x['KeyCount'] > 0:
-                for k in x['Contents']:
-                    key = k['Key']
-                    fname = '.config'
-                    if fname in key:
-                        print(f"saving {fname} to {outdir.lower()}")
-                        s3.download_file(buck_name, key, os.path.join(outdir, fname))
-                        gotcfg = True
-    except:
-        print('Error accessing AWS S3 - do you have access?')
-    return 
+    if outdir is None:
+        outdir = patt[:6]
+    os.makedirs(outdir, exist_ok=True)
+    apiurl = 'https://api.ukmeteornetwork.co.uk/fireballs/getfb'
+    fbfiles = pd.read_json(f'{apiurl}?pattern={patt}')
+    if len(fbfiles) == 0:
+        print('no matching data found')
+        return None
+    for _,fil in fbfiles.iterrows():
+        fname = fil['filename']
+        url = fil['url']
+        _download(url, outdir, fname)
+        print(fname)
+    return fbfiles
 
 
-def createTxtFile(fname, outdir='.'):
+def createTxtFile(fname, outdir=None):
     """
     Create a text file named after the cameraID, containing a list of fireball files 
-    to be retrieved from a remote camera
+    to be retrieved from a remote camera.  
 
-    Arguments:
-        fname:  [str] the name of the FF file to be retrieved
-        outdir: [str] where to save the files. Default '.'
+    Arguments:  
+        fname:  [str] the name of the FF file to be retrieved. 
+        outdir: [str] where to save the files. See notes.  
 
-    Notes:
+    Notes:  
         the fname parameter should be the name of the live JPG for which you wish to 
-        retrieve the corresponding FF and FR files.
+        retrieve the corresponding FF and FR files.  
+        If outdir is not supplied, the files will be saved in the current directory.   
     """
     if fname[0] == 'M':
         spls = fname.split('_')
@@ -131,6 +103,10 @@ def createTxtFile(fname, outdir='.'):
     else:
         patt = fname[:25]
         stationid = fname[3:9].lower()
+    if outdir is None:
+        outdir = '.' 
+    os.makedirs(outdir, exist_ok=True)
+    
     txtf = os.path.join(outdir, f'{stationid}.txt')
     if os.path.isfile(txtf):
         os.remove(txtf)
@@ -140,10 +116,11 @@ def createTxtFile(fname, outdir='.'):
     return txtf
 
 
-def _download(url, outdir):
+def _download(url, outdir, fname=None):
     get_response = requests.get(url, stream=True)
-    file_name = url.split("/")[-1]
-    with open(os.path.join(outdir, file_name), 'wb') as f:
+    if fname is None:
+        fname = url.split("/")[-1]
+    with open(os.path.join(outdir, fname), 'wb') as f:
         for chunk in get_response.iter_content(chunk_size=4096):
             if chunk: # filter out keep-alive new chunks
                 f.write(chunk)

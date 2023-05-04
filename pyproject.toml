@@ -21,7 +21,6 @@ classifiers = [
 ]
 keywords = ["meteors", "ukmon"]
 dependencies = [
-    "boto3",
     "fastparquet",
     "google-auth",
     "google-auth-oauthlib",
@@ -38,7 +37,6 @@ dependencies = [
     "s3fs",
     "xmltodict",
     "requests",
-    "pytest",
     "pyproj",
     "pdoc",
     "Cython"
@@ -46,7 +44,7 @@ dependencies = [
 requires-python = ">=3.7"
 
 [project.optional-dependencies]
-dev = ["bumpver", "gitpython", "behave", "pip-tools"]
+dev = ["bumpver", "gitpython", "behave", "pytest", "pip-tools"]
 
 [project.urls]
 "Homepage" = "https://github.com/markmac99/UKMon-shared/ukmon_meteortools/"

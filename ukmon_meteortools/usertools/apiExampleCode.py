@@ -46,6 +46,8 @@ def getLiveimageList(dtstr):
     """ 
     Get a list of livestream images matching a pattern YYYYMMDD_HHMMSS.  
     The seconds and minutes parts are optional but huge amounts of data may get returned.  
+
+    Example pattern: '20230421_2122'
     """
     apiurl = 'https://api.ukmeteornetwork.co.uk/liveimages/getlive'
     liveimgs = pd.read_json(f'{apiurl}?pattern={dtstr}')
@@ -56,6 +58,9 @@ def getFireballFiles(patt):
     """ 
     Get a zip file containing the fireball data matching a pattern of the form UKxxxx_YYYYMMDD_HHMMSS
     Nothing will be returned if there is no fireball data available. 
+
+    Example pattern: 'UK0006_20230421_2122'
+
     """
     apiurl = 'https://api.ukmeteornetwork.co.uk/fireballs/getfb'
     fbfiles = pd.read_json(f'{apiurl}?pattern={patt}')
