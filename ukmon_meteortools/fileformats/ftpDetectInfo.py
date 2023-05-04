@@ -158,7 +158,7 @@ def loadFTPDetectInfo(ftpdetectinfo_file_name, time_offsets=None,
 
                 # If the separator is read in, save the current meteor
                 if current_meteor is not None:
-                    current_meteor.finish()
+                    current_meteor._finish()
                     meteor_list.append(current_meteor)
                 continue
 
