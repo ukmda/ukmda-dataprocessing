@@ -76,7 +76,7 @@ def get_intersect(a1, a2, b1, b2):
     return (x / z, y / z)
 
 
-def plotMap(srcpath, intersect):
+def plotMap(srcpath, intersect=False, plotlabels=False):
     print(srcpath)
     lats = []
     longs = []
@@ -112,8 +112,9 @@ def plotMap(srcpath, intersect):
     ax.background_img(name='BM', resolution='high', extent= [minn, maxn, mina, maxa])
 
     plt.plot(longs, lats, 'Dw', markersize=5, linewidth=1, transform=ccrs.PlateCarree())
-    for label, xpt, ypt in zip(stas, longs, lats):
-        plt.text(xpt, ypt, label, color='red', transform=ccrs.PlateCarree())
+    if plotlabels:
+        for label, xpt, ypt in zip(stas, longs, lats):
+            plt.text(xpt, ypt, label, color='red', transform=ccrs.PlateCarree())
 
     if intersect is True:
         brngs = getBearingsForEvent(stas, srcpath)
@@ -154,11 +155,12 @@ if __name__ == '__main__':
     # override PIL's image size limit
     Image.MAX_IMAGE_PIXELS = None
     if len(sys.argv) < 2:
-        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-        srcfile = os.path.join(datadir, 'admin', 'cameraLocs.json')
+        plotlabels = False
     else:
-        srcfile = sys.argv[1]
+        plotlabels = True
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    srcfile = os.path.join(datadir, 'admin', 'cameraLocs.json')
     intersect = False
     if len(sys.argv) > 2:
         intersect = True
-    plotMap(srcfile, intersect)
+    plotMap(srcfile, plotlabels=plotlabels)

@@ -91,7 +91,7 @@ aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogin
 
 cd $DATADIR
 # do this manually when on PC required; closes #61
-#python $PYLIB/maintenance/plotStationsOnMap.py $DATADIR/consolidated/camera-details.csv
+#python $PYLIB/maintenance/plotStationsOnMap.py False
 aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/ --region eu-west-2 --quiet
 
 rm -f $SRC/data/.nightly_running
