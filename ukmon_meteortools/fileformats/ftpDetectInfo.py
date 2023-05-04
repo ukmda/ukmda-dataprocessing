@@ -350,7 +350,7 @@ def loadFTPDetectInfo(ftpdetectinfo_file_name, time_offsets=None,
                 met1.ff_name = met1.ff_name + ',' + met2.ff_name
 
             # Sort all observations by time
-            met1.finish()
+            met1._finish()
 
             # Indicate that the next observation is to be skipped
             merged_indices.append(i + 1)
