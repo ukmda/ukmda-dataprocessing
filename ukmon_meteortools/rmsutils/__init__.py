@@ -13,6 +13,7 @@ Require WMPL:
     multiEventGroundMap  
     plotCAMSOrbits  
     plotRMSOrbits  
+    getTrajPickle  
 
 """
 
@@ -22,4 +23,5 @@ from .analyseUFOwithRMS import analyseUFOwithRMS
 from .multiEventGroundMap import multiEventGroundMap
 from .plotCAMSOrbits import plotCAMSOrbits
 from .plotRMSOrbits import plotRMSOrbits
+from .trajPickle import getTrajPickle
 

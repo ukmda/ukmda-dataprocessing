@@ -6,7 +6,7 @@ import sys
 import glob
 
 
-from ukmon_meteortools.utils import munchKML
+from ukmon_meteortools.fileformats import munchKML
 from shapely.geometry import Point
 
 

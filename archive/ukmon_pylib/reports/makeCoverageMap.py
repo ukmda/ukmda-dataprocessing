@@ -7,7 +7,7 @@ import os
 import gmplot
 import glob
 from cryptography.fernet import Fernet
-from ukmon_meteortools.utils import munchKML
+from ukmon_meteortools.fileformats import munchKML
 
 
 def decodeApiKey(enckey):

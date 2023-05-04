@@ -4,11 +4,6 @@ import csv
 import simplekml
 import numpy as np
 import pandas as pd
-import os
-import sys
-import pickle
-import tempfile
-from ukmon_meteortools.usertools.getLiveImages import _download
 
 
 def munchKML(kmlFilename, return_poly=False):
@@ -102,45 +97,3 @@ def getTrackDetails(traj):
     df = pd.DataFrame({"lats": lats, "lons": lons, "alts": alts, "times": lens})
     df = df.sort_values(by=['times', 'lats'])
     return df
-
-
-def getTrajPickle(trajname):
-    """ Retrieve a the pickled trajectory for a matched detection 
-    
-    Arguments:  
-        trajname:   [string] Name of the trajectory eg 20230502_025228.374_UK_BE
-
-    Returns:
-        tuple containing (traj object, kml filename)  
-
-
-    """
-    apiurl = 'https://api.ukmeteornetwork.co.uk/pickle/getpickle'
-    fmt = 'pickle'
-    apicall = f'{apiurl}?reqval={trajname}&format={fmt}'
-    matchpickle = pd.read_json(apicall, lines=True)
-    if 'url' in matchpickle:
-        outdir = tempfile.mkdtemp()
-        _download(matchpickle['url'], outdir, matchpickle['filename'])
-
-        localfile = os.path.join(outdir, matchpickle['filename'])
-        with open(localfile, 'rb') as f:
-            traj = pickle.load(f, encoding='latin1')
-        try:
-            os.remove(localfile)
-        except:
-            print(f'unable to remove {localfile}')
-    else:
-        traj = None
-    kmlfile = trajname[:15] + '.kml'
-    return traj, kmlfile
-
-
-if __name__ == '__main__':
-    ext = os.path.splitext(sys.argv[1])
-    if ext == 'csv':
-        trackCsvtoKML(sys.argv[1])
-    else:
-        traj, kmlfile = getTrajPickle(sys.argv[1])
-        tdets = getTrackDetails(traj)
-        trackCsvtoKML(kmlfile, tdets)

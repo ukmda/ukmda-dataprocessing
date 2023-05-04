@@ -14,8 +14,8 @@ import fnmatch
 import datetime
 import boto3
 import tempfile
-from ukmon_meteortools.fileformats import ReadUFOAnalyzerXML as UA
 from reports import CameraDetails as cdet
+from ukmon_meteortools.fileformats import UFOAnalyzerXML as UA
 from ukmon_meteortools.fileformats.ftpDetectInfo import writeFTPHeader, writeOneMeteor
 
 CAMINFOFILE = 'CameraSites.txt'

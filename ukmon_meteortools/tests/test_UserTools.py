@@ -2,8 +2,8 @@
 import os
 
 from usertools.getOverlappingFovs import getOverlapWith
-from utils.kmlHandlers import getTrajPickle, getTrackDetails, trackCsvtoKML
-from usertools.retrieveECSV import getECSVs
+from fileformats.kmlHandlers import getTrajPickle, getTrackDetails, trackCsvtoKML
+from fileformats.ECSVhandler import getECSVs
 
 
 def test_fovchecker():
