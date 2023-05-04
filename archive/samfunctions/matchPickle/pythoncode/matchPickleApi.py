@@ -6,33 +6,45 @@ from wmpl.Utils.Pickling import loadPickle
 
 
 def lambda_handler(event, context):
-    try:
-        archbucket = os.environ['ARCHBUCKET']
-    except Exception:
-        archbucket = 'mjmm-ukmonarchive.co.uk'
+    archbucket = os.getenv('ARCHBUCKET', default= 'ukmon-shared')
 
     print('received event', json.dumps(event))
     qs = event['queryStringParameters']
-    reqval = qs['reqval']
+    if 'reqval' in qs:
+        reqval = qs['reqval']
+    else:
+        reqval = qs['orbit']
+    if 'format' in qs:
+        rettyp = qs['format']
+    else:
+        rettyp = 'json'
 
-    s3 = boto3.resource('s3')
+    s3 = boto3.client('s3', region_name='eu-west-2')
     yr = reqval[:4]
     ym = reqval[:6]
     ymd = reqval[:8]
     pfname = reqval[:15]+'_trajectory.pickle'
     picklefile = f'matches/RMSCorrelate/trajectories/{yr}/{ym}/{ymd}/{reqval}/{pfname}'
-    try:
-        print(f'{archbucket} {picklefile} {pfname}')
-        s3.meta.client.download_file(archbucket, picklefile, f'/tmp/{pfname}')
-        print('got file')
-        p = loadPickle('/tmp', pfname)
-        print('loaded pickle')
-        pstr = p.toJson()
-        print('converted to json string')
-    except:
-        pstr = '{"status" : "invalid trajectory"}'
+    print(f'looking for {picklefile}')
+    objlist = s3.list_objects_v2(Bucket=archbucket, Prefix=picklefile)
+    if objlist['KeyCount'] > 0:
+        k = objlist['Contents'][0]
+        key = k['Key']
+        if rettyp.lower() == 'json':
+            print('returning json type')
+            s3.download_file(archbucket, key, f'/tmp/{pfname}')
+            p = loadPickle('/tmp', pfname)
+            pstr = p.toJson()
+        else:
+            print('returning presigned url')
+            url = s3.generate_presigned_url(ClientMethod='get_object', 
+                                            Params={'Bucket': archbucket,'Key': key}, ExpiresIn=300)
+            pstr = json.dumps({'filename': pfname, 'url': url})
+    else:
+        pstr = json.dumps({'status': 'invalid trajectory'})
+
     return {
         'statusCode': 200,
-        'body': pstr #json.loads(pstr) 
+        'body': pstr
     }
            

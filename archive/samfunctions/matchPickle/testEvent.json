@@ -1,11 +1,14 @@
 {
   "httpMethod": "GET",
   "queryStringParameters": {
-    "reqval": "20220814_205940.252_UK"
+    "orbit": "20220814_205940.252_UK",
+    "format": "json"
   },
   "multiValueQueryStringParameters": {
-    "reqval": [
+    "orbit": [
       "20220814_205940.252_UK"
-    ]
+    ],
+    "format" : [ "json"]
+
   }
 }

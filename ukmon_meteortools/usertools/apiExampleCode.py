@@ -18,6 +18,19 @@ def matchApiCall(reqtyp, reqval):
     return matchlist
 
 
+def getMatchPickle(patt):
+    """
+    get the pickled trajectory for a given matched event   
+    Returns a json object containing the pickled data
+    
+    Example pattern 20230501_002536.754_UK
+    """
+    apiurl = 'https://api.ukmeteornetwork.co.uk/pickle/getpickle'
+    apicall = f'{apiurl}?reqval={patt}'
+    matchpickle = pd.read_json(apicall, lines=True)
+    return matchpickle
+
+
 def detailApiCall1(reqtyp, reqval):
     """ get details of one event """
     apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
