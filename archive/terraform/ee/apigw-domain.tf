@@ -42,6 +42,11 @@ data "aws_api_gateway_rest_api" "liveimagesapi" {
   provider                 = aws.eu-west-1-prov
 }
 
+data "aws_api_gateway_rest_api" "fbdataapi" {
+  name = "getFireballFiles"
+  provider                 = aws.eu-west-1-prov
+}
+
 resource "aws_api_gateway_base_path_mapping" "ecsvapi" {
   api_id      = data.aws_api_gateway_rest_api.fetchECSVapi.id
   stage_name  = "Prod"
@@ -63,5 +68,13 @@ resource "aws_api_gateway_base_path_mapping" "liveimgapi" {
   stage_name  = "Prod"
   domain_name = aws_api_gateway_domain_name.apigwdomain.domain_name
   base_path = "liveimages"
+  provider                 = aws.eu-west-1-prov
+}
+
+resource "aws_api_gateway_base_path_mapping" "fbdataapi" {
+  api_id      = data.aws_api_gateway_rest_api.fbdataapi.id
+  stage_name  = "Prod"
+  domain_name = aws_api_gateway_domain_name.apigwdomain.domain_name
+  base_path = "fireballs"
   provider                 = aws.eu-west-1-prov
 }

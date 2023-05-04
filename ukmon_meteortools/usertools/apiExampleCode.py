@@ -52,6 +52,16 @@ def getLiveimageList(dtstr):
     return liveimgs
 
 
+def getFireballFiles(patt):
+    """ 
+    Get a zip file containing the fireball data matching a pattern of the form UKxxxx_YYYYMMDD_HHMMSS
+    Nothing will be returned if there is no fireball data available. 
+    """
+    apiurl = 'https://api.ukmeteornetwork.co.uk/fireballs/getfb'
+    fbfiles = pd.read_json(f'{apiurl}?pattern={patt}')
+    return fbfiles
+
+
 if __name__ == '__main__':
     # get all matched events for a given date
     reqtyp = 'matches'
