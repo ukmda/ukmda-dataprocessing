@@ -6,13 +6,9 @@ import numpy as np
 import pandas as pd
 import os
 import sys
-import boto3
-
-try:
-    from wmpl.Utils.Pickling import loadPickle
-    gotpickler = True
-except:
-    gotpickler = False
+import pickle
+import tempfile
+from ukmon_meteortools.usertools.getLiveImages import _download
 
 
 def munchKML(kmlFilename, return_poly=False):
@@ -119,23 +115,24 @@ def getTrajPickle(trajname):
 
 
     """
-    tmpdir = os.getenv('TMP', default='/tmp')
-    s3 = boto3.client('s3')
-    srcbucket = 'ukmon-shared'
-    orb = trajname
-    picklefile = orb[:15] + '_trajectory.pickle'
-    kmlfile = orb[:15] + '.kml'
-    yr = picklefile[:4]
-    ym = picklefile[:6]
-    ymd = picklefile[:8]
-    fname = f'matches/RMSCorrelate/trajectories/{yr}/{ym}/{ymd}/{orb}/{picklefile}'
-    localfile = os.path.join(tmpdir, picklefile)
-    s3.download_file(srcbucket, fname, localfile)
-    traj = loadPickle(*os.path.split(localfile))
-    try:
-        os.remove(localfile)
-    except:
-        print(f'unable to remove {localfile}')
+    apiurl = 'https://api.ukmeteornetwork.co.uk/pickle/getpickle'
+    fmt = 'pickle'
+    apicall = f'{apiurl}?reqval={trajname}&format={fmt}'
+    matchpickle = pd.read_json(apicall, lines=True)
+    if 'url' in matchpickle:
+        outdir = tempfile.mkdtemp()
+        _download(matchpickle['url'], outdir, matchpickle['filename'])
+
+        localfile = os.path.join(outdir, matchpickle['filename'])
+        with open(localfile, 'rb') as f:
+            traj = pickle.load(f, encoding='latin1')
+        try:
+            os.remove(localfile)
+        except:
+            print(f'unable to remove {localfile}')
+    else:
+        traj = None
+    kmlfile = trajname[:15] + '.kml'
     return traj, kmlfile
 
 
@@ -144,9 +141,6 @@ if __name__ == '__main__':
     if ext == 'csv':
         trackCsvtoKML(sys.argv[1])
     else:
-        if gotpickler is False:
-            print('WMPL not available, aborting')
-        else:
-            traj, kmlfile = getTrajPickle(sys.argv[1])
-            tdets = getTrackDetails(traj)
-            trackCsvtoKML(kmlfile, tdets)
+        traj, kmlfile = getTrajPickle(sys.argv[1])
+        tdets = getTrackDetails(traj)
+        trackCsvtoKML(kmlfile, tdets)
