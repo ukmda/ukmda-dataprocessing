@@ -1,7 +1,9 @@
-from ukmon_meteortools.fileformats import filterFTPforSpecificTime
-from ukmon_meteortools.fileformats import IMOshowerList, majorlist, minorlist
-from ukmon_meteortools.fileformats import loadPlatepars
-from ukmon_meteortools.fileformats import UAXml, UCXml
+from fileformats import filterFTPforSpecificTime
+from fileformats import IMOshowerList, majorlist, minorlist
+from fileformats import loadPlatepars
+from fileformats import UAXml, UCXml
+from fileformats import munchKML, trackCsvtoKML #, getTrackDetails
+from fileformats import getECSVs
 
 import shutil
 import filecmp
@@ -54,3 +56,26 @@ def test_loadUFOAnalyserFormat():
     ua = UAXml(os.path.join(here, 'data', 'uaexample.xml'))
     fps, cx, cy, isintl = ua.getCameraDetails()
     assert fps == 25.0
+
+
+def test_munchKML():
+    kmlfile = os.path.join(here, 'data','UK0006-70km.kml')
+    kml = munchKML(kmlfile, True)
+    assert kml[0]=='UK0006'
+
+
+def test_trackCsvtoKML():
+    srcfile = os.path.join(here, 'data','sample_track.csv')
+    kml = trackCsvtoKML(srcfile)
+    assert 'sample_track' in kml.document.name 
+    os.remove(os.path.join(here, 'data','sample_track.kml'))
+
+
+def test_getTrackDetails():
+    # getTrackDetails(traj)
+    assert 1==1
+
+
+def test_getECSvs():
+    ecsv = getECSVs('UK0006','2023-05-02T00:25:59')
+    assert ecsv[0] == "# %ECSV 0.9"

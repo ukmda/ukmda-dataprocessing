@@ -6,8 +6,7 @@ import os
 from ukmon_meteortools.utils import jd2Date, date2JD, datetime2JD, jd2DynamicalTimeJD, jd2LST, sollon2jd, \
     greatCircleDistance, angleBetweenSphericalCoords, calcApparentSiderealEarthRotation, \
     raDec2AltAz, altAz2RADec, \
-    getActiveShowers, getShowerDets, getShowerPeak, \
-    trackCsvtoKML, munchKML
+    getActiveShowers, getShowerDets, getShowerPeak
 # getActiveShowersStr, sendAnEmail, \
 # calcNutationComponents, equatorialCoordPrecession,  getTrackDetails, getTrajPickle, \
 # annotateImage, annotateImageArbitrary
@@ -127,19 +126,6 @@ def test_calcNutationComponents():
 def test_equatorialCoordPrecession():
     # not tested
     assert 1 == 1
-
-
-def test_munchKML():
-    kmlfile = os.path.join(here, 'data','UK0006-70km.kml')
-    kml = munchKML(kmlfile, True)
-    assert kml[0]=='UK0006'
-
-
-def test_trackCsvtoKML():
-    srcfile = os.path.join(here, 'data','sample_track.csv')
-    kml = trackCsvtoKML(srcfile)
-    assert 'sample_track' in kml.document.name 
-    os.remove(os.path.join(here, 'data','sample_track.kml'))
 
 
 """
