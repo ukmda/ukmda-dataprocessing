@@ -1,7 +1,6 @@
 #  A class to handle UFO Analyser xml files
 # Copyright (C) 2018-2023 Mark McIntyre
 
-import sys
 import xmltodict
 import datetime
 import math
@@ -231,39 +230,3 @@ class UAXml:
         pp = pp + '}'
 
         return pp
-
-
-if __name__ == '__main__':
-    dd = UAXml(sys.argv[1])
-
-    dtim = dd.getDateTime()
-
-    station, lid, sid, lat, lng, alti = dd.getStationDetails()
-    fps, cx, cy, isintl = dd.getCameraDetails()
-    print('location', station, lat, lng, alti)
-    print('date ', dtim, '\nand path')
-    if isintl == 1:
-        fps = fps * 2
-    # print('camera', fps, cx, cy)
-    # az, ev, rot, fovh, yx, dx, dy, lnk = dd.getProfDetails()
-    # print('profile', az, ev, rot, fovh, yx, dx, dy, lnk)
-
-    pp = dd.makePlateParEntry('XX0000')
-    print(pp)
-    nobjs = dd.getObjectCount()
-    for i in range(nobjs):
-        sec, av, pix, bmax, mag, fcount = dd.getObjectBasics(i)
-        ra1, dc1, h1, dist1, lng1, lat1, az1, ev1, fs = dd.getObjectStart(i)
-        ra2, dc2, h2, dist2, lng2, lat2, fe = dd.getObjectEnd(i)
-        print(sec, ra1, dc1, h1, dist1, lng1, lat1, ra2, dc2, h2, dist2, lng2, lat2)
-        print(fcount)
-        print('fno', 'ra', 'dec', 'mag', 'az', 'ev', 'lsum', 'b')
-        for j in range(fcount):
-            fno, ra, dec, mag, az, ev, lsum, b = dd.getObjectFrameDetails(i, j)
-            us = int(fno / fps * 1000000)
-            tt = dtim + datetime.timedelta(microseconds=us)
-            print(tt, fno, ra, dec, mag, az, ev, lsum, b)
-        fno, tt, ra, dec, mag, fcount, alt, az, b, lsum = dd.getPathVector(i)
-        for j in range(fcount):
-            print(datetime.datetime.fromtimestamp(tt[j]), ra[j], dec[j], fno[j])
-    print('done')

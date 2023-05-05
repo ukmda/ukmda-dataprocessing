@@ -3,7 +3,6 @@
 #
 # Copyright (C) 2018-2023 Mark McIntyre
 
-import sys
 import os
 import numpy as np
 import configparser as crp
@@ -504,17 +503,3 @@ def _writeOneMeteor(ftpf, metno, sta, evttime, fcount, fps, fno, ra, dec, az, al
         li = li + f'{ra[i]:8.4f} {dec[i]:+7.4f} {az[i]:8.4f} '
         li = li + f'{alt[i]:+7.4f} {bri:06d} {mag[i]:.02f}\n'
         ftpf.write(li)
-
-
-if __name__ == '__main__':
-    if len(sys.argv) < 1:
-        print('usage: python ftpDetectInfo.py ftpfile')
-        print('note: requires .config and platepar to be in the same folder')
-        exit(0)
-        
-    ftpname = sys.argv[1]
-    metlist = loadFTPDetectInfo(sys.argv[1])
-    m1 = metlist[0]
-    print(m1.jdt_ref, m1.ff_name)
-    for f,t,r,d,a,e,x,y,m in zip(m1.frames,m1.time_data, m1.ra_data, m1.dec_data, m1.azim_data, m1.elev_data, m1.x_data, m1.y_data, m1.mag_data):
-        print(f,t,r,d,a,e,x,y,m)

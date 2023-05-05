@@ -1,7 +1,6 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 
 import requests
-import sys
 import os
 
 
@@ -48,18 +47,3 @@ def getECSVs(stationID, dateStr, savefiles=False, outdir='.'):
     else:
         print(res.status_code)
     return ecsvlines
-
-
-if __name__ == '__main__':
-    sav = True
-    if len(sys.argv) < 3:
-        stat ='UK0025'
-        dt = '2021-07-17T02:41:05.05'
-    else:
-        stat = sys.argv[1]
-        dt = sys.argv[2]
-        if len(sys.argv) == 4:
-            if int(sys.argv[3]) ==0:
-                sav = False
-
-    getECSVs(stat, dt, sav)

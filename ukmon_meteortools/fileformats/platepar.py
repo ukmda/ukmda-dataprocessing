@@ -82,10 +82,3 @@ def loadPlatepars(fldr):
     #print(platepars)
     ppjson = json.loads(platepars)
     return ppjson
-
-
-if __name__ == '__main__':
-    p = loadPlatepars('c:/temp/platepars')
-    #print(p)
-    for pp in p:
-        print(p[pp]['fov_h'])
