@@ -39,7 +39,17 @@ dependencies = [
     "requests",
     "pyproj",
     "pdoc",
-    "Cython"
+    "Cython",
+    "opencv-python",
+    "imageio",
+    "scipy",
+    "jplephem",
+    "pyephem",
+    "gitpython",
+    "astropy",
+    "pyqt5",
+    "basemap",
+    "basemap-data-hires"
 ]
 requires-python = ">=3.7"
 
@@ -47,7 +57,7 @@ requires-python = ">=3.7"
 dev = ["bumpver", "gitpython", "behave", "pytest", "pip-tools"]
 
 [project.urls]
-"Homepage" = "https://github.com/markmac99/UKMon-shared/ukmon_meteortools/"
+"Homepage" = "https://markmac99.github.io/UKmon-shared/ukmon_meteortools.html"
 "Bug Tracker" = "https://github.com/markmac99/UKMon-shared/issues"
 
 #[project.scripts]
