@@ -12,7 +12,7 @@ from tempfile import mkdtemp
 from shutil import rmtree
 
 from traj.pickleAnalyser import getBestView
-from wmpl.Utils.TrajConversions import jd2Date
+from ukmon_meteortools.utils import jd2Date
 
 
 # 
@@ -126,7 +126,7 @@ def findFBPre2020(df, mag=-4):
     return fbs
 
 
-def findFireballs (dtval, shwr, minmag=-3.99, matchdataset = None):
+def findFireballs(dtval, shwr, minmag=-3.99, matchdataset = None):
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     orbdir = 'matches'
 

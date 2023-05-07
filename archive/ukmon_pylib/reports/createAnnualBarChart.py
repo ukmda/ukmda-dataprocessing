@@ -9,7 +9,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import datetime
 
-from wmpl.Utils.TrajConversions import jd2Date
+from ukmon_meteortools.utils import jd2Date
 
 
 def createBarChart(fname, yr):
