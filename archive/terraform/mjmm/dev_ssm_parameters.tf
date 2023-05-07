@@ -14,7 +14,7 @@ resource "aws_ssm_parameter" "dev_websitebucket" {
 resource "aws_ssm_parameter" "dev_sharedbucket" {
   name  = "dev_sharedbucket"
   type  = "String"
-  value = "ukmon-shared"
+  value = "mjmm-ukmon-shared"
   tags = {
     "billingtag" = "ukmon"
   }

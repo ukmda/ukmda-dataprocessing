@@ -10,8 +10,9 @@ import datetime
 import boto3
 import textwrap
 
-from utils import sendAnEmail
+from ukmon_meteortools.utils import sendAnEmail
 
+mailfrom = 'ukmonhelper@ukmeteornetwork.co.uk'
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
@@ -92,7 +93,7 @@ if __name__ == '__main__':
             mailrecip = row['eMail']
             statid = row['stationid']
             dayslate = int(sys.argv[1])
-            #sendAnEmail.sendAnEmail(mailrecip, latemsg1.format(statid, dayslate), subj)
+            #sendAnEmail(mailrecip, latemsg1.format(statid, dayslate), subj, mailfrom)
             mailmsg = mailmsg + '{} {} {}\n'.format(row['stationid'], row['ts'], row['eMail'])
 
     subj = 'camera upload missing - final notice'
@@ -112,7 +113,7 @@ if __name__ == '__main__':
             mailrecip = row['eMail']
             statid = row['stationid']
             dayslate = int(sys.argv[1]) + 7
-            sendAnEmail.sendAnEmail(mailrecip, latemsg1.format(statid, dayslate), subj)
+            sendAnEmail(mailrecip, latemsg1.format(statid, dayslate), subj, mailfrom)
             mailmsg = mailmsg + '{} {} {}\n'.format(row['stationid'], row['ts'], row['eMail'])
 
 
@@ -186,7 +187,7 @@ if __name__ == '__main__':
             statid = row['stationid']
             reccount = row['reccount']
             ftpname = row['ftpname']
-            sendAnEmail.sendAnEmail(mailrecip, badmsg.format(statid, reccount, ftpname), subj)
+            sendAnEmail(mailrecip, badmsg.format(statid, reccount, ftpname), subj, mailfrom)
             mailmsg = mailmsg + '{} {} {} {}\n'.format(row['stationid'], row['ts'], row['reccount'], row['eMail'])
 
     mailrecip = 'markmcintyre99@googlemail.com'
@@ -194,5 +195,5 @@ if __name__ == '__main__':
         
     # check again as we just applied a 2nd filter (on date)
     if len(badcams) > 0: 
-        sendAnEmail.sendAnEmail(mailrecip, mailmsg, msgtype)
+        sendAnEmail(mailrecip, mailmsg, msgtype, mailfrom)
         print('mail sent')

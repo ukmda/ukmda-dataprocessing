@@ -208,5 +208,7 @@ if __name__ == '__main__':
     cml_args = arg_parser.parse_args()
     if cml_args.targdate is None:
         targdate = datetime.datetime.now().strftime('%Y%m%d')
+    else:
+        targdate = cml_args.targdate
 
     shwrs = reportActiveShowers(targdate, cml_args.shower, cml_args.thismonth, cml_args.includeminor)

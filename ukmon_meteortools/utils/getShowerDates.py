@@ -101,7 +101,7 @@ def getShowerDets(shwr, stringFmt=False):
     else:
         id, nam, pksollong, dtstr = 0, 'Unknown', 0, 'Unknown'
     if stringFmt:
-        return f"{pksollong},'{dtstr}','{nam}',{shwr}"
+        return f"{pksollong},{dtstr},{nam},{shwr}"
     else:
         return id, nam, pksollong, dtstr
 
@@ -117,13 +117,3 @@ def getShowerPeak(shwr):
     """
     _, _, _, pk = getShowerDets(shwr)
     return pk
-
- 
-
-if __name__ == '__main__':
-    if sys.argv[1] == 'refresh':
-        _refreshShowerData()
-        exit(0)
-    else:
-        id, nam, sl, dt = getShowerDets(sys.argv[1])
-        print('{},{},{},{}'.format(sl, dt, nam, sys.argv[1]))

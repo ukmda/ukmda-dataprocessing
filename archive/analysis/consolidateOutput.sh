@@ -19,7 +19,6 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 source $HOME/venvs/${WMPL_ENV}/bin/activate
-$SRC/utils/clearCaches.sh
 
 yr=$1
 if [ "$yr" == "" ] ; then
@@ -57,7 +56,7 @@ do
 done
 
 logger -s -t consolidateOutput "pushing consolidated information back"
-aws s3 sync ${DATADIR}/consolidated ${UKMONSHAREDBUCKET}/consolidated/  --quiet --exclude 'UKMON*'
+aws s3 sync ${DATADIR}/consolidated ${UKMONSHAREDBUCKET}/consolidated/  --exclude 'UKMON*' --quiet 
  
 logger -s -t consolidateOutput "Getting latest trajectory data"
 
@@ -65,7 +64,7 @@ logger -s -t consolidateOutput "Getting latest trajectory data"
 # make sure target folders exist
 mkdir -p ${DATADIR}/orbits/$yr/fullcsv/processed/ > /dev/null 2>&1
 
-aws s3 sync ${UKMONSHAREDBUCKET}/matches/RMSCorrelate/trajectories/${yr}/plots/ $DATADIR/showerplots --exclude "*" --include "0*.png" --quiet
+aws s3 sync s3://ukmon-shared/matches/RMSCorrelate/trajectories/${yr}/plots/ $DATADIR/showerplots --exclude "*" --include "0*.png" --quiet
 
 # copy the orbit file for consolidation and reporting
 aws s3 mv ${UKMONSHAREDBUCKET}/matches/${yr}/fullcsv/  ${DATADIR}/orbits/${yr}/fullcsv --recursive --exclude "*" --include "*.csv" --quiet
@@ -103,5 +102,4 @@ aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matchedpq/ --quiet --ex
 aws s3 sync $DATADIR/matched/ $WEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet
 aws s3 sync $DATADIR/single/ $WEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet
 
-$SRC/utils/clearCaches.sh
 logger -s -t consolidateOutput "finished"
