@@ -3,7 +3,6 @@
 # python code to read in an FTPdetect file and plot all the detections
 #
 
-import sys 
 import os
 import configparser as cr 
 from matplotlib import pyplot as plt
@@ -51,13 +50,14 @@ def drawFTPFile(ftpfile, cfgfile=None):
         cfgfile:   [str] full path to RMS config file to read image dimensions. Default is 1280x720.  
     """
     config = cr.ConfigParser()
-    config.read(cfgfile)
-    if len(config) == 1: 
+    if cfgfile is None: 
         width=1280
         height=720
     else:
+        config.read(cfgfile)
         width = int(config['Capture']['width'])
         height = int(config['Capture']['height'])
+
     print('plotting field of view {}x{}'.format(width, height))
     events = _readFTPfile(ftpfile, height)
     for ev in events: 
@@ -68,7 +68,3 @@ def drawFTPFile(ftpfile, cfgfile=None):
     plt.savefig(os.path.join(pth, outfname))
     plt.close()
     return 
-
-
-if __name__ == '__main__':
-    drawFTPFile(sys.argv[1], sys.argv[2])

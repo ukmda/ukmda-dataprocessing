@@ -6,7 +6,8 @@ import os
 from ukmon_meteortools.utils import jd2Date, date2JD, datetime2JD, jd2DynamicalTimeJD, jd2LST, sollon2jd, \
     greatCircleDistance, angleBetweenSphericalCoords, calcApparentSiderealEarthRotation, \
     raDec2AltAz, altAz2RADec, \
-    getActiveShowers, getShowerDets, getShowerPeak
+    getActiveShowers, getShowerDets, getShowerPeak, \
+    drawFTPFile
 # getActiveShowersStr, sendAnEmail, \
 # calcNutationComponents, equatorialCoordPrecession,  getTrackDetails, getTrajPickle, \
 # annotateImage, annotateImageArbitrary
@@ -128,9 +129,17 @@ def test_equatorialCoordPrecession():
     assert 1 == 1
 
 
+def test_drawFTPFile():
+    ftpfile = os.path.join(here, 'data', 'FTPdetectinfo_UK006S_20230112_170327_316507.txt.orig')
+    cfgfile = os.path.join(here, 'data', '.config')
+    drawFTPFile(ftpfile, cfgfile)
+    outf = os.path.join(here, 'data', 'UK006S_20230112_170327_170327_ftpmap.png')
+    assert os.path.isfile(outf)
+    os.remove(outf)
+
+
 """
 def test_annotateImage():
 def test_annotateImageArbitrary():
-def test_getTrackDetails():
 def test_sendAnEmail():
 """

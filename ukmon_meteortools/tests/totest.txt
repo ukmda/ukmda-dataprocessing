@@ -5,11 +5,6 @@
 ../traj/plotOSMGroundTrack.py
 ../traj/ShowerAssociation.py
 
-../ufoutils/ufoTrajSolver.py
-
 ../usertools/drawFTPfile.py
 ../usertools/findNearDuplicates.py
-../usertools/getLiveImages.py
-../usertools/getOverlappingFovs.py
-../usertools/plotTrack.py
-../usertools/retrieveECSV.py
+
