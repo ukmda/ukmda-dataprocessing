@@ -23,7 +23,8 @@ def getActiveShowers(targdate, retlist=False, inclMinor=False):
 
     """
     sl = iwsl.IMOshowerList()
-    listofshowers=sl.getActiveShowers(targdate,True, inclMinor=inclMinor)
+    testdate = datetime.datetime.strptime(targdate, '%Y%m%d')
+    listofshowers=sl.getActiveShowers(testdate,True, inclMinor=inclMinor)
     if retlist is False:
         for shwr in listofshowers:
             print(shwr)
@@ -58,8 +59,6 @@ if __name__ == '__main__':
         help='include minor showers')
 
     cml_args = arg_parser.parse_args()
-    if cml_args.targdate is not None:
-        targdate = datetime.datetime.strptime(cml_args.targdate, '%Y%m%d')
-    else:
-        targdate = datetime.datetime.now()
+    if cml_args.targdate is None:
+        targdate = datetime.datetime.now().strftime('%Y%m%d')
     getActiveShowers(targdate, inclMinor=cml_args.includeminor)

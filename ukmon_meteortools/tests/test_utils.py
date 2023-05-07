@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 import os
 
-from ukmon_meteortools.utils import jd2Date, date2JD, datetime2JD, jd2DynamicalTimeJD, jd2LST, sollon2jd, \
+from utils import jd2Date, date2JD, datetime2JD, jd2DynamicalTimeJD, jd2LST, sollon2jd, \
     greatCircleDistance, angleBetweenSphericalCoords, calcApparentSiderealEarthRotation, \
     raDec2AltAz, altAz2RADec, \
     getActiveShowers, getShowerDets, getShowerPeak, \
@@ -95,12 +95,12 @@ def test_altAz2RADec():
 
 
 def test_getActiveShowers():
-    sl = getActiveShowers(datetime.datetime(2023,4,23,0,0,0),True)
+    sl = getActiveShowers('20230423',True)
     assert sl == ['LYR', 'ETA']
 
 
 def test_getQuietActiveShowers():
-    sl = getActiveShowers(datetime.datetime(2023,2,23,0,0,0),True)
+    sl = getActiveShowers('20230223',True)
     assert sl == []
 
 
