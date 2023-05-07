@@ -2,7 +2,8 @@
 
 Python tools and utilities to work with meteor data from the UK Meteor Network
 
-To get more information about the submodules and functions use Python's built-in help capability
+To get more information about the submodules and functions use Python's built-in help capability, for example
+as shown here. 
 
 ``` python
 from ukmon_meteortools import utils
@@ -12,7 +13,7 @@ help(utils.sendAnEmail)
 
 Example usage 
 ```python
->>>from ukmon_meteortools.utils import date2JD, jd2LST
+>>>from ukmon_meteortools.utils import date2JD, jd2LST, getActiveShowers, getShowerDets
 >>> date2JD(2023,4,11,12,45,9)
 2460046.0313541666
 >>>import numpy as np
