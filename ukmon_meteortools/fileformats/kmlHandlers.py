@@ -54,6 +54,7 @@ def trackCsvtoKML(trackcsvfile, trackdata=None, saveOutput=True, outdir=None):
         trackcsvfile:   [string] full path to the file to read from  
         trackdata:      [array] pandas dataframe containing the data. Default None  
         saveOutput:     [bool] write the KML file to disk. Default true  
+        outdir:         [string] where to save the file. Default same folder as the source file
 
     Returns:  
         the KML file as a tuple  
@@ -68,12 +69,15 @@ def trackCsvtoKML(trackcsvfile, trackdata=None, saveOutput=True, outdir=None):
     else:
         for i,r in trackdata.iterrows():
             kml.newpoint(name='', coords=[(r[1], r[0], r[2])], extrude=1, altitudemode='absolute')
-    outname = trackcsvfile.replace('.csv','.kml')
+    if 'csv' in trackcsvfile:
+        outname = trackcsvfile.replace('.csv','.kml')
+    else:
+        outname = f'{trackcsvfile}.kml'
     if saveOutput:
-        if outdir is not None:
-            outdir = '.'
+        if outdir is None:
+            outdir, _ = os.path.split(trackcsvfile)
         os.makedirs(outdir, exist_ok=True)
-        outname = os.path.join(outdir. outname)
+        outname = os.path.join(outdir, outname)
         kml.save(outname)
     return kml
 

@@ -3,7 +3,6 @@
 # python script to get all live JPGs for a specified time
 #
 import os
-import sys
 import pandas as pd
 import requests
 
@@ -124,7 +123,3 @@ def _download(url, outdir, fname=None):
         for chunk in get_response.iter_content(chunk_size=4096):
             if chunk: # filter out keep-alive new chunks
                 f.write(chunk)
-
-
-if __name__ == '__main__':
-    getLiveJpgs(sys.argv[1])

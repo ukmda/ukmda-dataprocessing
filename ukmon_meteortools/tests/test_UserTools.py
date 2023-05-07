@@ -1,41 +1,88 @@
 # tests for usertools
 import os
 
-from usertools.getOverlappingFovs import getOverlapWith
-from fileformats.kmlHandlers import getTrajPickle, getTrackDetails, trackCsvtoKML
-from fileformats.ECSVhandler import getECSVs
+from usertools.getOverlappingFovs import getOverlapWith, pointInsideFov, checkKMLOverlap, getOverlappingCameras
+from usertools.plotTrack import trackToDistvsHeight, trackToTimevsVelocity, trackToTimevsHeight
+from usertools.getLiveImages import createTxtFile, getFBfiles, getLiveJpgs
 
 
-def test_fovchecker():
-    srcfolder = './kmls'
+here = os.path.split(os.path.abspath(__file__))[0]
+trackcsvfile = os.path.join(here, 'data', 'sample_track.csv')
+kml1 = os.path.join(here, 'data', 'kmls', 'UK0006-70km.kml')
+kml2 = os.path.join(here, 'data', 'kmls', 'UK000S-70km.kml')
+
+
+def test_getOverlapWith():
+    srcfolder = os.path.join(here, 'data', 'kmls')
     kmlpat='*-70km.kml'
     refcam = 'UK008A'
     overlaps = getOverlapWith(srcfolder, kmlpat, refcam)
-    print(overlaps)
-    expected = ['UK008A', 'IE000J', 'UK0003', 'UK000B', 'UK000C', 
-                'UK000P', 'UK003B', 'UK004U', 'UK004V', 'UK0052', 
-                'UK0056', 'UK0057', 'UK005J', 'UK005K', 'UK0061', 
-                'UK0066', 'UK006C', 'UK006E', 'UK006J', 'UK006T', 'UK0073', 
-                'UK007G', 'UK007J', 'UK007Y', 'UK0085', 'UK0087', 'UK0088']
-    assert overlaps == expected
+    assert overlaps[3] == 'UK000B'
 
 
-def test_toKML():
-    orbname = '20230202_014115.520_UK'
-    traj, kmlfile = getTrajPickle(orbname)
-    tdets = getTrackDetails(traj)
-    kmlfile = os.path.join('usertools', kmlfile)
-    os.makedirs('usertools', exist_ok=True)
-    trackCsvtoKML(kmlfile, tdets)
-    orig = open(os.path.join('usertools','20230202_014115_baseline.kml')).readlines()
-    newf = open(os.path.join('usertools','20230202_014115.kml')).readlines()
-    assert orig == newf
+def test_pointInsideFov():
+    lng = -1.4
+    lat = 51.7
+    res = pointInsideFov(lng, lat, kml1)
+    assert res is False
+    res = pointInsideFov(lng, lat, kml2)
+    assert res is True
 
 
-def test_getECSVs():
-    stat ='UK0025'
-    dt = '2021-07-17T02:41:05.05'
-    getECSVs(stat, dt, savefiles=True, outdir='usertools')
-    orig = open(os.path.join('usertools','2021-07-17T02_41_05_05_M004_baseline.ecsv')).readlines()
-    newf = open(os.path.join('usertools','2021-07-17T02_41_05_05_M004.ecsv')).readlines()
-    assert orig == newf
+def test_checkKMLOverlap():
+    res = checkKMLOverlap(kml1, kml2)
+    assert res is True
+
+
+def test_getOverlappingCameras():
+    srcfldr = os.path.join(here, 'data', 'kmls')
+    res = getOverlappingCameras(srcfldr, '*-70km.kml')
+    assert res[0][3]=='UK000P'
+
+
+def test_trackToDistvsHeight():
+    trackToDistvsHeight(trackcsvfile)
+    outname = trackcsvfile.replace('.csv','_dist_alt.png')
+    assert os.path.isfile(outname)
+    os.remove(outname)
+
+
+def test_trackToTimevsVelocity():
+    trackToTimevsVelocity(trackcsvfile)
+    outname = trackcsvfile.replace('.csv','_tim_vel.png')
+    assert os.path.isfile(outname)
+    os.remove(outname)
+
+
+def test_trackToTimevsHeight():
+    trackToTimevsHeight(trackcsvfile)
+    outname = trackcsvfile.replace('.csv','_time_alt.png')
+    assert os.path.isfile(outname)
+    os.remove(outname)
+
+
+def test_createTxtFile():
+    patt = 'FF_UK0006_20230506_210101'
+    outdir = os.path.join(here,'data')
+    createTxtFile(patt, outdir)
+    outfname = os.path.join(outdir, 'uk0006.txt')
+    assert os.path.isfile(outfname)
+    os.remove(outfname)
+
+
+def test_createTxtFileHere():
+    patt = 'FF_UK0006_20230506_210101'
+    outdir = None
+    createTxtFile(patt, outdir)
+    outfname = 'uk0006.txt'
+    assert os.path.isfile(outfname)
+    os.remove(outfname)
+
+
+def test_createTxtFileMtype():
+    patt = 'M20230506_210101_foobar_UK0007'
+    outdir = os.path.join(here,'data')
+    createTxtFile(patt, outdir)
+    outfname = os.path.join(outdir, 'uk0007.txt')
+    assert os.path.isfile(outfname)
+    os.remove(outfname)

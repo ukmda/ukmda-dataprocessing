@@ -87,11 +87,7 @@ def trajectoryKML(trajname, outdir=None):
         if outdir is None:
             outdir = '.'
             os.makedirs(outdir, exist_ok=True)
-        try:            
-            trackCsvtoKML(trajname, df, saveOutput=True, outdir=outdir)
-        except:
-            kml = trackCsvtoKML(trajname, df, saveOutput=False)
-            kml.save(outfname)
+        trackCsvtoKML(trajname, df, saveOutput=True, outdir=outdir)
         return outfname
     else:
         print('no match')

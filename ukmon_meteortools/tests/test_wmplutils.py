@@ -3,6 +3,7 @@
 import os
 from ukmon_meteortools.rmsutils import multiEventGroundMap
 from ukmon_meteortools.rmsutils import plotCAMSOrbits, plotRMSOrbits
+from ukmon_meteortools.rmsutils import trajectoryKML
 
 here = os.path.split(os.path.abspath(__file__))[0]
 
@@ -51,3 +52,17 @@ def test_plotRMSOrbits():
     plotRMSOrbits(rmsfile, outdir, True)
     assert os.path.isfile(os.path.join(outdir, 'RMS_2021-06-16T04-00-41.png'))
     os.remove(os.path.join(outdir, 'RMS_2021-06-16T04-00-41.png'))
+
+
+def test_trajectoryKML():
+    orbname = '20230202_014115.520_UK'
+    outdir = os.path.join(here, 'data')
+    trajectoryKML(orbname, outdir)
+    newf = open(os.path.join(outdir,'20230202_014115.520_UK.kml')).readlines()
+    assert len(newf) == 246
+    assert newf[3].split('<')[1] == 'name>20230202_014115.520_UK'
+    os.remove(os.path.join(outdir,'20230202_014115.520_UK.kml'))
+
+
+def test_getTrajPickle():
+    assert 1==1

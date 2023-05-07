@@ -132,6 +132,5 @@ def test_equatorialCoordPrecession():
 def test_annotateImage():
 def test_annotateImageArbitrary():
 def test_getTrackDetails():
-def test_getTrajPickle():
 def test_sendAnEmail():
 """

@@ -50,12 +50,25 @@ def test_loadUFOCapFormat():
     uc = UCXml(os.path.join(here, 'data', 'ucexample.xml'))
     sta, lid, sid, lat, lng, alt = uc.getStationDetails()
     assert sta == 'TACKLEY_TC'
+    nhits = uc.getHits()
+    assert nhits == 22
+    fno, ono, pixel, bmax, x, y = uc.getPathElement(1)
+    assert fno == '30'
 
 
 def test_loadUFOAnalyserFormat():
     ua = UAXml(os.path.join(here, 'data', 'uaexample.xml'))
     fps, cx, cy, isintl = ua.getCameraDetails()
     assert fps == 25.0
+    assert ua.getObjectCount() == 1
+    sec, av, pix, bmax, mag, fcount = ua.getObjectBasics(1)
+    assert abs(sec - 0.78) < 0.001
+    assert fcount == 40
+    assert abs(bmax - 213.0) < 0.1
+    assert abs(mag - (-2.66)) < 0.01
+    fno, ra, dec, mag, az, ev, lsum, b = ua.getObjectFrameDetails(1, 3)
+    assert fno == 61
+    assert b == 138
 
 
 def test_munchKML():
@@ -69,11 +82,6 @@ def test_trackCsvtoKML():
     kml = trackCsvtoKML(srcfile)
     assert 'sample_track' in kml.document.name 
     os.remove(os.path.join(here, 'data','sample_track.kml'))
-
-
-def test_getTrackDetails():
-    # getTrackDetails(traj)
-    assert 1==1
 
 
 def test_getECSvs():

@@ -1,6 +1,5 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 
-import sys
 import csv
 from matplotlib import pyplot as plt
 import numpy as np
@@ -112,9 +111,3 @@ def trackToTimevsHeight(trackcsvfile):
     outname = trackcsvfile.replace('.csv','_time_alt.png')
     plt.savefig(outname)
     plt.close()
-
-
-if __name__ == '__main__':
-    trackToTimevsHeight(sys.argv[1])
-    trackToDistvsHeight(sys.argv[1])
-    trackToTimevsVelocity(sys.argv[1])

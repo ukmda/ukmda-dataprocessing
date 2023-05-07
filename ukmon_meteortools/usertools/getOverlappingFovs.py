@@ -2,7 +2,6 @@
 # 
 #
 import os
-import sys
 import glob
 
 
@@ -101,10 +100,3 @@ def getOverlappingCameras(srcfolder, kmlpattern='*-25km.kml'):
                     currmatches.append(testcam[:6])
         matches.append(currmatches)
     return matches
-
-
-if __name__ == '__main__':
-    src = sys.argv[1]
-    targ = sys.argv[2]
-    matches = getOverlappingCameras(src, '*-25km.kml')
-    print(matches)

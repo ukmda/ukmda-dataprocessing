@@ -6,14 +6,15 @@
 """
 Examples showing how to use the APIs. 
 """
-
+import json
+import requests 
 import pandas as pd
 
 
 def matchApiCall(reqtyp, reqval):
     """get names of all matches for a given date"""
     apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
-    apicall = '{}?reqtyp={}&reqval={}'.format(apiurl, reqtyp, reqval)
+    apicall = f'{apiurl}?reqtyp={reqtyp}&reqval={reqval}'
     matchlist = pd.read_json(apicall, lines=True)
     return matchlist
 
@@ -27,14 +28,21 @@ def getMatchPickle(patt):
     """
     apiurl = 'https://api.ukmeteornetwork.co.uk/pickle/getpickle'
     apicall = f'{apiurl}?reqval={patt}'
-    matchpickle = pd.read_json(apicall, lines=True)
-    return matchpickle
+    res = requests.get(apicall, stream=True)
+    if res.status_code == 200:
+        data=b''
+        for chunk in res.iter_content(chunk_size=4096):
+            data = data + chunk
+        jsd = json.loads(data)  
+    else:
+        jsd = None  
+    return jsd
 
 
 def detailApiCall1(reqtyp, reqval):
     """ get details of one event """
     apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
-    apicall = '{}?reqtyp={}&reqval={}'.format(apiurl, reqtyp, reqval)
+    apicall = f'{apiurl}?reqtyp={reqtyp}&reqval={reqval}'
     evtdetail = pd.read_json(apicall, typ='series')
     return evtdetail
 
@@ -48,7 +56,7 @@ def detailApiCall2(reqtyp, matchlist):
     details = []
     for id in matchlist.head(5).orbname:
         reqval = id
-        apicall = '{}?reqtyp={}&reqval={}'.format(apiurl, reqtyp, reqval)
+        apicall = f'{apiurl}?reqtyp={reqtyp}&reqval={reqval}'
         details.append(pd.read_json(apicall, typ='series'))
     df = pd.DataFrame(details)
     df = df.sort_values(by=['_mag'])
@@ -80,18 +88,16 @@ def getFireballFiles(patt):
     return fbfiles
 
 
-if __name__ == '__main__':
-    # get all matched events for a given date
-    reqtyp = 'matches'
-    reqval = '20211121'
-    matchlist = matchApiCall(reqtyp, reqval)
-    print(matchlist)
-
-    reqtyp = 'detail'
-    reqval = '20211121_032219.699_UK'
-    evtlist = detailApiCall1(reqtyp, reqval)
-    print(evtlist)
-
-    reqtyp = 'detail'
-    evt = detailApiCall2(reqtyp, matchlist)
-    print(evt)
+def trajectoryAPI(trajname):
+    apiurl = 'https://api.ukmeteornetwork.co.uk/pickle/getpickle'
+    fmt = 'json'
+    apicall = f'{apiurl}?reqval={trajname}&format={fmt}'
+    res = requests.get(apicall, stream=True)
+    if res.status_code == 200:
+        data=b''
+        for chunk in res.iter_content(chunk_size=4096):
+            data = data + chunk
+        jsd = json.loads(data)  
+    else:
+        jsd = None  
+    return jsd
