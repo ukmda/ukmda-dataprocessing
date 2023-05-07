@@ -24,7 +24,7 @@ def getActiveShowers(targdate, retlist=False, inclMinor=False):
     """
     sl = iwsl.IMOshowerList()
     testdate = datetime.datetime.strptime(targdate, '%Y%m%d')
-    listofshowers=sl.getActiveShowers(testdate,True, inclMinor=inclMinor)
+    listofshowers=sl.getActiveShowers(testdate, True, inclMinor=inclMinor)
     if retlist is False:
         for shwr in listofshowers:
             print(shwr)

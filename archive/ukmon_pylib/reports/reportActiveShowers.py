@@ -176,7 +176,7 @@ def reportActiveShowers(ymd, thisshower=None, thismth=None, includeMinor=False):
 
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     pltdir=os.path.join(datadir, 'showerplots')
-    dtstr = ymd.strftime('%Y')
+    dtstr = ymd[:4]
     if thismth is not None:
         dtstr = dtstr + thismth
 
@@ -206,9 +206,7 @@ if __name__ == '__main__':
         help='include minor showers')
 
     cml_args = arg_parser.parse_args()
-    if cml_args.targdate is not None:
-        targdate = datetime.datetime.strptime(cml_args.targdate, '%Y%m%d')
-    else:
-        targdate = datetime.datetime.now()
+    if cml_args.targdate is None:
+        targdate = datetime.datetime.now().strftime('%Y%m%d')
 
     shwrs = reportActiveShowers(targdate, cml_args.shower, cml_args.thismonth, cml_args.includeminor)

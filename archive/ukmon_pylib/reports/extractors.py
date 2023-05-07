@@ -8,7 +8,6 @@ import sys
 import pandas as pd
 from ukmon_meteortools.fileformats import imoWorkingShowerList as imo
 from ukmon_meteortools.utils import getActiveShowers
-import datetime
 
 
 def createSplitMatchFile(yr, mth=None, shwr=None, matches=None):
@@ -141,7 +140,6 @@ def extractAllShowersData(ymd):
     print('getting shower data')
     yr = str(ymd)[:4]
     if int(ymd) > 9999:
-        ymd = datetime.datetime.strptime(ymd, '%Y%m%d')
         showerlist = getActiveShowers(ymd, retlist=True)
         showerlist.append('spo')
     else:
