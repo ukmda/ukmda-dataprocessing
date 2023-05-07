@@ -71,7 +71,7 @@ success=$(grep "Total run time:" $logf)
 
 if [ "$success" == "" ]
 then
-    python -m utils.sendAnEmail markmcintyre99@googlemail.com "problem with matching" "Error"
+    python -c "from ukmon_meteortools.utils import sendAnEmail ; sendAnEmail('markmcintyre99@googlemail.com','problem with matching','Error', mailfrom='ukmonhelper@ukmeteornetwork.co.uk')"
     echo problems with solver
 fi
 logger -s -t findAllMatches "RUNTIME $SECONDS Solving Run Done"

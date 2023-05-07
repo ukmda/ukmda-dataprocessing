@@ -18,7 +18,7 @@ cd $WMPL_LOC
 git checkout wmpl/share/streamfulldata.csv
 git checkout wmpl/share/ShowerLookUpTable.txt
 
-python -m utils.getShowerDates refresh
+python -c "from ukmon_meteortools.utils.getShowerDates import _refreshShowerData; _refreshShowerData()"
 
 logger -s -t getImoWSfile "finished"
 
