@@ -76,7 +76,7 @@ def _loadDataFile(typ, pth=None):
     return dfil
 
 
-def getShowerDets(shwr):
+def getShowerDets(shwr, stringFmt=False):
     """ Get details of a shower 
     
     Arguments:  
@@ -88,18 +88,22 @@ def getShowerDets(shwr):
     sfd = _loadFullData()
     sfdfltr = sfd[sfd[:,3] == shwr]
     mtch = [sh for sh in sfdfltr if sh[6] != '-2']
-    if len(mtch) == 0:
-        return 0, 'Unknown', 0, 'Unknown'
-
-    id = int(mtch[-1][1])
-    nam = mtch[-1][4].strip()
-    pksollong = float(mtch[-1][7])
-    dt = datetime.datetime.now()
-    yr = dt.year
-    mth = dt.month
-    jd = sollon2jd(yr, mth, pksollong)
-    pkdt = jd2Date(jd, dt_obj=True)
-    return id, nam, pksollong, pkdt.strftime('%m-%d')
+    if len(mtch) > 0:
+        id = int(mtch[-1][1])
+        nam = mtch[-1][4].strip()
+        pksollong = float(mtch[-1][7])
+        dt = datetime.datetime.now()
+        yr = dt.year
+        mth = dt.month
+        jd = sollon2jd(yr, mth, pksollong)
+        pkdt = jd2Date(jd, dt_obj=True)
+        dtstr = pkdt.strftime('%m-%d')
+    else:
+        id, nam, pksollong, dtstr = 0, 'Unknown', 0, 'Unknown'
+    if stringFmt:
+        return f"{pksollong},'{dtstr}','{nam}',{shwr}"
+    else:
+        return id, nam, pksollong, dtstr
 
 
 def getShowerPeak(shwr):
@@ -115,6 +119,7 @@ def getShowerPeak(shwr):
     return pk
 
  
+
 if __name__ == '__main__':
     if sys.argv[1] == 'refresh':
         _refreshShowerData()

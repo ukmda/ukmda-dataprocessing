@@ -51,7 +51,7 @@ python -m reports.createAnnualBarChart  $DATADIR/matched/matches-full-${yr}.parq
 popd
 
 # update index page
-numcams=$(python -c "from fileformats import CameraDetails as cd; print(len(cd.SiteInfo().getActiveCameras()))")
+numcams=$(python -c "from reports import CameraDetails as cd; print(len(cd.SiteInfo().getActiveCameras()))")
 cat $TEMPLATES/frontpage.html | sed "s/#NUMCAMS#/$numcams/g" > $DATADIR/newindex.html
 
 logger -s -t createSummaryTable "copying to website"

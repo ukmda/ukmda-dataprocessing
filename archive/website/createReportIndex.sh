@@ -58,7 +58,7 @@ if [ -f $curryr/tmp.txt ] ; then rm -f $curryr/tmp.txt ; fi
 
 aws s3 ls $WEBSITEBUCKET/reports/$curryr/ | egrep -v "ALL|orbits|stations|fireballs|showers|.js|.html" | awk '{print $2 }' | while read j
 do 
-    python -m utils.getShowerDates ${j:0:3} >> $curryr/tmp.txt
+    python -c "from ukmon_meteortools.utils import getShowerDets ; x=getShowerDets('${j:0:3}', True); print(x)" >> $curryr/tmp.txt
 done
 sort -n $curryr/tmp.txt > $curryr/shwrs.txt
 rm -f $curryr/tmp.txt

@@ -43,8 +43,7 @@ def getActiveShowersStr(targdatestr):
         nothing  
 
     """
-    targdate = datetime.datetime.strptime(targdatestr, '%Y%m%d')
-    shwrs = getActiveShowers(targdate, retlist=True)
+    shwrs = getActiveShowers(targdatestr, retlist=True)
     shwrs.append('spo')
     for s in shwrs:
         print(s)
