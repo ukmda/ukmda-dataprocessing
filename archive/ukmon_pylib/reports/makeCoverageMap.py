@@ -7,7 +7,7 @@ import os
 import gmplot
 import glob
 from cryptography.fernet import Fernet
-from ukmon_meteortools.fileformats import munchKML
+from ukmon_meteortools.fileformats import readCameraKML
 
 
 def decodeApiKey(enckey):
@@ -37,7 +37,7 @@ def makeCoverageMap(kmlsource, outdir, showMarker=False, useName=False):
     cols = list(gmplot.color._HTML_COLOR_CODES.keys())
 
     for col, fn in zip(cols,flist):
-        cn, lats, lngs = munchKML(os.path.join(kmlsource,fn))
+        cn, lats, lngs = readCameraKML(os.path.join(kmlsource,fn))
         #print(cn, fn)
         gmap.polygon(lats, lngs, color=col, edge_width=1)
         if showMarker is True:

@@ -24,7 +24,8 @@ from tkinter.ttk import Label, Style, LabelFrame, Scrollbar
 from PIL import Image as img
 from PIL import ImageTk
 
-from ukmon_meteortools.usertools import getLiveImages
+from ukmon_meteortools.ukmondb import getFBFiles, getLiveJpgs, createTxtFile
+
 
 config_file = ''
 noimg_file = ''
@@ -351,7 +352,7 @@ class fbCollector(Frame):
         if current_image == '':
             return 
         log.info(f'marking {current_image}')
-        srcfile = getLiveImages.createTxtFile(current_image, self.dir_path)
+        srcfile = createTxtFile(current_image, self.dir_path)
         _, targfile = os.path.split(srcfile)
         s3 = boto3.client('s3')
         s3.upload_file(srcfile, self.upload_bucket, f'{self.upload_folder}/{targfile}')
@@ -364,7 +365,7 @@ class fbCollector(Frame):
         self.patt = thispatt
         self.dir_path = os.path.join(self.fb_dir, thispatt)
         log.info(f'getting data matching {thispatt}')
-        getLiveImages.getLiveJpgs(thispatt, outdir=self.dir_path)
+        getLiveJpgs(thispatt, outdir=self.dir_path)
         self.update_listbox(self.get_bin_list())
 
     def getUKMData(self):
@@ -375,7 +376,7 @@ class fbCollector(Frame):
                 outdir = os.path.join(self.dir_path, camid.upper())
                 os.makedirs(outdir, exist_ok=True)
                 for li in open(txtf, 'r').readlines():
-                    getLiveImages.getFBFiles(li.strip(), outdir) 
+                    getFBFiles(li.strip(), outdir) 
         tkMessageBox.showinfo("Data Collected", 'data collected from UKMON')
         return 
     
