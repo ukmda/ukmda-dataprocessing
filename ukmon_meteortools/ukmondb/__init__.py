@@ -16,3 +16,4 @@ from .apiExampleCode import getMatchPickle, getLiveimageList, getFireballFiles
 from .getLiveImages import getLiveJpgs, getFBfiles, createTxtFile
 from .trajectoryKML import trajectoryKML
 from .trajPickle import getTrajPickle
+from .getDetections import getDetections

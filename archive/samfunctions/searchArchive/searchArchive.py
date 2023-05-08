@@ -34,7 +34,10 @@ def FindMatch(bucket, csvfile, d1, d2, op):
             if spl[:2] == 'l:':
                 expr = expr + "and loccam like  '%" + spl[2:] + "%' "
             if spl[:2] == 't:':
-                expr = expr + "and s.source =  '1Matched' "
+                if spl[2:] == 'S':
+                    expr = expr + "and s.source =  '2Single' "
+                else:
+                    expr = expr + "and s.source =  '1Matched' "
 
     print(expr)
     resp = s3.select_object_content(Bucket=bucket, Key=csvfile, ExpressionType='SQL',

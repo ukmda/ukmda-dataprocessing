@@ -40,45 +40,63 @@ def getFBfiles(patt):
             url = s3.generate_presigned_url(ClientMethod='get_object', Params={'Bucket': buck_name,'Key': key}, ExpiresIn=300)
             fname = key.split('/')[-1]
             flist.append({'filename': fname, 'url': url})
+
     # platepar file
-    if len(flist) > 0: 
-        camid = patt.split('_')[0]
-        print(f'looking for config and platepar for {camid}')
-        fullpatt = f'consolidated/platepars/{camid}'
-        x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
-        if x['KeyCount'] > 0:
-            for k in x['Contents']:
-                key = k['Key']
+    camid = patt.split('_')[0]
+    print(f'looking for config and platepar for {camid}')
+    fullpatt = f'consolidated/platepars/{camid}'
+    x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
+    if x['KeyCount'] > 0:
+        for k in x['Contents']:
+            key = k['Key']
+            url = s3.generate_presigned_url(ClientMethod='get_object', Params={'Bucket': buck_name,'Key': key}, ExpiresIn=300)
+            #fname = key.split('/')[-1] # hardcoding it here
+            flist.append({'filename': 'platepar_cmn2010.cal', 'url': url})
+
+    # config file, platepars_all and ftpdetect
+    dtstr = patt.split('_')[1]
+    gotcfg = False
+    fname = '.config'
+    fullpatt = f'matches/RMSCorrelate/{camid}/{camid}_{dtstr}'
+    x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
+    if x['KeyCount'] > 0:
+        for k in x['Contents']:
+            key = k['Key']
+            if '.config' in key:
                 url = s3.generate_presigned_url(ClientMethod='get_object', Params={'Bucket': buck_name,'Key': key}, ExpiresIn=300)
-                #fname = key.split('/')[-1] # hardcoding it here
-                flist.append({'filename': 'platepar_cmn2010.cal', 'url': url})
-        # config file
-        dtstr = patt.split('_')[1]
-        gotcfg = False
-        fname = '.config'
+                fname = key.split('/')[-1]
+                flist.append({'filename': fname, 'url': url})
+                gotcfg = True
+            if gotcfg and 'FTPdetectinfo' in key:
+                url = s3.generate_presigned_url(ClientMethod='get_object', Params={'Bucket': buck_name,'Key': key}, ExpiresIn=300)
+                fname = key.split('/')[-1]
+                flist.append({'filename': fname, 'url': url})
+            if gotcfg and 'platepars_all' in key:
+                url = s3.generate_presigned_url(ClientMethod='get_object', Params={'Bucket': buck_name,'Key': key}, ExpiresIn=300)
+                fname = key.split('/')[-1]
+                flist.append({'filename': fname, 'url': url})
+
+    if gotcfg is False:
+        dt = datetime.datetime.strptime(dtstr, '%Y%m%d')
+        dtstr = (dt +datetime.timedelta(days = -1)).strftime('%Y%m%d')
         fullpatt = f'matches/RMSCorrelate/{camid}/{camid}_{dtstr}'
         x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
         if x['KeyCount'] > 0:
             for k in x['Contents']:
                 key = k['Key']
-                if fname in key:
+                if 'config' in key:
                     url = s3.generate_presigned_url(ClientMethod='get_object', Params={'Bucket': buck_name,'Key': key}, ExpiresIn=300)
                     fname = key.split('/')[-1]
                     flist.append({'filename': fname, 'url': url})
                     gotcfg = True
-        if gotcfg is False:
-            dt = datetime.datetime.strptime(dtstr, '%Y%m%d')
-            dtstr = (dt +datetime.timedelta(days = -1)).strftime('%Y%m%d')
-            fullpatt = f'matches/RMSCorrelate/{camid}/{camid}_{dtstr}'
-            x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
-            if x['KeyCount'] > 0:
-                for k in x['Contents']:
-                    key = k['Key']
-                    if fname in key:
-                        url = s3.generate_presigned_url(ClientMethod='get_object', Params={'Bucket': buck_name,'Key': key}, ExpiresIn=300)
-                        fname = key.split('/')[-1]
-                        flist.append({'filename': fname, 'url': url})
-                        gotcfg = True
+                if gotcfg and 'FTPdetectinfo' in key:
+                    url = s3.generate_presigned_url(ClientMethod='get_object', Params={'Bucket': buck_name,'Key': key}, ExpiresIn=300)
+                    fname = key.split('/')[-1]
+                    flist.append({'filename': fname, 'url': url})
+                if gotcfg and 'platepars_all' in key:
+                    url = s3.generate_presigned_url(ClientMethod='get_object', Params={'Bucket': buck_name,'Key': key}, ExpiresIn=300)
+                    fname = key.split('/')[-1]
+                    flist.append({'filename': fname, 'url': url})
     return flist
 
 
