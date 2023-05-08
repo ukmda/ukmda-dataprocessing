@@ -118,5 +118,5 @@ else
         aws s3 cp $previdx  $WEBSITEBUCKET/reports/ --quiet
     fi 
 fi
-aws s3 sync ${DATADIR}/reports/$curryr/showers $WEBSITEBUCKET/reports/$curryr/showers
+aws s3 sync ${DATADIR}/reports/$curryr/showers $WEBSITEBUCKET/reports/$curryr/showers --quiet
 logger -s -t createReportIndex "finished"

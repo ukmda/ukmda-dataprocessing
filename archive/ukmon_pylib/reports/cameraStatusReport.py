@@ -33,7 +33,7 @@ def getLastUpdateDate():
 
     now = datetime.datetime.now()
     fldrlist['isactive'] = [camdets.checkCameraActive(f) for f in fldrlist.stationid]
-    fldrlist = fldrlist[fldrlist.isactive is True]
+    fldrlist = fldrlist[fldrlist.isactive]
     fldrlist.rundate.fillna(fldrlist.upddate.astype(str) + '_' + fldrlist.uploadtime.astype(str).str.pad(width=6,fillchar='0'), inplace=True)
     fldrlist['dtstamp'] = [datetime.datetime.strptime(f,'%Y%m%d_%H%M%S') for f in fldrlist.rundate]
     fldrlist = fldrlist.sort_values(by=['stationid','dtstamp'])
