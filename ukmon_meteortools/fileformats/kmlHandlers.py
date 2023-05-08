@@ -7,7 +7,7 @@ import pandas as pd
 import os
 
 
-def munchKML(kmlFilename, return_poly=False):
+def readCameraKML(kmlFilename, return_poly=False):
     """ Load a KML file and return either a list of lats and longs, or a Shapely polygon  
     
     Arguments:  
@@ -68,7 +68,7 @@ def trackCsvtoKML(trackcsvfile, trackdata=None, saveOutput=True, outdir=None):
             kml.newpoint(name='', coords=[(row[1], row[0], row[2])])
     else:
         for i,r in trackdata.iterrows():
-            kml.newpoint(name='', coords=[(r[1], r[0], r[2])], extrude=1, altitudemode='absolute')
+            kml.newpoint(name=f'{r[3]:.5f}', coords=[(r[1], r[0], r[2])], extrude=1, altitudemode='absolute')
     if 'csv' in trackcsvfile:
         outname = trackcsvfile.replace('.csv','.kml')
     else:
@@ -80,6 +80,46 @@ def trackCsvtoKML(trackcsvfile, trackdata=None, saveOutput=True, outdir=None):
         outname = os.path.join(outdir, outname)
         kml.save(outname)
     return kml
+
+
+def trackKMLtoCsv(kmlfile, kmldata = None, saveOutput=True, outdir=None):
+    """ convert a track KML retrieved by ukmondb.trajectoryKML to a 3 dimensional CSV file
+    containing coordinates of points on the trajectory.   
+    
+    Arguments:  
+        kmlfile     [string] full path to the KML file to read from.  
+        kmldata     [kml] the kml data if available.   
+        saveOutput  [bool] Default True, save the output to file.  
+        outdir      [string] where to save to if saveOutput is True.  
+
+    Note: if kmldata is supplied, then kmlfile is ignored.  
+        
+    Returns:  
+        a Pandas dataframe containing the lat, long, alt and time of each 
+        point on the trajectory, sorted by time. 
+
+        """
+    with open(kmlfile) as fd:
+        x = xmltodict.parse(fd.read())
+        placemarks=x['kml']['Document']['Placemark']
+        lats = []
+        lons = []
+        alts = [] 
+        tims = []
+        for pm in placemarks:
+            tims.append(float(pm['name']))
+            coords = pm['Point']['coordinates'].split(',')
+            lons.append(float(coords[0]))
+            lats.append(float(coords[1]))
+            alts.append(float(coords[2]))
+    df = pd.DataFrame({"lats": lats, "lons": lons, "alts": alts, "times": tims})
+    df = df.sort_values(by=['times', 'lats'])
+    if saveOutput:
+        if outdir is None:
+            outdir, fname = os.path.split(kmlfile)
+        outf = os.path.join(outdir, fname).replace('.kml', '.csv').replace('.KML','.csv')
+        df.to_csv(outf, index=False)
+    return df
 
 
 def getTrackDetails(traj):

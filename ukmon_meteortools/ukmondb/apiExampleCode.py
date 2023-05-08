@@ -12,7 +12,7 @@ import pandas as pd
 
 
 def matchApiCall(reqtyp, reqval):
-    """get names of all matches for a given date"""
+    """get names of all matches for a given date """
     apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
     apicall = f'{apiurl}?reqtyp={reqtyp}&reqval={reqval}'
     matchlist = pd.read_json(apicall, lines=True)
@@ -40,7 +40,7 @@ def getMatchPickle(patt):
 
 
 def detailApiCall1(reqtyp, reqval):
-    """ get details of one event """
+    """ get details of one matched event """
     apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
     apicall = f'{apiurl}?reqtyp={reqtyp}&reqval={reqval}'
     evtdetail = pd.read_json(apicall, typ='series')
@@ -49,7 +49,7 @@ def detailApiCall1(reqtyp, reqval):
 
 def detailApiCall2(reqtyp, matchlist):
     """
-    get details for the first five events in the match list 
+    get details for the events in the match list for a given date
     and put them in a pandas dataframe, then sort by brightest
     """
     apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
@@ -67,6 +67,9 @@ def getLiveimageList(dtstr):
     """ 
     Get a list of livestream images matching a pattern YYYYMMDD_HHMMSS.  
     The seconds and minutes parts are optional but huge amounts of data may get returned.  
+
+    Note that we only keep the last month of images and so this function won't return
+    anything for older dates. 
 
     Example pattern: '20230421_2122'
     """

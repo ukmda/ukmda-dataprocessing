@@ -1,7 +1,7 @@
 # test the RMS and WMPL utils in the library
 
 import os
-from ukmon_meteortools.rmsutils import multiDayRadiant, multiTrackStack #, analyseUFOwithRMS
+from rmsutils import multiDayRadiant, multiTrackStack #, analyseUFOwithRMS
 
 here = os.path.split(os.path.abspath(__file__))[0]
 

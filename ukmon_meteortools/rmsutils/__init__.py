@@ -4,7 +4,7 @@
 """
 The functions in this module require RMS and/or WMPL to be in the PythonPath.  
 
-Require RMS, and must be run from the source/RMS folder:  
+Require RMS:  
     multiDayRadiant  
     multiTrackStack  
     analyseUFOwithRMS  
@@ -13,7 +13,6 @@ Require WMPL:
     multiEventGroundMap  
     plotCAMSOrbits  
     plotRMSOrbits  
-    getTrajPickle  
 
 """
 
@@ -23,4 +22,3 @@ from .analyseUFOwithRMS import analyseUFOwithRMS
 from .multiEventGroundMap import multiEventGroundMap
 from .plotCAMSOrbits import plotCAMSOrbits
 from .plotRMSOrbits import plotRMSOrbits
-from .trajPickle import getTrajPickle, trajectoryKML

@@ -3,15 +3,32 @@
 #
 import os
 import glob
+import xmltodict
 
-
-from ukmon_meteortools.fileformats import munchKML
+from shapely.geometry import Polygon
 from shapely.geometry import Point
+
+
+def _munchKML(kmlFilename):
+    """ Private function to work around circular dependency 
+    """
+    with open(kmlFilename) as fd:
+        x = xmltodict.parse(fd.read())
+        cname = x['kml']['Folder']['name']
+        coords = x['kml']['Folder']['Placemark']['MultiGeometry']['Polygon']['outerBoundaryIs']['LinearRing']['coordinates']
+        coords = coords.split('\n')
+        ptsarr=[]
+        for lin in coords:
+            s = lin.split(',')
+            ptsarr.append((float(s[0]), float(s[1])))
+        polyg = Polygon(ptsarr)
+        return cname, polyg 
 
 
 def pointInsideFov(latDegs,lngDegs, kmlFilename):
     """
-    Test if a point is inside the field of view of a KML file  
+    Test if a point is inside the field of view of a KML file. Useful for testing which 
+    cameras might have seen an event at a known location.  
 
     Arguments:  
         latDegs:        [degrees] latitude of the point  
@@ -22,14 +39,15 @@ def pointInsideFov(latDegs,lngDegs, kmlFilename):
         True or False  
     """
 
-    c1, p1 = munchKML(kmlFilename, True)
+    c1, p1 = _munchKML(kmlFilename)
     pt = Point(latDegs, lngDegs)
     return p1.contains(pt)
 
 
 def checkKMLOverlap(kmfile1, kmfile2):
     """
-    Test if two KML files overlap  
+    Test if two KML files overlap. Useful for finding which other cameras 
+    might have seen an event seen by the first camera. 
 
     Arguments:  
         kmlfile1:       [str] full path to first KML file  
@@ -38,8 +56,8 @@ def checkKMLOverlap(kmfile1, kmfile2):
     Returns:  
         True or False
     """
-    _,p1 = munchKML(kmfile1, True)
-    _,p2 = munchKML(kmfile2, True)
+    _,p1 = _munchKML(kmfile1)
+    _,p2 = _munchKML(kmfile2)
     return p1.intersects(p2)
 
 
@@ -63,8 +81,6 @@ def getOverlapWith(srcfolder, kmlpattern='*-25km.kml', refcam='UK0006'):
     for testkml in kmllist:
         if testkml != refkml:
             testcam,_ = os.path.splitext(testkml)
-            #print(testkml)
-            #print('comparing to ', testcam)
             if checkKMLOverlap(os.path.join(srcfolder, refkml), os.path.join(srcfolder, testkml)) is True:
                 currmatches.append(testcam[:6])
     return currmatches
@@ -73,7 +89,7 @@ def getOverlapWith(srcfolder, kmlpattern='*-25km.kml', refcam='UK0006'):
 
 def getOverlappingCameras(srcfolder, kmlpattern='*-25km.kml'):
     """
-    Check for all overlaps in the folder at the pattern altitude  
+    Check for all overlaps in the folder at the pattern altitude. Returns a massive 2d array  
 
     Arguments:  
         srcfolder:  [str] path to folder containing KML files to test.   
@@ -91,11 +107,9 @@ def getOverlappingCameras(srcfolder, kmlpattern='*-25km.kml'):
         currmatches=[]
         refcam,_ = os.path.splitext(refkml)
         currmatches.append(refcam[:6])
-        #print('checking ', refcam)
         for testkml in kmllist2:
             if testkml != refkml:
                 testcam,_ = os.path.splitext(testkml)
-                #print('comparing to ', testcam)
                 if checkKMLOverlap(os.path.join(srcfolder, refkml), os.path.join(srcfolder, testkml)) is True:
                     currmatches.append(testcam[:6])
         matches.append(currmatches)

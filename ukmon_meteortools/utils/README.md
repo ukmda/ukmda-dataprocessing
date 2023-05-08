@@ -8,4 +8,8 @@ Utility functions used by many other scripts and processes
 * getShowerDates.py - get the dates of a named shower
 * VectorMaths.py - some simple vector maths
 * kmlHandlers - functions to read kml files
-* sendAnEmail.py - send an email via gmail. Reads credentials from ~/.ssh/gmailcreds.json and ~/.ssh/gmailtoken.json. 
+* sendAnEmail.py - send an email via gmail. Reads credentials from ~/.ssh/gmailcreds.json and ~/.ssh/gmailtoken.json.
+* plotTrack - plot various graphs from a CSV file of x,y,h,t
+* findNearDuplicates - searches a year's worth of data for possible duplicate trajectories
+* getOverlappingFovs - identifies overlapping cameras
+ 

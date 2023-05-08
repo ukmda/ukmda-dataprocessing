@@ -3,7 +3,8 @@
 import pandas as pd
 
 
-def findNearDuplicates():
+def _findNearDuplicates():
+    """ not yet implemented """
     cols=['_mjd','_localtime','_lat1','_lng1','_lat2','_lng2','numstats','stations']
     df = pd.read_parquet('matched/matches-full-2022.parquet.snap', columns=cols)
     df['l1diff']=df._lat1.diff()*60

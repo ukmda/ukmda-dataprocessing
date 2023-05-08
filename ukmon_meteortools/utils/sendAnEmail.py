@@ -1,6 +1,5 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 import os
-import sys
 import platform
 import base64
 from email.mime.text import MIMEText
@@ -89,10 +88,3 @@ def sendAnEmail(mailrecip, message, msgtype, mailfrom, files=None):
         print('Message Id: %s' % retval['id'])
     except:
         print('An error occurred sending the message')
-
-
-if __name__ == '__main__':
-    if len(sys.argv) < 4:
-        print('usage: sendAnEmail.py recipient "message in quotes" Alert|Warning|Error sender ')
-    else:
-        sendAnEmail(sys.argv[1], sys.argv[2], sys.argv[3],sys.argv[4])

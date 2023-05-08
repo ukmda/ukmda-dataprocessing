@@ -4,7 +4,6 @@
 
 from ukmon_meteortools.fileformats import imoWorkingShowerList as iwsl
 import datetime
-import argparse
 
 
 def getActiveShowers(targdate, retlist=False, inclMinor=False):
@@ -47,17 +46,3 @@ def getActiveShowersStr(targdatestr):
     shwrs.append('spo')
     for s in shwrs:
         print(s)
-
-
-if __name__ == '__main__':
-    arg_parser = argparse.ArgumentParser(description='get list of active showers',
-        formatter_class=argparse.RawTextHelpFormatter)
-    arg_parser.add_argument('-d', '--targdate', metavar='TARGDATE', type=str,
-        help='Date to run for (default is today)')
-    arg_parser.add_argument('-m', '--includeminor', action="store_true",
-        help='include minor showers')
-
-    cml_args = arg_parser.parse_args()
-    if cml_args.targdate is None:
-        targdate = datetime.datetime.now().strftime('%Y%m%d')
-    getActiveShowers(targdate, inclMinor=cml_args.includeminor)

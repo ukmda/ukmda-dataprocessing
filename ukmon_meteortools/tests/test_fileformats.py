@@ -2,8 +2,7 @@ from fileformats import filterFTPforSpecificTime
 from fileformats import IMOshowerList, majorlist, minorlist
 from fileformats import loadPlatepars
 from fileformats import UAXml, UCXml
-from fileformats import munchKML, trackCsvtoKML #, getTrackDetails
-from fileformats import getECSVs
+from fileformats import readCameraKML, trackCsvtoKML, trackKMLtoCsv #, getTrackDetails
 
 import shutil
 import filecmp
@@ -71,9 +70,9 @@ def test_loadUFOAnalyserFormat():
     assert b == 138
 
 
-def test_munchKML():
+def test_readCameraKML():
     kmlfile = os.path.join(here, 'data','UK0006-70km.kml')
-    kml = munchKML(kmlfile, True)
+    kml = readCameraKML(kmlfile, True)
     assert kml[0]=='UK0006'
 
 
@@ -84,6 +83,15 @@ def test_trackCsvtoKML():
     os.remove(os.path.join(here, 'data','sample_track.kml'))
 
 
-def test_getECSvs():
-    ecsv = getECSVs('UK0006','2023-05-02T00:25:59')
-    assert ecsv[0] == "# %ECSV 0.9"
+def test_trackKMLtoCsvSave():
+    srcfile = os.path.join(here, 'data','sample_track2.kml')
+    df = trackKMLtoCsv(srcfile)
+    assert abs(df['lats'][0] - 49.922338) < 0.0001
+    assert os.path.isfile(os.path.join(here, 'data','sample_track2.csv'))
+    os.remove(os.path.join(here, 'data','sample_track2.csv'))
+
+
+def test_trackKMLtoCsvNoSave():
+    srcfile = os.path.join(here, 'data','sample_track2.kml')
+    df = trackKMLtoCsv(srcfile, saveOutput=False)
+    assert abs(df['lats'][0] - 49.922338) < 0.0001

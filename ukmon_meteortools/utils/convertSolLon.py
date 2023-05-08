@@ -39,9 +39,3 @@ def sollon2jd(Year, Month, Long):
     JD1 = JDM0 + Dt
 
     return JD1
-
-
-if __name__ == '__main__':
-    print(sollon2jd(2021, 1, 140))
-    print(sollon2jd(2021, 8, 140))
-    print(sollon2jd(2021, 12, 140))
