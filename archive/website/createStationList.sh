@@ -25,7 +25,7 @@ echo "<select class=\"bootstrap-select\" id=\"statselect\">" >> $siteidx
 echo "<option value=\"1\" selected=\"selected\">All</option>" >> $siteidx
 
 python << EOD >/tmp/camlist.txt
-from fileformats import CameraDetails as cd
+from reports import CameraDetails as cd
 cinfo=cd.SiteInfo()
 ci=cinfo.getAllCamsStr()
 print(ci)
@@ -48,7 +48,7 @@ siteidx=$DATADIR/activestatopts.html
 echo "<option value=\"1\" selected=\"selected\">All</option>" > $siteidx
 
 python << EOD >/tmp/camlist.txt
-from fileformats import CameraDetails as cd
+from reports import CameraDetails as cd
 cinfo=cd.SiteInfo()
 ci=cinfo.getAllCamsStr(onlyActive=True)
 print(ci)
@@ -70,7 +70,7 @@ siteidx=$DATADIR/activestatlocs.html
 echo "<option value=\"1\" selected=\"selected\">All</option>" > $siteidx
 
 python << EOD >/tmp/loclist.txt
-from fileformats import CameraDetails as cd
+from reports import CameraDetails as cd
 cinfo=cd.SiteInfo()
 ci=cinfo.getAllLocsStr(onlyActive=True)
 print(ci)

@@ -24,7 +24,8 @@ from tkinter.ttk import Label, Style, LabelFrame, Scrollbar
 from PIL import Image as img
 from PIL import ImageTk
 
-from usertools import getLiveImages
+from ukmon_meteortools.ukmondb import getFBFiles, getLiveJpgs, createTxtFile
+
 
 config_file = ''
 noimg_file = ''
@@ -99,6 +100,7 @@ class ConstrainedEntry(StyledEntry):
             return False
 
         return True
+
 
 class fbCollector(Frame):
     def __init__(self, parent, patt=None):
@@ -212,7 +214,7 @@ class fbCollector(Frame):
         fileMenu = Menu(self.menuBar, tearoff=0)
         fileMenu.add_command(label="Load Folder", command=self.loadFolder)
         fileMenu.add_command(label="Delete Folder", command=self.delFolder)
-        if self.gmn_key != '' : 
+        if self.gmn_key != '': 
             fileMenu.add_command(label="Fetch from GMN", command=self.getGMNData)
         fileMenu.add_command(label="Fetch from UKMON", command=self.getUKMData)
         fileMenu.add_command(label="Exit", command=self.quitApplication)
@@ -350,7 +352,7 @@ class fbCollector(Frame):
         if current_image == '':
             return 
         log.info(f'marking {current_image}')
-        srcfile = getLiveImages.createTxtFile(current_image, self.dir_path)
+        srcfile = createTxtFile(current_image, self.dir_path)
         _, targfile = os.path.split(srcfile)
         s3 = boto3.client('s3')
         s3.upload_file(srcfile, self.upload_bucket, f'{self.upload_folder}/{targfile}')
@@ -363,7 +365,7 @@ class fbCollector(Frame):
         self.patt = thispatt
         self.dir_path = os.path.join(self.fb_dir, thispatt)
         log.info(f'getting data matching {thispatt}')
-        getLiveImages.getLiveJpgs(thispatt, outdir=self.dir_path, buck_name=self.live_bucket)
+        getLiveJpgs(thispatt, outdir=self.dir_path)
         self.update_listbox(self.get_bin_list())
 
     def getUKMData(self):
@@ -374,7 +376,7 @@ class fbCollector(Frame):
                 outdir = os.path.join(self.dir_path, camid.upper())
                 os.makedirs(outdir, exist_ok=True)
                 for li in open(txtf, 'r').readlines():
-                   getLiveImages.getFBFiles(li.strip(), outdir) 
+                    getFBFiles(li.strip(), outdir) 
         tkMessageBox.showinfo("Data Collected", 'data collected from UKMON')
         return 
     
@@ -396,7 +398,7 @@ class fbCollector(Frame):
         stationlist = ','.join(map(str, camids))
         server=self.gmn_server
         user=self.gmn_user
-        log.info(f'getting data from GMN')
+        log.info('getting data from GMN')
         k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(self.gmn_key))
         c = paramiko.SSHClient()
         log.info(f'trying {user}@{server} with {self.gmn_key}')
@@ -423,7 +425,7 @@ class fbCollector(Frame):
         dirs = os.listdir(os.path.join(self.dir_path, dtstr))
         for d in dirs:
             srcdir = os.path.join(self.dir_path, dtstr, d)
-            targ =  os.path.join(self.dir_path, d)
+            targ = os.path.join(self.dir_path, d)
             os.makedirs(targ, exist_ok=True)
             for f in os.listdir(srcdir):
                 shutil.copy(os.path.join(srcdir, f), targ)

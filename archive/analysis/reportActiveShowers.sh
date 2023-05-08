@@ -21,18 +21,22 @@ logger -s -t reportActiveShowers "starting"
 
 if [ $# -eq 0 ]; then
     yr=$(date +%Y)
+    rundt=$(date +%Y%m%d)
 else
     yr=$1
+    rundt=${1}$(date +%m%d)
 fi
 
 logger -s -t reportActiveShowers "report on active showers"
 python -m reports.reportActiveShowers -m
 
-python -m utils.getActiveShowers -m | while read shwr
+python -c "from ukmon_meteortools.utils import getActiveShowers; getActiveShowers('$rundt', inclMinor=True)" | while read shwr
 do 
-    aws s3 sync $DATADIR/reports/${yr}/$shwr $WEBSITEBUCKET/reports/${yr}/${shwr} --quiet --profile ukmonshared
+    aws s3 sync $DATADIR/reports/${yr}/$shwr $WEBSITEBUCKET/reports/${yr}/${shwr} --quiet 
 done
+logger -s -t reportActiveShowers "updating annual index"
+${SRC}/website/createReportIndex.sh ${yr}
 
 python -m analysis.summaryAnalysis ${yr}
-aws s3 sync $DATADIR/reports/${yr}/showers $WEBSITEBUCKET/reports/${yr}/showers --profile ukmonshared
+aws s3 sync $DATADIR/reports/${yr}/showers $WEBSITEBUCKET/reports/${yr}/showers --quiet
 logger -s -t reportActiveShowers "finished"

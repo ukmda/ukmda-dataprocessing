@@ -47,7 +47,7 @@ fi
 mkdir -p $SRC/logs > /dev/null 2>&1
 
 # trigger lambdas for any ftpdetects missed earlier
-python -c "from utils.rerunFailedLambdas import checkMissedFTPdetect ; checkMissedFTPdetect();"
+python -c "from maintenance.rerunFailedLambdas import checkMissedFTPdetect ; checkMissedFTPdetect();"
 
 logger -s -t findAllMatches "RUNTIME $SECONDS start getRMSSingleData"
 # this creates the parquet table for Athena
@@ -71,13 +71,13 @@ success=$(grep "Total run time:" $logf)
 
 if [ "$success" == "" ]
 then
-    python -m utils.sendAnEmail markmcintyre99@googlemail.com "problem with matching" "Error"
+    python -c "from ukmon_meteortools.utils import sendAnEmail ; sendAnEmail('markmcintyre99@googlemail.com','problem with matching','Error', mailfrom='ukmonhelper@ukmeteornetwork.co.uk')"
     echo problems with solver
 fi
 logger -s -t findAllMatches "RUNTIME $SECONDS Solving Run Done"
 
 logger -s -t findAllMatches "RUNTIME $SECONDS start rerunFailedLambdas"
-python -m utils.rerunFailedLambdas
+python -m maintenance.rerunFailedLambdas
 
 cd $here
 logger -s -t findAllMatches "RUNTIME $SECONDS start reportOfLatestMatches"
@@ -88,7 +88,7 @@ dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
 trajlist=$(cat $dailyrep | awk -F, '{print $2}')
 
 matchlog=$( ls -1 ${SRC}/logs/matches-*.log | tail -1)
-vals=$(python -m utils.getMatchStats $matchlog )
+vals=$(python -m metrics.getMatchStats $matchlog )
 evts=$(echo $vals | awk '{print $2}')
 trajs=$(echo $vals | awk '{print $6}')
 matches=$(wc -l $dailyrep | awk '{print $1}')

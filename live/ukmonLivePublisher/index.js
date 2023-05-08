@@ -80,6 +80,7 @@ exports.handler = (event, context, callback) => {
                     station_name: itemData.station_name,
                     year: moment.unix(itemData.timestamp.substr(0,10)).format('YYYY'),
                     month: moment.unix(itemData.timestamp.substr(0,10)).format('MM'),
+                    expiry_date: (itemData.timestamp/1000 + 90*86400),
                 }
             };
 

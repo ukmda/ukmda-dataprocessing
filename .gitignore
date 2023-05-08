@@ -539,9 +539,9 @@ archive/costs/**/*.json
 archive/costs/plots/*.png
 archive/samfunctions/.aws-sam/build.toml
 archive/costs/S3-size-empireelements.xlsx
-ukmon_pylib/share/maps/BM*.jpg
-ukmon_pylib/share/maps/BM*.png
-ukmon_pylib/share/maps/pop*.jpg
+archive/ukmon_pylib/share/maps/BM*.jpg
+archive/ukmon_pylib/share/maps/BM*.png
+archive/ukmon_pylib/share/maps/pop*.jpg
 archive/unused/**
 **/build.toml
 **/.terraform.lock.hcl

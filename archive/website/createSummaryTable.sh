@@ -35,15 +35,15 @@ logger -s -t createSummaryTable "create a coverage map from the kmls"
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/geos/lib:/usr/local/proj4/lib
 export LD_LIBRARY_PATH
 mkdir -p $DATADIR/kmls
-aws s3 sync $WEBSITEBUCKET/img/kmls/ $DATADIR/kmls --quiet --profile ukmonshared
+aws s3 sync s3://ukmeteornetworkarchive/img/kmls/ $DATADIR/kmls --quiet 
 export KMLTEMPLATE="*25km.kml"
-python -m utils.makeCoverageMap $DATADIR/kmls $DATADIR
+python -m reports.makeCoverageMap $DATADIR/kmls $DATADIR
 export KMLTEMPLATE="*70km.kml"
-python -m utils.makeCoverageMap $DATADIR/kmls $DATADIR
+python -m reports.makeCoverageMap $DATADIR/kmls $DATADIR
 export KMLTEMPLATE="*100km.kml"
-python -m utils.makeCoverageMap $DATADIR/kmls $DATADIR
+python -m reports.makeCoverageMap $DATADIR/kmls $DATADIR
 
-python -c "from utils.makeCoverageMap import createCoveragePage as ccp ; ccp() ;"
+python -c "from reports.makeCoverageMap import createCoveragePage as ccp ; ccp() ;"
 
 logger -s -t createSummaryTable "create year-to-date barchart"
 pushd $DATADIR
@@ -51,7 +51,7 @@ python -m reports.createAnnualBarChart  $DATADIR/matched/matches-full-${yr}.parq
 popd
 
 # update index page
-numcams=$(python -c "from fileformats import CameraDetails as cd; print(len(cd.SiteInfo().getActiveCameras()))")
+numcams=$(python -c "from reports import CameraDetails as cd; print(len(cd.SiteInfo().getActiveCameras()))")
 cat $TEMPLATES/frontpage.html | sed "s/#NUMCAMS#/$numcams/g" > $DATADIR/newindex.html
 
 logger -s -t createSummaryTable "copying to website"

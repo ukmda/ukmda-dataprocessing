@@ -81,7 +81,6 @@ class infoDialog(simpledialog.Dialog):
         self.data[0] = ''
         self.destroy()
 
-
     def buttonbox(self):
         self.ok_button = tk.Button(self, text='OK', width=5, command=self.ok_pressed)
         self.ok_button.pack(side="left")
@@ -167,8 +166,8 @@ class demo(Frame):
         camMenu.add_separator()
         camMenu.add_command(label = "Remove Location", command = self.delOperator)
         camMenu.add_separator()
-        camMenu.add_command(label = "Update SSH Key", command = self.newSSHkey)
-        camMenu.add_command(label = "Update AWS Key", command = self.newAWSkey)
+        camMenu.add_command(label = "Update SSH Key", command = self.newSSHKey)
+        camMenu.add_command(label = "Update AWS Key", command = self.newAWSKey)
 
         ownMenu = Menu(self.menuBar, tearoff=0)
         ownMenu.add_command(label = "View Owner Data", command = self.viewOwnerData)
@@ -396,7 +395,6 @@ class demo(Frame):
         answer = infoDialog(self, title, curdata[0], user, email, sshkey, id)
         if answer.data[0].strip() != '': 
             d = answer.data
-            rmsid = str(d[0]).upper()
             location = str(d[1]).capitalize()
             direction = str(d[2])
             cameraname = d[1].lower() + '_' + d[2].lower()
@@ -407,6 +405,31 @@ class demo(Frame):
         return 
 
     def newAWSKey(self):
+        cursel = self.sheet.get_selected_cells()
+        cr = list(cursel)[0][0]
+        curdata = self.data[cr]
+        location = curdata[0]
+        keyf = os.path.join('jsonkeys', location + '.key')
+        oldkeyf = os.path.join('jsonkeys', location + '-prev.key')
+        csvf = os.path.join('csvkeys', location + '.csv')
+        shutil.copyfile(keyf, oldkeyf)
+        currkey = json.load(open(keyf, 'r'))
+        keyid = currkey['AccessKey']['AccessKeyId']
+        print(location, keyid)
+        affectedcamlist = self.caminfo[self.caminfo.site == location]
+        for _, cam in affectedcamlist.iterrows():
+            print(cam.site.lower(), cam.sid.lower())
+        return 
+
+        iamc = boto3.client('iam')
+        iamc.update_access_key(UserName=location, AccessKeyId=keyid, Status='Inactive')
+        key = iamc.create_access_key(UserName=location)
+        with open(keyf, 'w') as outf:
+            outf.write(json.dumps(key, indent=4, sort_keys=True, default=str))
+        with open(csvf,'w') as outf:
+            outf.write('Access key ID,Secret access key\n')
+            outf.write('{},{}\n'.format(key['AccessKey']['AccessKeyId'], key['AccessKey']['SecretAccessKey']))
+
         return 
 
     def addNewOwner(self, rmsid, location, user, email):
@@ -450,6 +473,52 @@ class demo(Frame):
             _ = iamc.attach_user_policy(UserName=location, PolicyArn=policyarn)
             _ = iamc.add_user_to_group(UserName=location, GroupName=group)
         return 
+
+
+    def updateKeyfile(self, location):
+        server='ukmonhelper'
+        user='ec2-user'
+        keyf = os.path.join('jsonkeys', location + '.key')
+        currkey = json.load(open(keyf, 'r'))
+        keyid = currkey['AccessKey']['AccessKeyId']
+        secid = currkey['AccessKey']['SecretAccessKey']
+        affectedcamlist = self.caminfo[self.caminfo.site == location]
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser('~/.ssh/ukmonhelper'))
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = user, pkey = k)
+        scpcli = SCPClient(c.get_transport())
+        # push the raw keyfile
+        scpcli.put(keyf, 'keymgmt/rawkeys/live/')
+
+        for _, cam in affectedcamlist.iterrows():
+            cameraname = cam.site.lower() + '_' + cam.site.lower()
+            # get live.key for the camera
+            livef=f'/var/sftp/{cameraname}/live.key'
+            localf = f'./keys/{location.lower()}.key'
+            scpcli.get(livef, localf)
+            # replace the key and secret
+            lis = open(localf, 'r').readlines()
+            newlis=[]            
+            for li in lis:
+                if 'AWS_ACCESS_KEY_ID' in li:
+                    newlis.append(f'export AWS_ACCESS_KEY_ID={keyid}\n')
+                if 'AWS_SECRET_ACCESS_KEY' in li:
+                    newlis.append(f'export AWS_SECRET_ACCESS_KEY={secid}\n')
+                else:
+                    newlis.append(li)
+            with open(localf, 'w') as outf:
+                for li in newlis:
+                    outf.write(li)
+            # reupload it to the central loc
+            scpcli.put(localf, 'keymgmt/live/')
+            command = f'sudo cp keymgmt/live/{location.lower()}.key /var/sftp/{cameraname}/'
+            print(f'running {command}')
+            _, stdout, stderr = c.exec_command(command, timeout=10)
+            for line in iter(stdout.readline, ""):
+                print(line, end="")
+            for line in iter(stderr.readline, ""):
+                print(line, end="")
 
 
     def addNewUnixUser(self, location, direction, oldcamname='', updatemode=0):

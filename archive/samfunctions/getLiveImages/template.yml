@@ -1,0 +1,24 @@
+# SAM build file for searchArchive
+# Copyright (C) 2018-2023 Mark McIntyre
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Resources:
+  getLiveImages:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: getLiveImages.lambda_handler
+      Runtime: python3.8
+      FunctionName: getLiveImages
+      Description: API backend that retrieves a list of livestream images matching a pattern
+      Timeout: 30
+      Policies: AmazonDynamoDBReadOnlyAccess
+      Events:
+        HttpGet:
+          Type: Api
+          Properties:
+            Path: '/getlive'
+            Method: get
+      Tags:
+        billingtag: "ukmon"
+    Metadata:
+      BuildMethod: python3.8

@@ -15,7 +15,8 @@ mth=$(date +%Y%m)
 yr=$(date +%Y)
 echo $rundate > $DATADIR/rundate.txt
 
-python -c "from fileformats.CameraDetails import updateCamLocDirFovDB; updateCamLocDirFovDB();"
+mkdir -p $DATADIR/admin
+python -c "from reports.CameraDetails import updateCamLocDirFovDB; updateCamLocDirFovDB();"
 aws s3 cp $DATADIR/admin/cameraLocs.json $UKMONSHAREDBUCKET/admin/ --region eu-west-2
 
 # run this only once as it scoops up all unprocessed data
@@ -91,7 +92,7 @@ aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogin
 
 cd $DATADIR
 # do this manually when on PC required; closes #61
-#python $PYLIB/utils/plotStationsOnMap.py $DATADIR/consolidated/camera-details.csv
+#python $PYLIB/maintenance/plotStationsOnMap.py False
 aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/ --region eu-west-2 --quiet
 
 rm -f $SRC/data/.nightly_running
@@ -103,7 +104,7 @@ logger -s -t nightlyJob "RUNTIME $SECONDS start costReport"
 $SRC/website/costReport.sh
 
 # set time of next run
-python $PYLIB/utils/getNextBatchStart.py 150
+python $PYLIB/maintenance/getNextBatchStart.py 150
 
 # create station reports. This takes hours hence done after everything else
 #if [ "$(date +%a)" == "Sun" ] ; then 

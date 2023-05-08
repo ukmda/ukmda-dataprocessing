@@ -56,9 +56,9 @@ echo "cell.innerHTML = \"<a href="$prefix/$curryr/showers/index.html">Shower Sta
 
 if [ -f $curryr/tmp.txt ] ; then rm -f $curryr/tmp.txt ; fi
 
-aws s3 ls $WEBSITEBUCKET/reports/$curryr/ | egrep -v "ALL|orbits|stations|fireballs|showers|.js|.html" | awk '{print $2 }' | while read j
+aws s3 ls s3://ukmeteornetworkarchive/reports/$curryr/ | egrep -v "ALL|orbits|stations|fireballs|showers|.js|.html" | awk '{print $2 }' | while read j
 do 
-    python -m utils.getShowerDates ${j:0:3} >> $curryr/tmp.txt
+    python -c "from ukmon_meteortools.utils import getShowerDets ; x=getShowerDets('${j:0:3}', True); print(x)" >> $curryr/tmp.txt
 done
 sort -n $curryr/tmp.txt > $curryr/shwrs.txt
 rm -f $curryr/tmp.txt
@@ -105,6 +105,8 @@ if [ "$prefix" == "." ] ; then
     aws s3 cp $SRC/website/templates/reportindex.html $WEBSITEBUCKET/reports/index.html --quiet
     aws s3 cp $repidx  $WEBSITEBUCKET/reports/ --quiet
     aws s3 cp $previdx  $WEBSITEBUCKET/reports/ --quiet
+    cp $repidx $DATADIR/reports/${yr}/
+    cp $previdx $DATADIR/reports/${yr}/
 else
     aws s3 cp $SRC/website/templates/reportindex.html $WEBSITEBUCKET/reports/$curryr/index.html --quiet
     aws s3 cp $repidx  $WEBSITEBUCKET/reports/$curryr/ --quiet
@@ -116,5 +118,5 @@ else
         aws s3 cp $previdx  $WEBSITEBUCKET/reports/ --quiet
     fi 
 fi
-aws s3 sync ${DATADIR}/reports/$curryr/showers $WEBSITEBUCKET/reports/$curryr/showers
+aws s3 sync ${DATADIR}/reports/$curryr/showers $WEBSITEBUCKET/reports/$curryr/showers --quiet
 logger -s -t createReportIndex "finished"

@@ -1,0 +1,5 @@
+# requirements for machine learning training
+scikit-learn
+pandas
+keras
+tensorflow
