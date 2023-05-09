@@ -10,7 +10,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 pip install pytest pytest-cov
 
 if [ $# == 0 ] ; then
-    pytest -v $here/ukmon_meteortools/tests --cov=. --cov-report=term-missing
+    pytest -v . --cov=. --cov-report=term-missing
 else
-    pytest -v $here/ukmon_meteortools/tests/test_$1.py --cov=$1 --cov-report=term-missing
+    pytest -v ./test_$1.py --cov=$1 --cov-report=term-missing
 fi
