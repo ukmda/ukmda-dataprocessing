@@ -1,0 +1,14 @@
+name: automated_testing
+
+on:
+  push:
+    branches:
+      - markmac99
+
+jobs:
+  # Build the documentation and upload the static HTML files as an artifact.
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: ls .
