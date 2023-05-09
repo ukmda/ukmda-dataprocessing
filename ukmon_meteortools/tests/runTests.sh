@@ -7,6 +7,8 @@ export PYTHONPATH=$WMPL_LOC:$RMS_LOC:.:..
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
+pip install pytest pytest-cov
+
 if [ $# == 0 ] ; then
     pytest -v $here/ukmon_meteortools/tests --cov=. --cov-report=term-missing
 else
