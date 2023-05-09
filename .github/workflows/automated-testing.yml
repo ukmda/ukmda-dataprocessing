@@ -11,4 +11,5 @@ jobs:
     runs-on: [self-hosted, ukmonhelper]
     steps:
       - uses: actions/checkout@v3
-      - run: ls .
+      - run: chmod +x ./ukmon_meteortools/tests/*.sh
+      - run: ./ukmon_meteortools/tests/runTests.sh 
