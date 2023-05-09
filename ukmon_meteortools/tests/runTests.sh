@@ -9,8 +9,9 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 pip install pytest pytest-cov
 
+cd $here/..
 if [ $# == 0 ] ; then
-    pytest -v . --cov=. --cov-report=term-missing
+    pytest -v ./tests --cov=. --cov-report=term-missing
 else
-    pytest -v ./test_$1.py --cov=$1 --cov-report=term-missing
+    pytest -v ./tests/test_$1.py --cov=$1 --cov-report=term-missing
 fi
