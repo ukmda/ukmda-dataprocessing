@@ -65,11 +65,12 @@ def detailApiCall2(reqtyp, matchlist):
 
 def getLiveimageList(dtstr):
     """ 
-    Get a list of livestream images matching a pattern YYYYMMDD_HHMMSS.  
+    Get a list URLs of livestream images matching a pattern YYYYMMDD_HHMMSS.  
     The seconds and minutes parts are optional but huge amounts of data may get returned.  
 
     Note that we only keep the last month of images and so this function won't return
     anything for older dates. 
+    Note also that the URLs are presigned and valid only for five minutes.  
 
     Example pattern: '20230421_2122'
     """
@@ -80,8 +81,9 @@ def getLiveimageList(dtstr):
 
 def getFireballFiles(patt):
     """ 
-    Get a zip file containing the fireball data matching a pattern of the form UKxxxx_YYYYMMDD_HHMMSS
-    Nothing will be returned if there is no fireball data available. 
+    Get a list of URLs for the fireball data matching a pattern of the form UKxxxx_YYYYMMDD_HHMMSS
+    Nothing will be returned if there is no fireball data available. The URLs are presigned and valid
+    for five minutes. 
 
     Example pattern: 'UK0006_20230421_2122'
 
@@ -92,6 +94,12 @@ def getFireballFiles(patt):
 
 
 def trajectoryAPI(trajname):
+    """
+    Returns a JSON object containing a WMPL trajectory object for a matched event.  
+
+    Arguments:  
+        trajname:   [string] trajectory name eg "20230502_025228.374_UK_BE"
+    """
     apiurl = 'https://api.ukmeteornetwork.co.uk/pickle/getpickle'
     fmt = 'json'
     apicall = f'{apiurl}?reqval={trajname}&format={fmt}'

@@ -27,12 +27,11 @@ if __name__ == '__main__':
     outpth = f'./{sys.argv[1]}'
     os.makedirs(outpth, exist_ok=True)
     idlist = getDetections(sys.argv[1])
-    if idlist: 
+    if not isinstance(idlist, bool):
         getRawData(idlist, outpth)
         ids = list(idlist.ID)
         with open(os.path.join(outpth, 'ids.txt'), 'w') as outf:
             outf.writelines(line + '\n' for line in ids)
-
         print(ids)
     else:
         print('no matches')

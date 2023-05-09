@@ -175,21 +175,3 @@ class UCXml:
         uc = self.ucxml['ufocapture_record']['ufocapture_paths']
         pth = uc['uc_path'][fno]
         return pth['@fno'], pth['@ono'], pth['@pixel'], pth['@bmax'], pth['@x'], pth['@y']
-
-
-if __name__ == '__main__':
-    dd = UCXml('test_data/M20200427_201548_TACKLEY_NE.XML')
-
-    y, m, d = dd.getDateYMD()
-    h, mi, s = dd.getTimeHMS()
-    print('date and time', y, m, d, h, mi, s)
-
-    station, lid, sid, lat, lng, alti = dd.getStationDetails()
-    fps, cx, cy = dd.getCameraDetails()
-    print('location', station, lat, lng, alti)
-    print('camera', fps, cx, cy)
-
-    nhits = dd.getHits()
-    for i in range(nhits):
-        fno, ono, pixel, bmax, x, y = dd.getPathElement(i)
-        print(fno, pixel, bmax, x, y)
