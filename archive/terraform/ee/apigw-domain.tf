@@ -1,3 +1,5 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+
 # domain name to be used by APIs 
 resource "aws_api_gateway_domain_name" "apigwdomain" {
   regional_certificate_arn = aws_acm_certificate_validation.apicert.certificate_arn
@@ -47,6 +49,11 @@ data "aws_api_gateway_rest_api" "fbdataapi" {
   provider                 = aws.eu-west-1-prov
 }
 
+data "aws_api_gateway_rest_api" "searchapi" {
+  name = "searchArchive"
+  provider                 = aws.eu-west-1-prov
+}
+
 resource "aws_api_gateway_base_path_mapping" "ecsvapi" {
   api_id      = data.aws_api_gateway_rest_api.fetchECSVapi.id
   stage_name  = "Prod"
@@ -76,5 +83,13 @@ resource "aws_api_gateway_base_path_mapping" "fbdataapi" {
   stage_name  = "Prod"
   domain_name = aws_api_gateway_domain_name.apigwdomain.domain_name
   base_path = "fireballs"
+  provider                 = aws.eu-west-1-prov
+}
+
+resource "aws_api_gateway_base_path_mapping" "searchapi" {
+  api_id      = data.aws_api_gateway_rest_api.searchapi.id
+  stage_name  = "Prod"
+  domain_name = aws_api_gateway_domain_name.apigwdomain.domain_name
+  base_path = "detections"
   provider                 = aws.eu-west-1-prov
 }

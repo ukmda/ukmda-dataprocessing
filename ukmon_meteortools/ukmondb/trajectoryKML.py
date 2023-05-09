@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 import numpy as np
 import requests
 import json

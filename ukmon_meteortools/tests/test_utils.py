@@ -2,6 +2,7 @@
 import datetime
 import numpy as np
 import os
+import shutil
 
 from utils import getOverlapWith, pointInsideFov, checkKMLOverlap, getOverlappingCameras
 from utils import trackToDistvsHeight, trackToTimevsVelocity, trackToTimevsHeight
@@ -9,11 +10,11 @@ from utils import trackToDistvsHeight, trackToTimevsVelocity, trackToTimevsHeigh
 from utils import jd2Date, date2JD, datetime2JD, jd2DynamicalTimeJD, jd2LST, sollon2jd, \
     greatCircleDistance, angleBetweenSphericalCoords, calcApparentSiderealEarthRotation, \
     raDec2AltAz, altAz2RADec, \
-    getActiveShowers, getShowerDets, getShowerPeak, \
-    drawFTPFile
-# getActiveShowersStr, sendAnEmail, \
-# calcNutationComponents, equatorialCoordPrecession,  getTrackDetails, getTrajPickle, \
-# annotateImage, annotateImageArbitrary
+    getActiveShowers, getShowerDets, getShowerPeak, getActiveShowersStr, \
+    drawFTPFile, equatorialCoordPrecession, \
+    annotateImage, annotateImageArbitrary, sendAnEmail
+from utils.getShowerDates import _loadLookupTable
+
 
 here = os.path.split(os.path.abspath(__file__))[0]
 trackcsvfile = os.path.join(here, 'data', 'sample_track.csv')
@@ -24,6 +25,17 @@ kml2 = os.path.join(here, 'data', 'kmls', 'UK000S-70km.kml')
 def test_jd2Date():
     dt = jd2Date(2460063.0077546295, dt_obj=True)
     assert (dt - datetime.datetime(2023, 4, 28, 12, 11, 9, microsecond=999987)).total_seconds() < 0.001
+
+
+def test_jd2DateNotObj():
+    dt = jd2Date(2460063.0077546295, dt_obj=False)
+    assert dt == (2023,4,28,12,11,9, 999.987)
+
+
+def test_jd2DateBad():
+    dt = jd2Date(-1, dt_obj=True)
+    print(dt)
+    assert dt == datetime.datetime(1,1,1,0,0,0)
 
 
 def test_date2JD():
@@ -50,6 +62,11 @@ def test_jd2LST():
 def test_sollon2jd():
     jd = sollon2jd(2020, 4, 32.0) # sol lon of lyrids
     assert abs(jd - 2458961.4503479283) < 0.0000001
+
+
+def test_sollon2jdBad():
+    jd = sollon2jd(100, 4, 32.0) # sol lon of lyrids
+    assert abs(jd - 1757669.2195869812) < 0.0000001
 
 
 def test_greatCircleDistance():
@@ -105,14 +122,29 @@ def test_getActiveShowers():
     assert sl == ['LYR', 'ETA']
 
 
+def test_getActiveShowersNoRet():
+    sl = getActiveShowers('20230423',False)
+    assert sl is None
+
+
 def test_getQuietActiveShowers():
     sl = getActiveShowers('20230223',True)
     assert sl == []
 
 
+def test_getQuietActiveShowersStr():
+    sl = getActiveShowersStr('20230223')
+    assert sl is None
+
+
 def test_getShowerDets():
     sl = getShowerDets('LYR')
     assert sl == (6, 'April Lyrids', 32.0, '04-22')
+
+
+def test_getShowerDetsStr():
+    sl = getShowerDets('LYR', stringFmt=True)
+    assert sl == '32.0,04-22,April Lyrids,LYR'
 
 
 def test_getNonExistentShowerDets():
@@ -131,14 +163,27 @@ def test_calcNutationComponents():
 
 
 def test_equatorialCoordPrecession():
-    # not tested
-    assert 1 == 1
+    d1 = date2JD(2023,4,1,0,0,0)
+    d2 = date2JD(2025,4,1,0,0,0)
+    ra = np.radians(52)
+    dec = np.radians(20)
+    ra1, dec1 = equatorialCoordPrecession(d1,d2,ra,dec)
+    assert abs(np.degrees(ra1) - 52.028842) < 0.00001
+    assert abs(np.degrees(dec1) - 20.006857) < 0.00001
 
 
 def test_drawFTPFile():
     ftpfile = os.path.join(here, 'data', 'FTPdetectinfo_UK006S_20230112_170327_316507.txt.orig')
     cfgfile = os.path.join(here, 'data', '.config')
     drawFTPFile(ftpfile, cfgfile)
+    outf = os.path.join(here, 'data', 'UK006S_20230112_170327_170327_ftpmap.png')
+    assert os.path.isfile(outf)
+    os.remove(outf)
+
+
+def test_drawFTPFileNocfg():
+    ftpfile = os.path.join(here, 'data', 'FTPdetectinfo_UK006S_20230112_170327_316507.txt.orig')
+    drawFTPFile(ftpfile, None)
     outf = os.path.join(here, 'data', 'UK006S_20230112_170327_170327_ftpmap.png')
     assert os.path.isfile(outf)
     os.remove(outf)
@@ -193,8 +238,50 @@ def test_trackToTimevsHeight():
     os.remove(outname)
 
 
-"""
+def test_loadLookupTable():
+    ret = _loadLookupTable()
+    assert ret is not None
+
+
+# not testable 
+#def test_refreshShowerData():
+#    ret = _refreshShowerData()
+#    assert 1==1
+
 def test_annotateImage():
+    origfile = os.path.join(here, 'data', 'sample_orig.jpg')
+    imgfile = os.path.join(here, 'data', 'sample.jpg')
+    shutil.copyfile(origfile, imgfile)
+    annotateImage(imgfile, 'test', 12, '20230401')
+    assert os.path.isfile(imgfile)
+    os.remove(imgfile)
+    shutil.copyfile(origfile, imgfile)
+    annotateImage(imgfile, 'test', 12, '202304')
+    assert os.path.isfile(imgfile)
+    os.remove(imgfile)
+    shutil.copyfile(origfile, imgfile)
+    annotateImage(imgfile, 'test', 12)
+    assert os.path.isfile(imgfile)
+    os.remove(imgfile)
+
+
 def test_annotateImageArbitrary():
+    origfile = os.path.join(here, 'data', 'sample_orig.jpg')
+    imgfile = os.path.join(here, 'data', 'sample.jpg')
+    shutil.copyfile(origfile, imgfile)
+    annotateImageArbitrary(imgfile, 'test')
+    assert os.path.isfile(imgfile)
+    os.remove(imgfile)
+    shutil.copyfile(origfile, imgfile)
+    annotateImageArbitrary(imgfile, 'message', color='#FFF')
+    assert os.path.isfile(imgfile)
+    os.remove(imgfile)
+
+
 def test_sendAnEmail():
-"""
+    mailrecip = 'markmcintyre99@googlemail.com'
+    message = "test"
+    msgtype = None
+    mailfrom = 'noreply@ukmeteornetwork.co.uk'
+    ret = sendAnEmail(mailrecip, message, msgtype, mailfrom, files=None)
+    assert ret is None

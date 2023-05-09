@@ -1,0 +1,61 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:DescribeTable",
+                "dynamodb:GetShardIterator",
+                "dynamodb:GetItem",
+                "dynamodb:DescribeContinuousBackups",
+                "dynamodb:Scan",
+                "dynamodb:Query",
+                "dynamodb:DescribeStream",
+                "dynamodb:GetRecords"
+            ],
+            "Resource": [
+                "arn:aws:dynamodb:*:*:table/live/stream/*",
+                "arn:aws:dynamodb:*:*:table/live",
+                "arn:aws:dynamodb:*:*:table/live/index/*",
+                "arn:aws:dynamodb:*:*:table/LiveBrightness/stream/*",
+                "arn:aws:dynamodb:*:*:table/LiveBrightness",
+                "arn:aws:dynamodb:*:*:table/LiveBrightness/index/*"
+            ]
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:DescribeTable",
+                "dynamodb:GetShardIterator",
+                "dynamodb:GetItem",
+                "dynamodb:DescribeContinuousBackups",
+                "dynamodb:Scan",
+                "dynamodb:Query",
+                "dynamodb:DescribeStream",
+                "dynamodb:GetRecords"
+            ],
+            "Resource": [ 
+                "arn:aws:dynamodb:*:*:table/live/*",
+                "arn:aws:dynamodb:*:*:table/LiveBrightness/*" 
+            ]
+            
+        },
+        {
+            "Sid": "VisualEditor2",
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:DescribeReservedCapacityOfferings",
+                "dynamodb:DescribeReservedCapacity",
+                "dynamodb:ListTagsOfResource",
+                "dynamodb:DescribeTimeToLive",
+                "dynamodb:DescribeLimits",
+                "dynamodb:ListStreams"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

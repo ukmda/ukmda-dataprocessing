@@ -63,7 +63,7 @@ def _loadDataFile(typ, pth=None):
     if typ == 1:
         fname='streamfulldata.npy'
     elif typ == 2:
-        fname='ShowerLookupTable.npy'
+        fname='ShowerLookUpTable.npy'
     else:
         return 'invalid type code'
 

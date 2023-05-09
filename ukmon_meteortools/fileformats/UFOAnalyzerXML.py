@@ -36,7 +36,7 @@ class UAXml:
 
     def getDateStr(self):
         ur = self.uaxml['ufoanalyzer_record']
-        return ur['@y'] + "-" + ur['@mo'] + "-" + ur['@d']
+        return f'{ur["@y"]}-{int(ur["@mo"]):02d}-{int(ur["@d"]):02d}'
 
     def getTime(self):
         ur = self.uaxml['ufoanalyzer_record']
@@ -128,8 +128,10 @@ class UAXml:
         dist2 = uo['@dist2']
         lng2 = uo['@lng2']
         lat2 = uo['@lat2']
+        az2 = uo['@az2']
+        ev2 = uo['@ev2']
         fe = uo['@fe']
-        return ra2, dc2, h2, dist2, lng2, lat2, fe
+        return ra2, dc2, h2, dist2, lng2, lat2, az2, ev2, fe
 
     def getObjectFrameDetails(self, objno, fno):
         uos = self.uaxml['ufoanalyzer_record']['ua2_objects']

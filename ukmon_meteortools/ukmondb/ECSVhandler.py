@@ -25,6 +25,7 @@ def getECSVs(stationID, dateStr, savefiles=False, outdir='.'):
         if len(rawdata) > 10:
             ecsvlines=rawdata.split('\n') # convert the raw data into a python list
             if savefiles is True:
+                os.makedirs(outdir, exist_ok=True)
                 numecsvs = len([e for e in ecsvlines if '# %ECSV' in e]) # find out how many meteors 
                 fnamebase = dateStr.replace(':','_').replace('.','_') # create an output filename
                 if numecsvs == 1:
