@@ -90,18 +90,25 @@ def trainModel(features, labels, datadir):
     model.save(os.path.join(datadir, 'mymodel'))
 
 
-def reuseModel(datestr, datadir, mdlname='mymodel'):
+def reuseModel(datestr, datestr2, datadir, mdlname='mymodel'):
     model = load_model(os.path.join(datadir, mdlname))
-    feat, lab = loadOneFile(datestr, datadir)
+    if datestr2 is not None:
+        feat, lab = loadDateRange(datestr, datestr2, datadir)
+    else:
+        feat, lab = loadOneFile(datestr, datadir)
     model.evaluate(feat, lab)
     pred = model.predict(feat)
     
-    print(pred, lab)
-    for f, l in zip(pred, lab):
-        print(f, l)
+    print(f' there were {len(lab[lab.fireball==1])} labelled fireballs')
+    print(f' there were {len([p for p in pred if p > 0.9])} predicted fireballs')
+    print(f' there were {len(lab)} total detections')
+    #print(pred, lab)
+#    for f, l in zip(pred, lab):
+#        print(f, l)
 
 
 if __name__ == '__main__':
-    datadir='e:/dev/meteorhunting/testing/brightness_tests'
-    datestr='20230424'
-    reuseModel(datestr, datadir)
+    datadir = 'e:/dev/meteorhunting/testing/brightness_tests'
+    datestr = '20230424'
+    datestr2 = '20230501'
+    reuseModel(datestr, datestr2, datadir)
