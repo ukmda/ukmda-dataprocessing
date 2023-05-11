@@ -1,6 +1,7 @@
 import os
 import boto3
 import datetime
+import shutil
 
 from ukmondb import matchApiCall, detailApiCall1, detailApiCall2
 from ukmondb import getLiveimageList, getFireballFiles, getMatchPickle
@@ -87,11 +88,6 @@ def test_createTxtFileMtype():
     os.remove(outfname)
 
 
-def test_getFBFiles():
-    # getFBFiles()
-    assert 1==1 
-
-
 def test_trajectoryKML():
     orbname = '20230202_014115.520_UK'
     outdir = os.path.join(here, 'data')
@@ -165,3 +161,11 @@ def test_getLiveJpgs():
 def test_getLiveJpgsNonExistent():
     x = getLiveJpgs('20000101_000000', outdir=None, create_txt=False)
     assert x is None
+
+
+def test_getFBfiles():
+    outdir = os.path.join(here, 'data', 'tmp')
+    res = getFBfiles('UK0006_20230421_2120', outdir)
+    assert res['filename'][0] == 'platepar_cmn2010.cal'
+    assert os.path.isfile(os.path.join(outdir, 'platepar_cmn2010.cal'))
+    shutil.rmtree(outdir)
