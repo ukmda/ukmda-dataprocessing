@@ -4,6 +4,7 @@
 # skip this
 #https://github.com/matplotlib/basemap/archive/master.zip
 basemap
+basemap-data-hires
 boto3
 Cython
 gmplot
