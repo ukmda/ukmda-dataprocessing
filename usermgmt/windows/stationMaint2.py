@@ -533,7 +533,7 @@ class demo(Frame):
         scpcli = SCPClient(c.get_transport())
         scpcli.put(os.path.join('jsonkeys', location + '.key'), 'keymgmt/rawkeys/live/')
         scpcli.put(os.path.join('sshkeys', cameraname + '.pub'), 'keymgmt/sshkeys/')
-        command = f'/home/{user}/keymgmt/addSftpUser.sh {cameraname} {location} {oldcamname} {updatemode}'
+        command = f'/home/{user}/keymgmt/addSftpUser.sh {cameraname} {location} {updatemode} {oldcamname}'
         print(f'running {command}')
         _, stdout, stderr = c.exec_command(command, timeout=10)
         for line in iter(stdout.readline, ""):

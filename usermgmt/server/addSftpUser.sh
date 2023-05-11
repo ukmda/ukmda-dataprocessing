@@ -5,7 +5,8 @@
 #
 userid=$1
 shortid=$2
-oldloc=$3
+updatemode=$3
+oldloc=$4
 if [ -z $2 ] ; then shortid=$1 ; fi 
 
 source ~/prod/config.ini
