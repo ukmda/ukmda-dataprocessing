@@ -4,9 +4,8 @@ import datetime
 import os
 import sys
 import csv
+import json
 import pandas as pd
-
-from ukmon_meteortools.fileformats import loadPlatepars
 
 
 def createDetectionsFile(eDate, datadir, daysback=7):
@@ -29,6 +28,8 @@ def createDetectionsFile(eDate, datadir, daysback=7):
     os.makedirs(os.path.join(datadir, 'browse','daily'), exist_ok=True)
     outfname = os.path.join(datadir, 'browse/daily/ukmon-latest.csv')
     outdfnots.to_csv(outfname, index=False)
+
+    sDate = eDate + datetime.timedelta(days = -3)
     createEventList(datadir, outdf, sDate)
     return 
 
@@ -145,18 +146,18 @@ def createWebpage(datadir):
 
 
 def createCameraFile(datadir):
-    ppdir = os.path.join(datadir, 'consolidated', 'platepars')
-    pps = loadPlatepars(ppdir)
+    ppdir = os.path.join(datadir, 'admin', 'cameraLocs.json')
+    pps = json.load(open(ppdir))
     os.makedirs(os.path.join(datadir, 'browse','daily'), exist_ok=True)
     with open(os.path.join(datadir, 'browse/daily/cameradetails.csv'), 'w') as outf:
         outf.write('camera_id,obs_latitude,obs_longitude,obs_az,obs_ev,obs_rot,fov_horiz,fov_vert\n')
         for pp in pps:
-            outf.write(pps[pp]['station_code']+',')
+            outf.write(pp + ',')
             outf.write('{:.1f},'.format(pps[pp]['lat']))
             outf.write('{:.1f},'.format(pps[pp]['lon']))
-            outf.write('{:.1f},'.format(pps[pp]['az_centre']))
-            outf.write('{:.1f},'.format(pps[pp]['alt_centre']))
-            outf.write('{:.1f},'.format(pps[pp]['rotation_from_horiz']))
+            outf.write('{:.1f},'.format(pps[pp]['az']))
+            outf.write('{:.1f},'.format(pps[pp]['alt']))
+            outf.write('{:.1f},'.format(pps[pp]['rot']))
             outf.write('{:.1f},'.format(pps[pp]['fov_h']))
             outf.write('{:.1f}\n'.format(pps[pp]['fov_v']))
     return

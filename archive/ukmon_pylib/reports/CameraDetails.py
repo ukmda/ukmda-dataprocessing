@@ -210,22 +210,25 @@ creating and managing the more-accurate camera location info
 '''
 
 
-def getCamLocDirFov(camid):
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data/')
+def getCamLocDirFov(camid, datadir=None):
+    if datadir is None:
+        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data/')
     camdb = json.load(open(os.path.join(datadir, 'admin', 'cameraLocs.json')))
     return camdb[camid]
 
 
-def updateCamLocDirFovDB():
+def updateCamLocDirFovDB(datadir=None):
+    if datadir is None:
+        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data/')
     camdb = {}
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data/')
     ppfiles = glob.glob(os.path.join(datadir, 'consolidated','platepars', '*.json'))
     for ppf in ppfiles:
         try:
             pp = json.load(open(ppf))
             camid = pp['station_code']
             camdb.update({camid: {'lat': pp['lat'], 'lon': pp['lon'], 'ele': pp['elev'],
-                'az': pp['az_centre'], 'alt': pp['alt_centre'], 'fov_h': pp['fov_h'], 'fov_v': pp['fov_v']}})
+                'az': pp['az_centre'], 'alt': pp['alt_centre'], 'fov_h': pp['fov_h'], 'fov_v': pp['fov_v'], 
+                'rot': pp['rotation_from_horiz']}})
         except:
             # platepar was malformed
             continue
