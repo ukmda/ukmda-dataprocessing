@@ -1,3 +1,4 @@
+# Copyright (C) 2018-2023 Mark McIntyre
 # tests for createExchangeFiles.py
 import datetime
 import os
