@@ -1,6 +1,5 @@
 # Create a data type for the camera location details
 # Copyright (C) 2018-2023 Mark McIntyre
-import sys
 import os
 import numpy as np
 import glob 
@@ -154,8 +153,8 @@ class SiteInfo:
             locs.sort()
             tmpcams = ''
             for loc in locs:
-                loc = loc.split('/')
-                tmpcams = tmpcams + loc + ' ' 
+                spls = loc.split('/')
+                tmpcams = tmpcams + spls[0] + ' ' 
             return tmpcams.strip()
         else:
             cams = self.getActiveCameras()
@@ -234,21 +233,3 @@ def updateCamLocDirFovDB(datadir=None):
             continue
     with open(os.path.join(datadir, 'admin', 'cameraLocs.json'), 'w') as outf:
         json.dump(camdb, outf, indent=4)
-
-
-def test_caminfo(sitename):
-    ci = SiteInfo()
-    spls = sitename.split('_')
-    sid = spls[0]
-    if len(spls) ==1:
-        lid = ''
-    else:
-        lid = spls[1]
-    print(ci.getDummyCode(sid, lid))
-
-    #tz, site = ci.GetSiteLocation(site.encode('utf-8'))
-    #print(site, tz)
-
-
-if __name__ == '__main__':
-    test_caminfo(sys.argv[1])
