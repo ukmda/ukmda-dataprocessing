@@ -9,13 +9,13 @@ import pandas as pd
 from ukmon_meteortools.fileformats import loadPlatepars
 
 
-def createDetectionsFile(eDate, datadir):
+def createDetectionsFile(eDate, datadir, daysback=7):
     yr = datetime.datetime.now().year
     cols = ['Dtstamp','ID','Y']
     df = pd.read_parquet(os.path.join(datadir, 'single',f'singles-{yr}.parquet.snap'), columns=cols)
     df = df[df['Y']==int(yr)]
     
-    sDate = eDate + datetime.timedelta(days = -3)
+    sDate = eDate + datetime.timedelta(days = -daysback)
     df = df[df.Dtstamp >= sDate.timestamp()]
     df = df[df.Dtstamp <= eDate.timestamp()]
     outdf = pd.concat([df.ID, df.Dtstamp],keys=['camera_id','Dtstamp'], axis=1)
@@ -26,13 +26,15 @@ def createDetectionsFile(eDate, datadir):
     outdfnots = outdf.drop(columns=['Dtstamp', 'ts'])
     outdfnots = outdfnots.drop_duplicates()
 
+    os.makedirs(os.path.join(datadir, 'browse','daily'), exist_ok=True)
     outfname = os.path.join(datadir, 'browse/daily/ukmon-latest.csv')
     outdfnots.to_csv(outfname, index=False)
-    createEventList(datadir, outdf)
+    createEventList(datadir, outdf, sDate)
     return 
 
 
-def createEventList(datadir, data):
+def createEventList(datadir, data, start_date):
+    os.makedirs(os.path.join(datadir, 'browse','daily'), exist_ok=True)
     idxfile = os.path.join(datadir, 'browse/daily/eventlist.js')
     with open(idxfile, 'w') as outf:
         outf.write('$(function() {\n')
@@ -43,6 +45,8 @@ def createEventList(datadir, data):
 
         if data is not None: 
             for _, li in data.iterrows():
+                if li['ts'] < start_date:
+                    break
                 outf.write('var row = table.insertRow(-1);\n')
                 outf.write('var cell = row.insertCell(0);\n')
                 outf.write('cell.innerHTML = "{}";\n'.format(li['camera_id']))
@@ -71,6 +75,7 @@ def createMatchesFile(sDate, datadir):
     with open(matchf, 'r') as inf:
         data = csv.reader(inf, delimiter=',')
 
+        os.makedirs(os.path.join(datadir, 'browse','daily'), exist_ok=True)
         outfname = os.path.join(datadir, 'browse/daily/matchlist.js')
         with open(outfname, 'w') as outf:
             outf.write('$(function() {\n')
@@ -109,6 +114,7 @@ def createMatchesFile(sDate, datadir):
 
 
 def createWebpage(datadir):
+    os.makedirs(os.path.join(datadir, 'browse','daily'), exist_ok=True)
     idxfile = os.path.join(datadir, 'browse/daily/browselist.js')
     with open(idxfile, 'w') as outf:
         outf.write('$(function() {\n')
@@ -141,6 +147,7 @@ def createWebpage(datadir):
 def createCameraFile(datadir):
     ppdir = os.path.join(datadir, 'consolidated', 'platepars')
     pps = loadPlatepars(ppdir)
+    os.makedirs(os.path.join(datadir, 'browse','daily'), exist_ok=True)
     with open(os.path.join(datadir, 'browse/daily/cameradetails.csv'), 'w') as outf:
         outf.write('camera_id,obs_latitude,obs_longitude,obs_az,obs_ev,obs_rot,fov_horiz,fov_vert\n')
         for pp in pps:
