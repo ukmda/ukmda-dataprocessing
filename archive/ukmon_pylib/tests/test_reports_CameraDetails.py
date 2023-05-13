@@ -14,8 +14,10 @@ def test_updateCamLocDirFovDB():
     updateCamLocDirFovDB(datadir)
     csvf = os.path.join(datadir, 'admin', 'cameraLocs.json')
     assert os.path.isfile(csvf)
-    dets = getCamLocDirFov('UK0006')
-    assert abs(dets['lat']-51.8831) < 0.001
+    dets = getCamLocDirFov('UK001M')
+    assert abs(dets['lat']-53.31249) < 0.001
+    dets = getCamLocDirFov('UK9999')
+    assert dets is False
     os.remove(csvf)
 
 

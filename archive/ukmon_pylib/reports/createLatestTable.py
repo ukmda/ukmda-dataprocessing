@@ -1,12 +1,14 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 
-import sys
 import os
 import datetime
 import reports.CameraDetails as cd
 
 
-def createLatestTable(jpglist, outdir):
+def createLatestTable(jpgfile, outdir):
+    if not os.path.isfile(jpgfile):
+        return False
+    jpglist = open(jpgfile,'r').readlines()    
     csvf = open(os.path.join(outdir, 'uploadtimes.csv'), 'w')
     csvf.write('StationID,DateTime\n')
 
@@ -61,10 +63,4 @@ def createLatestTable(jpglist, outdir):
         outf.write('})\n')
 
     csvf.close()
-    return
-
-
-if __name__ == '__main__':
-    with open(sys.argv[1], 'r') as inf:
-        jpglist = inf.readlines()
-    createLatestTable(jpglist, sys.argv[2])
+    return True

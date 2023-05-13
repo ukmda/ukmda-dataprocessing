@@ -20,7 +20,7 @@ mkdir ${DATADIR}/latest > /dev/null 2>&1
 cd ${DATADIR}/latest
 
 aws s3 ls s3://ukmeteornetworkarchive/latest/ | grep jpg | grep -v cal > /tmp/jpglist.txt
-python -m reports.createLatestTable /tmp/jpglist.txt $DATADIR/latest
+python -c "from reports.createLatestTable import createLatestTable ; createLatestTable('/tmp/jpglist.txt','$DATADIR/latest')"
 rm -f /tmp/jpglist.txt
 
 logger -s -t createLatestTable "done, sending to website"
