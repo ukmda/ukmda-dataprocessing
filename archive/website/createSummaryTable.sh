@@ -47,7 +47,7 @@ python -c "from reports.makeCoverageMap import createCoveragePage as ccp ; ccp()
 
 logger -s -t createSummaryTable "create year-to-date barchart"
 pushd $DATADIR
-python -m reports.createAnnualBarChart  $DATADIR/matched/matches-full-${yr}.parquet.snap ${yr}
+python -c "from reports.createAnnualBarChart import createBarChart; createBarChart('${DATADIR}','${yr}')"
 popd
 
 # update index page

@@ -3,16 +3,20 @@
 #
 # Copyright (C) 2018-2023 Mark McIntyre
 
-import sys
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
-import datetime
+import datetime 
 
 from ukmon_meteortools.utils import jd2Date
 
 
-def createBarChart(fname, yr):
+def createBarChart(datadir=None, yr=None):
+    if yr is None:
+        yr=datetime.datetime.now().year
+    if datadir is None:
+        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    fname = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.snap'.format(yr))        
     if not os.path.isfile(fname):
         print('{} missing', fname)
         return None
@@ -44,20 +48,7 @@ def createBarChart(fname, yr):
     fig.set_size_inches(12, 5)
     fig.tight_layout()
     #plt.gca().invert_yaxis()
-    plt.savefig('Annual-{}.jpg'.format(yr), dpi=100)
+    plt.savefig(os.path.join(datadir,f'Annual-{yr}.jpg'), dpi=100)
     plt.close()
 
     return matches
-
-
-if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        fname = sys.argv[1]
-        yr = sys.argv[2]
-    else:
-        yr=datetime.datetime.now().year
-        datadir=os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-        fname = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.snap'.format(yr))
-        
-    m = createBarChart(fname, yr)
-#    print(m.selectByMag(minMag=-2))
