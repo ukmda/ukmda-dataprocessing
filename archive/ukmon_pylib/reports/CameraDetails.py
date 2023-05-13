@@ -213,6 +213,8 @@ def getCamLocDirFov(camid, datadir=None):
     if datadir is None:
         datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data/')
     camdb = json.load(open(os.path.join(datadir, 'admin', 'cameraLocs.json')))
+    if camid not in camdb.keys():
+        return False
     return camdb[camid]
 
 
