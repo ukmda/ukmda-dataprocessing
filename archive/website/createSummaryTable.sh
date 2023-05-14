@@ -27,7 +27,7 @@ cd $DATADIR
 
 yr=$(date +%Y)
 
-python -m reports.createSummaryTable $yr
+python -c "from reports.createSummaryTable import createSummaryTable; createSummaryTable(curryr='$yr');"
 
 logger -s -t createSummaryTable "create a coverage map from the kmls"
 # make sure correct version of GEOS and PROJ4 available for mapping routines
