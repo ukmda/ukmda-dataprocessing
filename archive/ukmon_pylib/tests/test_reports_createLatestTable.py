@@ -1,5 +1,5 @@
 # Copyright (C) 2018-2023 Mark McIntyre
-# tests for createExchangeFiles.py
+
 import os
 
 from reports.createLatestTable import createLatestTable

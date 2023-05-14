@@ -2,7 +2,6 @@
 
 import datetime
 import os
-import sys
 import csv
 import json
 import pandas as pd
@@ -163,14 +162,12 @@ def createCameraFile(datadir):
     return
 
 
-if __name__ == '__main__':
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-    if len(sys.argv) > 1:
-        targdate = datetime.datetime.strptime(sys.argv[1], '%Y%m%d')
-    else:
+def createAll(targdate=None, datadir=None):
+    if datadir is None:
+        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/datas')
+    if targdate is None:
         targdate = datetime.datetime.now()
         createCameraFile(datadir)
-    
     createDetectionsFile(targdate, datadir)
     createMatchesFile(targdate, datadir)
     createWebpage(datadir)
