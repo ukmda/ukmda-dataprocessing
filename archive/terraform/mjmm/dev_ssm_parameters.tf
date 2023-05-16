@@ -23,7 +23,7 @@ resource "aws_ssm_parameter" "dev_sharedbucket" {
 resource "aws_ssm_parameter" "dev_livebucket" {
   name  = "dev_livebucket"
   type  = "String"
-  value = "mjmm-live"
+  value = "mjmm-ukmon-live"
   tags = {
     "billingtag" = "ukmon"
   }
