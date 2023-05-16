@@ -43,6 +43,7 @@ resource "aws_s3_bucket_versioning" "backup_versioning" {
     status = "Suspended"
   }
 }
+
 resource "aws_s3_bucket_logging" "ukmslogging" {
   bucket = aws_s3_bucket.ukmon-shared-backup.id
 
@@ -103,3 +104,126 @@ data "aws_iam_policy_document" "websiteacesspolicy" {
     resources = ["${aws_s3_bucket.mjmm-ukmonarchive-co-uk.arn}/*"]
   }
 }
+
+########################################################################
+resource "aws_s3_bucket" "mjmm-ukmon-shared" {
+  bucket = "mjmm-ukmon-shared"
+  tags = {
+    "billingtag" = "ukmon"
+  }
+}
+
+resource "aws_s3_bucket_logging" "mjmm_ukmon_shared_logging" {
+  bucket        = "mjmm-ukmon-shared"
+  target_bucket = "mjmmauditing"
+  target_prefix = "ukmon-shared-logs/"
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "mjmm_ukmon_shared_encryption" {
+  bucket = aws_s3_bucket.mjmm-ukmon-shared.bucket
+
+  rule {
+    bucket_key_enabled = false
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "shared_lifecycle_rule" {
+  bucket = aws_s3_bucket.mjmm-ukmon-shared.id
+  rule {
+    id     = "MoveToArchive"
+    status = "Enabled"
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+  }
+  rule {
+    id     = "PurgeOldVersions"
+    status = "Enabled"
+
+    expiration {
+      days                         = 0
+      expired_object_delete_marker = true
+    }
+
+    filter {
+    }
+
+    noncurrent_version_expiration {
+      newer_noncurrent_versions = "1"
+      noncurrent_days           = 30
+    }
+  }
+}
+
+resource "aws_s3_bucket_versioning" "shared_versioning" {
+  bucket = aws_s3_bucket.mjmm-ukmon-shared.id
+  versioning_configuration {
+    status = "Suspended"
+  }
+}
+
+########################################################################
+resource "aws_s3_bucket" "mjmm-ukmon-live" {
+  bucket = "mjmm-ukmon-live"
+  tags = {
+    "billingtag" = "ukmon"
+  }
+}
+
+resource "aws_s3_bucket_logging" "mjmm_ukmon_live_logging" {
+  bucket        = "mjmm-ukmon-live"
+  target_bucket = "mjmmauditing"
+  target_prefix = "ukmon-live-logs/"
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "mjmm_ukmon_live_encryption" {
+  bucket = aws_s3_bucket.mjmm-ukmon-live.bucket
+
+  rule {
+    bucket_key_enabled = false
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "live_lifecycle_rule" {
+  bucket = aws_s3_bucket.mjmm-ukmon-live.id
+  rule {
+    id     = "MoveToArchive"
+    status = "Enabled"
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+  }
+  rule {
+    id     = "PurgeOldVersions"
+    status = "Enabled"
+
+    expiration {
+      days                         = 0
+      expired_object_delete_marker = true
+    }
+
+    filter {
+    }
+
+    noncurrent_version_expiration {
+      newer_noncurrent_versions = "1"
+      noncurrent_days           = 30
+    }
+  }
+}
+
+resource "aws_s3_bucket_versioning" "live_versioning" {
+  bucket = aws_s3_bucket.mjmm-ukmon-live.id
+  versioning_configuration {
+    status = "Suspended"
+  }
+}
+
