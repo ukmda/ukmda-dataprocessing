@@ -7,6 +7,8 @@ import boto3
 from tempfile import mkdtemp
 from shutil import rmtree
 import datetime
+from decimal import Decimal
+import json
 
 
 def storeInDDb(evtdets, camdets):
@@ -24,16 +26,28 @@ def storeInDDb(evtdets, camdets):
     else:
         partkey = int(dtval.strftime('%Y%m%d'))
     #table sort key will be the timestamp because we can then easily do a range select
-    sortkey = int(dtval.timestamp())
+    sortkey = dtval.timestamp()
+    sortkeydec = json.loads(json.dumps(sortkey), parse_float=Decimal)
 
     expdate = int((dtval + datetime.timedelta(days=3)).timestamp())
 
     ddb = boto3.resource('dynamodb', region_name='eu-west-2')
-    table = ddb.Table('LiveBrightness')   
+    table = ddb.Table('LiveBrightness')
+
+    response = table.get_item(Key = {'CaptureNight': partkey, 'Timestamp': sortkeydec})
+    #can't have duplicate keys in dynamodb, so add a microsecond to identical values, unless its the same event
+    while 'Item' in response.keys():
+        if response['Item']['ffname'] == ffname:
+            print(f'{ffname} already logged')
+            break
+        sortkey += 0.000001
+        sortkeydec = json.loads(json.dumps(sortkey), parse_float=Decimal)
+        response = table.get_item(Key = {'CaptureNight': partkey, 'Timestamp': sortkeydec})
+    print(f'inserting {ffname} with timestamp {sortkeydec}')
     response = table.put_item(
         Item={
             'CaptureNight': partkey,
-            'Timestamp': sortkey,
+            'Timestamp': sortkeydec,
             'bmax': bmax, 
             'bave': bave,
             'bstd': bstd,
@@ -95,7 +109,9 @@ def processXml(event, context):
         spls = li.split()
         bstd = int(spls[4][6:-1])
 
-        dtval = datetime.datetime(yr, mt, dy, hr, mi, 0) + datetime.timedelta(seconds = (secs + fno/fps))
+        secs = secs + float(fno)/fps
+        
+        dtval = datetime.datetime(yr, mt, dy, hr, mi, 0) + datetime.timedelta(seconds = secs)
 
         camdets = {'camid':camid, 'lati': lati, 'longi': longi, 'alti': alti, 'cx': cx, 'cy': cy, 'fps': fps}
         evtdets={'dtval':dtval, 'fno':fno, 'ffname':ffname, 'bmax':bmax, 'bave':bave, 'bstd':bstd}
