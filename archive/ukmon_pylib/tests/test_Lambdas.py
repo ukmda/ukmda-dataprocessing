@@ -21,3 +21,7 @@ def test_curateLiveOneFile(fname=None):
     payload = templ.replace('KEYHERE', fname)
     resp = lmb.invoke(FunctionName = 'MonitorLiveFeed', InvocationType='Event', LogType='None', Payload = payload)
     assert resp['ResponseMetadata']['HTTPStatusCode'] < 300
+
+
+def test_createDetectionsCSV():
+    return 

@@ -9,7 +9,7 @@ from dynamodb_json import json_util as ddbjson
 def prep_rawdata():
     sdt = datetime.datetime.now() + datetime.timedelta(days=-7)
     df = None
-    hdr=['capturenight','timestamp','avg','brightness','sd','camera_id','image_URL']
+    hdr=['CaptureNight','Timestamp','avg','brightness','sd','camera_id','image_URL']
     for i in range(0,7):
         thisdt = (sdt + datetime.timedelta(i)).strftime('%Y%m%d')
         print('processing', thisdt)
@@ -25,7 +25,6 @@ def prep_rawdata():
     df = df.sort_values(by=['dtval','camera_id'])
     df = df[['camera_id','datetime','brightness','duration','image_URL']]
     df.to_csv('ukmon-latest-v2.csv', index=False)
-
 
 
 def getBrightnessData(yyyymmdd):
@@ -51,18 +50,31 @@ def updateDetectionsCsv():
     srcbucket = os.getenv('SRCBUCKET', default='ukmeteornetworkarchive')
     csvname = os.getenv('CSVNAME', default='ukmon-latest-v2.csv')
     csvname = f'browse/daily/{csvname}'
-    localf = '/tmp/ukmon-latest-v2.csv'
-    s3.download_file(srcbucket, csvname, localf)
-    df = pd.read_csv(localf)
+    tmpdir = os.getenv('TEMP')
+    localf = os.path.join(tmpdir, 'ukmon-latest-v2.csv')
+    try:
+        s3.download_file(srcbucket, csvname, localf)
+        df = pd.read_csv(localf)
+        print('got existing file')
+    except:
+        df = None
     now = datetime.datetime.now()
     if now.hour < 13: 
         now = now + datetime.timedelta(days=-1)
-    sdt = now + datetime.timedelta(days=-7)
-    df = df[df.capturenight >= int(sdt.strftime('%Y%m%d'))]
     dtstr = int(now.strftime('%Y%m%d'))
     newrows = getBrightnessData(dtstr)
     if len(newrows) > 0:
-        df = pd.concat([df, newrows])
+        print('got some data')
+        if df is not None:
+            print('concatenate data')
+            df = pd.concat([df, newrows])
+        else:
+            print('no existing data')
+            df = newrows
+    sdt = now + datetime.timedelta(days=-7)
+    print(df)
+
+    df = df[pd.to_datetime(df.datetime) > sdt]
     df = df.drop_duplicates(subset=['camera_id', 'datetime','brightness'])
     df.to_csv(localf, index=False)
     s3.upload_file(localf, srcbucket, csvname, ExtraArgs = {'ContentType': 'text/csv'})
@@ -71,3 +83,8 @@ def updateDetectionsCsv():
 
 def lambda_handler(event, context):
     updateDetectionsCsv()
+
+
+def test_createDetectionsCSV():
+    updateDetectionsCsv()
+    assert 1==1
