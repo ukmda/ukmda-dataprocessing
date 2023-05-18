@@ -1,0 +1,3 @@
+#nothing
+pandas
+dynamodb_json

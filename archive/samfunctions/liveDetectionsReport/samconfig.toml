@@ -1,0 +1,11 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "liveDetectionsReport"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-17e011f5cwvp1"
+s3_prefix = "liveDetectionsReport"
+region = "eu-west-1"
+capabilities = "CAPABILITY_IAM"
+image_repositories = []

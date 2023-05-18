@@ -12,6 +12,8 @@ pip install pytest pytest-cov
 cd $here/..
 if [ $# == 0 ] ; then
     pytest -v ./tests --cov=. --cov-report=term-missing
+    pytest -v ../samfunctions/liveDetectionsReport/detectionsCsv.py
 else
     pytest -v ./tests/test_$1.py --cov=$1 --cov-report=term-missing
 fi
+

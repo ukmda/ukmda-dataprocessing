@@ -1,0 +1,41 @@
+# SAM build file for searchArchive
+# Copyright (C) 2018-2023 Mark McIntyre
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Resources:
+  liveDetectionsReport:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: detectionsCsv.lambda_handler
+      Runtime: python3.8
+      FunctionName: liveDetectionsReport
+      Description: create the live detections report
+      Timeout: 120
+      Policies: 
+        Statement:
+        - Sid: ReadWriteForDetCsv
+          Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+          Resource: "arn:aws:s3:::ukmeteornetworkarchive/browse/daily/*"
+        - Sid: ReadonlyForcamfile
+          Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+          Resource: "arn:aws:s3:::ukmon-shared/consolidated/*"
+      Environment:
+        Variables:
+          SRCBUCKET: ukmeteornetworkarchive
+          CSVFILE: ukmon-latest-v2.csv
+      Tags:
+        billingtag: "ukmon"
+      Events:
+        ScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0/15 0-9,18-23 * * ? *)
+            Enabled: True
+    Metadata:
+      BuildMethod: python3.8
