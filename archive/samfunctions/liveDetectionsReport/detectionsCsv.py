@@ -54,7 +54,7 @@ def getBrightnessData(yyyymmdd, camdets):
         df['ukmonid'] = [_getUkmonIDFromGMNId(camera, camdets) for camera in df.camid]
         df['image_URL']='https://live.ukmeteornetwork.co.uk/M'+df.dtstr + '_' + df.ukmonid + '_' + df.camid + 'P.jpg'
         df = df.rename(columns={'camid':'camera_id', 'bmax': 'brightness'})
-        print(df)
+        #print(df)
         df = df[['camera_id','datetime','brightness','duration','image_URL']]
         df = df.sort_values(by=['datetime','camera_id'])
     return df
@@ -85,7 +85,9 @@ def updateDetectionsCsv():
         df = df.drop(columns=['dtval','dtstr','ukmonid'])
     except:
         df = None
-    now = datetime.datetime.now()
+
+    doffset = int(os.getenv('OFFSET', default='0'))
+    now = datetime.datetime.now() + datetime.timedelta(days=-doffset)
     if now.hour < 13: 
         now = now + datetime.timedelta(days=-1)
     dtstr = int(now.strftime('%Y%m%d'))
