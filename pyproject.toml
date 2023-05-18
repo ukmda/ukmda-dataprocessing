@@ -88,3 +88,9 @@ push = true
 "ukmon_meteortools/__init__.py" = ["{version}",]
 #"ukmon_meteortools/README.md" = ["{version}",]
 
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::FutureWarning",
+    'ignore:pyproj unable to set database path',
+]

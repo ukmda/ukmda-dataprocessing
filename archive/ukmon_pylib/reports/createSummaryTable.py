@@ -2,12 +2,12 @@
 #
 # Python module to create the archive website summary table for the front page
 #
-import sys
 import os
 import pandas as pd
+import datetime
 
 
-def createSummaryTable(curryr):
+def createSummaryTable(curryr=None, datadir=None):
     """Creates a summary of all data for the website front page. The table has four columns,
     the year, number of detections, number of matches and number of fireballs. 
 
@@ -15,7 +15,10 @@ def createSummaryTable(curryr):
         curryr (str): current year
 
     """
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    if curryr is None:
+        curryr = str(datetime.datetime.now().year)
+    if datadir is None:
+        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     fname = os.path.join(datadir, 'summarytable.js')
     with open(fname, 'w') as f:
         f.write('$(function() {\n')
@@ -48,11 +51,12 @@ def createSummaryTable(curryr):
                     fireballs = 0
             else:
                 srchfile = os.path.join(datadir, 'single', 'ALL{}.log'.format(yr))
-                with open(srchfile) as inf:
-                    lis = inf.readlines()
-                matches = lis[0].split(' ')[3].strip()
-                detections = lis[1].split(' ')[3].strip()
-                fireballs = lis[2].split(' ')[3].strip()
+                if os.path.isfile(srchfile):
+                    with open(srchfile) as inf:
+                        lis = inf.readlines()
+                    matches = lis[0].split(' ')[3].strip()
+                    detections = lis[1].split(' ')[3].strip()
+                    fireballs = lis[2].split(' ')[3].strip()
 
             f.write('var row = table.insertRow(-1);\n')
             f.write('var cell = row.insertCell(0);\n')
@@ -81,7 +85,3 @@ def createSummaryTable(curryr):
         f.write('var outer_div = document.getElementById("summarytable");\n')
         f.write('outer_div.appendChild(table);\n')
         f.write('})\n')
-
-
-if __name__ == '__main__':
-    createSummaryTable(sys.argv[1])

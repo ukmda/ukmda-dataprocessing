@@ -9,7 +9,7 @@ import datetime
 import pandas as pd 
 
 
-def getLastUpdateDate():
+def getLastUpdateDate(datadir=None, camfname=None):
     """ Create a status report showing the last update date of each camera that
     is providing data
 
@@ -19,7 +19,7 @@ def getLastUpdateDate():
         includenever (bool) default false, include cameras that have never uploaded
         
     """
-    camdets = cc.SiteInfo()
+    camdets = cc.SiteInfo(fname=camfname)
     cams = camdets.getActiveCameras()
     sites=[]
     ids = []
@@ -27,8 +27,8 @@ def getLastUpdateDate():
         sites.append(c['Site'].decode('utf-8'))
         ids.append(c['CamID'].decode('utf-8'))
     caminfo = pd.DataFrame(zip(sites,ids), columns=['Site','stationid'])
-
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    if datadir is None:
+        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     fldrlist = pd.read_csv(os.path.join(datadir,'reports','camuploadtimes.csv'), index_col=False)
 
     now = datetime.datetime.now()
@@ -60,8 +60,10 @@ def getLastUpdateDate():
     return fldrlist
 
 
-def createStatusReportJSfile(stati):
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+def createStatusReportJSfile(stati, datadir=None):
+    if datadir is None:
+        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    os.makedirs(os.path.join(datadir, 'reports'), exist_ok=True)
     repfile = os.path.join(datadir, 'reports','camrep.js')
     with open(repfile, 'w') as outf: 
         outf.write('$(function() {\n')

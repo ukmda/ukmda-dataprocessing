@@ -83,7 +83,7 @@ logger -s -t nightlyJob "RUNTIME $SECONDS start cameraStatusReport"
 ${SRC}/website/cameraStatusReport.sh
 
 logger -s -t nightlyJob "RUNTIME $SECONDS start createExchangeFiles"
-python -m reports.createExchangeFiles
+python -c "from reports.createExchangeFiles import createAll; createAll();"
 aws s3 sync $DATADIR/browse/daily/ $WEBSITEBUCKET/browse/daily/ --region eu-west-2 --quiet
 
 logger -s -t nightlyJob "RUNTIME $SECONDS start createStationLoginTimes"

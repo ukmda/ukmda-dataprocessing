@@ -24,7 +24,7 @@ from tkinter.ttk import Label, Style, LabelFrame, Scrollbar
 from PIL import Image as img
 from PIL import ImageTk
 
-from ukmon_meteortools.ukmondb import getFBFiles, getLiveJpgs, createTxtFile
+from ukmon_meteortools.ukmondb import getFBfiles, getLiveJpgs, createTxtFile
 
 
 config_file = ''
@@ -376,7 +376,7 @@ class fbCollector(Frame):
                 outdir = os.path.join(self.dir_path, camid.upper())
                 os.makedirs(outdir, exist_ok=True)
                 for li in open(txtf, 'r').readlines():
-                    getFBFiles(li.strip(), outdir) 
+                    getFBfiles(li.strip(), outdir) 
         tkMessageBox.showinfo("Data Collected", 'data collected from UKMON')
         return 
     

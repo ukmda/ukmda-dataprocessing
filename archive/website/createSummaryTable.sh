@@ -27,7 +27,7 @@ cd $DATADIR
 
 yr=$(date +%Y)
 
-python -m reports.createSummaryTable $yr
+python -c "from reports.createSummaryTable import createSummaryTable; createSummaryTable(curryr='$yr');"
 
 logger -s -t createSummaryTable "create a coverage map from the kmls"
 # make sure correct version of GEOS and PROJ4 available for mapping routines
@@ -47,7 +47,7 @@ python -c "from reports.makeCoverageMap import createCoveragePage as ccp ; ccp()
 
 logger -s -t createSummaryTable "create year-to-date barchart"
 pushd $DATADIR
-python -m reports.createAnnualBarChart  $DATADIR/matched/matches-full-${yr}.parquet.snap ${yr}
+python -c "from reports.createAnnualBarChart import createBarChart; createBarChart('${DATADIR}','${yr}')"
 popd
 
 # update index page
