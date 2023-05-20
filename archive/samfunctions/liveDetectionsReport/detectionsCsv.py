@@ -30,7 +30,7 @@ def _prep_rawdata():
             df = df2
         else:
             df = pd.concat([df, df2])
-    df['dtval'] = [datetime.datetime.fromtimestamp(d) for d in df.timestamp]
+    df['dtval'] = [datetime.datetime.utcfromtimestamp(d) for d in df.timestamp]
     df['duration'] = [0 for d in df.timestamp]
     df = df.drop(columns=['capturenight','avg','sd'])
     df['datetime'] = [datetime.datetime.strftime(d, '%Y-%m-%dT%H:%M:%S.%f') for d in df.dtval]
@@ -47,10 +47,10 @@ def getBrightnessData(yyyymmdd, camdets):
     df = pd.DataFrame(ddbjson.loads(resp['Items']))
     if len(df) > 0:
         df = df.drop(columns=['CaptureNight','ExpiryDate','bstd','bave'])
-        df['dtval'] = [datetime.datetime.fromtimestamp(d) for d in df.Timestamp]
+        df['dtval'] = [datetime.datetime.utcfromtimestamp(d) for d in df.Timestamp]
         df['duration'] = [0 for d in df.Timestamp]
         df['datetime'] = [datetime.datetime.strftime(d, '%Y-%m-%dT%H:%M:%S.%f') for d in df.dtval]
-        df['dtstr'] = [datetime.datetime.strftime(d, '%Y%m%d_%H%M%S') for d in df.dtval]
+        df['dtstr'] = [d[10:25] for d in df.ffname]
         df['ukmonid'] = [_getUkmonIDFromGMNId(camera, camdets) for camera in df.camid]
         df['image_URL']='https://live.ukmeteornetwork.co.uk/M'+df.dtstr + '_' + df.ukmonid + '_' + df.camid + 'P.jpg'
         df = df.rename(columns={'camid':'camera_id', 'bmax': 'brightness'})
@@ -78,11 +78,11 @@ def updateDetectionsCsv():
         s3.download_file(srcbucket, csvname, localf)
         df = pd.read_csv(localf)
         print('got existing file')
-        df['dtval'] = pd.to_datetime(df.datetime)
-        df['dtstr'] = [datetime.datetime.strftime(d, '%Y%m%d_%H%M%S') for d in df.dtval]
-        df['ukmonid'] = [_getUkmonIDFromGMNId(camera, camdets) for camera in df.camera_id]
-        df['image_URL']='https://live.ukmeteornetwork.co.uk/M'+df.dtstr + '_' + df.ukmonid + '_' + df.camera_id + 'P.jpg'
-        df = df.drop(columns=['dtval','dtstr','ukmonid'])
+        #df['dtval'] = pd.to_datetime(df.datetime)
+        #df['dtstr'] = [datetime.datetime.strftime(d, '%Y%m%d_%H%M%S.%f')[:15] for d in df.dtval]
+        #df['ukmonid'] = [_getUkmonIDFromGMNId(camera, camdets) for camera in df.camera_id]
+        #df['image_URL']='https://live.ukmeteornetwork.co.uk/M'+df.dtstr + '_' + df.ukmonid + '_' + df.camera_id + 'P.jpg'
+        #df = df.drop(columns=['dtval','dtstr','ukmonid'])
     except:
         df = None
 
@@ -101,7 +101,7 @@ def updateDetectionsCsv():
             print('no existing data')
             df = newrows
     sdt = now + datetime.timedelta(days=-7)
-    print(df)
+    #print(df)
 
     df = df[pd.to_datetime(df.datetime) > sdt]
     df = df.drop_duplicates(subset=['camera_id', 'datetime','brightness'])
