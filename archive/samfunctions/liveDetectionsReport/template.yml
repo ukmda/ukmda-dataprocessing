@@ -53,7 +53,7 @@ Resources:
         ScheduledEvent:
           Type: Schedule
           Properties:
-            Schedule: cron(0/15 0-9,17-23 * * ? *)
+            Schedule: cron(0/15 0-8,17-23 * * ? *)
             Enabled: True
     Metadata:
       BuildMethod: python3.8
