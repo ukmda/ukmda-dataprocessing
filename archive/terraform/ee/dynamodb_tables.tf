@@ -18,6 +18,20 @@ resource "aws_dynamodb_table" "live_bright_table" {
     type = "N"
   }
 
+  attribute {
+    name = "camid"
+    type = "S"
+  }
+
+  global_secondary_index {
+    hash_key           = "camid"
+    name               = "camid-CaptureNight-index"
+    non_key_attributes = []
+    projection_type    = "ALL"
+    range_key          = "CaptureNight"
+    read_capacity      = 0
+    write_capacity     = 0
+  }
   ttl {
     attribute_name = "ExpiryDate"
     enabled        = true
@@ -83,10 +97,10 @@ resource "aws_dynamodb_table" "uploadtimes_table" {
   }
 
   global_secondary_index {
-    name               = "uploaddate-stationid-index"
-    hash_key           = "uploaddate"
-    range_key          = "stationid"
-    projection_type    = "ALL"
+    name            = "uploaddate-stationid-index"
+    hash_key        = "uploaddate"
+    range_key       = "stationid"
+    projection_type = "ALL"
   }
   ttl {
     attribute_name = "ExpiryDate"
@@ -101,7 +115,7 @@ resource "aws_dynamodb_table" "uploadtimes_table" {
 resource "aws_dynamodb_table" "live_table" {
   name         = "live"
   billing_mode = "PAY_PER_REQUEST"
-  provider  = aws.eu-west-1-prov
+  provider     = aws.eu-west-1-prov
 
   hash_key  = "image_name"
   range_key = "timestamp"
