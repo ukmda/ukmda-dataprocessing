@@ -376,7 +376,9 @@ class fbCollector(Frame):
                 outdir = os.path.join(self.dir_path, camid.upper())
                 os.makedirs(outdir, exist_ok=True)
                 for li in open(txtf, 'r').readlines():
-                    getFBfiles(li.strip(), outdir) 
+                    patt = li.strip()
+                    if patt[:3]=='FF_':
+                        getFBfiles(patt[3:], outdir) 
         tkMessageBox.showinfo("Data Collected", 'data collected from UKMON')
         return 
     
