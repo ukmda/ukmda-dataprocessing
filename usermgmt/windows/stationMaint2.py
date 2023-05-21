@@ -168,6 +168,8 @@ class demo(Frame):
         camMenu.add_separator()
         camMenu.add_command(label = "Update SSH Key", command = self.newSSHKey)
         camMenu.add_command(label = "Update AWS Key", command = self.newAWSKey)
+        camMenu.add_separator()
+        camMenu.add_command(label = "Check Camera", command = self.checkLastUpdate)
 
         ownMenu = Menu(self.menuBar, tearoff=0)
         ownMenu.add_command(label = "View Owner Data", command = self.viewOwnerData)
@@ -212,6 +214,7 @@ class demo(Frame):
                                          "undo",
                                          "edit_cell"
                                     ))
+        self.sheet.popup_menu_add_command("Sort by this Column", self.columns_sort)
 
         self.frame.grid(row = 1, column = 0, sticky = "nswe")
         self.sheet.grid(row = 0, column = 0, sticky = "nswe")
@@ -293,8 +296,9 @@ class demo(Frame):
         #print(response)
 
     def columns_sort(self):
-        col = self.sheet.get_selected_columns()
-        print(col)
+        cursel = self.sheet.get_selected_cells()
+        col = list(cursel)[0][1]
+        print(self.hdrs[col])
         pass
         
     def column_select(self, response):
@@ -347,6 +351,16 @@ class demo(Frame):
     def moveCamera(self):
         self.addCopyCamera(move=True)
         return
+    
+    def checkLastUpdate(self):
+        cursel = self.sheet.get_selected_cells()
+        cr = list(cursel)[0][0]
+        curdata = self.data[cr]
+        camid = curdata[1]
+        lastupd = ct.getCamUpdateDate(camid)
+        msg = f'{camid} last sent a live image on {lastupd}'
+        tk.messagebox.showinfo(title="Information", message=msg)
+        return 
 
     def addCamera(self):
         self.addCopyCamera(move=False)
