@@ -8,6 +8,7 @@ import boto3
 import argparse
 import paramiko
 from scp import SCPClient
+from time import sleep
 
 
 def findInputDataByMonth(yyyymm, archbucket, outdir):
@@ -34,6 +35,7 @@ def findInputDataByMonth(yyyymm, archbucket, outdir):
 
 
 def deleteS3FilesByMonth(flist, archbucket):
+    print('clearing down S3')
     s3 = boto3.client('s3')
     chunk_size = 900
     chunked_list = [flist[i:i + chunk_size] for i in range(0, len(flist), chunk_size)]
@@ -41,11 +43,40 @@ def deleteS3FilesByMonth(flist, archbucket):
         delete_keys = {'Objects': []}
         delete_keys['Objects'] = [{'Key': k} for k in ch]
         s3.delete_objects(Bucket=archbucket, Delete=delete_keys)
+    print('S3 done')
     return 
 
 
 def deleteFromCalcServerByMonth(outfname):
-    server='172.32.16.136'
+    hname = os.getenv('HOSTNAME', default='none')
+    env = os.getenv('RUNTIME_ENV', default='DEV').lower()
+
+    if hname != 'ukmonhelper':
+        sess = boto3.Session(profile_name='default')
+        ssmc = sess.client('ssm', region_name='eu-west-2')
+        ec2 = boto3.client('ec2', region_name='eu-west-2')
+    else:
+        ssmc = boto3.client('ssm', region_name='eu-west-2')
+        sess = boto3.Session(profile_name='ukmonshared')
+        ec2 = sess.client('ec2', region_name='eu-west-2')
+    resp = ssmc.get_parameter(Name=f'{env}_calcinstance')
+    instId = resp['Parameter']['Value']
+    print('clearing down calcserver')    
+    needstart = False
+    sts = ec2.describe_instances(InstanceIds=[instId])
+    currstate = sts['Reservations'][0]['Instances'][0]['State']['Name']
+    if currstate != 'running':
+        print('starting server')
+        needstart = True
+        sts = ec2.start_instances(InstanceIds=[instId])
+        currstate = sts['StartingInstances'][0]['CurrentState']
+        while currstate != 'running':
+            sleep(5)
+            sts = ec2.describe_instances(InstanceIds=[instId])
+            currstate = sts['Reservations'][0]['Instances'][0]['State']['Name']
+            server = sts['Reservations'][0]['Instances'][0]['PrivateIpAddress']
+
+    # server='172.32.16.136'
     user='ec2-user'
     serverkey = os.getenv('SERVERSSHKEY')
     k = paramiko.RSAKey.from_private_key_file(serverkey)
@@ -56,6 +87,12 @@ def deleteFromCalcServerByMonth(outfname):
     scpcli.put(outfname, outfname)
     command = f'cat {outfname} | while read i ; do rm -Rf ~/ukmon-shared/$i ; done > /tmp/{outfname}.log 2>&1'
     stdin, stdout, stderr = c.exec_command(command)
+
+    # only stop if it wasn't already running - to avoid damaging data runs
+    if needstart is True:
+        print('stoppping server again')
+        sts = ec2.stop_instances(InstanceIds=[instId])
+    print('calcserver done')    
     return 
 
 
