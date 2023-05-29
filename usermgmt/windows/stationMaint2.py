@@ -120,14 +120,14 @@ class statOwnerDialog(simpledialog.Dialog):
         return 
 
 
-class demo(Frame):
+class CamMaintenance(Frame):
 
     def __init__(self, parent):
         self.parent = parent
         Frame.__init__(self, parent)
 
         s3 = boto3.client('s3')
-        self.bucket_name = 'ukmon-shared'
+        self.bucket_name = os.getenv('SRCBUCKET', default='ukmon-shared')
 
         self.camfile = 'camera-details.csv'
         self.fullname = 'consolidated/{}'.format(self.camfile)
@@ -600,6 +600,6 @@ class demo(Frame):
 if __name__ == '__main__':
     # Initialize main window
     root = tk.Tk()
-    app = demo(root)
+    app = CamMaintenance(root)
     root.protocol("WM_DELETE_WINDOW", app.on_closing)
     app.mainloop()
