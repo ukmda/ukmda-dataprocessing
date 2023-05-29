@@ -2,14 +2,20 @@
 - hosts: ukmonhelper
   gather_facts: no
   tasks:
-  - name: import variables 
-    include_vars: ./vars.yml
+  - name: import dev variables 
+    include_vars: ./dev-vars.yml
+    tags: dev
+  - name: import prod variables
+    include_vars: ./prod-vars.yml
+    tags: prod
   - name: Ensures {{windestdir}} exists
     file: path={{windestdir}} state=directory  
     delegate_to: localhost
+    tags: [dev,prod]
   - name: Copy files
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     delegate_to: localhost
+    tags: [dev,prod]
     with_items:
     - {src: '{{winsrcdir}}/checkLastLogin.ps1', dest: '{{windestdir}}/', mode: '754', backup: yes, directory_mode: no }
     - {src: '{{winsrcdir}}/dailyReportUserAdd.ps1', dest: '{{windestdir}}/', mode: '754', backup: yes, directory_mode: no }
@@ -18,3 +24,17 @@
     - {src: '{{winsrcdir}}/testkeys.py', dest: '{{windestdir}}/', mode: '644', backup: yes, directory_mode: no }
     - {src: '{{winsrcdir}}/camTable.py', dest: '{{windestdir}}/', mode: '644', backup: yes, directory_mode: no }
     - {src: '{{winsrcdir}}/requirements.txt', dest: '{{windestdir}}/', mode: '644', backup: yes, directory_mode: no }
+  - name: update source bucket
+    lineinfile:
+      path: '{{windestdir}}/StationMaint.ps1'
+      regexp: '\$env:SRCBUCKET='
+      line: '$env:SRCBUCKET="{{srcbucket}}"'
+    delegate_to: localhost
+    tags: [dev,prod]
+  - name: update AWS profile
+    lineinfile:
+      path: '{{windestdir}}/StationMaint.ps1'
+      regexp: '\$env:AWS_PROFILE='
+      line: '$env:AWS_PROFILE="{{awsprofile}}"'
+    delegate_to: localhost
+    tags: [dev,prod]
