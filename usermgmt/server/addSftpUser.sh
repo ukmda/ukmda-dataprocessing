@@ -9,10 +9,19 @@ updatemode=$3
 oldloc=$4
 if [ -z $2 ] ; then shortid=$1 ; fi 
 
-source ~/prod/config.ini
+here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+
+cd $here
+if [ -f ../config.ini ] ; then
+    source ~/dev/config.ini
+    keydir=/home/ec2-user/dev/keymgmt
+else
+    source ~/prod/config.ini
+    keydir=/home/ec2-user/keymgmt
+
+fi
 source ~/venvs/$WMPL_ENV/bin/activate
 
-keydir=/home/ec2-user/keymgmt
 cd $keydir
 
 logger -s -t addSftpUser "adding user $userid at $shortid $oldloc"
