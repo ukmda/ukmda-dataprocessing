@@ -134,7 +134,7 @@ def forwardAnEmail(reciplist, msgid=None, tokfile=None, crdfile=None):
                     service.users().messages().modify(userId=userid, id=msgid, body={'removeLabelIds': ['UNREAD']}).execute() 
                     print(retval)
         except Exception:
-            print('An error occurred sending the message')
+            print('Nothing to forward')
     else:
         try:
             message = (service.users().messages().get(userId='me', id=msgid, format='raw').execute())
@@ -152,5 +152,5 @@ def forwardAnEmail(reciplist, msgid=None, tokfile=None, crdfile=None):
                 service.users().messages().modify(userId=userid, id=msgid, body={'removeLabelIds': ['UNREAD']}).execute() 
                 print(retval)
         except Exception:
-            print('An error occurred sending the message')
+            print('Nothing to forward')
     return 
