@@ -14,7 +14,7 @@ annotateImage, annotateImageArbitrary
 
 getActiveShowers, getActiveShowersStr, getShowerDets, getShowerPeak  
 
-sendAnEmail  
+sendAnEmail, forwardAnEmail
 
 """
 from .Math import jd2Date, date2JD,datetime2JD, jd2DynamicalTimeJD, JULIAN_EPOCH, J2000_JD, jd2LST
@@ -25,7 +25,7 @@ from .annotateImage import annotateImage, annotateImageArbitrary
 from .convertSolLon import sollon2jd
 from .getActiveShowers import getActiveShowers, getActiveShowersStr
 from .getShowerDates import getShowerDets, getShowerPeak
-from .sendAnEmail import sendAnEmail
+from .sendAnEmail import sendAnEmail, forwardAnEmail
 from .drawFTPfile import drawFTPFile
 from .plotTrack import trackToDistvsHeight, trackToTimevsVelocity, trackToTimevsHeight
 from .getOverlappingFovs import checkKMLOverlap, pointInsideFov, getOverlapWith, getOverlappingCameras
