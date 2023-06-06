@@ -593,7 +593,6 @@ archive/samfunctions/camDetails/pythoncode/camDetails.py
 archive/samfunctions/camDetails/pythoncode/awskeys
 archive/containers/RMS-docker/rms_docker.tar
 archive/containers/RMS-docker/Dockerfile_orig.txt
-usermgmt/gmailkeys/ukmonfundraising_creds.json
-usermgmt/gmailkeys/ukmonfundraising_token.json
+usermgmt/gmailkeys/*
 usermgmt/server/ukmonfundraising.txt
 usermgmt/server/ukmoncommittee.txt
