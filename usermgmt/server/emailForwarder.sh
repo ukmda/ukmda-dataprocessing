@@ -5,6 +5,9 @@
 # forward email for ukmonfundraiser and ukmoncommittee emails
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+cd $here
+source ~/prod/config.ini >/dev/null 2>&1
+source $HOME/venvs/${WMPL_ENV}/bin/activate
 
 # ukmonfundraiser
 recips=$here/ukmonfundraising.txt

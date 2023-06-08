@@ -15,6 +15,6 @@ def forwardFromSource(recipfile, tokfile, crdfile):
     for li in lis:
         recips.append(li.strip())
     print(f'forwarding to {recips}')
-    print(tokfile, crdfile)
+    #print(tokfile, crdfile)
     forwardAnEmail(recips, tokfile=tokfile, crdfile=crdfile)
     return True
