@@ -23,13 +23,13 @@ resource "aws_instance" "calc_server" {
 }
 
 # elastic IP attached to the calcserver
-resource "aws_eip" "calcserver" {
-  instance = aws_instance.calc_server.id
-  vpc      = true
-  tags = {
-    billingtag = "ukmon"
-  }
-}
+#resource "aws_eip" "calcserver" {
+#  instance = aws_instance.calc_server.id
+#  vpc      = true
+#  tags = {
+#    billingtag = "ukmon"
+#  }
+#}
 
 # elastic network interface attached to the calc server
 
