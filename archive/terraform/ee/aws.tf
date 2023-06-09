@@ -12,6 +12,11 @@ provider "aws" {
 
 provider "aws" {
   profile = var.profile
+  region  = "us-east-1"
+  alias   = "us-east-1-prov"
+}
+provider "aws" {
+  profile = var.profile
   alias  = "mjmmacct"
   region = var.remote_region
   assume_role {
