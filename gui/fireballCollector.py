@@ -362,7 +362,8 @@ class fbCollector(Frame):
 
     def get_data(self):
         thispatt = self.newpatt.get()
-        self.patt = thispatt
+        thispatt = thispatt[:14] # ignore seconds so that we don't miss data
+        self.patt = thispatt         
         self.dir_path = os.path.join(self.fb_dir, thispatt)
         log.info(f'getting data matching {thispatt}')
         getLiveJpgs(thispatt, outdir=self.dir_path)
