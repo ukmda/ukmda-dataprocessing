@@ -46,8 +46,8 @@ else {
     set-location $binviewer_pyt_loc
     python CMN_BinViewer.py $myf -c
 }
-set-location $PSScriptRoot
-.\uploadToCmnRejected.ps1 $myf
+#set-location $PSScriptRoot
+#.\uploadToCmnRejected.ps1 $myf
 
 # switch RMS environment to do some post processing
 if ($RMS_INSTALLED -eq 1){
