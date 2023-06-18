@@ -5,7 +5,10 @@ import os
 import pandas as pd
 
 from ukmon_meteortools.fileformats import trackCsvtoKML
-from wmpl.Utils.Pickling import loadPickle
+try:
+    from wmpl.Utils.Pickling import loadPickle
+except:
+    print('WMPL not available')
 
 
 def pickleToKml(picklename, outdir=None):
