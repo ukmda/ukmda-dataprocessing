@@ -38,13 +38,16 @@ source ~/.bash_aliases
 ######### end of generic configuration
 
 ######### UKMON-specific configuration 
+cd ~/source
+git clone https://github.com/markmac99/ukmon-pitools.git
+cd ~/source/ukmon-pitools
+./refreshTools.sh
 chmod 0600 ~/.ssh/ukmon 
 chmod 0644 ~/.ssh/ukmon.pub
 cp ~/RMS_data/config/ukmon.ini ~/source/ukmon-pitools
+./refreshTools.sh
 if [ -f ~/RMS_data/config/domp4s ] ; then cp ~/RMS_data/config/domp4s ~/source/ukmon-pitools ; fi
 if [ -f ~/RMS_data/config/dotimelapse ] ; then cp ~/RMS_data/config/dotimelapse ~/source/ukmon-pitools ; fi
-cd ~/source/ukmon-pitools
-./refreshTools.sh
 
 ######### user-specific stuff, remove if not me!
 chmod 0600 ~/.ssh/pikey
