@@ -1,5 +1,5 @@
 locals {
-    origin_id = "S3-cf-templates-rvcg0s5ddz85-eu-west-2"
+  origin_id = "S3-cf-templates-rvcg0s5ddz85-eu-west-2"
 }
 
 resource "aws_cloudfront_distribution" "arch_distribution" {
@@ -44,6 +44,11 @@ resource "aws_cloudfront_distribution" "arch_distribution" {
     cloudfront_default_certificate = false
     minimum_protocol_version       = "TLSv1.2_2021"
     ssl_support_method             = "sni-only"
+  }
+  logging_config {
+    bucket          = "ukmon-s3-access-logs.s3.amazonaws.com"
+    include_cookies = false
+    prefix          = "cdn"
   }
   tags = {
     "billingtag" = "ukmon"
