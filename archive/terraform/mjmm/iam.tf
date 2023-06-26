@@ -221,6 +221,7 @@ resource "aws_iam_user" "ukmon_tester" {
   name = "ukmon_tester"
   tags = {
     "billingtag" = "ukmon"
+    "AKIAUUCG4WH4B3XOH3WZ" = "ukmon_tester"
   }
 }
 
