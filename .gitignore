@@ -596,3 +596,4 @@ archive/containers/RMS-docker/Dockerfile_orig.txt
 usermgmt/gmailkeys/*
 usermgmt/server/ukmonfundraising.txt
 usermgmt/server/ukmoncommittee.txt
+usermgmt/server/ukmon*.json

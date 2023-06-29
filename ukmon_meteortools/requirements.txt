@@ -13,7 +13,8 @@ google-api-python-client
 googleapis-common-protos
 jplephem
 Keras
-matplotlib==3.3.2
+matplotlib==3.3.2 ; python_version <= 3.8
+matplotlib ; python_version > 3.8
 numpy
 oauthlib
 pandas

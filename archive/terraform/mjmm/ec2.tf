@@ -44,7 +44,7 @@ resource "aws_instance" "ukmonhelper_g" {
     throughput = 125
     iops = 3000
     encrypted = true
-    kms_key_id = aws_kms_key.container_key.id
+    kms_key_id = aws_kms_key.container_key.arn
   }
 
   tags = {
@@ -53,6 +53,16 @@ resource "aws_instance" "ukmonhelper_g" {
     "project"    = "UKMonHelper2"
   }
 }
+
+resource "aws_eip" "ukmonhelper2" {
+  instance = aws_instance.ukmonhelper_g.id
+  vpc      = true
+  tags = {
+    billingtag = "ukmon"
+  }
+}
+
+
 
 resource "aws_instance" "backuprunner" {
   ami                  = "ami-0d729d2846a86a9e7"

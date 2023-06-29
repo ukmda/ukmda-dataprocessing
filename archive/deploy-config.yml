@@ -1,4 +1,4 @@
-- hosts: ukmonhelper
+- hosts: "{{host | default ('ukmonhelper')}}"
   vars:
     srcdir: /mnt/e/dev/meteorhunting/UKMON-shared/archive
   tasks:
