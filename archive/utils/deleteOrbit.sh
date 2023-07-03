@@ -3,6 +3,7 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 traj=$1
 ymd=${traj:0:8}
