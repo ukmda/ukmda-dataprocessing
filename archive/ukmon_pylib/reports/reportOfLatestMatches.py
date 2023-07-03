@@ -33,15 +33,8 @@ def processLocalFolder(trajdir, basedir):
     if '.pickle' in realtraj:
         realtraj, _ = os.path.split(realtraj)
     tstamp = datetime.datetime.strptime(dname[:15],'%Y%m%d_%H%M%S').timestamp()
-    outstr = '{},{:s},{:s},{:.1f}'.format(int(tstamp), realtraj, shwr, bestvmag)
-
-    for f in stations:
-        if len(f) < 4:
-            break
-        outstr = outstr + ',' + f
-    outstr = outstr.strip()
-    #print(outstr)
-
+    outstr = '{},{:s},{:s},{:.1f},'.format(int(tstamp), realtraj, shwr, bestvmag)
+    outstr = outstr + ';'.join(stations)
     return outstr
 
 
@@ -108,12 +101,8 @@ def findNewMatches(dir_path, out_path, offset, repdtstr, dbname):
 
             _, dname = os.path.split(trajdir)
             tstamp = datetime.datetime.strptime(dname[:15],'%Y%m%d_%H%M%S').timestamp()
-            outstr = '{},{:s},{:s},{:.1f}'.format(int(tstamp), trajpath, shwr, bestvmag)
-
-            for f in stations:
-                if len(f) < 4:
-                    break
-                outstr = outstr + ',' + f
+            outstr = '{},{:s},{:s},{:.1f},'.format(int(tstamp), trajpath, shwr, bestvmag)
+            outstr = outstr + ';'.join(stations)
             outstr = outstr.strip()
             #print(outstr)
             outf.write('{}\n'.format(outstr))
