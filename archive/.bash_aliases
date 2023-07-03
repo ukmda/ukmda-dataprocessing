@@ -21,13 +21,13 @@ alias stopcalc='~/prod/utils/stopstart-calcengine.sh stop'
 
 function dev {
 	source ~/dev/config.ini >/dev/null
-	source ~/venvs/$WMPL_ENV/bin/activate
+	conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 	PS1="(wmpl) (dev) [\W]\$ "
 	cd ~/dev
 }
 function prd {
 	source ~/prod/config.ini >/dev/null
-	source ~/venvs/$WMPL_ENV/bin/activate
+	conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 	PS1="(wmpl) (prd) [\W]\$ "
 	cd ~/prod
 }
