@@ -7,7 +7,7 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd $here
 source ~/prod/config.ini >/dev/null 2>&1
-source $HOME/venvs/${WMPL_ENV}/bin/activate
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 # ukmonfundraiser
 recips=$here/ukmonfundraising.txt

@@ -20,7 +20,7 @@ else
     keydir=/home/ec2-user/keymgmt
 
 fi
-source ~/venvs/$WMPL_ENV/bin/activate
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 cd $keydir
 
