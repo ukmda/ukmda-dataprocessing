@@ -451,21 +451,22 @@ def calcAdditionalValues(traj):
     mass = calcMass(time_data_all, abs_mag_data_all, traj.v_avg, P_0m=1210)
 
     shower_obj = None  # initialise this
-    orb = traj.orbit
-    if orb.L_g is not None:
-        lg = np.degrees(orb.L_g)
-        bg = np.degrees(orb.B_g)
-        vg = orb.v_g
-        shower_obj = associateShower(orb.la_sun, orb.L_g, orb.B_g, orb.v_g)
-        if shower_obj is None:
-            id = -1
-            cod = 'spo'
-            shwrname='Sporadic'
-        else:
-            id = shower_obj.IAU_no
-            cod = shower_obj.IAU_code
-            _, shwrname, _, _ = getShowerDets(cod)
-    else:
+    try:
+        orb = traj.orbit
+        if orb.L_g is not None:
+            lg = np.degrees(orb.L_g)
+            bg = np.degrees(orb.B_g)
+            vg = orb.v_g
+            shower_obj = associateShower(orb.la_sun, orb.L_g, orb.B_g, orb.v_g)
+            if shower_obj is None:
+                id = -1
+                cod = 'spo'
+                shwrname='Sporadic'
+            else:
+                id = shower_obj.IAU_no
+                cod = shower_obj.IAU_code
+                _, shwrname, _, _ = getShowerDets(cod)
+    except Exception:
         # no orbit was calculated
         lg = 0
         bg = 0
