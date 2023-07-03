@@ -27,7 +27,7 @@ resource "aws_instance" "ukmonhelper" {
 }
 
 resource "aws_instance" "ukmonhelper_g" {
-  ami                  = "ami-0bba6371ce54738a5"
+  ami                  = "ami-0c127ddea5a07804b"
   instance_type        = "t4g.micro"
   iam_instance_profile = aws_iam_instance_profile.S3FullAccess.name
   key_name             = aws_key_pair.marks_key.key_name
