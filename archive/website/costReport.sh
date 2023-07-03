@@ -18,7 +18,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 # load the configuration
 source $here/../config.ini >/dev/null 2>&1
 
-source ~/venvs/$WMPL_ENV/bin/activate
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 export PYTHONPATH=$PYLIB
 
 numdays=90
@@ -30,8 +30,7 @@ python -m metrics.costMetrics $SRC/costs eu-west-2 $numdays
 export AWS_PROFILE=ukmonshared
 python -m metrics.costMetrics $SRC/costs eu-west-2 $numdays
 
-unset AWS_ACCESS_KEY_ID
-unset AWS_SECRET_ACCESS_KEY
+unset AWS_PROFILE
 
 cp $SRC/costs/costs-*-90-days.jpg $DATADIR/reports
 
@@ -63,5 +62,5 @@ fi
 cat $TEMPLATES/footer.html >> $costfile
 
 aws s3 cp $costfile $WEBSITEBUCKET/reports/ --quiet
-aws s3 cp $DATADIR/$imgfile $WEBSITEBUCKET/reports/ --quiet
+aws s3 cp $DATADIR/$imgfile $WEBSITEBUCKET/reports/ --quiet 
 aws s3 cp $DATADIR/$imgfile2 $WEBSITEBUCKET/reports/ --quiet
