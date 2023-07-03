@@ -16,7 +16,7 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
-source $HOME/venvs/$WMPL_ENV/bin/activate
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 $SRC/utils/clearCaches.sh
 
 if [ $# -eq 0 ]; then

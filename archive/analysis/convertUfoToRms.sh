@@ -16,7 +16,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # load the configuration
 source $here/../config.ini >/dev/null 2>&1
-source $HOME/venvs/${WMPL_ENV}/bin/activate
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 # get the date to operate for
 if [ $# -eq 0 ]; then

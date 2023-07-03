@@ -31,7 +31,7 @@ logger -s -t createFireballPage "creating fireball page for $yr"
 mkdir -p $DATADIR/reports/$yr/fireballs > /dev/null 2>&1
 cd $DATADIR/reports/$yr/fireballs
 
-source $HOME/venvs/$WMPL_ENV/bin/activate
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 python -m reports.findFireballs ${yr} ALL $2
 
 echo "\$(function() {" > reportindex.js

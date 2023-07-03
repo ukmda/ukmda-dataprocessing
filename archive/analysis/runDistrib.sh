@@ -51,7 +51,7 @@ while [ "$stat" -ne 16 ]; do
     stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
 done
 logger -s -t runDistrib "RUNTIME $SECONDS running phase 1 for dates ${begdate} to ${rundate}"
-source ~/venvs/${WMPL_ENV}/bin/activate
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 logger -s -t runDistrib "RUNTIME $SECONDS creating the run script"
 execMatchingsh=/tmp/execdistrib.sh

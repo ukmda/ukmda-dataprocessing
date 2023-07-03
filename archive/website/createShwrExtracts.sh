@@ -20,7 +20,7 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
-source ~/venvs/$WMPL_ENV/bin/activate
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 mkdir -p $DATADIR/browse/showers
 
