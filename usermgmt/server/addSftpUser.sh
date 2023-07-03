@@ -59,6 +59,8 @@ if [ $? -eq 1 ] ; then
     sudo chown root:sftp /var/sftp/$userid
     sudo chmod 751 /var/sftp/$userid
     sudo mkdir /var/sftp/$userid/.ssh
+    sudo mkdir /var/sftp/$userid/platepar
+    sudo chown $userid:$userid /var/sftp/$userid/platepar
 else
     logger -s -t addSftpUser "Unix user $userid already exists"
 fi
