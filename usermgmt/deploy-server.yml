@@ -38,9 +38,9 @@
     - {src: '{{srcdir}}/mailForwarder.py', dest: '{{destdir}}/', mode: '644', backup: yes, directory_mode: no }
     - {src: '{{srcdir}}/ukmon.ini', dest: '{{destdir}}/', mode: '644', backup: yes, directory_mode: no }
     - {src: '{{srcdir}}/emailForwarder.sh', dest: '{{destdir}}/', mode: '754', backup: yes, directory_mode: no }
-    - {src: '{{srcdir}}/../gmailkeys/ukmonfundraising_token.json', dest: '{{destdir}}/', mode: '600', backup: yes, directory_mode: no }
-    - {src: '{{srcdir}}/../gmailkeys/ukmonfundraising_creds.json', dest: '{{destdir}}/', mode: '600', backup: yes, directory_mode: no }
-    - {src: '{{srcdir}}/ukmonfundraising.txt', dest: '{{destdir}}/', mode: '600', backup: yes, directory_mode: no }
-    - {src: '{{srcdir}}/../gmailkeys/ukmoncommittee_token.json', dest: '{{destdir}}/', mode: '600', backup: yes, directory_mode: no }
-    - {src: '{{srcdir}}/../gmailkeys/ukmoncommittee_creds.json', dest: '{{destdir}}/', mode: '600', backup: yes, directory_mode: no }
-    - {src: '{{srcdir}}/ukmoncommittee.txt', dest: '{{destdir}}/', mode: '600', backup: yes, directory_mode: no }
+  #  - {src: '{{srcdir}}/../gmailkeys/ukmonfundraising_token.json', dest: '{{destdir}}/', mode: '600', backup: yes, directory_mode: no }
+  #  - {src: '{{srcdir}}/../gmailkeys/ukmonfundraising_creds.json', dest: '{{destdir}}/', mode: '600', backup: yes, directory_mode: no }
+  #  - {src: '{{srcdir}}/ukmonfundraising.txt', dest: '{{destdir}}/', mode: '600', backup: yes, directory_mode: no }
+  #  - {src: '{{srcdir}}/../gmailkeys/ukmoncommittee_token.json', dest: '{{destdir}}/', mode: '600', backup: yes, directory_mode: no }
+  #  - {src: '{{srcdir}}/../gmailkeys/ukmoncommittee_creds.json', dest: '{{destdir}}/', mode: '600', backup: yes, directory_mode: no }
+  #  - {src: '{{srcdir}}/ukmoncommittee.txt', dest: '{{destdir}}/', mode: '600', backup: yes, directory_mode: no }
