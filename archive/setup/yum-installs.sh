@@ -74,7 +74,9 @@ python setup.py install
 
 echo "now edit wmpl/__init__.py and add GUI to the list of things to be ignored"
 
-pip install boto3 gmplot cryptography python_crontab
+pip install boto3 gmplot cryptography python_crontab dynamodb_json
+
+echo now install mariadb and migrate the database
 
 # not required on the batch server
 mkdir ~/src/ukmon_pylib
