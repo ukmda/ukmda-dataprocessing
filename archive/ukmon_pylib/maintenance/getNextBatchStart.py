@@ -3,10 +3,10 @@
 # script to get next batch start time in a format compatible with at
 #
 
-from RMS.CaptureDuration import captureDuration
 import datetime
 import sys
 from crontab import CronTab
+from ukmon_meteortools.utils import getNextRiseSet
 
 
 offset = 90
@@ -16,12 +16,8 @@ if len(sys.argv) > 1:
 if len(sys.argv) > 2:
     batchname = sys.argv[2]
 
-st, dur=captureDuration(51.88,-1.31,80) 
-if st is True:
-    # the batch too too long to run so just quit
-    exit(0)
+dawn, dusk = getNextRiseSet(51.88, -1.31, 80) 
 
-dawn = st + datetime.timedelta(seconds=dur)
 starttime = dawn + datetime.timedelta(minutes=offset)
 print('Setting batch start time to', starttime.strftime('%H:%M'))
 
