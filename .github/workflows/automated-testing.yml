@@ -7,8 +7,8 @@ on:
 
 jobs:
   # Build the documentation and upload the static HTML files as an artifact.
-  pi4tests:
-    runs-on: [ukmonhelper, ukmonhelper2]
+  linuxtests:
+    runs-on: [ukmonhelper2]
     steps:
       - uses: actions/checkout@v3
       - run: chmod +x ./ukmon_meteortools/tests/*.sh
