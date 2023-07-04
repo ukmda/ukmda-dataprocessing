@@ -1,7 +1,12 @@
 #!/bin/bash
 
-source ~/dev/config.ini
-conda activate $HOME/miniconda3/envs/${WMPL_ENV}
+[ -f ~/dev/config.ini ] && source ~/dev/config.ini
+
+if [ -x $(conda info) ] ; then 
+    source $HOME/venvs/${WMPL_ENV}
+else
+    conda activate $HOME/miniconda3/envs/wmpl
+fi
 
 export PYTHONPATH=$WMPL_LOC:$RMS_LOC:.:..
 
