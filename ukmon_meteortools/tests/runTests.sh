@@ -5,7 +5,7 @@
 if [ -x $(conda info) ] ; then 
     source $HOME/venvs/${WMPL_ENV}/bin/activate
 else
-    conda activate $HOME/miniconda3/envs/{WMPL_ENV}
+    conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 fi
 
 export PYTHONPATH=$WMPL_LOC:$RMS_LOC:.:..
