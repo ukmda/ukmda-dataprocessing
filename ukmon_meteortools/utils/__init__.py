@@ -16,6 +16,8 @@ getActiveShowers, getActiveShowersStr, getShowerDets, getShowerPeak
 
 sendAnEmail, forwardAnEmail
 
+getNextRiseSet
+
 """
 from .Math import jd2Date, date2JD,datetime2JD, jd2DynamicalTimeJD, JULIAN_EPOCH, J2000_JD, jd2LST
 from .Math import greatCircleDistance, angleBetweenSphericalCoords, calcApparentSiderealEarthRotation
@@ -29,5 +31,6 @@ from .sendAnEmail import sendAnEmail, forwardAnEmail
 from .drawFTPfile import drawFTPFile
 from .plotTrack import trackToDistvsHeight, trackToTimevsVelocity, trackToTimevsHeight
 from .getOverlappingFovs import checkKMLOverlap, pointInsideFov, getOverlapWith, getOverlappingCameras
+from .getRiseSet import getNextRiseSet
 
 #from .findNearDuplicates import findNearDuplicates
