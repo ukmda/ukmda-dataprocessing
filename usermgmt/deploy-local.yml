@@ -42,3 +42,10 @@
       line: '$env:AWS_PROFILE="{{awsprofile}}"'
     delegate_to: localhost
     tags: [dev,prod]
+  - name: update helper servername
+    lineinfile:
+      path: '{{windestdir}}/StationMaint.ps1'
+      regexp: '\$env:HELPERSERVER='
+      line: '$env:HELPERSERVER="{{helper}}"'
+    delegate_to: localhost
+    tags: [dev,prod]

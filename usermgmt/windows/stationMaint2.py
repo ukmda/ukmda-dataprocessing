@@ -434,7 +434,7 @@ class CamMaintenance(Frame):
 
 
 def updateKeyfile(caminfo, location):
-    server='ukmonhelper'
+    server=os.getenv('HELPERSERVER', default='ukmonhelper')
     user='ec2-user'
     keyf = os.path.join('jsonkeys', location + '.key')
     currkey = json.load(open(keyf, 'r'))
@@ -494,7 +494,7 @@ def addNewOwner(locstatfile, rmsid, location, user, email):
 
 
 def getSSHkey(loc, dir):
-    server='ukmonhelper'
+    server=os.getenv('HELPERSERVER', default='ukmonhelper')
     user='ec2-user'
     tmpdir=os.getenv('TEMP', default='c:/temp')
     cameraname = (loc + '_' + dir).lower()
@@ -526,7 +526,7 @@ def getUserDetails(statfile, camid):
 
 
 def addNewUnixUser(location, direction, oldcamname='', updatemode=0):
-    server='ukmonhelper'
+    server=os.getenv('HELPERSERVER', default='ukmonhelper')
     user='ec2-user'
     cameraname = location.lower() + '_' + direction.lower()
     print(f'adding new Unix user {cameraname}')

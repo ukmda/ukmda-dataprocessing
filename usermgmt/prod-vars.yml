@@ -3,3 +3,4 @@
     destdir: /home/ec2-user/keymgmt
     srcbucket: ukmon-shared
     awsprofile: ukmon-markmcintyre
+    helper: ukmonhelper2

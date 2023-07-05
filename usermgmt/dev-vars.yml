@@ -3,3 +3,4 @@
     destdir: /home/ec2-user/dev/keymgmt
     srcbucket: mjmm-ukmon-shared
     awsprofile: default
+    helper: ukmonhelper2
