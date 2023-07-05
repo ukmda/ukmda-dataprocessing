@@ -1,7 +1,11 @@
 # test the RMS and WMPL utils in the library
 
 import os
-from rmsutils import multiDayRadiant, multiTrackStack #, analyseUFOwithRMS
+try:
+    from rmsutils import multiDayRadiant, multiTrackStack #, analyseUFOwithRMS
+except:
+    print('rms not available')
+    exit
 
 here = os.path.split(os.path.abspath(__file__))[0]
 
