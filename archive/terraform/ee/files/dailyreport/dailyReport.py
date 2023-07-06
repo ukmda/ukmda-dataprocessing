@@ -61,9 +61,10 @@ def AddRowRMS(body, bodytext, ele):
     lnkstr = lnkpathRMS.format(yr, ym, ymd, pth)
     shwr = spls[2]
     mag = spls[3]
-    stats=''
-    for s in range(4,len(spls)):
-        stats = stats + spls[s] +' '
+    if len(spls) > 4:
+        stats=spls[4].replace(';', ' ')
+    else:
+        stats='unknown'
 
     str1 = '<tr><td><a href="{:s}">{:s}</a></td><td>{:s}</td><td>{:s}</td><td>{:s}</td></tr>'.format(lnkstr, pth, shwr, mag, stats)
     body = body + str1
