@@ -2,7 +2,7 @@
 
 [ -f ~/dev/config.ini ] && source ~/dev/config.ini
 
-if [ -x $(conda info) ] ; then 
+if [  "$(which conda)" == "" ] ; then 
     source $HOME/venvs/${WMPL_ENV}/bin/activate
 else
     conda activate $HOME/miniconda3/envs/${WMPL_ENV}

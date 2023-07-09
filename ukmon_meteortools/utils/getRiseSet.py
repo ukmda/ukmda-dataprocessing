@@ -3,13 +3,14 @@
 import ephem
 
 
-def getNextRiseSet(lati, longi, elev):
+def getNextRiseSet(lati, longi, elev, fordate=None):
     """ Calculate the next rise and set times for a given lat, long, elev  
 
     Paramters:  
         lati:   [float] latitude in degrees  
         longi:  [float] longitude in degrees (+E)  
         elev:   [float] latitude in metres  
+        fordate:[datetime] date to calculate for, today if none
 
     Returns:  
         rise, set:  [date tuple] next rise and set as datetimes  
@@ -22,6 +23,8 @@ def getNextRiseSet(lati, longi, elev):
     obs.lon = float(longi) / 57.3
     obs.elev = float(elev)
     obs.horizon = -6.0 / 57.3 # degrees below horizon for darkness
+    if fordate is not None:
+        obs.date = fordate
 
     sun = ephem.Sun()
     rise = obs.next_rising(sun).datetime()
