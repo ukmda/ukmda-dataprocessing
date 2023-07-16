@@ -19,17 +19,15 @@ $ini=get-inicontent analysis.ini
 
 #$stationdetails=$ini['fireballs']['stationdets']
 $fbfldr=$ini['fireballs']['localfolder']
-$env:PYLIB=$ini['pylib']['pylib']
 
 # set up paths
 $targpth = $fbfldr + '\' + $args[0]
 set-location $targpth
 
 conda activate $ini['wmpl']['wmpl_env']
-$wmplloc=$ini['wmpl']['wmpl_loc']
-$env:pythonpath="$wmplloc;$env:pylib"
-
-# Write-Output $env:pythonpath
+# set PROJ_DIR
+$pdd=(python -c "import pyproj ; print(pyproj.datadir.get_data_dir())")
+$env:proj_dir="${pdd}"
 
 $solver = read-host -prompt "ECSV or RMS solver? (E/R)"
 if ($solver -eq 'E') {

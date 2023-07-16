@@ -9,7 +9,7 @@ traj=$1
 ymd=${traj:0:8}
 
 python -c "from maintenance.manageTraj import deleteDuplicate as dd; dd('$traj'); "
-if [ $? == 1 ] ; then 
+if [ $? == 0 ] ; then 
     $SRC/website/createOrbitIndex.sh $ymd
 
     # update the daily report files
