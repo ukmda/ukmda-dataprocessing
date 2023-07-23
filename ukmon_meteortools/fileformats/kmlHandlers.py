@@ -115,6 +115,7 @@ def trackKMLtoCsv(kmlfile, kmldata = None, saveOutput=True, outdir=None):
     df = pd.DataFrame({"lats": lats, "lons": lons, "alts": alts, "times": tims})
     df = df.sort_values(by=['times', 'lats'])
     if saveOutput:
+        fname = kmlfile
         if outdir is None:
             outdir, fname = os.path.split(kmlfile)
         outf = os.path.join(outdir, fname).replace('.kml', '.csv').replace('.KML','.csv')
