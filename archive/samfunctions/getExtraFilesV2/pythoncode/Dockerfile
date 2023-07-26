@@ -6,7 +6,7 @@ RUN python3.8 -m pip install -r requirements.txt -t .
 RUN yum update -y
 ENV LD_LIBRARY_PATH ./
 COPY WesternMeteorPyLib/ ./WesternMeteorPyLib
-COPY *.npy ./WesternMeteorPyLib/wmpl/share/
+#COPY *.npy ./WesternMeteorPyLib/wmpl/share/
 COPY *.py ./
 ENV PYTHONPATH ./WesternMeteorPyLib
 ENV PROJ_LIB ./
