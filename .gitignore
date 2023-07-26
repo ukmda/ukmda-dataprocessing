@@ -597,3 +597,5 @@ usermgmt/gmailkeys/*
 usermgmt/server/ukmonfundraising.txt
 usermgmt/server/ukmoncommittee.txt
 usermgmt/server/ukmon*.json
+**/awskeys.test
+**/trajsolver_old/*

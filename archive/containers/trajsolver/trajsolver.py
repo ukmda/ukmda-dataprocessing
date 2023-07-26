@@ -112,7 +112,7 @@ def runCorrelator(dir_path, time_beg, time_end):
         dh.unpaired_observations = dh.loadUnpairedObservations(dh.processing_list, dt_range=(bin_beg, bin_end))
 
         # Run the trajectory correlator
-        tc = TrajectoryCorrelator(dh, trajectory_constraints, velpart, data_in_j2000=True, distribute=distribute)
+        tc = TrajectoryCorrelator(dh, trajectory_constraints, velpart, data_in_j2000=True, distribute=distribute, enableOSM=True)
         tc.run(event_time_range=event_time_range)
     
     print("Total run time: {:s}".format(str(datetime.datetime.utcnow() - t1)))
@@ -196,12 +196,11 @@ def startup(srcfldr, startdt, enddt, isTest=False):
     os.makedirs(canddir, exist_ok = True)
 
     sts_client = boto3.client('sts')
-
     try: 
         assumed_role_object=sts_client.assume_role(
             RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
             RoleSessionName="AssumeRoleSession1")
-
+        
         credentials=assumed_role_object['Credentials']
 
         s3 = boto3.resource('s3',
@@ -209,17 +208,18 @@ def startup(srcfldr, startdt, enddt, isTest=False):
             aws_secret_access_key=credentials['SecretAccessKey'],
             aws_session_token=credentials['SessionToken'])    
     except:
+        print('loading keys from file')
         with open('awskeys','r') as inf:
             lis = inf.readlines()
         s3 = boto3.resource('s3',
             aws_access_key_id=lis[0].strip(),
-            aws_secret_access_key=lis[1].strip(),
+            aws_secret_access_key=lis[1].strip(), 
             region_name = 'eu-west-2')
 
     srcbucket, srcpth, outbucket, outpth, webbucket, webpth = getSourceAndTargets()
     if isTest is True:
         outpth = os.path.join(outpth, 'test')
-        
+
     srckey = f'{srcpth}/{srcfldr}/'
 
     print(f'fetching data from {srckey}')

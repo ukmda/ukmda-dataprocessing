@@ -1,21 +1,20 @@
 # Copyright (C) 2018-2023 Mark McIntyre
+FROM continuumio/miniconda3:4.11.0
 
-FROM public.ecr.aws/lambda/python:3.8
-RUN yum -y update
-RUN pip install --upgrade pip
-COPY requirements.txt ./
-RUN python3.8 -m pip install -r requirements.txt -t .
-ENV LD_LIBRARY_PATH ./:
+RUN conda install -y -c conda-forge "numpy<1.25.0" scipy cython pytz pyqt
+RUN conda install -y -c conda-forge jplephem ephem
+RUN conda install -y -c conda-forge basemap basemap-data-hires
+RUN conda install -y -c conda-forge pandas cartopy
+RUN conda install -y matplotlib=3.4.3 
+RUN pip install boto3
+RUN apt-get update && apt-get -y upgrade 
 
 COPY WesternMeteorPyLib/ ./WesternMeteorPyLib
 ENV PYTHONPATH ./WesternMeteorPyLib
 ENV PROJ_LIB ./
-RUN pip install boto3
 COPY *.py ./
+#ENV NUMPY_EXPERIMENTAL_DTYPE_API 1
 
-# uncomment this to test the container locally eg with "docker run -t trajsolver 20220924_01"
-# where 20220924_01 is a folder in s3://ukmon-shared/matches/distrib containing pairing pickles 
-
-#COPY awskeys ./
+COPY awskey[s] ./
 
 ENTRYPOINT ["python", "trajsolver.py"]
