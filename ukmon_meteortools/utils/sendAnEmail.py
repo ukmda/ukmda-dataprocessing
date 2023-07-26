@@ -44,6 +44,36 @@ def _getGmailCreds(tokfile=None, crdfile=None):
     return creds
 
 
+def _refreshCreds(tokfile=None, crdfile=None):
+    creds = None
+    # The file token.json stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+    if tokfile is None:
+        tokfile = '~/.ssh/gmailtoken.json'
+    if crdfile is None:
+        crdfile = '~/.ssh/gmailcreds.json'
+    tokfile = os.path.expanduser(tokfile)
+    crdfile = os.path.expanduser(crdfile)
+    if os.path.exists(tokfile):
+        creds = Credentials.from_authorized_user_file(tokfile, SCOPES)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            try: 
+                creds.refresh(Request())
+            except: 
+                flow = InstalledAppFlow.from_client_secrets_file(crdfile, SCOPES)
+                creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        if creds.valid:
+            with open(tokfile, 'w') as token:
+                token.write(creds.to_json())
+        else:
+            print('credentials not valid, try again')
+    return creds
+
+
 def _create_message(sender, to, subject, message_text):
     msg = MIMEText(message_text)
     msg['to'] = to
