@@ -8,7 +8,7 @@ on:
 jobs:
   # Build the documentation and upload the static HTML files as an artifact.
   build:
-    runs-on: [self-hosted, ukmonhelper]
+    runs-on: [self-hosted, k8s]
     steps:
       - uses: actions/checkout@v3
       - run: chmod +x ./ukmon_meteortools/tests/*.sh
