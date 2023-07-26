@@ -1,0 +1,6 @@
+    winsrcdir: /mnt/e/dev/meteorhunting/UKmon-shared/usermgmt/windows
+    windestdir: /mnt/f/videos/MeteorCam/usermgmt
+    destdir: /home/ec2-user/keymgmt
+    srcbucket: ukmon-shared
+    awsprofile: ukmon-markmcintyre
+    helper: ukmonhelper2

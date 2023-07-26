@@ -44,7 +44,7 @@ resource "aws_cloudwatch_metric_alarm" "calcServerIdle" {
   ok_actions                = []
   datapoints_to_alarm       = 4
   alarm_actions = [
-    aws_sns_topic.ukmonalerts.arn,
+    #aws_sns_topic.ukmonalerts.arn,
     "arn:aws:automate:${var.region}:ec2:stop",
   ]
   dimensions = {

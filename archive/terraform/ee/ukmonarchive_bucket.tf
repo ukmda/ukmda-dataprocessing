@@ -105,7 +105,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "archsitelcp" {
     status = "Enabled"
     id     = "Transition reports to IA"
     filter {
-      prefix = "/reports"
+      prefix = "reports/"
     }
 
     transition {
@@ -117,7 +117,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "archsitelcp" {
     status = "Enabled"
     id     = "Transition images to IA"
     filter {
-      prefix = "/img"
+      prefix = "img/"
     }
 
     transition {
@@ -129,7 +129,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "archsitelcp" {
     status = "Enabled"
     id     = "Transition CSVs to IA"
     filter {
-      prefix = "/browse"
+      prefix = "browse/"
     }
 
     transition {

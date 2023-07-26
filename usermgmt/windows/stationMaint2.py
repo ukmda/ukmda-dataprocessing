@@ -120,14 +120,21 @@ class statOwnerDialog(simpledialog.Dialog):
         return 
 
 
-class demo(Frame):
+class CamMaintenance(Frame):
 
     def __init__(self, parent):
         self.parent = parent
         Frame.__init__(self, parent)
 
         s3 = boto3.client('s3')
-        self.bucket_name = 'ukmon-shared'
+        self.bucket_name = os.getenv('SRCBUCKET', default='ukmon-shared')
+        print(self.bucket_name)
+
+        os.makedirs('jsonkeys', exist_ok=True)
+        os.makedirs('csvkeys', exist_ok=True)
+        os.makedirs('users', exist_ok=True)
+        os.makedirs('inifs', exist_ok=True)
+        os.makedirs('sshkeys', exist_ok=True)
 
         self.camfile = 'camera-details.csv'
         self.fullname = 'consolidated/{}'.format(self.camfile)
@@ -168,6 +175,8 @@ class demo(Frame):
         camMenu.add_separator()
         camMenu.add_command(label = "Update SSH Key", command = self.newSSHKey)
         camMenu.add_command(label = "Update AWS Key", command = self.newAWSKey)
+        camMenu.add_separator()
+        camMenu.add_command(label = "Check Camera", command = self.checkLastUpdate)
 
         ownMenu = Menu(self.menuBar, tearoff=0)
         ownMenu.add_command(label = "View Owner Data", command = self.viewOwnerData)
@@ -212,6 +221,7 @@ class demo(Frame):
                                          "undo",
                                          "edit_cell"
                                     ))
+        self.sheet.popup_menu_add_command("Sort by this Column", self.columns_sort)
 
         self.frame.grid(row = 1, column = 0, sticky = "nswe")
         self.sheet.grid(row = 0, column = 0, sticky = "nswe")
@@ -293,8 +303,9 @@ class demo(Frame):
         #print(response)
 
     def columns_sort(self):
-        col = self.sheet.get_selected_columns()
-        print(col)
+        cursel = self.sheet.get_selected_cells()
+        col = list(cursel)[0][1]
+        print(self.hdrs[col])
         pass
         
     def column_select(self, response):
@@ -347,6 +358,16 @@ class demo(Frame):
     def moveCamera(self):
         self.addCopyCamera(move=True)
         return
+    
+    def checkLastUpdate(self):
+        cursel = self.sheet.get_selected_cells()
+        cr = list(cursel)[0][0]
+        curdata = self.data[cr]
+        camid = curdata[1]
+        lastupd = ct.getCamUpdateDate(camid)
+        msg = f'{camid} last sent a live image on {lastupd}'
+        tk.messagebox.showinfo(title="Information", message=msg)
+        return 
 
     def addCamera(self):
         self.addCopyCamera(move=False)
@@ -356,9 +377,9 @@ class demo(Frame):
         cursel = self.sheet.get_selected_cells()
         cr = list(cursel)[0][0]
         curdata = self.data[cr]
-        user,email = self.getUserDetails(curdata[1])
+        user,email = getUserDetails(self.statfile, curdata[1])
         if move is True:
-            sshkey = self.getSSHkey(curdata[0], curdata[3])
+            sshkey = getSSHkey(curdata[0], curdata[3])
             id = curdata[1]
             title = 'Move Camera'
             oldloc = curdata[0].lower() + '_' + curdata[3].lower()
@@ -378,9 +399,9 @@ class demo(Frame):
                 outf.write(d[5])
             rowdata=[d[1],d[0],d[0],d[2],'2',d[0],'1']
             self.sheet.insert_row(values=rowdata, idx=0)
-            self.addNewAwsUser(location)
-            self.addNewUnixUser(location, direction, oldloc)
-            self.addNewOwner(rmsid, location, d[3], d[4])
+            addNewAwsUser(location)
+            addNewUnixUser(location, direction, oldloc)
+            addNewOwner(self.locstatfile, rmsid, location, d[3], d[4])
             self.datachanged = True
         return 
 
@@ -388,7 +409,7 @@ class demo(Frame):
         cursel = self.sheet.get_selected_cells()
         cr = list(cursel)[0][0]
         curdata = self.data[cr]
-        user,email = self.getUserDetails(curdata[1])
+        user,email = getUserDetails(self.statfile, curdata[1])
         sshkey = ''
         id = ''
         title = 'Update SSH Key'
@@ -400,7 +421,7 @@ class demo(Frame):
             cameraname = d[1].lower() + '_' + d[2].lower()
             with open(os.path.join('sshkeys', cameraname + '.pub'), 'w') as outf:
                 outf.write(d[5])
-            self.addNewUnixUser(location, direction, updatemode=2)
+            addNewUnixUser(location, direction, updatemode=2)
             self.datachanged = True
         return 
 
@@ -409,131 +430,47 @@ class demo(Frame):
         cr = list(cursel)[0][0]
         curdata = self.data[cr]
         location = curdata[0]
-        keyf = os.path.join('jsonkeys', location + '.key')
-        oldkeyf = os.path.join('jsonkeys', location + '-prev.key')
-        csvf = os.path.join('csvkeys', location + '.csv')
-        shutil.copyfile(keyf, oldkeyf)
-        currkey = json.load(open(keyf, 'r'))
-        keyid = currkey['AccessKey']['AccessKeyId']
-        print(location, keyid)
-        affectedcamlist = self.caminfo[self.caminfo.site == location]
-        for _, cam in affectedcamlist.iterrows():
-            print(cam.site.lower(), cam.sid.lower())
-        return 
-
-        iamc = boto3.client('iam')
-        iamc.update_access_key(UserName=location, AccessKeyId=keyid, Status='Inactive')
-        key = iamc.create_access_key(UserName=location)
-        with open(keyf, 'w') as outf:
-            outf.write(json.dumps(key, indent=4, sort_keys=True, default=str))
-        with open(csvf,'w') as outf:
-            outf.write('Access key ID,Secret access key\n')
-            outf.write('{},{}\n'.format(key['AccessKey']['AccessKeyId'], key['AccessKey']['SecretAccessKey']))
-
-        return 
-
-    def addNewOwner(self, rmsid, location, user, email):
-        print('adding new owner')
-        caminfo = pandas.read_csv(self.locstatfile)
-        newdata = {'camid': [rmsid], 'site': [location], 'humanName':[user], 'eMail': [email]}
-        newdf = pandas.DataFrame(newdata)
-        caminfo = caminfo.append(newdf).sort_values(by=['camid'])
-        caminfo.to_csv(self.locstatfile, index=False)
-
-        ct.addRow(rmsid, location)
-
-        return
-
-    def addNewAwsUser(self, location):
-        print(f'adding new location {location} to AWS')
-        acct = '822069317839'  # empireelments account
-        policyarn = 'arn:aws:iam::' + acct + ':policy/UkmonLive'
-        group = 'ukmon'
-        keyf = 'jsonkeys/' + location + '.key'
-        userdets = 'users/' + location + '.txt'
-        os.makedirs('jsonkeys', exist_ok=True)
-        os.makedirs('csvkeys', exist_ok=True)
-        os.makedirs('users', exist_ok=True)
-        os.makedirs('inifs', exist_ok=True)
-        iamc = boto3.client('iam')
-        try: 
-            _ = iamc.get_user(UserName=location)
-            print('location exists, not adding it')
-        except Exception:
-            print('new location')
-            usr = iamc.create_user(UserName=location)
-            with open(userdets, 'w') as outf:
-                outf.write(str(usr))
-            key = iamc.create_access_key(UserName=location)
-            with open(keyf, 'w') as outf:
-                outf.write(json.dumps(key, indent=4, sort_keys=True, default=str))
-            with open(os.path.join('csvkeys', location + '.csv'),'w') as outf:
-                outf.write('Access key ID,Secret access key\n')
-                outf.write('{},{}\n'.format(key['AccessKey']['AccessKeyId'], key['AccessKey']['SecretAccessKey']))
-            _ = iamc.attach_user_policy(UserName=location, PolicyArn=policyarn)
-            _ = iamc.add_user_to_group(UserName=location, GroupName=group)
-        return 
+        createNewAwsKey(location, self.caminfo)
 
 
-    def updateKeyfile(self, location):
-        server='ukmonhelper'
-        user='ec2-user'
-        keyf = os.path.join('jsonkeys', location + '.key')
-        currkey = json.load(open(keyf, 'r'))
-        keyid = currkey['AccessKey']['AccessKeyId']
-        secid = currkey['AccessKey']['SecretAccessKey']
-        affectedcamlist = self.caminfo[self.caminfo.site == location]
-        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser('~/.ssh/ukmonhelper'))
-        c = paramiko.SSHClient()
-        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        c.connect(hostname = server, username = user, pkey = k)
-        scpcli = SCPClient(c.get_transport())
-        # push the raw keyfile
-        scpcli.put(keyf, 'keymgmt/rawkeys/live/')
+def updateKeyfile(caminfo, location):
+    server=os.getenv('HELPERSERVER', default='ukmonhelper')
+    user='ec2-user'
+    keyf = os.path.join('jsonkeys', location + '.key')
+    currkey = json.load(open(keyf, 'r'))
+    keyid = currkey['AccessKey']['AccessKeyId']
+    secid = currkey['AccessKey']['SecretAccessKey']
+    affectedcamlist = caminfo[caminfo.site == location]
+    k = paramiko.RSAKey.from_private_key_file(os.path.expanduser('~/.ssh/ukmonhelper'))
+    c = paramiko.SSHClient()
+    c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    c.connect(hostname = server, username = user, pkey = k)
+    scpcli = SCPClient(c.get_transport())
+    # push the raw keyfile
+    scpcli.put(keyf, 'keymgmt/rawkeys/live/')
 
-        for _, cam in affectedcamlist.iterrows():
-            cameraname = cam.site.lower() + '_' + cam.site.lower()
-            # get live.key for the camera
-            livef=f'/var/sftp/{cameraname}/live.key'
-            localf = f'./keys/{location.lower()}.key'
-            scpcli.get(livef, localf)
-            # replace the key and secret
-            lis = open(localf, 'r').readlines()
-            newlis=[]            
-            for li in lis:
-                if 'AWS_ACCESS_KEY_ID' in li:
-                    newlis.append(f'export AWS_ACCESS_KEY_ID={keyid}\n')
-                if 'AWS_SECRET_ACCESS_KEY' in li:
-                    newlis.append(f'export AWS_SECRET_ACCESS_KEY={secid}\n')
-                else:
-                    newlis.append(li)
-            with open(localf, 'w') as outf:
-                for li in newlis:
-                    outf.write(li)
-            # reupload it to the central loc
-            scpcli.put(localf, 'keymgmt/live/')
-            command = f'sudo cp keymgmt/live/{location.lower()}.key /var/sftp/{cameraname}/'
-            print(f'running {command}')
-            _, stdout, stderr = c.exec_command(command, timeout=10)
-            for line in iter(stdout.readline, ""):
-                print(line, end="")
-            for line in iter(stderr.readline, ""):
-                print(line, end="")
-
-
-    def addNewUnixUser(self, location, direction, oldcamname='', updatemode=0):
-        server='ukmonhelper'
-        user='ec2-user'
-        cameraname = location.lower() + '_' + direction.lower()
-        print(f'adding new Unix user {cameraname}')
-        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser('~/.ssh/ukmonhelper'))
-        c = paramiko.SSHClient()
-        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        c.connect(hostname = server, username = user, pkey = k)
-        scpcli = SCPClient(c.get_transport())
-        scpcli.put(os.path.join('jsonkeys', location + '.key'), 'keymgmt/rawkeys/live/')
-        scpcli.put(os.path.join('sshkeys', cameraname + '.pub'), 'keymgmt/sshkeys/')
-        command = f'/home/{user}/keymgmt/addSftpUser.sh {cameraname} {location} {updatemode} {oldcamname}'
+    for _, cam in affectedcamlist.iterrows():
+        cameraname = cam.site.lower() + '_' + cam.site.lower()
+        # get live.key for the camera
+        livef=f'/var/sftp/{cameraname}/live.key'
+        localf = f'./keys/{location.lower()}.key'
+        scpcli.get(livef, localf)
+        # replace the key and secret
+        lis = open(localf, 'r').readlines()
+        newlis=[]            
+        for li in lis:
+            if 'AWS_ACCESS_KEY_ID' in li:
+                newlis.append(f'export AWS_ACCESS_KEY_ID={keyid}\n')
+            if 'AWS_SECRET_ACCESS_KEY' in li:
+                newlis.append(f'export AWS_SECRET_ACCESS_KEY={secid}\n')
+            else:
+                newlis.append(li)
+        with open(localf, 'w') as outf:
+            for li in newlis:
+                outf.write(li)
+        # reupload it to the central loc
+        scpcli.put(localf, 'keymgmt/live/')
+        command = f'sudo cp keymgmt/live/{location.lower()}.key /var/sftp/{cameraname}/'
         print(f'running {command}')
         _, stdout, stderr = c.exec_command(command, timeout=10)
         for line in iter(stdout.readline, ""):
@@ -541,51 +478,144 @@ class demo(Frame):
         for line in iter(stderr.readline, ""):
             print(line, end="")
 
-        print('done, collecting output')
-        infname = os.path.join('keymgmt/inifs/',cameraname + '.ini')
-        outfname = os.path.join('./inifs', cameraname + '.ini')
-        while os.path.isfile(outfname) is False:
-            try:
-                time.sleep(3)
-                scpcli.get(infname, outfname)
-            except Exception:
-                continue
-        return
 
-    def getSSHkey(self, loc, dir):
-        server='ukmonhelper'
-        user='ec2-user'
-        tmpdir=os.getenv('TEMP', default='c:/temp')
-        cameraname = (loc + '_' + dir).lower()
-        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser('~/.ssh/ukmonhelper'))
-        c = paramiko.SSHClient()
-        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        c.connect(hostname = server, username = user, pkey = k)
-        scpcli = SCPClient(c.get_transport())
-        tmpfil = os.path.join(tmpdir,'./tmp.txt')
-        # dont use os.path.join - source is on unix we are on windows!
-        scpcli.get(f'keymgmt/sshkeys/{cameraname}.pub', tmpfil)
+def addNewOwner(locstatfile, rmsid, location, user, email):
+    print('adding new owner')
+    caminfo = pandas.read_csv(locstatfile)
+    newdata = {'camid': [rmsid], 'site': [location], 'humanName':[user], 'eMail': [email]}
+    newdf = pandas.DataFrame(newdata)
+    caminfo = caminfo.append(newdf).sort_values(by=['camid'])
+    caminfo.to_csv(locstatfile, index=False)
 
-        with open(tmpfil, 'r') as inf:
-            lis = inf.readlines()
-        #os.remove('./tmp.txt')
-        return lis[0].strip()
+    ct.addRow(rmsid, location)
 
-    def getUserDetails(self, camid):
-        with open(os.path.join('caminfo', self.statfile),'r') as inf:
-            lis = inf.readlines()
-        print(camid)
-        for li in lis:
-            if li[:6] == camid:
-                spls = li.split(',')
-                print(li)
-                return spls[2],spls[3]
-        return '',''
+    return
+
+
+
+def getSSHkey(loc, dir):
+    server=os.getenv('HELPERSERVER', default='ukmonhelper')
+    user='ec2-user'
+    tmpdir=os.getenv('TEMP', default='c:/temp')
+    cameraname = (loc + '_' + dir).lower()
+    k = paramiko.RSAKey.from_private_key_file(os.path.expanduser('~/.ssh/ukmonhelper'))
+    c = paramiko.SSHClient()
+    c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    c.connect(hostname = server, username = user, pkey = k)
+    scpcli = SCPClient(c.get_transport())
+    tmpfil = os.path.join(tmpdir,'./tmp.txt')
+    # dont use os.path.join - source is on unix we are on windows!
+    scpcli.get(f'keymgmt/sshkeys/{cameraname}.pub', tmpfil)
+
+    with open(tmpfil, 'r') as inf:
+        lis = inf.readlines()
+    #os.remove('./tmp.txt')
+    return lis[0].strip()
+
+
+def getUserDetails(statfile, camid):
+    with open(os.path.join('caminfo', statfile),'r') as inf:
+        lis = inf.readlines()
+    print(camid)
+    for li in lis:
+        if li[:6] == camid:
+            spls = li.split(',')
+            print(li)
+            return spls[2],spls[3]
+    return '',''
+
+
+def addNewUnixUser(location, direction, oldcamname='', updatemode=0):
+    server=os.getenv('HELPERSERVER', default='ukmonhelper')
+    user='ec2-user'
+    cameraname = location.lower() + '_' + direction.lower()
+    print(f'adding new Unix user {cameraname}')
+    k = paramiko.RSAKey.from_private_key_file(os.path.expanduser('~/.ssh/ukmonhelper'))
+    c = paramiko.SSHClient()
+    c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    c.connect(hostname = server, username = user, pkey = k)
+    scpcli = SCPClient(c.get_transport())
+    scpcli.put(os.path.join('jsonkeys', location + '.key'), 'keymgmt/rawkeys/live/')
+    scpcli.put(os.path.join('sshkeys', cameraname + '.pub'), 'keymgmt/sshkeys/')
+    command = f'/home/{user}/keymgmt/addSftpUser.sh {cameraname} {location} {updatemode} {oldcamname}'
+    print(f'running {command}')
+    _, stdout, stderr = c.exec_command(command, timeout=10)
+    for line in iter(stdout.readline, ""):
+        print(line, end="")
+    for line in iter(stderr.readline, ""):
+        print(line, end="")
+
+    print('done, collecting output')
+    infname = os.path.join('keymgmt/inifs/',cameraname + '.ini')
+    outfname = os.path.join('./inifs', cameraname + '.ini')
+    while os.path.isfile(outfname) is False:
+        try:
+            time.sleep(3)
+            scpcli.get(infname, outfname)
+        except Exception:
+            continue
+    return
+
+
+def addNewAwsUser(location):
+    print(f'adding new location {location} to AWS')
+    acct = '822069317839'  # empireelments account
+    policyarn = 'arn:aws:iam::' + acct + ':policy/UkmonLive'
+    group = 'ukmon'
+    keyf = 'jsonkeys/' + location + '.key'
+    userdets = 'users/' + location + '.txt'
+    os.makedirs('jsonkeys', exist_ok=True)
+    os.makedirs('csvkeys', exist_ok=True)
+    os.makedirs('users', exist_ok=True)
+    os.makedirs('inifs', exist_ok=True)
+    iamc = boto3.client('iam')
+    try: 
+        _ = iamc.get_user(UserName=location)
+        print('location exists, not adding it')
+    except Exception:
+        print('new location')
+        usr = iamc.create_user(UserName=location)
+        with open(userdets, 'w') as outf:
+            outf.write(str(usr))
+        key = iamc.create_access_key(UserName=location)
+        with open(keyf, 'w') as outf:
+            outf.write(json.dumps(key, indent=4, sort_keys=True, default=str))
+        with open(os.path.join('csvkeys', location + '.csv'),'w') as outf:
+            outf.write('Access key ID,Secret access key\n')
+            outf.write('{},{}\n'.format(key['AccessKey']['AccessKeyId'], key['AccessKey']['SecretAccessKey']))
+        _ = iamc.attach_user_policy(UserName=location, PolicyArn=policyarn)
+        _ = iamc.add_user_to_group(UserName=location, GroupName=group)
+    return 
+
+
+def createNewAwsKey(location, caminfo):
+    keyf = os.path.join('jsonkeys', location + '.key')
+    oldkeyf = os.path.join('jsonkeys', location + '-prev.key')
+    csvf = os.path.join('csvkeys', location + '.csv')
+    shutil.copyfile(keyf, oldkeyf)
+    currkey = json.load(open(keyf, 'r'))
+    keyid = currkey['AccessKey']['AccessKeyId']
+    print(location, keyid)
+    affectedcamlist = caminfo[caminfo.site == location]
+    for _, cam in affectedcamlist.iterrows():
+        print(cam.site.lower(), cam.sid.lower())
+    return 
+
+    iamc = boto3.client('iam')
+    iamc.update_access_key(UserName=location, AccessKeyId=keyid, Status='Inactive')
+    key = iamc.create_access_key(UserName=location)
+    with open(keyf, 'w') as outf:
+        outf.write(json.dumps(key, indent=4, sort_keys=True, default=str))
+    with open(csvf,'w') as outf:
+        outf.write('Access key ID,Secret access key\n')
+        outf.write('{},{}\n'.format(key['AccessKey']['AccessKeyId'], key['AccessKey']['SecretAccessKey']))
+
+    return 
 
 
 if __name__ == '__main__':
     # Initialize main window
     root = tk.Tk()
-    app = demo(root)
+    app = CamMaintenance(root)
     root.protocol("WM_DELETE_WINDOW", app.on_closing)
     app.mainloop()

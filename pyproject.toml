@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ukmon_meteortools"
-version = "2023.05.12"
+version = "2023.07.3"
 description = "Python Tools for Meteor Data Analysis"
 readme = "ukmon_meteortools/README.md"
 authors = [{ name = "Mark McIntyre", email = "ukmon@markmcintyreastro.co.uk" }]
@@ -26,7 +26,8 @@ dependencies = [
     "google-auth-oauthlib",
     "google-api-python-client",
     "googleapis-common-protos",
-    "matplotlib==3.3.2",
+    'matplotlib==3.3.2 ; python_version <= "3.8"',
+    'matplotlib; python_version > "3.8"',
     "numpy",
     "oauthlib",
     "pandas",
@@ -37,7 +38,9 @@ dependencies = [
     "s3fs",
     "xmltodict",
     "requests",
-    "pyproj",
+    "pyproj==1.9.6 ; python_version <= '3.8' and platform_machine == 'armv7l'",
+    "pyproj==2.6.1.post1 ; python_version <= '3.8' and platform_machine != 'armv7l'",
+    "pyproj ; python_version > '3.8'",
     "pdoc",
     "Cython",
     "opencv-python",
@@ -47,7 +50,7 @@ dependencies = [
     "pyephem",
     "gitpython",
     "astropy",
-    "pyqt5",
+    "pyqt5; platform_machine != 'aarch64'",
     "basemap",
     "basemap-data-hires"
 ]
@@ -76,7 +79,7 @@ packages = ["ukmon_meteortools.utils", "ukmon_meteortools.ukmondb",
 "*" = ["*.npy", "*.xml"]
 
 [tool.bumpver]
-current_version = "2023.05.12"
+current_version = "2023.07.3"
 version_pattern = "YYYY.0M.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 commit = true

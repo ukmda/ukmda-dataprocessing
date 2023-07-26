@@ -1,7 +1,13 @@
 #!/bin/bash
 
-source ~/dev/config.ini
-source ~/venvs/$WMPL_ENV/bin/activate
+[ -f ~/dev/config.ini ] && source ~/dev/config.ini
+[ -f ~/source/testing/config.ini ] && source ~/source/testing/config.ini
+
+if [  "$(which conda)" == "" ] ; then 
+    source $HOME/venvs/${WMPL_ENV}/bin/activate
+else
+    conda activate $HOME/miniconda3/envs/${WMPL_ENV}
+fi
 
 export PYTHONPATH=$WMPL_LOC:$RMS_LOC:.:..
 

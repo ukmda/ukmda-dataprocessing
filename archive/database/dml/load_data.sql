@@ -6,3 +6,6 @@ into table singles fields terminated by ',' ignore 1 lines;
 load data local infile '/home/ec2-user/prod/data/matched/matches-full-2022.csv' 
 into table matches fields terminated by ',' ignore 1 lines;
 
+
+load data local infile '/home/ec2-user/prod/data/brightness/CaptureNight_20230530.csv' 
+into table brightness fields terminated by ',';

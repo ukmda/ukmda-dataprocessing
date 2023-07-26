@@ -113,24 +113,6 @@ resource "aws_network_interface" "ukmon_if" {
   }
 }
 
-# elastic network interface attached to the calc server
-/*
-resource "aws_network_interface" "calcserver_if" {
-  subnet_id                 = aws_subnet.ec2Subnet.id
-  description               = "Primary network interface"
-  private_ips               = ["172.31.12.136"]
-  security_groups           = [aws_security_group.launch-wizard-4.id]
-  ipv6_address_list_enabled = false
-  tags = {
-    "Name"       = "calcserver_if"
-    "billingtag" = "ukmon"
-  }
-  attachment {
-    instance     = aws_instance.CalcEngine4ARM.id
-    device_index = 0
-  }
-}
-*/
 resource "aws_vpc_peering_connection_accepter" "eetommpeering" {
   vpc_peering_connection_id = "pcx-04bcbf8428c045637"
   tags = {

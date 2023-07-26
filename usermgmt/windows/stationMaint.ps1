@@ -1,7 +1,10 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 Set-Location $psscriptroot
 
-$env:AWS_PROFILE="ukmon-markmcintyre"
+$env:SRCBUCKET=
+$env:AWS_PROFILE=
+$env:REMOTEDIR=
+$env:HELPERSERVER=
 
 # create conda env if not aleady there
 $isadm=(conda env list  | select-string "ukmon-admin")

@@ -18,7 +18,7 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
-source $HOME/venvs/${WMPL_ENV}/bin/activate
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 yr=$1
 if [ "$yr" == "" ] ; then
@@ -28,6 +28,7 @@ fi
 cd ${DATADIR}
 # consolidate UFO and RMS original CSVs.
 logger -s -t consolidateOutput "starting"
+# note - copying from ukmon-shared even in dev so we have the latest data
 aws s3 sync s3://ukmon-shared/consolidated/ ${DATADIR}/consolidated --exclude "temp/*" --quiet
 aws s3 mv s3://ukmon-shared/consolidated/temp/ ${DATADIR}/consolidated/temp --recursive --quiet
 
@@ -64,6 +65,7 @@ logger -s -t consolidateOutput "Getting latest trajectory data"
 # make sure target folders exist
 mkdir -p ${DATADIR}/orbits/$yr/fullcsv/processed/ > /dev/null 2>&1
 
+# note - copying from ukmon-shared even in dev so we have the latest data
 aws s3 sync s3://ukmon-shared/matches/RMSCorrelate/trajectories/${yr}/plots/ $DATADIR/showerplots --exclude "*" --include "0*.png" --quiet
 
 # copy the orbit file for consolidation and reporting

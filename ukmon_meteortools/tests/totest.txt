@@ -1,7 +1,4 @@
 
-../converters/RMStoUKMON.py
-../converters/UFOAtoFTPdetect.py
-
 ../traj/plotOSMGroundTrack.py
 ../traj/ShowerAssociation.py
 

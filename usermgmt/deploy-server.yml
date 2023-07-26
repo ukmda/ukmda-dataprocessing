@@ -1,27 +1,46 @@
 ---
-- hosts: ukmonhelper
+- hosts: "{{host | default ('ukmonhelper')}}"
   vars:
     srcdir: /mnt/e/dev/meteorhunting/UKMON-shared/usermgmt/server
-    destdir: /home/ec2-user/keymgmt
   tasks:
+  - name: import dev variables 
+    include_vars: ./dev-vars.yml
+    tags: dev
+  - name: import prod variables
+    include_vars: ./prod-vars.yml
+    tags: prod
   - name: Ensures {{destdir}} exists
     file: path={{destdir}} state=directory  
+    tags: [dev,prod]
   - name: Ensures {{destdir}}/rawkeys exists
     file: path={{destdir}}/rawkeys state=directory  
+    tags: [dev,prod]
   - name: Ensures {{destdir}}/live exists
     file: path={{destdir}}/live state=directory  
+    tags: [dev,prod]
   - name: Ensures {{destdir}}/arch exists
     file: path={{destdir}}/arch state=directory  
+    tags: [dev,prod]
   - name: Ensures {{destdir}}/sshkeys exists
     file: path={{destdir}}/sshkeys state=directory  
+    tags: [dev,prod]
   - name: Ensures {{destdir}}/inifs exists
     file: path={{destdir}}/inifs state=directory  
+    tags: [dev,prod]
 
   - name: Copy files
+    tags: [dev,prod]
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     with_items:
     - {src: '{{srcdir}}/addSftpUser.sh', dest: '{{destdir}}/', mode: '754', backup: yes, directory_mode: no }
     - {src: '{{srcdir}}/update_keyfile.sh', dest: '{{destdir}}/', mode: '754', backup: yes, directory_mode: no }
     - {src: '{{srcdir}}/jsonToKeyFile.py', dest: '{{destdir}}/', mode: '644', backup: yes, directory_mode: no }
+    - {src: '{{srcdir}}/mailForwarder.py', dest: '{{destdir}}/', mode: '644', backup: yes, directory_mode: no }
     - {src: '{{srcdir}}/ukmon.ini', dest: '{{destdir}}/', mode: '644', backup: yes, directory_mode: no }
-    
+    - {src: '{{srcdir}}/emailForwarder.sh', dest: '{{destdir}}/', mode: '754', backup: yes, directory_mode: no }
+  #  - {src: '{{srcdir}}/../gmailkeys/ukmonfundraising_token.json', dest: '{{destdir}}/', mode: '600', backup: yes, directory_mode: no }
+  #  - {src: '{{srcdir}}/../gmailkeys/ukmonfundraising_creds.json', dest: '{{destdir}}/', mode: '600', backup: yes, directory_mode: no }
+  #  - {src: '{{srcdir}}/ukmonfundraising.txt', dest: '{{destdir}}/', mode: '600', backup: yes, directory_mode: no }
+  #  - {src: '{{srcdir}}/../gmailkeys/ukmoncommittee_token.json', dest: '{{destdir}}/', mode: '600', backup: yes, directory_mode: no }
+  #  - {src: '{{srcdir}}/../gmailkeys/ukmoncommittee_creds.json', dest: '{{destdir}}/', mode: '600', backup: yes, directory_mode: no }
+  #  - {src: '{{srcdir}}/ukmoncommittee.txt', dest: '{{destdir}}/', mode: '600', backup: yes, directory_mode: no }

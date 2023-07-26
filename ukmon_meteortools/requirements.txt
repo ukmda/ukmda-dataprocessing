@@ -13,15 +13,18 @@ google-api-python-client
 googleapis-common-protos
 jplephem
 Keras
-matplotlib==3.3.2
+matplotlib==3.3.2 ; python_version <= "3.8"
+matplotlib ; python_version > "3.8"
 numpy
 oauthlib
 pandas
 Pillow
 pycparser
 pyephem
-pyproj==2.6.1.post1
-PyQt5
+pyproj==1.9.6 ; python_version <= "3.8" and platform_machine == 'armv7l'
+pyproj==2.6.1.post1 ; python_version <= "3.8" and platform_machine != 'armv7l'
+pyproj ; python_version > "3.8"
+PyQt5; platform_machine != 'aarch64'
 pyswarms
 pytz
 PyYAML

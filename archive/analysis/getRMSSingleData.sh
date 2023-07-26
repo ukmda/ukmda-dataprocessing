@@ -15,7 +15,7 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
-source $HOME/venvs/${RMS_ENV}/bin/activate
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 logger -s -t getRMSSingleData "starting"
 indir=$UKMONSHAREDBUCKET/matches/single/new/
@@ -46,7 +46,6 @@ do
 done 
 
 logger -s -t getRMSSingleData "convert to parquet"
-source ~/venvs/${WMPL_ENV}/bin/activate
 if [ -f $mrgfile ] ; then 
     python -m converters.toParquet $mrgfile
 fi 

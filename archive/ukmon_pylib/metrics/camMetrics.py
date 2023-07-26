@@ -162,7 +162,7 @@ if __name__ == '__main__':
     outfile=os.path.join(datadir, 'reports', 'camuploadtimes.csv')
     if os.path.isfile(outfile):
         currdata = pd.read_csv(outfile)
-        fulldf = currdata.append(newdata)
+        fulldf = pd.concat([currdata, newdata], ignore_index=True)
         fulldf = fulldf.sort_values(by=['stationid','upddate','uploadtime','rundate'])
         fulldf = fulldf.drop_duplicates(subset=['stationid'], keep='last')
     else:

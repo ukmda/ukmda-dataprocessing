@@ -21,20 +21,20 @@ alias stopcalc='~/prod/utils/stopstart-calcengine.sh stop'
 
 function dev {
 	source ~/dev/config.ini >/dev/null
-	source ~/venvs/$WMPL_ENV/bin/activate
+	conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 	PS1="(wmpl) (dev) [\W]\$ "
 	cd ~/dev
 }
 function prd {
 	source ~/prod/config.ini >/dev/null
-	source ~/venvs/$WMPL_ENV/bin/activate
+	conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 	PS1="(wmpl) (prd) [\W]\$ "
 	cd ~/prod
 }
 
 function calcserver { 
-	sts=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State --output text)
-	ipaddr=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
+	sts=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State --output text --profile ukmonshared)
+	ipaddr=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text --profile ukmonshared)
 	isrunning=$(echo $sts | cut -d " " -f 1)
 	if [ $isrunning -ne 16 ] ; then
 		/home/ec2-user/prod/utils/stopstart-calcengine.sh start

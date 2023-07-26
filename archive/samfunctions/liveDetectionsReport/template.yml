@@ -23,19 +23,37 @@ Resources:
           Effect: Allow
           Action:
             - s3:GetObject
-            - s3:PutObject
           Resource: "arn:aws:s3:::ukmon-shared/consolidated/*"
+        - Sid: ListAndDescribe
+          Effect: Allow
+          Action:
+            - "dynamodb:List*"
+            - "dynamodb:DescribeReservedCapacity*"
+            - "dynamodb:DescribeLimits"
+            - "dynamodb:DescribeTimeToLive"
+          Resource: "*"
+        - Sid: ReadTable
+          Effect: Allow
+          Action:
+            - "dynamodb:BatchGet*"
+            - "dynamodb:DescribeStream"
+            - "dynamodb:DescribeTable"
+            - "dynamodb:Get*"
+            - "dynamodb:Query"
+            - "dynamodb:Scan"
+          Resource: "arn:aws:dynamodb:*:*:table/LiveBrightness"
       Environment:
         Variables:
-          SRCBUCKET: ukmeteornetworkarchive
-          CSVFILE: ukmon-latest-v2.csv
+          SRCBUCKET: "ukmeteornetworkarchive"
+          CSVFILE: "ukmon-latest-v2.csv"
+          OFFSET: "0"
       Tags:
         billingtag: "ukmon"
       Events:
         ScheduledEvent:
           Type: Schedule
           Properties:
-            Schedule: cron(0/15 0-9,18-23 * * ? *)
+            Schedule: cron(0/15 0-8,17-23 * * ? *)
             Enabled: True
     Metadata:
       BuildMethod: python3.8

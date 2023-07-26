@@ -18,8 +18,8 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # load the configuration
 source $here/../config.ini >/dev/null 2>&1
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
-source ~/venvs/$WMPL_ENV/bin/activate
 export PYTHONPATH=$PYLIB
 
 orbin=$1

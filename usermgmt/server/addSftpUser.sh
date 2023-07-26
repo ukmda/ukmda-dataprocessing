@@ -9,10 +9,19 @@ updatemode=$3
 oldloc=$4
 if [ -z $2 ] ; then shortid=$1 ; fi 
 
-source ~/prod/config.ini
-source ~/venvs/$WMPL_ENV/bin/activate
+here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
-keydir=/home/ec2-user/keymgmt
+cd $here
+if [ -f ../config.ini ] ; then
+    source ~/dev/config.ini
+    keydir=/home/ec2-user/dev/keymgmt
+else
+    source ~/prod/config.ini
+    keydir=/home/ec2-user/keymgmt
+
+fi
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
+
 cd $keydir
 
 logger -s -t addSftpUser "adding user $userid at $shortid $oldloc"
@@ -42,13 +51,19 @@ if [ ! -f $keydir/live/$shortid_l.key ] ; then
 fi
 
 # add a unix user and set their homedir to /var/sftp/userid
-logger -s -t addSftpUser "Creating unix user $userid"
-sudo useradd --system --shell /usr/sbin/nologin --groups sftp --home /var/sftp/$userid $userid
-sudo mkdir /var/sftp/$userid
-sudo chown root:sftp /var/sftp/$userid
-sudo chmod 751 /var/sftp/$userid
-sudo mkdir /var/sftp/$userid/.ssh
-
+grep $userid /etc/passwd
+if [ $? -eq 1 ] ; then 
+    logger -s -t addSftpUser "Creating unix user $userid"
+    sudo useradd --system --shell /usr/sbin/nologin --groups sftp --home /var/sftp/$userid $userid
+    sudo mkdir /var/sftp/$userid
+    sudo chown root:sftp /var/sftp/$userid
+    sudo chmod 751 /var/sftp/$userid
+    sudo mkdir /var/sftp/$userid/.ssh
+    sudo mkdir /var/sftp/$userid/platepar
+    sudo chown $userid:$userid /var/sftp/$userid/platepar
+else
+    logger -s -t addSftpUser "Unix user $userid already exists"
+fi
 # copy the public key to the right place
 logger -s -t addSftpUser "Applying the public key $1"
 dos2unix $keydir/sshkeys/$1.pub
@@ -57,7 +72,7 @@ sudo cp /tmp/tmp.pub /var/sftp/$userid/.ssh/authorized_keys
 sudo chown -R $userid:$userid /var/sftp/$userid/.ssh/authorized_keys
 rm /tmp/tmp.pub
 
-#create an empty client copy of the  ini file and make it writeable by the client
+#create an empty client copy of the ini file and make it writeable by the client
 sudo touch /var/sftp/$userid/ukmon.ini.client 
 sudo chown $userid:$userid /var/sftp/$userid/ukmon.ini.client 
 
@@ -68,7 +83,7 @@ sudo cp /tmp/logul.pub /var/sftp/logupload/.ssh/authorized_keys
 sudo chown logupload:logupload /var/sftp/logupload/.ssh/authorized_keys
 rm /tmp/logul.pub
 
-# copy the files
+# copy the ini and aws key files
 logger -s -t addSftpUser "Copying the ini file and aws keyfile"
 cat $keydir/ukmon.ini | sed "s/STATIONLOCATION/$userid/g" > /home/ec2-user/keymgmt/inifs/$userid.ini
 sudo cp $keydir/inifs/$userid.ini /var/sftp/$userid/ukmon.ini

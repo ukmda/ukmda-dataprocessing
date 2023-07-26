@@ -23,7 +23,7 @@ logger -s -t findAllMatches "RUNTIME $SECONDS start findAllMatches"
 
 # load the configuration and website keys
 source $here/../config.ini >/dev/null 2>&1
-source ~/venvs/${WMPL_ENV}/bin/activate
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 logger -s -t findAllMatches1 "starting"
 
 rundate=$(cat $DATADIR/rundate.txt)

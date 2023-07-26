@@ -5,7 +5,7 @@
 #
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
-source $HOME/venvs/${RMS_ENV}/bin/activate
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 if [ $# -lt 1 ] ; then 
     thismth=`date '+%m'`
@@ -16,6 +16,9 @@ fi
 export AWS_DEFAULT_REGION=eu-west-1
 
 cd $SRC/metrics
+    
+export AWS_PROFILE=ukmonshared
+python $PYLIB/metrics/costMetrics.py $here eu-west-1 $thismth
 
-source ~/.ssh/marks-keys
+export AWS_PROFILE=Mark
 python $PYLIB/metrics/costMetrics.py $here eu-west-1 $thismth

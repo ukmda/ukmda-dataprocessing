@@ -5,7 +5,7 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
-source $HOME/venvs/$WMPL_ENV/bin/activate
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 cyr=$(date +%Y)
 cmt=$(date +%m)
@@ -32,12 +32,12 @@ fi
 # backup last month's data 
 if compgen -G "$DATADIR/single/new/processed/ukmon*_${lym}??_*.csv" > /dev/null ; then 
     if [ $cmt -ne 1 ] ; then 
-        if [ ! -f $DATADIR/olddata/${cyr}-singlecsv.tar.gz ] ; then 
-            tar cvfz $DATADIR/olddata/${cyr}-singlecsv.tar.gz ukmon*_${lym}??_*.csv
+        if [ ! -f $DATADIR/olddata/${lym}-singlecsv.tar.gz ] ; then 
+            tar cvfz $DATADIR/olddata/${lym}-singlecsv.tar.gz ukmon*_${lym}??_*.csv
         else
-            gunzip $DATADIR/olddata/${cyr}-singlecsv.tar.gz
-            tar uvf $DATADIR/olddata/${cyr}-singlecsv.tar ukmon*_${lym}??_*.csv
-            gzip $DATADIR/olddata/${cyr}-singlecsv.tar
+            gunzip $DATADIR/olddata/${lym}-singlecsv.tar.gz
+            tar uvf $DATADIR/olddata/${lym}-singlecsv.tar ukmon*_${lym}??_*.csv
+            gzip $DATADIR/olddata/${lym}-singlecsv.tar
         fi
     fi
     rm -f ukmon*_${lym}*.csv 
@@ -64,12 +64,12 @@ fi
 # and now last months fullcsv data
 cd $DATADIR/orbits/$cyr/fullcsv/processed
 if compgen -G "$DATADIR/orbits/${cyr}/fullcsv/processed/${lym}??-*.csv" > /dev/null ; then 
-    if [ ! -f $DATADIR/olddata/${cyr}-matchfullcsv.tar.gz ] ; then 
-        tar cvfz $DATADIR/olddata/${cyr}-matchfullcsv.tar.gz ${lym}??-*.csv
+    if [ ! -f $DATADIR/olddata/${lym}-matchfullcsv.tar.gz ] ; then 
+        tar cvfz $DATADIR/olddata/${lym}-matchfullcsv.tar.gz ${lym}??-*.csv
     else
-        gunzip $DATADIR/olddata/${cyr}-matchfullcsv.tar.gz
-        tar uvf $DATADIR/olddata/${cyr}-matchfullcsv.tar ${lym}??-*.csv
-        gzip $DATADIR/olddata/${cyr}-matchfullcsv.tar.gz
+        gunzip $DATADIR/olddata/${lym}-matchfullcsv.tar.gz
+        tar uvf $DATADIR/olddata/${lym}-matchfullcsv.tar ${lym}??-*.csv
+        gzip $DATADIR/olddata/${lym}-matchfullcsv.tar.gz
     fi
     rm -f ${lym}??-*.csv 
 else
@@ -114,3 +114,7 @@ rm -f $DATADIR/olddata/${lyr}*.tar.gz
 aws s3 sync $DATADIR/olddata/ s3://ukmon-shared-backup/analysisbackup/ --exclude "*" --include "${lym}*.tar.gz" --quiet
 # dont do this in case data arrives late
 #rm -f $DATADIR/olddata/${lym}*.tar.gz
+
+# now cleardown the raw input data. This is already backed up elsewhere
+inputym=$(date --date='3 months ago' +%Y%m)
+python $PYLIB/maintenance/dataMaintenance.py $inputym

@@ -211,51 +211,47 @@ resource "aws_iam_role_policy_attachment" "cweventspolicy" {
 
 
 
+
+################################
+# for testing with 
+
 # User, Policy and Roles used by ukmon-backup process. 
 # don't think this is used 
-resource "aws_iam_user" "ukmon-backup" {
-  name = "ukmon-backup"
+resource "aws_iam_user" "ukmon_tester" {
+  name = "ukmon_tester"
   tags = {
     "billingtag" = "ukmon"
+    "AKIAUUCG4WH4B3XOH3WZ" = "ukmon_tester"
   }
 }
 
-resource "aws_iam_policy" "pol-ukmon-backup" {
-  name        = "pol-ukmon-backup"
-  policy      = data.aws_iam_policy_document.ukmon-backup-policy-document.json
-  description = "allows a user to backup the UKMON shared data"
+resource "aws_iam_policy" "pol_ukmon_tester" {
+  name        = "pol_ukmon_tester"
+  policy      = data.aws_iam_policy_document.ukmon_tester_pol_doc.json
+  description = "policu for my test user"
 }
 
-data "aws_iam_policy_document" "ukmon-backup-policy-document" {
+data "aws_iam_policy_document" "ukmon_tester_pol_doc" {
   statement {
     actions = [
-      "s3:ListBucket",
-      "s3:GetObject",
+      "s3:*"
     ]
     effect = "Allow"
     resources = [
-      "arn:aws:s3:::ukmon-shared",
-      "arn:aws:s3:::ukmon-shared/*",
-    ]
-  }
-  statement {
-    actions = [
-      "s3:ListBucket",
-      "s3:PutObject",
-      "s3:PutObjectAcl",
-    ]
-    effect = "Allow"
-    resources = [
-      "arn:aws:s3:::ukmon-shared-backup",
-      "arn:aws:s3:::ukmon-shared-backup/*",
+      "arn:aws:s3:::mjmm-ukmon-shared",
+      "arn:aws:s3:::mjmm-ukmon-shared/*",
+      "arn:aws:s3:::mjmm-ukmon-live",
+      "arn:aws:s3:::mjmm-ukmon-live/*",
+      "arn:aws:s3:::mjmm-ukmonarchive.co.uk",
+      "arn:aws:s3:::mjmm-ukmonarchive.co.uk/*",
     ]
   }
   version = "2012-10-17"
 }
 
-resource "aws_iam_user_policy_attachment" "ukmon-shared-pol-attachment" {
-  user       = aws_iam_user.ukmon-backup.name
-  policy_arn = "arn:aws:iam::317976261112:policy/pol-ukmon-backup"
+resource "aws_iam_user_policy_attachment" "ukmon-tester-pol-attachment" {
+  user       = aws_iam_user.ukmon_tester.name
+  policy_arn = aws_iam_policy.pol_ukmon_tester.arn
 }
 
 

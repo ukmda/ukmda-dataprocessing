@@ -12,11 +12,12 @@ mv IMO*.xml $(date +%Y%m%d_%H%M%S).xml
 /usr/bin/wget https://www.imo.net/members/imo_showers/IMO_Working_Meteor_Shower_list/IMO_Working_Meteor_Shower_List.xml --no-check-certificate
 
 # update WMPL static data 
-source ~/venvs/$WMPL_ENV/bin/activate
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 cd $WMPL_LOC
 git checkout wmpl/share/streamfulldata.csv
 git checkout wmpl/share/ShowerLookUpTable.txt
+git checkout wmpl/share/gmn_shower_table_20230518.txt
 
 python -c "from ukmon_meteortools.utils.getShowerDates import _refreshShowerData; _refreshShowerData()"
 

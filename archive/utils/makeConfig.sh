@@ -69,3 +69,5 @@ echo "export PYTHONPATH=${RMS_LOC}:${WMPL_LOC}:${PYLIB}:${SRC}/share" >> ${CFGFI
 echo "export MATCHSTART MATCHEND SERVERSSHKEY" >> ${CFGFILE}
 echo "export APIKEY KMLTEMPLATE SERVERINSTANCEID" >> ${CFGFILE}
 echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/local/geos/lib:/usr/local/proj4/lib" >> ${CFGFILE}
+echo "source ~/.condaon" >> ${CFGFILE}
+

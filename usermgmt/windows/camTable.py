@@ -116,3 +116,19 @@ def backPopulate():
         loc = spls[0]
         stationid = spls[5]
         addRow(stationid, loc, ddb)
+
+
+def getCamUpdateDate(camid):
+    sess = boto3.Session(profile_name='ukmonshared')
+    ddb = sess.resource('dynamodb', region_name='eu-west-2')
+    table = ddb.Table('LiveBrightness')
+    resp = table.query(KeyConditionExpression=Key('camid').eq(camid),
+                       IndexName = 'camid-CaptureNight-index',
+                       ScanIndexForward=False,
+                       Limit=1,
+                       Select='SPECIFIC_ATTRIBUTES',
+                       ProjectionExpression='CaptureNight')
+    if len(resp['Items']) > 0:
+        return int(resp['Items'][0]['CaptureNight'])
+    else:
+        return 0
