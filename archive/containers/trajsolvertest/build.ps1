@@ -11,6 +11,9 @@ $region = "eu-west-2"
 $registry = "${accid}.dkr.ecr.${region}.amazonaws.com"
 $repo = "ukmon/${imagename}"
 
+$yn=read-host -prompt "update WMPL?"
+if ($yn.tolower() -eq "y") { bash -c "./update_wmpl.sh" } 
+
 docker build . -t ${imagename}
 if (! $?)
 {
