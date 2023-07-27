@@ -6,8 +6,8 @@ on:
       - markmac99
 
 jobs:
-  # Build the documentation and upload the static HTML files as an artifact.
-    runs-on: [self-hosted, k8s]
+  pi4tests:
+    runs-on: [self-hosted, testpi4uk]
     steps:
       - uses: actions/checkout@v3
       - run: chmod +x ./ukmon_meteortools/tests/*.sh
@@ -18,3 +18,10 @@ jobs:
       - uses: actions/checkout@v3
       - run: chmod +x ./tests/*.sh
       - run: ./tests/api_tests.sh
+  lnxtests:
+    runs-on: lin
+    steps:
+      - uses: actions/checkout@v3
+      - run: chmod +x ./tests/*.sh
+      - run: ./tests/api_tests.sh
+    
