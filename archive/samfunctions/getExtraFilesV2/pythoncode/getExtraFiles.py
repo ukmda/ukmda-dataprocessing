@@ -11,7 +11,6 @@ from boto3.dynamodb.conditions import Key
 
 from wmpl.Utils.Pickling import loadPickle
 from pickleAnalysis import createAdditionalOutput
-from wmpl.Utils.TrajConversions import jd2Date
 from createOrbitPageIndex import createOrbitPageIndex
 
 

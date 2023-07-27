@@ -17,7 +17,7 @@ from wmpl.Utils.Math import mergeClosePoints, angleBetweenSphericalCoords
 from wmpl.Utils.SolarLongitude import date2JD
 from wmpl.Utils.TrajConversions import jd2Date    
 from wmpl.Utils.Physics import calcMass
-from ShowerAssociation import associateShower
+from wmpl.Utils.ShowerAssociation import associateShower
 from wmpl.Utils.Earth import greatCircleDistance
 from wmpl.Config import config
 
