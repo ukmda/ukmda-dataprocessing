@@ -159,8 +159,12 @@ def test_getLiveJpgs():
 
 
 def test_getLiveJpgsNonExistent():
-    x = getLiveJpgs('20000101_000000', outdir=None, create_txt=False)
-    assert x is None
+    key = os.getenv('AWS_ACCESS_KEY_ID', default='notset')
+    if key != 'notset':
+        x = getLiveJpgs('20000101_000000', outdir=None, create_txt=False)
+        assert x is None
+    else:
+        assert 1==1
 
 
 def test_getFBfiles():

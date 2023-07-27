@@ -10,7 +10,7 @@ echo $AWS_ACCESS_KEY_ID
 echo running on $(hostname)
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-pip install pytest pytest-cov pandas 
+pip install pytest pytest-cov 
 pip install --upgrade ukmon_meteortools
 cd $here/..
 

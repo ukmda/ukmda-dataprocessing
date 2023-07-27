@@ -21,18 +21,12 @@ import shutil
 
 from wmpl.Utils.Pickling import loadPickle
 
-from wmpl.Utils.Earth import greatCircleDistance
-from wmpl.Utils.TrajConversions import geo2Cartesian, raDec2AltAz, altAz2RADec
-from wmpl.Utils.TrajConversions import raDec2ECI, datetime2JD
+from wmpl.Utils.TrajConversions import geo2Cartesian
+from wmpl.Utils.TrajConversions import raDec2ECI
 from wmpl.Utils.Math import vectNorm, angleBetweenVectors, vectorFromPointDirectionAndAngle
 
-#from wmpl.Utils.TrajConversions import jd2Date, cartesian2Geo
-#from wmpl.Utils.Math import vectMag, findClosestPoints, generateDatetimeBins, meanAngle, angleBetweenSphericalCoords
-
-from wmpl.Trajectory.CorrelateRMS import MeteorObsRMS, PlateparDummy, MeteorPointRMS
-from wmpl.Utils.Pickling import loadPickle
-
-from fileformats.ftpDetectInfo import loadFTPDetectInfo, writeNewFTPFile
+from ukmon_meteortools.utils import raDec2AltAz, altAz2RADec, datetime2JD, greatCircleDistance
+from ukmon_meteortools.fileformats import loadFTPDetectInfo, writeNewFTPFile
 
 
 # Dummy platepar structure needed by loadPlatePar
@@ -40,6 +34,7 @@ class localPlateparDummy:
     def __init__(self, **entries):
         """ This class takes a platepar dictionary and converts it into an object. """
         self.__dict__.update(entries)
+
 
 # loads a platepars_all file from disk
 def loadPlatepar(ppdir, statid):
@@ -112,13 +107,13 @@ class EventChecker(object):
         # execution)
         for height_above_ground in [95000, 70000, 115000, 50000]:
             # Compute points in the middle of FOVs of both stations at given heights
-            reference_fov_point = reference_stat_eci + reference_fov_eci*(height_above_ground \
+            reference_fov_point = reference_stat_eci + reference_fov_eci*(height_above_ground 
                 - elev1)/np.sin(alt1)
             test_fov_point = test_stat_eci + test_fov_eci*(height_above_ground - elev2)/np.sin(alt2)
 
             # Check if the middles of the FOV are in the other camera's FOV
             if (angleBetweenVectors(reference_fov_eci, test_fov_point - reference_stat_eci) <= reference_fov/2) \
-                or (angleBetweenVectors(test_fov_eci, reference_fov_point - test_stat_eci) <= test_fov/2):
+                    or (angleBetweenVectors(test_fov_eci, reference_fov_point - test_stat_eci) <= test_fov/2):
                 return True
 
             # Compute vectors pointing from one station's point on the FOV line to the other
@@ -130,9 +125,9 @@ class EventChecker(object):
             test_fov_gnd = test_fov_point - test_stat_eci
 
             # Compute vectors moved towards the other station by half the FOV diameter
-            reference_moved = reference_stat_eci + vectorFromPointDirectionAndAngle(reference_fov_gnd, \
+            reference_moved = reference_stat_eci + vectorFromPointDirectionAndAngle(reference_fov_gnd, 
                 reference_to_test, reference_fov/2)
-            test_moved = test_stat_eci + vectorFromPointDirectionAndAngle(test_fov_gnd, test_to_reference, \
+            test_moved = test_stat_eci + vectorFromPointDirectionAndAngle(test_fov_gnd, test_to_reference, 
                 test_fov/2)
 
             # Compute the vector pointing from one station to the moved point of the other station
@@ -141,7 +136,7 @@ class EventChecker(object):
 
             # Check if the FOVs overlap
             if (angleBetweenVectors(reference_fov_eci, reference_to_test_moved) <= reference_fov/2) \
-                or (angleBetweenVectors(test_fov_eci, test_to_reference_moved) <= test_fov/2):
+                    or (angleBetweenVectors(test_fov_eci, test_to_reference_moved) <= test_fov/2):
                 #print('FOVs overlap')
                 return True
         return False
@@ -149,13 +144,14 @@ class EventChecker(object):
 
     def stationRangeCheck(self, rp, tp):
         # Compute the distance between stations (km)
-        dist = greatCircleDistance(np.radians(rp.lat), np.radians(rp.lon), np.radians(tp.lat), \
+        dist = greatCircleDistance(np.radians(rp.lat), np.radians(rp.lon), np.radians(tp.lat), 
             np.radians(tp.lon))
         if (dist < self.traj_constraints.min_station_dist) \
-            or (dist > self.traj_constraints.max_station_dist):
+                or (dist > self.traj_constraints.max_station_dist):
             return False
         else:
             return True
+
 
 # functions to check stations - this one checks two stations 
 def checkTwoStations(datadir, stat1, stat2):
@@ -173,7 +169,7 @@ def checkTwoStations(datadir, stat1, stat2):
         return False
     return True
 
-# check all Clanfield station overlaps with a named station
+
 def checkClanfieldOverlaps(datadir, stat2):
     # 
     # Check all clanfield station overlas with stat2
@@ -194,7 +190,7 @@ def checkClanfieldOverlaps(datadir, stat2):
             return True
     return False
 
-# get a list of all stations that overlap with the named station
+
 def getOverlappingStations(datadir, stationid):
     #
     # Check all overlaps for all stations
@@ -217,13 +213,13 @@ def getOverlappingStations(datadir, stationid):
     return overlaps
 
 
-# not sure i need this
 def loadUFOdata(datadir, startdt, enddt, loc_cam):
+    # not sure i need this
     # 
     # load the simple CSV data for a specific camera between two dates
     #
     yr = startdt.year
-    ufofile =  os.path.join(datadir, 'consolidated', f'M_{yr}-unified.csv')    
+    ufofile = os.path.join(datadir, 'consolidated', f'M_{yr}-unified.csv')    
     # cols=['LocalTime','Loc_Cam','Y(UT)','M(UT)','D(UT)','H(UT)','M','S', 'Dir1', 'Alt1', 'Ra1', 'Dec1', 'Ra2', 'Dec2']
     cfd = pd.read_csv(ufofile, skipinitialspace=True)
     cfd['Dtstamp']=[datetime.datetime.strptime(x, '%Y%m%d_%H%M%S').replace(tzinfo=timezone.utc).timestamp() for x in cfd.LocalTime]
@@ -232,8 +228,9 @@ def loadUFOdata(datadir, startdt, enddt, loc_cam):
     cfd = cfd[cfd.Loc_Cam == loc_cam]
     return cfd
 
-# not sure i need this either
+
 def loadSingleData(datadir, camlist, startdt, enddt):
+    # not sure i need this either
     #
     # Load consolidated RMS single-station data for a list of cameras between two dates
     #
@@ -251,6 +248,7 @@ def loadSingleData(datadir, camlist, startdt, enddt):
 ##############################################
 # from here down is where we actually do stuff
 ##############################################
+
 
 def getAllPickles(datadir, dtstr):
     #
@@ -318,7 +316,7 @@ def findUnused(datadir, startdt, enddt):
     if edt.year > sdt.year:
         emth += 12
     used = pd.DataFrame()
-    for m in range (smth, emth+1):
+    for m in range(smth, emth+1):
         yy = sdt.year
         mm = m
         if mm > 12: 
@@ -416,7 +414,7 @@ def prepDataForRange(startdt, enddt):
     if edt.year > sdt.year:
         emth += 12
 
-    for m in range (smth, emth+1):
+    for m in range(smth, emth+1):
         yy = sdt.year
         mm = m
         if mm > 12: 
@@ -434,7 +432,7 @@ def prepDataForRange(startdt, enddt):
 def moveInterestingCands():
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     pickledir = os.path.join(datadir, 'historic', 'candidates')
-    goodcandr =  os.path.join(datadir, 'historic', 'goodcands')
+    goodcandr = os.path.join(datadir, 'historic', 'goodcands')
     os.makedirs(goodcandr, exist_ok=True)
     pickles = glob.glob(os.path.join(pickledir, '*.pickle'))
     for pf in pickles:
