@@ -2,12 +2,14 @@
 
 [ -f ~/dev/config.ini ] && source ~/dev/config.ini
 [ -f ~/source/testing/config.ini ] && source ~/source/testing/config.ini
+[ -f ~/source/ukmon-pitools/live.key ] && source ~/source/ukmon-pitools/live.key
 
 export PYTHONPATH=$WMPL_LOC:$RMS_LOC:.:..
 echo $PYTHONPATH
+hostname
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-pip install pytest pytest-cov
+pip install pytest pytest-cov pandas 
 cd $here/..
 
 if [  "$(which conda)" == "" ] ; then 
@@ -15,7 +17,7 @@ if [  "$(which conda)" == "" ] ; then
 else
     conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 fi
-
+echo $WMPL_LOC
 pytest -v --cov=. --cov-report=term-missing tests/test_fileformats.py tests/test_ukmondb.py tests/test_utils.py
 deactivate
 [ -f ~/vRMS/bin/activate ] && source ~/vRMS/bin/activate

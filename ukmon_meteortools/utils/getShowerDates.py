@@ -3,7 +3,6 @@
 # simple script to get the active shower list from the IMO working list
 
 import numpy as np
-import sys
 import os
 import datetime
 
@@ -64,14 +63,14 @@ def _loadDataFile(typ, pth=None):
         fname='streamfulldata.npy'
     elif typ == 2:
         fname='ShowerLookUpTable.npy'
+    elif typ == 3:
+        fname='gmn_shower_table_20230518.npy'
     else:
         return 'invalid type code'
 
     if pth is None:
-        if sys.platform == 'win32':
-            pth = 'e:/dev/meteorhunting/WesternMeteorPyLib/wmpl/share'
-        else:
-            pth = '/home/ec2-user/src/WesternMeteorPyLib/wmpl/share'
+        pth = os.getenv('WMPL_LOC', default='/home/ec2-user/src/WesternMeteorPyLib')
+        pth = os.path.join(pth, 'wmpl','share')
     dfil = np.load(os.path.join(pth, fname))
     return dfil
 
