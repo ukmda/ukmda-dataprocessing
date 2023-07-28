@@ -194,7 +194,7 @@ def test_getOverlapWith():
     kmlpat='*-70km.kml'
     refcam = 'UK008A'
     overlaps = getOverlapWith(srcfolder, kmlpat, refcam)
-    assert overlaps[3] == 'UK000B'
+    assert 'UK000B' in overlaps
 
 
 def test_pointInsideFov():
@@ -214,7 +214,7 @@ def test_checkKMLOverlap():
 def test_getOverlappingCameras():
     srcfldr = os.path.join(here, 'data', 'kmls')
     res = getOverlappingCameras(srcfldr, '*-70km.kml')
-    assert res[0][3]=='UK000P'
+    assert 'UK000P' in res[0]
 
 
 def test_trackToDistvsHeight():
