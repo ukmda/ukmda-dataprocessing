@@ -18,7 +18,7 @@ def test_matchApiCall():
     apicall = f'{apiurl}?reqtyp={reqtyp}&reqval={reqval}'
     matchlist = pd.read_json(apicall, lines=True)   
     assert len(matchlist) != 339
-    assert matchlist.orbname[0] != '20230721_000106.311_UK'
+    assert matchlist.orbname[0] == '20230721_000106.311_UK'
 
 
 def test_getMatchPickle():
