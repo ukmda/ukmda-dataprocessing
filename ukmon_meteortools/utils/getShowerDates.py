@@ -22,7 +22,7 @@ def getShowerDets(shwr, stringFmt=False, dataPth=None):
     """
     sl = iwsl.IMOshowerList()
     mtch = sl.getShowerByCode(shwr)
-    print(mtch)
+    #print(mtch)
     if len(mtch) > 0:
         id = int(mtch['@id'])
         nam = mtch['name']

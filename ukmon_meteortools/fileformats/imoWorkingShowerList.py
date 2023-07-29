@@ -45,7 +45,7 @@ class IMOshowerList:
                 datadir=os.path.split(os.path.abspath(__file__))[0]
                 fullstreamname = os.path.join(datadir, '..', 'share', 'streamfulldata.npy')
         self.fullstreamdata = np.load(fullstreamname)
-        print('initialised')
+        #print('initialised')
 
     
     def getShowerByCode(self, iaucode, useFull=False):
