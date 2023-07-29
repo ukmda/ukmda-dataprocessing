@@ -24,7 +24,7 @@ deactivate
 pushd $RMS_LOC
 pip install pytest pytest-cov 
 pip install --upgrade ukmon_meteortools
-pytest -v --cov=. --cov-report=term-missing  $here/tests/test_rmsutils.py
+pytest -v --cov=. --cov-report=term-missing  tests/test_rmsutils.py
 popd
 
 if [ $# == 0 ] ; then
