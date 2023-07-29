@@ -13,7 +13,6 @@ from utils import jd2Date, date2JD, datetime2JD, jd2DynamicalTimeJD, jd2LST, sol
     getActiveShowers, getShowerDets, getShowerPeak, getActiveShowersStr, \
     drawFTPFile, equatorialCoordPrecession, \
     annotateImage, annotateImageArbitrary, sendAnEmail
-from utils.getShowerDates import _loadLookupTable
 
 
 here = os.path.split(os.path.abspath(__file__))[0]
@@ -237,16 +236,6 @@ def test_trackToTimevsHeight():
     assert os.path.isfile(outname)
     os.remove(outname)
 
-
-def test_loadLookupTable():
-    ret = _loadLookupTable()
-    assert ret is not None
-
-
-# not testable 
-#def test_refreshShowerData():
-#    ret = _refreshShowerData()
-#    assert 1==1
 
 def test_annotateImage():
     origfile = os.path.join(here, 'data', 'sample_orig.jpg')
