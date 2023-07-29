@@ -2,6 +2,8 @@
 import json
 import os
 import boto3
+
+# need to include WMPL because the pickle file references structures in it
 from wmpl.Utils.Pickling import loadPickle
 
 
@@ -47,4 +49,3 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'body': pstr
     }
-           

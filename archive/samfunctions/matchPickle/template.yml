@@ -11,7 +11,7 @@ Resources:
         - x86_64
       FunctionName: matchPickleApi
       Description: API backend that retrieves an orbit picklefile
-      Timeout: 30
+      Timeout: 90
       MemorySize: 512
       Environment:
         Variables:
