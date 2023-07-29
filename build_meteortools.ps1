@@ -1,5 +1,6 @@
 # update the version number
 
+Push-Location $psscriptroot
 remove-item dist/*
 
 bumpver update --patch
@@ -13,3 +14,4 @@ if ($LASTEXITCODE -eq 0 ) {
     python -m twine upload --repository $repo dist/*.gz
     python -m twine upload --repository $repo dist/*.whl
 }
+pop-location
