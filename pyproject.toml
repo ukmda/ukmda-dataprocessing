@@ -43,14 +43,14 @@ dependencies = [
     "pyproj==3.5.0 ; python_version >= '3.8'",
     "pdoc",
     "Cython",
-    "opencv-python; platform_machine != 'armv71'",
+    "opencv-python; platform_machine != 'armv7l'",
     "imageio",
     "scipy",
     "jplephem",
     "pyephem",
     "gitpython",
     "astropy",
-    "pyqt5; platform_machine != 'aarch64' and platform_machine != 'armv71'",
+    "pyqt5; platform_machine != 'aarch64' and platform_machine != 'armv7l'",
     "basemap",
     "basemap-data-hires"
 ]
