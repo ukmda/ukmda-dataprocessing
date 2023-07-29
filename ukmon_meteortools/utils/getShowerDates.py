@@ -2,98 +2,36 @@
 #
 # simple script to get the active shower list from the IMO working list
 
-import numpy as np
-import os
 import datetime
 
 from ukmon_meteortools.utils import jd2Date, sollon2jd
-try:
-    from UpdateOrbitFiles import updateOrbitFiles ## to update WMPL raw data files
-    gotupdater = True
-except:
-    gotupdater = False
+from ukmon_meteortools.fileformats import imoWorkingShowerList as iwsl
 
 
-def _loadFullData(pth=None):
-    return _loadDataFile(1, pth)
-
-
-def _loadLookupTable(pth=None):
-    return _loadDataFile(2, pth)
-
-
-def _loadJenniskensShowers(dir_path, file_name):
-    """ Load the showers from the Jenniskens et al. (2018) table and init MeteorShower objects. """
-    jenniskens_shower_list = []
-    with open(os.path.join(dir_path, file_name), encoding='cp1252') as f:
-        data_start = 0
-        for line in f:
-            if "====================================" in line:
-                data_start += 1
-                continue
-            if data_start < 2:
-                continue
-            line = line.replace('\n', '').replace('\r', '')
-            if not line:
-                continue
-            if "[FINAL]" in line:
-                break
-            l0, L_l0, B_g, v_g, IAU_no = line.split()
-            jenniskens_shower_list.append([np.radians(float(l0)), np.radians(float(L_l0)), 
-                np.radians(float(B_g)), 1000*float(v_g), int(IAU_no)])
-    return np.array(jenniskens_shower_list)
-
-
-def _refreshShowerData():
-    if gotupdater is True:
-        updateOrbitFiles()
-    abs_path = os.getenv('WMPL_LOC', default='/home/ec2-user/src/WesternMeteorPyLib')
-    jenniskens_shower_table_file = os.path.join(abs_path, 'wmpl', 'share', 'ShowerLookUpTable.txt')
-    jenniskens_shower_table_npy = os.path.join(abs_path, 'wmpl', 'share', 'ShowerLookUpTable.npy')
-    jenniskens_shower_list = _loadJenniskensShowers(*os.path.split(jenniskens_shower_table_file))
-    np.save(jenniskens_shower_table_npy, jenniskens_shower_list)
-    iau_shower_table_file = os.path.join(abs_path, 'wmpl', 'share', 'streamfulldata.csv')
-    iau_shower_table_npy = os.path.join(abs_path, 'wmpl', 'share', 'streamfulldata.npy')
-    iau_shower_list = np.loadtxt(iau_shower_table_file, delimiter="|", usecols=range(20), dtype=str)
-    np.save(iau_shower_table_npy, iau_shower_list)
-
-
-def _loadDataFile(typ, pth=None):
-    if typ == 1:
-        fname='streamfulldata.npy'
-    elif typ == 2:
-        fname='ShowerLookUpTable.npy'
-    elif typ == 3:
-        fname='gmn_shower_table_20230518.npy'
-    else:
-        return 'invalid type code'
-
-    if pth is None:
-        pth = os.getenv('WMPL_LOC', default='/home/ec2-user/src/WesternMeteorPyLib')
-        pth = os.path.join(pth, 'wmpl','share')
-    dfil = np.load(os.path.join(pth, fname))
-    return dfil
-
-
-def getShowerDets(shwr, stringFmt=False):
+def getShowerDets(shwr, stringFmt=False, dataPth=None):
     """ Get details of a shower 
     
     Arguments:  
         shwr:   [string] three-letter shower code eg PER  
+    Keyword Arguments:
+        stringFmt [bool] default False, return a string rather than a list
+        dataPth   [string] path to the datafiles. Default None means data read from internal files. 
          
     Returns:  
         (id, full name, peak solar longitude, peak date mm-dd)  
     """
-    sfd = _loadFullData()
-    sfdfltr = sfd[sfd[:,3] == shwr]
-    mtch = [sh for sh in sfdfltr if sh[6] != '-2']
+    sl = iwsl.IMOshowerList()
+    mtch = sl.getShowerByCode(shwr)
+    print(mtch)
     if len(mtch) > 0:
-        id = int(mtch[-1][1])
-        nam = mtch[-1][4].strip()
-        pksollong = float(mtch[-1][7])
+        id = int(mtch['@id'])
+        nam = mtch['name']
+        pkdtstr = mtch['peak']
         dt = datetime.datetime.now()
         yr = dt.year
         mth = dt.month
+        pkdt = datetime.datetime.strptime(f'{yr} {pkdtstr}','%Y %b %d')
+        pksollong = mtch['pksollon']
         jd = sollon2jd(yr, mth, pksollong)
         pkdt = jd2Date(jd, dt_obj=True)
         dtstr = pkdt.strftime('%m-%d')

@@ -32,57 +32,60 @@ class IMOshowerList:
     def __init__(self, fname=None, fullstreamname=None):
         if fname is None:
             datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-            fname = os.path.join(datadir, '..', 'share', 'IMO_Working_Meteor_Shower_List.xml')
+            fname = os.path.join(datadir, 'share', 'IMO_Working_Meteor_Shower_List.xml')
             if not os.path.isfile(fname):
                 datadir=os.path.split(os.path.abspath(__file__))[0]
                 fname = os.path.join(datadir, '..', 'share', 'IMO_Working_Meteor_Shower_List.xml')
         
         tmplist = xmltodict.parse(open(fname, 'rb').read())
         self.showerlist = tmplist['meteor_shower_list']['shower']
-        self.fullstreamdata = None
+        if fullstreamname is None:
+            fullstreamname = os.path.join(datadir, 'share', 'streamfulldata.npy')
+            if not os.path.isfile(fullstreamname):
+                datadir=os.path.split(os.path.abspath(__file__))[0]
+                fullstreamname = os.path.join(datadir, '..', 'share', 'streamfulldata.npy')
+        self.fullstreamdata = np.load(fullstreamname)
+        print('initialised')
 
     
-    def getShowerByCode(self, iaucode):
+    def getShowerByCode(self, iaucode, useFull=False):
         ds = {'@id':None, 'IAU_code':None,'start':None, 'end':None, 
-            'peak':None, 'r':None, 'name':None, 'V':None, 'ZHR':None, 'RA':None, 'DE':None}
+            'peak':None, 'r':None, 'name':None, 'V':None, 'ZHR':None, 'RA':None, 'DE':None, 'pksollon': None}
         got = None
         for shower in self.showerlist:
             if shower['IAU_code'] == iaucode:
-                return shower
-        if got is None:
-            # load stream full dataset as backup
-            if self.fullstreamdata is None:
-                wmpldir = os.getenv('WMPL_LOC', default='/home/ec2-user/src/WesternMeteorPyLib')
-                fullstreamname = os.path.join(wmpldir, 'wmpl', 'share', 'streamfulldata.npy')
-                if not os.path.isfile(fullstreamname):
-                    datadir=os.path.split(os.path.abspath(__file__))[0]
-                    fullstreamname = os.path.join(datadir, '..', 'share', 'streamfulldata.npy')
-                self.fullstreamdata = np.load(fullstreamname)
-            subset = self.fullstreamdata[np.where(self.fullstreamdata[:,3]==iaucode)]
-            
-            if subset is not None:
-                mtch = [sh for sh in subset if sh[6] != '-2']
-                if len(mtch) > 0:
-                    ds['IAU_code'] = mtch[-1][3].strip()
-                    ds['name'] = mtch[-1][4].strip()
-                    ds['V'] = mtch[-1][12]
-                    ds['@id'] = mtch[-1][1]
-                    ds['RA'] = mtch[-1][8]
-                    ds['DE'] = mtch[-1][9]
+                got = shower
+        pksollong = -1
+        subset = self.fullstreamdata[np.where(self.fullstreamdata[:,3]==iaucode)]
+        if subset is not None:
+            mtch = [sh for sh in subset if sh[6] > '-1']
+            if len(mtch) > 0:
+                ds['IAU_code'] = mtch[-1][3].strip()
+                ds['name'] = mtch[-1][4].strip()
+                ds['V'] = mtch[-1][12]
+                ds['@id'] = mtch[-1][1]
+                ds['RA'] = mtch[-1][8]
+                ds['DE'] = mtch[-1][9]
 
-                    pksollong = float(mtch[-1][7])
-                    dt = datetime.datetime.now()
-                    yr = dt.year
-                    mth = dt.month
-                    jd = sollon2jd(yr, mth, pksollong)
-                    pkdt = jd2Date(jd, dt_obj=True)
-                    ds['peak'] = pkdt.strftime('%h %d')
-                    # start/end pop idx, ZHR not available in the IAU data
-                    ds['start'] = (pkdt + datetime.timedelta(days=-2)).strftime('%h %d')
-                    ds['end'] = (pkdt + datetime.timedelta(days=2)).strftime('%h %d')
-                    ds['r'] = '2.0'
-                    ds['ZHR'] = '3.0' 
-        return ds
+                pksollong = float(mtch[-1][7])
+                dt = datetime.datetime.now()
+                yr = dt.year
+                mth = dt.month
+                jd = sollon2jd(yr, mth, pksollong)
+                pkdt = jd2Date(jd, dt_obj=True)
+                ds['peak'] = pkdt.strftime('%h %d')
+                # start/end pop idx, ZHR not available in the IAU data
+                ds['start'] = (pkdt + datetime.timedelta(days=-2)).strftime('%h %d')
+                ds['end'] = (pkdt + datetime.timedelta(days=2)).strftime('%h %d')
+                ds['r'] = got['r']
+                ds['ZHR'] = got['ZHR']
+                ds['pksollon'] = pksollong
+        if useFull is False:
+            got['pksollon'] = pksollong
+            got['@id'] = ds['@id']
+            return got
+        else:
+            return ds
 
     def getStart(self, iaucode, currdt=None):
         shower = self.getShowerByCode(iaucode)
