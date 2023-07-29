@@ -5,13 +5,9 @@
 [ -f ~/source/ukmon-pitools/live.key ] && source ~/source/ukmon-pitools/live.key
 
 export PYTHONPATH=$WMPL_LOC:$RMS_LOC:.:..
-echo $PYTHONPATH
-echo $AWS_ACCESS_KEY_ID
 echo running on $(hostname)
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-pip install pytest pytest-cov 
-pip install --upgrade ukmon_meteortools
 cd $here/..
 
 if [  "$(which conda)" == "" ] ; then 
@@ -19,11 +15,15 @@ if [  "$(which conda)" == "" ] ; then
 else
     conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 fi
+pip install pytest pytest-cov 
+pip install --upgrade ukmon_meteortools
 echo $WMPL_LOC
 pytest -v --cov=. --cov-report=term-missing tests/test_fileformats.py tests/test_ukmondb.py tests/test_utils.py
 deactivate
 [ -f ~/vRMS/bin/activate ] && source ~/vRMS/bin/activate
 pushd $RMS_LOC
+pip install pytest pytest-cov 
+pip install --upgrade ukmon_meteortools
 pytest -v --cov=. --cov-report=term-missing  $here/tests/test_rmsutils.py
 popd
 
