@@ -138,12 +138,12 @@ def test_getQuietActiveShowersStr():
 
 def test_getShowerDets():
     sl = getShowerDets('LYR')
-    assert sl == (6, 'April Lyrids', 32.0, '04-22')
+    assert sl == (6, 'Lyrids', 31.7, '04-22')
 
 
 def test_getShowerDetsStr():
     sl = getShowerDets('LYR', stringFmt=True)
-    assert sl == '32.0,04-22,April Lyrids,LYR'
+    assert sl == '31.7,04-22,Lyrids,LYR'
 
 
 def test_getNonExistentShowerDets():

@@ -43,7 +43,7 @@ dependencies = [
     "pyproj==3.5.0 ; python_version >= '3.8'",
     "pdoc",
     "Cython",
-    "opencv-python",
+    "opencv-python; platform_machine != 'armv71'",
     "imageio",
     "scipy",
     "jplephem",

@@ -8,6 +8,7 @@ import datetime
 import os
 import numpy as np
 from ukmon_meteortools.utils import jd2Date, sollon2jd
+import copy
 
 # imported from $SRC/share
 try:
@@ -51,21 +52,23 @@ class IMOshowerList:
     def getShowerByCode(self, iaucode, useFull=False):
         ds = {'@id':None, 'IAU_code':None,'start':None, 'end':None, 
             'peak':None, 'r':None, 'name':None, 'V':None, 'ZHR':None, 'RA':None, 'DE':None, 'pksollon': None}
-        got = None
+        ds2 = {'@id':None, 'IAU_code':None,'start':None, 'end':None, 
+            'peak':None, 'r':None, 'name':None, 'V':None, 'ZHR':None, 'RA':None, 'DE':None, 'pksollon': None}
         for shower in self.showerlist:
             if shower['IAU_code'] == iaucode:
-                got = shower
+                ds = shower
         pksollong = -1
         subset = self.fullstreamdata[np.where(self.fullstreamdata[:,3]==iaucode)]
         if subset is not None:
             mtch = [sh for sh in subset if sh[6] > '-1']
             if len(mtch) > 0:
-                ds['IAU_code'] = mtch[-1][3].strip()
-                ds['name'] = mtch[-1][4].strip()
-                ds['V'] = mtch[-1][12]
-                ds['@id'] = mtch[-1][1]
-                ds['RA'] = mtch[-1][8]
-                ds['DE'] = mtch[-1][9]
+                ds2 = copy.deepcopy(ds)
+                ds2['IAU_code'] = mtch[-1][3].strip()
+                ds2['name'] = mtch[-1][4].strip()
+                ds2['V'] = mtch[-1][12]
+                ds2['@id'] = mtch[-1][1]
+                ds2['RA'] = mtch[-1][8]
+                ds2['DE'] = mtch[-1][9]
 
                 pksollong = float(mtch[-1][7])
                 dt = datetime.datetime.now()
@@ -73,19 +76,21 @@ class IMOshowerList:
                 mth = dt.month
                 jd = sollon2jd(yr, mth, pksollong)
                 pkdt = jd2Date(jd, dt_obj=True)
-                ds['peak'] = pkdt.strftime('%h %d')
+                ds2['peak'] = pkdt.strftime('%h %d')
                 # start/end pop idx, ZHR not available in the IAU data
-                ds['start'] = (pkdt + datetime.timedelta(days=-2)).strftime('%h %d')
-                ds['end'] = (pkdt + datetime.timedelta(days=2)).strftime('%h %d')
-                ds['r'] = got['r']
-                ds['ZHR'] = got['ZHR']
-                ds['pksollon'] = pksollong
+                ds2['start'] = (pkdt + datetime.timedelta(days=-2)).strftime('%h %d')
+                ds2['end'] = (pkdt + datetime.timedelta(days=2)).strftime('%h %d')
+                ds2['pksollon'] = pksollong
+        #print(ds)
+        #print(ds2)
         if useFull is False:
-            got['pksollon'] = pksollong
-            got['@id'] = ds['@id']
-            return got
-        else:
+            ds['pksollon'] = pksollong
+            ds['@id'] = ds2['@id']
             return ds
+        else:
+            ds2['ZHR'] = ds['ZHR']
+            ds2['r'] = ds['r']
+            return ds2
 
     def getStart(self, iaucode, currdt=None):
         shower = self.getShowerByCode(iaucode)

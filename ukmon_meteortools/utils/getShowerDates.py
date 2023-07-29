@@ -4,7 +4,6 @@
 
 import datetime
 
-from ukmon_meteortools.utils import jd2Date, sollon2jd
 from ukmon_meteortools.fileformats import imoWorkingShowerList as iwsl
 
 
@@ -22,19 +21,15 @@ def getShowerDets(shwr, stringFmt=False, dataPth=None):
     """
     sl = iwsl.IMOshowerList()
     mtch = sl.getShowerByCode(shwr)
-    #print(mtch)
-    if len(mtch) > 0:
+    if len(mtch) > 0 and mtch['@id'] is not None:
         id = int(mtch['@id'])
         nam = mtch['name']
         pkdtstr = mtch['peak']
         dt = datetime.datetime.now()
         yr = dt.year
-        mth = dt.month
         pkdt = datetime.datetime.strptime(f'{yr} {pkdtstr}','%Y %b %d')
-        pksollong = mtch['pksollon']
-        jd = sollon2jd(yr, mth, pksollong)
-        pkdt = jd2Date(jd, dt_obj=True)
         dtstr = pkdt.strftime('%m-%d')
+        pksollong = mtch['pksollon']
     else:
         id, nam, pksollong, dtstr = 0, 'Unknown', 0, 'Unknown'
     if stringFmt:
