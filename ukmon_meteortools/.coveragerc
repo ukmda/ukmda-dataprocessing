@@ -1,5 +1,0 @@
-[run]
-omit = tests/*
-
-[tool:pytest]
-addopts = --cov=ukmon_meteortools --cov-report html
