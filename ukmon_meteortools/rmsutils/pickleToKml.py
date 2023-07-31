@@ -3,6 +3,7 @@ import numpy as np
 import json
 import os 
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from ukmon_meteortools.fileformats import trackCsvtoKML
 try:
@@ -41,3 +42,70 @@ def pickleToKml(picklename, outdir=None):
     df = df.sort_values(by=['times', 'lats'])
     os.makedirs(outdir, exist_ok=True)
     return trackCsvtoKML(trajname.replace('.pickle', 'csv'), df, saveOutput=True, outdir=outdir)
+
+
+def pickleTo2dTrack(picklename, outdir=None):
+    """Create a 2d graph of the trajectory in a solution pickle
+     
+    Arguments:  
+        picklename: [string] full path to the solution pickle file  
+
+    Keyword Args:  
+        outdir: [string] where to save the plot. Default same place as pickle. 
+    
+    Returns:   
+        none
+    """
+    pickpath, trajname = os.path.split(picklename)
+    data = loadPickle(pickpath, trajname).toJson()
+    jsd = json.loads(data)
+    alts = [] 
+    times = []
+    rngs = []
+    for js in jsd['observations']:
+        k = list(js.keys())[0]
+        thisstat = js[k]
+        alts += thisstat['model_ht']
+        times += thisstat['time_data']
+        rngs += thisstat['model_range']
+
+    plt.clf()
+    fig = plt.gcf()
+    fig.set_size_inches(11.6, 8.26)
+
+    plt.plot(times, alts, linewidth=2)
+    ax = plt.gca()
+    ax.set(xlabel="Time(s)", ylabel="Altitude (m)")
+    #print(min(alts), max(alts))
+    ax.set_ylim(bottom = min(min(alts), 25000), top=max(max(alts), 120000))
+    orig, fname = os.path.split(picklename)
+    if outdir is None:
+        outdir = orig
+    fname = fname.replace('.pickle', '_2dtrack.png')
+    f3dname = os.path.join(outdir, fname)
+
+    plt.title('Trajectory of {}'.format(fname[:15]))
+    plt.tight_layout()
+    plt.savefig(f3dname, dpi=200)
+    plt.close()
+
+    plt.clf()
+    fig = plt.gcf()
+    fig.set_size_inches(11.6, 8.26)
+
+    plt.plot(rngs, alts, linewidth=2)
+    ax = plt.gca()
+    ax.set(xlabel="Range (m)", ylabel="Altitude (m)")
+    #print(min(alts), max(alts))
+    ax.set_ylim(bottom = min(min(alts), 25000), top=max(max(alts), 120000))
+    orig, fname = os.path.split(picklename)
+    if outdir is None:
+        outdir = orig
+    fname = fname.replace('.pickle', '_2drange.png')
+    f3dname = os.path.join(outdir, fname)
+
+    plt.title('Trajectory of {}'.format(fname[:15]))
+    plt.tight_layout()
+    plt.savefig(f3dname, dpi=200)
+    plt.close()
+    return 

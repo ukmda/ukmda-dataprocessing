@@ -23,3 +23,4 @@ from .multiEventGroundMap import multiEventGroundMap
 from .plotCAMSOrbits import plotCAMSOrbits
 from .plotRMSOrbits import plotRMSOrbits
 from .pickleToKml import pickleToKml
+from .pickleToKml import pickleTo2dTrack
