@@ -322,7 +322,33 @@ def computeAbsoluteMagnitudes(traj, meteor_list):
             meteor_obs.abs_mag_data.append(6)
 
 
-def draw3Dmap(traj, outdir):
+def draw2DTrack(traj, outdir):
+    alts = []
+    times = []
+    # Go through observation from all stations
+    for obs in traj.observations:
+        # Go through all observed points
+        for i in range(obs.kmeas):
+            alts.append(obs.model_ht[i])
+            times.append(obs.time_data[i])
+    dtstr = jd2Date(traj.jdt_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
+    plt.clf()
+    fig = plt.gcf()
+    fig.set_size_inches(11.6, 8.26)
+    plt.plot(times, alts, linewidth=2)
+    ax = plt.gca()
+    ax.set(xlabel="Time(s)", ylabel="Altitude (m)")
+    #print(min(alts), max(alts))
+    ax.set_ylim(bottom = min(min(alts), 25000), top=max(max(alts), 120000))
+    dtstr = jd2Date(traj.jdt_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
+    plt.title('Trajectory of event {}'.format(dtstr[:15]))
+    plt.tight_layout()
+    f2dname = os.path.join(outdir, dtstr[:15].replace('-','_') + '_2dtrack.png')
+    plt.savefig(f2dname, dpi=200)
+    return
+
+
+def draw3DTrack(traj, outdir):
     #print('creating 3d image')
     lats = []
     lons = []
@@ -501,16 +527,12 @@ def createAdditionalOutput(traj, outdir):
 
         #print('saved')
     if orb is not None:
-        #print('create ufo file and 3d image')
         try:
-            #print(amag, mass, shower_obj)
             createUFOOrbitFile(traj, outdir, amag, mass, shower_obj)
         except Exception:
             print('problem creating UFO style output')
-        #print('drawing 3d')
-        draw3Dmap(traj, outdir)
+        draw2DTrack(traj, outdir)
+        draw3DTrack(traj, outdir)
     else:
         print('no orbit object')
-
-    #print('done')
     return 

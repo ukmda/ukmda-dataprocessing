@@ -65,7 +65,7 @@ def createOrbitPageIndex(fldr, websitebucket, s3):
         idxf.write(f'<a href="{pref}abs_mag_ht.png"><img src="{pref}abs_mag_ht.png" width="20%\"></a>\n')
         idxf.write(f'<a href="{pref}all_angular_residuals.png"><img src="{pref}all_angular_residuals.png" width="20%"></a>\n')
         idxf.write(f'<a href="{pref}all_spatial_total_residuals_height.png"><img src="{pref}all_spatial_total_residuals_height.png" width="20%"></a>\n')
-        idxf.write(f'<a href="{pref}3dtrack.png"><img src="{pref}3dtrack.png" width="20%"></a>\n')
+        idxf.write(f'<a href="{pref}2dtrack.png"><img src="{pref}2dtrack.png" width="20%"></a>\n')
         idxf.write('</div>\n')
 
         idxf.write("<div>\n")

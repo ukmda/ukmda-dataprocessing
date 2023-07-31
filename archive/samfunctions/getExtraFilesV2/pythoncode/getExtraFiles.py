@@ -218,7 +218,7 @@ def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
         locfname = os.path.join(outdir, f)
         zipf.write(locfname)
         # some files need to be pushed to the website, some to the archive bucket
-        if '3dtrack' in f:
+        if '3dtrack' in f or '2dtrack' in f:
             key = os.path.join(webpth, f)
             extraargs = getExtraArgs(locfname)
             s3.meta.client.upload_file(locfname, websitebucket, key, ExtraArgs=extraargs)
