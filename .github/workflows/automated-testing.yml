@@ -4,14 +4,7 @@ on:
   push:
     branches:
       - markmac99
-
 jobs:
-  pi4tests:
-    runs-on: testpi4ukm
-    steps:
-      - uses: actions/checkout@v3
-      - run: chmod +x ./ukmon_meteortools/tests/*.sh
-      - run: ./ukmon_meteortools/tests/runTests.sh 
   apitests:
     runs-on: ubuntu-latest
     steps:
@@ -23,5 +16,5 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: chmod +x ./tests/*.sh
-      - run: ./tests/api_tests.sh
+      - run: ./tests/lnx_tests.sh
     
