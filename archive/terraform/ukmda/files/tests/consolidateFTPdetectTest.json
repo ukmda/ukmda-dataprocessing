@@ -1,0 +1,15 @@
+{
+  "Records": [
+    {
+      "s3": {
+        "bucket": {
+          "name": "ukmon-shared",
+          "arn": "arn:aws:s3:::ukmon-shared"
+        },
+        "object": {
+          "key": "archive/Pantybwlch/UK0029/2022/202211/20221104/FTPdetectinfo_UK0029_20221104_171920_151384.txt"
+        }
+      }
+    }
+  ]
+}
