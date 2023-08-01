@@ -5,7 +5,7 @@
 resource "aws_ssm_parameter" "prod_websitebucket" {
   name  = "prod_websitebucket"
   type  = "String"
-  value = "ukmeteornetworkarchive" 
+  value = var.archbucket
   tags = {
     "billingtag" = "ukmon"
   }
@@ -14,7 +14,7 @@ resource "aws_ssm_parameter" "prod_websitebucket" {
 resource "aws_ssm_parameter" "prod_sharedbucket" {
   name  = "prod_sharedbucket"
   type  = "String"
-  value = "ukmon-shared"
+  value = var.sharedbucket
   tags = {
     "billingtag" = "ukmon"
   }
@@ -23,7 +23,7 @@ resource "aws_ssm_parameter" "prod_sharedbucket" {
 resource "aws_ssm_parameter" "prod_livebucket" {
   name  = "prod_livebucket"
   type  = "String"
-  value = "ukmon-live"
+  value = var.livebucket
   tags = {
     "billingtag" = "ukmon"
   }
