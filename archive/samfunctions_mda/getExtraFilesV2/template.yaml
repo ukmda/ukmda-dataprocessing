@@ -1,0 +1,40 @@
+# arn:aws:lambda:eu-west-2:317976261112:function:getExtraOrbitFilesV2
+# remember to add inline policy to the Lambda to allow s3 bucket to invoke 
+# then add s3 trigger on the properties page of the bucket
+# Copyright (C) 2018-2023 Mark McIntyre
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  python3.8
+
+  SAM Template for getExtraOrbitFilesV2
+
+Globals:
+  Function:
+    Timeout: 300
+    MemorySize: 512
+    
+Resources:
+  getExtraOrbitFilesV2:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      EphemeralStorage: 
+        Size: 2048
+      Architectures:
+        - x86_64
+      FunctionName: getExtraOrbitFilesV2
+      Description: Gets UKMON orbit extra files v2
+      Environment:
+        Variables:
+          WEBSITEBUCKET: ukmeteornetworkarchive
+          MPLCONFIGDIR: /tmp/mpl
+          WEBURL: https://archive.ukmeteors.co.uk
+      Tags:
+        billingtag: "ukmon"
+      Role: arn:aws:iam::183798037734:role/service-role/S3FullAccess
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: ./pythoncode
+      DockerTag: python3.8-v1

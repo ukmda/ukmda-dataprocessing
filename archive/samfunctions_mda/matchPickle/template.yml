@@ -1,0 +1,34 @@
+# SAM build file for searchArchive
+# Copyright (C) 2018-2023 Mark McIntyre
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Resources:
+  matchPickleApi:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Architectures:
+        - x86_64
+      FunctionName: matchPickleApi
+      Description: API backend that retrieves an orbit picklefile
+      Timeout: 90
+      MemorySize: 512
+      Environment:
+        Variables:
+          ARCHBUCKET: ukmon-shared
+          MPLCONFIGDIR: /tmp/mpl
+      Tags:
+        billingtag: "ukmon"
+      Role: arn:aws:iam::822069317839:role/service-role/S3FullAccess
+      Events:
+        HttpGet:
+          Type: Api
+          Properties:
+            Path: '/getpickle'
+            Method: get
+    Metadata:
+      BuildMethod: python3.8
+      Dockerfile: Dockerfile
+      DockerContext: ./pythoncode
+      DockerTag: python3.8-v1
+

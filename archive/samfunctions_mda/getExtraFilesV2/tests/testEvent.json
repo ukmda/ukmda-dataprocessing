@@ -1,0 +1,15 @@
+{
+  "Records": [
+    {
+      "s3": {
+        "bucket": {
+          "name": "ukmon-shared",
+          "arn": "arn:aws:s3:::ukmon-shared"
+        },
+        "object": {
+          "key": "matches/RMSCorrelate/trajectories/2023/202307/20230726/20230726_011105.507_UK/20230726_011105_trajectory.pickle"
+        }
+      }
+    }
+  ]
+}
