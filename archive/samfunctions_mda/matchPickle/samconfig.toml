@@ -11,4 +11,6 @@ capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 disable_rollback = true
 #image_repositories = []
-image_repositories = ["matchPickleApi=822069317839.dkr.ecr.eu-west-1.amazonaws.com/matchpickleapi60c45b31/matchpickleapi60c45b31repo"]
+image_repositories = ["matchPickleApi=183798037734.dkr.ecr.eu-west-1.amazonaws.com/apis/matchpickleapi"]
+resolve_s3 = true
+profile = "ukmda_admin"

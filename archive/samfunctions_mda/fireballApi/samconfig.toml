@@ -9,3 +9,5 @@ s3_prefix = "getFireballFiles"
 region = "eu-west-1"
 capabilities = "CAPABILITY_IAM"
 image_repositories = []
+resolve_s3 = true
+profile = "ukmda_admin"

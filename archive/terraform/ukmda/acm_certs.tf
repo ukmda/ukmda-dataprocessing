@@ -44,7 +44,7 @@ resource "aws_acm_certificate" "apicert" {
   validation_method = "DNS"
   provider = aws.us-east-1-prov
   tags = {
-    billingtag = "ukmon"
+    billingtag = "ukmda"
   }
   lifecycle {
     create_before_destroy = true
