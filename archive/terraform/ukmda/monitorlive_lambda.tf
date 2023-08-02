@@ -98,6 +98,6 @@ resource "aws_lambda_permission" "permmonitorlivelambda" {
   action         = "lambda:InvokeFunction"
   function_name  = aws_lambda_function.monitorlivelambda.arn
   principal      = "s3.amazonaws.com"
-  source_account = "822069317839"
+  source_account = data.aws_caller_identity.current.account_id
   source_arn     = aws_s3_bucket.ukmdalive.arn
 }

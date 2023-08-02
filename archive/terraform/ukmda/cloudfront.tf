@@ -59,10 +59,10 @@ resource "aws_cloudfront_origin_access_identity" "archsite_oaid" {
   comment = "access-identity-ukmdaarchive"
 }
 
-output "cfdistro_url" {
-  value = aws_cloudfront_distribution.arch_distribution.domain_name
-}
+#output "cfdistro_url" {
+#  value = aws_cloudfront_distribution.arch_distribution.domain_name
+#}
 
-output "cfoaid_name" {
-  value = aws_cloudfront_origin_access_identity.archsite_oaid.iam_arn
-}
+#output "cfoaid_name" {
+#  value = aws_cloudfront_origin_access_identity.archsite_oaid.iam_arn
+#}

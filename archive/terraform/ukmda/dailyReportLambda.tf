@@ -11,7 +11,7 @@ data "archive_file" "dailyreportzip" {
 }
 
 resource "aws_lambda_function" "dailyreportlambda" {
-  provider         = aws.eu-west-1-prov
+#  provider         = aws.eu-west-1-prov
   function_name    = "dailyReport"
   description      = "Daily report of matching events"
   filename         = data.archive_file.dailyreportzip.output_path
@@ -98,7 +98,7 @@ EOF
 }
 
 resource "aws_lambda_permission" "rp_for_mjmmacct" {
-  provider         = aws.eu-west-1-prov
+#  provider         = aws.eu-west-1-prov
   statement_id  = "xacctLambdaPol"
   action        = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.dailyreportlambda.arn}"
