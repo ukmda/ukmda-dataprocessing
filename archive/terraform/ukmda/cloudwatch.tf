@@ -15,7 +15,7 @@ resource "aws_cloudwatch_metric_alarm" "calcServerDiskSpace" {
   alarm_description         = "CalcServer diskspace has gone over 90%"
   insufficient_data_actions = []
   datapoints_to_alarm       = 1
-  alarm_actions             = [aws_sns_topic.ukmonalerts.arn, ]
+  alarm_actions             = [aws_sns_topic.ukmdaalerts.arn, ]
   dimensions = {
     "ImageId"      = aws_instance.calc_server.ami
     "InstanceId"   = aws_instance.calc_server.id
@@ -25,7 +25,7 @@ resource "aws_cloudwatch_metric_alarm" "calcServerDiskSpace" {
     "path"         = "/"
   }
   tags = {
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
   actions_enabled           = true
 }
@@ -44,14 +44,14 @@ resource "aws_cloudwatch_metric_alarm" "calcServerIdle" {
   ok_actions                = []
   datapoints_to_alarm       = 4
   alarm_actions = [
-    #aws_sns_topic.ukmonalerts.arn,
+    #aws_sns_topic.ukmda.arn,
     "arn:aws:automate:${var.region}:ec2:stop",
   ]
   dimensions = {
     "InstanceId" = aws_instance.calc_server.id
   }
   tags = {
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
 
    actions_enabled           = true

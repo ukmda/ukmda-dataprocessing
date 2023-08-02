@@ -28,21 +28,21 @@ resource "aws_lambda_function" "matchapilambda" {
   }
   tags = {
     Name       = "matchDataApiHandler"
-    billingtag = "ukmon"
+    billingtag = "ukmda"
   }
 }
 
 
 
 resource "aws_api_gateway_rest_api" "matchapi_apigateway" {
-  body     = file("files/matchApiJson/ukmonMatchApi.json")
-  name     = "ukmonMatchApi"
+  body     = file("files/matchApiJson/ukmdaMatchApi.json")
+  name     = "ukmdaMatchApi"
   provider = aws.eu-west-1-prov
   endpoint_configuration {
     types = ["REGIONAL"]
   }
   tags = {
-    Name       = "ukmonMatchApi"
-    billingtag = "ukmon"
+    Name       = "ukmdaMatchApi"
+    billingtag = "ukmda"
   }
 }

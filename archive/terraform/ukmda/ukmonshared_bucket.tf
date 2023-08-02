@@ -1,15 +1,15 @@
 # Copyright (C) 2018-2023 Mark McIntyre
-resource "aws_s3_bucket" "ukmonshared" {
+resource "aws_s3_bucket" "ukmdashared" {
   bucket        = var.sharedbucket
   force_destroy = false
   tags = {
-    "billingtag" = "ukmon"
-    "ukmontype"  = "datastore"
+    "billingtag" = "ukmda"
+    "ukmdatype"  = "datastore"
   }
 }
 
-resource "aws_s3_bucket_policy" "ukmonsharedbp" {
-  bucket = aws_s3_bucket.ukmonshared.id
+resource "aws_s3_bucket_policy" "ukmdasharedbp" {
+  bucket = aws_s3_bucket.ukmdashared.id
   policy = jsonencode(
     {
       Statement = [
@@ -23,12 +23,12 @@ resource "aws_s3_bucket_policy" "ukmonsharedbp" {
           Effect = "Allow"
           Principal = {
             AWS = [
-              "arn:aws:iam::317976261112:role/S3FullAccess", # role used by lambdas
-              "arn:aws:iam::317976261112:role/lambda-s3-full-access-role", # role used by SAM functions
-              "arn:aws:iam::317976261112:role/ecsTaskExecutionRole", # role used by ECS tasks
-              "arn:aws:iam::317976261112:user/Mary",
-              "arn:aws:iam::317976261112:user/Mark",
-              "arn:aws:iam::317976261112:user/s3user", # not sure this is needed
+              "arn:aws:iam::${var.remote_account_id}:role/S3FullAccess", # role used by lambdas
+              "arn:aws:iam::${var.remote_account_id}:role/lambda-s3-full-access-role", # role used by SAM functions
+              "arn:aws:iam::${var.remote_account_id}:role/ecsTaskExecutionRole", # role used by ECS tasks
+              "arn:aws:iam::${var.remote_account_id}:user/Mary",
+              "arn:aws:iam::${var.remote_account_id}:user/Mark",
+              "arn:aws:iam::${var.remote_account_id}:user/s3user", # not sure this is needed
             ]
           }
           Resource = [
@@ -45,17 +45,15 @@ resource "aws_s3_bucket_policy" "ukmonsharedbp" {
             "Resource": "arn:aws:s3:::ukmda-shared/admin/*",
             "Condition": {
                 "StringNotLike": {
-                    "aws:userId": [
-                        "AIDA36ZZGKDHZEZFXA7BB",  # markmcintyre 
-                        "AIDA36ZZGKDH4LUPSQ3CB",  # ash_vale
-                        "AIDA36ZZGKDHXYCBTWWC2",  # eastbourne
-                        "AIDA36ZZGKDHZAWQZON7B",  # loscoe
-                        "AIDA36ZZGKDH4LW3WF2GJ",  # Church_Cro
-                        "AIDA36ZZGKDHWBV7ZQISQ",  # chard
-                        "AIDA36ZZGKDHQ4TPUOLA2",  # ukmon-rickzkm
-                        "AROAUUCG4WH4GFCTQIKH3:*", # S3FullAccess in MJMM account
-                        "AROA36ZZGKDHWAMYFNTWV:*", # DailyReportRole in EE account
-                        "822069317839"            # root account
+                    "aws:userId": [ # these IDs will all be wrong
+                        "AIDASVSZXPTTB3UZT4E2B",  # MarkMcIntyreUKM
+                        #"AIDA36ZZGKDHXYCBTWWC2",  # eastbourne
+                        #"AIDA36ZZGKDHZAWQZON7B",  # loscoe
+                        #"AIDA36ZZGKDH4LW3WF2GJ",  # Church_Cro
+                        #"AIDA36ZZGKDHWBV7ZQISQ",  # chard
+                        #"AROAUUCG4WH4GFCTQIKH3:*", # S3FullAccess in MJMM account
+                        #"AROA36ZZGKDHWAMYFNTWV:*", # DailyReportRole 
+                        "${data.aws_caller_identity.current.account_id}"            # root account
                       ]
                 }
             }
@@ -66,8 +64,8 @@ resource "aws_s3_bucket_policy" "ukmonsharedbp" {
   )
 }
 
-resource "aws_s3_bucket_acl" "ukmonsharedacl" {
-  bucket = aws_s3_bucket.ukmonshared.id
+resource "aws_s3_bucket_acl" "ukmdasharedacl" {
+  bucket = aws_s3_bucket.ukmdashared.id
   access_control_policy {
     owner {
       id = data.aws_canonical_user_id.current.id
@@ -82,8 +80,8 @@ resource "aws_s3_bucket_acl" "ukmonsharedacl" {
   }
 }
 
-resource "aws_s3_bucket_lifecycle_configuration" "ukmonsharedlcp" {
-  bucket = aws_s3_bucket.ukmonshared.id
+resource "aws_s3_bucket_lifecycle_configuration" "ukmdasharedlcp" {
+  bucket = aws_s3_bucket.ukmdashared.id
   rule {
     status = "Enabled"
     id     = "purge old versions"
@@ -156,8 +154,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmonsharedlcp" {
   }
 }
 
-resource "aws_s3_bucket_cors_configuration" "ukmonsharedcors" {
-  bucket = aws_s3_bucket.ukmonshared.id
+resource "aws_s3_bucket_cors_configuration" "ukmdasharedcors" {
+  bucket = aws_s3_bucket.ukmdashared.id
   cors_rule {
     allowed_headers = [
       "*",
@@ -180,17 +178,26 @@ resource "aws_s3_bucket_cors_configuration" "ukmonsharedcors" {
   }
 }
 
-resource "aws_s3_bucket_ownership_controls" "ukmonshare_objownrule" {
-  bucket = aws_s3_bucket.ukmonshared.id
+resource "aws_s3_bucket_ownership_controls" "ukmdashare_objownrule" {
+  bucket = aws_s3_bucket.ukmdashared.id
 
   rule {
     object_ownership = "BucketOwnerEnforced"
   }
 }
 
-resource "aws_s3_bucket_logging" "ukmonsharedlogs" {
-  bucket = aws_s3_bucket.ukmonshared.id
+resource "aws_s3_bucket_logging" "ukmdasharedlogs" {
+  bucket = aws_s3_bucket.ukmdashared.id
 
   target_bucket = aws_s3_bucket.logbucket.id
   target_prefix = "ukmdashared/"
+}
+
+resource "aws_s3_bucket_public_access_block" "ukmdashared-pab" {
+  bucket = aws_s3_bucket.ukmdashared.id
+
+  block_public_acls       = false
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }

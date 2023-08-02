@@ -38,18 +38,18 @@ resource "aws_dynamodb_table" "live_bright_table" {
   }
   tags = {
     Name       = "LiveBrightness"
-    billingtag = "ukmon"
+    billingtag = "ukmda"
   }
 }
 
 resource "aws_dynamodb_table" "camera_table" {
-  name         = "ukmon_camdetails"
+  name         = "ukmda_camdetails"
   billing_mode = "PAY_PER_REQUEST"
   #read_capacity  = 20
   #write_capacity = 20
   hash_key  = "stationid"
   range_key = "site"
-  provider  = aws.eu-west-1-prov
+#  provider  = aws.eu-west-1-prov
 
   attribute {
     name = "stationid"
@@ -66,14 +66,14 @@ resource "aws_dynamodb_table" "camera_table" {
   #  enabled        = true
   #}
   tags = {
-    Name       = "ukmon_camdetails"
-    billingtag = "ukmon"
+    Name       = "ukmda_camdetails"
+    billingtag = "ukmda"
   }
 }
 
 
 resource "aws_dynamodb_table" "uploadtimes_table" {
-  name         = "ukmon_uploadtimes"
+  name         = "ukmda_uploadtimes"
   billing_mode = "PAY_PER_REQUEST"
   #read_capacity  = 20
   #write_capacity = 20
@@ -107,15 +107,15 @@ resource "aws_dynamodb_table" "uploadtimes_table" {
     enabled        = true
   }
   tags = {
-    Name       = "ukmon_uploadtimes"
-    billingtag = "ukmon"
+    Name       = "ukmda_uploadtimes"
+    billingtag = "ukmda"
   }
 }
 
 resource "aws_dynamodb_table" "live_table" {
   name         = "live"
   billing_mode = "PAY_PER_REQUEST"
-  provider     = aws.eu-west-1-prov
+#  provider     = aws.eu-west-1-prov
 
   hash_key  = "image_name"
   range_key = "timestamp"
@@ -164,6 +164,6 @@ resource "aws_dynamodb_table" "live_table" {
   }
   tags = {
     Name       = "live"
-    billingtag = "ukmon"
+    billingtag = "ukmda"
   }
 }

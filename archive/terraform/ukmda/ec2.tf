@@ -1,18 +1,18 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 
 resource "aws_instance" "calc_server" {
-  ami                    = "ami-0e37df1ded87f1f10" # Calcserver AMI cloned from MM account
+  ami                    = "ami-0df2d8f6def0bd716" 
   instance_type          = "c6g.4xlarge"
-  iam_instance_profile   = aws_iam_instance_profile.S3FullAccess.name
+  iam_instance_profile   = aws_iam_instance_profile.calcserverrole.name
   key_name               = aws_key_pair.marks_key.key_name
   tags = {
     "Name"       = "Calcengine"
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
   root_block_device {
     tags = {
       "Name"       = "calcengine"
-      "billingtag" = "ukmon"
+      "billingtag" = "ukmda"
     }
     volume_size = 70
   }
@@ -21,15 +21,6 @@ resource "aws_instance" "calc_server" {
     device_index         = 0
   }
 }
-
-# elastic IP attached to the calcserver
-#resource "aws_eip" "calcserver" {
-#  instance = aws_instance.calc_server.id
-#  vpc      = true
-#  tags = {
-#    billingtag = "ukmon"
-#  }
-#}
 
 # elastic network interface attached to the calc server
 
@@ -41,8 +32,38 @@ resource "aws_network_interface" "calcserver_if" {
   ipv6_address_list_enabled = false
   tags = {
     "Name"       = "calcengine"
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
+  }
+}
+################################################
+#  admin server
+################################################
+
+
+resource "aws_instance" "admin_server" {
+  ami                    = "ami-0c1ce90bf42d9802b" 
+  instance_type          = "t2.micro"
+  iam_instance_profile   = aws_iam_instance_profile.S3FullAccess.name
+  key_name               = aws_key_pair.marks_key.key_name
+  tags = {
+    "Name"       = "AdminServer"
+    "billingtag" = "ukmda"
+  }
+  root_block_device {
+    tags = {
+      "Name"       = "adminserver"
+      "billingtag" = "ukmda"
+    }
+    volume_size = 8
   }
 }
 
+# elastic IP attached to the admin server
+resource "aws_eip" "adminserver_eip" {
+  instance = aws_instance.admin_server.id
+  domain   = "vpc"
+  tags = {
+    billingtag = "ukmda"
+  }
+}
 

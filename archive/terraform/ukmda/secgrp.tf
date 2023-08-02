@@ -67,6 +67,17 @@ resource "aws_security_group" "ec2_secgrp" {
       prefix_list_ids  = []
       security_groups  = []
       self             = false
+    },
+    {
+      cidr_blocks      = ["0.0.0.0/0"]
+      description      = "SSH for Admin"
+      from_port        = 22
+      protocol         = "tcp"
+      to_port          = 22
+      ipv6_cidr_blocks = []
+      prefix_list_ids  = []
+      security_groups  = []
+      self             = false
     }
   ]
   egress = [
@@ -83,7 +94,7 @@ resource "aws_security_group" "ec2_secgrp" {
     },
   ]
   tags = {
-    billingtag = "ukmon"
+    billingtag = "ukmda"
   }
 }
 /*

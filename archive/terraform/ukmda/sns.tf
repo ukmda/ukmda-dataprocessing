@@ -3,16 +3,16 @@
 # SNS for notifications
 #
 
-resource "aws_sns_topic" "ukmonalerts" {
-  name         = "ukmonAlerting"
+resource "aws_sns_topic" "ukmdaalerts" {
+  name         = "ukmdaAlerting"
   display_name = "DiskspaceMonitoring"
   tags = {
-    billingtag = "ukmon"
+    billingtag = "ukmda"
   }
 }
 
-resource "aws_sns_topic_subscription" "ukmonsubs" {
-  topic_arn                       = aws_sns_topic.ukmonalerts.arn
+resource "aws_sns_topic_subscription" "ukmdasubs" {
+  topic_arn                       = aws_sns_topic.ukmdaalerts.arn
   protocol                        = "email"
   endpoint                        = "markmcintyre99@googlemail.com"
   confirmation_timeout_in_minutes = 5

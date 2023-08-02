@@ -23,23 +23,23 @@ resource "aws_iam_role" "fbc_role" {
 
 resource "aws_iam_role_policy_attachment" "fbcoll_polatt" {
   role       = aws_iam_role.fbc_role.name
-  policy_arn = aws_iam_policy.ukmon_fbcoll_pol.arn
+  policy_arn = aws_iam_policy.ukmda_fbcoll_pol.arn
 }
 
-resource "aws_iam_policy" "ukmon_fbcoll_pol" {
+resource "aws_iam_policy" "ukmda_fbcoll_pol" {
   name        = "fireballCollector_policy"
   description = "policy to allow S3 access for the fb collector tool"
   policy      = data.template_file.fbc_pol_templ.rendered
   tags = {
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
 }
 
 data "template_file" "fbc_pol_templ" {
   template = file("files/policies/fireballcollector-policy.json")
   vars = {
-    livearn = aws_s3_bucket.ukmonlive.arn
-    sharedarn = aws_s3_bucket.ukmonshared.arn
+    livearn = aws_s3_bucket.ukmdalive.arn
+    sharedarn = aws_s3_bucket.ukmdashared.arn
   }
 }
 
@@ -59,7 +59,7 @@ resource "aws_iam_policy" "fbc_assumerole_pol" {
 }
 
 resource "aws_iam_user_policy_attachment" "fbatt1" {
-  user = "MarkMcIntyre"
+  user = "MarkMcIntyreUKM"
   policy_arn = aws_iam_policy.fbc_assumerole_pol.arn
 }
 

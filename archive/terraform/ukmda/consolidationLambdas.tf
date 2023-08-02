@@ -24,7 +24,7 @@ resource "aws_lambda_function" "consolidatejpgslambda" {
   publish          = false
   environment {
     variables = {
-      "WEBSITEBUCKET" = "s3://ukmeteornetworkarchive"
+      "WEBSITEBUCKET" = "s3://${aws_s3_bucket.archsite.id}"
     }
   }
   ephemeral_storage {
@@ -32,7 +32,7 @@ resource "aws_lambda_function" "consolidatejpgslambda" {
   }
   tags = {
     Name       = "consolidateJpgs"
-    billingtag = "ukmon"
+    billingtag = "ukmda"
   }
 }
 
@@ -56,7 +56,7 @@ resource "aws_lambda_function" "consolidatekmlslambda" {
   publish          = false
   environment {
     variables = {
-      "WEBSITEBUCKET" = "s3://ukmeteornetworkarchive"
+      "WEBSITEBUCKET" = "s3://${aws_s3_bucket.archsite.id}"
     }
   }
   ephemeral_storage {
@@ -64,7 +64,7 @@ resource "aws_lambda_function" "consolidatekmlslambda" {
   }
   tags = {
     Name       = "consolidateKmls"
-    billingtag = "ukmon"
+    billingtag = "ukmda"
   }
 }
 
@@ -89,7 +89,7 @@ resource "aws_lambda_function" "consolidatelatestlambda" {
   publish          = false
   environment {
     variables = {
-      "WEBSITEBUCKET" = "s3://ukmeteornetworkarchive"
+      "WEBSITEBUCKET" = "s3://${aws_s3_bucket.archsite.id}"
     }
   }
   ephemeral_storage {
@@ -97,7 +97,7 @@ resource "aws_lambda_function" "consolidatelatestlambda" {
   }
   tags = {
     Name       = "consolidateLatest"
-    billingtag = "ukmon"
+    billingtag = "ukmda"
   }
 }
 
@@ -124,7 +124,7 @@ resource "aws_lambda_function" "csvtriggerlambda" {
   }
   tags = {
     Name       = "CSVTrigger"
-    billingtag = "ukmon"
+    billingtag = "ukmda"
   }
 }
 
@@ -156,6 +156,6 @@ resource "aws_lambda_function" "ftpdetectlambda" {
   }
   tags = {
     Name       = "consolidateFTPdetect"
-    billingtag = "ukmon"
+    billingtag = "ukmda"
   }
 }

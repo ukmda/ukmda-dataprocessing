@@ -3,8 +3,7 @@ resource "aws_s3_bucket" "archsite" {
   bucket        = var.websitebucket
   force_destroy = false
   tags = {
-    "billingtag" = "ukmon"
-    "ukmontype"  = "archive"
+    "billingtag" = "ukmda"
   }
 }
 
@@ -17,12 +16,12 @@ data "aws_iam_policy_document" "archsite_bp_data" {
   statement {
     sid       = "1"
     effect    = "Allow"
-    resources = ["arn:aws:s3:::ukmda-archive/*"]
+    resources = ["${aws_s3_bucket.archsite.arn}/*"]
     actions   = ["s3:GetObject"]
 
     principals {
       type        = "AWS"
-      identifiers = ["arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity E18JX1UO8FC7NT"]
+      identifiers = [aws_cloudfront_origin_access_identity.archsite_oaid.iam_arn]
     }
   }
 
@@ -30,8 +29,8 @@ data "aws_iam_policy_document" "archsite_bp_data" {
     sid    = "2"
     effect = "Allow"
     resources = [
-      "arn:aws:s3:::ukmda-archive/*",
-      "arn:aws:s3:::ukmda-archive"
+      "${aws_s3_bucket.archsite.arn}/*",
+      "${aws_s3_bucket.archsite.arn}"
     ]
 
     actions = [
@@ -44,12 +43,12 @@ data "aws_iam_policy_document" "archsite_bp_data" {
     principals {
       type = "AWS"
       identifiers = [
-        "arn:aws:iam::317976261112:role/S3FullAccess",
-        "arn:aws:iam::317976261112:role/lambda-s3-full-access-role",
-        "arn:aws:iam::317976261112:role/ecsTaskExecutionRole",
-        "arn:aws:iam::317976261112:user/Mary",
-        "arn:aws:iam::317976261112:user/Mark",
-        "arn:aws:iam::317976261112:user/s3user",
+        "arn:aws:iam::${var.remote_account_id}:role/S3FullAccess",
+        "arn:aws:iam::${var.remote_account_id}:role/lambda-s3-full-access-role",
+        "arn:aws:iam::${var.remote_account_id}:role/ecsTaskExecutionRole",
+        "arn:aws:iam::${var.remote_account_id}:user/Mary",
+        "arn:aws:iam::${var.remote_account_id}:user/Mark",
+        "arn:aws:iam::${var.remote_account_id}:user/s3user",
       ]
     }
   }
@@ -58,8 +57,8 @@ data "aws_iam_policy_document" "archsite_bp_data" {
     sid    = "4"
     effect = "Allow"
     resources = [
-      "arn:aws:s3:::ukmda-archive/*",
-      "arn:aws:s3:::ukmda-archive"
+      "${aws_s3_bucket.archsite.arn}/*",
+      "${aws_s3_bucket.archsite.arn}"
     ]
 
     actions = [
@@ -76,7 +75,7 @@ data "aws_iam_policy_document" "archsite_bp_data" {
   }
 }
 
-resource "aws_s3_bucket_ownership_controls" "ukmonarch_objownrule" {
+resource "aws_s3_bucket_ownership_controls" "ukmdaarch_objownrule" {
   bucket = aws_s3_bucket.archsite.id
 
   rule {
@@ -84,11 +83,11 @@ resource "aws_s3_bucket_ownership_controls" "ukmonarch_objownrule" {
   }
 }
 
-resource "aws_s3_bucket_logging" "ukmonwebsitelogs" {
+resource "aws_s3_bucket_logging" "ukmdawebsitelogs" {
   bucket = aws_s3_bucket.archsite.id
 
   target_bucket = aws_s3_bucket.logbucket.id
-  target_prefix = "archsite/"
+  target_prefix = "website/"
 }
 
 
@@ -138,3 +137,5 @@ resource "aws_s3_bucket_lifecycle_configuration" "archsitelcp" {
     }
   }
 }
+
+output "bucketid" { value = aws_s3_bucket.archsite.id }

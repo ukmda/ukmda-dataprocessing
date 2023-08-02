@@ -12,8 +12,8 @@ resource "aws_cloudfront_distribution" "arch_distribution" {
       origin_access_identity = "origin-access-identity/cloudfront/${aws_cloudfront_origin_access_identity.archsite_oaid.id}"
     }
   }
-  aliases             = ["archive.ukmeteornetwork.co.uk", ]
-  comment             = "ukmeteornetwork archive site"
+  aliases             = ["archive.ukmeteors.co.uk", ]
+  comment             = "ukmeteors data website"
   default_root_object = "index.html"
   is_ipv6_enabled     = true
   enabled             = true
@@ -40,26 +40,29 @@ resource "aws_cloudfront_distribution" "arch_distribution" {
     cached_methods         = ["GET", "HEAD"]
   }
   viewer_certificate {
-    acm_certificate_arn            = aws_acm_certificate.ukmeteornetworkcert.arn
+    acm_certificate_arn            = aws_acm_certificate.ukmeteorscert.arn
     cloudfront_default_certificate = false
     minimum_protocol_version       = "TLSv1.2_2021"
     ssl_support_method             = "sni-only"
   }
   logging_config {
-    bucket          = "ukmon-s3-access-logs.s3.amazonaws.com"
+    bucket          = aws_s3_bucket.logbucket.bucket_domain_name
     include_cookies = false
     prefix          = "cdn"
   }
   tags = {
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
 }
 
 resource "aws_cloudfront_origin_access_identity" "archsite_oaid" {
-  comment = "access-identity-ukmonarchive"
+  comment = "access-identity-ukmdaarchive"
 }
 
 output "cfdistro_url" {
   value = aws_cloudfront_distribution.arch_distribution.domain_name
 }
 
+output "cfoaid_name" {
+  value = aws_cloudfront_origin_access_identity.archsite_oaid.iam_arn
+}

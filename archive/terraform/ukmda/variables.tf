@@ -1,8 +1,9 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 
 variable "profile" {  default = "ukmda_admin" }
+variable "mmprofile" { default = "default" }
 
-variable "websitebucket" { default = "ukmda-archive" }
+variable "websitebucket" { default = "ukmda-website" }
 variable "sharedbucket" { default = "ukmda-shared" }
 variable "livebucket" { default = "ukmda-live" }
 variable "region" { default = "eu-west-2"}

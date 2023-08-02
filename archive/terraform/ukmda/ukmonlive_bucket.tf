@@ -1,20 +1,21 @@
 # Copyright (C) 2018-2023 Mark McIntyre
-resource "aws_s3_bucket" "ukmonlive" {
+resource "aws_s3_bucket" "ukmdalive" {
   bucket        = var.livebucket
   force_destroy = false
+  
   tags = {
-    "billingtag" = "ukmon"
-    "ukmontype"  = "live"
+    "billingtag" = "ukmda"
+    "ukmdatype"  = "live"
   }
   provider = aws.eu-west-1-prov
 }
 
-resource "aws_s3_bucket_policy" "ukmonlivebp" {
-  bucket   = aws_s3_bucket.ukmonlive.id
+resource "aws_s3_bucket_policy" "ukmdalivebp" {
+  bucket   = aws_s3_bucket.ukmdalive.id
   provider = aws.eu-west-1-prov
   policy = jsonencode(
     {
-      Id = "Policy1380877762691"
+      Id = "ukmda-live-bp"
       Statement = [
         {
           Action = [
@@ -24,17 +25,17 @@ resource "aws_s3_bucket_policy" "ukmonlivebp" {
           ]
           Effect    = "Allow"
           Principal = "*"
-          Resource  = "arn:aws:s3:::ukmda-live/*"
-          Sid       = "Stmt1380877761162"
+          Resource  = "${aws_s3_bucket.ukmdalive.arn}/*"
+          Sid = "writeaccess"
         },
       ]
       Version = "2008-10-17"
     }
   )
 }
-
-resource "aws_s3_bucket_acl" "ukmonliveacl" {
-  bucket   = aws_s3_bucket.ukmonlive.id
+/*
+resource "aws_s3_bucket_acl" "ukmdaliveacl" {
+  bucket   = aws_s3_bucket.ukmdalive.id
   provider = aws.eu-west-1-prov
   access_control_policy {
     owner {
@@ -72,9 +73,9 @@ resource "aws_s3_bucket_acl" "ukmonliveacl" {
     }
   }
 }
-
-resource "aws_s3_bucket_lifecycle_configuration" "ukmonlivelcp" {
-  bucket   = aws_s3_bucket.ukmonlive.id
+*/
+resource "aws_s3_bucket_lifecycle_configuration" "ukmdalivelcp" {
+  bucket   = aws_s3_bucket.ukmdalive.id
   provider = aws.eu-west-1-prov
   rule {
     status = "Enabled"
@@ -92,8 +93,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmonlivelcp" {
   }
 }
 
-resource "aws_s3_bucket_cors_configuration" "ukmonlivecors" {
-  bucket   = aws_s3_bucket.ukmonlive.id
+resource "aws_s3_bucket_cors_configuration" "ukmdalivecors" {
+  bucket   = aws_s3_bucket.ukmdalive.id
   provider = aws.eu-west-1-prov
   cors_rule {
     allowed_headers = [
@@ -114,22 +115,30 @@ resource "aws_s3_bucket_cors_configuration" "ukmonlivecors" {
   }
 }
 
-resource "aws_s3_bucket_logging" "ukmonlivelogs" {
-  bucket = aws_s3_bucket.ukmonlive.id
+resource "aws_s3_bucket_logging" "ukmdalivelogs" {
   provider = aws.eu-west-1-prov
+  bucket = aws_s3_bucket.ukmdalive.id
   target_bucket = aws_s3_bucket.logbucket_w1.id
   target_prefix = "ukmdalive/"
 }
 
+resource "aws_s3_bucket_public_access_block" "ukmdalive-pab" {
+  provider = aws.eu-west-1-prov
+  bucket = aws_s3_bucket.ukmdalive.id
 
-/*
-resource "aws_s3_bucket_ownership_controls" "ukmonlive_objownrule" {
+  block_public_acls       = true
+  block_public_policy     = false
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+
+resource "aws_s3_bucket_ownership_controls" "ukmdalive_objownrule" {
   provider  = aws.eu-west-1-prov
-  bucket = aws_s3_bucket.ukmonlive.id
+  bucket = aws_s3_bucket.ukmdalive.id
 
   rule {
     object_ownership = "BucketOwnerEnforced"
   }
 }
 
-*/

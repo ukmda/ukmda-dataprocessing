@@ -5,14 +5,14 @@
 resource "aws_kms_key" "container_key" {
   description = "My KMS Key"
   tags = {
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
 }
 
 
 # create an ECR repository for the trajsolver images
 resource "aws_ecr_repository" "trajsolverrepo" {
-  name                 = "ukmon/trajsolver"
+  name                 = "calcengine/trajsolver"
   image_tag_mutability = "MUTABLE"
   image_scanning_configuration {
     scan_on_push = true
@@ -22,12 +22,12 @@ resource "aws_ecr_repository" "trajsolverrepo" {
     kms_key         = aws_kms_key.container_key.arn
   }
   tags = {
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
 }
 # create an ECR repository for the trajsolver test images
 resource "aws_ecr_repository" "trajsolvertestrepo" {
-  name                 = "ukmon/trajsolvertest"
+  name                 = "calcengine/trajsolvertest"
   image_tag_mutability = "MUTABLE"
   image_scanning_configuration {
     scan_on_push = true
@@ -37,13 +37,13 @@ resource "aws_ecr_repository" "trajsolvertestrepo" {
     kms_key         = aws_kms_key.container_key.arn
   }
   tags = {
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
 }
 
 # create an ECR repository for the extrafiles image
 resource "aws_ecr_repository" "extrafilesrepo" {
-  name                 = "ukmon/extrafiles"
+  name                 = "lambdas/extrafiles"
   image_tag_mutability = "MUTABLE"
   image_scanning_configuration {
     scan_on_push = true
@@ -53,13 +53,13 @@ resource "aws_ecr_repository" "extrafilesrepo" {
     kms_key         = aws_kms_key.container_key.arn
   }
   tags = {
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
 }
 
 # create an ECR repository for FTPtoUKMON
-resource "aws_ecr_repository" "ftptoukmonrepo" {
-  name                 = "ukmon/ftptoukmon"
+resource "aws_ecr_repository" "ftptoukmdarepo" {
+  name                 = "lambdas/ftptoukmon"
   image_tag_mutability = "MUTABLE"
   image_scanning_configuration {
     scan_on_push = true
@@ -69,7 +69,7 @@ resource "aws_ecr_repository" "ftptoukmonrepo" {
     kms_key         = aws_kms_key.container_key.arn
   }
   tags = {
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
 }
 
@@ -138,8 +138,8 @@ resource "aws_ecr_lifecycle_policy" "extrafilespolicy" {
 EOF
 }
 
-resource "aws_ecr_lifecycle_policy" "ftpyoukmonpolicy" {
-  repository = aws_ecr_repository.ftptoukmonrepo.name
+resource "aws_ecr_lifecycle_policy" "ftpoukmdapolicy" {
+  repository = aws_ecr_repository.ftptoukmdarepo.name
   policy     = <<EOF
 {
     "rules": [

@@ -32,7 +32,7 @@ resource "aws_iam_role_policy_attachment" "calcserverpolatt" {
 }
 
 data "template_file" "calcserpoltempl" {
-  template = file("files/policies/ukmon-calcserverpolicy.json")
+  template = file("files/policies/ukmda-calcserverpolicy.json")
 
   vars = {
     ecsarn = aws_iam_role.ecstaskrole.arn
@@ -43,7 +43,7 @@ resource "aws_iam_policy" "calcserverpol" {
   name   = "CalcServerPolicy"
   policy = data.template_file.calcserpoltempl.rendered
   tags = {
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
 }
 ##############################################################################
@@ -68,7 +68,7 @@ resource "aws_iam_role" "S3FullAccess" {
           Effect = "Allow"
           Principal = {
             Service = "lambda.amazonaws.com"
-            "AWS" : "arn:aws:iam::317976261112:root"
+            "AWS" : "arn:aws:iam::${var.remote_account_id}:root"
           }
         },
         {
@@ -76,7 +76,7 @@ resource "aws_iam_role" "S3FullAccess" {
           Action = "sts:AssumeRole"
           Effect = "Allow"
           Principal = {
-            AWS     = "arn:aws:iam::317976261112:role/lambda-s3-full-access-role"
+            AWS     = "arn:aws:iam::${var.remote_account_id}:role/lambda-s3-full-access-role"
             Service = "lambda.amazonaws.com"
           }
         },
@@ -85,7 +85,7 @@ resource "aws_iam_role" "S3FullAccess" {
           Action = "sts:AssumeRole"
           Effect = "Allow"
           Principal = {
-            AWS = "arn:aws:iam::317976261112:role/S3FullAccess"
+            AWS = "arn:aws:iam::${var.remote_account_id}:role/S3FullAccess"
           }
         },
         {
@@ -93,7 +93,7 @@ resource "aws_iam_role" "S3FullAccess" {
           Action = "sts:AssumeRole"
           Effect = "Allow"
           Principal = {
-            AWS = "arn:aws:iam::317976261112:role/ecsTaskExecutionRole"
+            AWS = "arn:aws:iam::${var.remote_account_id}:role/ecsTaskExecutionRole"
           }
         },
         {
@@ -144,12 +144,12 @@ resource "aws_iam_role_policy_attachment" "aws-managed-policy-attachment4" {
 
 resource "aws_iam_role_policy_attachment" "aws-mps3" {
   role       = aws_iam_role.S3FullAccess.name
-  policy_arn = "arn:aws:iam::822069317839:policy/service-role/AWSLambdaLambdaFunctionDestinationExecutionRole-5124b144-96bf-4873-b7fb-bf2724a4ec6b"
+  policy_arn = aws_iam_policy.lambdadestexecution.arn
 }
 
 resource "aws_iam_role_policy_attachment" "aws-mps4" {
   role       = aws_iam_role.S3FullAccess.name
-  policy_arn = "arn:aws:iam::822069317839:policy/ddbPermsForLambda"
+  policy_arn = aws_iam_policy.ddbforlambda.arn
 }
 
 resource "aws_iam_role_policy_attachment" "aws-mps5" {
@@ -159,38 +159,38 @@ resource "aws_iam_role_policy_attachment" "aws-mps5" {
 
 ##############################################################################
 ##############################################################################
-# policy applied to all ukmon members to enable uploads 
+# policy applied to all ukmda members to enable uploads 
 data "template_file" "ukmshared_pol_templ" {
-  template = file("files/policies/ukmon-shared.json")
+  template = file("files/policies/ukmda-shared.json")
   vars = {
-    sharedarn = aws_s3_bucket.ukmonshared.arn
+    sharedarn = aws_s3_bucket.ukmdashared.arn
     websitearn = aws_s3_bucket.archsite.arn
   }
 }
 
-resource "aws_iam_policy" "ukmonsharedpol" {
-  name        = "UKMON-shared"
+resource "aws_iam_policy" "ukmdasharedpol" {
+  name        = "UKMDA-shared"
   description = "policy to allow single bucket access"
   policy      = data.template_file.ukmshared_pol_templ.rendered
   tags = {
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
 }
 ##############################################################################
-# policy applied to all ukmon members to enable livefeed
+# policy applied to all ukmda members to enable livefeed
 data "template_file" "ukmlive_pol_templ" {
-  template = file("files/policies/ukmonlive.json")
+  template = file("files/policies/ukmdalive.json")
   vars = {
-    livearn = aws_s3_bucket.ukmonlive.arn
+    livearn = aws_s3_bucket.ukmdalive.arn
   }
 }
 
-resource "aws_iam_policy" "ukmonlivepol" {
+resource "aws_iam_policy" "ukmdalivepol" {
   name        = "UkmonLive"
-  description = "Access to the ukmon-live s3 bucket for upload purposes"
+  description = "Access to the ukmda-live s3 bucket for upload purposes"
   policy      = data.template_file.ukmlive_pol_templ.rendered
   tags = {
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
 }
 
@@ -230,7 +230,7 @@ resource "aws_iam_role_policy_attachment" "aws_managed_policy_l3" {
 
 resource "aws_iam_role_policy_attachment" "aws_managed_policy_l4" {
   role       = aws_iam_role.lambda-s3-full-access-role.name
-  policy_arn = "arn:aws:iam::822069317839:policy/ddbPermsForLambda"
+  policy_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/ddbPermsForLambda"
 }
 
 resource "aws_iam_role_policy" "lambda_inline_policy_1" {
@@ -256,6 +256,7 @@ resource "aws_iam_role_policy" "lambda_inline_policy_1" {
 EOF
 }
 
+/*
 # role and permissions used cloudwatch to shutdown servers
 resource "aws_iam_service_linked_role" "cweventslrole" {
   description      = "Allows Cloudwatch Events to manage servers"
@@ -266,7 +267,7 @@ resource "aws_iam_role_policy_attachment" "cweventspolicy" {
   role       = aws_iam_service_linked_role.cweventslrole.name
   policy_arn = "arn:aws:iam::aws:policy/aws-service-role/CloudWatchEventsServiceRolePolicy"
 }
-
+*/
 ##############################################################
 #  Dynamodb live table access 
 ##############################################################
@@ -283,6 +284,67 @@ resource "aws_iam_policy" "livetablepol" {
   #description = "policy to allow readonly access to live and LiveBrightness tables"
   policy      = data.template_file.ddblive_pol_templ.rendered
   tags = {
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
+}
+
+resource "aws_iam_policy" "ddbforlambda" {
+  name="ddbPermsForLambda"
+policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogStream",
+                "dynamodb:Scan",
+                "dynamodb:Query",
+                "logs:PutLogEvents"
+            ],
+            "Resource": [
+                "arn:aws:dynamodb:*:${data.aws_caller_identity.current.account_id}:table/*/index/*",
+                "arn:aws:logs:eu-west-1:${data.aws_caller_identity.current.account_id}:*"
+            ]
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:Query",
+                "dynamodb:UpdateItem"
+            ],
+            "Resource": "arn:aws:dynamodb:*:${data.aws_caller_identity.current.account_id}:table/*"
+        },
+        {
+            "Sid": "VisualEditor2",
+            "Effect": "Allow",
+            "Action": "logs:CreateLogGroup",
+            "Resource": "*"
+        }
+    ] 
+}
+EOF
+}
+
+resource "aws_iam_policy" "lambdadestexecution" {
+  name="LambdaDestinationExecutionPerms"
+policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "lambda:InvokeFunction",
+            "Resource": "arn:aws:lambda:eu-west-1:${data.aws_caller_identity.current.account_id}:function:testWCPublish*"
+        }
+    ]
+}
+EOF
 }

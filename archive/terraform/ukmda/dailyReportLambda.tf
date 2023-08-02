@@ -33,7 +33,7 @@ resource "aws_lambda_function" "dailyreportlambda" {
   }
   tags = {
     Name        = "dailyReport"
-    billingtag  = "ukmon"
+    billingtag  = "ukmda"
     "UKMonLive" = "2"
   }
 }
@@ -102,5 +102,5 @@ resource "aws_lambda_permission" "rp_for_mjmmacct" {
   statement_id  = "xacctLambdaPol"
   action        = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.dailyreportlambda.arn}"
-  principal     = "arn:aws:iam::317976261112:role/S3FullAccess"
+  principal     = "arn:aws:iam::${var.remote_account_id}:role/S3FullAccess"
 }

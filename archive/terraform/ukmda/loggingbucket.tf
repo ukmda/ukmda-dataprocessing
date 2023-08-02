@@ -1,15 +1,14 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 
 resource "aws_s3_bucket" "logbucket" {
-  bucket        = "ukmon-s3-access-logs"
+  bucket        = "ukmda-s3-access-logs"
   force_destroy = false
   tags = {
-    "billingtag" = "ukmon"
-    "ukmontype"  = "logs"
+    "billingtag" = "ukmda"
   }
 }
 
-resource "aws_s3_bucket_lifecycle_configuration" "ukmonlogslcp" {
+resource "aws_s3_bucket_lifecycle_configuration" "ukmdalogslcp" {
   bucket = aws_s3_bucket.logbucket.id
   rule {
     status = "Enabled"
@@ -19,7 +18,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmonlogslcp" {
     }
   }
   rule {
-    id     = "purge old ukmon-shared logs"
+    id     = "purge old ukmda-shared logs"
     status = "Enabled"
 
     expiration {
@@ -28,7 +27,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmonlogslcp" {
     }
 
     filter {
-      prefix = "ukmonshared/"
+      prefix = "ukmdashared/"
     }
 
     noncurrent_version_expiration {
@@ -36,7 +35,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmonlogslcp" {
     }
   }
   rule {
-    id     = "purge old ukmeteornetworkarchive logs"
+    id     = "purge old website logs"
     status = "Enabled"
 
     expiration {
@@ -54,17 +53,39 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmonlogslcp" {
   }
 }
 
+resource "aws_s3_bucket_public_access_block" "logging-w2-pab" {
+  bucket = aws_s3_bucket.logbucket.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_ownership_controls" "logging_objownrule" {
+  bucket = aws_s3_bucket.logbucket.id
+
+  rule {
+    object_ownership = "BucketOwnerPreferred" # "BucketOwnerEnforced"
+  }
+}
+
+
+##################################
+## region 1 logging bucket
+##################################
+
+
 resource "aws_s3_bucket" "logbucket_w1" {
-  bucket        = "ukmon-s3-access-logs-w1"
+  bucket        = "ukmda-s3-access-logs-w1"
   force_destroy = false
   tags = {
-    "billingtag" = "ukmon"
-    "ukmontype"  = "logs"
+    "billingtag" = "ukmda"
   }
   provider = aws.eu-west-1-prov
 }
 
-resource "aws_s3_bucket_lifecycle_configuration" "ukmonlogslcp_w1" {
+resource "aws_s3_bucket_lifecycle_configuration" "ukmdalogslcp_w1" {
   bucket = aws_s3_bucket.logbucket_w1.id
   provider = aws.eu-west-1-prov
   rule {
@@ -75,7 +96,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmonlogslcp_w1" {
     }
   }
   rule {
-    id     = "purge old ukmon-live logs"
+    id     = "purge old ukmda-live logs"
     status = "Enabled"
 
     expiration {
@@ -84,7 +105,26 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmonlogslcp_w1" {
     }
 
     filter {
-      prefix = "ukmonlive/"
+      prefix = "ukmdalive/"
     }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "logging-w1-pab" {
+  bucket = aws_s3_bucket.logbucket_w1.id
+  provider = aws.eu-west-1-prov
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_ownership_controls" "logging_w1_bjownrule" {
+  bucket = aws_s3_bucket.logbucket_w1.id
+  provider = aws.eu-west-1-prov
+
+  rule {
+    object_ownership = "BucketOwnerPreferred" # "BucketOwnerEnforced"
   }
 }

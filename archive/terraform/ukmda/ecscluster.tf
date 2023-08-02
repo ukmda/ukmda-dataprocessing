@@ -5,7 +5,7 @@
 resource "aws_ecs_cluster" "trajsolver" {
   name = "trajsolver"
   tags = {
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
 }
 
@@ -20,7 +20,7 @@ data "template_file" "task_json_template" {
   vars = {
     acctid   = data.aws_caller_identity.current.account_id
     regionid = "eu-west-2"
-    repoid   = "ukmon/trajsolver"
+    repoid   = "calcengine/trajsolver"
     contname = var.containername
     loggrp   = var.ecsloggroup
   }
@@ -35,7 +35,7 @@ resource "aws_ecs_task_definition" "trajsolver_task" {
   memory                = 8192
   network_mode          = "awsvpc"
   tags = {
-    billingtag = "ukmon"
+    billingtag = "ukmda"
   }
   requires_compatibilities = ["FARGATE"]
   execution_role_arn       = aws_iam_role.ecstaskrole.arn 
@@ -136,7 +136,7 @@ resource "aws_iam_policy" "crossacctpolicyecs" {
           ]
           Effect = "Allow"
           Resource = [
-            "arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+            "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/service-role/S3FullAccess",
           ]
         },
       ]
@@ -144,7 +144,7 @@ resource "aws_iam_policy" "crossacctpolicyecs" {
     }
   )
   tags = {
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
 }
 
@@ -175,7 +175,7 @@ resource "aws_security_group" "ecssecgrp" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   tags = {
-    billingtag = "ukmon"
+    billingtag = "ukmda"
   }
 }
 
@@ -199,7 +199,7 @@ resource "null_resource" "createECSdetails" {
     var.containername]))
   }
   provisioner "local-exec" {
-    command     = "echo $env:CLUSNAME $env:SECGRP $env:SUBNET $env:IAMROLE $env:LOGGRP $env:CONTNAME > ../../ukmon_pylib/traj/clusdetails-ee.txt"
+    command     = "echo $env:CLUSNAME $env:SECGRP $env:SUBNET $env:IAMROLE $env:LOGGRP $env:CONTNAME > ../../ukmon_pylib/traj/clusdetails-ukmda.txt"
     interpreter = ["pwsh.exe", "-command"]
     environment = {
       CLUSNAME = "${aws_ecs_cluster.trajsolver.name}"

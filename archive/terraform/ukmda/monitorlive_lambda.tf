@@ -27,7 +27,7 @@ resource "aws_lambda_function" "monitorlivelambda" {
   }
   tags = {
     Name        = "MonitorLiveFeed"
-    billingtag  = "ukmon"
+    billingtag  = "ukmda"
     "UKMonLive" = "1"
   }
 }
@@ -99,5 +99,5 @@ resource "aws_lambda_permission" "permmonitorlivelambda" {
   function_name  = aws_lambda_function.monitorlivelambda.arn
   principal      = "s3.amazonaws.com"
   source_account = "822069317839"
-  source_arn     = aws_s3_bucket.ukmonlive.arn
+  source_arn     = aws_s3_bucket.ukmdalive.arn
 }

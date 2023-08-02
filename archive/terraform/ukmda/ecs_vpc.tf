@@ -14,7 +14,7 @@ resource "aws_vpc" "ecs_vpc" {
   cidr_block = "172.128.0.0/16"
   tags = {
     Name         = "ecsVPC"
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
 }
 # create a subnet for the cluster
@@ -24,7 +24,7 @@ resource "aws_subnet" "ecs_subnet" {
   map_public_ip_on_launch = true
   tags = {
     Name         = "ecs_subnet"
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
 }
 
@@ -33,7 +33,7 @@ resource "aws_internet_gateway" "ecs_igw" {
 
   tags = {
     Name         = "ecs_igw"
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
 }
 
@@ -47,6 +47,6 @@ resource "aws_default_route_table" "ecs_default_rtbl" {
   }
   tags = {
     Name         = "ecs_def_route"
-    "billingtag" = "ukmon"
+    "billingtag" = "ukmda"
   }
 }
