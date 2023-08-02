@@ -43,7 +43,7 @@ resource "aws_ecr_repository" "trajsolvertestrepo" {
 
 # create an ECR repository for the extrafiles image
 resource "aws_ecr_repository" "extrafilesrepo" {
-  name                 = "lambdas/extrafiles"
+  name                 = "lambdas/getextrafiles"
   image_tag_mutability = "MUTABLE"
   image_scanning_configuration {
     scan_on_push = true
@@ -60,6 +60,22 @@ resource "aws_ecr_repository" "extrafilesrepo" {
 # create an ECR repository for FTPtoUKMON
 resource "aws_ecr_repository" "ftptoukmdarepo" {
   name                 = "lambdas/ftptoukmon"
+  image_tag_mutability = "MUTABLE"
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+  encryption_configuration {
+    encryption_type = "KMS"
+    kms_key         = aws_kms_key.container_key.arn
+  }
+  tags = {
+    "billingtag" = "ukmda"
+  }
+}
+
+# create an ECR repository for matthpickleapi
+resource "aws_ecr_repository" "matchpickleapirepo" {
+  name                 = "apis/matchpickleapi"
   image_tag_mutability = "MUTABLE"
   image_scanning_configuration {
     scan_on_push = true
@@ -159,6 +175,29 @@ resource "aws_ecr_lifecycle_policy" "ftpoukmdapolicy" {
 }
 EOF
 }
+
+resource "aws_ecr_lifecycle_policy" "matchpicklepolicy" {
+  repository = aws_ecr_repository.matchpickleapirepo.name
+  policy     = <<EOF
+{
+    "rules": [
+        {
+            "rulePriority": 1,
+                        "description": "Keep only latest two versions images",
+            "selection": {
+                "tagStatus": "any",
+                "countType": "imageCountMoreThan",
+                "countNumber": 2
+            },
+            "action": {
+                "type": "expire"
+            }
+        }
+    ]
+}
+EOF
+}
+
 /*
 output "trajsolverid" {
   value = aws_ecr_repository.trajsolverrepo.repository_url

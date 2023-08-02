@@ -32,8 +32,6 @@ resource "aws_lambda_function" "matchapilambda" {
   }
 }
 
-
-
 resource "aws_api_gateway_rest_api" "matchapi_apigateway" {
   body     = file("files/matchApiJson/ukmdaMatchApi.json")
   name     = "ukmdaMatchApi"
@@ -44,5 +42,33 @@ resource "aws_api_gateway_rest_api" "matchapi_apigateway" {
   tags = {
     Name       = "ukmdaMatchApi"
     billingtag = "ukmda"
+  }
+}
+
+resource "aws_api_gateway_base_path_mapping" "matchapi" {
+  api_id      = aws_api_gateway_rest_api.matchapi_apigateway.id
+  stage_name  = "prod"
+  domain_name = aws_api_gateway_domain_name.apigwdomain.domain_name
+  base_path = "matches"
+  provider                 = aws.eu-west-1-prov
+  depends_on  = [aws_api_gateway_stage.matchapistage]
+}
+
+resource "aws_api_gateway_stage" "matchapistage" {
+  deployment_id = aws_api_gateway_deployment.matchapi_deployment.id
+  rest_api_id   = aws_api_gateway_rest_api.matchapi_apigateway.id
+  stage_name    = "prod"
+  provider = aws.eu-west-1-prov
+}
+
+resource "aws_api_gateway_deployment" "matchapi_deployment" {
+  rest_api_id = aws_api_gateway_rest_api.matchapi_apigateway.id
+  provider = aws.eu-west-1-prov
+  triggers = {
+    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.matchapi_apigateway.body))
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
