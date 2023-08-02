@@ -9,7 +9,6 @@ resource "aws_kms_key" "container_key" {
   }
 }
 
-
 # create an ECR repository for the trajsolver images
 resource "aws_ecr_repository" "trajsolverrepo" {
   name                 = "calcengine/trajsolver"
@@ -77,13 +76,15 @@ resource "aws_ecr_repository" "ftptoukmdarepo" {
 resource "aws_ecr_repository" "matchpickleapirepo" {
   name                 = "apis/matchpickleapi"
   image_tag_mutability = "MUTABLE"
+  provider = aws.eu-west-1-prov
+
   image_scanning_configuration {
     scan_on_push = true
   }
-  encryption_configuration {
-    encryption_type = "KMS"
-    kms_key         = aws_kms_key.container_key.arn
-  }
+#  encryption_configuration {
+#    encryption_type = "KMS"
+#    kms_key         = aws_kms_key.container_key.arn
+#  }
   tags = {
     "billingtag" = "ukmda"
   }
@@ -178,6 +179,7 @@ EOF
 
 resource "aws_ecr_lifecycle_policy" "matchpicklepolicy" {
   repository = aws_ecr_repository.matchpickleapirepo.name
+  provider = aws.eu-west-1-prov
   policy     = <<EOF
 {
     "rules": [
