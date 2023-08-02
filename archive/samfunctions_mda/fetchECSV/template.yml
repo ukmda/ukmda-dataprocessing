@@ -12,6 +12,10 @@ Resources:
       Description: API backend that retrieves an ECSV file for a detection
       Timeout: 30
       Policies: AmazonS3ReadOnlyAccess
+      Environment:
+        Variables:
+          ARCHBUCKET: ukmda-shared
+          MPLCONFIGDIR: /tmp/mpl
       Events:
         HttpGet:
           Type: Api
@@ -19,6 +23,6 @@ Resources:
             Path: '/getecsv'
             Method: get
       Tags:
-        billingtag: "ukmon"
+        billingtag: "ukmda"
     Metadata:
       BuildMethod: python3.8

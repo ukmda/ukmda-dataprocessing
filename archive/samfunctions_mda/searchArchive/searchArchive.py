@@ -67,10 +67,7 @@ def FindMatch(bucket, csvfile, d1, d2, op):
 
 
 def lambda_handler(event, context):
-    try:
-        target = os.environ['SRCHBUCKET']
-    except Exception:
-        target = 'mjmm-ukmonarchive.co.uk'
+    target = os.getenv('SRCHBUCKET', default='ukmda-website')
 
     print('received event', json.dumps(event))
     qs = event['queryStringParameters']
@@ -100,10 +97,7 @@ def main():
     a = '2021-04-22T18:00:00.000Z'
     d1 = dateutil.parser.isoparse(a)
     d2 = d1 + datetime.timedelta(days=5)
-    try:
-        target = os.environ['SRCHBUCKET']
-    except Exception:
-        target = 'mjmm-ukmonarchive.co.uk'
+    target = os.getenv('SRCHBUCKET', default='ukmda-website')
 
     idxfile = 'search/indexes/{:04d}-allevents.csv'.format(d1.year)
 
