@@ -12,7 +12,7 @@ resource "aws_cloudfront_distribution" "arch_distribution" {
       origin_access_identity = "origin-access-identity/cloudfront/${aws_cloudfront_origin_access_identity.archsite_oaid.id}"
     }
   }
-  aliases             = ["archive.ukmeteors.co.uk", ]
+  aliases             = [var.archalias, ]
   comment             = "ukmeteors data website"
   default_root_object = "index.html"
   is_ipv6_enabled     = true
@@ -58,6 +58,20 @@ resource "aws_cloudfront_distribution" "arch_distribution" {
 resource "aws_cloudfront_origin_access_identity" "archsite_oaid" {
   comment = "access-identity-ukmdaarchive"
 }
+
+resource "aws_route53_record" "archivednsentry" {
+  name    = var.archalias
+  type    = "A"
+  zone_id = aws_route53_zone.ukmeteors.id
+  depends_on = [aws_cloudfront_distribution.arch_distribution]
+  
+  alias {
+    evaluate_target_health = true
+    name                   = aws_cloudfront_distribution.arch_distribution.domain_name
+    zone_id                = aws_cloudfront_distribution.arch_distribution.hosted_zone_id
+  }
+}
+
 
 #output "cfdistro_url" {
 #  value = aws_cloudfront_distribution.arch_distribution.domain_name
