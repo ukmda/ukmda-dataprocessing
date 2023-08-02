@@ -13,4 +13,3 @@ disable_rollback = true
 #image_repository = "822069317839.dkr.ecr.eu-west-2.amazonaws.com/ukmon/ftptoukmon"
 profile = "ukmda_admin"
 image_repositories = ["ftpToUkmon=183798037734.dkr.ecr.eu-west-2.amazonaws.com/lambdas/ftptoukmon"]
-resolve_s3 = true

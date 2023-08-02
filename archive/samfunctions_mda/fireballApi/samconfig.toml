@@ -4,10 +4,9 @@ version = 0.1
 [default.deploy]
 [default.deploy.parameters]
 stack_name = "getFireballFiles"
-s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-17e011f5cwvp1"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1cy2k1achj9nv"
 s3_prefix = "getFireballFiles"
 region = "eu-west-1"
 capabilities = "CAPABILITY_IAM"
 image_repositories = []
-resolve_s3 = true
 profile = "ukmda_admin"
