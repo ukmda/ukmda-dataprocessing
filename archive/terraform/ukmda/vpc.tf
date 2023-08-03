@@ -46,7 +46,7 @@ resource "aws_subnet" "lambda_subnet" {
   cidr_block = var.lambda_cidr
   tags = {
     Name       = "lambdaSubnet"
-    billingtag = "ukmon"
+    billingtag = "ukmda"
   }
 }
 
@@ -57,7 +57,7 @@ resource "aws_subnet" "ec2_subnet" {
   map_public_ip_on_launch = true
   tags = {
     Name       = "ec2Subnet"
-    billingtag = "ukmon"
+    billingtag = "ukmda"
   }
 }
 
@@ -70,7 +70,7 @@ resource "aws_default_route_table" "ec2_rtbl" {
   }
   route {
     cidr_block                = data.aws_vpc.mjmm_ec2_vpc.cidr_block
-    vpc_peering_connection_id = "pcx-04bcbf8428c045637"
+    vpc_peering_connection_id = aws_vpc_peering_connection.ukmdatommpeering.id
   }
   tags = {
     "Name"     = "ec2_rtbl"
@@ -88,12 +88,12 @@ resource "aws_internet_gateway" "main_igw" {
 }
 
 # peering connection with the MJMM account 
-resource "aws_vpc_peering_connection" "eetommpeering" {
+resource "aws_vpc_peering_connection" "ukmdatommpeering" {
   peer_vpc_id = data.aws_vpc.mjmm_ec2_vpc.id
   vpc_id      = aws_vpc.ec2_vpc.id
   tags = {
-    "Name"       = "ee-to-mm-peering"
-    "billingtag" = "ukmon"
+    "Name"       = "mda-to-mm-peering"
+    "billingtag" = "ukmda"
   }
 }
 
