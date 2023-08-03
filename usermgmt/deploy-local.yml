@@ -35,11 +35,32 @@
       line: '$env:SRCBUCKET="{{srcbucket}}"'
     delegate_to: localhost
     tags: [dev,prod]
-  - name: update AWS profile
+  - name: update live bucket
     lineinfile:
       path: '{{windestdir}}/StationMaint.ps1'
-      regexp: '\$env:AWS_PROFILE='
-      line: '$env:AWS_PROFILE="{{awsprofile}}"'
+      regexp: '\$env:LIVEBUCKET='
+      line: '$env:LIVEBUCKET="{{livebucket}}"'
+    delegate_to: localhost
+    tags: [dev,prod]
+  - name: update web bucket
+    lineinfile:
+      path: '{{windestdir}}/StationMaint.ps1'
+      regexp: '\$env:WEBSITEBUCKET='
+      line: '$env:WEBSITEBUCKET="{{websitebucket}}"'
+    delegate_to: localhost
+    tags: [dev,prod]
+  - name: update AWS profile for LIVE
+    lineinfile:
+      path: '{{windestdir}}/StationMaint.ps1'
+      regexp: '\$env:LIVE_PROFILE='
+      line: '$env:LIVE_PROFILE="{{liveprofile}}"'
+    delegate_to: localhost
+    tags: [dev,prod]
+  - name: update AWS profile for ARCH
+    lineinfile:
+      path: '{{windestdir}}/StationMaint.ps1'
+      regexp: '\$env:ARCH_PROFILE='
+      line: '$env:ARCH_PROFILE="{{archprofile}}"'
     delegate_to: localhost
     tags: [dev,prod]
   - name: update helper servername
