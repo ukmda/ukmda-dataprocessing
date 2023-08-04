@@ -1,5 +1,6 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 
+/*
 resource "aws_instance" "ukmonhelper" {
   ami                  = "ami-0a669382ea0feb73a"
   instance_type        = "t3a.micro"
@@ -25,6 +26,31 @@ resource "aws_instance" "ukmonhelper" {
     "project"    = "UKMonHelper"
   }
 }
+# elastic IP attached to the ukmonhelper server
+resource "aws_eip" "ukmonhelper" {
+  instance = aws_instance.ukmonhelper.id
+  vpc      = true
+  tags = {
+    billingtag = "ukmon"
+  }
+}
+# elastic network interface attached to the ukmonhelper server
+resource "aws_network_interface" "ukmon_if" {
+  subnet_id                 = aws_subnet.ec2Subnet.id
+  private_ips               = ["172.31.12.116"]
+  security_groups           = [aws_security_group.launch-wizard-4.id]
+  ipv6_address_list_enabled = false
+  tags = {
+    "Name"       = "ukmonhelper_if"
+    "billingtag" = "ukmon"
+  }
+  attachment {
+    instance     = aws_instance.ukmonhelper.id
+    device_index = 0
+  }
+}
+*/
+
 
 resource "aws_instance" "ukmonhelper_g" {
   ami                  = "ami-0c127ddea5a07804b"
