@@ -8,7 +8,7 @@
 cat srclist.txt | while read i 
 do
 	echo $i 
-	ftpname=$(aws s3 ls s3://ukmon-shared/${i}/ | grep FTPdetect | egrep -v "uncalibrated|filter|backup"  | awk -F " " '{print $4}')
+	ftpname=$(aws s3 ls $UKMONSHAREDBUCKET/${i}/ | grep FTPdetect | egrep -v "uncalibrated|filter|backup"  | awk -F " " '{print $4}')
 	if [ "$ftpname" != "" ] ; then 
 		fullname=$i/$ftpname
 		cat cftpd_templ.json | sed "s|KEYGOESHERE|${fullname}|g" > tmp.json

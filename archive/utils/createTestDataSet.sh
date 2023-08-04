@@ -9,9 +9,9 @@ YYMMDD=20220120
 basepth=~/dev/data/RMSCorrelate
 mkdir $basepth
 
-fldrs=$(aws s3 ls s3://ukmon-shared/matches/RMSCorrelate/ | egrep "UK|BE|IE" | awk '{print $2}')
+fldrs=$(aws s3 ls s3://ukmda-shared/matches/RMSCorrelate/ | egrep "UK|BE|IE" | awk '{print $2}')
 
 for fldr in $fldrs ; do
     camid=${fldr:0:6}
-    aws s3 sync s3://ukmon-shared/matches/RMSCorrelate/${fldr} ${basepth}/${fldr} --exclude "*" --include "${camid}_${YYMMDD}*"    
+    aws s3 sync s3://ukmda-shared/matches/RMSCorrelate/${fldr} ${basepth}/${fldr} --exclude "*" --include "${camid}_${YYMMDD}*"    
 done 

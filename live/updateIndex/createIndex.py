@@ -97,19 +97,9 @@ def purgeOlderFiles(target):
 
 
 def lambda_handler(event, context):
-    # check which account we're in
-    client = boto3.client('sts')
-    response = client.get_caller_identity()['Account']
-    if response == '317976261112':
-        livetarget = 'mjmm-live'
-        archtarget = 'mjmm-live'
-    else:
-        livetarget = 'ukmon-live'
-        archtarget = 'ukmon-shared'
-    try:
-        doff = int(os.environ['OFFSET'])
-    except:
-        doff = 1
+    livetarget = os.getenv('UKMONLIVEBUCKET', default='s3://ukmon-shared')[5:]
+    archtarget = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
+    doff = int(os.getenv('OFFSET', default='1'))
     # update index for requested date and today
     print('DailyCheck: updating indexes')
     createIndex(livetarget, doff)

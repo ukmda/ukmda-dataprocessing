@@ -146,7 +146,7 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
 def monitorProgress(rundate):
     client = boto3.client('ecs', region_name='eu-west-2')
     s3 = boto3.client('s3')
-    archbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmon-shared')[5:]
+    archbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
 
     templdir,_ = os.path.split(__file__)
@@ -199,8 +199,8 @@ def monitorProgress(rundate):
                     try:
                         pref = f'matches/distrib/{thisbuck}/'
                         objects_to_delete = s3.list_objects(Bucket=archbucket, Prefix=pref)
-                        delete_keys = {'Objects' : []}
-                        delete_keys['Objects'] = [{'Key' : k} for k in [obj['Key'] for obj in objects_to_delete.get('Contents', [])]]
+                        delete_keys = {'Objects': []}
+                        delete_keys['Objects'] = [{'Key': k} for k in [obj['Key'] for obj in objects_to_delete.get('Contents', [])]]
                         s3.delete_objects(Bucket=archbucket, Delete=delete_keys)
                     except:
                         print('folder already removed')
@@ -260,7 +260,8 @@ if __name__ == '__main__':
     if len(sys.argv) < 4:
         rundt = datetime.datetime(2022,4,21)
         srcdir = '/home/ec2-user/ukmon-shared/matches/RMSCorrelate/candidates' # hardcoded on calcserver
-        targdir = 's3://ukmon-shared/matches/distrib'
+        buck = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')
+        targdir = f'{buck}/matches/distrib'
     else:
         rundt = datetime.datetime.strptime(sys.argv[1], '%Y%m%d')
         srcdir = sys.argv[2]

@@ -57,7 +57,7 @@ echo "cell.innerHTML = \"<a href="$prefix/$curryr/showers/index.html">Shower Sta
 
 if [ -f $curryr/tmp.txt ] ; then rm -f $curryr/tmp.txt ; fi
 
-aws s3 ls s3://ukmeteornetworkarchive/reports/$curryr/ | egrep -v "ALL|orbits|stations|fireballs|showers|.js|.html" | awk '{print $2 }' | while read j
+aws s3 ls $WEBSITEBUCKET/reports/$curryr/ | egrep -v "ALL|orbits|stations|fireballs|showers|.js|.html" | awk '{print $2 }' | while read j
 do 
     python -c "from ukmon_meteortools.utils import getShowerDets ; x=getShowerDets('${j:0:3}', True); print(x)" >> $curryr/tmp.txt
 done

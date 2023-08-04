@@ -35,7 +35,7 @@ logger -s -t createSummaryTable "create a coverage map from the kmls"
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/geos/lib:/usr/local/proj4/lib
 export LD_LIBRARY_PATH
 mkdir -p $DATADIR/kmls
-aws s3 sync s3://ukmeteornetworkarchive/img/kmls/ $DATADIR/kmls --quiet 
+aws s3 sync $WEBSITEBUCKET/img/kmls/ $DATADIR/kmls --quiet 
 export KMLTEMPLATE="*25km.kml"
 python -m reports.makeCoverageMap $DATADIR/kmls $DATADIR
 export KMLTEMPLATE="*70km.kml"

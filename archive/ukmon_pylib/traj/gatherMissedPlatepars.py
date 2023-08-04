@@ -7,7 +7,7 @@ import datetime
 
 
 def testAndCopyFile(s3cli, srcfldr):
-    s3bucket = 'ukmon-shared'
+    s3bucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
 
     locspls = srcfldr.split('/')
     camid = locspls[2]

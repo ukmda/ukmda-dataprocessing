@@ -113,8 +113,8 @@ def createDensityPlots(outf, calcdir, enddt):
 
 
 def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
-    shbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmon-shared')
-    webbucket = os.getenv('WEBSITEBUCKET', default='s3://ukmeteornetworkarchive')
+    shbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')
+    webbucket = os.getenv('WEBSITEBUCKET', default='s3://ukmda-website')
 
     startdt = datetime.datetime.now() + datetime.timedelta(days=-matchstart)
     enddt = datetime.datetime.now() + datetime.timedelta(days=-matchend)
