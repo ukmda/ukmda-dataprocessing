@@ -32,8 +32,8 @@ resource "aws_s3_bucket_policy" "ukmdasharedbp" {
             ]
           }
           Resource = [
-            "arn:aws:s3:::ukmda-shared/*",
-            "arn:aws:s3:::ukmda-shared",
+            "${aws_s3_bucket.ukmdashared.arn}/*",
+            "${aws_s3_bucket.ukmdashared.arn}",
           ]
           Sid = "DelegateS3Access"
         },
@@ -45,18 +45,51 @@ resource "aws_s3_bucket_policy" "ukmdasharedbp" {
             "Resource": "arn:aws:s3:::ukmda-shared/admin/*",
             "Condition": {
                 "StringNotLike": {
-                    "aws:userId": [ # these IDs will all be wrong
+                    "aws:userId": [ # update with new relevant IDs
                         "AIDASVSZXPTTB3UZT4E2B",  # MarkMcIntyreUKM
                         #"AIDA36ZZGKDHXYCBTWWC2",  # eastbourne
                         #"AIDA36ZZGKDHZAWQZON7B",  # loscoe
                         #"AIDA36ZZGKDH4LW3WF2GJ",  # Church_Cro
                         #"AIDA36ZZGKDHWBV7ZQISQ",  # chard
-                        #"AROAUUCG4WH4GFCTQIKH3:*", # S3FullAccess in MJMM account
-                        #"AROA36ZZGKDHWAMYFNTWV:*", # DailyReportRole 
+                        "AROAUUCG4WH4GFCTQIKH3:*", # S3FullAccess in MJMM account
+                        #"AROA36ZZGKDHWAMYFNTWV:*", # DailyReportRole in ee account
+                        "AROASVSZXPTTHKOAARJ2T:*", # dailyReportRole in mda account
                         "${data.aws_caller_identity.current.account_id}"            # root account
                       ]
                 }
             }
+        },
+        {
+            "Sid": "DataSyncCreateS3LocationAndTaskAccess",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::${var.eeaccountid}:role/DataSyncBetweenAccounts"
+            },
+            "Action": [
+                "s3:GetBucketLocation",
+                "s3:ListBucket",
+                "s3:ListBucketMultipartUploads",
+                "s3:AbortMultipartUpload",
+                "s3:DeleteObject",
+                "s3:GetObject",
+                "s3:ListMultipartUploadParts",
+                "s3:PutObject",
+                "s3:GetObjectTagging",
+                "s3:PutObjectTagging"
+            ],
+            "Resource": [
+                "${aws_s3_bucket.ukmdashared.arn}",
+                "${aws_s3_bucket.ukmdashared.arn}/*"
+            ]
+        },
+        {
+            "Sid": "DataSyncCreateS3Location",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::${var.eeaccountid}:role/AdministratorRole"
+            },
+            "Action": "s3:ListBucket",
+            "Resource": "${aws_s3_bucket.ukmdashared.arn}"
         }
       ]
       Version = "2012-10-17"

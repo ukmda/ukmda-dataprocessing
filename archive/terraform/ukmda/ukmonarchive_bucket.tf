@@ -9,70 +9,95 @@ resource "aws_s3_bucket" "archsite" {
 
 resource "aws_s3_bucket_policy" "archsite_bp" {
   bucket = var.websitebucket
-  policy = data.aws_iam_policy_document.archsite_bp_data.json
+  policy = jsonencode(
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "1",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity E33O69YJJ84VGS"
+            },
+            "Action": "s3:GetObject",
+            "Resource": "${aws_s3_bucket.archsite.arn}/*"
+        },
+        {
+            "Sid": "2",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": [
+                    "arn:aws:iam::${var.remote_account_id}:role/lambda-s3-full-access-role",
+                    "arn:aws:iam::${var.remote_account_id}:role/ecsTaskExecutionRole",
+                    "arn:aws:iam::${var.remote_account_id}:user/s3user",
+                    "arn:aws:iam::${var.remote_account_id}:user/Mary",
+                    "arn:aws:iam::${var.remote_account_id}:role/S3FullAccess",
+                    "arn:aws:iam::${var.remote_account_id}:user/Mark"
+                ]
+            },
+            "Action": [
+                "s3:Put*",
+                "s3:ListBucket",
+                "s3:Get*",
+                "s3:Delete*"
+            ],
+            "Resource": [
+                "${aws_s3_bucket.archsite.arn}/*",
+                "${aws_s3_bucket.archsite.arn}"
+            ]
+        },
+        {
+            "Sid": "4",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::183798037734:user/MarkMcIntyreUKM"
+            },
+            "Action": [
+                "s3:Put*",
+                "s3:ListBucket",
+                "s3:Get*",
+                "s3:Delete*"
+            ],
+            "Resource": [
+                "${aws_s3_bucket.archsite.arn}/*",
+                "${aws_s3_bucket.archsite.arn}"
+            ]
+        },
+        {
+            "Sid": "DataSyncCreateS3LocationAndTaskAccess",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::${var.eeaccountid}:role/DataSyncBetweenAccounts"
+            },
+            "Action": [
+                "s3:GetBucketLocation",
+                "s3:ListBucket",
+                "s3:ListBucketMultipartUploads",
+                "s3:AbortMultipartUpload",
+                "s3:DeleteObject",
+                "s3:GetObject",
+                "s3:ListMultipartUploadParts",
+                "s3:PutObject",
+                "s3:GetObjectTagging",
+                "s3:PutObjectTagging"
+            ],
+            "Resource": [
+                "${aws_s3_bucket.archsite.arn}",
+                "${aws_s3_bucket.archsite.arn}/*"
+            ]
+        },
+        {
+            "Sid": "DataSyncCreateS3Location",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::${var.eeaccountid}:role/AdministratorRole"
+            },
+            "Action": "s3:ListBucket",
+            "Resource": "${aws_s3_bucket.archsite.arn}"
+        }
+    ]
 }
-
-data "aws_iam_policy_document" "archsite_bp_data" {
-  statement {
-    sid       = "1"
-    effect    = "Allow"
-    resources = ["${aws_s3_bucket.archsite.arn}/*"]
-    actions   = ["s3:GetObject"]
-
-    principals {
-      type        = "AWS"
-      identifiers = [aws_cloudfront_origin_access_identity.archsite_oaid.iam_arn]
-    }
-  }
-
-  statement {
-    sid    = "2"
-    effect = "Allow"
-    resources = [
-      "${aws_s3_bucket.archsite.arn}/*",
-      "${aws_s3_bucket.archsite.arn}"
-    ]
-
-    actions = [
-      "s3:Put*",
-      "s3:ListBucket",
-      "s3:Get*",
-      "s3:Delete*",
-    ]
-
-    principals {
-      type = "AWS"
-      identifiers = [
-        "arn:aws:iam::${var.remote_account_id}:role/S3FullAccess",
-        "arn:aws:iam::${var.remote_account_id}:role/lambda-s3-full-access-role",
-        "arn:aws:iam::${var.remote_account_id}:role/ecsTaskExecutionRole",
-        "arn:aws:iam::${var.remote_account_id}:user/Mary",
-        "arn:aws:iam::${var.remote_account_id}:user/Mark",
-        "arn:aws:iam::${var.remote_account_id}:user/s3user",
-      ]
-    }
-  }
-
-  statement {
-    sid    = "4"
-    effect = "Allow"
-    resources = [
-      "${aws_s3_bucket.archsite.arn}/*",
-      "${aws_s3_bucket.archsite.arn}"
-    ]
-
-    actions = [
-      "s3:Put*",
-      "s3:Get*",
-      "s3:Delete*",
-      "s3:ListBucket"
-    ]
-
-    principals {
-      type        = "AWS"
-      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/MarkMcIntyreUKM"]
-    }
-  }
+  )
 }
 
 resource "aws_s3_bucket_ownership_controls" "ukmdaarch_objownrule" {

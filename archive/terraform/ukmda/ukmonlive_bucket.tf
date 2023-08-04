@@ -18,16 +18,37 @@ resource "aws_s3_bucket_policy" "ukmdalivebp" {
       Id = "ukmda-live-bp"
       Statement = [
         {
-          Action = [
-            "s3:GetObject",
-            "s3:PutObject",
-            "s3:PutObjectAcl"
-          ]
-          Effect    = "Allow"
-          Principal = "*"
-          Resource  = "${aws_s3_bucket.ukmdalive.arn}/*"
-          Sid = "writeaccess"
+            "Sid": "DataSyncCreateS3LocationAndTaskAccess",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::${var.eeaccountid}:role/DataSyncBetweenAccounts"
+            },
+            "Action": [
+                "s3:GetBucketLocation",
+                "s3:ListBucket",
+                "s3:ListBucketMultipartUploads",
+                "s3:AbortMultipartUpload",
+                "s3:DeleteObject",
+                "s3:GetObject",
+                "s3:ListMultipartUploadParts",
+                "s3:PutObject",
+                "s3:GetObjectTagging",
+                "s3:PutObjectTagging"
+            ],
+            "Resource": [
+                "${aws_s3_bucket.ukmdalive.arn}",
+                "${aws_s3_bucket.ukmdalive.arn}/*"
+            ]
         },
+        {
+            "Sid": "DataSyncCreateS3Location",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::${var.eeaccountid}:role/AdministratorRole"
+            },
+            "Action": "s3:ListBucket",
+            "Resource": "${aws_s3_bucket.ukmdalive.arn}"
+        }        
       ]
       Version = "2008-10-17"
     }
@@ -92,7 +113,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmdalivelcp" {
     }
   }
 }
-
+/*
 resource "aws_s3_bucket_cors_configuration" "ukmdalivecors" {
   bucket   = aws_s3_bucket.ukmdalive.id
   provider = aws.eu-west-1-prov
@@ -114,7 +135,7 @@ resource "aws_s3_bucket_cors_configuration" "ukmdalivecors" {
     max_age_seconds = 30000
   }
 }
-
+*/
 resource "aws_s3_bucket_logging" "ukmdalivelogs" {
   provider = aws.eu-west-1-prov
   bucket = aws_s3_bucket.ukmdalive.id
@@ -127,7 +148,7 @@ resource "aws_s3_bucket_public_access_block" "ukmdalive-pab" {
   bucket = aws_s3_bucket.ukmdalive.id
 
   block_public_acls       = true
-  block_public_policy     = false
+  block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
