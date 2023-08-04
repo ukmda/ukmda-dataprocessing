@@ -26,6 +26,8 @@ resource "aws_lambda_function" "dailyreportlambda" {
     variables = {
       OFFSET = "1"
       DEBUG  = "False"
+      "WEBSITEBUCKET" = "s3://${aws_s3_bucket.archsite.id}"
+      "SHAREDBUCKET" = "s3://${aws_s3_bucket.ukmdashared.id}"
     }
   }
   ephemeral_storage {

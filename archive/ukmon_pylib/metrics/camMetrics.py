@@ -130,7 +130,7 @@ def deleteRowCamTimings(stationid, dtstamp, ddb=None):
 
 
 def backPopulate(stationid):
-    s3bucket='ukmon-shared'
+    s3bucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
 
     fldrs = glob.glob1(f'/home/ec2-user/ukmon-shared/matches/RMSCorrelate/{stationid}/', '*')
     for fldr in fldrs:

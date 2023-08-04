@@ -174,7 +174,7 @@ def createECSV(ftpFile, required_event = None):
 
 
 def fetchECSV(camid, reqevent):
-    s3bucket='ukmon-shared'
+    s3bucket=os.getenv('SHAREDBUCKET', default='ukmon-shared')
     s3 = boto3.resource('s3')
 
     # construct the path

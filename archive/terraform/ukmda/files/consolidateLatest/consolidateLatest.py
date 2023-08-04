@@ -1,6 +1,6 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 #
-# lambda function to be triggered when a png file arrives in ukmon-shared
+# lambda function to be triggered when a png file arrives in shared bucket
 # to copy it to the 'latest' folder on the archive site
 #
 import boto3
@@ -11,11 +11,7 @@ from urllib.parse import unquote_plus
 
 def copyJpgToArchive(s3bucket, s3object):
     s3 = boto3.resource('s3')
-    try:
-        target = os.environ['WEBSITEBUCKET']
-        target = target[5:]
-    except Exception:
-        target = 'mjmm-ukmonarchive.co.uk'
+    target = os.getenv('WEBSITEBUCKET', default='s3://ukmda-website')[5:]
 
     # check its the radiants file
     x = s3object.find('radiants')
@@ -44,7 +40,7 @@ def lambda_handler(event, context):
 
 
 if __name__ == "__main__":
-    s3bucket = 'ukmon-shared'
+    s3bucket = os.getenv('SHAREDBUCKET', default='s3://ukmda-shared')[5:]
     s3object = 'archive/Cardiff/Cardiff_Camera_1/2015/201510/20151025/M20151026_030101_MC1_c1P.jpg'
     if len(sys.argv) > 0:
         fname = sys.argv[1]

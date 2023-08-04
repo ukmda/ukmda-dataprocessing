@@ -64,12 +64,13 @@ def updateDetectionsCsv():
     s3 = boto3.client('s3', region_name='eu-west-2')
     tmpdir = os.getenv('TMP', default='/tmp')
     localf = os.path.join(tmpdir, 'camera-details.csv')
-    s3.download_file('ukmon-shared', 'consolidated/camera-details.csv', localf)
+    buck = os.getenv('SHAREDBUCKET', default='ukmda-shared')
+    s3.download_file(buck, 'consolidated/camera-details.csv', localf)
     camdets = open(localf, 'r').readlines()
     os.remove(localf)
 
     s3 = boto3.client('s3')
-    srcbucket = os.getenv('SRCBUCKET', default='ukmeteornetworkarchive')
+    srcbucket = os.getenv('SRCBUCKET', default='ukmda-website')
     csvname = os.getenv('CSVNAME', default='ukmon-latest-v2.csv')
     csvname = f'browse/daily/{csvname}'
     tmpdir = os.getenv('TEMP', default='/tmp')

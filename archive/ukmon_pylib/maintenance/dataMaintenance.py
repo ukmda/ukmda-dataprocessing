@@ -106,7 +106,7 @@ if __name__ == '__main__':
     dtstr = cml_args.periods[0]
     print(f'Clearing data for {dtstr}')
 
-    archbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmon-shared')[5:]
+    archbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
     outdir = os.getenv('TMP', default='/tmp')
 
     mthfiles, outfname = findInputDataByMonth(dtstr, archbucket, outdir)

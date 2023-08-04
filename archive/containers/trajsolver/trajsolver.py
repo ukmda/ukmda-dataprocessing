@@ -166,7 +166,7 @@ def getExtraArgs(fname):
     return extraargs
 
 
-#push solutions to the website, and push the pickle and report to ukmon-shared
+#push solutions to the website, and push the pickle and report to shared bucket
 def pushToWebsite(s3, localfldr, webbucket, webfldr, outbucket, outpth):
     for root, _, files in os.walk(localfldr):
         for fil in files:

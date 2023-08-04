@@ -340,8 +340,8 @@ if __name__ == '__main__':
         aws_secret_access_key=credentials['SecretAccessKey'],
         aws_session_token=credentials['SessionToken']) #, endpoint_url="http://thelinux:8000")
 
-    archbucket = os.getenv('UKMONSHAREDBUCKET')
-    websitebucket = os.getenv('WEBSITEBUCKET')
+    archbucket = os.getenv('SHAREDBUCKET', default='ukmda-shared')
+    websitebucket = os.getenv('WEBSITEBUCKET', default='ukmda-website')
 
     generateExtraFiles(key, archbucket, websitebucket, ddb, s3)
     

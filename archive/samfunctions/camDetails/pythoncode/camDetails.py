@@ -4,6 +4,7 @@ import os
 import boto3
 import pandas as pd 
 
+
 def getS3Client():
     sts_client = boto3.client('sts')
     try: 
@@ -33,7 +34,7 @@ def lambda_handler(event, context):
     reqval = qs['camid']
 
     tmpdir = os.getenv('TMP', default='/tmp')
-    srcbucket = os.getenv('ARCHBUCKET', default='ukmon-shared')
+    srcbucket = os.getenv('ARCHBUCKET', default='ukmda-shared')
     srckey = 'consolidated/camera-details.csv'
     targfile = os.path.join(tmpdir, 'camera-details.csv')
     s3.meta.client.download_file(srcbucket, srckey, targfile)

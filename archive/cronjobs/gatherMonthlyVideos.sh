@@ -38,4 +38,4 @@ do
     aws s3 cp $WEBSITEBUCKET/$t $outdir
 done
 
-aws s3 sync $outdir s3://ukmon-shared/$s3outdir --quiet
+aws s3 sync $outdir $UKMONSHAREDBUCKET/$s3outdir --quiet

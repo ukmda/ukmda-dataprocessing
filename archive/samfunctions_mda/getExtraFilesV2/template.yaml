@@ -29,6 +29,7 @@ Resources:
       Environment:
         Variables:
           WEBSITEBUCKET: ukmda-website
+          SHAREDBUCKET: ukdma-shared
           MPLCONFIGDIR: /tmp/mpl
           WEBURL: https://archive.ukmeteors.co.uk
       Tags:

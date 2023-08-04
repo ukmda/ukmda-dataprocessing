@@ -1,6 +1,6 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 #
-# lambda function to be triggered when a jpg file arrives in ukmon-shared
+# lambda function to be triggered when a jpg file arrives in the shared bucket
 # to copy it to the archive website
 #
 import boto3
@@ -12,11 +12,7 @@ from urllib.parse import unquote_plus
 
 def copyJpgToArchive(s3bucket, s3object):
     s3 = boto3.resource('s3')
-    try:
-        target = os.environ['WEBSITEBUCKET']
-        target = target[5:]
-    except Exception:
-        target = 'mjmm-ukmonarchive.co.uk'
+    target = os.getenv('WEBSITEBUCKET', default='s3://ukmda-website')[5:]
 
     x = s3object.find('M20')
     if x == -1: 
@@ -118,7 +114,7 @@ def lambda_handler(event, context):
 
 
 if __name__ == "__main__":
-    s3bucket = 'ukmon-shared'
+    s3bucket = os.getenv('SHAREDBUCKET', default='s3://ukmda-shared')[5:]
     s3object = 'archive/Tackley/UK0006/2022/202201/20220120/FF_UK0006_20220120_201332_261_0258560.jpg'
     if len(sys.argv) > 1:
         fname = sys.argv[1]

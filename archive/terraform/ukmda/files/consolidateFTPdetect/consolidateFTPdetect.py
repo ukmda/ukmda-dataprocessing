@@ -1,6 +1,6 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 #
-# lambda function to be triggered when a csv file arrives in ukmon-shared
+# lambda function to be triggered when a csv file arrives in the shared bucket
 # to copy it to the temp area for consolidation later
 #
 import boto3
@@ -114,7 +114,7 @@ def lambda_handler(event, context):
 
     s3bucket = record['s3']['bucket']['name']
     s3object = record['s3']['object']['key']
-    target = 'ukmon-shared'
+    target = os.getenv('SHAREDBUCKET', default='s3://ukmda-shared')[5:]
 
     maxdetcount = int(os.getenv('MAXDETS', default=750))
     copyFiles(s3bucket, s3object, target, maxdetcount)

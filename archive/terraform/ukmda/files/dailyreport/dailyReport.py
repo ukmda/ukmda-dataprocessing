@@ -177,16 +177,8 @@ def sendMail(subj, body, bodytext, target, tmppth):
 
 def lambda_handler(event, context):
     # check which account we're in
-    client = boto3.client('sts')
-    response = client.get_caller_identity()['Account']
-    if response == '317976261112':
-        target = 'mjmm-live'
-    else:
-        target = 'ukmon-shared'
-    try:
-        doff = int(os.environ['OFFSET']) 
-    except:
-        doff = 1
+    target = os.getenv('SHAREDBUCKET', default='ukmda-shared')[5:]
+    doff = int(os.getenv('OFFSET', default='1'))
 
     tmppth = '/tmp'
     print('DailyCheck: getting daily report')

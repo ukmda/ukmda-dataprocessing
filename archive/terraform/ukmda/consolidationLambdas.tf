@@ -25,6 +25,7 @@ resource "aws_lambda_function" "consolidatejpgslambda" {
   environment {
     variables = {
       "WEBSITEBUCKET" = "s3://${aws_s3_bucket.archsite.id}"
+      "SHAREDBUCKET" = "s3://${aws_s3_bucket.ukmdashared.id}"
     }
   }
   ephemeral_storage {
@@ -57,6 +58,7 @@ resource "aws_lambda_function" "consolidatekmlslambda" {
   environment {
     variables = {
       "WEBSITEBUCKET" = "s3://${aws_s3_bucket.archsite.id}"
+      "SHAREDBUCKET" = "s3://${aws_s3_bucket.ukmdashared.id}"
     }
   }
   ephemeral_storage {
@@ -90,6 +92,7 @@ resource "aws_lambda_function" "consolidatelatestlambda" {
   environment {
     variables = {
       "WEBSITEBUCKET" = "s3://${aws_s3_bucket.archsite.id}"
+      "SHAREDBUCKET" = "s3://${aws_s3_bucket.ukmdashared.id}"
     }
   }
   ephemeral_storage {
@@ -119,6 +122,12 @@ resource "aws_lambda_function" "csvtriggerlambda" {
   timeout          = 90
   role             = aws_iam_role.S3FullAccess.arn
   publish          = false
+  environment {
+    variables = {
+      "WEBSITEBUCKET" = "s3://${aws_s3_bucket.archsite.id}"
+      "SHAREDBUCKET" = "s3://${aws_s3_bucket.ukmdashared.id}"
+    }
+  }
   ephemeral_storage {
     size = 512
   }
@@ -149,6 +158,7 @@ resource "aws_lambda_function" "ftpdetectlambda" {
   environment {
     variables = {
       "MAXDETS" = "750"
+      "SHAREDBUCKET" = "s3://${aws_s3_bucket.ukmdashared.id}"
     }
   }
   ephemeral_storage {
