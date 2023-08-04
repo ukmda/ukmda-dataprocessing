@@ -121,17 +121,17 @@ def runCorrelator(dir_path, time_beg, time_end):
 
 # read the source bucket + folder and target buckets + folders from the environment
 def getSourceAndTargets():
-    srcpth = os.getenv('SRCPATH', default='s3://ukmon-shared/matches/distrib')
+    srcpth = os.getenv('SRCPATH', default='s3://ukmda-shared/matches/distrib')
     srcpth = srcpth[5:]
     srcbucket = srcpth[:srcpth.find('/')]
     srcpth = srcpth[srcpth.find('/')+1:]
 
-    outpth = os.getenv('OUTPATH', default='s3://ukmon-shared/matches/distrib')
+    outpth = os.getenv('OUTPATH', default='s3://ukmda-shared/matches/distrib')
     outpth = outpth[5:]
     outbucket = outpth[:outpth.find('/')]
     outpth = outpth[outpth.find('/')+1:]
 
-    webpth = os.getenv('WEBPATH', default='s3://ukmeteornetworkarchive/dummy')
+    webpth = os.getenv('WEBPATH', default='s3://ukmda-website/dummy')
     webpth = webpth[5:]
     webbucket = webpth[:webpth.find('/')]
     webpth = webpth[webpth.find('/')+1:]
@@ -197,8 +197,9 @@ def startup(srcfldr, startdt, enddt, isTest=False):
 
     sts_client = boto3.client('sts')
     try: 
-        assumed_role_object=sts_client.assume_role(
-            RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+        assumed_role_object=sts_client.assume_role( 
+            #RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+            RoleArn="arn:aws:iam::183798037734:role/service-role/S3FullAccess",
             RoleSessionName="AssumeRoleSession1")
         
         credentials=assumed_role_object['Credentials']
@@ -222,7 +223,7 @@ def startup(srcfldr, startdt, enddt, isTest=False):
 
     srckey = f'{srcpth}/{srcfldr}/'
 
-    print(f'fetching data from {srckey}')
+    print(f'fetching data from {srcbucket}/{srckey} saving to {outbucket} and {webbucket}')
     objlist = s3.meta.client.list_objects_v2(Bucket=srcbucket,Prefix=srckey)
     print(objlist)
     if objlist['KeyCount'] > 0:

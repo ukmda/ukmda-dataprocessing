@@ -20,15 +20,15 @@
                 "environment": [
                     {
                         "name": "SRCPATH",
-                        "value": "s3://ukmon-shared/matches/distrib"
+                        "value": "s3://ukmda-shared/matches/distrib"
                     },
                     {
                         "name": "OUTPATH",
-                        "value": "s3://ukmon-shared/matches/RMSCorrelate"
+                        "value": "s3://ukmda-shared/matches/RMSCorrelate"
                     },
                     {
                         "name": "WEBPATH",
-                        "value": "s3://ukmeteornetworkarchive/reports"
+                        "value": "s3://ukmda-website/reports"
                     }
                 ]
             }

@@ -5,14 +5,14 @@ $loc = get-location
 set-location $psscriptroot
 
 $env=$args[0]
-$prof="ukmonshared"
+$prof="ukmda_admin"
 $imagename="trajsolver${env}"
 $accid = (aws sts get-caller-identity --profile $prof | convertfrom-json).account
 $region = "eu-west-2"
 $registry = "${accid}.dkr.ecr.${region}.amazonaws.com"
-$repo = "ukmon/${imagename}"
+$repo = "calcengine/${imagename}"
 
-write-output "building $imagename"
+write-output "building $imagename in $accid"
 
 $yn=read-host -prompt "update WMPL?"
 if ($yn.tolower() -eq "y") { bash -c "./update_wmpl.sh $env" } 
@@ -34,8 +34,8 @@ if ($yn.tolower() -eq "y") {
     docker tag ${imagename}:latest ${registry}/${repo}:latest
     docker push ${registry}/${repo}:latest
 }else {
-    write-output "To test the container do docker run -t $imagename 20220924_01"
-    Write-Output "where the last arg is a folder in s3://ukmon-shared/matches/distrib"
+    write-output "To test the container do docker run -t $imagename test/20220924_01"
+    Write-Output "where the last arg is a folder in s3://ukmda-shared/matches/distrib"
     Write-Output "that contains candidate pickles"
 }
 
