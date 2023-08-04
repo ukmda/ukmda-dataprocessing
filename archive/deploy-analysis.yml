@@ -1,5 +1,5 @@
 ---
-- hosts: "{{host | default ('ukmonhelper')}}"
+- hosts: "{{host | default ('ukmonhelper2')}}"
   vars:
     srcdir: /mnt/e/dev/meteorhunting/UKMON-shared
   tasks:
