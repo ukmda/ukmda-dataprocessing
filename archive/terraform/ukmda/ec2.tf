@@ -58,9 +58,9 @@ resource "aws_instance" "admin_server" {
   }
 }
 
-# elastic IP attached to the admin server
+# elastic IP attached to the calc_server
 resource "aws_eip" "adminserver_eip" {
-  instance = aws_instance.admin_server.id
+  instance = aws_instance.calc_server.id
   domain   = "vpc"
   tags = {
     billingtag = "ukmda"

@@ -41,11 +41,11 @@ rundate=$(date --date="-$MATCHEND days" '+%Y%m%d')
 
 python -c "from traj.distributeCandidates import monitorProgress as mp; mp('${rundate}'); "
 
-privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
+privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PublicIpAddress --output text --profile ukmonshared)
 while [ "$privip" == "" ] ; do
     sleep 5
     echo "getting ipaddress"
-    privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
+    privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PublicIpAddress --output text --profile ukmonshared)
 done
 
 if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then 
@@ -55,18 +55,18 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
     numtoconsol=$(ls -1 $DATADIR/distrib/${rundate}*.json | wc -l)
     if [ $numtoconsol -gt 5 ] ; then 
         logger -s -t onlyConsolDistrib "RUNTIME $SECONDS restarting calcserver to consolidate results"
-        stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
+        stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text --profile ukmonshared)
         if [ $stat -eq 80 ]; then 
-            aws ec2 start-instances --instance-ids $SERVERINSTANCEID
+            aws ec2 start-instances --instance-ids $SERVERINSTANCEID --profile ukmonshared
         fi
         logger -s -t onlyConsolDistrib "RUNTIME $SECONDS waiting for the server to be ready"
         while [ "$stat" -ne 16 ]; do
             sleep 30
             if [ $stat -eq 80 ]; then 
-                aws ec2 start-instances --instance-ids $SERVERINSTANCEID
+                aws ec2 start-instances --instance-ids $SERVERINSTANCEID --profile ukmonshared
             fi
             echo "checking - status is ${stat}"
-            stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
+            stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text --profile ukmonshared)
         done
 
         scp -i $SERVERSSHKEY $DATADIR/distrib/processed_trajectories.json ec2-user@$privip:data/distrib
@@ -90,7 +90,7 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
         ssh -i $SERVERSSHKEY ec2-user@$privip "rm -f data/distrib/*.json"
 
         logger -s -t runDistrib "stopping calcserver again"
-        aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
+        aws ec2 stop-instances --instance-ids $SERVERINSTANCEID --profile ukmonshared
 
         python -c "from traj.consolidateDistTraj import patchTrajDB ; patchTrajDB('$DATADIR/distrib/processed_trajectories.json','/home/ec2-user/ukmon-shared/matches/RMSCorrelate', '/home/ec2-user/data/distrib');"
     else
