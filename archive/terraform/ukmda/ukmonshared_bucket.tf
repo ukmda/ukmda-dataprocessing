@@ -54,7 +54,9 @@ resource "aws_s3_bucket_policy" "ukmdasharedbp" {
                         "AROAUUCG4WH4GFCTQIKH3:*", # S3FullAccess in MJMM account
                         #"AROA36ZZGKDHWAMYFNTWV:*", # DailyReportRole in ee account
                         "AROASVSZXPTTHKOAARJ2T:*", # dailyReportRole in mda account
-                        "${data.aws_caller_identity.current.account_id}"            # root account
+                        "${data.aws_caller_identity.current.account_id}",            # root account
+                        "AROA36ZZGKDHYW6XYFNJD:*",
+                        "AROAUUCG4WH4GFCTQIKH3",        
                       ]
                 }
             }
