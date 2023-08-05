@@ -15,7 +15,7 @@ data "aws_lambda_function" "ftptoukmdalambda" {
 
 resource "aws_s3_bucket_notification" "ukmdashared_notification" {
   bucket = aws_s3_bucket.ukmdashared.id
-
+/*
   lambda_function {
     lambda_function_arn = aws_lambda_function.consolidatejpgslambda.arn
     id                  = "jpgs"
@@ -53,6 +53,7 @@ resource "aws_s3_bucket_notification" "ukmdashared_notification" {
     filter_prefix       = "archive/"
     filter_suffix       = ".csv"
   }
+  */
   lambda_function {
     lambda_function_arn = data.aws_lambda_function.getextraorbitfiles.arn
     id                  = "pickles"

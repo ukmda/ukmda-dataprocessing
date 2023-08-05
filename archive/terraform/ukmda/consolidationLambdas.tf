@@ -3,6 +3,7 @@
 #
 # Copyright (C) 2018-2023 Mark McIntyre
 
+/*
 # the Lambda's body is being uploaded via a Zip file
 # this block creates a zip file from the contents of files/src
 data "archive_file" "consolidatejpgszip" {
@@ -169,3 +170,4 @@ resource "aws_lambda_function" "ftpdetectlambda" {
     billingtag = "ukmda"
   }
 }
+*/
