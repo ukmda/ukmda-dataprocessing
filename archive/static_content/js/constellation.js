@@ -25,10 +25,13 @@
 // Herget precession, see p. 9 of Publ. Cincinnati Obs., No. 24.
 //
 
-//document.write('<script type="text/javascript src="/js/kit.fontawesome.com/f4e5d7e1d1.js" async></script>');
-
+// HACKERY ADDED BY ME TO ENSURE BUTTONS AVAILABLE ON HISTORIC PAGES
+//
 $.getScript("/js/kit.fontawesome.com_f4e5d7e1d1.js", function() {
-   console.log("Script loaded but not necessarily executed.");
+   console.log("Fontawesome loaded.");
+});
+$.getScript("/js/sharebuttons.js", function() {
+   console.log("Sharebuttons loaded.");
 });
 
 function precess(ra1, dec1, epoch1, epoch2)
@@ -655,24 +658,3 @@ function main(str)
      return 'Error; no constellation found.';
   return 'Constellation: ' + abbrev_table[i][1] + ' (genitive: ' + abbrev_table[i][2] + '; abbreviation: ' + n + ')';
 }
-
-/* Additional code to handle share icons */
-function MastodonShare(){
-	src = window.location.href;
-	domain = prompt("Enter your Mastodon domain", "mastodon.social");
-	if (domain == "" || domain == null){
-		return;
-	}
-	url = "https://" + domain + "/share?text=" + src;
-	window.open(url, '_blank');
-};
-function FacebookShare(){
-	src = window.location.href;
-	url = "https://www.facebook.com/sharer/sharer.php?u=" + src;
-	window.open(url, '_blank');
-};
-function TwitterShare(){
-	src = window.location.href;
-	url = "https://twitter.com/intent/tweet?text=&url=" + src;
-	window.open(url, '_blank');
-};
