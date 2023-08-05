@@ -50,7 +50,7 @@ resource "aws_s3_bucket_policy" "archsite_bp" {
             "Sid": "4",
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::183798037734:user/MarkMcIntyreUKM"
+                "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/MarkMcIntyreUKM"
             },
             "Action": [
                 "s3:Put*",

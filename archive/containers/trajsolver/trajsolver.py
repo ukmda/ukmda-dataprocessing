@@ -198,7 +198,6 @@ def startup(srcfldr, startdt, enddt, isTest=False):
     sts_client = boto3.client('sts')
     try: 
         assumed_role_object=sts_client.assume_role( 
-            #RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
             RoleArn="arn:aws:iam::183798037734:role/service-role/S3FullAccess",
             RoleSessionName="AssumeRoleSession1")
         
