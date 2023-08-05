@@ -36,10 +36,10 @@ cp $SRC/costs/costs-*-90-days.jpg $DATADIR/reports
 
 costfile=$DATADIR/reports/costs.html
 imgfile=/reports/costs-317976261112-90-days.jpg
-imgfile2=/reports/costs-822069317839-90-days.jpg
+imgfile2=/reports/costs-183798037734-90-days.jpg
 
 v1=$(cat $SRC/costs/costs-317976261112-last.csv)
-v2=$(cat $SRC/costs/costs-822069317839-last.csv)
+v2=$(cat $SRC/costs/costs-183798037734-last.csv)
 
 lastfullcost=$(echo $v1 + $v2 | bc)
 

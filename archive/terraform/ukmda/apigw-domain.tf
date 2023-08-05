@@ -54,7 +54,7 @@ resource "aws_api_gateway_base_path_mapping" "ecsvapi" {
   api_id      = data.aws_api_gateway_rest_api.fetchECSVapi.id
   stage_name  = "Prod"
   domain_name = aws_api_gateway_domain_name.apigwdomain.domain_name
-  base_path = ""
+  base_path = "getecsv"
   provider                 = aws.eu-west-1-prov
 }
 

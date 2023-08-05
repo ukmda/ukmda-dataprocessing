@@ -20,8 +20,12 @@ Resources:
         HttpGet:
           Type: Api
           Properties:
-            Path: '/getecsv'
+            Path: '/'
             Method: get
+            RequestParameters: [
+              'method.request.querystring.stat': {Required: true},
+              'method.request.querystring.dt': {Required: true}
+            ]
       Tags:
         billingtag: "ukmda"
     Metadata:

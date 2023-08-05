@@ -323,7 +323,7 @@ if __name__ == '__main__':
     # Call the assume_role method of the STSConnection object and pass the role
     # ARN and a role session name.
     assumed_role_object=sts_client.assume_role(
-        RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+        RoleArn="arn:aws:iam::183798037734:role/service-role/S3FullAccess",
         RoleSessionName="GetExtraFilesV2")
     
     # From the response that contains the assumed role, get the temporary 
@@ -362,7 +362,7 @@ def lambda_handler(event, context):
     response = sts_client.get_caller_identity()['Account']
     if response == '317976261112':
         assumed_role_object=sts_client.assume_role(
-            RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+            RoleArn="arn:aws:iam::183798037734:role/service-role/S3FullAccess",
             RoleSessionName="GetExtraFilesV2")
         
         credentials=assumed_role_object['Credentials']

@@ -38,7 +38,7 @@ $('#selectInterval').on('rangeSelected', function(){
     }
 });
       
-var apiurl = 'https://40luvfh1od.execute-api.eu-west-1.amazonaws.com/Prod';
+var apiurl = 'https://api.ukmeteors.co.uk/detections';
 var form = document.querySelector("form");
 form.addEventListener("submit", function (event) {
   //console.log("Saving value", form.elements.value.value);
@@ -68,7 +68,7 @@ form.addEventListener("submit", function (event) {
     op = op + "l:" + strstat + "_";
   }
   //jQuery.support.cors = true;
-  payload = {"a":  d1, "b": d2, "op":  op };
+  payload = {"d1":  d1, "d2": d2, "opts":  op };
   console.log(payload);
   $.ajax({
     url: apiurl, 

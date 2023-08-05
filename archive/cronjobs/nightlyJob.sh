@@ -37,7 +37,8 @@ $SRC/website/createStationList.sh
 if [ "`tty`" != "not a tty" ]; then 
     echo 'got a tty, not triggering report'
 else 
-    aws lambda invoke --function-name 822069317839:function:dailyReport --region eu-west-1 --log-type None $SRC/logs/dailyReport.log
+    acctid=$(aws sts get-caller-identity --profile ukmonshared --output text --query Account)
+    aws lambda invoke --function-name ${acctid}:function:dailyReport --region eu-west-1 --log-type None $SRC/logs/dailyReport.log
 fi
 # add daily report to the website
 logger -s -t nightlyJob "RUNTIME $SECONDS start publishDailyReport"

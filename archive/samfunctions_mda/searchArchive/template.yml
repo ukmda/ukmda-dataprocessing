@@ -21,6 +21,11 @@ Resources:
           Properties:
             Path: '/'
             Method: get
+            RequestParameters: [
+              'method.request.querystring.d1': {Required: true},
+              'method.request.querystring.d2': {Required: true},
+              'method.request.querystring.opts': {Required: false}
+            ]
       Tags:
         billingtag: "ukmda"
     Metadata:

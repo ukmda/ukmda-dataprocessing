@@ -47,6 +47,7 @@ def markAsFireball(trajname, tof=True):
 def createMDFiles(fbs, outdir, orbdir):
     s3 = boto3.client('s3')
     srcbucket=os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
+    weburl = os.getenv('SITEURL', default='https://archive.ukmeteors.co.u')
     tmpdir = mkdtemp()
     for _, fb in fbs.iterrows(): 
         loctime = jd2Date(fb.mjd + 2400000.5, dt_obj=True)
@@ -92,8 +93,8 @@ def createMDFiles(fbs, outdir, orbdir):
                         outf.write('mass: {:.0f}g\n'.format(float(fb.mass)*1000))
                     outf.write('vg: {:.2f}km/s\n'.format(float(fb.vg)))
                     outf.write('\n')
-                    outf.write('archive-url: {}\n'.format(fb.url))
-                    outf.write('bestimage: {}\n'.format(bestimgurl))
+                    outf.write('archive-url: {}/{}\n'.format(weburl, fb.url))
+                    outf.write('bestimage: {}/{}\n'.format(weburl, bestimgurl))
                     outf.write('\n---\n')
     rmtree(tmpdir)
     return

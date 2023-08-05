@@ -35,7 +35,5 @@ mkdir -p $outdir > /dev/null 2>&1
 tlist=$(python -m reports.findBestMp4s $yr $mth $numreq)
 for t in $tlist 
 do 
-    aws s3 cp $WEBSITEBUCKET/$t $outdir
+    aws s3 cp $WEBSITEBUCKET/$t $UKMONSHAREDBUCKET/$s3outdir/ --quiet
 done
-
-aws s3 sync $outdir $UKMONSHAREDBUCKET/$s3outdir --quiet
