@@ -43,8 +43,8 @@ def AddBlank(body, bodytext):
 
 def addFooter(body, bodytext):
     fbm = 'Seen a fireball? <a href=https://ukmeteornetwork.co.uk/fireball-report/>Click here</a> to report it'
-    uss = 'Unsubscribe from UKMON report'
-    usb = 'Please unsubscribe me from the UKMON daily report'
+    uss = 'Unsubscribe from report'
+    usb = 'Please unsubscribe me from the daily report'
     usm = f'To unsubscribe <a href=\"mailto:markmcintyre99@googlemail.com?Subject={uss}&body={usb}\">click here</a>.'
     body = body + '</table><br><br>\n' + fbm + '<br>' +usm + '<br>'
     bodytext = bodytext + '\n' + fbm + '\n' + usm + '\n'
@@ -52,7 +52,7 @@ def addFooter(body, bodytext):
 
 
 def AddRowRMS(body, bodytext, ele):
-    lnkpathRMS = 'https://archive.ukmeteornetwork.co.uk/reports/{:s}/orbits/{:s}/{:s}/{:s}/index.html'
+    lnkpathRMS = 'https://archive.ukmeteors.co.uk/reports/{:s}/orbits/{:s}/{:s}/{:s}/index.html'
     spls = ele.split(',')
     _, pth = os.path.split(spls[1])
     yr = pth[:4]
@@ -80,14 +80,14 @@ def LookForMatchesRMS(doff, dayfile, statsfile):
     stats = lis[-1].strip().split(' ')
 
     bodytext = 'Daily notification of matches\n\n'
-    body = '<img src=\"https://ukmeteornetwork.co.uk/assets/img/logo.svg\" alt=\"UKMON banner\"><br>'
+    body = '<img src=\"https://ukmeteors.co.uk/assets/img/logo.svg\" alt=\"UKMON banner\"><br>'
     body, bodytext = AddHeader(body, bodytext, stats)
 
     # extract yesterday's data
     yest = datetime.date.today() - datetime.timedelta(days=doff)
 
 
-    mailsubj = 'Daily UKMON matches for {:04d}-{:02d}-{:02d}'.format(yest.year, yest.month, yest.day)
+    mailsubj = 'Daily matches for {:04d}-{:02d}-{:02d}'.format(yest.year, yest.month, yest.day)
     domail = True
     print('DailyCheck: ', mailsubj)
 
@@ -117,10 +117,10 @@ def sendMail(subj, body, bodytext, target, tmppth):
     client = boto3.client('sts')
     response = client.get_caller_identity()['Account']
     if response == '317976261112':
-        SENDER = 'ukmeteornetwork@gmail.com'
+        SENDER = 'ukmeteor-noreply@gmail.com'
         AWS_REGION = 'eu-west-2'
     else:
-        SENDER = 'ukmeteornetwork@gmail.com'
+        SENDER = 'ukmeteor-noreply@gmail.com'
         AWS_REGION = 'eu-west-1'
     CHARSET = "UTF-8"
 
