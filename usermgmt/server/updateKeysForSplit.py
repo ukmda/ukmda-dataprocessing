@@ -10,6 +10,8 @@ def createKeyFile(livekey, archkey, location):
     livebucket = os.getenv('LIVEBUCKET', default='ukmon-live')
     webbucket = os.getenv('WEBSITEBUCKET', default='ukmda-website')
     outf = 'keys/' + location.lower() + '.key'
+    if archkey is None:
+        return outf
     with open(outf, 'w') as ouf:
         ouf.write(f"export AWS_ACCESS_KEY_ID={archkey['AccessKey']['AccessKeyId']}\n")
         ouf.write(f"export AWS_SECRET_ACCESS_KEY={archkey['AccessKey']['SecretAccessKey']}\n")
@@ -30,7 +32,11 @@ def createKeyFile(livekey, archkey, location):
 
 def readOldKeyFile(camid):
     keyf= f'/var/sftp/{camid}/live.key'
+    if not os.path.isfile(keyf):
+        print(f'invalid camid {camid}')
+        exit()
     flines = open(keyf, 'r').readlines()
+    camloc = None
     for li in flines:
         if 'AWS_ACCESS_KEY_ID' in li:
             oldkey = li.split('=')[1].strip()
@@ -38,6 +44,12 @@ def readOldKeyFile(camid):
             oldsec= li.split('=')[1].strip()
         elif 'CAMLOC' in li:
             camloc= li.split('=')[1].strip().strip('"')
+        elif 'LIVE_ACCESS_KEY_ID' in li:
+            print('already processed')
+            exit()
+    if camloc is None: 
+        print('malformed key file - no camloc')
+        exit()
     return {'AccessKey': {'AccessKeyId': oldkey, 'SecretAccessKey': oldsec}}, camloc
 
 
@@ -54,7 +66,7 @@ def createNewUser(location):
     try: 
         _ = iamc.get_user(UserName=location)
         print('location exists, not adding it')
-        archkey = json.load(open(archkeyf,'r'))    
+        archkey = None
     except Exception:
         print('new location')
         usr = iamc.create_user(UserName=location)
@@ -90,7 +102,9 @@ if __name__ == '__main__':
     os.makedirs('keys/', exist_ok=True)
 
     camid = sys.argv[1]
+    print(f'processing {camid}... ', end='')
+    sys.stdout.flush()
     oldkey, location = readOldKeyFile(camid)
     archkey = createNewUser(location)
     newkeyfile = createKeyFile(oldkey, archkey, location)
-    #copyKeyFileToTarget(newkeyfile, camid)
+    copyKeyFileToTarget(newkeyfile, camid)
