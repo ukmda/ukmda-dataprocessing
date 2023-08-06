@@ -323,7 +323,7 @@ if __name__ == '__main__':
     # Call the assume_role method of the STSConnection object and pass the role
     # ARN and a role session name.
     assumed_role_object=sts_client.assume_role(
-        RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+        RoleArn="arn:aws:iam::183798037734:role/service-role/S3FullAccess",
         RoleSessionName="GetExtraFilesV2")
     
     # From the response that contains the assumed role, get the temporary 
@@ -340,8 +340,8 @@ if __name__ == '__main__':
         aws_secret_access_key=credentials['SecretAccessKey'],
         aws_session_token=credentials['SessionToken']) #, endpoint_url="http://thelinux:8000")
 
-    archbucket = os.getenv('UKMONSHAREDBUCKET', default='ukmon-shared')
-    websitebucket = os.getenv('WEBSITEBUCKET', default='ukmeteornetworkarchive')
+    archbucket = os.getenv('SHAREDBUCKET', default='ukmda-shared')
+    websitebucket = os.getenv('WEBSITEBUCKET', default='ukmda-website')
 
     generateExtraFiles(key, archbucket, websitebucket, ddb, s3)
     
@@ -362,7 +362,7 @@ def lambda_handler(event, context):
     response = sts_client.get_caller_identity()['Account']
     if response == '317976261112':
         assumed_role_object=sts_client.assume_role(
-            RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+            RoleArn="arn:aws:iam::183798037734:role/service-role/S3FullAccess",
             RoleSessionName="GetExtraFilesV2")
         
         credentials=assumed_role_object['Credentials']

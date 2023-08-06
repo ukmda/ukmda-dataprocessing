@@ -1,5 +1,5 @@
 #
-# lambda function to be triggered when a csv file arrives in ukmon-shared
+# lambda function to be triggered when a csv file arrives in shared bucket
 # to copy it to the temp area for consolidation later
 #
 import boto3
@@ -68,7 +68,7 @@ def writeUkmonCsv(dir_path, file_name, data):
                 elev, UT_corr, angvel, shwr, fname, dtstamp))
 
     s3 = boto3.resource('s3')
-    s3bucket = os.getenv('ARCHBUCKET', default='ukmon-shared')
+    s3bucket = os.getenv('ARCHBUCKET', default='ukmda-shared')
     outdir = os.getenv('OUTDIR', default='matches/single/new')
     outn = outdir + '/' + file_name
     fullname = os.path.join(dir_path, file_name)

@@ -14,7 +14,7 @@ Resources:
       Policies: AmazonS3ReadOnlyAccess
       Environment:
         Variables:
-          ARCHBUCKET: ukmon-shared
+          ARCHBUCKET: ukmda-shared
           MPLCONFIGDIR: /tmp/mpl
       Events:
         HttpGet:
@@ -23,6 +23,6 @@ Resources:
             Path: '/getfb'
             Method: get
       Tags:
-        billingtag: "ukmon"
+        billingtag: "ukmda"
     Metadata:
       BuildMethod: python3.8

@@ -52,7 +52,7 @@ def FindMatch(bucket, csvfile, d1, d2, op):
             records = event['Records']['Payload'].decode('utf-8')
             lines = records.split('\n')
             for r in lines:
-                res.append(r)
+                res.append(r.replace('https://archive.ukmeteornetwork.co.uk',''))
     res.sort()
     res2 = []
     for r in res:
@@ -62,21 +62,22 @@ def FindMatch(bucket, csvfile, d1, d2, op):
     res2 = sorted(res2, key=itemgetter(1,0))
     res =[]
     for rr in res2:
-        res.append('{:s},{:s},{:s},{:s},{:s},{:s},{:s}'.format(rr[0], rr[1], rr[2], rr[3], rr[4], rr[5], rr[6]))
+        res.append('{:s},{:s},{:s},{:s},{:s},{:s},{:s}'.format(rr[0], rr[1], rr[2], rr[3], 
+            rr[4], rr[5].replace('https://archive.ukmeteornetwork.co.uk',''), 
+            rr[6].replace('https://archive.ukmeteornetwork.co.uk','')))
     return res
 
 
 def lambda_handler(event, context):
-    try:
-        target = os.environ['SRCHBUCKET']
-    except Exception:
-        target = 'mjmm-ukmonarchive.co.uk'
+    target = os.getenv('SRCHBUCKET', default='ukmda-website')
 
     print('received event', json.dumps(event))
     qs = event['queryStringParameters']
-    a = qs['a']
-    b = qs['b']
-    op = qs['op']
+    a = qs['d1']
+    b = qs['d2']
+    op = ''
+    if 'opts' in qs:
+        op = qs['opts']
 
     # a is of the form 2021-02-28T00:30:00.000Z
     if len(a) < len('2020-12-28T00:30:00.000Z'):
@@ -100,10 +101,7 @@ def main():
     a = '2021-04-22T18:00:00.000Z'
     d1 = dateutil.parser.isoparse(a)
     d2 = d1 + datetime.timedelta(days=5)
-    try:
-        target = os.environ['SRCHBUCKET']
-    except Exception:
-        target = 'mjmm-ukmonarchive.co.uk'
+    target = os.getenv('SRCHBUCKET', default='ukmda-website')
 
     idxfile = 'search/indexes/{:04d}-allevents.csv'.format(d1.year)
 

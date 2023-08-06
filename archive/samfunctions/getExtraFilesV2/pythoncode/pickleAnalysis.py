@@ -128,7 +128,7 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
 
     # create CSV file in UFOOrbit format
     #print('create orbit csv')
-    weburl = os.getenv('WEBURL', default='https://archive.ukmeteornetwork.co.uk')
+    weburl = os.getenv('WEBURL', default='https://archive.ukmeteors.co.uk')
     urlbase = f'{weburl}/reports/{dtstr[:4]}/orbits/{dtstr[:6]}/{dtstr[:8]}'
     csvname = os.path.join(outdir, dtstr + '_orbit_full.csv')
     with open(csvname, 'w', newline='') as csvf:
