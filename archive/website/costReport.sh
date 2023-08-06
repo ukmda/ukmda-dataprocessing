@@ -64,3 +64,7 @@ cat $TEMPLATES/footer.html >> $costfile
 aws s3 cp $costfile $WEBSITEBUCKET/reports/ --quiet
 aws s3 cp $DATADIR/$imgfile $WEBSITEBUCKET/reports/ --quiet 
 aws s3 cp $DATADIR/$imgfile2 $WEBSITEBUCKET/reports/ --quiet
+
+aws s3 cp $costfile $OLDWEBSITEBUCKET/reports/ --quiet
+aws s3 cp $DATADIR/$imgfile $OLDWEBSITEBUCKET/reports/ --quiet 
+aws s3 cp $DATADIR/$imgfile2 $OLDWEBSITEBUCKET/reports/ --quiet

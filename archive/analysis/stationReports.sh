@@ -35,6 +35,7 @@ python -m analysis.stationAnalysis $ym $loc
 python -m analysis.stationAnalysis $yr $loc
 
 aws s3 sync $DATADIR/reports/$yr/stations/  $WEBSITEBUCKET/reports/$yr/stations/ --quiet
+aws s3 sync $DATADIR/reports/$yr/stations/  $OLDWEBSITEBUCKET/reports/$yr/stations/ --quiet
 
 logger -s -t stationReports "station reports done creating index"
 
@@ -72,6 +73,10 @@ sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")
 aws s3 cp $DATADIR/reports/$yr/stations/index.html  $WEBSITEBUCKET/reports/$yr/stations/ --quiet
 aws s3 cp $DATADIR/reports/$yr/stations/reportindex.js  $WEBSITEBUCKET/reports/$yr/stations/ --quiet
 aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --quiet
+
+aws s3 cp $DATADIR/reports/$yr/stations/index.html  $OLDWEBSITEBUCKET/reports/$yr/stations/ --quiet
+aws s3 cp $DATADIR/reports/$yr/stations/reportindex.js  $OLDWEBSITEBUCKET/reports/$yr/stations/ --quiet
+aws s3 cp $DATADIR/reports/stationlogins.txt $OLDWEBSITEBUCKET/reports/stationlogins.txt --quiet
 
 logger -s -t stationReports "finished"
 $SRC/utils/clearCaches.sh

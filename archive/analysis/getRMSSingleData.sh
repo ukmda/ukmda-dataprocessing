@@ -59,4 +59,7 @@ logger -s -t getRMSSingleData "copy to S3 bucket"
 aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/single/ --exclude "*" --include "*.csv" --exclude "new/*" --quiet
 aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/singlepq/ --exclude "*" --include "*.parquet.snap" --exclude "*new.parquet.snap" --quiet
 
+aws s3 sync $SRC/data/single/ $OLDUKMONSHAREDBUCKET/matches/single/ --exclude "*" --include "*.csv" --exclude "new/*" --quiet
+aws s3 sync $SRC/data/single/ $OLDUKMONSHAREDBUCKET/matches/singlepq/ --exclude "*" --include "*.parquet.snap" --exclude "*new.parquet.snap" --quiet
+
 logger -s -t getRMSSingleData "finished"

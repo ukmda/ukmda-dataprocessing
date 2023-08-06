@@ -67,6 +67,7 @@ def createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir):
                     jsout.write('var row = table.insertRow(-1);\n')
                     jsout.write('var cell = row.insertCell(0);\n')
                     fldr, mag, fbshwr, bn = li.strip().split(',')
+                    fldr = fldr.replace('https://archive.ukmeteornetwork.co.uk','')
                     jsout.write(f'cell.innerHTML = "<a href={fldr}>{bn}</a>";\n')
                     jsout.write('var cell = row.insertCell(1);\n')
                     jsout.write(f'cell.innerHTML = "{mag}";\n')

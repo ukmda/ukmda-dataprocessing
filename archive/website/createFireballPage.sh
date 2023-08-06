@@ -43,12 +43,12 @@ if [ -f ./fblist.txt ] ; then
     cat ./fblist.txt | while read i ; do
         echo "var row = table.insertRow(-1);">> reportindex.js
         echo "var cell = row.insertCell(0);" >> reportindex.js
-        fldr=$(echo $i | awk -F, '{print $1}')
+        fldr=$(echo $i | awk -F, '{print $1}' | awk -F, '{print $1}'|sed 's/https:\/\/archive.ukmeteornetwork.co.uk//g')  
         mag=$(echo $i | awk -F, '{print $2}')
         shwr=$(echo $i | awk -F, '{print $3}')
         md=$(echo $i | awk -F, '{print $4}')
         md=${md:0:15}
-        img=$(grep besti ./${md}.md | awk '{print $2}')
+        img=$(grep besti ./${md}.md | awk '{print $2}i' | sed 's/https:\/\/archive.ukmeteors.co.uk//g')
 
         if [ "${fldr:0:1}" == "_" ] ; then 
             echo "cell.innerHTML = \"${fldr:1:25}\";" >> reportindex.js
@@ -98,7 +98,7 @@ cp $TEMPLATES/fbreportindex.html index.html
 
 logger -s -t createFireballPage "copy to website"
 
-aws s3 sync $DATADIR/reports/$yr/fireballs/  $WEBSITEBUCKET/reports/$yr/fireballs/ --quiet
+aws s3 sync $DATADIR/reports/$yr/fireballs/ $WEBSITEBUCKET/reports/$yr/fireballs/ --quiet
+aws s3 sync $DATADIR/reports/$yr/fireballs/ $OLDWEBSITEBUCKET/reports/$yr/fireballs/ --quiet
 
-$SRC/utils/clearCaches.sh
 logger -s -t createFireballPage "finished"

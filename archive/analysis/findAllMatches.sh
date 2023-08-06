@@ -98,6 +98,7 @@ echo $(basename $dailyrep) $evts $trajs $matches $rtim >>  $DATADIR/dailyreports
 # copy stats to S3 so the daily report can run
 if [ "$RUNTIME_ENV" == "PROD" ] ; then 
     aws s3 sync $DATADIR/dailyreports/ $UKMONSHAREDBUCKET/matches/RMSCorrelate/dailyreports/ --quiet
+    aws s3 sync $DATADIR/dailyreports/ $OLDUKMONSHAREDBUCKET/matches/RMSCorrelate/dailyreports/ --quiet
 fi 
 
 logger -s -t findAllMatches "RUNTIME $SECONDS start updateIndexPages"

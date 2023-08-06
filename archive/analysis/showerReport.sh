@@ -52,7 +52,10 @@ else
     cd $DATADIR/$outdir
 
     logger -s -t showerReport "copying files to website"
+    
     aws s3 sync $DATADIR/$outdir $WEBSITEBUCKET/$outdir --quiet
+    aws s3 sync $DATADIR/$outdir $OLDWEBSITEBUCKET/$outdir --quiet
+
     logger -s -t showerReport "all done"
 
     if [ -f $DATADIR/reports/${yr}/reportindex.js ] ; then 
