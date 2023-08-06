@@ -5,6 +5,7 @@
 
 import boto3
 from boto3.dynamodb.conditions import Key
+import pandas as pd
 
 
 def createTable(ddb=None):
@@ -100,8 +101,8 @@ def findSite(stationid, ddb=None):
 # remove a row from the table keyed on stationid adn datestamp in yyyymmdd_hhmmss format
 def deleteRow(stationid, ddb=None):
     if not ddb:
-        ddb = boto3.resource('dynamodb', region_name='eu-west-1')
-    table = ddb.Table('amdetails')
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2')
+    table = ddb.Table('camdetails')
     table.delete_item(Key={'stationid': stationid})
     return 
 
@@ -117,6 +118,15 @@ def backPopulate():
         if stationid == 'stationid':
             continue
         addRow(stationid, loc, ddb)
+
+
+def backPopulateCamTimings():
+    ddb = boto3.resource('dynamodb', region_name='eu-west-2') 
+    table = ddb.Table('uploadtimes')
+    df = pd.read_csv('f:/videos/meteorcam/ukmondata/reports/camuploadtimes.csv')
+    for idx,rw in df.iterrows():
+        entry = {'stationid': rw[0], 'dtstamp': rw[4], 'uploaddate': rw[1], 'uploadtime': rw[2], 'manual': rw[3], }
+        table.put_item(Item=entry)
 
 
 def getCamUpdateDate(camid):
