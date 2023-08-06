@@ -18,6 +18,7 @@ resource "aws_s3_bucket_policy" "ukmdasharedbp" {
             "s3:ListBucket",
             "s3:Get*",
             "s3:Put*",
+            "s3:AbortMultipartUpload",
             "s3:Delete*"
           ]
           Effect = "Allow"
@@ -29,6 +30,7 @@ resource "aws_s3_bucket_policy" "ukmdasharedbp" {
               "arn:aws:iam::${var.remote_account_id}:user/Mary",
               "arn:aws:iam::${var.remote_account_id}:user/Mark",
               "arn:aws:iam::${var.remote_account_id}:user/s3user", # not sure this is needed
+              "arn:aws:iam::${var.eeaccountid}:user/MarkMcIntyre"
             ]
           }
           Resource = [
