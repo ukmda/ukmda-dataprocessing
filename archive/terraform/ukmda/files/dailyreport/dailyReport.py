@@ -52,7 +52,7 @@ def addFooter(body, bodytext):
 
 
 def AddRowRMS(body, bodytext, ele):
-    lnkpathRMS = 'https://archive.ukmeteors.co.uk/reports/{:s}/orbits/{:s}/{:s}/{:s}/index.html'
+    lnkpathRMS = 'https://ukmeteornetwork.co.uk/reports/{:s}/orbits/{:s}/{:s}/{:s}/index.html'
     spls = ele.split(',')
     _, pth = os.path.split(spls[1])
     yr = pth[:4]
@@ -80,14 +80,14 @@ def LookForMatchesRMS(doff, dayfile, statsfile):
     stats = lis[-1].strip().split(' ')
 
     bodytext = 'Daily notification of matches\n\n'
-    body = '<img src=\"https://ukmeteors.co.uk/assets/img/logo.svg\" alt=\"UKMON banner\"><br>'
+    body = '<img src=\"https://ukmeteornetwork.co.uk/assets/img/logo.svg\" alt=\"UKMON banner\"><br>'
     body, bodytext = AddHeader(body, bodytext, stats)
 
     # extract yesterday's data
     yest = datetime.date.today() - datetime.timedelta(days=doff)
 
 
-    mailsubj = 'Daily matches for {:04d}-{:02d}-{:02d}'.format(yest.year, yest.month, yest.day)
+    mailsubj = 'Daily UKMON matches for {:04d}-{:02d}-{:02d}'.format(yest.year, yest.month, yest.day)
     domail = True
     print('DailyCheck: ', mailsubj)
 
