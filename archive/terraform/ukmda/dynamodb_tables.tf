@@ -79,7 +79,7 @@ resource "aws_dynamodb_table" "uploadtimes_table" {
   #write_capacity = 20
   hash_key  = "stationid"
   range_key = "dtstamp"
-  provider  = aws.eu-west-1-prov
+  #provider  = aws.eu-west-1-prov
 
   attribute {
     name = "stationid"
