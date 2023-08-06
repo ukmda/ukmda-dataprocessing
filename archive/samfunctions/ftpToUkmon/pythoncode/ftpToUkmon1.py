@@ -233,8 +233,8 @@ def FTPdetectinfo2UkmonCsv(dir_path):
 def addRowCamTimings(s3bucket, s3object):
     s3c = boto3.client('s3')
     dtstamp = s3c.head_object(Bucket=s3bucket, Key=s3object)['LastModified']
-    ddb = boto3.resource('dynamodb', region_name='eu-west-1') 
-    table = ddb.Table('ukmon_uploadtimes')
+    ddb = boto3.resource('dynamodb', region_name='eu-west-2') 
+    table = ddb.Table('uploadtimes')
     # s3object = matches/RMSCorrelate/UK0006/UK0006_20221121_164424_325844/FTPdetectinfo_UK0006_20221121_164424_325844.txt
     spls = s3object.split('/')
     camid = spls[2]
