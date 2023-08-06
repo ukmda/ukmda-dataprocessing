@@ -30,8 +30,10 @@ Resources:
         Variables:
           WEBSITEBUCKET: ukmda-website
           SHAREDBUCKET: ukdma-shared
+          OLDWEBSITEBUCKET: ukmeteornetworkarchive
+          OLDSHAREDBUCKET: ukdon-shared
           MPLCONFIGDIR: /tmp/mpl
-          WEBURL: https://archive.ukmeteors.co.uk
+          WEBURL: https://archive.ukmeteornetwork.co.uk
       Tags:
         billingtag: "ukmda"
       Role: arn:aws:iam::183798037734:role/service-role/S3FullAccess
