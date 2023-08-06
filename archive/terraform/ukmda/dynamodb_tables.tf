@@ -43,7 +43,7 @@ resource "aws_dynamodb_table" "live_bright_table" {
 }
 
 resource "aws_dynamodb_table" "camera_table" {
-  name         = "ukmda_camdetails"
+  name         = "camdetails"
   billing_mode = "PAY_PER_REQUEST"
   #read_capacity  = 20
   #write_capacity = 20
@@ -66,14 +66,14 @@ resource "aws_dynamodb_table" "camera_table" {
   #  enabled        = true
   #}
   tags = {
-    Name       = "ukmda_camdetails"
+    Name       = "camdetails"
     billingtag = "ukmda"
   }
 }
 
 
 resource "aws_dynamodb_table" "uploadtimes_table" {
-  name         = "ukmda_uploadtimes"
+  name         = "uploadtimes"
   billing_mode = "PAY_PER_REQUEST"
   #read_capacity  = 20
   #write_capacity = 20
@@ -107,7 +107,7 @@ resource "aws_dynamodb_table" "uploadtimes_table" {
     enabled        = true
   }
   tags = {
-    Name       = "ukmda_uploadtimes"
+    Name       = "uploadtimes"
     billingtag = "ukmda"
   }
 }

@@ -9,10 +9,10 @@ from boto3.dynamodb.conditions import Key
 
 def createTable(ddb=None):
     if not ddb:
-        ddb = boto3.resource('dynamodb', region_name='eu-west-1')
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2')
 
     # Create the DynamoDB table.
-    tbl='ukmon_camdetails'
+    tbl='camdetails'
     try:
         table = ddb.create_table(
             TableName=tbl,
@@ -49,7 +49,7 @@ def createTable(ddb=None):
 # Print out some data about the table - works for any table
 def testTable(tbl, ddb=None):
     if not ddb:
-        ddb = boto3.resource('dynamodb', region_name='eu-west-1') 
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2') 
     table = ddb.Table(tbl)
     print(table.creation_date_time)
     print(table.item_count)
@@ -59,7 +59,7 @@ def testTable(tbl, ddb=None):
 # delete a table - works for any table
 def deleteTable(tbl, ddb=None):
     if not ddb:
-        ddb = boto3.resource('dynamodb', region_name='eu-west-1')
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2')
     table = ddb.Table(tbl)
     table.delete()
     return 
@@ -68,9 +68,8 @@ def deleteTable(tbl, ddb=None):
 # add a row to the CamTimings table
 def addRow(stationid, siteid, ddb=None):
     if not ddb:
-        ddb = boto3.resource('dynamodb', region_name='eu-west-1')
-
-    table = ddb.Table('ukmon_camdetails')
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2')
+    table = ddb.Table('camdetails')
     response = table.put_item(
         Item={
             'stationid': stationid,
@@ -84,8 +83,8 @@ def addRow(stationid, siteid, ddb=None):
 # find matching entries based on stationid 
 def findSite(stationid, ddb=None):
     if not ddb:
-        ddb = boto3.resource('dynamodb', region_name='eu-west-1')
-    table = ddb.Table('ukmon_camdetails')
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2')
+    table = ddb.Table('camdetails')
     response = table.query(KeyConditionExpression=Key('stationid').eq(stationid))
     try:
         items = response['Items']
@@ -102,19 +101,21 @@ def findSite(stationid, ddb=None):
 def deleteRow(stationid, ddb=None):
     if not ddb:
         ddb = boto3.resource('dynamodb', region_name='eu-west-1')
-    table = ddb.Table('ukmon_camdetails')
+    table = ddb.Table('amdetails')
     table.delete_item(Key={'stationid': stationid})
     return 
 
 
 def backPopulate():
-    ddb = boto3.resource('dynamodb', region_name='eu-west-1') 
+    ddb = boto3.resource('dynamodb', region_name='eu-west-2') 
     with open('f:/videos/meteorcam/ukmondata/consolidated/camera-details.csv') as inf:
         lis = inf.readlines()
     for li in lis:
         spls = li.split(',')
         loc = spls[0]
         stationid = spls[5]
+        if stationid == 'stationid':
+            continue
         addRow(stationid, loc, ddb)
 
 
