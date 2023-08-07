@@ -179,10 +179,18 @@ def pushToWebsite(s3, localfldr, webbucket, webfldr, outbucket, outpth):
             targkey = f'{webfldr}/{yr}/orbits/{ym}/{ymd}/{orbname}/{fname}'
             print(f'uploading {fname} to s3://{webbucket}/{targkey}')
             s3.meta.client.upload_file(fullname, webbucket, targkey, ExtraArgs = getExtraArgs(fname))
+            try:
+                s3.meta.client.upload_file(fullname, 'ukmeteornetworkarchive', targkey, ExtraArgs = getExtraArgs(fname))
+            except:
+                print('unable to push to old website')
             if 'report' in fname or 'pickle' in fname:
                 targkey = f'{outpth}/trajectories/{yr}/{ym}/{ymd}/{orbname}/{fname}'
                 print(f'uploading {fname} to s3://{outbucket}/{targkey}')
                 s3.meta.client.upload_file(fullname, outbucket, targkey, ExtraArgs = getExtraArgs(fname))
+                try:
+                    s3.meta.client.upload_file(fullname, 'ukmon-shared', targkey, ExtraArgs = getExtraArgs(fname))
+                except:
+                    print('unable to push to old sharedsite')
     return
 
 
