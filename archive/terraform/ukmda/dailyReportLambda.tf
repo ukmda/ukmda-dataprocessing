@@ -1,5 +1,6 @@
 #
 # terraform to create the lambdas in the MJMM account
+# Copyright (C) 2018-2023 Mark McIntyre
 #
 
 # the Lambda's body is being uploaded via a Zip file

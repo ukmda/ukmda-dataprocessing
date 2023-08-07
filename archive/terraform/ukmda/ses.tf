@@ -1,3 +1,5 @@
+# Copyright (C) 2018- Mark McIntyre
+
 resource "aws_ses_domain_identity" "ukmeteors" {
   domain = "ukmeteors.co.uk"
 }

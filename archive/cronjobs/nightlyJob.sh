@@ -15,6 +15,12 @@ mth=$(date +%Y%m)
 yr=$(date +%Y)
 echo $rundate > $DATADIR/rundate.txt
 
+# sync images, ftpdetect, platepars etc between this account and the old EE account
+# this is needed because we want to keep the archive website on the old domain for now
+# and it relies on some of these data
+logger -s -t nightlyJob "RUNTIME $SECONDS synchronising data between accounts"
+$SRC/utils/dataSync.sh 
+
 mkdir -p $DATADIR/admin
 python -c "from reports.CameraDetails import updateCamLocDirFovDB; updateCamLocDirFovDB();"
 aws s3 cp $DATADIR/admin/cameraLocs.json $UKMONSHAREDBUCKET/admin/ --region eu-west-2
@@ -37,7 +43,8 @@ $SRC/website/createStationList.sh
 if [ "`tty`" != "not a tty" ]; then 
     echo 'got a tty, not triggering report'
 else 
-    acctid=$(aws sts get-caller-identity --profile ukmonshared --output text --query Account)
+    # email has to be sent from the ukmeteornetwork.co.uk verified domain
+    acctid=$(aws sts get-caller-identity --profile realukms --output text --query Account)
     aws lambda invoke --function-name ${acctid}:function:dailyReport --region eu-west-1 --log-type None $SRC/logs/dailyReport.log
 fi
 # add daily report to the website
@@ -115,6 +122,9 @@ python $PYLIB/maintenance/getNextBatchStart.py 150
     logger -s -t nightlyJob "RUNTIME $SECONDS start stationReports"
     $SRC/analysis/stationReports.sh
 #fi
+
+logger -s -t nightlyJob "RUNTIME $SECONDS synchronising raw data only back again"
+$SRC/utils/dataSyncBack.sh 
 
 logger -s -t nightlyJob "RUNTIME $SECONDS start clearSpace"
 $SRC/utils/clearSpace.sh 
