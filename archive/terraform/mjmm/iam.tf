@@ -110,7 +110,7 @@ resource "aws_iam_policy" "crossacctpolicy" {
           Effect = "Allow"
           Resource = [
             "arn:aws:lambda:eu-west-1:822069317839:function:dailyReport",
-            "arn:aws:lambda:eu-west-1:${var.mda_account_id}:function:dailyReport",
+            "arn:aws:lambda:eu-west-2:${var.mda_account_id}:function:dailyReport",
           ]
         },
       ]
