@@ -33,6 +33,9 @@ aws s3 sync s3://ukmeteornetworkarchive/img/kmls/  s3://ukmda-website/img/kmls/ 
 aws s3 sync s3://ukmon-shared/consolidated/platepars/ s3://ukmda-shared/consolidated/platepars/  --quiet
 aws s3 sync s3://ukmon-shared/kmls/ s3://ukmda-shared/kmls/  --quiet
 
+# sync the UFO csv files so they can be consolidated too
+aws s3 mv s3://ukmon-shared/consolidated/temp/ s3://ukmda-shared/consolidated/temp/ --recursive --dryrun
+
 # sync the solver data. Loop over locations and cams for scan efficiency
 # we will sync the other way AFTER the batch has run, because we don't want to delay the batch unnecessarily
 # files are in a folder dated yesterday
