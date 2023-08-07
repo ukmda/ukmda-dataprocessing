@@ -118,7 +118,6 @@ if [ $doplt -eq 2 ]
 then
 echo "<pre>" >> $idxfile
 aws s3 cp ${targ}/plots/trajectory_summary.txt /tmp/${ym}_summ.txt --quiet
-aws s3 cp ${oldtarg}/plots/trajectory_summary.txt /tmp/${ym}_summ.txt --quiet
 if [ -f /tmp/${ym}_summ.txt ] ; then 
 tr -d '\015' < /tmp/${ym}_summ.txt  >> $idxfile
 echo "</pre>" >> $idxfile
@@ -132,6 +131,7 @@ cat $TEMPLATES/footer.html >> $idxfile
 logger -s -t createOrbitIndex "copying to website"
 aws s3 cp $idxfile $targ/index.html --quiet
 aws s3 cp $idxfile $oldtarg/index.html --quiet
+aws s3 sync ${targ}/plots/ ${oldtarg}/plots/ --quiet
 rm -f $idxfile
 
 logger -s -t createOrbitIndex "finished"
