@@ -25,7 +25,7 @@ resource "aws_lambda_function" "dailyreportlambda" {
   environment {
     variables = {
       OFFSET = "1"
-      DEBUG  = "False"
+      DEBUG  = "True"
       "WEBSITEBUCKET" = "s3://${aws_s3_bucket.archsite.id}"
       "SHAREDBUCKET" = "s3://${aws_s3_bucket.ukmdashared.id}"
     }
