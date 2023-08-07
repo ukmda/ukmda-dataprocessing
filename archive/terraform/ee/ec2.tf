@@ -14,7 +14,7 @@ resource "aws_instance" "calc_server" {
       "Name"       = "calcengine"
       "billingtag" = "ukmon"
     }
-    volume_size = 70
+    volume_size = 100
   }
   network_interface {
     network_interface_id = aws_network_interface.calcserver_if.id

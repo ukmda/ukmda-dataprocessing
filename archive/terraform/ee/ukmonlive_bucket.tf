@@ -7,6 +7,7 @@ resource "aws_s3_bucket" "ukmonlive" {
     "ukmontype"  = "live"
   }
   provider = aws.eu-west-1-prov
+  timeouts {}
 }
 
 resource "aws_s3_bucket_policy" "ukmonlivebp" {
