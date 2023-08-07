@@ -41,7 +41,9 @@ cams=$(aws s3 ls s3://ukmon-shared/matches/RMSCorrelate/ | grep PRE | awk '{prin
 for cam in $cams ; do 
     days=$(aws s3 ls s3://ukmon-shared/matches/RMSCorrelate/${cam} | grep PRE | awk '{print $2}' | egrep -v "daily|traj|plots|:" | grep ${pymd})
     if [ $? == 0 ]; then 
-        aws s3 sync s3://ukmon-shared/matches/RMSCorrelate/${cam}${days} s3://ukmda-shared/matches/RMSCorrelate/${cam}${days}  --quiet
+    for day in $days ; do 
+            aws s3 sync s3://ukmon-shared/matches/RMSCorrelate/${cam}${day} s3://ukmda-shared/matches/RMSCorrelate/${cam}${day}  --quiet
+        done
     fi
 done
 
