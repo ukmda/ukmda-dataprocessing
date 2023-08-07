@@ -48,7 +48,7 @@ if [ -f ./fblist.txt ] ; then
         shwr=$(echo $i | awk -F, '{print $3}')
         md=$(echo $i | awk -F, '{print $4}')
         md=${md:0:15}
-        img=$(grep besti ./${md}.md | awk '{print $2}i' | sed 's/https:\/\/archive.ukmeteors.co.uk//g')
+        img=$(grep besti ./${md}.md | awk '{print $2}i' | sed 's/https:\/\/archive.ukmeteornetwork.co.uk//g')
 
         if [ "${fldr:0:1}" == "_" ] ; then 
             echo "cell.innerHTML = \"${fldr:1:25}\";" >> reportindex.js
