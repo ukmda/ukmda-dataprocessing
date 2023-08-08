@@ -12,65 +12,6 @@ templ = '{"Records": [{"s3": {"bucket": {"name": "ukmda-shared",\
     "arn": "arn:aws:s3:::ukmda-shared"},"object": {"key": "KEYHERE"}}}]}'
 
 
-def checkMissedFTPdetect(prof='ukmonshared'):
-    session=boto3.Session(profile_name=prof) 
-    logcli = session.client('logs', region_name='eu-west-2')
-    chkdt = datetime.datetime.now() + datetime.timedelta(days=-1)
-    chkdt = chkdt.replace(hour=0, minute=0, second=0, microsecond=0)
-    uxt = int(chkdt.timestamp()*1000)
-    fails=[]
-    response = logcli.filter_log_events(
-        logGroupName="/aws/lambda/consolidateFTPdetect",
-        startTime=uxt,
-        filterPattern="missing ",
-        limit=1000)
-    if len(response['events']) > 0:
-        for i in range(len(response['events'])):
-            msg = response['events'][i]['message'].strip()
-            spls = msg.split()
-            fails.append(spls[-1])
-    if 'nextToken' in response:
-        while True:
-            currentToken = response['nextToken']
-            response = logcli.filter_log_events(
-                logGroupName="/aws/lambda/consolidateFTPdetect",
-                startTime=uxt,
-                filterPattern="missing ",
-                nextToken = currentToken,
-                limit=1000)
-            if len(response['events']) > 0:
-                for i in range(len(response['events'])):
-                    msg = response['events'][i]['message'].strip()
-                    spls = msg.split()
-                    fails.append(spls[-1])
-            if 'nextToken' not in response:
-                break
-    fails = list(set(fails)) # remove duplicates
-    #print(fails)
-    s3c = boto3.client('s3')
-    lambd = session.client('lambda', region_name='eu-west-2')
-    buck = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
-    for evt in fails:
-        if '/2019/' in evt or '/2020/' in evt or '/2021/' in evt or '/2022/' in evt:
-            continue
-        res = s3c.list_objects_v2(Bucket=buck,Prefix=f'{evt}/FTP')
-        if res['KeyCount'] > 0:
-            ftpname = res['Contents'][0]['Key']
-            res = s3c.list_objects_v2(Bucket=buck,Prefix=f'{evt}/.config')
-            res2 = s3c.list_objects_v2(Bucket=buck,Prefix=f'{evt}/platepars_all_recalibrated.json')
-            if res['KeyCount'] == 0 or res2['KeyCount'] == 0:
-                print(f'config or platepar still missing for {evt}')
-            else:
-                thisevent = templ.replace('KEYHERE', ftpname)
-                response = lambd.invoke(
-                    FunctionName='consolidateFTPdetect',
-                    InvocationType='Event',
-                    Payload=thisevent,
-                )
-                print(f'resubmitting {evt}, status {response["StatusCode"]}')
-    return 
-
-
 def findOtherBadEvents():
     evts = []
     datadir=os.getenv('DATADIR', default='/home/ec2-user/prod/data')
