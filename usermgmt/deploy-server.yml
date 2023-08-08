@@ -1,5 +1,5 @@
 ---
-- hosts: "{{host | default ('ukmonhelper')}}"
+- hosts: "{{host | default ('ukmonhelper2')}}"
   vars:
     srcdir: /mnt/e/dev/meteorhunting/UKMON-shared/usermgmt/server
   tasks:
@@ -12,29 +12,12 @@
   - name: Ensures {{destdir}} exists
     file: path={{destdir}} state=directory  
     tags: [dev,prod]
-  - name: Ensures {{destdir}}/rawkeys exists
-    file: path={{destdir}}/rawkeys state=directory  
-    tags: [dev,prod]
-  - name: Ensures {{destdir}}/live exists
-    file: path={{destdir}}/live state=directory  
-    tags: [dev,prod]
-  - name: Ensures {{destdir}}/arch exists
-    file: path={{destdir}}/arch state=directory  
-    tags: [dev,prod]
-  - name: Ensures {{destdir}}/sshkeys exists
-    file: path={{destdir}}/sshkeys state=directory  
-    tags: [dev,prod]
-  - name: Ensures {{destdir}}/inifs exists
-    file: path={{destdir}}/inifs state=directory  
-    tags: [dev,prod]
 
   - name: Copy files
     tags: [dev,prod]
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     with_items:
     - {src: '{{srcdir}}/addSftpUser.sh', dest: '{{destdir}}/', mode: '754', backup: yes, directory_mode: no }
-    - {src: '{{srcdir}}/update_keyfile.sh', dest: '{{destdir}}/', mode: '754', backup: yes, directory_mode: no }
-    - {src: '{{srcdir}}/jsonToKeyFile.py', dest: '{{destdir}}/', mode: '644', backup: yes, directory_mode: no }
     - {src: '{{srcdir}}/mailForwarder.py', dest: '{{destdir}}/', mode: '644', backup: yes, directory_mode: no }
     - {src: '{{srcdir}}/ukmon.ini', dest: '{{destdir}}/', mode: '644', backup: yes, directory_mode: no }
     - {src: '{{srcdir}}/emailForwarder.sh', dest: '{{destdir}}/', mode: '754', backup: yes, directory_mode: no }

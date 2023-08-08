@@ -15,7 +15,8 @@ import json
 import time
 from scp import SCPClient
 
-import camTable as ct
+from camTable import addRow as addRowToDDB
+from camTable import getCamUpdateDate
 
 
 class infoDialog(simpledialog.Dialog):
@@ -126,9 +127,10 @@ class CamMaintenance(Frame):
         self.parent = parent
         Frame.__init__(self, parent)
 
-        s3 = boto3.client('s3')
-        self.bucket_name = os.getenv('SRCBUCKET', default='ukmon-shared')
-        print(self.bucket_name)
+        self.archprof = os.getenv('ARCH_PROFILE', default='ukmda_admin')
+        conn = boto3.Session(profile_name=self.archprof)
+        s3 = conn.client('s3')
+        self.bucket_name = os.getenv('SRCBUCKET', default='ukmda-shared')
 
         os.makedirs('jsonkeys', exist_ok=True)
         os.makedirs('csvkeys', exist_ok=True)
@@ -327,7 +329,8 @@ class CamMaintenance(Frame):
         newdf = newdf.sort_values(by=['active','camtype','camid'],ascending=[True,False,True])
         newdf.to_csv(self.localfile, index=False)
 
-        s3 = boto3.client('s3')
+        conn = boto3.Session(profile_name=self.archprof)
+        s3 = conn.client('s3')
         s3.upload_file(Bucket=self.bucket_name, Key=self.fullname, Filename=self.localfile)
         s3.upload_file(Bucket=self.bucket_name, Key=self.fullstat, Filename=self.locstatfile)
 
@@ -364,7 +367,7 @@ class CamMaintenance(Frame):
         cr = list(cursel)[0][0]
         curdata = self.data[cr]
         camid = curdata[1]
-        lastupd = ct.getCamUpdateDate(camid)
+        lastupd = getCamUpdateDate(camid)
         msg = f'{camid} last sent a live image on {lastupd}'
         tk.messagebox.showinfo(title="Information", message=msg)
         return 
@@ -393,14 +396,14 @@ class CamMaintenance(Frame):
             d = answer.data
             rmsid = str(d[0]).upper()
             location = str(d[1]).capitalize()
-            direction = str(d[2])
             cameraname = d[1].lower() + '_' + d[2].lower()
             with open(os.path.join('sshkeys', cameraname + '.pub'), 'w') as outf:
                 outf.write(d[5])
             rowdata=[d[1],d[0],d[0],d[2],'2',d[0],'1']
             self.sheet.insert_row(values=rowdata, idx=0)
             addNewAwsUser(location)
-            addNewUnixUser(location, direction, oldloc)
+            createIniFile(cameraname)
+            addNewUnixUser(location, cameraname, oldloc)
             addNewOwner(self.locstatfile, rmsid, location, d[3], d[4])
             self.datachanged = True
         return 
@@ -417,11 +420,10 @@ class CamMaintenance(Frame):
         if answer.data[0].strip() != '': 
             d = answer.data
             location = str(d[1]).capitalize()
-            direction = str(d[2])
             cameraname = d[1].lower() + '_' + d[2].lower()
             with open(os.path.join('sshkeys', cameraname + '.pub'), 'w') as outf:
                 outf.write(d[5])
-            addNewUnixUser(location, direction, updatemode=2)
+            addNewUnixUser(location, cameraname, updatemode=2)
             self.datachanged = True
         return 
 
@@ -487,10 +489,12 @@ def addNewOwner(locstatfile, rmsid, location, user, email):
     caminfo = caminfo.append(newdf).sort_values(by=['camid'])
     caminfo.to_csv(locstatfile, index=False)
 
-    ct.addRow(rmsid, location)
+    archprof = os.getenv('ARCH_PROFILE', default='ukmda_admin')
+    conn = boto3.Session(profile_name=archprof)
+    ddb = conn.resource('dynamodb', region_name='eu-west-2')
+    addRowToDDB(rmsid, location, ddb)
 
     return
-
 
 
 def getSSHkey(loc, dir):
@@ -525,18 +529,18 @@ def getUserDetails(statfile, camid):
     return '',''
 
 
-def addNewUnixUser(location, direction, oldcamname='', updatemode=0):
-    server=os.getenv('HELPERSERVER', default='ukmonhelper')
+def addNewUnixUser(location, cameraname, oldcamname='', updatemode=0):
+    server=os.getenv('HELPERSERVER', default='ukmonhelper2')
     user='ec2-user'
-    cameraname = location.lower() + '_' + direction.lower()
     print(f'adding new Unix user {cameraname}')
     k = paramiko.RSAKey.from_private_key_file(os.path.expanduser('~/.ssh/ukmonhelper'))
     c = paramiko.SSHClient()
     c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     c.connect(hostname = server, username = user, pkey = k)
     scpcli = SCPClient(c.get_transport())
-    scpcli.put(os.path.join('jsonkeys', location + '.key'), 'keymgmt/rawkeys/live/')
     scpcli.put(os.path.join('sshkeys', cameraname + '.pub'), 'keymgmt/sshkeys/')
+    scpcli.put(os.path.join('keys', location.lower() + '.key'), 'keymgmt/keys/')
+    scpcli.put(os.path.join('inifs', cameraname + '.ini'), 'keymgmt/inifs/')
     command = f'/home/{user}/keymgmt/addSftpUser.sh {cameraname} {location} {updatemode} {oldcamname}'
     print(f'running {command}')
     _, stdout, stderr = c.exec_command(command, timeout=10)
@@ -559,32 +563,106 @@ def addNewUnixUser(location, direction, oldcamname='', updatemode=0):
 
 def addNewAwsUser(location):
     print(f'adding new location {location} to AWS')
-    acct = '822069317839'  # empireelments account
-    policyarn = 'arn:aws:iam::' + acct + ':policy/UkmonLive'
     group = 'ukmon'
-    keyf = 'jsonkeys/' + location + '.key'
-    userdets = 'users/' + location + '.txt'
+    livekeyf = 'jsonkeys/' + location + '_live.key'
+    archkeyf = 'jsonkeys/' + location + '_arch.key'
+    liveuserdets = 'users/' + location + '_live.txt'
+    archuserdets = 'users/' + location + '_arch.txt'
+    livecsvf = os.path.join('csvkeys', location + '_live.csv')
+    archcsvf = os.path.join('csvkeys', location + '_arch.csv')
     os.makedirs('jsonkeys', exist_ok=True)
     os.makedirs('csvkeys', exist_ok=True)
     os.makedirs('users', exist_ok=True)
-    os.makedirs('inifs', exist_ok=True)
-    iamc = boto3.client('iam')
+
+    archprof = os.getenv('ARCH_PROFILE', default='ukmda_admin')
+    archconn = boto3.Session(profile_name=archprof)
+    liveprof = os.getenv('LIVE_PROFILE', default='ukmon-markmcintyre')
+    liveconn = boto3.Session(profile_name=liveprof)
+    
+    iamc = liveconn.client('iam')
+    sts = liveconn.client('sts')
+    acct = sts.get_caller_identity()['Account']
+    policyarn = 'arn:aws:iam::' + acct + ':policy/UkmonLive'
     try: 
         _ = iamc.get_user(UserName=location)
         print('location exists, not adding it')
+        livekey = None
     except Exception:
         print('new location')
         usr = iamc.create_user(UserName=location)
-        with open(userdets, 'w') as outf:
-            outf.write(str(usr))
-        key = iamc.create_access_key(UserName=location)
-        with open(keyf, 'w') as outf:
-            outf.write(json.dumps(key, indent=4, sort_keys=True, default=str))
-        with open(os.path.join('csvkeys', location + '.csv'),'w') as outf:
-            outf.write('Access key ID,Secret access key\n')
-            outf.write('{},{}\n'.format(key['AccessKey']['AccessKeyId'], key['AccessKey']['SecretAccessKey']))
         _ = iamc.attach_user_policy(UserName=location, PolicyArn=policyarn)
         _ = iamc.add_user_to_group(UserName=location, GroupName=group)
+        with open(liveuserdets, 'w') as outf:
+            outf.write(str(usr))
+        livekey = iamc.create_access_key(UserName=location)
+        with open(livekeyf, 'w') as outf:
+            outf.write(json.dumps(livekey, indent=4, sort_keys=True, default=str))
+        with open(livecsvf,'w') as outf:
+            outf.write('Access key ID,Secret access key\n')
+            outf.write('{},{}\n'.format(livekey['AccessKey']['AccessKeyId'], livekey['AccessKey']['SecretAccessKey']))
+
+    iamc = archconn.client('iam')
+    sts = archconn.client('sts')
+    acct = sts.get_caller_identity()['Account']
+    policyarn = 'arn:aws:iam::' + acct + ':policy/UkmonLive'
+    policyarn2 = 'arn:aws:iam::' + acct + ':policy/UKMDA-shared'
+    try: 
+        _ = iamc.get_user(UserName=location)
+        print('location exists, not adding it')
+        archkey = None
+    except Exception:
+        print('new location')
+        usr = iamc.create_user(UserName=location)
+        _ = iamc.attach_user_policy(UserName=location, PolicyArn=policyarn)
+        _ = iamc.attach_user_policy(UserName=location, PolicyArn=policyarn2)
+        with open(archuserdets, 'w') as outf:
+            outf.write(str(usr))
+        archkey = iamc.create_access_key(UserName=location)
+        with open(archkeyf, 'w') as outf:
+            outf.write(json.dumps(archkey, indent=4, sort_keys=True, default=str))
+        with open(archcsvf,'w') as outf:
+            outf.write('Access key ID,Secret access key\n')
+            outf.write('{},{}\n'.format(archkey['AccessKey']['AccessKeyId'], archkey['AccessKey']['SecretAccessKey']))
+    
+    if archkey is not None and livekey is not None: 
+        createKeyFile(livekey, archkey, location)
+    return 
+
+
+def createKeyFile(livekey, archkey, location):
+    archbucket = os.getenv('SRCBUCKET', default='ukmda-shared')
+    livebucket = os.getenv('LIVEBUCKET', default='ukmon-live')
+    webbucket = os.getenv('WEBSITEBUCKET', default='ukmda-website')
+
+    os.makedirs('keys', exist_ok=True)
+    outf = 'keys/' + location.lower() + '.key'
+    with open(outf, 'w') as ouf:
+        ouf.write(f"export AWS_ACCESS_KEY_ID={archkey['AccessKey']['AccessKeyId']}\n")
+        ouf.write(f"export AWS_SECRET_ACCESS_KEY={archkey['AccessKey']['SecretAccessKey']}\n")
+        ouf.write(f"export LIVE_ACCESS_KEY_ID={livekey['AccessKey']['AccessKeyId']}\n")
+        ouf.write(f"export LIVE_SECRET_ACCESS_KEY={livekey['AccessKey']['SecretAccessKey']}\n")
+        ouf.write('export AWS_DEFAULT_REGION=eu-west-1\n')
+        ouf.write(f'export CAMLOC="{location}"\n')
+        ouf.write(f'export S3FOLDER="archive/{location}/"\n')
+        ouf.write(f'export ARCHBUCKET={archbucket}\n')
+        ouf.write(f'export LIVEBUCKET={livebucket}\n')
+        ouf.write(f'export WEBBUCKET={webbucket}\n')
+        ouf.write('export ARCHREGION=eu-west-2\n')
+        ouf.write('export LIVEREGION=eu-west-1\n')
+        ouf.write('export MATCHDIR=matches/RMSCorrelate\n')
+    return 
+
+
+def createIniFile(cameraname):
+    helperip = os.getenv('HELPERIP', default='3.11.55.160')
+    os.makedirs('inifs', exist_ok=True)
+    outf = 'inifs/' + cameraname + '.ini'
+    with open(outf, 'w') as outf:
+        outf.write('# config data for this station\n')
+        outf.write(f'export LOCATION={cameraname}\n')
+        outf.write(f'export UKMONHELPER={helperip}\n')
+        outf.write('export UKMONKEY=~/.ssh/ukmon\n')
+        outf.write('export RMSCFG=~/source/RMS/.config\n')
     return 
 
 
