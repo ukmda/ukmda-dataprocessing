@@ -31,6 +31,7 @@ logger -s -t consolidateOutput "starting"
 # note - copying from ukmon-shared even in dev so we have the latest data
 aws s3 sync s3://ukmda-shared/consolidated/ ${DATADIR}/consolidated --exclude "temp/*" --quiet
 aws s3 mv s3://ukmda-shared/consolidated/temp/ ${DATADIR}/consolidated/temp --recursive --quiet
+aws s3 mv s3://ukmon-shared/consolidated/temp/ ${DATADIR}/consolidated/temp --recursive --quiet
 
 logger -s -t consolidateOutput "Consolidating RMS and UFO CSVs"
 consdir=${DATADIR}/consolidated/temp

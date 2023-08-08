@@ -12,6 +12,8 @@ pym=$(date -d '-1 day' +%Y%m)
 pymd=$(date -d '-1 day' +%Y%m%d)
 
 # sync the images, mp4s for todays and yesterdays date. This captures any cameras uploading to the wrong location
+# TODO: need a smarter way to do this; perhaps get directory listings from both shares, compare and do a file-by-file move of any 
+# new ones on either side. Do it in python, then i can do a bulk-file-copy similar to the bulk-delete process.
 logger -s -t dataSync "RUNTIME $SECONDS images and mp4s"
 aws s3 sync s3://ukmeteornetworkarchive/img/single/${yr}/${ym}/  s3://ukmda-website/img/single/${yr}/${ym}/ --exclude "*" --include "*${pymd}*" --include "*${ymd}*" --quiet
 aws s3 sync s3://ukmeteornetworkarchive/img/mp4/${yr}/${ym}/  s3://ukmda-website/img/mp4/${yr}/${ym}/ --exclude "*" --include "*${pymd}*" --include "*${ymd}*" --quiet
@@ -32,9 +34,6 @@ logger -s -t dataSync "RUNTIME $SECONDS platepars and kmls"
 aws s3 sync s3://ukmeteornetworkarchive/img/kmls/  s3://ukmda-website/img/kmls/ --quiet
 aws s3 sync s3://ukmon-shared/consolidated/platepars/ s3://ukmda-shared/consolidated/platepars/  --quiet
 aws s3 sync s3://ukmon-shared/kmls/ s3://ukmda-shared/kmls/  --quiet
-
-# sync the UFO csv files so they can be consolidated too
-aws s3 mv s3://ukmon-shared/consolidated/temp/ s3://ukmda-shared/consolidated/temp/ --recursive --dryrun
 
 # sync the solver data. Loop over locations and cams for scan efficiency
 # we will sync the other way AFTER the batch has run, because we don't want to delay the batch unnecessarily

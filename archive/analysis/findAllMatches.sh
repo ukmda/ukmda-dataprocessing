@@ -46,9 +46,6 @@ fi
 # folder for logs
 mkdir -p $SRC/logs > /dev/null 2>&1
 
-# trigger lambdas for any ftpdetects missed earlier
-python -c "from maintenance.rerunFailedLambdas import checkMissedFTPdetect ; checkMissedFTPdetect();"
-
 logger -s -t findAllMatches "RUNTIME $SECONDS start getRMSSingleData"
 # this creates the parquet table for Athena
 $SRC/analysis/getRMSSingleData.sh
