@@ -9,7 +9,7 @@ import pandas as pd
 import datetime
 import textwrap
 
-from ukmon_meteortools.utils import sendAnEmail
+from meteortools.utils import sendAnEmail
 
 mailfrom = 'ukmonhelper@ukmeteornetwork.co.uk'
 

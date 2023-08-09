@@ -10,8 +10,8 @@ import datetime
 import numpy as np
 import boto3
 
-from ukmon_meteortools.fileformats import loadFTPDetectInfo
-from ukmon_meteortools.utils import jd2Date
+from meteortools.fileformats import loadFTPDetectInfo
+from meteortools.utils import jd2Date
 
 
 tmpdir = os.getenv('TEMP', default='/tmp')

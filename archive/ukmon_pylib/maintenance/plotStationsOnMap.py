@@ -12,7 +12,7 @@ import json
 
 import cartopy.crs as ccrs
 
-from ukmon_meteortools.fileformats import UFOAnalyzerXML as ua
+from meteortools.fileformats import UFOAnalyzerXML as ua
 
 from PIL import Image
 

@@ -8,7 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import datetime 
 
-from ukmon_meteortools.utils import jd2Date
+from meteortools.utils import jd2Date
 
 
 def createBarChart(datadir=None, yr=None):

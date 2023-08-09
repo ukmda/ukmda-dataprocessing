@@ -6,8 +6,8 @@
 import os 
 import sys
 import pandas as pd
-from ukmon_meteortools.fileformats import imoWorkingShowerList as imo
-from ukmon_meteortools.utils import getActiveShowers
+from meteortools.fileformats import imoWorkingShowerList as imo
+from meteortools.utils import getActiveShowers
 
 
 def createSplitMatchFile(yr, mth=None, shwr=None, matches=None):

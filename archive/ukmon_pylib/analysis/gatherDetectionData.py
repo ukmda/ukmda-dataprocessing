@@ -7,7 +7,7 @@ import os
 import sys
 import datetime
 
-from ukmon_meteortools.ukmondb import getECSVs, getLiveJpgs, getFBfiles, getDetections
+from meteortools.ukmondb import getECSVs, getLiveJpgs, getFBfiles, getDetections
 
 
 def getRawData(idlist, outpth):

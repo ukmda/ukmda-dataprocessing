@@ -10,8 +10,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 import datetime
 
-from ukmon_meteortools.utils import getShowerDates as sd
-from ukmon_meteortools.fileformats import imoWorkingShowerList as imo
+from meteortools.utils import getShowerDates as sd
+from meteortools.fileformats import imoWorkingShowerList as imo
 
 SMALL_SIZE = 8
 MEDIUM_SIZE = 10

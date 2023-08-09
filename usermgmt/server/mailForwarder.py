@@ -2,7 +2,7 @@
 
 # python script to forward email
 
-from ukmon_meteortools.utils import forwardAnEmail
+from meteortools.utils import forwardAnEmail
 import os
 
 
