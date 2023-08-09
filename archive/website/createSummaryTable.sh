@@ -35,7 +35,7 @@ logger -s -t createSummaryTable "create a coverage map from the kmls"
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/geos/lib:/usr/local/proj4/lib
 export LD_LIBRARY_PATH
 mkdir -p $DATADIR/kmls
-aws s3 sync s3://ukmeteornetworkarchive/img/kmls/ $DATADIR/kmls --quiet 
+aws s3 sync $WEBSITEBUCKET/img/kmls/ $DATADIR/kmls --quiet 
 export KMLTEMPLATE="*25km.kml"
 python -m reports.makeCoverageMap $DATADIR/kmls $DATADIR
 export KMLTEMPLATE="*70km.kml"
@@ -66,5 +66,15 @@ aws s3 cp $DATADIR/newindex.html $WEBSITEBUCKET/index.html --quiet
 aws s3 cp $SRC/website/templates/header.html $WEBSITEBUCKET/templates/ --quiet
 aws s3 cp $SRC/website/templates/footer.html $WEBSITEBUCKET/templates/ --quiet
 
-$SRC/utils/clearCaches.sh
+aws s3 cp $DATADIR/latest/coverage-maps.html $OLDWEBSITEBUCKET/latest/ --quiet
+aws s3 cp $DATADIR/summarytable.js  $OLDWEBSITEBUCKET/data/ --quiet
+aws s3 cp $DATADIR/coverage-100km.html  $OLDWEBSITEBUCKET/data/ --quiet
+aws s3 cp $DATADIR/coverage-70km.html  $OLDWEBSITEBUCKET/data/ --quiet
+aws s3 cp $DATADIR/coverage-70km.html  $OLDWEBSITEBUCKET/data/coverage.html --quiet
+aws s3 cp $DATADIR/coverage-25km.html  $OLDWEBSITEBUCKET/data/ --quiet
+aws s3 cp $DATADIR/Annual-${yr}.jpg $OLDWEBSITEBUCKET/YearToDate.jpg --quiet
+aws s3 cp $DATADIR/newindex.html $OLDWEBSITEBUCKET/index.html --quiet
+aws s3 cp $SRC/website/templates/header.html $OLDWEBSITEBUCKET/templates/ --quiet
+aws s3 cp $SRC/website/templates/footer.html $OLDWEBSITEBUCKET/templates/ --quiet
+
 logger -s -t createSummaryTable "finished"

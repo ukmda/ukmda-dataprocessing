@@ -2,28 +2,36 @@
 This folder contains code for the APIs and Lambdas that are deployed as SAM functions.  
 SAM is AWS's serverless application model.  
 
+# Deployment
+All config is embedded in the toml files to deploy to the correct regions and accounts, so you can deploy with
+``` bash
+sam build
+sam deploy
+```
+
 # APIS
 ## fetchECSV
-This code creates an API gateway and lambda to create and download ECSV format files for individual detections. ECSV is the common data format used by multiple networks. 
-Created in the EE account.
+Creates an API to download ECSV format files for individual detections. ECSV is the common data format used by multiple networks. 
+
+## fireballApi
+Creates an API for retrieving fireball-specific files
+
+## getLiveImages
+Creates an API that returns a list of live images matching a date/time pattern.
 
 ## matchPickle
-This code creates an API Gateway and lambda to provide an interface to retrieve data about matches. 
-Created in the EE account.
+Creates an API to provide an interface to retrieve data about matches. 
 
 ## searchArchive
-This code creates an API gateway and a lambda, to provide an interface to search the archive. The API is exposed via javascript on the website.
-Created in the EE account.
+Creates an API to provide an interface to search the archive. The API is exposed via javascript on the website.
 
 # Internal Functions
 ## getExtraFilesV2
-This lambda is used within the data processing pipeline to create extra data about each matched detection. 
-Created in the MM  account.
+Creates a lambda  within the data processing pipeline to create extra data about each matched detection. 
 
 ## ftpToUkmon
-This lambda is triggered when an FTPdetect file is uploaded and converts the data into the
+Creates a lambda that is triggered when an FTPdetect file is uploaded and converts the data into the
 UKMON internal format.
-Created in the EE account.
 
 ## Copyright
 All code Copyright (C) 2018-2023 Mark McIntyre

@@ -28,7 +28,8 @@ if [ "$dy" != "" ] ; then
     msg="Click on an entry to see results of analysis for the matched event."
     msg2="<a href=\"../index.html\">Back to monthly index</a>" 
     targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${yr}${mth}/${ym}
-    orblist=$(aws s3 ls $targ/ | egrep -v "html|plots|png" | awk '{print $2}')
+    oldtarg=${OLDWEBSITEBUCKET}/reports/${yr}/orbits/${yr}${mth}/${ym}
+    orblist=$(aws s3 ls $targ/ | grep PRE | egrep -v "html|plots|png" | awk '{print $2}')
     domth=1
     doplt=2
     rm -f $DATADIR/orbits/$yr/$ym.txt
@@ -37,7 +38,8 @@ elif [ "$mth" != "" ] ; then
     msg="Click to explore the selected day."
     msg2="<a href=\"../index.html\">Back to annual index</a>" 
     targ=${WEBSITEBUCKET}/reports/${yr}/orbits/${ym}
-    orblist=$(aws s3 ls $targ/ | egrep -v "html|plots|png" | awk '{print $2}')
+    oldtarg=${OLDWEBSITEBUCKET}/reports/${yr}/orbits/${ym}
+    orblist=$(aws s3 ls $targ/ | grep PRE | egrep -v "html|plots|png" | awk '{print $2}')
     domth=1
     doplt=1
     rm -f $DATADIR/orbits/$yr/$ym.txt
@@ -46,7 +48,8 @@ else
     msg="Click to explore the selected month."
     msg2="<a href=\"../../index.html\">Back to reports index</a>" 
     targ=${WEBSITEBUCKET}/reports/${yr}/orbits
-    orblist=$(aws s3 ls $targ/ | egrep -v "html|plots|png" | awk '{print $2}')
+    oldtarg=${OLDWEBSITEBUCKET}/reports/${yr}/orbits
+    orblist=$(aws s3 ls $targ/ | grep PRE | egrep -v "html|plots|png" | awk '{print $2}')
     domth=0
     doplt=1
 fi
@@ -127,6 +130,8 @@ cat $TEMPLATES/footer.html >> $idxfile
 
 logger -s -t createOrbitIndex "copying to website"
 aws s3 cp $idxfile $targ/index.html --quiet
+aws s3 cp $idxfile $oldtarg/index.html --quiet
+aws s3 sync ${targ}/plots/ ${oldtarg}/plots/ --quiet
 rm -f $idxfile
 
 logger -s -t createOrbitIndex "finished"

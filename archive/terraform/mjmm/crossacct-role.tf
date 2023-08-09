@@ -19,6 +19,17 @@ data "aws_iam_policy_document" "terraformpoldoc" {
       identifiers = ["arn:aws:iam::${data.aws_caller_identity.eeacct.account_id}:root"]
     }
   }
+  statement {
+    actions = [
+      "sts:AssumeRole",
+      "sts:TagSession",
+      "sts:SetSourceIdentity"
+    ]
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${var.mda_account_id}:root"]
+    }
+  }
 }
 
 resource "aws_iam_role" "terraformrole" {

@@ -31,7 +31,7 @@ def convertSingletoSrchable(datadir, year, weburl, newonly=True):
     uadata['LocalTime'] = [ts.strftime('%Y%m%d_%H%M%S') for ts in uadata.ts]
 
     # create image filename
-    uadata['fn']=[f'{weburl}/img/single/{y}/{y}{m:02d}/'+f.replace('.fits','.jpg') 
+    uadata['fn']=[f'/img/single/{y}/{y}{m:02d}/'+f.replace('.fits','.jpg') 
         for f,y,m in zip(uadata.Filename, uadata.Y, uadata.M)]
 
     # create array for source
@@ -65,18 +65,18 @@ def convertSingletoSrchable(datadir, year, weburl, newonly=True):
     ufodata = ufodata.drop(columns=['url','imgs'])
 
     # create the URL and imgs fields
-    ufodata['url']=[f'{weburl}/img/single/{y}/{y}{m:02d}/M{lt}_{f}P.jpg'
+    ufodata['url']=[f'/img/single/{y}/{y}{m:02d}/M{lt}_{f}P.jpg'
         for f,y,m,lt in zip(ufodata.loccam, ufodata.Y, ufodata.M, ufodata.loctime)]
     ufodata['imgs'] = ufodata.url
     ufodata = ufodata.drop(columns=['loctime','Y','M'])
 
     # annoying special case for UK0001, H and S which do not upload JPGs
-    rmsdata.loc[rmsdata.loccam=='UK0001','url']=f'{weburl}/img/missing-white.png'
-    rmsdata.loc[rmsdata.loccam=='UK0001','imgs']=f'{weburl}/img/missing-white.png'
-    rmsdata.loc[rmsdata.loccam=='UK000H','url']=f'{weburl}/img/missing-white.png'
-    rmsdata.loc[rmsdata.loccam=='UK000H','imgs']=f'{weburl}/img/missing-white.png'
-    rmsdata.loc[rmsdata.loccam=='UK000S','url']=f'{weburl}/img/missing-white.png'
-    rmsdata.loc[rmsdata.loccam=='UK000S','imgs']=f'{weburl}/img/missing-white.png'
+    rmsdata.loc[rmsdata.loccam=='UK0001','url']='/img/missing-white.png'
+    rmsdata.loc[rmsdata.loccam=='UK0001','imgs']='/img/missing-white.png'
+    rmsdata.loc[rmsdata.loccam=='UK000H','url']='/img/missing-white.png'
+    rmsdata.loc[rmsdata.loccam=='UK000H','imgs']='/img/missing-white.png'
+    rmsdata.loc[rmsdata.loccam=='UK000S','url']='/img/missing-white.png'
+    rmsdata.loc[rmsdata.loccam=='UK000S','imgs']='/img/missing-white.png'
     
     resdf = pd.concat([rmsdata,ufodata])
     if newonly is True:
@@ -118,7 +118,7 @@ if __name__ == '__main__':
         exit(1)
     else:
         datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-        weburl = os.getenv('SITEURL', default='https://archive.ukmeteornetwork.co.uk')
+        weburl = os.getenv('SITEURL', default='https://archive.ukmeteors.co.uk')
 
         year = sys.argv[1]
         mode = sys.argv[2]

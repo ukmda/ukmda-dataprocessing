@@ -11,7 +11,7 @@ import numpy as np
 import boto3
 
 from ukmon_meteortools.fileformats import loadFTPDetectInfo
-from wmpl.Utils.TrajConversions import jd2Date
+from ukmon_meteortools.utils import jd2Date
 
 
 tmpdir = os.getenv('TEMP', default='/tmp')
@@ -192,7 +192,7 @@ def ftpToECSV(ftpFile, outdir=None):
 
 
 def fetchECSV(camid, reqevent):
-    s3bucket='ukmon-shared'
+    s3bucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
     s3 = boto3.resource('s3')
 
     # construct the path

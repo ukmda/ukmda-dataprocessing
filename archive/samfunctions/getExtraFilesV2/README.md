@@ -1,20 +1,20 @@
 # getExtraFilesV2
 
-Deploy this function into the markmcintyreastro account
+Deploy this function into the EE account
 
 ```bash
-sam build --profile default
-sam deploy --profile default
+sam build --profile ukmonshared --region eu-west-2
+sam deploy --profile ukmonshared --region eu-west-2
 ```
 to test it locally
 ```bash
-sam local invoke --profile default -e tests/testEvent.json 
+sam local invoke --profile ukmonshared --region eu-west-2 -e tests/testEvent.json 
 ```
 
 to deploy and test
 ```bash
-sam deploy --profile default
-aws lambda invoke --profile default --function-name getExtraOrbitFilesV2 --log-type Tail --cli-binary-format raw-in-base64-out --payload file://tests/testEvent.json  --region eu-west-2 ./ftpdetect.log
+sam deploy --profile ukmonshared --region eu-west-2
+aws lambda invoke --profile ukmonshared --function-name getExtraOrbitFilesV2 --log-type Tail --cli-binary-format raw-in-base64-out --payload file://tests/testEvent.json  --region eu-west-2 ./ftpdetect.log
 ```
 
 # copyright

@@ -9,6 +9,7 @@ from datetime import timezone
 import numpy as np
 import boto3
 import json
+import os
 
 
 def filterByDtstamp(df, dt, uncertainty=10):
@@ -87,11 +88,12 @@ if __name__ == '__main__':
     yr = dt.year
 
     s3 = boto3.resource('s3')
-    obj = s3.Object('ukmon-shared','admin/cameraLocs.json')
+    buck = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
+    obj = s3.Object(buck,'admin/cameraLocs.json')
     camdb = json.load(obj.get()['Body']) 
 
     cols = ['Lat','Long','Filename','Az1','Dtstamp','Y']
-    df = pd.read_parquet(f"s3://ukmon-shared/matches/singlepq/singles-{yr}.parquet.snap", columns=cols)
+    df = pd.read_parquet(f"s3://{buck}/matches/singlepq/singles-{yr}.parquet.snap", columns=cols)
     df = df[df['Y']==int(yr)]
 
     df = filterByDtstamp(df, dt)

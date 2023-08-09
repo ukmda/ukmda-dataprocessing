@@ -24,6 +24,16 @@
 // Original comment:
 // Herget precession, see p. 9 of Publ. Cincinnati Obs., No. 24.
 //
+
+// HACKERY ADDED BY ME TO ENSURE BUTTONS AVAILABLE ON HISTORIC PAGES
+//
+$.getScript("/js/kit.fontawesome.com_f4e5d7e1d1.js", function() {
+   console.log("Fontawesome loaded.");
+});
+$.getScript("/js/sharebuttons.js", function() {
+   console.log("Sharebuttons loaded.");
+});
+
 function precess(ra1, dec1, epoch1, epoch2)
 {
   var cdr, csr;

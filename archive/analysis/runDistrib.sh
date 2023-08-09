@@ -59,21 +59,21 @@ python -m traj.createDistribMatchingSh $MATCHSTART $MATCHEND $execMatchingsh
 chmod +x $execMatchingsh
 
 logger -s -t runDistrib "RUNTIME $SECONDS get server details"
-privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
+privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PublicIpAddress --output text)
 while [ "$privip" == "" ] ; do
     sleep 5
     echo "getting ipaddress"
-    privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
+    privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PublicIpAddress --output text)
 done
 
-logger -s -t runDistrib "RUNTIME $SECONDS deploy the script to the server and run it"
+logger -s -t runDistrib "RUNTIME $SECONDS deploy the script to the server $privip and run it"
 
 scp -i $SERVERSSHKEY $execMatchingsh ec2-user@$privip:/tmp
 while [ $? -ne 0 ] ; do
     # in case the server isn't responding to ssh sessions yet
     sleep 10
     echo "server not responding yet, retrying"
-    scp -i $SERVERSSHKEY $execMatchingsh ec2-user@$privip:/tmp
+    scp -i $SERVERSSHKEY $execMatchingsh ec2-user@$privip:/$execMatchingsh
 done 
 # push the python and templates required
 rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/clusdetails-* ec2-user@$privip:src/ukmon_pylib/traj
@@ -82,7 +82,7 @@ rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/consolidateDistTraj.py ec2-use
 rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/distributeCandidates.py ec2-user@$privip:src/ukmon_pylib/traj
 
 # now run the script
-ssh -i $SERVERSSHKEY ec2-user@$privip $execMatchingsh
+ssh -i $SERVERSSHKEY ec2-user@$privip /$execMatchingsh
 
 logger -s -t runDistrib "RUNTIME $SECONDS job run, stop the server again"
 aws ec2 stop-instances --instance-ids $SERVERINSTANCEID

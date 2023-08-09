@@ -8,8 +8,8 @@ import os
 import sys
 
 
-templ = '{"Records": [{"s3": {"bucket": {"name": "ukmon-shared",\
-    "arn": "arn:aws:s3:::ukmon-shared"},"object": {"key": "KEYHERE"}}}]}'
+templ = '{"Records": [{"s3": {"bucket": {"name": "ukmda-shared",\
+    "arn": "arn:aws:s3:::ukmda-shared"},"object": {"key": "KEYHERE"}}}]}'
 
 
 def checkMissedFTPdetect(prof='ukmonshared'):
@@ -49,8 +49,10 @@ def checkMissedFTPdetect(prof='ukmonshared'):
     #print(fails)
     s3c = boto3.client('s3')
     lambd = session.client('lambda', region_name='eu-west-2')
-    buck = 'ukmon-shared'
+    buck = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
     for evt in fails:
+        if '/2019/' in evt or '/2020/' in evt or '/2021/' in evt or '/2022/' in evt:
+            continue
         res = s3c.list_objects_v2(Bucket=buck,Prefix=f'{evt}/FTP')
         if res['KeyCount'] > 0:
             ftpname = res['Contents'][0]['Key']
@@ -137,7 +139,7 @@ def findFailedEvents(prof='ukmonshared'):
 
 def checkFails(fails):
     s3 = boto3.client('s3', region_name='eu-west-2')
-    s3bucket=os.getenv('WEBSITEBUCKET', default='s3://ukmeteornetworkarchive')[5:]
+    s3bucket=os.getenv('WEBSITEBUCKET', default='s3://ukmda-website')[5:]
     realfails = []
     for f in fails:
         # example f : matches/RMSCorrelate/trajectories/2022/202202/20220227/20220227_011240.522_UK
@@ -182,7 +184,8 @@ def resubmitPicklesForDay(dtstr, prof='ukmonshared'):
     session = boto3.Session(profile_name=prof)
     lambd = session.client('lambda', region_name='eu-west-2')
     pref = f'matches/RMSCorrelate/trajectories/{dtstr[:4]}/{dtstr[:6]}/{dtstr}/'
-    res = s3.list_objects_v2(Bucket='ukmon-shared',Prefix=pref)
+    buck = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
+    res = s3.list_objects_v2(Bucket=buck, Prefix=pref)
     print(res)
     if res['KeyCount'] > 0:
         print(f"processing {res['KeyCount']} entries")

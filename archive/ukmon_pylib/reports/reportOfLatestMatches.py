@@ -81,7 +81,7 @@ def findNewMatches(dir_path, out_path, offset, repdtstr, dbname):
         matchlist = os.path.join(out_path, 'dailyreports', repdt.strftime('%Y%m%d_3.txt'))
 
     s3 = boto3.client('s3')
-    srcbucket=os.getenv('UKMONSHAREDBUCKET', default='s3://ukmon-shared')[5:]
+    srcbucket=os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
     tmpdir = tempfile.mkdtemp()
     with open(matchlist, 'w') as outf:
         for trajdir in newdirs:

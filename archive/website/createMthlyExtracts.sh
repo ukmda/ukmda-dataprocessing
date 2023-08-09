@@ -38,12 +38,16 @@ logger -s -t createMthlyExtracts "creating extracts"
 aws s3 sync $UKMONSHAREDBUCKET/consolidated/ $WEBSITEBUCKET/browse/annual/ --exclude "*" --include "*unified.csv" --exclude "R*" --quiet
 aws s3 sync $UKMONSHAREDBUCKET/matches/matched/ $WEBSITEBUCKET/browse/annual/ --exclude "*" --include "*.csv" --quiet
 
+aws s3 sync $UKMONSHAREDBUCKET/consolidated/ $OLDWEBSITEBUCKET/browse/annual/ --exclude "*" --include "*unified.csv" --exclude "R*" --quiet
+aws s3 sync $UKMONSHAREDBUCKET/matches/matched/ $OLDWEBSITEBUCKET/browse/annual/ --exclude "*" --include "*.csv" --quiet
+
 # this reads from the local copies, created by earlier steps in the batch and then synced to ukmon-shared
 python -m reports.extractors $yr $mth
 
 # sync the monthly extracts to the website so that it has the latest files - 
 # Essential as we're using the content of the website to build the pages
 aws s3 sync $DATADIR/browse/monthly/  $WEBSITEBUCKET/browse/monthly/ --quiet
+aws s3 sync $DATADIR/browse/monthly/  $OLDWEBSITEBUCKET/browse/monthly/ --quiet
 
 logger -s -t createMthlyExtracts "done gathering data, creating monthly table"
 idxfile=$DATADIR/browse/monthly/browselist.js
@@ -154,5 +158,6 @@ echo "})" >> $idxfile
 
 logger -s -t createMthlyExtracts "annual js table created, copying to website"
 aws s3 sync $DATADIR/browse/annual/  $WEBSITEBUCKET/browse/annual/ --quiet
+aws s3 sync $DATADIR/browse/annual/  $OLDWEBSITEBUCKET/browse/annual/ --quiet
 
 logger -s -t createMthlyExtracts "finished"

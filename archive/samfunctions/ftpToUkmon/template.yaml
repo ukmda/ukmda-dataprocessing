@@ -25,12 +25,12 @@ Resources:
       Description: Converts Ftpdetect info into ukmon-format data
       Environment:
         Variables:
-          ARCHBUCKET: ukmon-shared
+          ARCHBUCKET: ukmda-shared
           OUTDIR: matches/single/new
           MPLCONFIGDIR: /tmp/mpl
       Tags:
-        billingtag: "ukmon"
-      Role: arn:aws:iam::822069317839:role/lambda-s3-full-access-role
+        billingtag: "ukmda"
+      Role: arn:aws:iam::183798037734:role/lambda-s3-full-access-role
     Metadata:
       Dockerfile: Dockerfile
       DockerContext: ./pythoncode

@@ -5,14 +5,18 @@ This folder contains the code that creates the docker images used by containers 
 # trajsolver
 This docker image runs the trajectory solver for a subset of data supplied to it via environment variables. This allows us to run multiple solvers in parallel, massively reducing runtime and cost. 
 
-To test the container
-  docker run trajsolver test/20220924_01 20220922 20220924
+# Testing
+To test locally, create an IAM user with S3FullAccess. Create credentials for it and save them in awskeys.test. The keys will be embedded in the test container, which is poor security practice so you should treat this with caution.
 
-# trajsolvertest
-A test container for the above. 
+Then  build the container in test mode: 
+``` bash
+./build.ps1 test
+```
 
-To test the container
-  docker run trajsolvertest test/20220924_01 20220922 20220924
+Then to test the container
+  docker run trajsolver test/20220924_01
+
+To build the prod container, leave off "test" from the build command. 
 
 # Copyright
 All code Copyright (C) 2018-2023 Mark McIntyre

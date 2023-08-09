@@ -37,5 +37,6 @@ if [ -f $DATADIR/searchidx/${yr}-${whichpass}-new.csv ] ; then
 fi 
 
 aws s3 sync  $DATADIR/searchidx/ $WEBSITEBUCKET/search/indexes/ --exclude "*" --include "*allevents.csv" --quiet 
+aws s3 sync  $DATADIR/searchidx/ $OLDWEBSITEBUCKET/search/indexes/ --exclude "*" --include "*allevents.csv" --quiet 
 
 logger -s -t createSearchable "finished"

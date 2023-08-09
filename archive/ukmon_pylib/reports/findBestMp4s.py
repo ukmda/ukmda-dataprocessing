@@ -22,7 +22,7 @@ def getBestNMp4s(yr, mth, numtoget):
     sorteddata = sepdata.head(numtoget)
 
     tmpdir = os.getenv('TMP', default='/tmp')
-    wsbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmon-shared')[5:]
+    wsbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
     s3 = boto3.resource('s3')
     mp4df = pd.DataFrame()
     for traj in sorteddata.url:

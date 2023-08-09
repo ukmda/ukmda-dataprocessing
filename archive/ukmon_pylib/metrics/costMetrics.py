@@ -24,7 +24,7 @@ def getAllCostsAndUsage(ceclient, startdt, enddt, svcs, tagval):
         GroupBy=[{'Type': 'DIMENSION','Key': 'SERVICE'},
             {'Type': 'TAG', 'Key': tagval}])
 
-    yield(response['ResultsByTime'])
+    yield response['ResultsByTime']
 
     while "NextPageToken" in response:
         prev_token = response['NextPageToken']        
@@ -37,7 +37,7 @@ def getAllCostsAndUsage(ceclient, startdt, enddt, svcs, tagval):
                 {'Type': 'TAG', 'Key': tagval}],
             NextPageToken=prev_token)
 
-        yield(response['ResultsByTime'])
+        yield response['ResultsByTime']
 
 
 def getSvcName(svc):
@@ -181,7 +181,7 @@ def getAllBillingData(ceclient, dtwanted, endwanted, regionid, outdir, typflag):
                     tag = grp['Keys'][1]
                     amt = grp['Metrics']['BlendedCost']['Amount']
                     dt = datetime.datetime.strptime(strt, '%Y-%m-%d')
-                    if accid == '822069317839' and 'Storage Service' in svc and dt < tagstartdt:
+                    if accid == '183798037734' and 'Storage Service' in svc and dt < tagstartdt:
                         tag = 'billingtag$ukmon'
 
                     outf.write(f'{strt}, {svc}, {tag}, {amt}\n')
@@ -215,7 +215,7 @@ if __name__ == '__main__':
         if mthwanted > 12:
             if mthwanted < 365:
                 # its a number of days back to look
-                endwanted = curdt  - datetime.timedelta(days=1)
+                endwanted = curdt - datetime.timedelta(days=1)
                 dtwanted = endwanted - relativedelta.relativedelta(days=mthwanted+1)
                 typflag = mthwanted
             else:

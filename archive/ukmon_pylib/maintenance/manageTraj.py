@@ -36,8 +36,7 @@ def deleteDuplicate(trajname):
 
 
 def deleteWebPage(trajname):
-    webbucket = os.getenv('WEBSITEBUCKET', default='s3://ukmeteornetworkarchive')
-    webbucket = webbucket[5:]
+    webbucket = os.getenv('WEBSITEBUCKET', default='s3://ukmda-website')[5:]
     yr = trajname[:4]
     ym = trajname[:6]
     ymd = trajname[:8]

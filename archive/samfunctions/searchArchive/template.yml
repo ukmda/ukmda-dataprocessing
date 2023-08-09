@@ -14,14 +14,19 @@ Resources:
       Description: Function to search the Archive for events matching user-supplied criteria
       Environment:
         Variables:
-          SRCHBUCKET: ukmeteornetworkarchive
+          SRCHBUCKET: ukmda-website
       Events:
         HttpGet:
           Type: Api
           Properties:
             Path: '/'
             Method: get
+            RequestParameters: [
+              'method.request.querystring.d1': {Required: true},
+              'method.request.querystring.d2': {Required: true},
+              'method.request.querystring.opts': {Required: false}
+            ]
       Tags:
-        billingtag: "ukmon"
+        billingtag: "ukmda"
     Metadata:
       BuildMethod: python3.8

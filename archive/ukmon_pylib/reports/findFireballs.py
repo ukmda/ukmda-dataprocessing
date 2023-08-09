@@ -46,7 +46,8 @@ def markAsFireball(trajname, tof=True):
 #
 def createMDFiles(fbs, outdir, orbdir):
     s3 = boto3.client('s3')
-    srcbucket=os.getenv('UKMONSHAREDBUCKET', default='s3://ukmon-shared')[5:]
+    srcbucket=os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
+    #weburl = os.getenv('SITEURL', default='https://archive.ukmeteors.co.uk')
     tmpdir = mkdtemp()
     for _, fb in fbs.iterrows(): 
         loctime = jd2Date(fb.mjd + 2400000.5, dt_obj=True)

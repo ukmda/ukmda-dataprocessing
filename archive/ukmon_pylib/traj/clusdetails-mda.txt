@@ -1,0 +1,6 @@
+trajsolver
+sg-06fb7bbee3b4f5e94
+subnet-019eef41d5eaf419b
+arn:aws:iam::183798037734:role/ecsTaskExecutionRole
+/ecs/trajcont
+trajcont

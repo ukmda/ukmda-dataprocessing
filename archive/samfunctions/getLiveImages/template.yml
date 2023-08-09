@@ -19,6 +19,6 @@ Resources:
             Path: '/getlive'
             Method: get
       Tags:
-        billingtag: "ukmon"
+        billingtag: "ukmda"
     Metadata:
       BuildMethod: python3.8

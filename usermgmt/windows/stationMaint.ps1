@@ -2,9 +2,12 @@
 Set-Location $psscriptroot
 
 $env:SRCBUCKET=
-$env:AWS_PROFILE=
+$env:LIVE_PROFILE=
+$env:ARCH_PROFILE=
 $env:REMOTEDIR=
 $env:HELPERSERVER=
+$env:LIVEBUCKET=
+$env:WEBSITEBUCKET=
 
 # create conda env if not aleady there
 $isadm=(conda env list  | select-string "ukmon-admin")

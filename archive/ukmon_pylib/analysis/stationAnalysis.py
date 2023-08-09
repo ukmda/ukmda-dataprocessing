@@ -249,7 +249,7 @@ def pushToWebsite(fuloutdir, outdir, websitebucket):
     acct=sts_client.get_caller_identity().get('Account')
     if acct == '317976261112':
         assumed_role_object=sts_client.assume_role(
-            RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+            RoleArn="arn:aws:iam::183798037734:role/service-role/S3FullAccess",
             RoleSessionName="AssumeRoleSession1")
         
         credentials=assumed_role_object['Credentials']

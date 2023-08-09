@@ -18,7 +18,7 @@ def addRowCamTimings(s3bucket, s3object, ftpname, ddb=None):
     if not ddb:
         ddb = boto3.resource('dynamodb', region_name='eu-west-1') #, endpoint_url="http://thelinux:8000")
 
-    table = ddb.Table('ukmon_uploadtimes')
+    table = ddb.Table('uploadtimes')
     spls = ftpname.split('_')
     #print(spls[0], dtstamp)
     if spls[-1] == 'manual.txt':
@@ -46,7 +46,7 @@ def addRowCamTimings(s3bucket, s3object, ftpname, ddb=None):
 def findRowCamTimings(stationid, uploaddate, ddb=None):
     if not ddb:
         ddb = boto3.resource('dynamodb', region_name='eu-west-1') #, endpoint_url="http://thelinux:8000")
-    table = ddb.Table('ukmon_uploadtimes')
+    table = ddb.Table('uploadtimes')
     response = table.query(
         KeyConditionExpression=Key('stationid').eq(stationid) & Key('dtstamp').begins_with(uploaddate)
     )
@@ -60,7 +60,7 @@ def findRowCamTimings(stationid, uploaddate, ddb=None):
 
 
 # find matching entries based on upload date in yyyymmdd format
-# aws dynamodb query --table-name ukmon_uploadtimes 
+# aws dynamodb query --table-name uploadtimes 
 # --index-name uploaddate-stationid-index 
 # --key-condition-expression "uploaddate= :dt" 
 # --expression-attribute-values '{":dt":{"N":"20220108"}}'
@@ -70,7 +70,7 @@ def getDayCamTimings(uploaddate, ddb=None, outfile=None, datadir=None):
         datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     if not ddb:
         ddb = boto3.resource('dynamodb', region_name='eu-west-1') #, endpoint_url="http://thelinux:8000")
-    table = ddb.Table('ukmon_uploadtimes')
+    table = ddb.Table('uploadtimes')
     response = table.query(
         IndexName='uploaddate-stationid-index',
         KeyConditionExpression=Key('uploaddate').eq(int(uploaddate)))
@@ -110,7 +110,7 @@ def getDayCamTimings(uploaddate, ddb=None, outfile=None, datadir=None):
 def readRowCamTimings(stationid, dtstamp, ddb=None):
     if not ddb:
         ddb = boto3.resource('dynamodb', region_name='eu-west-1') #, endpoint_url="http://thelinux:8000")
-    table = ddb.Table('ukmon_uploadtimes')
+    table = ddb.Table('uploadtimes')
     response = table.get_item(Key={'stationid': stationid,'dtstamp': dtstamp})
     try:
         item = response['Item']
@@ -124,13 +124,13 @@ def readRowCamTimings(stationid, dtstamp, ddb=None):
 def deleteRowCamTimings(stationid, dtstamp, ddb=None):
     if not ddb:
         ddb = boto3.resource('dynamodb', region_name='eu-west-1') #, endpoint_url="http://thelinux:8000")
-    table = ddb.Table('ukmon_uploadtimes')
+    table = ddb.Table('uploadtimes')
     table.delete_item(Key={'stationid': stationid, 'dtstamp': dtstamp})
     return 
 
 
 def backPopulate(stationid):
-    s3bucket='ukmon-shared'
+    s3bucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
 
     fldrs = glob.glob1(f'/home/ec2-user/ukmon-shared/matches/RMSCorrelate/{stationid}/', '*')
     for fldr in fldrs:
@@ -147,7 +147,7 @@ if __name__ == '__main__':
 
     sts_client = boto3.client('sts')
     assumed_role_object=sts_client.assume_role(
-        RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+        RoleArn="arn:aws:iam::183798037734:role/service-role/S3FullAccess",
         RoleSessionName="AssumeRoleSession1")
     credentials=assumed_role_object['Credentials']
 

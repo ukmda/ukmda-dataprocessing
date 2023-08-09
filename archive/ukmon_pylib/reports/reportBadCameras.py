@@ -119,7 +119,7 @@ if __name__ == '__main__':
 
     sts_client = boto3.client('sts')
     assumed_role_object=sts_client.assume_role(
-        RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+        RoleArn="arn:aws:iam::183798037734:role/service-role/S3FullAccess",
         RoleSessionName="AssumeRoleSession1")
     
     # Use the temporary credentials that AssumeRole returns to connections

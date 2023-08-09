@@ -12,7 +12,8 @@ def _getCamLoc(camid):
     s3 = boto3.client('s3', region_name='eu-west-2')
     tmpdir = os.getenv('TMP', default='/tmp')
     localf = os.path.join(tmpdir, 'camera-details.csv')
-    s3.download_file('ukmon-shared', 'consolidated/camera-details.csv', localf)
+    buck = os.getenv('ARCHBUCKET', default='ukmda-shared')
+    s3.download_file(buck, 'consolidated/camera-details.csv', localf)
     camdets = open(localf, 'r').readlines()
     os.remove(localf)
     mtchs = [cam for cam in camdets if camid in cam]
@@ -39,7 +40,7 @@ def getFBfiles(patt):
         needing special permission to AWS. The presigned URLs expire after 300 seconds. 
     """
     flist = []
-    buck_name = os.getenv('ARCHBUCKET', default='ukmon-shared')
+    buck_name = os.getenv('ARCHBUCKET', default='ukmda-shared')
     s3 = boto3.client('s3', region_name='eu-west-2')
     fullpatt = f'fireballs/interesting/FF_{patt}'
     print(f'looking for {fullpatt} in {buck_name}')

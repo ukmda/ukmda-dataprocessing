@@ -20,11 +20,12 @@ logger -s -t createLatestTable "starting"
 mkdir ${DATADIR}/latest > /dev/null 2>&1
 cd ${DATADIR}/latest
 
-aws s3 ls s3://ukmeteornetworkarchive/latest/ | grep jpg | grep -v cal > /tmp/jpglist.txt
+aws s3 ls $WEBSITEBUCKET/latest/ | grep jpg | grep -v cal > /tmp/jpglist.txt
 python -c "from reports.createLatestTable import createLatestTable ; createLatestTable('/tmp/jpglist.txt','$DATADIR/latest')"
 rm -f /tmp/jpglist.txt
 
 logger -s -t createLatestTable "done, sending to website"
 aws s3 cp reportindex.js  $WEBSITEBUCKET/latest/ --quiet
+aws s3 cp reportindex.js  $OLDWEBSITEBUCKET/latest/ --quiet
 
 logger -s -t createLatestTable "finished"

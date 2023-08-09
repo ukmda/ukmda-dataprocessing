@@ -11,12 +11,11 @@ from boto3.dynamodb.conditions import Key
 
 from wmpl.Utils.Pickling import loadPickle
 from pickleAnalysis import createAdditionalOutput
-from wmpl.Utils.TrajConversions import jd2Date
 from createOrbitPageIndex import createOrbitPageIndex
 
 
 def findSite(stationid, ddb):
-    table = ddb.Table('ukmon_camdetails')
+    table = ddb.Table('camdetails')
     response = table.query(KeyConditionExpression=Key('stationid').eq(stationid))
     try:
         items = response['Items']
@@ -30,6 +29,7 @@ def findSite(stationid, ddb):
 
 
 def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
+    print(f'event {key} using {archbucket} and {websitebucket}')
     fuloutdir, fname = os.path.split(key)
     _, orbname = os.path.split(fuloutdir)
     tmpdir = os.getenv('TMP', default='/tmp')
@@ -48,16 +48,16 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
         traj = loadPickle(outdir, fname)
         traj.save_results = True
 
-        #print('loaded pickle')
+        print('loaded pickle')
         createAdditionalOutput(traj, outdir)
-        #print('created additional output')
+        print('created additional output')
         # file to write JPGs html to, for performance benefits
         jpghtml = open(os.path.join(outdir, 'jpgs.html'), 'w')
         mp4html = open(os.path.join(outdir, 'mpgs.html'), 'w')
         # loop over observations adding jpgs to the listing file
         jpgf = open(os.path.join(outdir, 'jpgs.lst'), 'w')
         mp4f = open(os.path.join(outdir, 'mpgs.lst'), 'w')
-        #print('opened image list files')
+        print('opened image list files')
         for obs in traj.observations:
             js = json.loads(obs.comment)
             ffname = js['ff_name']
@@ -74,19 +74,21 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
             tmstr = spls[3]
             jpgname=f'img/single/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('fits','jpg')
             mp4name=f'img/mp4/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('fits','mp4')
-
+            print('about to get a list of available jpgs')
             res = s3.meta.client.list_objects_v2(Bucket=websitebucket,Prefix=jpgname)
             if res['KeyCount'] > 0:
                 jpgf.write(f'{jpgname}\n')
                 jpghtml.write(f'<a href="/{jpgname}"><img src="/{jpgname}" width="20%"></a>\n')
             else:
                 print(f'{jpgname} not found')
+            print('about to get a list of available mp4s')
             res = s3.meta.client.list_objects_v2(Bucket=websitebucket,Prefix=mp4name)
             if res['KeyCount'] > 0:
                 mp4f.write(f'{mp4name}\n')
                 mp4html.write(f'<a href="/{mp4name}"><video width="20%"><source src="/{mp4name}" width="20%" type="video/mp4"></video></a>\n')
             else:
                 print(f'{mp4name} not found')
+            print('about to find the ste')
             site = findSite(id, ddb)
             if site is not None:
                 fldr = site + '/' + id
@@ -100,7 +102,7 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
         mp4html.close()
         jpgf.close()
         mp4f.close()
-        #print('created image lists')
+        print('created image lists')
         repfname = locfname.replace('trajectory.pickle', 'report.txt')
         key2 = key.replace('trajectory.pickle', 'report.txt')
         s3.meta.client.download_file(archbucket, key2, repfname)
@@ -121,7 +123,9 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
             pass
 
         # pushFilesBack creates the zipfile so we need to do this first
+        print('pushing files back')
         pushFilesBack(outdir, archbucket, websitebucket, fuloutdir, s3)
+        print('updating the index page')
         createOrbitPageIndex(outdir, websitebucket, s3)
 
         idxname = os.path.join(outdir, 'index.html')
@@ -219,7 +223,7 @@ def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
         locfname = os.path.join(outdir, f)
         zipf.write(locfname)
         # some files need to be pushed to the website, some to the archive bucket
-        if '3dtrack' in f:
+        if '3dtrack' in f or '2dtrack' in f:
             key = os.path.join(webpth, f)
             extraargs = getExtraArgs(locfname)
             s3.meta.client.upload_file(locfname, websitebucket, key, ExtraArgs=extraargs)
@@ -324,7 +328,7 @@ if __name__ == '__main__':
     # Call the assume_role method of the STSConnection object and pass the role
     # ARN and a role session name.
     assumed_role_object=sts_client.assume_role(
-        RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+        RoleArn="arn:aws:iam::183798037734:role/service-role/S3FullAccess",
         RoleSessionName="GetExtraFilesV2")
     
     # From the response that contains the assumed role, get the temporary 
@@ -336,13 +340,13 @@ if __name__ == '__main__':
         aws_access_key_id=credentials['AccessKeyId'],
         aws_secret_access_key=credentials['SecretAccessKey'],
         aws_session_token=credentials['SessionToken'])
-    ddb = boto3.resource('dynamodb', region_name='eu-west-1',
+    ddb = boto3.resource('dynamodb', region_name='eu-west-2',
         aws_access_key_id=credentials['AccessKeyId'],
         aws_secret_access_key=credentials['SecretAccessKey'],
         aws_session_token=credentials['SessionToken']) #, endpoint_url="http://thelinux:8000")
 
-    archbucket = os.getenv('UKMONSHAREDBUCKET')
-    websitebucket = os.getenv('WEBSITEBUCKET')
+    archbucket = os.getenv('SHAREDBUCKET', default='ukmda-shared')
+    websitebucket = os.getenv('WEBSITEBUCKET', default='ukmda-website')
 
     generateExtraFiles(key, archbucket, websitebucket, ddb, s3)
     
@@ -363,7 +367,7 @@ def lambda_handler(event, context):
     response = sts_client.get_caller_identity()['Account']
     if response == '317976261112':
         assumed_role_object=sts_client.assume_role(
-            RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+            RoleArn="arn:aws:iam::183798037734:role/service-role/S3FullAccess",
             RoleSessionName="GetExtraFilesV2")
         
         credentials=assumed_role_object['Credentials']
@@ -373,13 +377,13 @@ def lambda_handler(event, context):
             aws_access_key_id=credentials['AccessKeyId'],
             aws_secret_access_key=credentials['SecretAccessKey'],
             aws_session_token=credentials['SessionToken'])
-        ddb = boto3.resource('dynamodb', region_name='eu-west-1',
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2',
             aws_access_key_id=credentials['AccessKeyId'],
             aws_secret_access_key=credentials['SecretAccessKey'],
             aws_session_token=credentials['SessionToken']) 
     else:
         s3 = boto3.resource('s3')
-        ddb = boto3.resource('dynamodb', region_name='eu-west-1')
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2')
 
     websitebucket = os.getenv('WEBSITEBUCKET')
     if websitebucket[:3] == 's3:':

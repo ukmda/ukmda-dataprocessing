@@ -112,7 +112,7 @@ def runCorrelator(dir_path, time_beg, time_end):
         dh.unpaired_observations = dh.loadUnpairedObservations(dh.processing_list, dt_range=(bin_beg, bin_end))
 
         # Run the trajectory correlator
-        tc = TrajectoryCorrelator(dh, trajectory_constraints, velpart, data_in_j2000=True, distribute=distribute)
+        tc = TrajectoryCorrelator(dh, trajectory_constraints, velpart, data_in_j2000=True, distribute=distribute, enableOSM=True)
         tc.run(event_time_range=event_time_range)
     
     print("Total run time: {:s}".format(str(datetime.datetime.utcnow() - t1)))
@@ -121,17 +121,17 @@ def runCorrelator(dir_path, time_beg, time_end):
 
 # read the source bucket + folder and target buckets + folders from the environment
 def getSourceAndTargets():
-    srcpth = os.getenv('SRCPATH', default='s3://ukmon-shared/matches/distrib')
+    srcpth = os.getenv('SRCPATH', default='s3://ukmda-shared/matches/distrib')
     srcpth = srcpth[5:]
     srcbucket = srcpth[:srcpth.find('/')]
     srcpth = srcpth[srcpth.find('/')+1:]
 
-    outpth = os.getenv('OUTPATH', default='s3://ukmon-shared/matches/distrib')
+    outpth = os.getenv('OUTPATH', default='s3://ukmda-shared/matches/distrib')
     outpth = outpth[5:]
     outbucket = outpth[:outpth.find('/')]
     outpth = outpth[outpth.find('/')+1:]
 
-    webpth = os.getenv('WEBPATH', default='s3://ukmeteornetworkarchive/dummy')
+    webpth = os.getenv('WEBPATH', default='s3://ukmda-website/dummy')
     webpth = webpth[5:]
     webbucket = webpth[:webpth.find('/')]
     webpth = webpth[webpth.find('/')+1:]
@@ -166,7 +166,7 @@ def getExtraArgs(fname):
     return extraargs
 
 
-#push solutions to the website, and push the pickle and report to ukmon-shared
+#push solutions to the website, and push the pickle and report to shared bucket
 def pushToWebsite(s3, localfldr, webbucket, webfldr, outbucket, outpth):
     for root, _, files in os.walk(localfldr):
         for fil in files:
@@ -179,10 +179,18 @@ def pushToWebsite(s3, localfldr, webbucket, webfldr, outbucket, outpth):
             targkey = f'{webfldr}/{yr}/orbits/{ym}/{ymd}/{orbname}/{fname}'
             print(f'uploading {fname} to s3://{webbucket}/{targkey}')
             s3.meta.client.upload_file(fullname, webbucket, targkey, ExtraArgs = getExtraArgs(fname))
+            try:
+                s3.meta.client.upload_file(fullname, 'ukmeteornetworkarchive', targkey, ExtraArgs = getExtraArgs(fname))
+            except:
+                print('unable to push to old website')
             if 'report' in fname or 'pickle' in fname:
                 targkey = f'{outpth}/trajectories/{yr}/{ym}/{ymd}/{orbname}/{fname}'
                 print(f'uploading {fname} to s3://{outbucket}/{targkey}')
                 s3.meta.client.upload_file(fullname, outbucket, targkey, ExtraArgs = getExtraArgs(fname))
+                try:
+                    s3.meta.client.upload_file(fullname, 'ukmon-shared', targkey, ExtraArgs = getExtraArgs(fname))
+                except:
+                    print('unable to push to old sharedsite')
     return
 
 
@@ -196,12 +204,11 @@ def startup(srcfldr, startdt, enddt, isTest=False):
     os.makedirs(canddir, exist_ok = True)
 
     sts_client = boto3.client('sts')
-
     try: 
-        assumed_role_object=sts_client.assume_role(
-            RoleArn="arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+        assumed_role_object=sts_client.assume_role( 
+            RoleArn="arn:aws:iam::183798037734:role/service-role/S3FullAccess",
             RoleSessionName="AssumeRoleSession1")
-
+        
         credentials=assumed_role_object['Credentials']
 
         s3 = boto3.resource('s3',
@@ -209,20 +216,21 @@ def startup(srcfldr, startdt, enddt, isTest=False):
             aws_secret_access_key=credentials['SecretAccessKey'],
             aws_session_token=credentials['SessionToken'])    
     except:
+        print('loading keys from file')
         with open('awskeys','r') as inf:
             lis = inf.readlines()
         s3 = boto3.resource('s3',
             aws_access_key_id=lis[0].strip(),
-            aws_secret_access_key=lis[1].strip(),
+            aws_secret_access_key=lis[1].strip(), 
             region_name = 'eu-west-2')
 
     srcbucket, srcpth, outbucket, outpth, webbucket, webpth = getSourceAndTargets()
     if isTest is True:
         outpth = os.path.join(outpth, 'test')
-        
+
     srckey = f'{srcpth}/{srcfldr}/'
 
-    print(f'fetching data from {srckey}')
+    print(f'fetching data from {srcbucket}/{srckey} saving to {outbucket} and {webbucket}')
     objlist = s3.meta.client.list_objects_v2(Bucket=srcbucket,Prefix=srckey)
     print(objlist)
     if objlist['KeyCount'] > 0:

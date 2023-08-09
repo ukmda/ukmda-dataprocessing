@@ -111,6 +111,13 @@ resource "aws_iam_role" "S3FullAccess" {
             Service = "lambda.amazonaws.com"
           }
         },
+        {
+          Action    = "sts:AssumeRole"
+          Effect    = "Allow"
+          Principal = {
+            Service = "datasync.amazonaws.com"
+          }        
+        },
       ]
       Version = "2012-10-17"
     }

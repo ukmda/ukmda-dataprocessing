@@ -100,6 +100,7 @@ resource "aws_iam_policy" "crossacctpolicy" {
           Effect = "Allow"
           Resource = [
             "arn:aws:iam::822069317839:role/service-role/S3FullAccess",
+            "arn:aws:iam::${var.mda_account_id}:role/service-role/S3FullAccess",
           ]
         },
         {
@@ -109,6 +110,7 @@ resource "aws_iam_policy" "crossacctpolicy" {
           Effect = "Allow"
           Resource = [
             "arn:aws:lambda:eu-west-1:822069317839:function:dailyReport",
+            "arn:aws:lambda:eu-west-2:${var.mda_account_id}:function:dailyReport",
           ]
         },
       ]

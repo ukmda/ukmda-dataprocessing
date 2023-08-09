@@ -20,6 +20,6 @@ provider "aws" {
   alias  = "mjmmacct"
   region = var.remote_region
   assume_role {
-    role_arn = format("arn:aws:iam::%s:role/TerraformRole", var.remote_account_id)
+    role_arn = "arn:aws:iam::${var.remote_account_id}:role/TerraformRole"
   }
 }

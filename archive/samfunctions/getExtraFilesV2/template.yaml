@@ -28,12 +28,15 @@ Resources:
       Description: Gets UKMON orbit extra files v2
       Environment:
         Variables:
-          WEBSITEBUCKET: ukmeteornetworkarchive
+          WEBSITEBUCKET: ukmda-website
+          SHAREDBUCKET: ukdma-shared
+          OLDWEBSITEBUCKET: ukmeteornetworkarchive
+          OLDSHAREDBUCKET: ukdon-shared
           MPLCONFIGDIR: /tmp/mpl
           WEBURL: https://archive.ukmeteornetwork.co.uk
       Tags:
-        billingtag: "ukmon"
-      Role: arn:aws:iam::822069317839:role/service-role/S3FullAccess
+        billingtag: "ukmda"
+      Role: arn:aws:iam::183798037734:role/service-role/S3FullAccess
     Metadata:
       Dockerfile: Dockerfile
       DockerContext: ./pythoncode

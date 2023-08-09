@@ -1,6 +1,6 @@
 destdir: /home/ec2-user/prod
 env: PROD
-websitebucket: ukmeteornetworkarchive
+websitebucket: ukmda-website
 #api_id: 40luvfh1od
 #api_svc: Prod
-s3profile: ukmonshared
+s3profile: ukmda_admin
