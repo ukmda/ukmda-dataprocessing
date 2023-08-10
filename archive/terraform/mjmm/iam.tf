@@ -257,3 +257,36 @@ resource "aws_iam_user_policy_attachment" "ukmon-tester-pol-attachment" {
 }
 
 
+# iam role for the task to use
+resource "aws_iam_role" "ecstaskrole" {
+  name               = "ecsTaskExecutionRole"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    },
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+# iam policies to attach to iam role 
+resource "aws_iam_role_policy_attachment" "ecspolicy1" {
+  role       = aws_iam_role.ecstaskrole.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}

@@ -5,7 +5,7 @@
 resource "aws_ssm_parameter" "dev_websitebucket" {
   name  = "dev_websitebucket"
   type  = "String"
-  value = "mjmm-ukmonarchive.co.uk" 
+  value = var.dev_webbucket
   tags = {
     "billingtag" = "ukmon"
   }
@@ -14,7 +14,25 @@ resource "aws_ssm_parameter" "dev_websitebucket" {
 resource "aws_ssm_parameter" "dev_sharedbucket" {
   name  = "dev_sharedbucket"
   type  = "String"
-  value = "mjmm-ukmon-shared"
+  value = var.dev_sharedbucket
+  tags = {
+    "billingtag" = "ukmon"
+  }
+}
+
+resource "aws_ssm_parameter" "dev_oldwebsitebucket" {
+  name  = "dev_oldwebsitebucket"
+  type  = "String"
+  value = var.dev_oldwebbucket
+  tags = {
+    "billingtag" = "ukmon"
+  }
+}
+
+resource "aws_ssm_parameter" "dev_oldsharedbucket" {
+  name  = "dev_oldsharedbucket"
+  type  = "String"
+  value = var.dev_oldsharedbucket
   tags = {
     "billingtag" = "ukmon"
   }
@@ -23,7 +41,7 @@ resource "aws_ssm_parameter" "dev_sharedbucket" {
 resource "aws_ssm_parameter" "dev_livebucket" {
   name  = "dev_livebucket"
   type  = "String"
-  value = "mjmm-ukmon-live"
+  value = var.dev_livebucket
   tags = {
     "billingtag" = "ukmon"
   }
