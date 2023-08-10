@@ -22,8 +22,9 @@ logger -s -t nightlyJob "RUNTIME $SECONDS synchronising data between accounts"
 $SRC/utils/dataSync.sh 
 
 mkdir -p $DATADIR/admin
+logger -s -t nightlyJob "RUNTIME $SECONDS updating the camera location/dir/fov database"
 python -c "from reports.CameraDetails import updateCamLocDirFovDB; updateCamLocDirFovDB();"
-aws s3 cp $DATADIR/admin/cameraLocs.json $UKMONSHAREDBUCKET/admin/ --region eu-west-2
+aws s3 cp $DATADIR/admin/cameraLocs.json $UKMONSHAREDBUCKET/admin/ --region eu-west-2 --quiet
 
 # run this only once as it scoops up all unprocessed data
 logger -s -t nightlyJob "RUNTIME $SECONDS start findAllMatches"
