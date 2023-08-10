@@ -38,7 +38,7 @@ resource "aws_eip" "ukmonhelper2" {
 }
 
 
-
+/*
 resource "aws_instance" "backuprunner" {
   ami                  = "ami-0d729d2846a86a9e7"
   instance_type        = "t3a.medium"
@@ -52,3 +52,4 @@ resource "aws_instance" "backuprunner" {
   user_data                   = file("files/backuprunner/userdata.sh")
   user_data_replace_on_change = false
 }
+*/
