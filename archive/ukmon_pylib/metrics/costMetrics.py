@@ -64,7 +64,7 @@ def getSvcName(svc):
     return svcname
 
 
-def drawBarChart(costsfile, typflag):
+def drawBarChart(costsfile, typflag, accid):
     outdir, fname =os.path.split(costsfile)
     fn, _ = os.path.splitext(fname)
     #accid = spls[1]
@@ -123,10 +123,10 @@ def drawBarChart(costsfile, typflag):
     ax.set_ylabel('Cost ($)')
     ax.set_xlabel('Day of Month')
     if typflag == 0:
-        ax.set_title(f'Cost for month starting {mthdate}: total ${totcost:.2f}')
+        ax.set_title(f'{accid}: cost for month starting {mthdate}: total \${totcost:.2f}') # noqa:W605
     else:
         avg = totcost/typflag
-        title = f'Cost for last {typflag} days: total \${totcost:.2f}, average \${avg:.2f}' # noqa:W605
+        title = f'{accid}: cost for last {typflag} days: total \${totcost:.2f}, average \${avg:.2f}' # noqa:W605
         ax.set_title(title)
     ax.legend()
     tickbase = 7
@@ -136,7 +136,7 @@ def drawBarChart(costsfile, typflag):
     ax.xaxis.set_major_locator(loc)
     plt.grid(which='major', alpha=0.5)
     plt.grid(which='minor', alpha=0.2)
-    plt.ylim([0,20])
+    plt.ylim([0,50])
 
     fname = os.path.join(outdir, f'{fn}.jpg')
     plt.savefig(fname)
@@ -181,7 +181,9 @@ def getAllBillingData(ceclient, dtwanted, endwanted, regionid, outdir, typflag):
                     tag = grp['Keys'][1]
                     amt = grp['Metrics']['BlendedCost']['Amount']
                     dt = datetime.datetime.strptime(strt, '%Y-%m-%d')
-                    if accid == '183798037734' and 'Storage Service' in svc and dt < tagstartdt:
+                    if accid == '822069317839' and 'Storage Service' in svc and dt < tagstartdt:
+                        tag = 'billingtag$ukmon'
+                    if accid == '183798037734':
                         tag = 'billingtag$ukmon'
 
                     outf.write(f'{strt}, {svc}, {tag}, {amt}\n')
@@ -245,6 +247,6 @@ if __name__ == '__main__':
 
     costsfile, accid = getAllBillingData(ceclient, dtwanted, endwanted, regionid, outdir, typflag)
 
-    drawBarChart(costsfile, typflag)
+    drawBarChart(costsfile, typflag, accid)
 
     getLatestCost(costsfile, outdir)

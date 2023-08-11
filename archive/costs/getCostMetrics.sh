@@ -22,3 +22,8 @@ python $PYLIB/metrics/costMetrics.py $here eu-west-1 $thismth
 
 export AWS_PROFILE=Mark
 python $PYLIB/metrics/costMetrics.py $here eu-west-1 $thismth
+
+export AWS_PROFILE=realukms
+python $PYLIB/metrics/costMetrics.py $here eu-west-1 $thismth
+
+export AWS_PROFILE=

@@ -14,9 +14,6 @@
     tags: [dev,prod]
   - name: Ensures {{destdir}}/logs exists
     file: path={{destdir}}/logs state=directory  
-  - name: Ensures {{destdir}}/metrics exists
-    file: path={{destdir}}/metrics state=directory  
-    tags: [dev,prod]
   - name: Ensures {{destdir}}/data/reports/ exists
     file: path={{destdir}}/data/reports/ state=directory  
     tags: [dev,prod]

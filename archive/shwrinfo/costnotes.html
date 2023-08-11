@@ -1,10 +1,7 @@
 Notes<br>
-<li> Costs in account #1 are largely storage. These costs are fairly static, though they're growing slowly. 
+Costs are split between three AWS accounts:
+<li>Account starting with 317 hosts the batch server.</li>
+<li>Account starting with 822 hosts the daily data and livestream data, and hosts the websites.</li>
+<li>Account starting with 183 hosts the trajectory solver and report generator, as well as a complete data backup.</li>
 
-</li>
-<li>Costs in account #2 are a mixture of storage and compute. The compute costs vary from day to day, 
-    as they depend on data volumes. During busy showers the daily cost may rise to $20 for a few days.
-</li>
-<li>Costs are constantly being optimised. During November 2022, an optimisation reduced the cost of storage
-    by more than fifty percent. 
-</li>
+During meteor showers, the cost of solving trajectories rises in proportion to the number of detections. 

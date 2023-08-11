@@ -36,12 +36,14 @@ cp $SRC/costs/costs-*-90-days.jpg $DATADIR/reports
 
 costfile=$DATADIR/reports/costs.html
 imgfile=/reports/costs-317976261112-90-days.jpg
-imgfile2=/reports/costs-183798037734-90-days.jpg
+imgfile2=/reports/costs-822069317839-90-days.jpg
+imgfile3=/reports/costs-183798037734-90-days.jpg
 
 v1=$(cat $SRC/costs/costs-317976261112-last.csv)
-v2=$(cat $SRC/costs/costs-183798037734-last.csv)
+v2=$(cat $SRC/costs/costs-822069317839-last.csv)
+v3=$(cat $SRC/costs/costs-183798037734-last.csv)
 
-lastfullcost=$(echo $v1 + $v2 | bc)
+lastfullcost=$(echo $v1 + $v2 + $v3 | bc)
 
 cp $TEMPLATES/header.html $costfile
 echo "<h3>Daily running costs</h3>" >> $costfile
@@ -52,6 +54,7 @@ echo "last complete day's cost is \$${lastfullcost}" >> $costfile
 echo "</p><p>" >> $costfile
 echo "<a href=$imgfile><img src=$imgfile width=100%></a><br>" >> $costfile
 echo "<a href=$imgfile2><img src=$imgfile2 width=100%></a><br>" >> $costfile
+echo "<a href=$imgfile3><img src=$imgfile3 width=100%></a><br>" >> $costfile
 
 if [ -f $DATADIR/shwrinfo/costnotes.html ] ; then 
     echo '<p>' >> $costfile
