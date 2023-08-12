@@ -25,8 +25,8 @@ from wmpl.Utils.TrajConversions import geo2Cartesian
 from wmpl.Utils.TrajConversions import raDec2ECI
 from wmpl.Utils.Math import vectNorm, angleBetweenVectors, vectorFromPointDirectionAndAngle
 
-from ukmon_meteortools.utils import raDec2AltAz, altAz2RADec, datetime2JD, greatCircleDistance
-from ukmon_meteortools.fileformats import loadFTPDetectInfo, writeNewFTPFile
+from meteortools.utils import raDec2AltAz, altAz2RADec, datetime2JD, greatCircleDistance
+from meteortools.fileformats import loadFTPDetectInfo, writeNewFTPFile
 
 
 # Dummy platepar structure needed by loadPlatePar

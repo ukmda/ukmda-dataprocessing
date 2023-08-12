@@ -7,10 +7,9 @@ import os
 import sys
 import pandas as pd
 import datetime
-import boto3
 import textwrap
 
-from ukmon_meteortools.utils import sendAnEmail
+from meteortools.utils import sendAnEmail
 
 mailfrom = 'ukmonhelper@ukmeteornetwork.co.uk'
 
@@ -115,85 +114,3 @@ if __name__ == '__main__':
             dayslate = int(sys.argv[1]) + 7
             sendAnEmail(mailrecip, latemsg1.format(statid, dayslate), subj, mailfrom)
             mailmsg = mailmsg + '{} {} {}\n'.format(row['stationid'], row['ts'], row['eMail'])
-
-
-    sts_client = boto3.client('sts')
-    assumed_role_object=sts_client.assume_role(
-        RoleArn="arn:aws:iam::183798037734:role/service-role/S3FullAccess",
-        RoleSessionName="AssumeRoleSession1")
-    
-    # Use the temporary credentials that AssumeRole returns to connections
-    credentials=assumed_role_object['Credentials']        
-    logcli = boto3.client('logs', 
-        aws_access_key_id=credentials['AccessKeyId'],
-        aws_secret_access_key=credentials['SecretAccessKey'],
-        aws_session_token=credentials['SessionToken'], 
-        region_name='eu-west-2')
-
-    chkdt = datetime.datetime.now() + datetime.timedelta(days=-1)
-    chkdt = chkdt.replace(hour=0, minute=0, second=0, microsecond=0)
-    print(chkdt)
-    uxt = int(chkdt.timestamp()*1000)
-
-    badcams=[]
-    response = logcli.filter_log_events(
-        logGroupName="/aws/lambda/consolidateFTPdetect",
-        startTime=uxt,
-        filterPattern="too many",
-        limit=1000)
-    if len(response['events']) > 0:
-        for i in range(len(response['events'])):
-            msg = response['events'][i]['message'].strip()
-            spls = msg.split(' ')
-            badcount = spls[3]
-            ftpname = spls[5]
-            spls = spls[5].split('_')
-            statid = spls[1]
-            dat = datetime.datetime.strptime(spls[2] + '_' + spls[3], '%Y%m%d_%H%M%S')
-            badcams.append([statid, dat, badcount, ftpname])
-    while True:
-        currentToken = response['nextToken']
-        response = logcli.filter_log_events(
-            logGroupName="/aws/lambda/consolidateFTPdetect",
-            startTime=uxt,
-            filterPattern="too many",
-            nextToken = currentToken,
-            limit=1000)
-        if len(response['events']) > 0:
-            for i in range(len(response['events'])):
-                msg = response['events'][i]['message'].strip()
-                spls = msg.split(' ')
-                badcount = spls[3]
-                ftpname = spls[5]
-                spls = spls[5].split('_')
-                statid = spls[1]
-                dat = datetime.datetime.strptime(spls[2] + '_' + spls[3], '%Y%m%d_%H%M%S')
-                badcams.append([statid, dat, badcount, ftpname])
-        if 'nextToken' not in response:
-            break
-
-    subj = 'too many detections - likely bad data'
-    if len(badcams) > 0: 
-        print('\nToo many detections\n===================')
-        mailmsg = mailmsg + '\nToo many detections\n'
-        mailmsg = mailmsg + '===================\n'
-        badcams = pd.DataFrame(badcams, columns=['stationid','ts','reccount','ftpname'])
-        badcams = pd.merge(badcams, camowners, on=['stationid'])
-        badcams = badcams.drop(columns=['site'])
-        badcams = badcams[badcams.ts >= chkdt]
-        print(badcams)
-        for _, row in badcams.iterrows():
-            mailrecip = row['eMail']
-            statid = row['stationid']
-            reccount = row['reccount']
-            ftpname = row['ftpname']
-            sendAnEmail(mailrecip, badmsg.format(statid, reccount, ftpname), subj, mailfrom)
-            mailmsg = mailmsg + '{} {} {} {}\n'.format(row['stationid'], row['ts'], row['reccount'], row['eMail'])
-
-    mailrecip = 'markmcintyre99@googlemail.com'
-    msgtype='Late or Misbehaving camera report'
-        
-    # check again as we just applied a 2nd filter (on date)
-    if len(badcams) > 0: 
-        sendAnEmail(mailrecip, mailmsg, msgtype, mailfrom)
-        print('mail sent')

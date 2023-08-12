@@ -16,7 +16,7 @@ def addRowCamTimings(s3bucket, s3object, ftpname, ddb=None):
     dtstamp = s3c.head_object(Bucket=s3bucket, Key=s3object)['LastModified']
 
     if not ddb:
-        ddb = boto3.resource('dynamodb', region_name='eu-west-1') #, endpoint_url="http://thelinux:8000")
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2') #, endpoint_url="http://thelinux:8000")
 
     table = ddb.Table('uploadtimes')
     spls = ftpname.split('_')
@@ -45,7 +45,7 @@ def addRowCamTimings(s3bucket, s3object, ftpname, ddb=None):
 # find matching entries based on stationid and upload date in yyyymmdd format
 def findRowCamTimings(stationid, uploaddate, ddb=None):
     if not ddb:
-        ddb = boto3.resource('dynamodb', region_name='eu-west-1') #, endpoint_url="http://thelinux:8000")
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2') #, endpoint_url="http://thelinux:8000")
     table = ddb.Table('uploadtimes')
     response = table.query(
         KeyConditionExpression=Key('stationid').eq(stationid) & Key('dtstamp').begins_with(uploaddate)
@@ -69,7 +69,7 @@ def getDayCamTimings(uploaddate, ddb=None, outfile=None, datadir=None):
     if datadir is None:
         datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     if not ddb:
-        ddb = boto3.resource('dynamodb', region_name='eu-west-1') #, endpoint_url="http://thelinux:8000")
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2') #, endpoint_url="http://thelinux:8000")
     table = ddb.Table('uploadtimes')
     response = table.query(
         IndexName='uploaddate-stationid-index',
@@ -109,7 +109,7 @@ def getDayCamTimings(uploaddate, ddb=None, outfile=None, datadir=None):
 # read a row based on stationid and datestamp
 def readRowCamTimings(stationid, dtstamp, ddb=None):
     if not ddb:
-        ddb = boto3.resource('dynamodb', region_name='eu-west-1') #, endpoint_url="http://thelinux:8000")
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2') #, endpoint_url="http://thelinux:8000")
     table = ddb.Table('uploadtimes')
     response = table.get_item(Key={'stationid': stationid,'dtstamp': dtstamp})
     try:
@@ -123,7 +123,7 @@ def readRowCamTimings(stationid, dtstamp, ddb=None):
 # remove a row from the table keyed on stationid adn datestamp in yyyymmdd_hhmmss format
 def deleteRowCamTimings(stationid, dtstamp, ddb=None):
     if not ddb:
-        ddb = boto3.resource('dynamodb', region_name='eu-west-1') #, endpoint_url="http://thelinux:8000")
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2') #, endpoint_url="http://thelinux:8000")
     table = ddb.Table('uploadtimes')
     table.delete_item(Key={'stationid': stationid, 'dtstamp': dtstamp})
     return 
@@ -151,7 +151,7 @@ if __name__ == '__main__':
         RoleSessionName="AssumeRoleSession1")
     credentials=assumed_role_object['Credentials']
 
-    ddb = boto3.resource('dynamodb', region_name='eu-west-1',
+    ddb = boto3.resource('dynamodb', region_name='eu-west-2',
         aws_access_key_id=credentials['AccessKeyId'],
         aws_secret_access_key=credentials['SecretAccessKey'],
         aws_session_token=credentials['SessionToken'])

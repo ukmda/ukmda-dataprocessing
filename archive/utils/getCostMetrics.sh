@@ -15,10 +15,15 @@ fi
 
 export AWS_DEFAULT_REGION=eu-west-1
 
-cd $SRC/metrics
+cd $DATADIR/costs
     
 export AWS_PROFILE=ukmonshared
 python $PYLIB/metrics/costMetrics.py $here eu-west-1 $thismth
 
 export AWS_PROFILE=Mark
 python $PYLIB/metrics/costMetrics.py $here eu-west-1 $thismth
+
+export AWS_PROFILE=realukms
+python $PYLIB/metrics/costMetrics.py $here eu-west-1 $thismth
+
+export AWS_PROFILE=

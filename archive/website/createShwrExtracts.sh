@@ -44,7 +44,7 @@ cd $DATADIR/browse/showers/
 # get a list of files on the website
 aws s3 ls $WEBSITEBUCKET/browse/showers/ | awk '{ print $4 }' | grep csv > /tmp/browseshwr.txt
 
-shwrs=$(python -c "from ukmon_meteortools.utils.getActiveShowers import getActiveShowersStr ; getActiveShowersStr('${ymd}')")
+shwrs=$(python -c "from meteortools.utils.getActiveShowers import getActiveShowersStr ; getActiveShowersStr('${ymd}')")
 for shwr in $shwrs
 do 
     now=$(date '+%Y-%m-%d %H:%M:%S')

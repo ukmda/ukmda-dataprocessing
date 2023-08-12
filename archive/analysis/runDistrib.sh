@@ -135,7 +135,11 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
 
         scp -i $SERVERSSHKEY ec2-user@$privip:data/distrib/processed_trajectories.json $DATADIR/distrib
 
-        ssh -i $SERVERSSHKEY ec2-user@$privip "rm -f data/distrib/*.json"
+        ssh -i $SERVERSSHKEY ec2-user@$privip "rm -f data/distrib/*.json /tmp/processed_trajectories.json"
+        # remote temporary files
+        ssh -i $SERVERSSHKEY ec2-user@$privip "find /tmp -maxdepth 1 -name "*.pickle"  -mtime +7 -exec rm -f {} \;"
+        # prune trajdb folder on calcserver
+        ssh -i $SERVERSSHKEY ec2-user@$privip "find ~/ukmon-shared/matches/RMSCorrelate/trajdb -maxdepth 1 -name "*.json*"  -mtime +30 -exec rm -f {} \;"
 
         logger -s -t runDistrib "stopping calcserver again"
         aws ec2 stop-instances --instance-ids $SERVERINSTANCEID

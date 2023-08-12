@@ -14,9 +14,6 @@
     tags: [dev,prod]
   - name: Ensures {{destdir}}/logs exists
     file: path={{destdir}}/logs state=directory  
-  - name: Ensures {{destdir}}/metrics exists
-    file: path={{destdir}}/metrics state=directory  
-    tags: [dev,prod]
   - name: Ensures {{destdir}}/data/reports/ exists
     file: path={{destdir}}/data/reports/ state=directory  
     tags: [dev,prod]
@@ -63,9 +60,4 @@
     - {src: '{{srcdir}}/archive/share/', dest: '{{destdir}}/share/', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/database/', dest: '{{destdir}}/database/', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/setup/', dest: '{{destdir}}/setup/', mode: '754', backup: no, directory_mode: yes }
-    #- {src: '{{srcdir}}/archive/website/templates/', dest: '/home/ec2-user/pylibs/templates/', mode: '754', backup: no, directory_mode: yes }
-    #- {src: '{{srcdir}}/ukmon_pylib/wmplloc/', dest: '/home/ec2-user/pylibs/python/wmplloc/', mode: '754', backup: no, directory_mode: yes }
-
-    - {src: '{{srcdir}}/archive/costs/getCostMetrics.sh', dest: '{{destdir}}/costs/', mode: '754', backup: no }
-    #- {src: '{{srcdir}}/archive/terraform/ee/files/dailyreport/dailyReport.py', dest: '{{destdir}}/ukmon_pylib/reports/', mode: '644', backup: no }
     

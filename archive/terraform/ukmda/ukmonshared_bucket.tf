@@ -189,6 +189,41 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmdasharedlcp" {
       noncurrent_days = 10
     }
   }
+  rule {
+    id     = "purge old raw csvs"
+    status = "Enabled"
+
+    expiration {
+      days                         = 30
+      expired_object_delete_marker = false
+    }
+
+    filter {
+      prefix = "matches/single/rawcsvs/"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 10
+    }
+  }
+  rule {
+    id     = "purge old trajdb files"
+    status = "Enabled"
+
+    expiration {
+      days                         = 30
+      expired_object_delete_marker = false
+    }
+
+    filter {
+      prefix = "matches/trajdb/"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 10
+    }
+  }
+
 }
 
 resource "aws_s3_bucket_cors_configuration" "ukmdasharedcors" {

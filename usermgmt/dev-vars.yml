@@ -7,3 +7,4 @@
     liveprofile: default
     archprofile: ukmda_admin
     helper: ukmonhelper2
+    serverip: "3.11.55.160"

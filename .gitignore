@@ -557,6 +557,7 @@ ukmon_pylib/tests/20220217_032206.832_UK/*
 unused/*
 *tfstate.lock.info
 archive/samfunctions*/getExtraFilesV2/pythoncode/WesternMeteorPyLib/*
+archive/samfunctions*/getExtraFilesForEE/pythoncode/WesternMeteorPyLib/*
 archive/containers/trajsolver/WesternMeteorPyLib/*
 archive/containers/trajsolver/awskeys
 archive/containers/trajsolvertest/WesternMeteorPyLib/*

@@ -7,11 +7,10 @@ userid=$1
 shortid=$2
 updatemode=$3
 oldloc=$4
-if [ -z $2 ] ; then shortid=$1 ; fi 
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-
 cd $here
+
 if [ -f ../config.ini ] ; then
     source ~/dev/config.ini
     keydir=/home/ec2-user/dev/keymgmt
@@ -24,31 +23,25 @@ conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 cd $keydir
 
-logger -s -t addSftpUser "adding user $userid at $shortid $oldloc"
+logger -s -t addSftpUser "adding user $userid $shortid $oldloc"
 
-# create the keyfiles in the required format
+# wait for the file uploads to complete. For some reason paramiko does this asynchronously
 counter=0
-ls $keydir/rawkeys/live/$shortid.key > /dev/null 2>&1
-while [[ $? -ne 0  && $counter -ne 5 ]] ; do
-    sleep 2
-    logger -s -t addSftpUser "waiting for raw key for $shortid"   
-    ls $keydir/rawkeys/live/$shortid.key > /dev/null 2>&1
-    counter=$((counter + 1))
-done 
-if [ ! -f $keydir/rawkeys/live/$shortid.key ] ; then 
-    logger -s -t addSftpUser "missing raw key for $shortid"   
-    exit 1
-fi 
-python $keydir/jsonToKeyFile.py $keydir/rawkeys/live/$shortid.key $keydir/live
-
 # all-lowercase versions of the names
 userid="${userid,,}"
 shortid_l="${shortid,,}"
 
-if [ ! -f $keydir/live/$shortid_l.key ] ; then 
-    logger -s -t addSftpUser "problem creating keyfile"
+ls $keydir/$shortid_l.key > /dev/null 2>&1
+while [[ $? -ne 0  && $counter -ne 5 ]] ; do
+    sleep 2
+    logger -s -t addSftpUser "waiting for raw key for $shortid"   
+    ls $keydir/keys/$shortid_l.key > /dev/null 2>&1
+    counter=$((counter + 1))
+done 
+if [ ! -f $keydir/keys/$shortid_l.key ] ; then 
+    logger -s -t addSftpUser "missing keyfile for $shortid"   
     exit 1
-fi
+fi 
 
 # add a unix user and set their homedir to /var/sftp/userid
 grep $userid /etc/passwd
@@ -58,23 +51,21 @@ if [ $? -eq 1 ] ; then
     sudo mkdir /var/sftp/$userid
     sudo chown root:sftp /var/sftp/$userid
     sudo chmod 751 /var/sftp/$userid
+    # create the .ssh folder, platepar folder and empty client copy of the ini file
     sudo mkdir /var/sftp/$userid/.ssh
     sudo mkdir /var/sftp/$userid/platepar
-    sudo chown $userid:$userid /var/sftp/$userid/platepar
+    sudo touch /var/sftp/$userid/ukmon.ini.client
+    # make these three writeable by the client
+    sudo chown $userid:$userid /var/sftp/$userid/platepar /var/sftp/$userid/.ssh /var/sftp/$userid/ukmon.ini.client
 else
     logger -s -t addSftpUser "Unix user $userid already exists"
 fi
 # copy the public key to the right place
-logger -s -t addSftpUser "Applying the public key $1"
-dos2unix $keydir/sshkeys/$1.pub
-cat $keydir/sshkeys/$1.pub  > /tmp/tmp.pub
-sudo cp /tmp/tmp.pub /var/sftp/$userid/.ssh/authorized_keys
+logger -s -t addSftpUser "Applying the public key $userid"
+dos2unix $keydir/sshkeys/$userid.pub
+sudo cp $keydir/sshkeys/$userid.pub /var/sftp/$userid/.ssh/authorized_keys
 sudo chown -R $userid:$userid /var/sftp/$userid/.ssh/authorized_keys
-rm /tmp/tmp.pub
-
-#create an empty client copy of the ini file and make it writeable by the client
-sudo touch /var/sftp/$userid/ukmon.ini.client 
-sudo chown $userid:$userid /var/sftp/$userid/ukmon.ini.client 
+sudo chmod 644 /var/sftp/$userid/.ssh/authorized_keys
 
 # add the key to logupload's authorized_keys file
 logger -s -t addSftpUser "Adding the key to loguploads authorized_keys"
@@ -85,9 +76,8 @@ rm /tmp/logul.pub
 
 # copy the ini and aws key files
 logger -s -t addSftpUser "Copying the ini file and aws keyfile"
-cat $keydir/ukmon.ini | sed "s/STATIONLOCATION/$userid/g" > /home/ec2-user/keymgmt/inifs/$userid.ini
 sudo cp $keydir/inifs/$userid.ini /var/sftp/$userid/ukmon.ini
-sudo cp $keydir/live/$shortid_l.key /var/sftp/$userid/live.key
+sudo cp $keydir/keys/$shortid_l.key /var/sftp/$userid/live.key
 
 # if we are moving a station, update the old ini file 
 # so that the next run points to the new loc
@@ -96,8 +86,6 @@ if [ ! -z $oldloc ] ; then
     sudo cp /var/sftp/$oldloc/ukmon.ini /var/sftp/$oldloc/ukmon.ini.bkp
     sudo cp $keydir/inifs/$userid.ini /var/sftp/$oldloc/ukmon.ini
 fi 
-sudo ls -ltr /var/sftp/$userid/
-sudo ls -ltr /var/sftp/$userid/.ssh/
 
 logger -s -t addSftpUser "Finished"
 

@@ -11,7 +11,7 @@ import pandas as pd
 import datetime 
 
 
-def convertSingletoSrchable(datadir, year, weburl, newonly=True):
+def convertSingletoSrchable(datadir, year, newonly=True):
     print(datetime.datetime.now(), 'single-detection searchable index start')
 
     # load the single-station combined data
@@ -118,7 +118,6 @@ if __name__ == '__main__':
         exit(1)
     else:
         datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-        weburl = os.getenv('SITEURL', default='https://archive.ukmeteors.co.uk')
 
         year = sys.argv[1]
         mode = sys.argv[2]
@@ -126,7 +125,7 @@ if __name__ == '__main__':
         # create a set of single-station data and merge with last match set
         if mode == 'singles':
             print(datetime.datetime.now(), 'converting single-station data')
-            newsingles, fname = convertSingletoSrchable(datadir, year, weburl, True)
+            newsingles, fname = convertSingletoSrchable(datadir, year, True)
             outfile = os.path.join(datadir, 'searchidx', '{:s}-singles-new.csv'.format(year))
             if newsingles is not None: 
                 newsingles.to_csv(outfile, index=False, header=False)

@@ -11,28 +11,19 @@ resource "aws_s3_bucket" "ukmon-shared-backup" {
 resource "aws_s3_bucket_lifecycle_configuration" "bkp_lifecycle_rule" {
   bucket = aws_s3_bucket.ukmon-shared-backup.id
   rule {
-    id     = "MoveToArchive"
+    id     = "delete everything" 
     status = "Enabled"
-    transition {
-      days          = 30
-      storage_class = "STANDARD_IA"
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 1 
     }
-  }
-  rule {
-    id     = "PurgeOldVersions"
-    status = "Enabled"
 
     expiration {
-      days                         = 0
-      expired_object_delete_marker = true
+      days                         = 1 
+      expired_object_delete_marker = false 
     }
-
-    filter {
-    }
-
     noncurrent_version_expiration {
-      newer_noncurrent_versions = "1"
-      noncurrent_days           = 30
+      newer_noncurrent_versions = "1" 
+      noncurrent_days           = 1
     }
   }
 }

@@ -14,7 +14,7 @@ import glob
 import datetime
 
 from wmpl.Utils.TrajConversions import jd2Date
-from ukmon_meteortools.utils import sollon2jd
+from meteortools.utils import sollon2jd
 from wmpl.Utils.Math import mergeClosePoints, angleBetweenSphericalCoords
 from wmpl.Utils.Physics import calcMass
 from wmpl.Utils.Pickling import loadPickle
@@ -93,7 +93,7 @@ def getBestView(picklename):
 def getShowerDets(shwr):
     sfd = np.load(config.iau_shower_table_npy)
     sfdfltr = sfd[sfd[:,3] == shwr]
-    mtch = [sh for sh in sfdfltr if sh[6] != '-2']
+    mtch = [sh for sh in sfdfltr if int(sh[6]) > -1]
     if len(mtch) == 0:
         return 0, 'Unknown', 0, 'Unknown'
 
