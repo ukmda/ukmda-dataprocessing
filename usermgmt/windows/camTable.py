@@ -67,16 +67,11 @@ def deleteTable(tbl, ddb=None):
 
 
 # add a row to the CamTimings table
-def addRow(stationid, siteid, ddb=None):
+def addRow(stationid, siteid, ddb=None, tblname='camdetails'):
     if not ddb:
         ddb = boto3.resource('dynamodb', region_name='eu-west-2')
-    table = ddb.Table('camdetails')
-    response = table.put_item(
-        Item={
-            'stationid': stationid,
-            'site': siteid
-        }   
-    )    
+    table = ddb.Table(tblname)
+    response = table.put_item(Item={'stationid': stationid,'site': siteid})    
     print(response)
     return 
 
