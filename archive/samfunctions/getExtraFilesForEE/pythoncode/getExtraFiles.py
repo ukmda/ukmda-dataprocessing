@@ -15,7 +15,7 @@ from createOrbitPageIndex import createOrbitPageIndex
 
 
 def findSite(stationid, ddb):
-    table = ddb.Table('camdetails')
+    table = ddb.Table('ukmon_camdetails')
     response = table.query(KeyConditionExpression=Key('stationid').eq(stationid))
     try:
         items = response['Items']
@@ -88,7 +88,7 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
                 mp4html.write(f'<a href="/{mp4name}"><video width="20%"><source src="/{mp4name}" width="20%" type="video/mp4"></video></a>\n')
             else:
                 print(f'{mp4name} not found')
-            print('about to find the ste')
+            print('about to find the site')
             site = findSite(id, ddb)
             if site is not None:
                 fldr = site + '/' + id
@@ -340,7 +340,7 @@ if __name__ == '__main__':
         aws_access_key_id=credentials['AccessKeyId'],
         aws_secret_access_key=credentials['SecretAccessKey'],
         aws_session_token=credentials['SessionToken'])
-    ddb = boto3.resource('dynamodb', region_name='eu-west-2',
+    ddb = boto3.resource('dynamodb', region_name='eu-west-1',
         aws_access_key_id=credentials['AccessKeyId'],
         aws_secret_access_key=credentials['SecretAccessKey'],
         aws_session_token=credentials['SessionToken']) #, endpoint_url="http://thelinux:8000")
@@ -377,13 +377,13 @@ def lambda_handler(event, context):
             aws_access_key_id=credentials['AccessKeyId'],
             aws_secret_access_key=credentials['SecretAccessKey'],
             aws_session_token=credentials['SessionToken'])
-        ddb = boto3.resource('dynamodb', region_name='eu-west-2',
+        ddb = boto3.resource('dynamodb', region_name='eu-west-1',
             aws_access_key_id=credentials['AccessKeyId'],
             aws_secret_access_key=credentials['SecretAccessKey'],
             aws_session_token=credentials['SessionToken']) 
     else:
         s3 = boto3.resource('s3')
-        ddb = boto3.resource('dynamodb', region_name='eu-west-2')
+        ddb = boto3.resource('dynamodb', region_name='eu-west-1')
 
     websitebucket = os.getenv('WEBSITEBUCKET')
     if websitebucket[:3] == 's3:':
