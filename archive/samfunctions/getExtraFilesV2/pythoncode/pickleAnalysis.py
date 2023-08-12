@@ -328,9 +328,12 @@ def draw2DTrack(traj, outdir):
     # Go through observation from all stations
     for obs in traj.observations:
         # Go through all observed points
+        if obs.ignore_station:
+            continue
         for i in range(obs.kmeas):
-            alts.append(obs.model_ht[i])
-            times.append(obs.time_data[i])
+            if int(obs.ignore_list[i]) != 1:
+                alts.append(obs.model_ht[i])
+                times.append(obs.time_data[i])
     dtstr = jd2Date(traj.jdt_ref, dt_obj=True).strftime("%Y%m%d-%H%M%S.%f")
     plt.clf()
     fig = plt.gcf()
