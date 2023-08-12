@@ -24,24 +24,34 @@ export PYTHONPATH=$PYLIB
 numdays=90
 if [ $# -gt 1 ] ; then numdays = $1 ; fi
 
+mkdir  -p $DATADIR/costs > /dev/null 
+
 export AWS_PROFILE=Mark
-python -m metrics.costMetrics $SRC/costs eu-west-2 $numdays
+python -m metrics.costMetrics $DATADIR/costs eu-west-2 $numdays
 
 export AWS_PROFILE=ukmonshared
-python -m metrics.costMetrics $SRC/costs eu-west-2 $numdays
+python -m metrics.costMetrics $DATADIR/costs eu-west-2 $numdays
+
+export AWS_PROFILE=realukms
+python -m metrics.costMetrics $DATADIR/costs eu-west-2 $numdays
 
 unset AWS_PROFILE
 
-cp $SRC/costs/costs-*-90-days.jpg $DATADIR/reports
+tod=$(date +%d)
+if [ "$tod" == "03" ] ; then 
+    python -c "from metrics.costMetrics import getAllMthly;getAllMthly();"
+fi
+
+cp $DATADIR/costs/costs-*-90-days.jpg $DATADIR/reports
 
 costfile=$DATADIR/reports/costs.html
 imgfile=/reports/costs-317976261112-90-days.jpg
 imgfile2=/reports/costs-822069317839-90-days.jpg
 imgfile3=/reports/costs-183798037734-90-days.jpg
 
-v1=$(cat $SRC/costs/costs-317976261112-last.csv)
-v2=$(cat $SRC/costs/costs-822069317839-last.csv)
-v3=$(cat $SRC/costs/costs-183798037734-last.csv)
+v1=$(cat $DATADIR/costs/costs-317976261112-last.csv)
+v2=$(cat $DATADIR/costs/costs-822069317839-last.csv)
+v3=$(cat $DATADIR/costs/costs-183798037734-last.csv)
 
 lastfullcost=$(echo $v1 + $v2 + $v3 | bc)
 
@@ -67,7 +77,9 @@ cat $TEMPLATES/footer.html >> $costfile
 aws s3 cp $costfile $WEBSITEBUCKET/reports/ --quiet
 aws s3 cp $DATADIR/$imgfile $WEBSITEBUCKET/reports/ --quiet 
 aws s3 cp $DATADIR/$imgfile2 $WEBSITEBUCKET/reports/ --quiet
+aws s3 cp $DATADIR/$imgfile3 $WEBSITEBUCKET/reports/ --quiet
 
 aws s3 cp $costfile $OLDWEBSITEBUCKET/reports/ --quiet
 aws s3 cp $DATADIR/$imgfile $OLDWEBSITEBUCKET/reports/ --quiet 
 aws s3 cp $DATADIR/$imgfile2 $OLDWEBSITEBUCKET/reports/ --quiet
+aws s3 cp $DATADIR/$imgfile3 $OLDWEBSITEBUCKET/reports/ --quiet

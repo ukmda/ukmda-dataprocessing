@@ -15,6 +15,26 @@ import matplotlib.ticker as plticker
 csvdtype = np.dtype([('dt', 'U10'), ('service','U64'), ('tag', 'U32'), ('cost', '<f8')])
 
 
+def monthlyCostByService(dtstr, acctid):
+    mth = int(dtstr[4:6])
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    df = pd.read_csv(os.path.join(datadir, 'costs', f'costs-{acctid}-90-days.csv'))
+    if acctid != '183798037734':
+        df = df[(df.Tag.str.contains('ukmda')) | (df.Tag.str.contains('ukmon'))]
+    df['month']=[datetime.datetime.strptime(dt, '%Y-%m-%d').month for dt in df.Date]
+    df = df[df.month == mth]
+    df=df.drop(columns=['Date','Tag','month'])
+    grped=df.groupby(['Service']).sum().sort_values(by=['Service'])
+    grped.to_csv(os.path.join(datadir, 'costs', f'costs-{acctid}-{dtstr}.csv'))
+
+
+def getAllMthly():
+    lastmth=(datetime.datetime.now() + datetime.timedelta(days=-20)).strftime('%Y%m')
+    monthlyCostByService(lastmth, '183798037734')
+    monthlyCostByService(lastmth, '317976261112')
+    monthlyCostByService(lastmth, '822069317839')
+
+
 def getAllCostsAndUsage(ceclient, startdt, enddt, svcs, tagval):
     response = ceclient.get_cost_and_usage(
         TimePeriod={'Start': startdt, 'End': enddt},
