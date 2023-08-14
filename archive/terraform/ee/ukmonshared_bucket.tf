@@ -1,4 +1,7 @@
-# Copyright (C) 2018-2023 Mark McIntyre
+##############################################################################
+# Copyright (c) 2018- Mark McIntyre
+##############################################################################
+
 resource "aws_s3_bucket" "ukmonshared" {
   bucket        = var.sharedbucket
   force_destroy = false
@@ -96,7 +99,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmonsharedlcp" {
     status = "Enabled"
     id     = "purge old versions"
     noncurrent_version_expiration {
-      noncurrent_days = 30
+      noncurrent_days = 1
     }
   }
   rule {

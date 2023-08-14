@@ -46,7 +46,7 @@ if [ "`tty`" != "not a tty" ]; then
 else 
     # email has to be sent from the ukmeteornetwork.co.uk verified domain
     acctid=$(aws sts get-caller-identity --profile realukms --output text --query Account)
-    aws lambda invoke --function-name ${acctid}:function:dailyReport --region eu-west-1 --log-type None $SRC/logs/dailyReport.log
+    aws lambda invoke --function-name ${acctid}:function:dailyReport --profile realukms --region eu-west-1 --log-type None $SRC/logs/dailyReport.log
 fi
 # add daily report to the website
 logger -s -t nightlyJob "RUNTIME $SECONDS start publishDailyReport"

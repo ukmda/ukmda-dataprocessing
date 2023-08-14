@@ -1,51 +1,5 @@
 ##############################################################################
-# role for EC2 servers 
-# Copyright (C) 2018-2023 Mark McIntyre
-
-resource "aws_iam_role" "calcserverrole" {
-  name        = "CalcServerRole"
-  description = "Allows EC2 CalcServer to connect to resources"
-  path        = "/service-role/"
-  assume_role_policy = jsonencode(
-    {
-      Statement = [
-        {
-          Action = "sts:AssumeRole"
-          Effect = "Allow"
-          Principal = {
-            Service = "ec2.amazonaws.com"
-          }
-        },
-      ]
-      Version = "2012-10-17"
-    }
-  )
-}
-resource "aws_iam_instance_profile" "calcserverrole" {
-  name = "CalcServerRole"
-  role = aws_iam_role.calcserverrole.name
-}
-
-resource "aws_iam_role_policy_attachment" "calcserverpolatt" {
-  role       = aws_iam_role.calcserverrole.name
-  policy_arn = aws_iam_policy.calcserverpol.arn
-}
-
-data "template_file" "calcserpoltempl" {
-  template = file("files/policies/ukmon-calcserverpolicy.json")
-
-  vars = {
-    ecsarn = aws_iam_role.ecstaskrole.arn
-  }
-}
-
-resource "aws_iam_policy" "calcserverpol" {
-  name   = "CalcServerPolicy"
-  policy = data.template_file.calcserpoltempl.rendered
-  tags = {
-    "billingtag" = "ukmon"
-  }
-}
+# Copyright (c) 2018- Mark McIntyre
 ##############################################################################
 # role used by Lambda functions
 resource "aws_iam_role" "S3FullAccess" {
@@ -62,24 +16,24 @@ resource "aws_iam_role" "S3FullAccess" {
             Service = "ec2.amazonaws.com"
           }
         },
-        {
-          # not sure this one is used, double check 
-          Action = "sts:AssumeRole"
-          Effect = "Allow"
-          Principal = {
-            Service = "lambda.amazonaws.com"
-            "AWS" : "arn:aws:iam::317976261112:root"
-          }
-        },
-        {
-          # give access to lambda functions in MJMM account
-          Action = "sts:AssumeRole"
-          Effect = "Allow"
-          Principal = {
-            AWS     = "arn:aws:iam::317976261112:role/lambda-s3-full-access-role"
-            Service = "lambda.amazonaws.com"
-          }
-        },
+#        {
+#          # not sure this one is used, double check 
+#          Action = "sts:AssumeRole"
+#          Effect = "Allow"
+#          Principal = {
+#            Service = "lambda.amazonaws.com"
+#            "AWS" : "arn:aws:iam::317976261112:root"
+#          }
+#        },
+#        {
+#          # give access to lambda functions in MJMM account
+#          Action = "sts:AssumeRole"
+#          Effect = "Allow"
+#          Principal = {
+#            AWS     = "arn:aws:iam::317976261112:role/lambda-s3-full-access-role"
+#            Service = "lambda.amazonaws.com"
+#          }
+#        },
         {
           # give access to S3FullAccess role used by EC2 in MJMM account
           Action = "sts:AssumeRole"
@@ -88,22 +42,14 @@ resource "aws_iam_role" "S3FullAccess" {
             AWS = "arn:aws:iam::317976261112:role/S3FullAccess"
           }
         },
-        {
-          # give access to ecsTaskRole role used by ECS in MJMM account
-          Action = "sts:AssumeRole"
-          Effect = "Allow"
-          Principal = {
-            AWS = "arn:aws:iam::317976261112:role/ecsTaskExecutionRole"
-          }
-        },
-        {
-          # give access to ecsTaskRole role used by ECS in EE account
-          Action = "sts:AssumeRole"
-          Effect = "Allow"
-          Principal = {
-            AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
-          }
-        },
+#        {
+#          # give access to ecsTaskRole role used by ECS in MJMM account
+#          Action = "sts:AssumeRole"
+#          Effect = "Allow"
+#          Principal = {
+#            AWS = "arn:aws:iam::317976261112:role/ecsTaskExecutionRole"
+#          }
+#        },
         {
           Action = "sts:AssumeRole"
           Effect = "Allow"

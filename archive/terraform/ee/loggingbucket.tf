@@ -1,4 +1,6 @@
-# Copyright (C) 2018-2023 Mark McIntyre
+##############################################################################
+# Copyright (c) 2018- Mark McIntyre
+##############################################################################
 
 resource "aws_s3_bucket" "logbucket" {
   bucket        = "ukmon-s3-access-logs"

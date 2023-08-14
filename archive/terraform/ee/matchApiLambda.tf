@@ -1,4 +1,6 @@
-# Copyright (C) 2018-2023 Mark McIntyre
+##############################################################################
+# Copyright (c) 2018- Mark McIntyre
+##############################################################################
 # Lambda for the Match data API. Need to rework this. 
 #
 data "archive_file" "matchapizip" {

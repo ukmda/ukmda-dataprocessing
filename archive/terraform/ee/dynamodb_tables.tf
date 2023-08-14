@@ -1,3 +1,6 @@
+##############################################################################
+# Copyright (c) 2018- Mark McIntyre
+##############################################################################
 # terraform to create the dynamodb tables
 
 resource "aws_dynamodb_table" "live_bright_table" {

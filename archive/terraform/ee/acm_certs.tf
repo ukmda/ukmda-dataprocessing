@@ -1,5 +1,6 @@
-# Copyright (C) 2018-2023 Mark McIntyre
-
+##############################################################################
+# Copyright (c) 2018- Mark McIntyre
+##############################################################################
 # ACM certificates for main domain name
 resource "aws_acm_certificate" "ukmeteornetworkcert" {
   domain_name   = "*.ukmeteornetwork.co.uk"

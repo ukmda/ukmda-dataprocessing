@@ -494,6 +494,11 @@ def addNewOwner(locstatfile, rmsid, location, user, email):
     ddb = conn.resource('dynamodb', region_name='eu-west-2')
     addRowToDDB(rmsid, location, ddb)
 
+    liveprof = os.getenv('LIVE_PROFILE', default='ukmonshared')
+    conn = boto3.Session(profile_name=liveprof)
+    ddb = conn.resource('dynamodb', region_name='eu-west-1')
+    addRowToDDB(rmsid, location, ddb, tblname='ukmon_camdetails')
+
     return
 
 
