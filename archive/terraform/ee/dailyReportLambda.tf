@@ -1,3 +1,6 @@
+##############################################################################
+# Copyright (c) 2018- Mark McIntyre
+##############################################################################
 #
 # terraform to create the lambdas in the MJMM account
 #
@@ -25,7 +28,7 @@ resource "aws_lambda_function" "dailyreportlambda" {
   environment {
     variables = {
       OFFSET = "1"
-      DEBUG  = "False"
+      DEBUG  = "True"
     }
   }
   ephemeral_storage {
