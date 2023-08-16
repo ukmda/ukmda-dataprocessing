@@ -73,7 +73,6 @@ def pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webpath):
         targloc=f'reports/{yr}/orbits/{ym}/{ymd}'
         outf.write(f'if [ -d {trajloc} ] ; then \n')
         outf.write(f'aws s3 sync {trajloc} {webpath}/{targloc} --quiet\n')
-        #outf.write(f'ssh ukmonhelper /home/ec2-user/prod/website/createOrbitIndex.sh {ymd}\n')
         outf.write('fi\n')
         outf.write(f'aws s3 sync {trajloc}/plots {webpath}/{targloc}/plots --quiet\n')
     outf.write(f'aws s3 sync trajectories/{yr}/plots {webpath}/reports/{yr}/orbits/plots --quiet\n')
