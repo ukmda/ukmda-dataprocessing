@@ -7,11 +7,6 @@ archive
 -------
 The code for archive.ukmeteornetwork.co.uk, including the data processing pipeline.
 
-
-docs
-----
-Incomplete documentation - to be filled out!
-
 live
 ----
 Code relating to handling of the ukmon-live feed.I have no idea how this works, i just dumped the lambda

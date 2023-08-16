@@ -57,21 +57,64 @@ Flow in findAllMatches.sh
 ```mermaid
     flowchart TD
 
-    setd[Set the Dates] --> ufo2rms[Convert any UFO data to RMS]
-    ufo2rms --> rmssngl[Create RMS single station data files]
+    setd[Set the Dates] --> rmssngl[Create RMS single station data files]
     rmssngl --> bkp1[Backup the current trajectory database]
     bkp1 --> rmat[Invoke runDistrib]
     rmat --> start[runDistrib Start calc engine]
     start --> creat[runDistrib Create batch script and copy to server]
     creat --> sync1[runDistrib script syncs new ftpdetect files]
-    sync1 --> run[runDistrib  Then runs the solver]
+    sync1 --> run[runDistrib  Then runs the the Phase 1 solver]
     run --> sync2[runDistrib Then syncs back to S3]
     sync2 --> done[runDistrib Stop calc engine]
-    done --> repo[Create file of latest matches]
+    done --> stage2[run the distributed solver phase 2 using ECS and Fargate]
+    stage2 --> consol[wait for containers to finish then consolidate the data]
+    consol --> repo[Create file of latest matches]
     repo --> stats[Create Stats and sync back to S3]
     stats --> idxpg[Update website index pages]
     idxpg --> gzi[Backup and gzip old trajectory databases]
     gzi --> d[FINISHED]
+```
+
+Flow in terms of files
+======================
+```mermaid
+    flowchart LR
+
+    nightly[cronjobs/nightlyJob.sh] --> datasync[utils/dataSync.sh]
+    nightly --> findmatches[analysis/findAllMatches.sh]
+    findmatches --> rmssngl[analysis/getRMSSingleData.sh]
+    findmatches --> srchabl[analysis/createSearchable.sh]
+    findmatches --> rundist[analysis/runDistrib.sh]
+    rundist --> trajcont[launches docker containers which solve and post directly to the website]
+    findmatches --> daily[creates daily report and stats]
+    findmatches --> indexes[website/updateIndexPages.sh]
+    indexes --> orbidx[website/createOrbitIndex.sh]
+    nightly --> consol[analysis/consolidateOutput.sh]
+    nightly --> srch2[analysis/createSearchable.sh]
+    nightly --> statlist[website/createStationList.sh]
+    nightly --> pubrep[website/publishDailyReport.sh]
+    nightly --> mthly[website/createMthlyExtracts.sh]
+    nightly --> shwr[website/createShwrExtracts.sh]
+    nightly --> fireb[website/createFireballPage.sh]
+    nightly --> swrepm[analysis/showerReport.sh month]
+    swrepm --> repidx[website/createReportIndex.sh]
+    nightly --> swrepy[analysis/showerReport.sh year]
+    swrepy --> repidx[website/createReportIndex.sh]
+    nightly --> activ[analysis/reportActiveShowers.sh]
+    activ --> repidx[website/createReportIndex.sh]
+    nightly --> summary[website/createSummaryTable.sh]
+    nightly --> cammets[create cam metrics]
+    nightly --> camstat[website/cameraStatusReport.sh]
+    camstat --> crlatab[website/createLatestTable.sh]
+    nightly --> statstat[analysis/getBadStations.sh]
+    nightly --> costs[website/costReport.sh]
+    nightly --> statreps[analysis/stationReports.sh]
+    nightly --> databack[utils/dataSyncBack.sh ]
+    nightly --> clearsp[utils/clearSpace.sh ]
+    nightly --> getlogs[analysis/getLogData.sh]
+    nightly --> done[done]
+
+
 ```
 
 Copyright
