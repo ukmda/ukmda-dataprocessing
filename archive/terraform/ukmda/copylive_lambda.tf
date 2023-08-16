@@ -74,16 +74,13 @@ resource "aws_iam_role_policy" "copylive_policy" {
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ],
-      "Resource": "arn:aws:logs:${var.liveregion}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/copyLiveFeed:*"
+      "Resource": "arn:aws:logs:${var.liveregion}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/CopyLiveFeed:*"
     },
     {
       "Effect": "Allow",
       "Action": [
         "s3:*",
-        "s3-object-lambda:*",
-        "ses:SendEmail",
-        "ses:Describe*",
-        "dynamodb:*"
+        "s3-object-lambda:*"
       ],
       "Resource": "*"
     }

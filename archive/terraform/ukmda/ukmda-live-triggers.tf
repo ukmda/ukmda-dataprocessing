@@ -12,5 +12,6 @@ resource "aws_s3_bucket_notification" "ukmda_live_notification" {
     events = [
       "s3:ObjectCreated:*"
     ]
+    filter_suffix       = ".jpg"
   }
 }
