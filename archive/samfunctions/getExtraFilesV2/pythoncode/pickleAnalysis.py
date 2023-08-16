@@ -471,13 +471,27 @@ def calcAdditionalValues(traj):
 
 def createAdditionalOutput(traj, outdir):
     # calculate the values
-    amag, vmag, mass, id, cod, shwrname, orb, shower_obj, lg, bg, vg, _ = calcAdditionalValues(traj)
+    try:
+        amag, vmag, mass, id, cod, shwrname, orb, shower_obj, lg, bg, vg, _ = calcAdditionalValues(traj)
+    except:
+        print('problem calculating additional data')
+        id = -1
+        cod = 'spo'
+        shwrname = 'Sporadic'
+        amag = 0
+        vmag = 0
+        mass = 0
+        shower_obj = None
+        orb = None
+        lg = 0
+        vg = 0
+        bg = 0
 
     if id != -1:
         iau_link= f'https://www.ta3.sk/IAUC22DB/MDC2007/Roje/pojedynczy_obiekt.php?kodstrumienia={id:05d}'
 
     # create Summary report for webpage
-    #print('creating summary report')
+    print('creating summary report')
     summrpt = os.path.join(outdir, 'summary.html')
 
     if traj.save_results:
@@ -508,34 +522,46 @@ def createAdditionalOutput(traj, outdir):
             f.write('------------\n')
             f.write('start {:.2f}&deg; {:.2f}&deg; {:.2f}km\n'.format(np.degrees(traj.rbeg_lon), np.degrees(traj.rbeg_lat), traj.rbeg_ele / 1000))
             f.write('end   {:.2f}&deg; {:.2f}&deg; {:.2f}km\n\n'.format(np.degrees(traj.rend_lon), np.degrees(traj.rend_lat), traj.rend_ele / 1000))
-            tracklen = greatCircleDistance(traj.rbeg_lat, traj.rbeg_lon, traj.rend_lat, traj.rend_lon)*1000
-            vertdist = traj.rbeg_ele - traj.rend_ele
-            if abs(tracklen) < 1:
+            try: 
+                tracklen = greatCircleDistance(traj.rbeg_lat, traj.rbeg_lon, traj.rend_lat, traj.rend_lon)*1000
+                vertdist = traj.rbeg_ele - traj.rend_ele
+                if abs(tracklen) < 1:
+                    aoe = 90
+                else:
+                    aoe = np.degrees(np.arctan(vertdist/tracklen))
+            except Exception:
+                tracklen = 0
                 aoe = 90
-            else:
-                aoe = np.degrees(np.arctan(vertdist/tracklen))
             f.write(f'approx track length {tracklen/1000:.1f} km\n')
             f.write(f'approx angle of entry {aoe:.0f}&deg; from horizontal\n\n')
             f.write('Orbit Details\n')
             f.write('-------------\n')
-            if orb.L_g is not None:
-                f.write('Semimajor axis {:.2f}A.U., eccentricity {:.2f}, inclination {:.2f}&deg;, '.format(orb.a, orb.e, np.degrees(orb.i)))
-                f.write('Period {:.2f}Y, LA Sun {:.2f}&deg;, '.format(orb.T, np.degrees(orb.la_sun)))
-                if orb.last_perihelion is not None:
-                    f.write('last Perihelion {:s}'.format(orb.last_perihelion.strftime('%Y-%m-%d')))
-                f.write('\n')
+            if orb is not None:
+                if orb.L_g is not None:
+                    f.write('Semimajor axis {:.2f}A.U., eccentricity {:.2f}, inclination {:.2f}&deg;, '.format(orb.a, orb.e, np.degrees(orb.i)))
+                    f.write('Period {:.2f}Y, LA Sun {:.2f}&deg;, '.format(orb.T, np.degrees(orb.la_sun)))
+                    if orb.last_perihelion is not None:
+                        f.write('last Perihelion {:s}'.format(orb.last_perihelion.strftime('%Y-%m-%d')))
+                    f.write('\n')
+                else:
+                    f.write('unable to calculate realistic orbit details\n')
             else:
                 f.write('unable to calculate realistic orbit details\n')
             f.write('\nFull details below\n')
 
         #print('saved')
+    else:
+        print('traj.save_results false')
     if orb is not None:
         try:
             createUFOOrbitFile(traj, outdir, amag, mass, shower_obj)
         except Exception:
             print('problem creating UFO style output')
-        draw2DTrack(traj, outdir)
-        draw3DTrack(traj, outdir)
+        try:
+            draw2DTrack(traj, outdir)
+            draw3DTrack(traj, outdir)
+        except Exception:
+            print('problem creating 2/3d tracks')
     else:
         print('no orbit object')
     return 

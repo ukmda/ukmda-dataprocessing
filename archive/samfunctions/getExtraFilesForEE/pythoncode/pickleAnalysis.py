@@ -534,8 +534,11 @@ def createAdditionalOutput(traj, outdir):
             createUFOOrbitFile(traj, outdir, amag, mass, shower_obj)
         except Exception:
             print('problem creating UFO style output')
-        draw2DTrack(traj, outdir)
-        draw3DTrack(traj, outdir)
+        try:
+            draw2DTrack(traj, outdir)
+            draw3DTrack(traj, outdir)
+        except Exception:
+            print('problem creating 2d/3d tracks')
     else:
         print('no orbit object')
     return 

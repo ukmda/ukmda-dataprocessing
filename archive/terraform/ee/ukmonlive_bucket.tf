@@ -45,6 +45,7 @@ resource "aws_s3_bucket_acl" "ukmonliveacl" {
       id = data.aws_canonical_user_id.current.id
     }
 
+/*
     grant {
       permission = "READ"
       grantee {
@@ -66,6 +67,7 @@ resource "aws_s3_bucket_acl" "ukmonliveacl" {
         uri  = "http://acs.amazonaws.com/groups/s3/LogDelivery"
       }
     }
+*/
     grant {
       permission = "FULL_CONTROL"
       grantee {

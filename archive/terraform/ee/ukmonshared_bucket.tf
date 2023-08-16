@@ -54,12 +54,10 @@ resource "aws_s3_bucket_policy" "ukmonsharedbp" {
                 "StringNotLike": {
                     "aws:userId": [
                         "AIDA36ZZGKDHZEZFXA7BB",  # markmcintyre 
-                        "AIDA36ZZGKDH4LUPSQ3CB",  # ash_vale
                         "AIDA36ZZGKDHXYCBTWWC2",  # eastbourne
                         "AIDA36ZZGKDHZAWQZON7B",  # loscoe
                         "AIDA36ZZGKDH4LW3WF2GJ",  # Church_Cro
                         "AIDA36ZZGKDHWBV7ZQISQ",  # chard
-                        "AIDA36ZZGKDHQ4TPUOLA2",  # ukmon-rickzkm
                         "AROAUUCG4WH4GFCTQIKH3:*", # S3FullAccess in MJMM account
                         "AROA36ZZGKDHWAMYFNTWV:*", # DailyReportRole in EE account
                         "AIDASVSZXPTTB3UZT4E2B",
@@ -101,6 +99,13 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmonsharedlcp" {
     noncurrent_version_expiration {
       noncurrent_days = 1
     }
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 1
+    }
+    expiration {
+      days                         = 0 
+      expired_object_delete_marker = true 
+    }  
   }
   rule {
     status = "Enabled"

@@ -35,6 +35,9 @@ aws s3 sync s3://ukmeteornetworkarchive/img/kmls/  s3://ukmda-website/img/kmls/ 
 aws s3 sync s3://ukmon-shared/consolidated/platepars/ s3://ukmda-shared/consolidated/platepars/  --quiet
 aws s3 sync s3://ukmon-shared/kmls/ s3://ukmda-shared/kmls/  --quiet
 
+# make a note of which data is still being uploaded to the old share
+python -m maintenance.checkUploadTimes
+
 # sync the solver data. Loop over locations and cams for scan efficiency
 # we will sync the other way AFTER the batch has run, because we don't want to delay the batch unnecessarily
 # files are in a folder dated yesterday
@@ -44,7 +47,7 @@ for cam in $cams ; do
     days=$(aws s3 ls s3://ukmon-shared/matches/RMSCorrelate/${cam} | grep PRE | awk '{print $2}' | egrep -v "daily|traj|plots|:" | grep ${pymd})
     if [ $? == 0 ]; then 
     for day in $days ; do 
-            aws s3 sync s3://ukmon-shared/matches/RMSCorrelate/${cam}${day} s3://ukmda-shared/matches/RMSCorrelate/${cam}${day}  --quiet
+            aws s3 sync s3://ukmon-shared/matches/RMSCorrelate/${cam}${day} s3://ukmda-shared/matches/RMSCorrelate/${cam}${day} 
         done
     fi
 done

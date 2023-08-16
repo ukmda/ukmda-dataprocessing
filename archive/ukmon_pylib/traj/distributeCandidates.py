@@ -179,10 +179,55 @@ def monitorProgress(rundate):
 
     # wait 20s before testing whether everything is running
     time.sleep(20.0)
-    print('starting checks')
+    print('starting checks')    
     taskcount = len(taskarns)
     while taskcount > 0:
-        sts = client.describe_tasks(cluster=clusname, tasks=taskarns)
+        # can't describe more than 99 tasks at a time
+        sts = client.describe_tasks(cluster=clusname, tasks=taskarns[:99])
+        for tsk in sts['tasks']:
+            print(f'checking {tsk["taskArn"][51:]}')
+            idx = taskarns.index(tsk['taskArn'])
+            if tsk['lastStatus'] == 'STOPPED':
+                if tsk['stopCode'] != 'EssentialContainerExited':
+                    # retry the task
+                    thisjson = createTaskTemplate(rundate, bucknames[idx])
+                    response = client.run_task(**thisjson)
+                    taskarns[idx] = response['tasks'][0]['taskArn']
+                    print('task restarted')
+                else:
+                    thisarn=taskarns.pop(idx)
+                    thisbuck = bucknames.pop(idx)
+                    taskcount -= 1
+                    _, thisbuck = os.path.split(thisbuck)
+                    try:
+                        pref = f'matches/distrib/{thisbuck}/'
+                        objects_to_delete = s3.list_objects(Bucket=archbucket, Prefix=pref)
+                        delete_keys = {'Objects': []}
+                        delete_keys['Objects'] = [{'Key': k} for k in [obj['Key'] for obj in objects_to_delete.get('Contents', [])]]
+                        s3.delete_objects(Bucket=archbucket, Delete=delete_keys)
+                    except:
+                        print('folder already removed')
+                    print('task completed')
+
+                    # collect the logs from CloudWatch 
+                    realfname=None
+                    logdir = os.path.join(datadir, '..', 'logs', 'distrib')
+                    os.makedirs(logdir, exist_ok=True)
+                    tmpfname = os.path.join(logdir, f'{thisarn[51:]}.log')
+                    with open(tmpfname, 'w') as outf:
+                        for events in getLogDetails(loggrp, thisarn[51:], contname):
+                            for evt in events:
+                                evtdt = datetime.datetime.fromtimestamp(int(evt['timestamp']) / 1000)
+                                msg = evt['message']
+                                outf.write(f'{evtdt} {msg}\n')
+                                if msg[:10] == 'processing':
+                                    realfname = msg[11:].strip()
+
+                    locname = os.path.join(logdir, f'{realfname}.log')
+                    os.rename(tmpfname, locname)
+                    remlog = f'matches/distrib/logs/{realfname}.log'
+                    s3.upload_file(Filename=locname, Bucket=archbucket, Key=remlog)
+        sts = client.describe_tasks(cluster=clusname, tasks=taskarns[99:])
         for tsk in sts['tasks']:
             print(f'checking {tsk["taskArn"][51:]}')
             idx = taskarns.index(tsk['taskArn'])
@@ -228,8 +273,33 @@ def monitorProgress(rundate):
                     s3.upload_file(Filename=locname, Bucket=archbucket, Key=remlog)
         if taskcount > 0:
             # wait 60s before checking again
+            print('sleeping for 60s')
             time.sleep(60.0)
     return
+
+
+def getMissedLogs(picklefile):
+    s3 = boto3.client('s3')
+    archbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
+    dumpdata = pickle.load(open(picklefile,'rb'))
+    taskarns = dumpdata[1]
+    loggrp = '/ecs/trajcont'
+    contname = 'trajcont'
+    logdir = '/home/ec2-user/prod/logs/distrib'
+    for thisarn in taskarns:
+        tmpfname = os.path.join(logdir, f'{thisarn[51:]}.log')
+        with open(tmpfname, 'w') as outf:
+            for events in getLogDetails(loggrp, thisarn[51:], contname):
+                for evt in events:
+                    evtdt = datetime.datetime.fromtimestamp(int(evt['timestamp']) / 1000)
+                    msg = evt['message']
+                    outf.write(f'{evtdt} {msg}\n')
+                    if msg[:10] == 'processing':
+                        realfname = msg[11:].strip()
+        locname = os.path.join(logdir, f'{realfname}.log')
+        os.rename(tmpfname, locname)
+        remlog = f'matches/distrib/logs/{realfname}.log'
+        s3.upload_file(Filename=locname, Bucket=archbucket, Key=remlog)
 
 
 def getLogDetails(loggrp, thisarn, contname, region_name='eu-west-2'):
