@@ -11,26 +11,29 @@ sam deploy
 
 # APIS
 ## fetchECSV
-Creates an API to download ECSV format files for individual detections. ECSV is the common data format used by multiple networks. 
+API to download ECSV format files for individual detections. ECSV is the common data format used by multiple networks. 
 
 ## fireballApi
-Creates an API for retrieving fireball-specific files
+API for retrieving fireball-specific files
 
 ## getLiveImages
-Creates an API that returns a list of live images matching a date/time pattern.
+API that returns a list of live images matching a date/time pattern.
 
 ## matchPickle
-Creates an API to provide an interface to retrieve data about matches. 
+API to provide an interface to retrieve data about matches. 
 
 ## searchArchive
-Creates an API to provide an interface to search the archive. The API is exposed via javascript on the website.
+API to provide an interface to search the archive. The API is exposed via javascript on the website.
 
 # Internal Functions
 ## getExtraFilesV2
-Creates a lambda  within the data processing pipeline to create extra data about each matched detection. 
+Lambda within the data processing pipeline to create extra data about each matched detection. 
+
+## getExtraFilesEE
+As above, but used in the EE account to update the main website. 
 
 ## ftpToUkmon
-Creates a lambda that is triggered when an FTPdetect file is uploaded and converts the data into the
+Lambda that is triggered when an FTPdetect file is uploaded and converts the data into the
 UKMON internal format.
 
 ## Copyright

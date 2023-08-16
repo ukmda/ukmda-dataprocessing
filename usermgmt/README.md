@@ -5,15 +5,15 @@ This folder contains the scripts used to add/maintain new members.
 ## Basic Principles
 A camera consists of a location and pointing direction. 
 
-Each _location_ is assigned a unique *AWS* user with credentials that grant suitable permissions to the S3 storage. 
+Each _location_ is assigned a unique *AWS* user with credentials that grant suitable permissions to the S3 storage. For example, a contributor in Toytown might be assigned a unique AWS user "Toytown".
 
 AWS credentials are not shared between locations. If a location's credentials are compromised, they can be disabled without impacting the rest of the network and new credentials can then be issued. The *ukmon-pitools* toolset is designed so that new credentials will be picked up the next time *refreshTools.sh* is run on the impacted Pi (either at reboot or manually).
 
-Each _camera_ is allocated a unique *Unix* ID. The public ssh key provided by the operator is used to enable *ukmon-pitools* to login and collect configuration information for the camera. SSH keys are not shared between cameras. 
+Each _camera_ is allocated a unique *Unix* ID. The public ssh key provided by the operator is used to enable *ukmon-pitools* to login and collect configuration information for the camera. For example if the contributor at Toytown had two cameras facing North and South, the cameras might be named "toytown_s" and "toytown_n". Note that camera names are in lower case, must be unique and also that SSH keys are not shared between cameras.  
 
 
 # User Management tool
-Unix and AWS User creation and configuration are managed by *stationMaint2.py* which uses native AWS and Unix libraries to execute the required commands. The tool requires AWS credentials which are restricted to UKMON administrators. 
+Unix and AWS User creation and configuration are managed by *stationMaint.ps1* which calls a python programme that uses native AWS and Unix libraries to execute the required commands. The tool requires AWS credentials which are restricted to UKMON administrators (see note below). 
 
 ## Adding a new camera
 To add a new camera the camera operator must supply the following:
@@ -34,6 +34,8 @@ All other values can be amended by selecting the line and updating the values.
 
 ## Moving a camera
 To move a camera to a new location, select the row containing the camera then select Camera/Move. After you fill in any new information, a new unix and AWS user will be created and the configuration files for the old user will be updated. The old camera must then be marked disabled as explained next. 
+
+IMPORTANT NOTE: the camera owner should NOT make any changes - the system will automatically update their configuration.
 
 ## Disabling a camera
 To disable a camera, change the Active column from 1 to today's date in YYYYMMDD format eg 20220715. This removes the camera from current UKMON reporting, but retains the details for any historical reporting. 
