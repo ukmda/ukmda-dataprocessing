@@ -28,7 +28,7 @@ resource "aws_lambda_function" "dailyreportlambda" {
   environment {
     variables = {
       OFFSET = "1"
-      DEBUG  = "True"
+      DEBUG  = "False"
     }
   }
   ephemeral_storage {
