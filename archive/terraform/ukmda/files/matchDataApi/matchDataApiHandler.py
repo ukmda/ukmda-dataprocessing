@@ -6,13 +6,14 @@ import boto3
 
 
 def lambda_handler(event, context):
-    try:
-        target = os.environ['SRCHBUCKET']
-    except Exception:
-        target = 'mjmm-ukmonarchive.co.uk'
-
+    target = os.getenv('SRCHBUCKET', default='ukmda-shared')
     print('received event', json.dumps(event))
     qs = event['queryStringParameters']
+    if qs is None:
+        return {
+            'statusCode': 200,
+            'body': 'usage: detections?reqtyp=xxx&reqval=yyyy'
+        }
     reqtyp = qs['reqtyp']
     reqval = qs['reqval']
 
