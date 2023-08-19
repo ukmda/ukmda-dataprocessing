@@ -42,6 +42,15 @@ def getFBfiles(patt):
     flist = []
     buck_name = os.getenv('ARCHBUCKET', default='ukmda-shared')
     s3 = boto3.client('s3', region_name='eu-west-2')
+    spls = patt.split('_')
+    if len(spls) < 3:
+        return 'incorrect pattern: should be eg UK0001_20230814_021123'
+    try: 
+        _ = spls[1].strftime('%Y%m%d')
+        _ = spls[2].strftime('%Y%m%d')
+    except:
+        return 'incorrect pattern: should be eg UK0001_20230814_021123'
+    
     fullpatt = f'fireballs/interesting/FF_{patt}'
     print(f'looking for {fullpatt} in {buck_name}')
     x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
@@ -134,12 +143,24 @@ def getFBfiles(patt):
 def lambda_handler(event, context):
     #print(event)
     qs = event['queryStringParameters']
-    patt = qs['pattern']
-    data = getFBfiles(patt)
-    return {
-        'statusCode': 200,
-        'body': json.dumps(data), 
-    }
+    if qs is not None:
+        if 'pattern' in qs:
+            patt = qs['pattern']
+            data = getFBfiles(patt)
+            return {
+                'statusCode': 200,
+                'body': json.dumps(data), 
+            }
+        else:
+            return {
+                'statusCode': 200,
+                'body': 'usage: getFireballFiles?pattern=UKcccccc_YYYYmmdd_HHMMSS'
+            }
+    else:
+        return {
+            'statusCode': 200,
+            'body': 'usage: getFireballFiles?pattern=UKcccccc_YYYYmmdd_HHMMSS'
+        }
 
 
 if __name__ == '__main__':

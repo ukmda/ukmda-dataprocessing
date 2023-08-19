@@ -20,8 +20,11 @@ Resources:
         HttpGet:
           Type: Api
           Properties:
-            Path: '/getfb'
+            Path: '/'
             Method: get
+            RequestParameters: [
+              'method.request.querystring.pattern': {Required: true},
+            ]
       Tags:
         billingtag: "ukmda"
     Metadata:
