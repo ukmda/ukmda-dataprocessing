@@ -32,8 +32,16 @@ resource "aws_lambda_function" "matchapilambda" {
   }
 }
 
+data "template_file" "match_body_templ" {
+  template = file("files/matchApiJson/ukmdaMatchApi.json")
+  vars = {
+    thisacct = "${data.aws_caller_identity.current.account_id}"
+  }
+}
+
+
 resource "aws_api_gateway_rest_api" "matchapi_apigateway" {
-  body     = file("files/matchApiJson/ukmdaMatchApi.json")
+  body     = data.template_file.match_body_templ.rendered # file("files/matchApiJson/ukmdaMatchApi.json")
   name     = "ukmdaMatchApi"
   provider = aws.eu-west-1-prov
   endpoint_configuration {
@@ -71,4 +79,13 @@ resource "aws_api_gateway_deployment" "matchapi_deployment" {
   lifecycle {
     create_before_destroy = true
   }
+}
+
+resource "aws_lambda_permission" "perm_apigw_match" {
+  statement_id   = "AllowExecutionFromAPIGW"
+  action         = "lambda:InvokeFunction"
+  function_name  = aws_lambda_function.matchapilambda.arn
+  principal      = "apigateway.amazonaws.com"
+  source_arn     = "arn:aws:execute-api:eu-west-2:183798037734:975kbpqxg6/*/GET/"
+  #source_arn     = "${aws_api_gateway_rest_api.matchapi_apigateway.arn}/*/*"
 }
