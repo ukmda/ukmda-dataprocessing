@@ -184,9 +184,27 @@ def monitorProgress(rundate):
     while taskcount > 0:
         # can't describe more than 99 tasks at a time
         sts = client.describe_tasks(cluster=clusname, tasks=taskarns[:99])
+        #print(sts)
+        for tsk in sts['failures']:
+            if tsk['reason'] == 'MISSING':
+                idx = taskarns.index(tsk['arn'])
+                thisarn=taskarns.pop(idx)
+                thisbuck = bucknames.pop(idx)
+                taskcount -= 1
+                _, thisbuck = os.path.split(thisbuck)
+                try:
+                    pref = f'matches/distrib/{thisbuck}/'
+                    objects_to_delete = s3.list_objects(Bucket=archbucket, Prefix=pref)
+                    delete_keys = {'Objects': []}
+                    delete_keys['Objects'] = [{'Key': k} for k in [obj['Key'] for obj in objects_to_delete.get('Contents', [])]]
+                    s3.delete_objects(Bucket=archbucket, Delete=delete_keys)
+                except:
+                    print('folder already removed')
+                print(f'task {tsk["arn"][51:]} completed already')
         for tsk in sts['tasks']:
             print(f'checking {tsk["taskArn"][51:]}')
             idx = taskarns.index(tsk['taskArn'])
+            print(tsk['taskArn'], tsk['LastStatus'])
             if tsk['lastStatus'] == 'STOPPED':
                 if tsk['stopCode'] != 'EssentialContainerExited':
                     # retry the task
@@ -227,18 +245,11 @@ def monitorProgress(rundate):
                     os.rename(tmpfname, locname)
                     remlog = f'matches/distrib/logs/{realfname}.log'
                     s3.upload_file(Filename=locname, Bucket=archbucket, Key=remlog)
-        sts = client.describe_tasks(cluster=clusname, tasks=taskarns[99:])
-        for tsk in sts['tasks']:
-            print(f'checking {tsk["taskArn"][51:]}')
-            idx = taskarns.index(tsk['taskArn'])
-            if tsk['lastStatus'] == 'STOPPED':
-                if tsk['stopCode'] != 'EssentialContainerExited':
-                    # retry the task
-                    thisjson = createTaskTemplate(rundate, bucknames[idx])
-                    response = client.run_task(**thisjson)
-                    taskarns[idx] = response['tasks'][0]['taskArn']
-                    print('task restarted')
-                else:
+        if len(taskarns) > 99:
+            sts = client.describe_tasks(cluster=clusname, tasks=taskarns[99:199])
+            for tsk in sts['failures']:
+                if tsk['reason'] == 'MISSING':
+                    idx = taskarns.index(tsk['arn'])
                     thisarn=taskarns.pop(idx)
                     thisbuck = bucknames.pop(idx)
                     taskcount -= 1
@@ -251,26 +262,50 @@ def monitorProgress(rundate):
                         s3.delete_objects(Bucket=archbucket, Delete=delete_keys)
                     except:
                         print('folder already removed')
-                    print('task completed')
+                    print(f'task {tsk["arn"][51:]} completed already')
+            for tsk in sts['tasks']:
+                print(f'checking {tsk["taskArn"][51:]}')
+                idx = taskarns.index(tsk['taskArn'])
+                if tsk['lastStatus'] == 'STOPPED':
+                    if tsk['stopCode'] != 'EssentialContainerExited':
+                        # retry the task
+                        thisjson = createTaskTemplate(rundate, bucknames[idx])
+                        response = client.run_task(**thisjson)
+                        taskarns[idx] = response['tasks'][0]['taskArn']
+                        print('task restarted')
+                    else:
+                        thisarn=taskarns.pop(idx)
+                        thisbuck = bucknames.pop(idx)
+                        taskcount -= 1
+                        _, thisbuck = os.path.split(thisbuck)
+                        try:
+                            pref = f'matches/distrib/{thisbuck}/'
+                            objects_to_delete = s3.list_objects(Bucket=archbucket, Prefix=pref)
+                            delete_keys = {'Objects': []}
+                            delete_keys['Objects'] = [{'Key': k} for k in [obj['Key'] for obj in objects_to_delete.get('Contents', [])]]
+                            s3.delete_objects(Bucket=archbucket, Delete=delete_keys)
+                        except:
+                            print('folder already removed')
+                        print('task completed')
 
-                    # collect the logs from CloudWatch 
-                    realfname=None
-                    logdir = os.path.join(datadir, '..', 'logs', 'distrib')
-                    os.makedirs(logdir, exist_ok=True)
-                    tmpfname = os.path.join(logdir, f'{thisarn[51:]}.log')
-                    with open(tmpfname, 'w') as outf:
-                        for events in getLogDetails(loggrp, thisarn[51:], contname):
-                            for evt in events:
-                                evtdt = datetime.datetime.fromtimestamp(int(evt['timestamp']) / 1000)
-                                msg = evt['message']
-                                outf.write(f'{evtdt} {msg}\n')
-                                if msg[:10] == 'processing':
-                                    realfname = msg[11:].strip()
+                        # collect the logs from CloudWatch 
+                        realfname=None
+                        logdir = os.path.join(datadir, '..', 'logs', 'distrib')
+                        os.makedirs(logdir, exist_ok=True)
+                        tmpfname = os.path.join(logdir, f'{thisarn[51:]}.log')
+                        with open(tmpfname, 'w') as outf:
+                            for events in getLogDetails(loggrp, thisarn[51:], contname):
+                                for evt in events:
+                                    evtdt = datetime.datetime.fromtimestamp(int(evt['timestamp']) / 1000)
+                                    msg = evt['message']
+                                    outf.write(f'{evtdt} {msg}\n')
+                                    if msg[:10] == 'processing':
+                                        realfname = msg[11:].strip()
 
-                    locname = os.path.join(logdir, f'{realfname}.log')
-                    os.rename(tmpfname, locname)
-                    remlog = f'matches/distrib/logs/{realfname}.log'
-                    s3.upload_file(Filename=locname, Bucket=archbucket, Key=remlog)
+                        locname = os.path.join(logdir, f'{realfname}.log')
+                        os.rename(tmpfname, locname)
+                        remlog = f'matches/distrib/logs/{realfname}.log'
+                        s3.upload_file(Filename=locname, Bucket=archbucket, Key=remlog)
         if taskcount > 0:
             # wait 60s before checking again
             print('sleeping for 60s')
