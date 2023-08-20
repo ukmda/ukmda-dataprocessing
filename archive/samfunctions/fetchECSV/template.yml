@@ -22,11 +22,13 @@ Resources:
           Properties:
             Path: '/'
             Method: get
-            RequestParameters: [
-              'method.request.querystring.stat': {Required: true},
-              'method.request.querystring.dt': {Required: true}
-            ]
+            RequestParameters: 
+              - method.request.querystring.stat:
+                  Required: true
+              - method.request.querystring.dt: 
+                  Required: true
       Tags:
         billingtag: "ukmda"
+        typetag: "api"
     Metadata:
       BuildMethod: python3.8

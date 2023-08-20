@@ -263,14 +263,21 @@ def removefiles(localftpname, ppname, cfgname):
 
 def lambda_handler(event, context):
     qs = event['queryStringParameters']
-    stat = qs['stat']
-    dt = qs['dt']
-    #print(stat, dt)
-    ecsvstr = fetchECSV(stat, dt)
-    return {
-        'statusCode': 200,
-        'body': ecsvstr # json.dumps(res)
-    }
+    if qs is not None:
+        if 'stat' in qs or 'dt' in qs:
+            stat = qs['stat']
+            dt = qs['dt']
+            #print(stat, dt)
+            ecsvstr = fetchECSV(stat, dt)
+            return {
+                'statusCode': 200,
+                'body': ecsvstr # json.dumps(res)
+            }
+    else:
+        return {
+            'statusCode': 200,
+            'body': "usage: getecsv?stat=UKxxxx&dt=YYYY-mm-ddTHH:MM:SS.fff"
+        }
 
 
 if __name__ == '__main__':

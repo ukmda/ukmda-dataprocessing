@@ -13,11 +13,12 @@
 To use this function, first create the candidate pickle files, then copy them to the candidates
 folder on the calcserver and submit themto the distributed processing engine with the following:
 
-source /home/ec2-user/venvs/wmpl/bin/activate
+source $here/../config.ini >/dev/null 2>&1
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib:/home/ec2-user/src/ukmon_pylib
 export AWS_PROFILE=ukmonshared
 cd /home/ec2-user/ukmon-shared/matches/RMSCorrelate/candidates
-time python -m traj.distributeCandidates 20230113 /home/ec2-user/ukmon-shared/matches/RMSCorrelate/candidates s3://ukmon-shared/matches/distrib
+time python -m traj.distributeCandidates 20230113 /home/ec2-user/ukmon-shared/matches/RMSCorrelate/candidates $UKMONSHAREDBUCKET/matches/distrib
 
 when this completes, logoff the calcserver and shut it down again
 On the ukmonhelper run this script to wait for the distrib processing to finish and then 
@@ -28,16 +29,22 @@ merge in the data
 
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-logger -s -t onlyConsolDistrib "RUNTIME $SECONDS starting onlyConsolDistri"
+logger -s -t onlyConsolDistrib "RUNTIME $SECONDS starting onlyConsolDistrib"
 
 # load the configuration
 source $here/../config.ini >/dev/null 2>&1
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 # set the profile to the EE account so we can run the server and monitor progress
 export AWS_PROFILE=ukmonshared
 
-begdate=$(date --date="-$MATCHSTART days" '+%Y%m%d')
-rundate=$(date --date="-$MATCHEND days" '+%Y%m%d')
+
+if [ "$1" == "" ] ; then 
+    rundate=$(date --date="-$MATCHEND days" '+%Y%m%d')
+else
+    rundate=$1
+fi 
+logger -s -t onlyConsolDistrib "RUNTIME $SECONDS consolidating for $rundate"
 
 python -c "from traj.distributeCandidates import monitorProgress as mp; mp('${rundate}'); "
 
@@ -80,7 +87,7 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
         
         echo "#!/bin/bash" > /tmp/execConsol.sh
         echo "export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib:/home/ec2-user/src/ukmon_pylib" >> /tmp/execConsol.sh
-        echo "python -m traj.consolidateDistTraj ~/data/distrib/ ~/data/distrib/processed_trajectories.json" >> /tmp/execConsol.sh
+        echo "python -m traj.consolidateDistTraj ~/data/distrib/ ~/data/distrib/processed_trajectories.json ${rundate}" >> /tmp/execConsol.sh
         chmod +x /tmp/execConsol.sh
         scp -i $SERVERSSHKEY /tmp/execConsol.sh ec2-user@$privip:data/distrib
         ssh -i $SERVERSSHKEY ec2-user@$privip "data/distrib/execConsol.sh"

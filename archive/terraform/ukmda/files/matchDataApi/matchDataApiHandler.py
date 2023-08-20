@@ -6,18 +6,19 @@ import boto3
 
 
 def lambda_handler(event, context):
-    try:
-        target = os.environ['SRCHBUCKET']
-    except Exception:
-        target = 'mjmm-ukmonarchive.co.uk'
-
-    print('received event', json.dumps(event))
+    target = os.getenv('SRCHBUCKET', default='ukmda-shared')
+    #print('received event', json.dumps(event))
     qs = event['queryStringParameters']
+    if qs is None:
+        return {
+            'statusCode': 200,
+            'body': 'usage: detections?reqtyp=xxx&reqval=yyyy'
+        }
     reqtyp = qs['reqtyp']
     reqval = qs['reqval']
 
     if reqtyp not in ['matches','detail','station']:
-        res = '{"invalid request type - must be one of \'matches\' or \'details\'"}'
+        res = '{"invalid request type - must be one of \'matches\', \'details\' or \'station\'"}'
     else:
         if reqtyp == 'matches':
             d1 = datetime.datetime.strptime(reqval, '%Y%m%d')
@@ -40,14 +41,11 @@ def lambda_handler(event, context):
 
         s3 = boto3.client('s3')
         resp = s3.select_object_content(Bucket=target, Key=idxfile, ExpressionType='SQL',
-            Expression=expr,
-            InputSerialization={'CSV': fhi, 'CompressionType': 'NONE'},
-            OutputSerialization={'JSON': {}},
-        )
-    
+            Expression=expr, InputSerialization={'CSV': fhi, 'CompressionType': 'NONE'}, OutputSerialization={'JSON': {}}, )
+        res=''
         for event in resp['Payload']:
             if 'Records' in event:
-                res = event['Records']['Payload'].decode('utf-8')
+                res = res + event['Records']['Payload'].decode('utf-8')
     
     return {
         'statusCode': 200,
