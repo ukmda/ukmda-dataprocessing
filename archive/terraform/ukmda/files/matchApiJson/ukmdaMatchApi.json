@@ -60,7 +60,7 @@
         "x-amazon-apigateway-request-validator" : "Validate body, query string parameters, and headers",
         "x-amazon-apigateway-integration" : {
           "httpMethod" : "POST",
-          "uri" : "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:822069317839:function:matchDataApiHandler/invocations",
+          "uri" : "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:${thisacct}:function:matchDataApiHandler/invocations",
           "responses" : {
             "default" : {
               "statusCode" : "200",
