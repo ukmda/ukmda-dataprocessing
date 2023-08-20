@@ -44,10 +44,10 @@ def lambda_handler(event, context):
             InputSerialization={'CSV': fhi, 'CompressionType': 'NONE'},
             OutputSerialization={'JSON': {}},
         )
-    
+        res=''
         for event in resp['Payload']:
             if 'Records' in event:
-                res = event['Records']['Payload'].decode('utf-8')
+                res = res + event['Records']['Payload'].decode('utf-8')
     
     return {
         'statusCode': 200,
