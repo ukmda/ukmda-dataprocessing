@@ -17,7 +17,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmonlogslcp" {
     status = "Enabled"
     id     = "purge old versions"
     noncurrent_version_expiration {
-      noncurrent_days = 30
+      noncurrent_days = 10
     }
   }
   rule {
@@ -48,6 +48,23 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmonlogslcp" {
 
     filter {
       prefix = "archsite/"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 5
+    }
+  }
+  rule {
+    id     = "purge old cloudfront logs"
+    status = "Enabled"
+
+    expiration {
+      days                         = 10
+      expired_object_delete_marker = false
+    }
+
+    filter {
+      prefix = "cdn/"
     }
 
     noncurrent_version_expiration {

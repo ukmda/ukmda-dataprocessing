@@ -51,6 +51,24 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmdalogslcp" {
       noncurrent_days = 5
     }
   }
+  rule {
+    id     = "purge old cloudfront logs"
+    status = "Enabled"
+
+    expiration {
+      days                         = 10
+      expired_object_delete_marker = false
+    }
+
+    filter {
+      prefix = "cdn/"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 5
+    }
+  }
+
 }
 
 resource "aws_s3_bucket_public_access_block" "logging-w2-pab" {
