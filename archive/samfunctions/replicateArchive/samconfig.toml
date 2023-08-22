@@ -1,0 +1,12 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "replicateArchive"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1ulna2hoktme4"
+s3_prefix = "replicateArchive"
+region = "eu-west-2"
+capabilities = "CAPABILITY_IAM"
+image_repositories = []
+profile = "ukmda_admin"

@@ -1,0 +1,25 @@
+# SAM build file for searchArchive
+# Copyright (C) 2018-2023 Mark McIntyre
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Resources:
+  replicateArchive:
+    Type: AWS::Serverless::Function
+    Properties:
+      Architectures:
+        - arm64
+      Role: arn:aws:iam::183798037734:role/lambda-s3-full-access-role
+      Handler: replicateArchive.lambda_handler
+      Runtime: python3.8
+      FunctionName: replicateArchive
+      Description: lambda to copy archive data between accounts
+      Timeout: 120
+      Environment:
+        Variables:
+          ARCHBUCKET: ukmda-shared
+          TARGBUCKET: ukmon-shared
+          MPLCONFIGDIR: /tmp/mpl
+      Tags:
+        billingtag: "ukmda"
+    Metadata:
+      BuildMethod: python3.8
