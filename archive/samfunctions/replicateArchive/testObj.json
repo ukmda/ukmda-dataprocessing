@@ -1,0 +1,14 @@
+{
+  "Records": [
+    {
+      "s3": {
+        "bucket": {
+          "name": "ukmda-shared"
+        },
+        "object": {
+          "key": "archive/YeovilMarsh/UK002Q/2023/202308/20230821/"
+        }
+      }
+    }
+  ]
+}

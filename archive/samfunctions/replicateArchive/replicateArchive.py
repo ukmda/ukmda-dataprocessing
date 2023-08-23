@@ -19,5 +19,5 @@ def lambda_handler(event, context):
                 key = ent['Key']
                 if 'flux' in key or 'FF_' in key or '.bmp' in key:
                     continue
-                s3.copy_object(Bucket=targbuck, Key=key, CopySource={'Bucket': s3bucket, 'Key': key})    
+                s3.copy_object(Bucket=targbuck, Key=key, CopySource={'Bucket': s3bucket, 'Key': key})
     return 0
