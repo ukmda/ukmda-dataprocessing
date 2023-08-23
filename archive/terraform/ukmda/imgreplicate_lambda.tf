@@ -16,6 +16,7 @@ resource "aws_lambda_function" "imgreplicatelambda" {
   timeout          = 300
   role             = aws_iam_role.lambda-s3-full-access-role.arn
   publish          = false
+  architectures    = ["arm64"]
   environment {
     variables = {
       TARGWEBBUCKET="ukmeteornetworkarchive"
