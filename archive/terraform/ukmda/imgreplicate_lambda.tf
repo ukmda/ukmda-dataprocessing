@@ -7,7 +7,7 @@ data "archive_file" "imgreplicatezip" {
 resource "aws_lambda_function" "imgreplicatelambda" {
 #  provider         = aws.eu-west-1-prov
   function_name    = "imgReplicate"
-  description      = "replication of images between accounts"
+  description      = "replication of data between accounts"
   filename         = data.archive_file.imgreplicatezip.output_path
   source_code_hash = data.archive_file.imgreplicatezip.output_base64sha256
   handler          = "imgReplicate.lambda_handler"
@@ -18,7 +18,8 @@ resource "aws_lambda_function" "imgreplicatelambda" {
   publish          = false
   environment {
     variables = {
-      DEBUG  = "False"
+      TARGWEBBUCKET="ukmeteornetworkarchive"
+      TARGSHRBUCKET="ukmon-shared"
     }
   }
   tags = {
