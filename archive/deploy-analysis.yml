@@ -51,6 +51,7 @@
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     tags: [dev,prod]
     with_items:
+    - {src: '{{srcdir}}/archive/static_content/', dest: '{{destdir}}/static_content/', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/ukmon_pylib/', dest: '{{destdir}}/ukmon_pylib/', mode: '644', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/analysis/', dest: '{{destdir}}/analysis/', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/cronjobs/', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no, directory_mode: yes }
@@ -60,4 +61,3 @@
     - {src: '{{srcdir}}/archive/share/', dest: '{{destdir}}/share/', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/database/', dest: '{{destdir}}/database/', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/setup/', dest: '{{destdir}}/setup/', mode: '754', backup: no, directory_mode: yes }
-    
