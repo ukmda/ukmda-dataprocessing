@@ -14,39 +14,6 @@
     tags: [dev,prod]
   - name: Ensures {{destdir}}/logs exists
     file: path={{destdir}}/logs state=directory  
-  - name: Ensures {{destdir}}/data/reports/ exists
-    file: path={{destdir}}/data/reports/ state=directory  
-    tags: [dev,prod]
-  - name: Ensures {{destdir}}/data/admin/ exists
-    file: path={{destdir}}/data/admin/ state=directory  
-    tags: [dev,prod]
-  - name: Ensures {{destdir}}/data/single/ exists
-    file: path={{destdir}}/data/single/ state=directory  
-    tags: [dev,prod]
-  - name: Ensures {{destdir}}/data/matched/ exists
-    file: path={{destdir}}/data/matched/ state=directory  
-    tags: [dev,prod]
-  - name: Ensures {{destdir}}/data/browse/ exists
-    file: path={{destdir}}/data/browse/ state=directory  
-    tags: [dev,prod]
-  - name: Ensures {{destdir}}/data/browse/annual/ exists
-    file: path={{destdir}}/data/browse/annual/ state=directory  
-    tags: [dev,prod]
-  - name: Ensures {{destdir}}/data/browse/daily/ exists
-    file: path={{destdir}}/data/browse/daily/ state=directory  
-    tags: [dev,prod]
-  - name: Ensures {{destdir}}/data/browse/monthly/ exists
-    file: path={{destdir}}/data/browse/monthly/ state=directory  
-    tags: [dev,prod]
-  - name: Ensures {{destdir}}/data/browse/showers/ exists
-    file: path={{destdir}}/data/browse/showers/ state=directory  
-    tags: [dev,prod]
-  - name: Ensures {{destdir}}/data/dailyreports/ exists
-    file: path={{destdir}}/data/dailyreports/ state=directory  
-    tags: [dev,prod]
-  - name: Ensures {{destdir}}/data/shwrinfo/ exists
-    file: path={{destdir}}/data/shwrinfo/ state=directory  
-    tags: [dev,prod]
   - name: Copy files
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     tags: [dev,prod]

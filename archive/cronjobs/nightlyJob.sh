@@ -15,6 +15,11 @@ mth=$(date +%Y%m)
 yr=$(date +%Y)
 echo $rundate > $DATADIR/rundate.txt
 
+# create the folder structure in case its missing
+mkdir -p $DATADIR/{admin,browse,consolidated,costs,dailyreports,distrib,kmls}
+mkdir -p $DATADIR/{lastlogs,latest,matched,orbits,reports,searchidx,single,trajdb,videos}
+mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
+
 # sync images, ftpdetect, platepars etc between this account and the old EE account
 # this is needed because we want to keep the archive website on the old domain for now
 # and it relies on some of these data
