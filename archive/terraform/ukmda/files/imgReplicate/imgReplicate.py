@@ -10,7 +10,7 @@ def lambda_handler(event, context):
     record = event['Records'][0]
     srcbuck= record['s3']['bucket']['name']
     fname = record['s3']['object']['key']
-    if 'FF_' in fname or 'flux' in fname or 'flat' in fname:
+    if ('FF_' in fname and '.fits' in fname) or 'flux' in fname or 'flat' in fname:
         return 
     targwebbuck = os.getenv('TARGWEBBUCKET', default='ukmeteornetworkarchive')
     targshrbuck = os.getenv('TARGSHRBUCKET', default='ukmon-shared')
