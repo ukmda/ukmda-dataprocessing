@@ -7,7 +7,7 @@ import requests
 import pandas as pd
 
 
-def test_matchApiCall():
+def test_getMatches():
     reqtyp = 'matches'
     reqval = '20230721'
     apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
@@ -15,6 +15,20 @@ def test_matchApiCall():
     matchlist = pd.read_json(apicall, lines=True)   
     assert len(matchlist) != 339
     assert matchlist.orbname[0] == '20230721_000106.311_UK'
+
+
+def test_getMatchDetail():
+    reqtyp = 'detail'
+    reqval = '20230821_000021.339_UK'
+    """ get details of one matched event """
+    apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
+    apicall = f'{apiurl}?reqtyp={reqtyp}&reqval={reqval}'
+    try:
+        _ = pd.read_json(apicall, typ='series')
+        assert True
+    except Exception as e:
+        print(repr(e))
+        assert False
 
 
 def test_getMatchPickle():
@@ -67,25 +81,19 @@ def test_getFireballFiles():
         assert False
 
 
-def detailApiCall1(reqtyp, reqval):
-    """ get details of one matched event """
-    apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
-    apicall = f'{apiurl}?reqtyp={reqtyp}&reqval={reqval}'
-    evtdetail = pd.read_json(apicall, typ='series')
-    return evtdetail
-
-
-def detailApiCall2(reqtyp, matchlist):
-    """
-    get details for the events in the match list for a given date
-    and put them in a pandas dataframe, then sort by brightest
-    """
-    apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
-    details = []
-    for id in matchlist.head(5).orbname:
-        reqval = id
-        apicall = f'{apiurl}?reqtyp={reqtyp}&reqval={reqval}'
-        details.append(pd.read_json(apicall, typ='series'))
-    df = pd.DataFrame(details)
-    df = df.sort_values(by=['_mag'])
-    return df
+def test_getDetections():
+    srchapi = 'https://api.ukmeteornetwork.co.uk/detections?'
+    dt = datetime.datetime(2023,8,14,0,30,0)
+    dt1 = (dt + datetime.timedelta(seconds=-30)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
+    dt2 = (dt + datetime.timedelta(seconds=30)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
+    apiurl = f'{srchapi}a={dt1}&b={dt2}&op=t:S'
+    res = requests.get(apiurl)
+    assert res.status_code == 200
+    try:
+        rawdata=res.text.strip()
+        rawdata = rawdata[8:-2]
+        _ = rawdata.split('"')
+        assert True
+    except Exception as e:
+        print(repr(e))
+        assert False
