@@ -28,3 +28,7 @@
     - {src: '{{srcdir}}/archive/share/', dest: '{{destdir}}/share/', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/database/', dest: '{{destdir}}/database/', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/setup/', dest: '{{destdir}}/setup/', mode: '754', backup: no, directory_mode: yes }
+
+  - name: Update Static Content
+    shell: '{{destdir}}/utils/pushStatic.sh {{env}}'
+    tags: [dev,prod]
