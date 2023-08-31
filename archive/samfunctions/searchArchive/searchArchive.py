@@ -75,9 +75,9 @@ def lambda_handler(event, context):
     qs = event['queryStringParameters']
     if qs is None: 
         return {
-        'statusCode': 200,
-        'body': "usage: detections?a=dt1&b=dt2&opts=options"
-    }
+            'statusCode': 200,
+            'body': "usage: detections?a=dt1&b=dt2&opts=options"
+        }
     a = qs['d1']
     b = qs['d2']
     op = ''

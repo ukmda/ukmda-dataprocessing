@@ -86,7 +86,7 @@ def test_getDetections():
     dt = datetime.datetime(2023,8,14,0,30,0)
     dt1 = (dt + datetime.timedelta(seconds=-30)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
     dt2 = (dt + datetime.timedelta(seconds=30)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
-    apiurl = f'{srchapi}a={dt1}&b={dt2}&op=t:S'
+    apiurl = f'{srchapi}d1={dt1}&d2={dt2}&opts=t:S'
     res = requests.get(apiurl)
     assert res.status_code == 200
     try:

@@ -17,13 +17,16 @@ if [ "$envname" == "PROD" ] ; then
     # copy dragontail.css constellation.js navbar.html favicon.ico
     aws s3 cp $SRC/static_content/css/dragontail_ukmon.css $OLDWEBSITEBUCKET/css/dragontail.css --profile ukmonshared 
     aws s3 cp $SRC/static_content/js/constellation_ukmon.css $OLDWEBSITEBUCKET/js/constellation.css --profile ukmonshared 
-    aws s3 cp $SRC/static_content/templates/navbar_ukmon.css $OLDWEBSITEBUCKET/templates/navbar.css --profile ukmonshared 
-    aws s3 cp $SRC/static_content/favicon_ukmon.css $OLDWEBSITEBUCKET/favicon.css --profile ukmonshared 
+    aws s3 cp $SRC/static_content/templates/navbar_ukmon.html $OLDWEBSITEBUCKET/templates/navbar.html --profile ukmonshared 
+    aws s3 cp $SRC/static_content/favicon_ukmon.ico $OLDWEBSITEBUCKET/favicon.ico --profile ukmonshared 
+    aws s3 cp $SRC/website/templates/searchdialog-prod.js $OLDWEBSITEBUCKET/data/searchdialog.js --profile ukmonshared 
 
     aws s3 cp $SRC/static_content/css/dragontail_ukmda.css $WEBSITEBUCKET/css/dragontail.css --profile ukmonshared 
     aws s3 cp $SRC/static_content/js/constellation_ukmda.css $WEBSITEBUCKET/js/constellation.css --profile ukmonshared 
-    aws s3 cp $SRC/static_content/templates/navbar_ukmda.css $WEBSITEBUCKET/templates/navbar.css --profile ukmonshared 
-    aws s3 cp $SRC/static_content/favicon_ukmda.css $WEBSITEBUCKET/favicon.css --profile ukmonshared 
+    aws s3 cp $SRC/static_content/templates/navbar_ukmda.html $WEBSITEBUCKET/templates/navbar.html --profile ukmonshared 
+    aws s3 cp $SRC/static_content/favicon_ukmda.ico $WEBSITEBUCKET/favicon.ico --profile ukmonshared 
+    aws s3 cp $SRC/website/templates/searchdialog-prod.js $WEBSITEBUCKET/data/searchdialog.js --profile ukmonshared 
+
     ls -1 img/*.png img/*.svg | while read i;  do   
         aws s3 cp $i $OLDWEBSITEBUCKET/$i --exclude "*ukmda*" --profile ukmonshared 
         aws s3 cp $i $WEBSITEBUCKET/$i --exclude "*ukmon*" --profile ukmonshared 
