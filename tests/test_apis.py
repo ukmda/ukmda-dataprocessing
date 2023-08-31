@@ -1,11 +1,7 @@
 #
-# Example showing how to use the matchdata API from Python
-#
 # Copyright (C) 2018-2023 Mark McIntyre
 
-"""
-Examples showing how to use the APIs. 
-"""
+import datetime
 import json
 import requests 
 import pandas as pd
@@ -35,7 +31,40 @@ def test_getMatchPickle():
         assert len(jsd['observations']) == 5
     else:
         assert False
+
+
+def test_getLiveImages():
+    dtstr = datetime.datetime.now().strftime('%Y%m%d') + '_0100'
+    apiurl = 'https://api.ukmeteornetwork.co.uk/liveimages/getlive'
+    try:
+        liveimgs = pd.read_json(f'{apiurl}?pattern={dtstr}')    
+        assert len(liveimgs) > 0
+    except Exception as e: 
+        print("failed with:" + repr(e))
+        assert False
+
+
+def test_fetchECSV():
+    stationID = 'UK0006'
+    dateStr = '2023-08-31T01:28:57.41'
+    apiurl='https://api.ukmeteornetwork.co.uk/getecsv?stat={}&dt={}'
+    res = requests.get(apiurl.format(stationID, dateStr))
+    assert res.status_code == 200
+    return 
     
+
+def test_getFireballFiles():
+    patt = 'UK0006_20230421_2122'
+    apiurl = 'https://api.ukmeteornetwork.co.uk/fireballfiles'
+    try:
+        url = f'{apiurl}?pattern={patt}'
+        print(url)
+        fbfiles = pd.read_json(url)
+        print(fbfiles)
+        assert True
+    except Exception as e:
+        print("failed with:" + repr(e))
+        assert False
 
 
 def detailApiCall1(reqtyp, reqval):
@@ -60,54 +89,3 @@ def detailApiCall2(reqtyp, matchlist):
     df = pd.DataFrame(details)
     df = df.sort_values(by=['_mag'])
     return df
-
-
-def getLiveimageList(dtstr):
-    """ 
-    Get a list URLs of livestream images matching a pattern YYYYMMDD_HHMMSS.  
-    The seconds and minutes parts are optional but huge amounts of data may get returned.  
-
-    Note that we only keep the last month of images and so this function won't return
-    anything for older dates. 
-    Note also that the URLs are presigned and valid only for five minutes.  
-
-    Example pattern: '20230421_2122'
-    """
-    apiurl = 'https://api.ukmeteornetwork.co.uk/liveimages/getlive'
-    liveimgs = pd.read_json(f'{apiurl}?pattern={dtstr}')
-    return liveimgs
-
-
-def getFireballFiles(patt):
-    """ 
-    Get a list of URLs for the fireball data matching a pattern of the form UKxxxx_YYYYMMDD_HHMMSS
-    Nothing will be returned if there is no fireball data available. The URLs are presigned and valid
-    for five minutes. 
-
-    Example pattern: 'UK0006_20230421_2122'
-
-    """
-    apiurl = 'https://api.ukmeteornetwork.co.uk/fireballs/getfb'
-    fbfiles = pd.read_json(f'{apiurl}?pattern={patt}')
-    return fbfiles
-
-
-def trajectoryAPI(trajname):
-    """
-    Returns a JSON object containing a WMPL trajectory object for a matched event.  
-
-    Arguments:  
-        trajname:   [string] trajectory name eg "20230502_025228.374_UK_BE"
-    """
-    apiurl = 'https://api.ukmeteornetwork.co.uk/pickle/getpickle'
-    fmt = 'json'
-    apicall = f'{apiurl}?reqval={trajname}&format={fmt}'
-    res = requests.get(apicall, stream=True)
-    if res.status_code == 200:
-        data=b''
-        for chunk in res.iter_content(chunk_size=4096):
-            data = data + chunk
-        jsd = json.loads(data)  
-    else:
-        jsd = None  
-    return jsd
