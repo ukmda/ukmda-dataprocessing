@@ -25,15 +25,15 @@ resource "aws_iam_role" "S3FullAccess" {
 #            "AWS" : "arn:aws:iam::317976261112:root"
 #          }
 #        },
-#        {
-#          # give access to lambda functions in MJMM account
-#          Action = "sts:AssumeRole"
-#          Effect = "Allow"
-#          Principal = {
-#            AWS     = "arn:aws:iam::317976261112:role/lambda-s3-full-access-role"
-#            Service = "lambda.amazonaws.com"
-#          }
-#        },
+        {
+          # give access to lambda functions in mda account
+          Action = "sts:AssumeRole"
+          Effect = "Allow"
+          Principal = {
+            AWS     = "arn:aws:iam::${var.mda_account_id}:role/lambda-s3-full-access-role"
+            Service = "lambda.amazonaws.com"
+          }
+        },
         {
           # give access to S3FullAccess role used by EC2 in MJMM account
           Action = "sts:AssumeRole"
@@ -42,14 +42,6 @@ resource "aws_iam_role" "S3FullAccess" {
             AWS = "arn:aws:iam::317976261112:role/S3FullAccess"
           }
         },
-#        {
-#          # give access to ecsTaskRole role used by ECS in MJMM account
-#          Action = "sts:AssumeRole"
-#          Effect = "Allow"
-#          Principal = {
-#            AWS = "arn:aws:iam::317976261112:role/ecsTaskExecutionRole"
-#          }
-#        },
         {
           Action = "sts:AssumeRole"
           Effect = "Allow"

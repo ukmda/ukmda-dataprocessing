@@ -3,11 +3,11 @@
     {
       "s3": {
         "bucket": {
-          "name": "ukmon-shared",
-          "arn": "arn:aws:s3:::ukmon-shared"
+          "name": "ukmda-shared",
+          "arn": "arn:aws:s3:::ukmda-shared"
         },
         "object": {
-          "key": "matches/RMSCorrelate/UK0006/UK0006_20221122_164325_836988/FTPdetectinfo_UK0006_20221122_164325_836988.txt"
+          "key": "matches/RMSCorrelate/UK0006/UK0006_20230202_173030_429632/FTPdetectinfo_UK0006_20230202_173030_429632.txt"
         }
       }
     }

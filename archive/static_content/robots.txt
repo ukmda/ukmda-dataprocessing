@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /img/
+Disallow: /reports/
+Disallow: /data/
+Disallow: /latest/
+Disallow: /browse/
+Disallow: /search/

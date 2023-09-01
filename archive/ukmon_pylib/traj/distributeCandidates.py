@@ -204,7 +204,7 @@ def monitorProgress(rundate):
         for tsk in sts['tasks']:
             print(f'checking {tsk["taskArn"][51:]}')
             idx = taskarns.index(tsk['taskArn'])
-            print(tsk['taskArn'], tsk['LastStatus'])
+            #print(tsk['taskArn'], tsk['lastStatus'])
             if tsk['lastStatus'] == 'STOPPED':
                 if tsk['stopCode'] != 'EssentialContainerExited':
                     # retry the task

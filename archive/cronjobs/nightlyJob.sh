@@ -15,6 +15,11 @@ mth=$(date +%Y%m)
 yr=$(date +%Y)
 echo $rundate > $DATADIR/rundate.txt
 
+# create the folder structure in case its missing
+mkdir -p $DATADIR/{admin,browse,consolidated,costs,dailyreports,distrib,kmls}
+mkdir -p $DATADIR/{lastlogs,latest,matched,orbits,reports,searchidx,single,trajdb,videos}
+mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
+
 # sync images, ftpdetect, platepars etc between this account and the old EE account
 # this is needed because we want to keep the archive website on the old domain for now
 # and it relies on some of these data
@@ -24,7 +29,8 @@ $SRC/utils/dataSync.sh
 mkdir -p $DATADIR/admin
 logger -s -t nightlyJob "RUNTIME $SECONDS updating the camera location/dir/fov database"
 python -c "from reports.CameraDetails import updateCamLocDirFovDB; updateCamLocDirFovDB();"
-aws s3 cp $DATADIR/admin/cameraLocs.json $UKMONSHAREDBUCKET/admin/ --region eu-west-2 --quiet
+aws s3 cp $DATADIR/admin/cameraLocs.json $UKMONSHAREDBUCKET/admin/ --profile ukmonshared --quiet
+aws s3 sync $UKMONSHAREDBUCKET/admin/ $DATADIR/admin --profile ukmonshared --quiet
 
 # run this only once as it scoops up all unprocessed data
 logger -s -t nightlyJob "RUNTIME $SECONDS start findAllMatches"
@@ -74,7 +80,7 @@ if [ $(date +%d) -eq 1 ] ; then
     logger -s -t nightlyJob "RUNTIME $SECONDS start showerMthlyExtracts ALL $lastmth"
     ${SRC}/website/createMthlyExtracts.sh ${lastmth}
     logger -s -t nightlyJob "RUNTIME $SECONDS start showerShwrExtracts ALL $lastmth"
-    ${SRC}/website/createShwrExtracts.sh ${lastmth}
+    ${SRC}/website/createShwrExtracts.sh ${lastmth}28
     logger -s -t nightlyJob "RUNTIME $SECONDS start showerReport ALL $lastmth"
     $SRC/analysis/showerReport.sh ALL ${lastmth} force
 fi 

@@ -46,10 +46,13 @@ def getFBfiles(patt):
     if len(spls) < 3:
         return 'incorrect pattern: should be eg UK0001_20230814_021123'
     try: 
-        _ = spls[1].strftime('%Y%m%d')
-        _ = spls[2].strftime('%Y%m%d')
+        _ = datetime.datetime.strptime(spls[1], '%Y%m%d')
     except:
-        return 'incorrect pattern: should be eg UK0001_20230814_021123'
+        return f'invalid date: {spls[1]} should be YYYYMMDD'
+    try:
+        _ = datetime.datetime.strptime(spls[2], '%H%M%S')
+    except:
+        return f'invalid time: {spls[2]}, should be HHMMSS'
     
     fullpatt = f'fireballs/interesting/FF_{patt}'
     print(f'looking for {fullpatt} in {buck_name}')

@@ -45,6 +45,11 @@ data "aws_api_gateway_rest_api" "liveimagesapi" {
   provider                 = aws.eu-west-1-prov
 }
 
+data "aws_api_gateway_rest_api" "fireballapi" {
+  name = "getFireballFiles"
+  provider                 = aws.eu-west-1-prov
+}
+
 data "aws_api_gateway_rest_api" "searchapi" {
   name = "searchArchive"
   provider                 = aws.eu-west-1-prov
@@ -79,5 +84,13 @@ resource "aws_api_gateway_base_path_mapping" "searchapi" {
   stage_name  = "Prod"
   domain_name = aws_api_gateway_domain_name.apigwdomain.domain_name
   base_path = "detections"
+  provider                 = aws.eu-west-1-prov
+}
+
+resource "aws_api_gateway_base_path_mapping" "fireballapi" {
+  api_id      = data.aws_api_gateway_rest_api.fireballapi.id
+  stage_name  = "Prod"
+  domain_name = aws_api_gateway_domain_name.apigwdomain.domain_name
+  base_path = "fireballfiles"
   provider                 = aws.eu-west-1-prov
 }

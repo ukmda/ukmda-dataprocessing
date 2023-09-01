@@ -29,6 +29,8 @@ resource "aws_lambda_function" "dailyreportlambda" {
     variables = {
       OFFSET = "1"
       DEBUG  = "False"
+      DAILYFILE = "matches/RMSCorrelate/dailyreports/latest.txt"
+      SRCBUCKET = "ukmda-shared"
     }
   }
   ephemeral_storage {

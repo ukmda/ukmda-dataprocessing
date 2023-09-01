@@ -54,7 +54,7 @@ resource "aws_s3_bucket_policy" "ukmdasharedbp" {
                         #"AIDA36ZZGKDH4LW3WF2GJ",  # Church_Cro
                         #"AIDA36ZZGKDHWBV7ZQISQ",  # chard
                         "AROAUUCG4WH4GFCTQIKH3:*", # S3FullAccess in MJMM account
-                        #"AROA36ZZGKDHWAMYFNTWV:*", # DailyReportRole in ee account
+                        "AROA36ZZGKDHWAMYFNTWV:*", # DailyReportRole in ee account
                         "AROASVSZXPTTHKOAARJ2T:*", # dailyReportRole in mda account
                         "${data.aws_caller_identity.current.account_id}",            # root account
                         "AROA36ZZGKDHYW6XYFNJD:*",
@@ -64,36 +64,13 @@ resource "aws_s3_bucket_policy" "ukmdasharedbp" {
             }
         },
         {
-            "Sid": "DataSyncCreateS3LocationAndTaskAccess",
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "arn:aws:iam::${var.eeaccountid}:role/DataSyncBetweenAccounts"
-            },
-            "Action": [
-                "s3:GetBucketLocation",
-                "s3:ListBucket",
-                "s3:ListBucketMultipartUploads",
-                "s3:AbortMultipartUpload",
-                "s3:DeleteObject",
-                "s3:GetObject",
-                "s3:ListMultipartUploadParts",
-                "s3:PutObject",
-                "s3:GetObjectTagging",
-                "s3:PutObjectTagging"
-            ],
-            "Resource": [
-                "${aws_s3_bucket.ukmdashared.arn}",
-                "${aws_s3_bucket.ukmdashared.arn}/*"
-            ]
-        },
-        {
-            "Sid": "DataSyncCreateS3Location",
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "arn:aws:iam::${var.eeaccountid}:role/AdministratorRole"
-            },
-            "Action": "s3:ListBucket",
-            "Resource": "${aws_s3_bucket.ukmdashared.arn}"
+          Sid = "DailyReportReadLatest"
+          Effect = "Allow"
+          Principal = { 
+            AWS = ["arn:aws:iam::${var.eeaccountid}:role/service-role/dailyReportRole" ]
+          }
+          Action = "s3:GetObject"
+          Resource = "${aws_s3_bucket.ukmdashared.arn}/matches/RMSCorrelate/dailyreports/*"
         }
       ]
       Version = "2012-10-17"

@@ -16,6 +16,7 @@ resource "aws_lambda_function" "monitorlivelambda" {
   timeout          = 300
   role             = aws_iam_role.monitorlive_role.arn
   publish          = false
+  architectures    = ["arm64"]
   environment {
     variables = {
       OFFSET = "1"

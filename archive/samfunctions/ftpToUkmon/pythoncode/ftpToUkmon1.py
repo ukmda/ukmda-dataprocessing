@@ -16,6 +16,7 @@ from supportFuncs import datetime2JD, altAz2RADec, polarToCartesian, cartesianTo
 from supportFuncs import angularSeparation, greatCircle, fitGreatCircle, greatCirclePhase
 from supportFuncs import filenameToDatetime, readFTPdetectinfo, loadConfigFromDirectory
 
+
 from ShowerAssociation import showerAssociation
 
 
@@ -317,6 +318,24 @@ def ftpToUkmon(s3bucket, s3object):
     FTPdetectinfo2UkmonCsv(tmpdir)
 
     rmtree(tmpdir)
+
+    # push to the other bucket
+    targbuck = os.getenv('OTHERBUCKET', default='NONE')
+    if targbuck != 'NONE':
+        s3 = boto3.client('s3')
+        print(f'copying {s3object} to {targbuck}')
+        s3.copy_object(Bucket=targbuck, Key=s3object, CopySource={'Bucket': s3bucket, 'Key': s3object})    
+        pth, _ = os.path.split(s3object)
+        config = os.path.join(pth, '.config')
+        platepar = os.path.join(pth, 'platepars_all_recalibrated.json')
+        try:
+            s3.copy_object(Bucket=targbuck, Key=config, CopySource={'Bucket': s3bucket, 'Key': config})    
+        except Exception:
+            pass
+        try:
+            s3.copy_object(Bucket=targbuck, Key=platepar, CopySource={'Bucket': s3bucket, 'Key': platepar})    
+        except Exception:
+            pass
     return 0
 
 

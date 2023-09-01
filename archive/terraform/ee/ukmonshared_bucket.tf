@@ -26,16 +26,17 @@ resource "aws_s3_bucket_policy" "ukmonsharedbp" {
           Effect = "Allow"
           Principal = {
             AWS = [
-              "arn:aws:iam::317976261112:role/S3FullAccess", # role used by lambdas
-              "arn:aws:iam::317976261112:role/lambda-s3-full-access-role", # role used by SAM functions
-              "arn:aws:iam::317976261112:role/ecsTaskExecutionRole", # role used by ECS tasks
-              "arn:aws:iam::183798037734:role/service-role/S3FullAccess",
-              "arn:aws:iam::183798037734:role/ecsTaskExecutionRole",
-              "arn:aws:iam::183798037734:user/MarkMcIntyreUKM",
-              "arn:aws:iam::183798037734:role/service-role/CalcServerRole",
-              "arn:aws:iam::317976261112:user/Mary",
-              "arn:aws:iam::317976261112:user/Mark",
-              "arn:aws:iam::317976261112:user/s3user", # not sure this is needed
+              "arn:aws:iam::${var.remote_account_id}:role/S3FullAccess", # role used by lambdas
+              "arn:aws:iam::${var.remote_account_id}:role/lambda-s3-full-access-role", # role used by SAM functions
+              "arn:aws:iam::${var.mda_account_id}:role/lambda-s3-full-access-role", # role used by SAM functions
+              "arn:aws:iam::${var.remote_account_id}:role/ecsTaskExecutionRole", # role used by ECS tasks
+              "arn:aws:iam::${var.mda_account_id}:role/service-role/S3FullAccess",
+              "arn:aws:iam::${var.mda_account_id}:role/ecsTaskExecutionRole",
+              "arn:aws:iam::${var.mda_account_id}:user/MarkMcIntyreUKM",
+              "arn:aws:iam::${var.mda_account_id}:role/service-role/CalcServerRole",
+              "arn:aws:iam::${var.remote_account_id}:user/Mary",
+              "arn:aws:iam::${var.remote_account_id}:user/Mark",
+              "arn:aws:iam::${var.remote_account_id}:user/s3user", # not sure this is needed
             ]
           }
           Resource = [

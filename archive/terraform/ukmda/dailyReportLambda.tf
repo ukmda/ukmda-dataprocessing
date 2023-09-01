@@ -1,8 +1,7 @@
 #
 # terraform to create the lambdas in the MJMM account
-# Copyright (C) 2018-2023 Mark McIntyre
+# Copyright (C) 2018- Mark McIntyre
 #
-
 # the Lambda's body is being uploaded via a Zip file
 # this block creates a zip file from the contents of files/src
 data "archive_file" "dailyreportzip" {
@@ -12,7 +11,6 @@ data "archive_file" "dailyreportzip" {
 }
 
 resource "aws_lambda_function" "dailyreportlambda" {
-#  provider         = aws.eu-west-1-prov
   function_name    = "dailyReport"
   description      = "Daily report of matching events"
   filename         = data.archive_file.dailyreportzip.output_path
@@ -27,8 +25,8 @@ resource "aws_lambda_function" "dailyreportlambda" {
     variables = {
       OFFSET = "1"
       DEBUG  = "True"
-      "WEBSITEBUCKET" = "s3://${aws_s3_bucket.archsite.id}"
-      "SHAREDBUCKET" = "s3://${aws_s3_bucket.ukmdashared.id}"
+      DAILYFILE = "matches/RMSCorrelate/dailyreports/latest.txt"
+      SRCBUCKET = "${aws_s3_bucket.ukmdashared.id}"
     }
   }
   ephemeral_storage {
@@ -101,7 +99,6 @@ EOF
 }
 
 resource "aws_lambda_permission" "rp_for_mjmmacct" {
-#  provider         = aws.eu-west-1-prov
   statement_id  = "xacctLambdaPol"
   action        = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.dailyreportlambda.arn}"
