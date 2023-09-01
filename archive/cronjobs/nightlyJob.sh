@@ -80,7 +80,7 @@ if [ $(date +%d) -eq 1 ] ; then
     logger -s -t nightlyJob "RUNTIME $SECONDS start showerMthlyExtracts ALL $lastmth"
     ${SRC}/website/createMthlyExtracts.sh ${lastmth}
     logger -s -t nightlyJob "RUNTIME $SECONDS start showerShwrExtracts ALL $lastmth"
-    ${SRC}/website/createShwrExtracts.sh ${lastmth}
+    ${SRC}/website/createShwrExtracts.sh ${lastmth}28
     logger -s -t nightlyJob "RUNTIME $SECONDS start showerReport ALL $lastmth"
     $SRC/analysis/showerReport.sh ALL ${lastmth} force
 fi 
