@@ -54,7 +54,7 @@ if [ ! -f $outdir/README.md ] ; then
     echo "" >> $outdir/README.md
     echo "Now you can run the downloaded script with a single argument the year+month you want  in YYYYMM format eg" >> $outdir/README.md
     echo "./getVideos.sh 202306" >> $outdir/README.md
-    echo "to retrieve videos for June 2026. The files will be put in a datestamped folder in your current location." >> $outdir/README.md
+    echo "to retrieve videos for June 2023. The files will be put in a datestamped folder in your current location." >> $outdir/README.md
     echo "" >> $outdir/README.md
     echo "No special access to AWS is required as downloads are taken from the public website." >> $outdir/README.md
 
