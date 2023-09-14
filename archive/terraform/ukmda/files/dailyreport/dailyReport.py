@@ -7,14 +7,14 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-def AddHeader(body, bodytext, stats):
+def AddHeader(body, bodytext, stats, repdate):
     rtstr = datetime.datetime.strptime(stats[4], '%H:%M:%S').strftime('%Hh%Mm')
-    body = body + '<br>Today we examined {} detections, found {} potential matches and confirmed {} in {}.<br>'.format(stats[1], stats[2], stats[3], rtstr)
+    body = body + f'<br>On {repdate} we examined {stats[1]} detections, found {stats[2]} potential matches and confirmed {stats[3]} in {rtstr}.<br>'
     if int(stats[3]) > 0:
         body = body + 'Up to the 100 brightest matched events are shown below. '
         body = body + 'Note that this may include older data for which a new match has been found.<br>'
         body = body + 'Click each link to see analysis of these events.<br>'
-        bodytext = bodytext + 'Events: {}, Trajectories: {}. Matches {}'.format(stats[1], stats[2], stats[3])
+        bodytext = bodytext + f'Events: {stats[1]}, Trajectories: {stats[2]}. Matches {stats[3]}\n'
         bodytext = bodytext + 'The following multiple detections were found in UKMON Live the last 24 hour period,\n'
         bodytext = bodytext + 'Note that this may include older data for which a new match has been found.\n'
         body = body + '<table border=\"0\">'
@@ -68,15 +68,13 @@ def LookForMatchesRMS(doff, dayfile, statsfile):
         lis = inf.readlines()
     stats = lis[-1].strip().split(' ')
 
-    bodytext = 'Daily notification of matches\n\n'
+    tod = (datetime.date.today()).strftime('%Y-%m-%d')
+
+    bodytext = f'Daily notification of matches on {tod}\n\n'
     body = '<img src=\"https://ukmeteornetwork.co.uk/assets/img/logo.svg\" alt=\"UKMON banner\"><br>'
-    body, bodytext = AddHeader(body, bodytext, stats)
+    body, bodytext = AddHeader(body, bodytext, stats, tod)
 
-    # extract yesterday's data
-    yest = datetime.date.today() - datetime.timedelta(days=doff)
-
-
-    mailsubj = 'Daily UKMON matches for {:04d}-{:02d}-{:02d}'.format(yest.year, yest.month, yest.day)
+    mailsubj = 'Latest UKMON Match Report'
     domail = True
     print('DailyCheck: ', mailsubj)
 
