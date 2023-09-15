@@ -34,7 +34,8 @@ def addFooter(body, bodytext):
     fbm = 'Seen a fireball? <a href=https://ukmeteornetwork.co.uk/fireball-report/>Click here</a> to report it'
     uss = 'Unsubscribe from UKMON report'
     usb = 'Please unsubscribe me from the UKMON daily report'
-    usm = f'To unsubscribe <a href=\"mailto:markmcintyre99@googlemail.com?Subject={uss}&body={usb}\">click here</a>.'
+    addlmsg = '<br>Note that we can\'t unsubscribe you if you\'re receiving the report via groups.io'
+    usm = f'To unsubscribe <a href=\"mailto:markmcintyre99@googlemail.com?Subject={uss}&body={usb}\">click here</a>.{addlmsg}'
     body = body + '</table><br><br>\n' + fbm + '<br>' +usm + '<br>'
     bodytext = bodytext + '\n' + fbm + '\n' + usm + '\n'
     return body, bodytext
@@ -126,7 +127,9 @@ def sendMail(subj, body, bodytext, target, tmppth):
             RECIPIENT = recs
             print('DailyCheck: ', RECIPIENT)
         except:
+            print('unable to retrieve recipient list')
             RECIPIENT = ['markmcintyre99@googlemail.com', 'mjmm456@gmail.com']
+            print('DailyCheck: ', RECIPIENT)
 
     client = boto3.client('ses', region_name=AWS_REGION)
     try:
