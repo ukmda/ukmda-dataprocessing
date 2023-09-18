@@ -29,7 +29,7 @@ def lambda_handler(event, context):
     print(f"copied {jpgname}")
 
 
-# Test cases. Execute with "pytest ./curateLive.py"
+# Test cases. Execute with "pytest ./copyLive.py"
 
 def test_handler():
     event = {'Records': [{'s3':{'object':{'key':'test.txt'}}}]}

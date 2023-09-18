@@ -61,66 +61,106 @@ def storeInDDb(evtdets, camdets):
     return response['ResponseMetadata']['HTTPStatusCode']
 
 
-def processXml(event, context):
+def updateLiveTable(event, dtval):
+    record = event['Records'][0]
+    fname = record['s3']['object']['key']
+    _, barefname = os.path.split(fname)
+    if 'P.jpg' not in barefname:
+        print(f'{barefname} not a jpg')
+        return 
+    expdate = int((dtval + datetime.timedelta(days=30)).timestamp())
+    tstamp = str(int(dtval.timestamp()*1000))
+    yr = dtval.strftime('%Y')
+    mth = dtval.strftime('%m')
+    ddb = boto3.resource('dynamodb', region_name='eu-west-2')
+    table = ddb.Table('live')
+    if barefname[0] == 'M':
+        statname = barefname[17:].replace('P.jpg','').replace('_',' ')
+    else:
+        statname = barefname[3:9]
+
+    print(f'inserting {barefname} with timestamp {dtval}')
+    response = table.put_item(
+        Item={
+            'image_name': barefname,
+            'timestamp': tstamp,
+            'image_timestamp': tstamp, 
+            'station_name': statname,
+            'year': yr,
+            'month': mth,
+            'expirydate': expdate
+        }  
+    ) 
+    return response['ResponseMetadata']['HTTPStatusCode'] 
+
+
+def processXml(event):
     record = event['Records'][0]
     fname = record['s3']['object']['key']
     buck = 'ukmon-live'
     s3 = boto3.resource('s3')
 
-    if '.xml' in fname:
-        _, barefname = os.path.split(fname)
-        tmpdir = mkdtemp()
-        xmlname = os.path.join(tmpdir, barefname)
+    if '.xml' not in fname:
+        fname = fname.replace('P.jpg','.xml')
+    _, barefname = os.path.split(fname)
+    tmpdir = mkdtemp()
+    xmlname = os.path.join(tmpdir, barefname)
+    try:
         s3.meta.client.download_file(buck, fname, xmlname)
-        lis = open(xmlname, 'r').readlines()
-        rmtree(tmpdir)
+    except Exception:
+        print('xml file not available')
+        return None, None
+    lis = open(xmlname, 'r').readlines()
+    rmtree(tmpdir)
 
-        li = lis[1]
-        spls = li.split(' ')
-        yr = int(spls[2][3:-1])
-        mt = int(spls[3][4:-1])
-        dy = int(spls[4][3:-1])
-        hr = int(spls[5][3:-1])
-        mi = int(spls[6][3:-1])
-        secs = spls[7][3:-1]
-        if '.0.' in secs:
-            secs = secs[:2] + secs[4:]
-        secs = float(secs)
+    li = lis[1]
+    spls = li.split(' ')
+    yr = int(spls[2][3:-1])
+    mt = int(spls[3][4:-1])
+    dy = int(spls[4][3:-1])
+    hr = int(spls[5][3:-1])
+    mi = int(spls[6][3:-1])
+    secs = spls[7][3:-1]
+    if '.0.' in secs:
+        secs = secs[:2] + secs[4:]
+    secs = float(secs)
 
-        longi =float(spls[10][5:-1])
-        lati = float(spls[11][5:-1])
-        alti = float(spls[12][5:-1])
-        cx = int(spls[15][4:-1])
-        cy = int(spls[16][4:-1])
-        fps = float(spls[17][5:-1])
-        camid = spls[28][5:-1]
-        ffname = spls[30][5:-1]
+    longi =float(spls[10][5:-1])
+    lati = float(spls[11][5:-1])
+    alti = float(spls[12][5:-1])
+    cx = int(spls[15][4:-1])
+    cy = int(spls[16][4:-1])
+    fps = float(spls[17][5:-1])
+    camid = spls[28][5:-1]
+    ffname = spls[30][5:-1]
 
-        li = lis[3]
-        spls = li.split()
-        bmax = int(spls[4][6:-1])
-        fno = int(spls[2][5:-1])
+    li = lis[3]
+    spls = li.split()
+    bmax = int(spls[4][6:-1])
+    fno = int(spls[2][5:-1])
 
-        li = lis[4]
-        spls = li.split()
-        bave = int(spls[4][6:-1])
+    li = lis[4]
+    spls = li.split()
+    bave = int(spls[4][6:-1])
 
-        li = lis[5]
-        spls = li.split()
-        bstd = int(spls[4][6:-1])
+    li = lis[5]
+    spls = li.split()
+    bstd = int(spls[4][6:-1])
 
-        secs = secs + float(fno)/fps
-        
-        dtval = datetime.datetime(yr, mt, dy, hr, mi, 0) + datetime.timedelta(seconds = secs)
+    secs = secs + float(fno)/fps
+    
+    dtval = datetime.datetime(yr, mt, dy, hr, mi, 0) + datetime.timedelta(seconds = secs)
 
-        camdets = {'camid':camid, 'lati': lati, 'longi': longi, 'alti': alti, 'cx': cx, 'cy': cy, 'fps': fps}
-        evtdets={'dtval':dtval, 'fno':fno, 'ffname':ffname, 'bmax':bmax, 'bave':bave, 'bstd':bstd}
-        return evtdets, camdets
+    camdets = {'camid':camid, 'lati': lati, 'longi': longi, 'alti': alti, 'cx': cx, 'cy': cy, 'fps': fps}
+    evtdets={'dtval':dtval, 'fno':fno, 'ffname':ffname, 'bmax':bmax, 'bave':bave, 'bstd':bstd}
+    return evtdets, camdets
 
 
 def lambda_handler(event, context):
-    evtdets, camdets = processXml(event, context)
-    storeInDDb(evtdets, camdets)
+    evtdets, camdets = processXml(event)
+    if evtdets is not None:
+        storeInDDb(evtdets, camdets)
+        updateLiveTable(event, evtdets['dtval'])
 
 
 # Test cases. Execute with "pytest ./curateLive.py"
