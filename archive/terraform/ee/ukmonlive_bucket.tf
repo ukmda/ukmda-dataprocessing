@@ -97,6 +97,11 @@ resource "aws_s3_bucket_cors_configuration" "ukmonlivecors" {
   }
 }
 
+data "aws_lambda_function" "ukmonliveupdater" {
+  provider = aws.eu-west-1-prov
+  function_name = "testWCPublish"
+}
+
 resource "aws_s3_bucket_logging" "ukmonlivelogs" {
   bucket = aws_s3_bucket.ukmonlive.id
   provider = aws.eu-west-1-prov
@@ -113,6 +118,12 @@ resource "aws_s3_bucket_notification" "ukmonlive_trigger" {
     events = [  "s3:ObjectCreated:*"  ]
     filter_suffix = ".xml"
   }
+  lambda_function {
+    lambda_function_arn = data.aws_lambda_function.ukmonliveupdater.arn
+    events = ["s3:ObjectCreated:*"]
+    filter_suffix       = ".jpg"
+    id                  = "TestWCPublish"
+  }  
 }
 
 data "archive_file" "replicatelive" {
