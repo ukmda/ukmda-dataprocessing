@@ -41,13 +41,16 @@ resource "aws_s3_bucket_policy" "ukmdalivebp" {
             ]
         },
         {
-            "Sid": "DataSyncCreateS3Location",
+            "Sid": "replicatelive",
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::${var.eeaccountid}:role/AdministratorRole"
+                "AWS": "arn:aws:iam::${var.eeaccountid}:role/service-role/replicatelive"
             },
-            "Action": "s3:ListBucket",
-            "Resource": "${aws_s3_bucket.ukmdalive.arn}"
+            "Action": "s3:Put*",
+            "Resource": [
+              "${aws_s3_bucket.ukmdalive.arn}",
+              "${aws_s3_bucket.ukmdalive.arn}/*"
+            ]
         }        
       ]
       Version = "2008-10-17"
