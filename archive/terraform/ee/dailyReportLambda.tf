@@ -30,7 +30,7 @@ resource "aws_lambda_function" "dailyreportlambda" {
       OFFSET = "1"
       DEBUG  = "False"
       DAILYFILE = "matches/RMSCorrelate/dailyreports/latest.txt"
-      SRCBUCKET = "ukmda-shared"
+      SRCBUCKET = "ukmon-shared"
     }
   }
   ephemeral_storage {
