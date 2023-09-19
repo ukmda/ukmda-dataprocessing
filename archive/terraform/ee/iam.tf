@@ -218,14 +218,13 @@ resource "aws_iam_role_policy_attachment" "cweventspolicy" {
 data "template_file" "ddblive_pol_templ" {
   template = file("files/policies/ddb_livetables.json")
   vars = {
-    brighttblarn = aws_dynamodb_table.live_bright_table.arn
     livetblarn = aws_dynamodb_table.live_table.arn
   }
 }
 
 resource "aws_iam_policy" "livetablepol" {
   name        = "LiveTableReadOnlyDynamoDb"
-  #description = "policy to allow readonly access to live and LiveBrightness tables"
+  #description = "policy to allow readonly access to live table"
   policy      = data.template_file.ddblive_pol_templ.rendered
   tags = {
     "billingtag" = "ukmon"

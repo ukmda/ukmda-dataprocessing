@@ -18,10 +18,7 @@
             "Resource": [
                 "arn:aws:dynamodb:*:*:table/live/stream/*",
                 "arn:aws:dynamodb:*:*:table/live",
-                "arn:aws:dynamodb:*:*:table/live/index/*",
-                "arn:aws:dynamodb:*:*:table/LiveBrightness/stream/*",
-                "arn:aws:dynamodb:*:*:table/LiveBrightness",
-                "arn:aws:dynamodb:*:*:table/LiveBrightness/index/*"
+                "arn:aws:dynamodb:*:*:table/live/index/*"
             ]
         },
         {
@@ -39,8 +36,7 @@
                 "dynamodb:GetRecords"
             ],
             "Resource": [ 
-                "arn:aws:dynamodb:*:*:table/live/*",
-                "arn:aws:dynamodb:*:*:table/LiveBrightness/*" 
+                "arn:aws:dynamodb:*:*:table/live/*"
             ]
             
         },
