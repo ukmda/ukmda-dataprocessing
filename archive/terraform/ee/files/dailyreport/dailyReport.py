@@ -121,10 +121,9 @@ def sendMail(subj, body, bodytext, target, tmppth):
         try:
             memblist = os.path.join(tmppth,'dailyReportRecips.txt')
             s3.meta.client.download_file(target, 'admin/dailyReportRecips.txt', memblist)
-            with open(memblist, 'r') as inf:
-                recs = inf.readlines()
-                for i in range(len(recs)):
-                    recs[i] = recs[i].strip()
+            recs = open(memblist, 'r').readlines()
+            recs = list(map(lambda x: x.strip(), recs)) 
+            recs = [x for x in recs if x[0] != '#'] 
             RECIPIENT = recs
             print('DailyCheck: ', RECIPIENT)
         except:
