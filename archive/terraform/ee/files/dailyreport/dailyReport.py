@@ -70,16 +70,17 @@ def LookForMatchesRMS(doff, dayfile, statsfile):
     stats = lis[-1].strip().split(' ')
 
     tod = (datetime.date.today()).strftime('%Y-%m-%d')
+    yest = (datetime.date.today()-datetime.timedelta(days=doff)).strftime('%Y-%m-%d')
 
     bodytext = f'Daily notification of matches on {tod}\n\n'
     body = '<img src=\"https://ukmeteornetwork.co.uk/assets/img/logo.svg\" alt=\"UKMON banner\"><br>'
     body, bodytext = AddHeader(body, bodytext, stats, tod)
 
-    mailsubj = 'Latest UKMON Match Report'
+    mailsubj = f'Latest UKMON Match Report for {yest}'
     domail = True
     print('DailyCheck: ', mailsubj)
 
-    print('DailyCheck: opening csv file ', dayfile)
+    #print('DailyCheck: opening csv file ', dayfile)
     with open(dayfile, 'r') as csvfile:
         try: # top 100 matches
             lines = [next(csvfile) for x in range(100)]
