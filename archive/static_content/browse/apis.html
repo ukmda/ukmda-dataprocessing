@@ -65,6 +65,7 @@
         <li><a href=#Matches>Matches API</a></li>
         <li><a href=#Detections>Detections API</a></li>
         <li><a href=#Pickles>Full Trajectory API</a></li>
+        <li><a href=#Videos>Video Data</a></li>
         <li><a href=#MatchExamples>Matches Examples</a></li>
         <li><a href=#DetExamples>Detections Examples</a></li>
         <li><a href=#PickleExample>Full Trajectory Example</a></li>
@@ -129,6 +130,18 @@
             JSON data containing the complete trajectory solution.
         </p>
         <hr>
+        <h3 id="Videos">Video Data</h3>
+        <p>
+            This isn't strictly speaking an API, however we provide a mechanism to obtain the 100 brightest
+            videos for a given month. Download one of the two scripts linked below, make sure you can execute
+            it and then in a bash or powershell window run the script with a single parameter of the form 
+            YYYYMM corresponding to the year and month you want eg 202304 for April 2023. The script will create a 
+            folder in your current working directory and download the videos into it. Data are available from January 
+            2021 onwards. 
+            <li><a href="/data/bestvideos/getVideos.ps1">getVideos.ps1</a></li>
+            <li><a href="/data/bestvideos/getVideos.sh">getVideos.sh</a></li>
+
+        </p>
 
         <h2>Examples</h2>
         <h4 id="DetExamples">Detections API - Windows Powershell or Linux Bash</h4>
