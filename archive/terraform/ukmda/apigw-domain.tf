@@ -78,7 +78,7 @@ resource "aws_api_gateway_base_path_mapping" "fbdataapi" {
   api_id      = data.aws_api_gateway_rest_api.fbdataapi.id
   stage_name  = "Prod"
   domain_name = aws_api_gateway_domain_name.apigwdomain.domain_name
-  base_path = "fireballs"
+  base_path = "fireballfiles"
   provider                 = aws.eu-west-1-prov
 }
 

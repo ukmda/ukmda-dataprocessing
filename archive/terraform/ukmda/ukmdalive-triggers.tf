@@ -7,7 +7,7 @@ resource "aws_s3_bucket_notification" "ukmda_live_notification" {
   bucket = aws_s3_bucket.ukmdalive.id
   provider         = aws.eu-west-1-prov
   lambda_function {
-    lambda_function_arn = aws_lambda_function.copylivelambda.arn
+    lambda_function_arn = aws_lambda_function.monitorlivelambda.arn
     id                  = "allfiles"
     events = [
       "s3:ObjectCreated:*"

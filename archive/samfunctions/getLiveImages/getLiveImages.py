@@ -8,7 +8,7 @@ import json
 
 
 def getLiveImages(dtstr):
-    ddb = boto3.resource('dynamodb', region_name='eu-west-1')
+    ddb = boto3.resource('dynamodb', region_name='eu-west-2')
     table = ddb.Table('live')
     resp = table.query(IndexName='month-image_name-index', 
                        KeyConditionExpression=Key('month').eq(dtstr[4:6]) & Key('image_name').begins_with(f'M{dtstr}'),

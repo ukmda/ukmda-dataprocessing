@@ -7,14 +7,14 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-def AddHeader(body, bodytext, stats):
+def AddHeader(body, bodytext, stats, repdate):
     rtstr = datetime.datetime.strptime(stats[4], '%H:%M:%S').strftime('%Hh%Mm')
-    body = body + '<br>Today we examined {} detections, found {} potential matches and confirmed {} in {}.<br>'.format(stats[1], stats[2], stats[3], rtstr)
+    body = body + f'<br>On {repdate} we examined {stats[1]} detections, found {stats[2]} potential matches and confirmed {stats[3]} in {rtstr}.<br>'
     if int(stats[3]) > 0:
         body = body + 'Up to the 100 brightest matched events are shown below. '
         body = body + 'Note that this may include older data for which a new match has been found.<br>'
         body = body + 'Click each link to see analysis of these events.<br>'
-        bodytext = bodytext + 'Events: {}, Trajectories: {}. Matches {}'.format(stats[1], stats[2], stats[3])
+        bodytext = bodytext + f'Events: {stats[1]}, Trajectories: {stats[2]}. Matches {stats[3]}\n'
         bodytext = bodytext + 'The following multiple detections were found in UKMON Live the last 24 hour period,\n'
         bodytext = bodytext + 'Note that this may include older data for which a new match has been found.\n'
         body = body + '<table border=\"0\">'
@@ -34,7 +34,8 @@ def addFooter(body, bodytext):
     fbm = 'Seen a fireball? <a href=https://ukmeteornetwork.co.uk/fireball-report/>Click here</a> to report it'
     uss = 'Unsubscribe from UKMON report'
     usb = 'Please unsubscribe me from the UKMON daily report'
-    usm = f'To unsubscribe <a href=\"mailto:markmcintyre99@googlemail.com?Subject={uss}&body={usb}\">click here</a>.'
+    addlmsg = '<br>Note that we can\'t unsubscribe you if you\'re receiving the report via groups.io'
+    usm = f'To unsubscribe <a href=\"mailto:markmcintyre99@googlemail.com?Subject={uss}&body={usb}\">click here</a>.{addlmsg}'
     body = body + '</table><br><br>\n' + fbm + '<br>' +usm + '<br>'
     bodytext = bodytext + '\n' + fbm + '\n' + usm + '\n'
     return body, bodytext
@@ -68,19 +69,18 @@ def LookForMatchesRMS(doff, dayfile, statsfile):
         lis = inf.readlines()
     stats = lis[-1].strip().split(' ')
 
-    bodytext = 'Daily notification of matches\n\n'
+    tod = (datetime.date.today()).strftime('%Y-%m-%d')
+    yest = (datetime.date.today()-datetime.timedelta(days=doff)).strftime('%Y-%m-%d')
+
+    bodytext = f'Daily notification of matches on {tod}\n\n'
     body = '<img src=\"https://ukmeteornetwork.co.uk/assets/img/logo.svg\" alt=\"UKMON banner\"><br>'
-    body, bodytext = AddHeader(body, bodytext, stats)
+    body, bodytext = AddHeader(body, bodytext, stats, tod)
 
-    # extract yesterday's data
-    yest = datetime.date.today() - datetime.timedelta(days=doff)
-
-
-    mailsubj = 'Daily UKMON matches for {:04d}-{:02d}-{:02d}'.format(yest.year, yest.month, yest.day)
+    mailsubj = f'Latest UKMON Match Report for {yest}'
     domail = True
     print('DailyCheck: ', mailsubj)
 
-    print('DailyCheck: opening csv file ', dayfile)
+    #print('DailyCheck: opening csv file ', dayfile)
     with open(dayfile, 'r') as csvfile:
         try: # top 100 matches
             lines = [next(csvfile) for x in range(100)]
@@ -128,7 +128,9 @@ def sendMail(subj, body, bodytext, target, tmppth):
             RECIPIENT = recs
             print('DailyCheck: ', RECIPIENT)
         except:
+            print('unable to retrieve recipient list')
             RECIPIENT = ['markmcintyre99@googlemail.com', 'mjmm456@gmail.com']
+            print('DailyCheck: ', RECIPIENT)
 
     client = boto3.client('ses', region_name=AWS_REGION)
     try:

@@ -75,7 +75,7 @@
     <script src="/js/sb-admin-2.js"></script>
     <script src="/js/kit.fontawesome.com_f4e5d7e1d1.js"></script>
     <script src="/js/sharebuttons.js"></script>
-  
+
     <div id="nav-placeholder"></div>
 
     <script>
@@ -203,11 +203,13 @@
                     preserveViewport: false,
                     map: map
                 });
-                kmlLayer.addListener('click', function (event) {
-                    var content = event.featureData.infoWindowHtml;
-                    console.log(content)
+                kmlLayer.addListener('click', (mapsMouseEvent) => {
+                    var content  = mapsMouseEvent.latLng.toJSON()
                     var testimonial = document.getElementById('capture');
-                    testimonial.innerHTML = content;
+                    var lat = content.lat
+                    var lng = content.lng
+                    var outputstr = "lat: " + Math.round(lat*100)/100 + "\nlng: " + Math.round(lng*100)/100 ;
+                    testimonial.innerHTML = outputstr;
                 });
                 if (strstat2 != '') {
                     var src2 = 'https://archive.ukmeteornetwork.co.uk/img/kmls/' + strstat2 + '-' + height + '.kml';
@@ -217,11 +219,13 @@
                         preserveViewport: true,
                         map: map
                     });
-                    kmlLayer.addListener('click', function (event) {
-                        var content = event.featureData.infoWindowHtml;
-                        console.log(content)
-                        var testimonial = document.getElementById('capture');
-                        testimonial.innerHTML = content;
+					kmlLayer.addListener('click', (mapsMouseEvent) => {
+						var content  = mapsMouseEvent.latLng.toJSON()
+						var testimonial = document.getElementById('capture');
+						var lat = content.lat
+						var lng = content.lng
+						var outputstr = "lat: " + Math.round(lat*100)/100 + "\nlng: " + Math.round(lng*100)/100 ;
+						testimonial.innerHTML = outputstr;
                     });
                 }
                 if (strstat3 != '') {
@@ -232,16 +236,18 @@
                         preserveViewport: true,
                         map: map
                     });
-                    kmlLayer.addListener('click', function (event) {
-                        var content = event.featureData.infoWindowHtml;
-                        console.log(content)
-                        var testimonial = document.getElementById('capture');
-                        testimonial.innerHTML = content;
+					kmlLayer.addListener('click', (mapsMouseEvent) => {
+						var content  = mapsMouseEvent.latLng.toJSON()
+						var testimonial = document.getElementById('capture');
+						var lat = content.lat
+						var lng = content.lng
+						var outputstr = "lat: " + Math.round(lat*100)/100 + "\nlng: " + Math.round(lng*100)/100 ;
+						testimonial.innerHTML = outputstr;
                     });
                 }
             }
         </script>
-        <script async src="https://maps.googleapis.com/maps/api/js?key={{MAPSAPIKEY}}&callback=initMap">
+        <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBFadTuzvLfkUhz8CwY2CtRDJ_lYlHUYyA&callback=initMap">
         </script>
     </div>
 </body>

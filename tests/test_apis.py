@@ -48,8 +48,8 @@ def test_getMatchPickle():
 
 
 def test_getLiveImages():
-    dtstr = datetime.datetime.now().strftime('%Y%m%d') + '_0100'
-    apiurl = 'https://api.ukmeteornetwork.co.uk/liveimages/getlive'
+    dtstr = datetime.datetime.now().strftime('%Y%m%d') + '_01'
+    apiurl = 'https://api.ukmeteors.co.uk/liveimages/getlive'
     try:
         liveimgs = pd.read_json(f'{apiurl}?pattern={dtstr}')    
         assert len(liveimgs) > 0
@@ -69,7 +69,7 @@ def test_fetchECSV():
 
 def test_getFireballFiles():
     patt = 'UK0006_20230421_2122'
-    apiurl = 'https://api.ukmeteornetwork.co.uk/fireballfiles'
+    apiurl = 'https://api.ukmeteors.co.uk/fireballfiles'
     try:
         url = f'{apiurl}?pattern={patt}'
         print(url)
@@ -82,7 +82,7 @@ def test_getFireballFiles():
 
 
 def test_getDetections():
-    srchapi = 'https://api.ukmeteornetwork.co.uk/detections?'
+    srchapi = 'https://api.ukmeteors.co.uk/detections?'
     dt = datetime.datetime(2023,8,14,0,30,0)
     dt1 = (dt + datetime.timedelta(seconds=-30)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
     dt2 = (dt + datetime.timedelta(seconds=30)).strftime('%Y-%m-%dT%H:%M:%S.000Z')

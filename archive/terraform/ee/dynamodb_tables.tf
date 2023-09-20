@@ -3,48 +3,6 @@
 ##############################################################################
 # terraform to create the dynamodb tables
 
-resource "aws_dynamodb_table" "live_bright_table" {
-  name         = "LiveBrightness"
-  billing_mode = "PAY_PER_REQUEST"
-  #read_capacity  = 20
-  #write_capacity = 20
-  hash_key  = "CaptureNight"
-  range_key = "Timestamp"
-
-  attribute {
-    name = "CaptureNight"
-    type = "N"
-  }
-
-  attribute {
-    name = "Timestamp"
-    type = "N"
-  }
-
-  attribute {
-    name = "camid"
-    type = "S"
-  }
-
-  global_secondary_index {
-    hash_key           = "camid"
-    name               = "camid-CaptureNight-index"
-    non_key_attributes = []
-    projection_type    = "ALL"
-    range_key          = "CaptureNight"
-    read_capacity      = 0
-    write_capacity     = 0
-  }
-  ttl {
-    attribute_name = "ExpiryDate"
-    enabled        = true
-  }
-  tags = {
-    Name       = "LiveBrightness"
-    billingtag = "ukmon"
-  }
-}
-
 resource "aws_dynamodb_table" "camera_table" {
   name         = "ukmon_camdetails"
   billing_mode = "PAY_PER_REQUEST"

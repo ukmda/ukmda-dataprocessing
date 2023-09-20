@@ -49,11 +49,11 @@ def getAllMthToDate():
     monthlyCostByService(lastmth, '822069317839')
 
 
-def getAllCostsAndUsage(ceclient, startdt, enddt, svcs, tagval):
+def getAllCostsAndUsage(ceclient, startdt, enddt, svcs, tagval, acctid):
     response = ceclient.get_cost_and_usage(
         TimePeriod={'Start': startdt, 'End': enddt},
         Granularity='DAILY',
-        Filter={'Dimensions': {'Key': 'SERVICE', 'Values': svcs}},
+        Filter={'And': [{'Dimensions': {'Key': 'SERVICE', 'Values': svcs}}, {'Dimensions': {'Key': 'LINKED_ACCOUNT', 'Values': [acctid]}}]},
         Metrics=['BlendedCost'],
         GroupBy=[{'Type': 'DIMENSION','Key': 'SERVICE'},
             {'Type': 'TAG', 'Key': tagval}])
@@ -65,7 +65,7 @@ def getAllCostsAndUsage(ceclient, startdt, enddt, svcs, tagval):
         response = ceclient.get_cost_and_usage(
             TimePeriod={'Start': startdt, 'End': enddt},
             Granularity='DAILY',
-            Filter={'Dimensions': {'Key': 'SERVICE', 'Values': svcs}},
+            Filter={'And': [{'Dimensions': {'Key': 'SERVICE', 'Values': svcs}}, {'Dimensions': {'Key': 'LINKED_ACCOUNT', 'Values': [acctid]}}]},
             Metrics=['BlendedCost'],
             GroupBy=[{'Type': 'DIMENSION','Key': 'SERVICE'},
                 {'Type': 'TAG', 'Key': tagval}],
@@ -207,7 +207,7 @@ def getAllBillingData(ceclient, dtwanted, endwanted, regionid, outdir, typflag):
     tagstartdt = datetime.datetime(2022,2,25)
     with open(costsfile,'w') as outf:
         outf.write('Date,Service,Tag,Amount\n')
-        for costs in getAllCostsAndUsage(ceclient, startdt, enddt, svcs, tagval):
+        for costs in getAllCostsAndUsage(ceclient, startdt, enddt, svcs, tagval, accid):
             for cost in costs:
                 strt = cost['TimePeriod']['Start']
                 for grp in cost['Groups']:
