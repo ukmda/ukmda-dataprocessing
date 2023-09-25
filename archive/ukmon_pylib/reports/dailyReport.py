@@ -5,6 +5,8 @@ import os
 import sys
 import datetime
 
+from meteortools.utils import sendAnEmail
+
 
 def AddHeader(body, bodytext, stats):
     rtstr = datetime.datetime.strptime(stats[4], '%H:%M:%S').strftime('%Hh%Mm')
@@ -95,7 +97,7 @@ if __name__ == '__main__':
     repdtstr = (datetime.date.today() - datetime.timedelta(days=doff-1)).strftime('%Y%m%d.txt')
     dailyrep = os.path.join(reppth, repdtstr)
     statfile = os.path.join(reppth, 'stats.txt')
-    _, _, body, _ = LookForMatchesRMS(doff, dailyrep, statfile)
+    _, _, body, bodytext = LookForMatchesRMS(doff, dailyrep, statfile)
 
     #body = body.replace('assets/img/logo.svg', 'latest/dailyreports/dailyreportsidx.html')
     if doff == 1:
@@ -106,3 +108,17 @@ if __name__ == '__main__':
     with open(os.path.join(outpth, outfname), 'w') as outf:
         outf.write('<a href=/latest/dailyreports/dailyreportsidx.html>Index of daily Reports</a><br>\n')
         outf.write(body)
+    
+    # now send the post to groups.io
+    targeturl='https://archive.ukmeteornetwork.co.uk'
+
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    recs = open(os.path.join(datadir, 'admin','dailyReportRecips.txt'), 'r').readlines()
+    mailFrom = 'markmcintyre99@googlemail.com'
+    mailRecip = recs[0].strip()
+    if len(recs) > 1:
+        mailFrom = recs[-1].strip()
+    #mailRecip = 'markmcintyre99@googlemail.com' # TODO for testing only
+    yest = (datetime.date.today()-datetime.timedelta(days=doff)).strftime('%Y-%m-%d')
+    mailSubj = f'Latest UKMON Match Report for {yest}'
+    sendAnEmail(mailRecip, bodytext, mailSubj, mailFrom, msg_html=body.replace('href="/reports', f'href="{targeturl}/reports'))
