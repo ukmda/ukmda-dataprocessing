@@ -48,6 +48,16 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
         traj = loadPickle(outdir, fname)
         traj.save_results = True
 
+        key2 = webpth + 'extrajpgs.txt'
+        locfname = os.path.join(outdir, 'extrajpgs.txt')
+        try:
+            s3.meta.client.download_file(websitebucket, key2, locfname)
+            extrajpgs = open(locfname, 'r').readlines()
+            extrajpgs = [x.replace('jpg','fits').strip() for x in extrajpgs]
+        except:
+            print('no extrajpgs.txt')
+            pass
+
         print('loaded pickle')
         createAdditionalOutput(traj, outdir)
         print('created additional output')
@@ -59,35 +69,52 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
         mp4f = open(os.path.join(outdir, 'mpgs.lst'), 'w')
         print('opened image list files')
         for obs in traj.observations:
-            js = json.loads(obs.comment)
-            ffname = js['ff_name']
-            # case when filename is nonstandard 
-            if 'FF_' not in ffname and 'FR_' not in ffname:
-                ffname = 'FF_' + ffname
-            ffname = ffname.replace('FR_', 'FF_').replace('.bin', '.fits')
-            if '.bin' not in ffname and '.fits' not in ffname:
-                ffname = ffname + '.fits'
-                
-            spls = ffname.split('_')
-            id = spls[1]
-            dtstr = spls[2]
-            tmstr = spls[3]
-            jpgname=f'img/single/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('fits','jpg')
-            mp4name=f'img/mp4/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('fits','mp4')
-            print('about to get a list of available jpgs')
-            res = s3.meta.client.list_objects_v2(Bucket=websitebucket,Prefix=jpgname)
-            if res['KeyCount'] > 0:
-                jpgf.write(f'{jpgname}\n')
-                jpghtml.write(f'<a href="/{jpgname}"><img src="/{jpgname}" width="20%"></a>\n')
-            else:
-                print(f'{jpgname} not found')
-            print('about to get a list of available mp4s')
-            res = s3.meta.client.list_objects_v2(Bucket=websitebucket,Prefix=mp4name)
-            if res['KeyCount'] > 0:
-                mp4f.write(f'{mp4name}\n')
-                mp4html.write(f'<a href="/{mp4name}"><video width="20%"><source src="/{mp4name}" width="20%" type="video/mp4"></video></a>\n')
-            else:
-                print(f'{mp4name} not found')
+            try:
+                id = obs.station_id
+                print(id)
+            except Exception:
+                print('unable to get id')
+            gotff = False
+            try:
+                js = json.loads(obs.comment)
+                ffname = js['ff_name']
+                print(ffname)
+                # case when filename is nonstandard 
+                if 'FF_' not in ffname and 'FR_' not in ffname:
+                    ffname = 'FF_' + ffname
+                ffname = ffname.replace('FR_', 'FF_').replace('.bin', '.fits')
+                if '.bin' not in ffname and '.fits' not in ffname:
+                    ffname = ffname + '.fits'
+                gotff = True
+            except Exception:
+                ffs = [x for x in extrajpgs if id in x]
+                print(ffs)
+                if len(ffs) > 0:
+                    ffname = ffs[0]
+                    gotff = True
+                else:
+                    pass
+            if gotff is True: 
+                spls = ffname.split('_')
+                id = spls[1]
+                dtstr = spls[2]
+                tmstr = spls[3]
+                jpgname=f'img/single/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('fits','jpg')
+                mp4name=f'img/mp4/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('fits','mp4')
+                print('about to get a list of available jpgs')
+                res = s3.meta.client.list_objects_v2(Bucket=websitebucket,Prefix=jpgname)
+                if res['KeyCount'] > 0:
+                    jpgf.write(f'{jpgname}\n')
+                    jpghtml.write(f'<a href="/{jpgname}"><img src="/{jpgname}" width="20%"></a>\n')
+                else:
+                    print(f'{jpgname} not found')
+                print('about to get a list of available mp4s')
+                res = s3.meta.client.list_objects_v2(Bucket=websitebucket,Prefix=mp4name)
+                if res['KeyCount'] > 0:
+                    mp4f.write(f'{mp4name}\n')
+                    mp4html.write(f'<a href="/{mp4name}"><video width="20%"><source src="/{mp4name}" width="20%" type="video/mp4"></video></a>\n')
+                else:
+                    print(f'{mp4name} not found')
             print('about to find the site')
             site = findSite(id, ddb)
             if site is not None:
