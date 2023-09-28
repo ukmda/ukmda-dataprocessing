@@ -33,7 +33,6 @@
         }, {
           "name" : "statid",
           "in" : "query",
-          "required" : true,
           "schema" : {
             "type" : "string"
           }
@@ -59,19 +58,15 @@
         },
         "x-amazon-apigateway-request-validator" : "Validate body, query string parameters, and headers",
         "x-amazon-apigateway-integration" : {
-          "httpMethod" : "POST",
-          "uri" : "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-west-2:822069317839:function:matchDataApiHandler/invocations",
+          "type" : "http_proxy",
+          "httpMethod" : "GET",
+          "uri" : "https://api.ukmeteors.co.uk/matches",
           "responses" : {
             "default" : {
-              "statusCode" : "200",
-              "responseParameters" : {
-                "method.response.header.Access-Control-Allow-Origin" : "'*'"
-              }
+              "statusCode" : "200"
             }
           },
-          "passthroughBehavior" : "when_no_match",
-          "contentHandling" : "CONVERT_TO_TEXT",
-          "type" : "aws_proxy"
+          "passthroughBehavior" : "when_no_match"
         }
       },
       "options" : {
