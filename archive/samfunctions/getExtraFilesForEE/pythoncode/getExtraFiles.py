@@ -42,17 +42,17 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
     outdir = os.path.join(tmpdir, orbname)
     try: 
         os.makedirs(outdir, exist_ok=True)
-        locfname = os.path.join(outdir, fname)
+        locpickname = os.path.join(outdir, fname)
 
-        s3.meta.client.download_file(archbucket, key, locfname)
+        s3.meta.client.download_file(archbucket, key, locpickname)
         traj = loadPickle(outdir, fname)
         traj.save_results = True
 
         key2 = webpth + 'extrajpgs.txt'
-        locfname = os.path.join(outdir, 'extrajpgs.txt')
+        xtrajpgname = os.path.join(outdir, 'extrajpgs.txt')
         try:
-            s3.meta.client.download_file(websitebucket, key2, locfname)
-            extrajpgs = open(locfname, 'r').readlines()
+            s3.meta.client.download_file(websitebucket, key2, xtrajpgname)
+            extrajpgs = open(xtrajpgname, 'r').readlines()
             extrajpgs = [x.replace('jpg','fits').strip() for x in extrajpgs]
         except:
             print('no extrajpgs.txt')
@@ -130,9 +130,9 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
         jpgf.close()
         mp4f.close()
         print('created image lists')
-        repfname = locfname.replace('trajectory.pickle', 'report.txt')
-        key2 = key.replace('trajectory.pickle', 'report.txt')
-        s3.meta.client.download_file(archbucket, key2, repfname)
+        repfname = locpickname.replace('trajectory.pickle', 'report.txt')
+        repkey = key.replace('trajectory.pickle', 'report.txt')
+        s3.meta.client.download_file(archbucket, repkey, repfname)
 
         key2 = webpth + 'extrajpgs.html'
         locfname = os.path.join(outdir, 'extrajpgs.html')
