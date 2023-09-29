@@ -31,6 +31,21 @@ def getExtraArgs(fname):
     return extraargs
 
 
+def createExtraJpgtxt(outdir, traj, imglistfile):
+    _, orbfldr = os.path.split(outdir)
+    dtstr=orbfldr[:15].replace('-','_')
+    imglist = open(imglistfile, 'r').readlines()
+    allimgs = []
+    for obs in traj.observations:
+        statid = obs.station_id
+        allimgs = allimgs + [x for x in imglist if dtstr in x and statid in x]
+    if len(allimgs) > 0:
+        allimgs = list(dict.fromkeys(allimgs))
+        with open(os.path.join(outdir, 'extrajpgs.txt'),'w') as outf:
+            for img in allimgs:
+                outf.write(img)
+
+
 def recreateOrbitFiles(outdir, pickname):
     traj = loadPickle(outdir, pickname)
     traj.save_results = True
@@ -42,15 +57,17 @@ def recreateOrbitFiles(outdir, pickname):
     traj.saveReport(dirnam, repname, None, False)
     traj.savePlots(dirnam, basename, show_plots=False, ret_figs=False)
     print('created reports and figures')
-
-    # TODO: create extrajpgs.txt containing list of available images 
-
-    _, orbfldr = os.path.split(outdir)
-    print(f'orbit folder is {orbfldr}')
-    files = os.listdir(outdir)
+    orbparent, orbfldr = os.path.split(outdir)
     yr = orbfldr[:4]
     ym = orbfldr[:6]
     ymd = orbfldr[:8]
+    print(f'orbit folder is {orbfldr}')
+
+    imgfldr, _ = os.path.split(orbparent)
+    imglistfile = os.path.join(imgfldr, f'imglist-{ym}.txt')
+    createExtraJpgtxt(outdir, traj, imglistfile)
+
+    files = os.listdir(outdir)
     mdasess = boto3.Session(profile_name='ukmda_admin')
     ukmsess = boto3.Session(profile_name='ukmonshared')
     s3mda = mdasess.client('s3')
@@ -84,5 +101,4 @@ def recreateOrbitFiles(outdir, pickname):
 
 if __name__ == '__main__':
     dirnam, picknam = os.path.split(sys.argv[1])
-
     recreateOrbitFiles(dirnam, picknam)
