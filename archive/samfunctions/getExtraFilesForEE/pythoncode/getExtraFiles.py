@@ -37,7 +37,10 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
     yr = orbname[:4]
     ym = orbname[:6]
     ymd= orbname[:8]
-    webpth = f'reports/{yr}/orbits/{ym}/{ymd}/{orbname}/'
+    if int(yr) > 2020:
+        webpth = f'reports/{yr}/orbits/{ym}/{ymd}/{orbname}/'
+    else:
+        webpth = f'reports/{yr}/orbits/{ym}/{orbname}/'
         
     outdir = os.path.join(tmpdir, orbname)
     try: 
@@ -48,14 +51,14 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
         traj = loadPickle(outdir, fname)
         traj.save_results = True
 
-        key2 = webpth + 'extrajpgs.txt'
         xtrajpgname = os.path.join(outdir, 'extrajpgs.txt')
         try:
-            s3.meta.client.download_file(websitebucket, key2, xtrajpgname)
+            s3.meta.client.download_file(websitebucket, webpth + 'extrajpgs.txt', xtrajpgname)
             extrajpgs = open(xtrajpgname, 'r').readlines()
             extrajpgs = [x.replace('jpg','fits').strip() for x in extrajpgs]
         except:
             print('no extrajpgs.txt')
+            extrajpgs = []
             pass
 
         print('loaded pickle')
@@ -115,15 +118,15 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
                     mp4html.write(f'<a href="/{mp4name}"><video width="20%"><source src="/{mp4name}" width="20%" type="video/mp4"></video></a>\n')
                 else:
                     print(f'{mp4name} not found')
-            print('about to find the site')
-            site = findSite(id, ddb)
-            if site is not None:
-                fldr = site + '/' + id
-                evtdtval = datetime.strptime(f'{dtstr}_{tmstr}', '%Y%m%d_%H%M%S')
-                if evtdtval.hour < 13:
-                    evtdtval = evtdtval + timedelta(days = -1)
-                    dtstr = evtdtval.strftime('%Y%m%d')
-                findOtherFiles(dtstr, archbucket, websitebucket, outdir, fldr, s3)
+                print('about to find the site')
+                site = findSite(id, ddb)
+                if site is not None:
+                    fldr = site + '/' + id
+                    evtdtval = datetime.strptime(f'{dtstr}_{tmstr}', '%Y%m%d_%H%M%S')
+                    if evtdtval.hour < 13:
+                        evtdtval = evtdtval + timedelta(days = -1)
+                        dtstr = evtdtval.strftime('%Y%m%d')
+                    findOtherFiles(dtstr, archbucket, websitebucket, outdir, fldr, s3)
 
         jpghtml.close()
         mp4html.close()
@@ -132,20 +135,24 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
         print('created image lists')
         repfname = locpickname.replace('trajectory.pickle', 'report.txt')
         repkey = key.replace('trajectory.pickle', 'report.txt')
-        s3.meta.client.download_file(archbucket, repkey, repfname)
+        try:
+            s3.meta.client.download_file(archbucket, repkey, repfname)
+        except Exception:
+            print('no text report')
+            pass
 
         key2 = webpth + 'extrajpgs.html'
         locfname = os.path.join(outdir, 'extrajpgs.html')
         try:
             s3.meta.client.download_file(websitebucket, key2, locfname)
-        except:
+        except Exception:
             print('no extrajpgs.html')
             pass
         key2 = webpth + 'extrampgs.html'
         locfname = os.path.join(outdir, 'extrampgs.html')
         try:
             s3.meta.client.download_file(websitebucket, key2, locfname)
-        except:
+        except Exception:
             print('no extrampgs.html')
             pass
 
@@ -159,8 +166,6 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
         key = os.path.join(webpth, 'index.html')
         extraargs = getExtraArgs('index.html')
         s3.meta.client.upload_file(idxname, websitebucket, key, ExtraArgs=extraargs) 
-        #print('pushing to website')
-        #pushToWebsite(archbucket, fuloutdir, websitebucket, orbname, s3)
     except:
         print(f'problem processing {orbname}')
     try:
@@ -240,7 +245,11 @@ def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
     yr = pth[:4]
     ym = pth[:6]
     ymd= pth[:8]
-    webpth = f'reports/{yr}/orbits/{ym}/{ymd}/{pth}/'
+    if int(yr) > 2020:
+        webpth = f'reports/{yr}/orbits/{ym}/{ymd}/{pth}/'
+    else:
+        webpth = f'reports/{yr}/orbits/{ym}/{pth}/'
+
 
     zipfname = os.path.join(outdir, pth +'.zip')
     zipf = ZipFile(zipfname, 'w', compression=ZIP_DEFLATED, compresslevel=9)
@@ -300,42 +309,6 @@ def getExtraArgs(fname):
 
     extraargs = {'ContentType': ctyp}
     return extraargs
-
-
-def pushToWebsite(archbucket, fuloutdir, websitebucket, orbname, s3):
-    yr = orbname[:4]
-    ym = orbname[:6]
-    ymd = orbname[:8]
-
-    targpth = f'reports/{yr}/orbits/{ym}/{ymd}/{orbname}/'
-
-    objlist = s3.meta.client.list_objects_v2(Bucket=archbucket,Prefix=fuloutdir)
-    if objlist['KeyCount'] > 0:
-        keys = objlist['Contents']
-        for k in keys:
-            fname = k['Key']
-            _, locfname = os.path.split(fname)
-            copysrc = {'Bucket': archbucket, 'Key': fname}
-            targfile = targpth + locfname
-            extraargs = getExtraArgs(locfname)
-            # print(targfile, extraargs)
-            s3.meta.client.copy(copysrc, websitebucket, targfile, ExtraArgs=extraargs)
-
-    while objlist['IsTruncated'] is True:
-        contToken = objlist['NextContinuationToken'] 
-        objlist = s3.meta.client.list_objects_v2(Bucket=archbucket,Prefix=fuloutdir, ContinuationToken=contToken)
-        if objlist['KeyCount'] > 0:
-            keys = objlist['Contents']
-            for k in keys:
-                fname = k['Key']
-                _, locfname = os.path.split(fname)
-                copysrc = {'Bucket': archbucket, 'Key': fname}
-                targfile = targpth + locfname
-                extraargs = getExtraArgs(locfname)
-                # print(targfile, extraargs)
-                s3.meta.client.copy(copysrc, websitebucket, targfile, ExtraArgs=extraargs)
-
-    return 
 
 
 if __name__ == '__main__':
