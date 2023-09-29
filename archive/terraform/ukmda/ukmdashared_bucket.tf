@@ -29,7 +29,7 @@ resource "aws_s3_bucket_policy" "ukmdasharedbp" {
               "arn:aws:iam::${var.remote_account_id}:role/ecsTaskExecutionRole", # role used by ECS tasks
               "arn:aws:iam::${var.remote_account_id}:user/Mary",
               "arn:aws:iam::${var.remote_account_id}:user/Mark",
-              "arn:aws:iam::${var.remote_account_id}:user/s3user", # not sure this is needed
+              #"arn:aws:iam::${var.remote_account_id}:user/s3user", # not sure this is needed
               "arn:aws:iam::${var.eeaccountid}:user/MarkMcIntyre"
             ]
           }
@@ -55,23 +55,11 @@ resource "aws_s3_bucket_policy" "ukmdasharedbp" {
                         #"AIDA36ZZGKDHWBV7ZQISQ",  # chard
                         "AROAUUCG4WH4GFCTQIKH3", # S3FullAccess in MJMM account
                         "AROAUUCG4WH4GFCTQIKH3:*", # S3FullAccess in MJMM account
-                        "AROA36ZZGKDHWAMYFNTWV", # DailyReportRole in ee account
-                        "AROA36ZZGKDHWAMYFNTWV:*", # DailyReportRole in ee account
-                        "AROASVSZXPTTHKOAARJ2T:*", # dailyReportRole in mda account
                         "${data.aws_caller_identity.current.account_id}",            # root account
-                        "AROA36ZZGKDHYW6XYFNJD:*",
+                        "AROA36ZZGKDHYW6XYFNJD:*"
                       ]
                 }
             }
-        },
-        {
-          Sid = "DailyReportReadLatest"
-          Effect = "Allow"
-          Principal = { 
-            AWS = ["arn:aws:iam::${var.eeaccountid}:role/service-role/dailyReportRole" ]
-          }
-          Action = "s3:GetObject"
-          Resource = "${aws_s3_bucket.ukmdashared.arn}/matches/RMSCorrelate/dailyreports/*"
         }
       ]
       Version = "2012-10-17"

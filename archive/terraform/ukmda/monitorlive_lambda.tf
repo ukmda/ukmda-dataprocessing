@@ -1,7 +1,7 @@
 data "archive_file" "monitorlivezip" {
   type        = "zip"
-  source_dir  = "${path.root}/files/curateLive/"
-  output_path = "${path.root}/files/curateLive.zip"
+  source_dir  = "${path.root}/files/monitorLiveFeed/"
+  output_path = "${path.root}/files/monitorLiveFeed.zip"
 }
 
 resource "aws_lambda_function" "monitorlivelambda" {
