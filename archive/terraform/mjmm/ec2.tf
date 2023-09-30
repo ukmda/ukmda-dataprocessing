@@ -36,20 +36,3 @@ resource "aws_eip" "ukmonhelper2" {
     billingtag = "ukmon"
   }
 }
-
-
-/*
-resource "aws_instance" "backuprunner" {
-  ami                  = "ami-0d729d2846a86a9e7"
-  instance_type        = "t3a.medium"
-  iam_instance_profile = aws_iam_instance_profile.S3FullAccess.name
-  key_name             = aws_key_pair.marks_key.key_name
-  security_groups      = [aws_security_group.ec2publicsg.name]
-  tags = {
-    "Name"       = "BackupRunner"
-    "billingtag" = "ukmon"
-  }
-  user_data                   = file("files/backuprunner/userdata.sh")
-  user_data_replace_on_change = false
-}
-*/

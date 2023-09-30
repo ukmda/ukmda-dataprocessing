@@ -21,6 +21,19 @@ resource "aws_route53_record" "apidnsentry" {
   }
 }
 
+resource "aws_api_gateway_rest_api" "matchapi_apigateway" {
+  body     = file("files/matchApiJson/ukmonMatchApi.json")
+  name     = "ukmonMatchApi"
+  provider = aws.eu-west-1-prov
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+  tags = {
+    Name       = "ukmonMatchApi"
+    billingtag = "ukmon"
+  }
+}
+
 resource "aws_api_gateway_base_path_mapping" "matchapi" {
   api_id      = aws_api_gateway_rest_api.matchapi_apigateway.id
   stage_name  = "prod"

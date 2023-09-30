@@ -31,13 +31,21 @@
             "type" : "string"
           }
         }, {
+          "name" : "points",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
           "name" : "statid",
           "in" : "query",
           "required" : false,
           "schema" : {
             "type" : "string"
           }
-        } ],
+        } 
+      ],
         "responses" : {
           "200" : {
             "description" : "200 response",

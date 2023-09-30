@@ -20,7 +20,7 @@ for orb in $orblist ; do
         aws s3 sync $WEBSITEBUCKET/$srcdir $OLDWEBSITEBUCKET/$srcdir --size-only
         pickname=${orb:0:15}_trajectory.pickle
         targdir=matches/RMSCorrelate/trajectories/$yr/$ym/$ymd/$orb
-        aws s3 cp $WEBSITEBUCKET/reports/${yr}/orbits/${ym}/${ymd}/${orb}${pickname} $UKMONSHAREDBUCKET/$targdir
+        aws s3 cp $WEBSITEBUCKET/reports/${yr}/orbits/${ym}/${ymd}/${orb}${pickname} $UKMONSHAREDBUCKET/$targdir --profile ukmonshared
         aws s3 cp $WEBSITEBUCKET/reports/${yr}/orbits/${ym}/${ymd}/${orb}${pickname} $OLDUKMONSHAREDBUCKET/$targdir
     fi
 done

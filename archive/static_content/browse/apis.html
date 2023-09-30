@@ -62,30 +62,36 @@
         </p>
         <h3>Available APIs and Examples</h3>
         <p>
-        <li><a href=#Matches>Matches API</a></li>
         <li><a href=#Detections>Detections API</a></li>
+        <li><a href=#Matches>Matches API</a></li>
         <li><a href=#Pickles>Full Trajectory API</a></li>
         <li><a href=#Videos>Video Data</a></li>
-        <li><a href=#MatchExamples>Matches Examples</a></li>
-        <li><a href=#DetExamples>Detections Examples</a></li>
-        <li><a href=#PickleExample>Full Trajectory Example</a></li>
+        <li><a href=#Examples>Examples</a></li>
         </p>
         <h3 id="Matches">Matched Data API</h3>
         <p>
             The following data are available:
         </p>
         <li>List of matched events for a specific date.</li>
+        <li>List of matched events for a specific date for a specific station.</li>
         <li>Details of a specific matched event.</li>
+        <li>List of points used in the analysis of a specific event.</li>
         <br>
         <h4>URL</h4>
         <p>https://api.ukmeteornetwork.co.uk/matches</p>
         <h4>Parameters</h4>
-        <li>reqtyp: can be either 'matches' or 'details'</li>
-        <li>reqval: either a date in yyyymmdd format or a specific event eg 20211121_032219.699_UK</li>
+        There are two mandatory parameters reqtyp and reqval. 
+        <li>reqtyp: matches, reqval: a date in yyyymmdd format</li>
+        <li>reqtyp: station, reqval: a date in yyyymmdd format</li>
+        <li>reqtyp: detail, reqval: a specific event eg 20211121_032219.699_UK</li>
+
+        If reqtyp is "station" an additionnal parameter "statid" must be supplied eg "&statid=UK0006". <br>
+        If reqtyp is "detail" an optional parameter points=1 can be used to retrieve an array of the points 
+        used in the match eg "&points=1".
         <h4>Returns</h4>
-        Data is returned in JSON format suitable for consumption directly into Python Pandas dataframes,
-        but it can also be processed in any other programming language capable of parsing JSON
-        or saved to a file. See below for some examples.
+        Data is returned in JSON format suitable for consumption directly into Python Pandas dataframes
+        or any other programming language capable of parsing JSON. Alternatively it can be piped to Linux's jq 
+        or Windows powershell's convertfrom-json, or saved in a file. See below for some examples.
         <hr>
 
         <h3 id="Detections">Detections API</h3>
@@ -94,7 +100,7 @@
             </p>
             <li>Raw data from one or more detections in ECSV format </li><p>
             The ECSV format has been agreed by all the major meteor networks round the world, and allows you to
-            combine data from different sources.
+            combine data from different source networks.
         </p>
         <h4>URL</h4>
         <p>https://api.ukmeteornetwork.co.uk/getecsv</p>
@@ -122,12 +128,12 @@
             <li>Full trajectory solution data in JSON format </li><p>
         </p>
         <h4>URL</h4>
-        <p>https://api.ukmeteornetwork.co.uk/pickle/getpickle</p>
+        <p>https://api.ukmeteors.co.uk/pickle/getpickle</p>
         <h4>Parameters</h4>
         <li>reqval: Trajectory ID eg 20220814_205940.252_UK</li>
         <h4>Returns</h4>
         <p>
-            JSON data containing the complete trajectory solution.
+            JSON data containing the complete trajectory solution. This can be handled as noted above for matches. 
         </p>
         <hr>
         <h3 id="Videos">Video Data</h3>
@@ -144,7 +150,7 @@
         </p>
 
         <h2>Examples</h2>
-        <h4 id="DetExamples">Detections API - Windows Powershell or Linux Bash</h4>
+        <h4 id="Examples">Detections API - Windows Powershell or Linux Bash</h4>
         <pre>
 PS> wget "https://api.ukmeteornetwork.co.uk/getecsv?stat=UK0025&dt=2021-07-17T02:41:05.05" -O test.ecsv
         </pre>

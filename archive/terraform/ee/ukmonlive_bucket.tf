@@ -135,7 +135,7 @@ data "archive_file" "replicatelive" {
 resource "aws_lambda_function" "replicatelive" {
   provider         = aws.eu-west-1-prov
   function_name    = "replicatelive"
-  description      = "Create backup of livestream"
+  description      = "Create backup of livestream for fireball analysis"
   filename         = data.archive_file.replicatelive.output_path
   source_code_hash = data.archive_file.replicatelive.output_base64sha256
   handler          = "replicatelive.lambda_handler"
