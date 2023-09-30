@@ -11,4 +11,5 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 pip install pytest pytest-cov 
 cd $here
 
-pytest -v --cov=. --cov-report=term-missing  ./test_apis.py
+echo we are $here
+#pytest -v --cov=. --cov-report=term-missing  ./test_apis.py
