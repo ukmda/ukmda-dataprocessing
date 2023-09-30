@@ -24,8 +24,22 @@ def test_getMatchDetail():
     apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
     apicall = f'{apiurl}?reqtyp={reqtyp}&reqval={reqval}'
     try:
-        _ = pd.read_json(apicall, typ='series')
-        assert True
+        df = pd.read_json(apicall, typ='series')
+        assert df['_localtime'] == '_20230821_000021' 
+    except Exception as e:
+        print(repr(e))
+        assert False
+
+
+def test_getMatchPoints():
+    reqtyp = 'detail'
+    reqval = '20211121_032219.699_UK'
+    """ get the points used by one matched event """
+    apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
+    apicall = f'{apiurl}?reqtyp={reqtyp}&reqval={reqval}&points=1'
+    try:
+        df = pd.read_json(apicall, typ='series')
+        assert df[0]['lon']=='-0.476601'
     except Exception as e:
         print(repr(e))
         assert False
