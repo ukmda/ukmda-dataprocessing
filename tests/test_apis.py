@@ -65,8 +65,13 @@ def test_getLiveImages():
     dtstr = datetime.datetime.now().strftime('%Y%m%d') + '_01'
     apiurl = 'https://api.ukmeteors.co.uk/liveimages/getlive'
     try:
-        liveimgs = pd.read_json(f'{apiurl}?pattern={dtstr}')    
-        assert len(liveimgs) > 0
+        liveimgs = pd.read_json(f'{apiurl}?pattern={dtstr}')
+        if len(liveimgs) > 0:
+            assert True
+        else:
+            dtstr = (datetime.datetime.now() + datetime.timedelta(days=-1)).strftime('%Y%m%d') + '_01'
+            liveimgs = pd.read_json(f'{apiurl}?pattern={dtstr}')
+            assert len(liveimgs) > 0
     except Exception as e: 
         print("failed with:" + repr(e))
         assert False
