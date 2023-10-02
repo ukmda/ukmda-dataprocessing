@@ -12,7 +12,7 @@ jobs:
       - run: chmod +x ./tests/*.sh
       - run: ./tests/api_tests.sh
   lnxtests:
-    runs-on: X64
+    runs-on: lnx64
     steps:
       - uses: actions/checkout@v3
       - run: chmod +x ./tests/*.sh
