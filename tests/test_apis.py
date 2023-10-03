@@ -38,8 +38,9 @@ def test_getMatchPoints():
     apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
     apicall = f'{apiurl}?reqtyp={reqtyp}&reqval={reqval}&points=1'
     try:
-        df = pd.read_json(apicall, typ='series')
-        assert df[0]['lon']=='-0.476601'
+        df = pd.read_json(apicall)
+        assert df['points'][0]['lon']=='-0.476601'
+        assert df['points'][0]['amag']=='+0.68'
     except Exception as e:
         print(repr(e))
         assert False
@@ -54,7 +55,7 @@ def test_getMatchPickle():
         data=b''
         for chunk in res.iter_content(chunk_size=4096):
             data = data + chunk
-        jsd = json.loads(data)  
+        jsd = json.loads(data)
         assert len(jsd) == 62
         assert len(jsd['observations']) == 5
     else:
