@@ -2,6 +2,12 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
+# cant put this in as it breaks SAM for some reason i dont yet know
+# so have to manually add the binary media type afterwards in API Settings
+#Globals:
+#  Api:
+#    BinaryMediaTypes:
+#    - application~1zip
 Resources:
   getFireballFiles:
     Type: AWS::Serverless::Function
@@ -38,7 +44,7 @@ Resources:
   putFireBallFiles:
       Type: AWS::ApiGateway::Method
       Properties:
-        HttpMethod: "PUT"
+        HttpMethod: PUT
         ResourceId: !GetAtt ServerlessRestApi.RootResourceId
         RestApiId: !Ref ServerlessRestApi
         AuthorizationType: "NONE"
