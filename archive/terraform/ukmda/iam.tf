@@ -348,3 +348,55 @@ policy = <<EOF
 }
 EOF
 }
+
+resource "aws_iam_role" "orbUploadRole" {
+  name        = "orbUploadRole"
+  description = "Allows API Gateway to upload orbit files"
+  assume_role_policy = jsonencode(
+    {
+      Statement = [
+        {
+          Action = "sts:AssumeRole"
+          Effect = "Allow"
+          Principal = {
+            Service = "apigateway.amazonaws.com"
+          }
+        },
+      ]
+      Version = "2012-10-17"
+    }
+  )
+}
+
+resource "aws_iam_role_policy" "orbUploadPolicy" {
+  name   = "orbUploadPolicy"
+  role   = aws_iam_role.orbUploadRole.name
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowLogs",
+            "Effect": "Allow",
+            "Action": [
+      			  "logs:CreateLogGroup",
+      			  "logs:CreateLogStream"
+            ],
+            "Resource": [
+                "*"
+            ]
+        },
+        {
+            "Sid": "uploadFiles",
+            "Effect": "Allow",
+            "Action": [
+                "s3:Put*"
+            ],
+            "Resource": [
+                "*"
+            ]
+        }
+    ]
+}
+EOF
+}
