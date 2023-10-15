@@ -78,6 +78,8 @@ rm /tmp/logul.pub
 logger -s -t addSftpUser "Copying the ini file and aws keyfile"
 sudo cp $keydir/inifs/$userid.ini /var/sftp/$userid/ukmon.ini
 sudo cp $keydir/keys/$shortid_l.key /var/sftp/$userid/live.key
+sudo dos2unix /var/sftp/$userid/live.key
+sudo dos2unix /var/sftp/$userid/ukmon.ini
 
 # if we are moving a station, update the old ini file 
 # so that the next run points to the new loc
