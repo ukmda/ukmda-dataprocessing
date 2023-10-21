@@ -129,6 +129,10 @@ $SRC/utils/dataSyncBack.sh
 logger -s -t nightlyJob "RUNTIME $SECONDS start clearSpace"
 $SRC/utils/clearSpace.sh 
 
+# now update mariadb
+$SRC/utils/loadMatchCsvMDB.sh
+$SRC/utils/loadSingleCsvMDB.sh
+
 logger -s -t nightlyJob "RUNTIME $SECONDS finished nightlyJob"
 
 # grab the logs for the website - run this last to capture the above Finished message
