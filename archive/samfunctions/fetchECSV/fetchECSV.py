@@ -87,7 +87,7 @@ def createECSV(ftpFile, required_event = None):
             'obs_latitude': platepar['lat'],   # Decimal signed latitude (-90 S to +90 N)
             'obs_longitude': platepar['lon'],  # Decimal signed longitude (-180 W to +180 E)
             'obs_elevation': platepar['elev'], # Altitude in metres above MSL. Note not WGS84
-            'origin': 'ukmon',              # The software which produced the data file
+            'origin': 'ukmda',              # The software which produced the data file
             'camera_id': met.station_id,    # The code name of the camera, likely to be network-specific
             'cx': platepar['X_res'],           # Horizontal camera resolution in pixels
             'cy': platepar['Y_res'],           # Vertical camera resolution in pixels

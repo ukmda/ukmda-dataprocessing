@@ -1,6 +1,6 @@
 # Copyright (C) 2018-2023 Mark McIntyre 
 
-# script to scan UKMON live data as it arrives for brightness information
+# script to scan live data as it arrives for brightness information
 
 import os
 import boto3
@@ -97,7 +97,7 @@ def updateLiveTable(event, dtval):
 def processXml(event):
     record = event['Records'][0]
     fname = record['s3']['object']['key']
-    buck = 'ukmon-live'
+    buck = 'ukmda-live'
     s3 = boto3.resource('s3')
 
     if '.xml' not in fname:
