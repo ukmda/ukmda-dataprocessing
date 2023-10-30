@@ -16,7 +16,7 @@ def AddHeader(body, bodytext, stats):
         body = body + 'Note that this may include older data for which a new match has been found.<br>'
         body = body + 'Click each link to see analysis of these events.<br>'
         bodytext = bodytext + 'Events: {}, Trajectories: {}. Matches {}'.format(stats[1], stats[2], stats[3])
-        bodytext = bodytext + 'The following multiple detections were found in UKMON Live the last 24 hour period,\n'
+        bodytext = bodytext + 'The following multiple detections were found in the last 24 hour period,\n'
         bodytext = bodytext + 'Note that this may include older data for which a new match has been found.\n'
         body = body + '<table border=\"0\">'
         body = body + '<tr><td><b>Event</b></td><td><b>Shwr</b></td><td><b>Vis Mag</b></td><td><b>Stations</b></td></tr>'
@@ -120,5 +120,5 @@ if __name__ == '__main__':
         mailFrom = recs[-1].strip()
     #mailRecip = 'markmcintyre99@googlemail.com' # TODO for testing only
     yest = (datetime.date.today()-datetime.timedelta(days=doff)).strftime('%Y-%m-%d')
-    mailSubj = f'Latest UKMON Match Report for {yest}'
+    mailSubj = f'Latest Match Report for {yest}'
     sendAnEmail(mailRecip, bodytext, mailSubj, mailFrom, msg_html=body.replace('href="/reports', f'href="{targeturl}/reports'))

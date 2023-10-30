@@ -184,7 +184,7 @@ def ftpToECSV(ftpFile, outdir=None):
         evtdt = data.split('isodate_calib:')[1][0:29].strip().replace("'",'')
         statid = data.split('camera_id:')[1][0:10].strip().replace("'",'').replace('}','')
         evtdt = evtdt.replace('-','').replace('T','_').replace(':','').replace('.','_')
-        fname = os.path.join(outdir, f'FF_{statid}_{evtdt}_UKMON.ecsv')
+        fname = os.path.join(outdir, f'FF_{statid}_{evtdt}_UKMDA.ecsv')
         with open(fname,'w') as outf:
             outf.write(data)
         print("ESCV file saved to:", fname)
