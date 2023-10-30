@@ -11,7 +11,7 @@ import textwrap
 
 from meteortools.utils import sendAnEmail
 
-mailfrom = 'ukmonhelper@ukmeteornetwork.co.uk'
+mailfrom = 'ukmonhelper2@ukmeteors.co.uk'
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
