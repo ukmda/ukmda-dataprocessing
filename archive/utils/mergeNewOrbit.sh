@@ -21,12 +21,12 @@ if [ ! -z $newfiles ] ; then
         mv *.pickle $orb
         cd ..
         pick=$(ls -1 $evt/$orb/*.pickle)
-        python -m maintenance.recreateOrbitPages $pick
+        python -m maintenance.recreateOrbitPages $pick force
         ymd=${fil:0:8}
         yr=${ymd:0:4}
-        echo $SRC/website/createOrbitIndex.sh ${ymd}
-        echo $SRC/analysis/consolidateOutput.sh ${yr}
-        echo $SRC/website/createFireballPage.sh ${yr}
+        $SRC/website/createOrbitIndex.sh ${ymd}
+        $SRC/analysis/consolidateOutput.sh ${yr}
+        $SRC/website/createFireballPage.sh ${yr}
         aws s3 mv $UKMONSHAREDBUCKET/fireballs/uploads/$fil $UKMONSHAREDBUCKET/fireballs/uploads/processed/$fil.done
         rm $fil
     done
