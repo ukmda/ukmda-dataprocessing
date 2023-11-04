@@ -136,7 +136,9 @@ def getSourceAndTargets():
     webbucket = webpth[:webpth.find('/')]
     webpth = webpth[webpth.find('/')+1:]
 
-    return srcbucket, srcpth, outbucket, outpth, webbucket, webpth
+    oldoutb = os.getenv('OLDOUTB', default=None)
+    oldwebb = os.getenv('OLDWEBB', default=None)
+    return srcbucket, srcpth, outbucket, outpth, webbucket, webpth, oldwebb, oldoutb
 
 
 # extra args for setting the MIME type when uploading to S3. 
@@ -167,7 +169,7 @@ def getExtraArgs(fname):
 
 
 #push solutions to the website, and push the pickle and report to shared bucket
-def pushToWebsite(s3, localfldr, webbucket, webfldr, outbucket, outpth):
+def pushToWebsite(s3, localfldr, webbucket, webfldr, outbucket, outpth, oldwebb=None, oldoutb=None):
     for root, _, files in os.walk(localfldr):
         for fil in files:
             fullname = os.path.join(localfldr, root, fil)
@@ -179,18 +181,26 @@ def pushToWebsite(s3, localfldr, webbucket, webfldr, outbucket, outpth):
             targkey = f'{webfldr}/{yr}/orbits/{ym}/{ymd}/{orbname}/{fname}'
             print(f'uploading {fname} to s3://{webbucket}/{targkey}')
             s3.meta.client.upload_file(fullname, webbucket, targkey, ExtraArgs = getExtraArgs(fname))
-            try:
-                s3.meta.client.upload_file(fullname, 'ukmeteornetworkarchive', targkey, ExtraArgs = getExtraArgs(fname))
-            except:
-                print('unable to push to old website')
+            if oldwebb:
+                print(f' and uploading to {oldwebb}')
+                try:
+                    s3.meta.client.upload_file(fullname, oldwebb, targkey, ExtraArgs = getExtraArgs(fname))
+                except:
+                    print('unable to push to old website')
+            else:
+                print('not pushing to old website')
             if 'report' in fname or 'pickle' in fname:
                 targkey = f'{outpth}/trajectories/{yr}/{ym}/{ymd}/{orbname}/{fname}'
                 print(f'uploading {fname} to s3://{outbucket}/{targkey}')
                 s3.meta.client.upload_file(fullname, outbucket, targkey, ExtraArgs = getExtraArgs(fname))
-                try:
-                    s3.meta.client.upload_file(fullname, 'ukmon-shared', targkey, ExtraArgs = getExtraArgs(fname))
-                except:
-                    print('unable to push to old sharedsite')
+                if oldoutb:
+                    print(f' and uploading to {oldoutb}')
+                    try:
+                        s3.meta.client.upload_file(fullname, oldoutb, targkey, ExtraArgs = getExtraArgs(fname))
+                    except:
+                        print('unable to push to old share')
+                else:
+                    print('not pushing to old share')
     return
 
 
@@ -224,7 +234,7 @@ def startup(srcfldr, startdt, enddt, isTest=False):
             aws_secret_access_key=lis[1].strip(), 
             region_name = 'eu-west-2')
 
-    srcbucket, srcpth, outbucket, outpth, webbucket, webpth = getSourceAndTargets()
+    srcbucket, srcpth, outbucket, outpth, webbucket, webpth, oldwebb, oldoutb = getSourceAndTargets()
     if isTest is True:
         outpth = os.path.join(outpth, 'test')
 
@@ -246,7 +256,7 @@ def startup(srcfldr, startdt, enddt, isTest=False):
 
         print('uploading data to website')
         trajfldr = os.path.join(localfldr,'trajectories')
-        pushToWebsite(s3, trajfldr, webbucket, webpth, outbucket, outpth)
+        pushToWebsite(s3, trajfldr, webbucket, webpth, outbucket, outpth, oldwebb=oldwebb, oldoutb=oldoutb)
 
         fname = f'{srcfldr}.json'
         jsonfile = os.path.join(localfldr, 'processed_trajectories.json')
