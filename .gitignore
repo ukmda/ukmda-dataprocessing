@@ -600,3 +600,4 @@ usermgmt/server/ukmoncommittee.txt
 usermgmt/server/ukmon*.json
 **/awskeys.test
 **/trajsolver_old/*
+archive/tmp/*
