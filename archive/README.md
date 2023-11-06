@@ -1,10 +1,10 @@
-UKMON Archive and UKMON Live data flows
-=======================================
+Data Processing anad Flows
+==========================
 This diagram shows the overall flow of data from Cameras to websites and out to the public.
 
 ```mermaid
     flowchart TD
-    A[camera 1] -- realtime --> C[UKMON Live];
+    A[camera 1] -- realtime --> C[livestream];
     B[camera 2] -- realtime --> C;
     P[camera 3] -- realtime --> C;
     A -- next day --> D[cloud storage];
@@ -14,7 +14,7 @@ This diagram shows the overall flow of data from Cameras to websites and out to 
     E --> F[reports generator];
     F --> G[opt-in email of matches];
     F --> I[bad-data alerts];
-    F --> H[UKMON Archive];
+    F --> H[Archive];
     H -- on demand --> J[other networks];
     H --> M[public];
     C --> M[public];
