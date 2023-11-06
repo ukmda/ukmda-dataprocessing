@@ -10,7 +10,9 @@ logger -s -t cleanSpace "starting"
 
 logger -s -t cleanSpace "clean up old logs"
 find $SRC/logs -name "nightly*.gz" -mtime +60 -exec rm -f {} \;
+find $SRC/logs -name "*perfNightly*.gz" -mtime +60 -exec rm -f {} \;
 find $SRC/logs -name "nightly*.log" -mtime +7 -exec gzip {} \;
+find $SRC/logs -name "*perfNightly*.jpg" -mtime +7 -exec gzip {} \;
 
 find $SRC/logs/distrib -name "*.log" -mtime +10 -exec rm -f {} \;
 

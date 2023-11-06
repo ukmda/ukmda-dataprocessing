@@ -2,6 +2,12 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
+# cant put this in as it breaks SAM for some reason i dont yet know
+# so have to manually add the binary media type afterwards in API Settings
+#Globals:
+#  Api:
+#    BinaryMediaTypes:
+#    - application~1zip
 Resources:
   getFireballFiles:
     Type: AWS::Serverless::Function
@@ -29,3 +35,33 @@ Resources:
         billingtag: "ukmda"
     Metadata:
       BuildMethod: python3.8
+  uploadResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ServerlessRestApi 
+      ParentId: !GetAtt ServerlessRestApi.RootResourceId
+      PathPart: 'orbitfile'
+  putFireBallFiles:
+      Type: AWS::ApiGateway::Method
+      Properties:
+        HttpMethod: PUT
+        ResourceId: !GetAtt ServerlessRestApi.RootResourceId
+        RestApiId: !Ref ServerlessRestApi
+        AuthorizationType: "NONE"
+        MethodResponses:
+          - StatusCode: "200"
+        RequestParameters:
+          method.request.querystring.orbitfile: true
+        Integration:
+          IntegrationHttpMethod: PUT
+          Type: AWS
+          IntegrationResponses:
+            - StatusCode: "200"
+          Credentials: "arn:aws:iam::183798037734:role/orbUploadRole"
+          Uri: "arn:aws:apigateway:eu-west-2:s3:path/ukmda-shared/fireballs/uploads/{key}"
+          PassthroughBehavior: "when_no_templates"
+          CacheNamespace: "ttby7fcykg"
+          CacheKeyParameters:
+          - "method.request.querystring.orbitfile"
+          RequestParameters:
+            integration.request.path.key: "method.request.querystring.orbitfile"

@@ -10,7 +10,7 @@ resource "aws_lambda_function" "monitorlivelambda" {
   description      = "Realtime tracking of brightness data"
   filename         = data.archive_file.monitorlivezip.output_path
   source_code_hash = data.archive_file.monitorlivezip.output_base64sha256
-  handler          = "curateLive.lambda_handler"
+  handler          = "monitorLiveFeed.lambda_handler"
   runtime          = "python3.8"
   memory_size      = 128
   timeout          = 300

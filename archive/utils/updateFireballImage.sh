@@ -33,12 +33,12 @@ if [[ "$orbname" == "" || "$imgname" == "" ]] ; then
     exit
 fi
 tmp_dir=$(mktemp -d -t fb-XXXXXXXXXX)
-scp ukmonhelper:prod/data/reports/${yr}/fireballs/${orbname}.md ${tmp_dir}
+scp ukmonhelper2:prod/data/reports/${yr}/fireballs/${orbname}.md ${tmp_dir}
 imgurl=$(grep image ${tmp_dir}/${orbname}.md | awk '{print $2}')
 oldimg=$(basename $(echo $imgurl) )
 cat  ${tmp_dir}/${orbname}.md  | sed "s/${oldimg}/${imgname}/g" > ${tmp_dir}/new_${orbname}.md
 mv ${tmp_dir}/new_${orbname}.md ${tmp_dir}/${orbname}.md
-scp ${tmp_dir}/${orbname}.md ukmonhelper:prod/data/reports/${yr}/fireballs/
+scp ${tmp_dir}/${orbname}.md ukmonhelper2:prod/data/reports/${yr}/fireballs/
 aws s3 cp ${tmp_dir}/${orbname}.md $WEBSITEBUCKET/reports/${yr}/fireballs/
 rm -Rf ${tmp_dir}
 ${SRC}/website/createFireballPage.sh ${yr} -3.99

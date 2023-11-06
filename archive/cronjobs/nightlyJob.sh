@@ -31,6 +31,7 @@ logger -s -t nightlyJob "RUNTIME $SECONDS updating the camera location/dir/fov d
 python -c "from reports.CameraDetails import updateCamLocDirFovDB; updateCamLocDirFovDB();"
 aws s3 cp $DATADIR/admin/cameraLocs.json $UKMONSHAREDBUCKET/admin/ --profile ukmonshared --quiet
 aws s3 sync $UKMONSHAREDBUCKET/admin/ $DATADIR/admin --profile ukmonshared --quiet
+aws s3 sync $UKMONSHAREDBUCKET/consolidated/ $DATADIR/consolidated/ --exclude "*" --include "camera-details.csv" --profile ukmonshared --quiet
 
 # run this only once as it scoops up all unprocessed data
 logger -s -t nightlyJob "RUNTIME $SECONDS start findAllMatches"
@@ -46,14 +47,6 @@ $SRC/analysis/createSearchable.sh $yr matches
 logger -s -t nightlyJob "RUNTIME $SECONDS start createStationList"
 $SRC/website/createStationList.sh
 
-# send daily report - only want to do this if in batch mode
-#if [ "`tty`" != "not a tty" ]; then 
-#    echo 'got a tty, not triggering report'
-#else 
-#    # email has to be sent from the ukmeteornetwork.co.uk verified domain
-#    acctid=$(aws sts get-caller-identity --profile realukms --output text --query Account)
-#    aws lambda invoke --function-name ${acctid}:function:dailyReport --profile realukms --region eu-west-1 --log-type None $SRC/logs/dailyReport.log
-#fi
 # add daily report to the website
 logger -s -t nightlyJob "RUNTIME $SECONDS start publishDailyReport"
 $SRC/website/publishDailyReport.sh 
@@ -108,7 +101,7 @@ aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogin
 aws s3 cp $DATADIR/reports/stationlogins.txt $OLDWEBSITEBUCKET/reports/stationlogins.txt --region eu-west-2 --quiet
 
 cd $DATADIR
-# do this manually when on PC required; closes #61
+# do this manually when on PC required as it requires too much memory for the batch server; closes #61
 #python $PYLIB/maintenance/plotStationsOnMap.py False
 aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/ --region eu-west-2 --quiet
 aws s3 cp $DATADIR/stations.png $OLDWEBSITEBUCKET/ --region eu-west-2 --quiet
@@ -135,6 +128,10 @@ $SRC/utils/dataSyncBack.sh
 
 logger -s -t nightlyJob "RUNTIME $SECONDS start clearSpace"
 $SRC/utils/clearSpace.sh 
+
+# now update mariadb
+$SRC/utils/loadMatchCsvMDB.sh
+$SRC/utils/loadSingleCsvMDB.sh
 
 logger -s -t nightlyJob "RUNTIME $SECONDS finished nightlyJob"
 

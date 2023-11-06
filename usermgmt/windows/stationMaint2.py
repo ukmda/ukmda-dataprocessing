@@ -333,6 +333,7 @@ class CamMaintenance(Frame):
         s3 = conn.client('s3')
         s3.upload_file(Bucket=self.bucket_name, Key=self.fullname, Filename=self.localfile)
         s3.upload_file(Bucket=self.bucket_name, Key=self.fullstat, Filename=self.locstatfile)
+        self.uploadCfgToServer()
 
         return 
 
@@ -433,6 +434,19 @@ class CamMaintenance(Frame):
         curdata = self.data[cr]
         location = curdata[0]
         createNewAwsKey(location, self.caminfo)
+
+    def uploadCfgToServer(self):
+        server=os.getenv('HELPERSERVER', default='ukmonhelper')
+        user='ec2-user'
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser('~/.ssh/ukmonhelper'))
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = user, pkey = k)
+        scpcli = SCPClient(c.get_transport())
+        # push the raw keyfile
+        scpcli.put(self.localfile, 'prod/data/consolidated/')
+        scpcli.put(self.locstatfile, 'prod/data/admin/')
+        return
 
 
 def updateKeyfile(caminfo, location):

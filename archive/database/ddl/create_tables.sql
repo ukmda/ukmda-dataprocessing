@@ -28,7 +28,9 @@ create table singles(
     AngVel float,
     Shwr varchar(6),
     filname varchar(64),
-    Dtstamp float);
+    Dtstamp double(18,6));
+
+alter ignore table ukmon.singles add unique uniq_Dtstamp (Dtstamp);
 
 create table matches(
     _dbver varchar(6),
@@ -165,3 +167,5 @@ create table matches(
     stations varchar(256),
     isfb varchar(6)
     );
+
+alter ignore table matches add unique uniq_orbname (orbname);

@@ -29,7 +29,7 @@ def _getCamLoc(camid):
 
 def getFBfiles(patt):
     """
-    Retrieve fireball files from the ukmon website that match a pattern
+    Retrieve fireball files from the datastore that match a pattern
 
     Arguments:
         patt:      [str] pattern to match

@@ -27,7 +27,7 @@ def findEmail(stationid, camdets):
     return res
 
 
-def findLatestFTPs(dtstr='20230813', archbucket='ukmon-shared'):
+def findLatestFTPs(dtstr='20230813', archbucket='ukmda-shared'):
     s3 = boto3.resource('s3')
     location='matches/RMSCorrelate/UK'
     bucket = s3.Bucket(archbucket)
@@ -44,7 +44,7 @@ def findLatestFTPs(dtstr='20230813', archbucket='ukmon-shared'):
     return df
 
 
-def ftpsAfterBatchStart(batchtime=None, archbucket='ukmon-shared'):
+def ftpsAfterBatchStart(batchtime=None, archbucket='ukmda-shared'):
     if batchtime is None:
         batchtime=pd.Timestamp(datetime.datetime.now(), tz='UTC')
     else:

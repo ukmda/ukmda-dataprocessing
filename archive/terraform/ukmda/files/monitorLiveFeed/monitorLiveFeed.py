@@ -1,6 +1,6 @@
 # Copyright (C) 2018-2023 Mark McIntyre 
 
-# script to scan UKMON live data as it arrives for brightness information
+# script to scan live data as it arrives for brightness information
 
 import os
 import boto3
@@ -97,7 +97,7 @@ def updateLiveTable(event, dtval):
 def processXml(event):
     record = event['Records'][0]
     fname = record['s3']['object']['key']
-    buck = 'ukmon-live'
+    buck = 'ukmda-live'
     s3 = boto3.resource('s3')
 
     if '.xml' not in fname:
@@ -161,32 +161,3 @@ def lambda_handler(event, context):
     if evtdets is not None:
         storeInDDb(evtdets, camdets)
         updateLiveTable(event, evtdets['dtval'])
-
-
-# Test cases. Execute with "pytest ./curateLive.py"
-
-def test_handler():
-    event = {'Records': [{'s3':{'object':{'key':'test/M20230403_210231_tackley_sw_UK0006.xml'}}}]}
-    evtdets, camdets = processXml(event, False)
-    assert evtdets['bmax'] == 75966064
-    assert evtdets['bave'] == 75240244
-    assert evtdets['bstd'] == 560025
-    assert camdets['fps'] == 25.0
-    assert camdets['cx'] == 1280
-
-
-def test_handler2():
-    event = {'Records': [{'s3':{'object':{'key':'test/M20230403_205525_tackley_ne_UK002F.xml'}}}]}
-    evtdets, camdets = processXml(event, False)
-    assert evtdets['bmax'] == 81582881
-    assert evtdets['ffname'] == 'FF_UK002F_20230403_205525_195_0112640.fits'
-    assert evtdets['dtval'] == datetime.datetime(2023,4,3,20,55,25, 915000)
-    assert evtdets['fno'] == 18
-    assert camdets['camid'] == 'UK002F'
-
-
-def test_ddbput():
-    event = {'Records': [{'s3':{'object':{'key':'test/M20230403_205525_tackley_ne_UK002F.xml'}}}]}
-    evtdets, camdets = processXml(event, False)
-    ret = storeInDDb(evtdets, camdets)
-    assert ret == 200

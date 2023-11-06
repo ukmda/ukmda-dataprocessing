@@ -29,8 +29,8 @@ class PlateparDummy:
             self.UT_corr = 0
 
 
-def writeUkmonCsv(dir_path, file_name, data):
-    """ Write the a Ukmon specific CSV file for single-station data. 
+def writeUkmdaCsv(dir_path, file_name, data):
+    """ Write the a UKMDA specific CSV file for single-station data. 
 
     Arguments:
         dir_path: [str] Directory where the file will be written to.
@@ -76,8 +76,8 @@ def writeUkmonCsv(dir_path, file_name, data):
     s3.meta.client.upload_file(fullname, s3bucket, outn, ExtraArgs={'ContentType': 'text/csv'})
 
 
-def FTPdetectinfo2UkmonCsv(dir_path):
-    """ Convert the FTPdetectinfo file into a ukmon specific CSV file. 
+def FTPdetectinfo2UkmdaCsv(dir_path):
+    """ Convert the FTPdetectinfo file into a ukmda specific CSV file. 
         
     Arguments:
         dir_path: [str] Path of the directory which contains the FTPdetectinfo file.
@@ -225,10 +225,10 @@ def FTPdetectinfo2UkmonCsv(dir_path):
 
     # Construct a file name for the UFO file, which is the FTPdetectinfo file without the FTPdetectinfo 
     #   part
-    ufo_file_name = ftpdetectinfo_name.replace('FTPdetectinfo_', 'ukmon_').replace('.txt', '') + '.csv'
+    ufo_file_name = ftpdetectinfo_name.replace('FTPdetectinfo_', 'ukmda_').replace('.txt', '') + '.csv'
 
-    # Write the ukmon-specific output file
-    writeUkmonCsv(dir_path, ufo_file_name, ufo_meteor_list)
+    # Write the ukmda-specific output file
+    writeUkmdaCsv(dir_path, ufo_file_name, ufo_meteor_list)
 
 
 def addRowCamTimings(s3bucket, s3object):
@@ -258,7 +258,7 @@ def addRowCamTimings(s3bucket, s3object):
     return 
 
 
-def ftpToUkmon(s3bucket, s3object):
+def ftpToUkmda(s3bucket, s3object):
     s3 = boto3.resource('s3')
 
     tmpdir = mkdtemp()
@@ -315,7 +315,7 @@ def ftpToUkmon(s3bucket, s3object):
 
     #print('got files')
 
-    FTPdetectinfo2UkmonCsv(tmpdir)
+    FTPdetectinfo2UkmdaCsv(tmpdir)
 
     rmtree(tmpdir)
 
@@ -351,7 +351,7 @@ def lambda_handler(event, context):
         print(f'not a relevant file {s3object}')
         return 0
 
-    ftpToUkmon(s3bucket, s3object)
+    ftpToUkmda(s3bucket, s3object)
     addRowCamTimings(s3bucket, s3object)
 
     return 0

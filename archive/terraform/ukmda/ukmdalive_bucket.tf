@@ -46,7 +46,10 @@ resource "aws_s3_bucket_policy" "ukmdalivebp" {
             "Principal": {
                 "AWS": "arn:aws:iam::${var.eeaccountid}:role/service-role/replicatelive"
             },
-            "Action": "s3:Put*",
+            "Action": [ 
+              "s3:Put*",
+              "s3:Get*"
+            ],
             "Resource": [
               "${aws_s3_bucket.ukmdalive.arn}",
               "${aws_s3_bucket.ukmdalive.arn}/*"

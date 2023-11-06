@@ -13,7 +13,7 @@ CameraDetails = np.dtype([('Site', 'S32'), ('CamID', 'S32'), ('LID', 'S16'),
 
 class SiteInfo:
     """
-    Class to read and manage UKMON camera site information
+    Class to read and manage camera site information
 
     Note that this class 
     """

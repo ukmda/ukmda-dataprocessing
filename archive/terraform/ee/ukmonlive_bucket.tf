@@ -205,7 +205,7 @@ resource "aws_iam_role_policy" "replicatelive_policy" {
     },
     {
       "Effect": "Allow",
-      "Action": [ "s3:Put*" ],
+      "Action": [ "s3:Put*", "s3:Get*" ],
       "Resource": 
         [
           "arn:aws:s3:::ukmda-live",

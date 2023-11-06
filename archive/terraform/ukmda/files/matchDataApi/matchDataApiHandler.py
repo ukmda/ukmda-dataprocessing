@@ -76,7 +76,7 @@ def lambda_handler(event, context):
 def fileToJsonString(flis):
     hdr = ['No','statid','ign','t','jd','m1','m2','az','alt','azl','altl','rao', 
            'deco','ral','decl','X','Y','Z','lat','lon','H','range','length','svd',
-           'lag','vel','hres','vres','ares','vmag','amag']
+           'lag','vel','pvel', 'hres','vres','ares','vmag','amag']
     ptsarray='['
     gotpts = False
     for fli in flis:
@@ -96,4 +96,5 @@ def fileToJsonString(flis):
             thisrow = thisrow[:-1] + '},'
             ptsarray = ptsarray + thisrow
     ptsarray = ptsarray[:-1] + ']'
+    ptsarray = '{' + f'"points": {ptsarray}' + '}'
     return ptsarray
