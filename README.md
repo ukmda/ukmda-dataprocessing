@@ -1,4 +1,4 @@
-# UKMon Shared code and libraries
+# UK Meteor Data Analysis Shared code and libraries
 
 
 ## archive
