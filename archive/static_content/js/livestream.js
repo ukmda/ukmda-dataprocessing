@@ -53,12 +53,13 @@ form.addEventListener("submit", function (event) {
     strstat = e.options[e.selectedIndex].text;
   }
   if (d1==="") {
-    dtval = getCurrentDate();
+    dtval = "latest";
+    enddtval = "latest";
   }
   else
   {
-    dtval = d1.replace("-","").replace("-","").replace("T","_").replace(":","").substring(0,13);
-    enddtval = d2.replace("-","").replace("-","").replace("T","_").replace(":","").substring(0,13);
+    dtval = d1;
+    enddtval = d2;
   }
   var payload = { dtstr: dtval, enddtstr : enddtval, statid: strstat };
   console.log(payload);
