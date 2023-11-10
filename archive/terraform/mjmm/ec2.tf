@@ -34,5 +34,6 @@ resource "aws_eip" "ukmonhelper2" {
   vpc      = true
   tags = {
     billingtag = "ukmon"
+    Name       = "ukmonhelper_eip"
   }
 }

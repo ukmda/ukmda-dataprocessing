@@ -55,12 +55,30 @@ resource "aws_security_group" "default" {
       self             = false
     }
   ]
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+egress = [
+    {
+      cidr_blocks      = ["0.0.0.0/0",]
+      description      = ""
+      from_port        = 0
+      ipv6_cidr_blocks = []
+      prefix_list_ids  = []
+      protocol         = "-1"
+      security_groups  = []
+      self             = false
+      to_port          = 0
+    },
+    {
+      cidr_blocks      = []
+      description      = ""
+      from_port        = 0
+      ipv6_cidr_blocks = ["::/0", ]
+      prefix_list_ids  = []
+      protocol         = "-1"
+      security_groups  = []
+      self             = false
+      to_port          = 0
+    }
+  ]
   tags = {
     billingtag = "Management"
   }
@@ -104,6 +122,17 @@ resource "aws_security_group" "launch-wizard-4" {
       security_groups  = []
       self             = false
     },
+    {
+      cidr_blocks      = []
+      description      = "IPv6 SSH for Admin"
+      from_port        = 22
+      ipv6_cidr_blocks = ["::/0",]
+      prefix_list_ids  = []
+      protocol         = "tcp"
+      security_groups  = []
+      self             = false
+      to_port          = 22
+    },    
   ]
   egress = [
     {
@@ -111,6 +140,17 @@ resource "aws_security_group" "launch-wizard-4" {
       description      = ""
       from_port        = 0
       ipv6_cidr_blocks = []
+      prefix_list_ids  = []
+      protocol         = "-1"
+      security_groups  = []
+      self             = false
+      to_port          = 0
+    },
+    {
+      cidr_blocks      = []
+      description      = ""
+      from_port        = 0
+      ipv6_cidr_blocks = ["::/0"]
       prefix_list_ids  = []
       protocol         = "-1"
       security_groups  = []
@@ -163,6 +203,17 @@ resource "aws_security_group" "ec2publicsg" {
       self             = false
       to_port          = 0
     },
+    {
+      cidr_blocks      = []
+      description      = ""
+      from_port        = 0
+      ipv6_cidr_blocks = ["::/0"]
+      prefix_list_ids  = []
+      protocol         = "-1"
+      security_groups  = []
+      self             = false
+      to_port          = 0
+    }
   ]
   tags = {
     billingtag = "Management"
