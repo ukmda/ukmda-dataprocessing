@@ -10,7 +10,7 @@ RUNTIME_ENV=$1
 envname=$(echo $RUNTIME_ENV | tr '[:upper:]' '[:lower:]')
 
 if [ "$envname" == "PROD" ] ; then
-    for fldr in browse css docs data js fonts latest search templates ; do 
+    for fldr in browse css data js fonts latest search templates ; do 
         aws s3 sync $SRC/static_content/$fldr/ $OLDWEBSITEBUCKET/$fldr/ --profile ukmonshared --exclude "*ukmda*" --exclude "*ukmon*"
         aws s3 sync $SRC/static_content/$fldr/ $WEBSITEBUCKET/$fldr/ --profile ukmonshared --exclude "*ukmda*" --exclude "*ukmon*"
     done

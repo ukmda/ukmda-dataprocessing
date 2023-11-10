@@ -601,3 +601,4 @@ usermgmt/server/ukmon*.json
 **/awskeys.test
 **/trajsolver_old/*
 archive/tmp/*
+servercopy/files/*
