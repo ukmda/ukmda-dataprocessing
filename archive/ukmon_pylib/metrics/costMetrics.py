@@ -155,9 +155,9 @@ def drawBarChart(costsfile, typflag, accid):
             othertot += vals
         else:
             #print(svcname, sum(vals))
-            ax.bar(labels, vals, width, label=svcname, bottom=bottoms, tick_label = labs)
+            ax.bar(labels, vals, width, label=f'${sum(vals):.2f} - {svcname}', bottom=bottoms, tick_label = labs)
             bottoms += vals
-    ax.bar(labels, othertot, width, label='Other', bottom=bottoms, tick_label = labs)
+    ax.bar(labels, othertot, width, label=f'${sum(othertot):.2f} - Other', bottom=bottoms, tick_label = labs)
 
     #maxy = np.ceil(max(s3cost)+max(ec2cost))
     totcost = np.round(sum(fltrdata['cost']),2)

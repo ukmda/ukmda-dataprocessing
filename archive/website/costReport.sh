@@ -48,11 +48,11 @@ cp $DATADIR/costs/costs-*-90-days.jpg $DATADIR/reports
 
 costfile=$DATADIR/reports/costs.html
 #imgfile=/reports/costs-317976261112-90-days.jpg
-#imgfile2=/reports/costs-822069317839-90-days.jpg
+imgfile2=/reports/costs-822069317839-90-days.jpg
 imgfile3=/reports/costs-183798037734-90-days.jpg
 
 #v1=$(cat $DATADIR/costs/costs-317976261112-last.csv)
-#v2=$(cat $DATADIR/costs/costs-822069317839-last.csv)
+v2=$(cat $DATADIR/costs/costs-822069317839-last.csv)
 v3=$(cat $DATADIR/costs/costs-183798037734-last.csv)
 
 #lastfullcost=$(echo $v1 + $v2 + $v3 | bc)
@@ -79,14 +79,14 @@ fi
 cat $TEMPLATES/footer.html >> $costfile
 
 logger -s -t costReport "publishing data"
-aws s3 cp $costfile $WEBSITEBUCKET/reports/ --quiet
+aws s3 cp $costfile $WEBSITEBUCKET/reports/ --quiet --profile ukmonshared
 #aws s3 cp $DATADIR/$imgfile $WEBSITEBUCKET/reports/ --quiet 
-#aws s3 cp $DATADIR/$imgfile2 $WEBSITEBUCKET/reports/ --quiet
-aws s3 cp $DATADIR/$imgfile3 $WEBSITEBUCKET/reports/ --quiet
+aws s3 cp $DATADIR/$imgfile2 $WEBSITEBUCKET/reports/ --quiet --profile ukmonshared
+aws s3 cp $DATADIR/$imgfile3 $WEBSITEBUCKET/reports/ --quiet --profile ukmonshared
 
-aws s3 cp $costfile $OLDWEBSITEBUCKET/reports/ --quiet
-aws s3 cp $DATADIR/$imgfile $OLDWEBSITEBUCKET/reports/ --quiet 
-#aws s3 cp $DATADIR/$imgfile2 $OLDWEBSITEBUCKET/reports/ --quiet
-#aws s3 cp $DATADIR/$imgfile3 $OLDWEBSITEBUCKET/reports/ --quiet
+aws s3 cp $costfile $OLDWEBSITEBUCKET/reports/ --quiet --profile realukms
+#aws s3 cp $DATADIR/$imgfile $OLDWEBSITEBUCKET/reports/ --quiet --profile realukms
+aws s3 cp $DATADIR/$imgfile2 $OLDWEBSITEBUCKET/reports/ --quiet --profile realukms
+aws s3 cp $DATADIR/$imgfile3 $OLDWEBSITEBUCKET/reports/ --quiet --profile realukms
 
 logger -s -t costReport "done"
