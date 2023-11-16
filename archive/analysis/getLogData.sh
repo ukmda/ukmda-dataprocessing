@@ -17,7 +17,6 @@ fi
 cd $SRC/logs
 python -m metrics.timingMetrics $rundate
 aws s3 cp $rundate-perfNightly.jpg $WEBSITEBUCKET/reports/batchcharts/ --quiet
-aws s3 cp $rundate-perfNightly.jpg $OLDWEBSITEBUCKET/reports/batchcharts/ --quiet
 
 lastmtch=$(ls -1tr $SRC/logs/matches-${rundate}-*.log | tail -1)
 
@@ -77,11 +76,9 @@ cat $TEMPLATES/footer.html >> $logfile
 if [ ! -d $DATADIR/lastlogs ] ; then mkdir $DATADIR/lastlogs ; fi
 if [ "$1" == "" ] ; then 
     aws s3 cp $logfile  $WEBSITEBUCKET/reports/ --quiet
-    aws s3 cp $logfile  $OLDWEBSITEBUCKET/reports/ --quiet
     cp $logfile $DATADIR/lastlogs/lastlog-${rundate}.html
 fi 
 aws s3 cp $logfile  $WEBSITEBUCKET/reports/lastlogs/lastlog-${rundate}.html --quiet
-aws s3 cp $logfile  $OLDWEBSITEBUCKET/reports/lastlogs/lastlog-${rundate}.html --quiet
 
 cp $TEMPLATES/header.html $DATADIR/lastlogs/index.html
 ls -1r $DATADIR/lastlogs/last*.html  | head -90 | while read i ; do
@@ -90,4 +87,3 @@ ls -1r $DATADIR/lastlogs/last*.html  | head -90 | while read i ; do
 done
 cat $TEMPLATES/footer.html >> $DATADIR/lastlogs/index.html
 aws s3 cp $DATADIR/lastlogs/index.html  $WEBSITEBUCKET/reports/lastlogs/ --quiet
-aws s3 cp $DATADIR/lastlogs/index.html  $OLDWEBSITEBUCKET/reports/lastlogs/ --quiet

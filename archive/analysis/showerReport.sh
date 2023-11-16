@@ -54,7 +54,6 @@ else
     logger -s -t showerReport "copying files to website"
     
     aws s3 sync $DATADIR/$outdir $WEBSITEBUCKET/$outdir --quiet
-    aws s3 sync $DATADIR/$outdir $OLDWEBSITEBUCKET/$outdir --quiet
 
     logger -s -t showerReport "all done"
 

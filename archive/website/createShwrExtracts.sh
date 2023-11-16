@@ -93,6 +93,5 @@ done
 
 logger -s -t createShwrExtracts "sending to website"
 aws s3 sync $DATADIR/browse/showers/  $WEBSITEBUCKET/browse/showers/ --quiet
-aws s3 sync $DATADIR/browse/showers/  $OLDWEBSITEBUCKET/browse/showers/ --quiet
 
 logger -s -t createShwrExtracts "finished"

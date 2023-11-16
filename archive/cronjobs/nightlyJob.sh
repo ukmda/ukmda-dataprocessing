@@ -93,18 +93,15 @@ ${SRC}/website/cameraStatusReport.sh
 logger -s -t nightlyJob "RUNTIME $SECONDS start createExchangeFiles"
 python -c "from reports.createExchangeFiles import createAll; createAll();"
 aws s3 sync $DATADIR/browse/daily/ $WEBSITEBUCKET/browse/daily/ --region eu-west-2 --quiet
-aws s3 sync $DATADIR/browse/daily/ $OLDWEBSITEBUCKET/browse/daily/ --region eu-west-2 --quiet
 
 logger -s -t nightlyJob "RUNTIME $SECONDS start createStationLoginTimes"
 sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s, %s\n", $3,$9)}' > $DATADIR/reports/stationlogins.txt
 aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --region eu-west-2 --quiet
-aws s3 cp $DATADIR/reports/stationlogins.txt $OLDWEBSITEBUCKET/reports/stationlogins.txt --region eu-west-2 --quiet
 
 cd $DATADIR
 # do this manually when on PC required as it requires too much memory for the batch server; closes #61
 #python $PYLIB/maintenance/plotStationsOnMap.py False
 aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/ --region eu-west-2 --quiet
-aws s3 cp $DATADIR/stations.png $OLDWEBSITEBUCKET/ --region eu-west-2 --quiet
 
 rm -f $SRC/data/.nightly_running
 

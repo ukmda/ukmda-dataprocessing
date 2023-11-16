@@ -29,14 +29,6 @@
                     {
                         "name": "WEBPATH",
                         "value": "s3://ukmda-website/reports"
-                    },
-                    {
-                        "name": "OLDOUTB",
-                        "value": "ukmon-shared"
-                    },
-                    {
-                        "name": "OLDWEBB",
-                        "value": "ukmeteornetworkarchive"
                     }
                 ]
             }

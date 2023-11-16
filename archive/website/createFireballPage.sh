@@ -99,6 +99,5 @@ cp $TEMPLATES/fbreportindex.html index.html
 logger -s -t createFireballPage "copy to website"
 
 aws s3 sync $DATADIR/reports/$yr/fireballs/ $WEBSITEBUCKET/reports/$yr/fireballs/ --quiet
-aws s3 sync $DATADIR/reports/$yr/fireballs/ $OLDWEBSITEBUCKET/reports/$yr/fireballs/ --quiet
 
 logger -s -t createFireballPage "finished"

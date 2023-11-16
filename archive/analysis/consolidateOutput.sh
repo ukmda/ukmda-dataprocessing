@@ -59,7 +59,6 @@ done
 
 logger -s -t consolidateOutput "pushing consolidated information back"
 aws s3 sync ${DATADIR}/consolidated ${UKMONSHAREDBUCKET}/consolidated/  --exclude 'UKMON*' --quiet 
-aws s3 sync ${DATADIR}/consolidated ${OLDUKMONSHAREDBUCKET}/consolidated/  --exclude 'UKMON*' --quiet 
  
 logger -s -t consolidateOutput "Getting latest trajectory data"
 
@@ -104,10 +103,5 @@ aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matched/ --include "*" 
 aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matchedpq/ --quiet --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip"
 aws s3 sync $DATADIR/matched/ $WEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet
 aws s3 sync $DATADIR/single/ $WEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet
-
-aws s3 sync $DATADIR/matched/ $OLDUKMONSHAREDBUCKET/matches/matched/ --include "*" --exclude "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet 
-aws s3 sync $DATADIR/matched/ $OLDUKMONSHAREDBUCKET/matches/matchedpq/ --quiet --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip"
-aws s3 sync $DATADIR/matched/ $OLDWEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet
-aws s3 sync $DATADIR/single/ $OLDWEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet
 
 logger -s -t consolidateOutput "finished"
