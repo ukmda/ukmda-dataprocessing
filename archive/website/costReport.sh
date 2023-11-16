@@ -61,10 +61,8 @@ lastfullcost=$v3
 cp $TEMPLATES/header.html $costfile
 echo "<h3>Daily running costs</h3>" >> $costfile
 echo "<p>This page shows daily running costs by service of the Archive and Calculation Engine " >> $costfile
-echo "in USD. Until August 2023, costs were split across two accounts for historical reasons. " >> $costfile
-echo "The system has now been consolidated into a single account, simplifying reporting. " >> $costfile
-echo "AWS cost data may lag by up to a day, so yesterday's costs data are incomplete. The " >> $costfile
-echo "last complete day's cost is \$${lastfullcost}" >> $costfile
+echo "in USD. <br> " >> $costfile
+echo "The last complete day's cost is \$${lastfullcost}" >> $costfile
 echo "</p><p>" >> $costfile
 #echo "<a href=$imgfile><img src=$imgfile width=100%></a><br>" >> $costfile
 #echo "<a href=$imgfile2><img src=$imgfile2 width=100%></a><br>" >> $costfile
@@ -83,10 +81,5 @@ aws s3 cp $costfile $WEBSITEBUCKET/reports/ --quiet --profile ukmonshared
 #aws s3 cp $DATADIR/$imgfile $WEBSITEBUCKET/reports/ --quiet 
 aws s3 cp $DATADIR/$imgfile2 $WEBSITEBUCKET/reports/ --quiet --profile ukmonshared
 aws s3 cp $DATADIR/$imgfile3 $WEBSITEBUCKET/reports/ --quiet --profile ukmonshared
-
-aws s3 cp $costfile $OLDWEBSITEBUCKET/reports/ --quiet --profile realukms
-#aws s3 cp $DATADIR/$imgfile $OLDWEBSITEBUCKET/reports/ --quiet --profile realukms
-aws s3 cp $DATADIR/$imgfile2 $OLDWEBSITEBUCKET/reports/ --quiet --profile realukms
-aws s3 cp $DATADIR/$imgfile3 $OLDWEBSITEBUCKET/reports/ --quiet --profile realukms
 
 logger -s -t costReport "done"
