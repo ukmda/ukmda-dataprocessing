@@ -31,7 +31,6 @@ resource "aws_instance" "ukmonhelper_g" {
 
 resource "aws_eip" "ukmonhelper2" {
   instance = aws_instance.ukmonhelper_g.id
-  vpc      = true
   tags = {
     billingtag = "ukmon"
     Name       = "ukmonhelper_eip"
