@@ -650,7 +650,7 @@ def addNewAwsUser(location):
 
 def createKeyFile(livekey, archkey, location):
     archbucket = os.getenv('SRCBUCKET', default='ukmda-shared')
-    livebucket = os.getenv('LIVEBUCKET', default='ukmon-live')
+    livebucket = os.getenv('LIVEBUCKET', default='ukmda-live')
     webbucket = os.getenv('WEBSITEBUCKET', default='ukmda-website')
 
     os.makedirs('keys', exist_ok=True)

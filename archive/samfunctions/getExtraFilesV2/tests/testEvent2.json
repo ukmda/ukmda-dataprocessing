@@ -3,8 +3,8 @@
     {
       "s3": {
         "bucket": {
-          "name": "ukmon-shared",
-          "arn": "arn:aws:s3:::ukmon-shared"
+          "name": "ukmda-shared",
+          "arn": "arn:aws:s3:::ukmda-shared"
         },
         "object": {
           "key": "matches/RMSCorrelate/trajectories/2022/202212/20221201/20221201_061108.141_UK/20221201_061108_trajectory.pickle"

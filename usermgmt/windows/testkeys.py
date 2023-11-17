@@ -60,7 +60,7 @@ def uploadTest(keyfile):
     try:
         conn = boto3.Session(aws_access_key_id=awskey, aws_secret_access_key=awssec, region_name=archreg) 
         s3 = conn.resource('s3')
-        target='ukmon-shared'
+        target='ukmda-shared'
         s3.meta.client.upload_file('/tmp/test.txt', target, 'archive/test.txt')
         key = {'Objects': []}
         key['Objects'] = [{'Key': 'archive/test.txt'}]
@@ -72,7 +72,7 @@ def uploadTest(keyfile):
     try:
         conn = boto3.Session(aws_access_key_id=awskey, aws_secret_access_key=awssec, region_name=livereg) 
         s3 = conn.resource('s3')
-        target = 'ukmon-live'
+        target = 'ukmda-live'
         s3.meta.client.upload_file('/tmp/test.txt', target, 'test.txt')
         key = {'Objects': []}
         key['Objects'] = [{'Key': 'test.txt'}]

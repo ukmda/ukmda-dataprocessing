@@ -19,10 +19,6 @@ The website static is deployed with deploy-static.yml. The target bucket must ha
 ### Infrastructure Deployment
 Done with Terraform - see the Terraform folder readme for details. 
 
-## live
-Code relating to handling of the ukmon-live feed.I have no idea how this works, i just dumped the lambda
-from AWS and stored the code. Apparently the developer left no notes. 
-
 ## tests
 
 some test scripts - only partial coverage of just the python codebase. 

@@ -2,7 +2,7 @@
     windestdir: /mnt/f/videos/MeteorCam/usermgmt
     destdir: /home/ec2-user/keymgmt
     srcbucket: ukmda-shared
-    livebucket: ukmon-live
+    livebucket: ukmda-live
     websitebucket: ukmda-website
     liveprofile: ukmon-markmcintyre
     archprofile: ukmda_admin
