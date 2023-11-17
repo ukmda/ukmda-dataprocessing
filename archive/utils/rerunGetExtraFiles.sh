@@ -3,13 +3,12 @@
 
 fn=$DATADIR/dailyreports/latest.txt
 if [ $# -lt 1 ] ; then
-	echo "usage: ./rerunGetExtraFiles.sh old|new optionalsourcefile"
+	echo "usage: ./rerunGetExtraFiles.sh optionalsourcefile"
 	exit
 fi 
 profile=ukmonshared
 bucket=ukmda-shared
-if [ "$1" == "old" ] ; then profile=realukms ; bucket=ukmon-shared; fi
-if [ "$2" != "" ] ; then fn=$2 ; fi
+if [ "$1" != "" ] ; then fn=$2 ; fi
 
 cat $fn | while read i
 do

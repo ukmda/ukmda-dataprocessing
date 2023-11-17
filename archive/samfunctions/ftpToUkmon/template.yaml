@@ -26,7 +26,6 @@ Resources:
       Environment:
         Variables:
           ARCHBUCKET: ukmda-shared
-          OTHERBUCKET: ukmon-shared
           OUTDIR: matches/single/new
           MPLCONFIGDIR: /tmp/mpl
       Tags:

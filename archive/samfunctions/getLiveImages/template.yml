@@ -11,7 +11,9 @@ Resources:
       FunctionName: getLiveImages
       Description: API backend that retrieves a list of livestream images matching a pattern
       Timeout: 30
-      Policies: AmazonDynamoDBReadOnlyAccess
+      Policies: 
+        - AmazonDynamoDBReadOnlyAccess
+        - AmazonS3ReadOnlyAccess
       Events:
         HttpGet:
           Type: Api

@@ -55,4 +55,3 @@ echo "</table>" >> $DATADIR/latest/dailyreports/dailyreportsidx.html
 cat $TEMPLATES/footer.html >> $DATADIR/latest/dailyreports/dailyreportsidx.html
 
 aws s3 sync $DATADIR/latest/dailyreports/  $WEBSITEBUCKET/latest/dailyreports/ --quiet
-aws s3 sync $DATADIR/latest/dailyreports/  $OLDWEBSITEBUCKET/latest/dailyreports/ --quiet

@@ -28,10 +28,9 @@ fi
 cd ${DATADIR}
 # consolidate UFO and RMS original CSVs.
 logger -s -t consolidateOutput "starting"
-# note - copying from ukmon-shared even in dev so we have the latest data
+# note - copying from production S3 even in dev so we have the latest data
 aws s3 sync s3://ukmda-shared/consolidated/ ${DATADIR}/consolidated --exclude "temp/*" --quiet
 aws s3 mv s3://ukmda-shared/consolidated/temp/ ${DATADIR}/consolidated/temp --recursive --quiet
-aws s3 mv s3://ukmon-shared/consolidated/temp/ ${DATADIR}/consolidated/temp --recursive --quiet
 
 logger -s -t consolidateOutput "Consolidating RMS and UFO CSVs"
 consdir=${DATADIR}/consolidated/temp
@@ -59,7 +58,6 @@ done
 
 logger -s -t consolidateOutput "pushing consolidated information back"
 aws s3 sync ${DATADIR}/consolidated ${UKMONSHAREDBUCKET}/consolidated/  --exclude 'UKMON*' --quiet 
-aws s3 sync ${DATADIR}/consolidated ${OLDUKMONSHAREDBUCKET}/consolidated/  --exclude 'UKMON*' --quiet 
  
 logger -s -t consolidateOutput "Getting latest trajectory data"
 
@@ -67,7 +65,7 @@ logger -s -t consolidateOutput "Getting latest trajectory data"
 # make sure target folders exist
 mkdir -p ${DATADIR}/orbits/$yr/fullcsv/processed/ > /dev/null 2>&1
 
-# note - copying from ukmon-shared even in dev so we have the latest data
+# note - copying from Production S3 even in dev so we have the latest data
 aws s3 sync s3://ukmda-shared/matches/RMSCorrelate/trajectories/${yr}/plots/ $DATADIR/showerplots --exclude "*" --include "0*.png" --quiet
 
 # copy the orbit file for consolidation and reporting
@@ -104,10 +102,5 @@ aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matched/ --include "*" 
 aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matchedpq/ --quiet --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip"
 aws s3 sync $DATADIR/matched/ $WEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet
 aws s3 sync $DATADIR/single/ $WEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet
-
-aws s3 sync $DATADIR/matched/ $OLDUKMONSHAREDBUCKET/matches/matched/ --include "*" --exclude "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet 
-aws s3 sync $DATADIR/matched/ $OLDUKMONSHAREDBUCKET/matches/matchedpq/ --quiet --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip"
-aws s3 sync $DATADIR/matched/ $OLDWEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet
-aws s3 sync $DATADIR/single/ $OLDWEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet
 
 logger -s -t consolidateOutput "finished"

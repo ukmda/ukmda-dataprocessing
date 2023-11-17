@@ -27,7 +27,7 @@ def getBrightnessData(yyyymmdd, outdir=None):
 
 
 def getMagData(yyyymmdd):
-    url = f'https://archive.ukmeteornetwork.co.uk/browse/parquet/singles-{str(yyyymmdd)[:4]}.parquet.snap'
+    url = f'https://archive.ukmeteors.co.uk/browse/parquet/singles-{str(yyyymmdd)[:4]}.parquet.snap'
     df = pd.read_parquet(url, columns=['Filename', 'Dtstamp', 'Mag'])
     # filter by day
     d1 = datetime.datetime.strptime(str(yyyymmdd), '%Y%m%d') + datetime.timedelta(hours=12)

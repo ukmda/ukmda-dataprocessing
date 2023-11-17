@@ -47,9 +47,9 @@ echo "- open a Terminal or Powershell window on your desktop" >> $outdir/README.
 echo "- create a folder to hold the data" >> $outdir/README.md
 echo "- cd into this folder, and then run one of the following commands, depending on your platform:" >> $outdir/README.md
 echo "for Windows" >> $outdir/README.md
-echo "wget https://archive.ukmeteornetwork.co.uk/data/bestvideos/getVideos.ps1 " >> $outdir/README.md
+echo "wget https://archive.ukmeteors.co.uk/data/bestvideos/getVideos.ps1 " >> $outdir/README.md
 echo "for Linux/MacOS/Unix" >> $outdir/README.md
-echo "wget https://archive.ukmeteornetwork.co.uk/data/bestvideos/getVideos.sh " >> $outdir/README.md
+echo "wget https://archive.ukmeteors.co.uk/data/bestvideos/getVideos.sh " >> $outdir/README.md
 echo "" >> $outdir/README.md
 echo "Now you can run the downloaded script with a single argument the year+month you want  in YYYYMM format eg" >> $outdir/README.md
 echo "./getVideos.sh 202306" >> $outdir/README.md
@@ -58,20 +58,19 @@ echo "" >> $outdir/README.md
 echo "No special access to AWS is required as downloads are taken from the public website." >> $outdir/README.md
 
 echo "#!/bin/bash" > $outdir/getVideos.sh
-echo "wget https://archive.ukmeteornetwork.co.uk/data/bestvideos/best_\$1.txt" >> $outdir/getVideos.sh
+echo "wget https://archive.ukmeteors.co.uk/data/bestvideos/best_\$1.txt" >> $outdir/getVideos.sh
 echo "mkdir -p \$1 ; cd \$1" >> $outdir/getVideos.sh
-echo "cat ../best_\$1.txt | while read i ; do wget https://archive.ukmeteornetwork.co.uk/\$i ; done" >> $outdir/getVideos.sh
+echo "cat ../best_\$1.txt | while read i ; do wget https://archive.ukmeteors.co.uk/\$i ; done" >> $outdir/getVideos.sh
 echo "cd .." >> $outdir/getVideos.sh
 chmod +x $outdir/getVideos.sh
 
 echo "\$1=\$args[0]" > $outdir/getVideos.ps1
-echo "wget https://archive.ukmeteornetwork.co.uk/data/bestvideos/best_\$1.txt" >> $outdir/getVideos.ps1
+echo "wget https://archive.ukmeteors.co.uk/data/bestvideos/best_\$1.txt" >> $outdir/getVideos.ps1
 echo "mkdir \$1 ; cd \$1" >> $outdir/getVideos.ps1
-echo "foreach(\$line in Get-Content ../best_\$1.txt) { wget https://archive.ukmeteornetwork.co.uk/\$line  }" >> $outdir/getVideos.ps1
+echo "foreach(\$line in Get-Content ../best_\$1.txt) { wget https://archive.ukmeteors.co.uk/\$line  }" >> $outdir/getVideos.ps1
 echo "cd .." >> $outdir/getVideos.ps1
 
 aws s3 sync $outdir $UKMONSHAREDBUCKET/videos/ --profile ukmonshared --quiet --exclude "*" --include "getVideos*" --include "README*"
-aws s3 sync $outdir $OLDUKMONSHAREDBUCKET/videos/ --profile ukmonshared --quiet --exclude "*" --include "getVideos*" --include "README*"
 
 aws s3 sync $outdir $WEBSITEBUCKET/data/bestvideos/ --profile ukmonshared --quiet --include "*.txt"
-aws s3 sync $outdir $OLDWEBSITEBUCKET/data/bestvideos/ --profile ukmonshared --quiet --include "*.txt"
+

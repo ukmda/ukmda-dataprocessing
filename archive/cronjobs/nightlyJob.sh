@@ -20,12 +20,6 @@ mkdir -p $DATADIR/{admin,browse,consolidated,costs,dailyreports,distrib,kmls}
 mkdir -p $DATADIR/{lastlogs,latest,matched,orbits,reports,searchidx,single,trajdb,videos}
 mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
 
-# sync images, ftpdetect, platepars etc between this account and the old EE account
-# this is needed because we want to keep the archive website on the old domain for now
-# and it relies on some of these data
-logger -s -t nightlyJob "RUNTIME $SECONDS synchronising data between accounts"
-$SRC/utils/dataSync.sh 
-
 mkdir -p $DATADIR/admin
 logger -s -t nightlyJob "RUNTIME $SECONDS updating the camera location/dir/fov database"
 python -c "from reports.CameraDetails import updateCamLocDirFovDB; updateCamLocDirFovDB();"
@@ -93,18 +87,15 @@ ${SRC}/website/cameraStatusReport.sh
 logger -s -t nightlyJob "RUNTIME $SECONDS start createExchangeFiles"
 python -c "from reports.createExchangeFiles import createAll; createAll();"
 aws s3 sync $DATADIR/browse/daily/ $WEBSITEBUCKET/browse/daily/ --region eu-west-2 --quiet
-aws s3 sync $DATADIR/browse/daily/ $OLDWEBSITEBUCKET/browse/daily/ --region eu-west-2 --quiet
 
 logger -s -t nightlyJob "RUNTIME $SECONDS start createStationLoginTimes"
 sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s, %s\n", $3,$9)}' > $DATADIR/reports/stationlogins.txt
 aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --region eu-west-2 --quiet
-aws s3 cp $DATADIR/reports/stationlogins.txt $OLDWEBSITEBUCKET/reports/stationlogins.txt --region eu-west-2 --quiet
 
 cd $DATADIR
 # do this manually when on PC required as it requires too much memory for the batch server; closes #61
 #python $PYLIB/maintenance/plotStationsOnMap.py False
 aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/ --region eu-west-2 --quiet
-aws s3 cp $DATADIR/stations.png $OLDWEBSITEBUCKET/ --region eu-west-2 --quiet
 
 rm -f $SRC/data/.nightly_running
 
@@ -123,13 +114,10 @@ python $PYLIB/maintenance/getNextBatchStart.py 150
     $SRC/analysis/stationReports.sh
 #fi
 
-logger -s -t nightlyJob "RUNTIME $SECONDS synchronising raw data only back again"
-$SRC/utils/dataSyncBack.sh 
-
 logger -s -t nightlyJob "RUNTIME $SECONDS start clearSpace"
 $SRC/utils/clearSpace.sh 
 
-# now update mariadb
+logger -s -t nightlyJob "RUNTIME $SECONDS update MariaDB tables"
 $SRC/utils/loadMatchCsvMDB.sh
 $SRC/utils/loadSingleCsvMDB.sh
 

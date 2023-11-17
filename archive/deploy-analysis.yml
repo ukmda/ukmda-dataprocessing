@@ -1,7 +1,7 @@
 ---
 - hosts: "{{host | default ('ukmonhelper2')}}"
   vars:
-    srcdir: /mnt/e/dev/meteorhunting/UKMON-shared
+    srcdir: /mnt/e/dev/meteorhunting/ukmda-dataprocessing
   tasks:
   - name: import dev variables 
     include_vars: ./dev-vars.yml
@@ -29,6 +29,6 @@
     - {src: '{{srcdir}}/archive/database/', dest: '{{destdir}}/database/', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/setup/', dest: '{{destdir}}/setup/', mode: '754', backup: no, directory_mode: yes }
 
-  - name: Update Static Content
-    shell: '{{destdir}}/utils/pushStatic.sh {{env}}'
-    tags: [dev,prod]
+  #- name: Update Static Content
+  #  shell: '{{destdir}}/website/pushStatic.sh {{env}}'
+  #  tags: [dev,prod]

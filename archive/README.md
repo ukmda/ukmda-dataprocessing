@@ -1,4 +1,4 @@
-Data Processing anad Flows
+Data Processing and Flows
 ==========================
 This diagram shows the overall flow of data from Cameras to websites and out to the public.
 

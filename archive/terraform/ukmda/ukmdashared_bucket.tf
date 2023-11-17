@@ -28,9 +28,7 @@ resource "aws_s3_bucket_policy" "ukmdasharedbp" {
               "arn:aws:iam::${var.remote_account_id}:role/lambda-s3-full-access-role", # role used by SAM functions
               "arn:aws:iam::${var.remote_account_id}:role/ecsTaskExecutionRole", # role used by ECS tasks
               "arn:aws:iam::${var.remote_account_id}:user/Mary",
-              "arn:aws:iam::${var.remote_account_id}:user/Mark",
-              #"arn:aws:iam::${var.remote_account_id}:user/s3user", # not sure this is needed
-              "arn:aws:iam::${var.eeaccountid}:user/MarkMcIntyre"
+              "arn:aws:iam::${var.remote_account_id}:user/Mark"
             ]
           }
           Resource = [
@@ -49,10 +47,6 @@ resource "aws_s3_bucket_policy" "ukmdasharedbp" {
                 "StringNotLike": {
                     "aws:userId": [ # update with new relevant IDs
                         "AIDASVSZXPTTB3UZT4E2B",  # MarkMcIntyreUKM
-                        #"AIDA36ZZGKDHXYCBTWWC2",  # eastbourne
-                        #"AIDA36ZZGKDHZAWQZON7B",  # loscoe
-                        #"AIDA36ZZGKDH4LW3WF2GJ",  # Church_Cro
-                        #"AIDA36ZZGKDHWBV7ZQISQ",  # chard
                         "AROAUUCG4WH4GFCTQIKH3", # S3FullAccess in MJMM account
                         "AROAUUCG4WH4GFCTQIKH3:*", # S3FullAccess in MJMM account
                         "${data.aws_caller_identity.current.account_id}",            # root account

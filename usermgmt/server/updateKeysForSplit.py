@@ -7,7 +7,7 @@ import shutil
 
 def createKeyFile(livekey, archkey, location):
     archbucket = os.getenv('SRCBUCKET', default='ukmda-shared')
-    livebucket = os.getenv('LIVEBUCKET', default='ukmon-live')
+    livebucket = os.getenv('LIVEBUCKET', default='ukmda-live')
     webbucket = os.getenv('WEBSITEBUCKET', default='ukmda-website')
     outf = 'keys/' + location.lower() + '.key'
     if archkey is None:

@@ -82,17 +82,21 @@ def getSvcName(svc):
     elif 'Glue' in svc:
         svcname='Glue'
     elif 'Cloudtrail' in svc:
-        svcname='Cloudtral'
+        svcname='Cloudtrail'
+    elif 'CloudWatch' in svc:
+        svcname='CloudWatch'
     elif 'Storage' in svc:
         svcname='S3'
     elif 'Container Service' in svc:
         svcname = 'ECS'
     elif 'Route 53' in svc:
-        svcname = 'R-53'
+        svcname = 'Route53'
     elif 'Backup' in svc:
         svcname = 'Backup'
     elif 'Lambda' in svc:
         svcname = 'Lambda'
+    elif 'Tax' in svc:
+        svcname = 'VAT'
     else:
         svcname = 'Other'
     return svcname
@@ -134,7 +138,8 @@ def drawBarChart(costsfile, typflag, accid):
 
     numdays = len(labels)
     # run through services adding them to the graph
-    bottoms=np.zeros(numdays)
+    bottoms = np.zeros(numdays)
+    othertot = np.zeros(numdays)
     for svc in svcs: 
         #print(svc)
         thisfltr = fltrdata['service']==svc
@@ -145,11 +150,14 @@ def drawBarChart(costsfile, typflag, accid):
             val = dta['cost']
             idx = list(labels).index(dt)
             vals[idx] += val
-        if sum(vals) > 0.1: 
-            svcname = getSvcName(svc)
-            #print(svcname, vals)
-            ax.bar(labels, vals, width, label=svcname, bottom=bottoms, tick_label = labs)
+        svcname = getSvcName(svc)
+        if sum(vals) <= 0.1 or svcname == 'Other': 
+            othertot += vals
+        else:
+            #print(svcname, sum(vals))
+            ax.bar(labels, vals, width, label=f'${sum(vals):.2f} - {svcname}', bottom=bottoms, tick_label = labs)
             bottoms += vals
+    ax.bar(labels, othertot, width, label=f'${sum(othertot):.2f} - Other', bottom=bottoms, tick_label = labs)
 
     #maxy = np.ceil(max(s3cost)+max(ec2cost))
     totcost = np.round(sum(fltrdata['cost']),2)

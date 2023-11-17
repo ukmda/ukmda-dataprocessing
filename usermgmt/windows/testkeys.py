@@ -29,11 +29,11 @@ def readKeyFile(filename):
     if 'S3FOLDER' in vals and vals['S3FOLDER'][-1] == '/':
         vals['S3FOLDER'] = vals['S3FOLDER'][:-1]
     if 'ARCHBUCKET' not in vals:
-        vals['ARCHBUCKET'] = 'ukmon-shared'
+        vals['ARCHBUCKET'] = 'ukmda-shared'
     if 'LIVEBUCKET' not in vals:
-        vals['LIVEBUCKET'] = 'ukmon-live'
+        vals['LIVEBUCKET'] = 'ukmda-live'
     if 'WEBBUCKET' not in vals:
-        vals['WEBBUCKET'] = 'ukmeteornetworkarchive'
+        vals['WEBBUCKET'] = 'ukmda-website'
     if 'ARCHREGION' not in vals:
         vals['ARCHREGION'] = 'eu-west-2'
     if 'LIVEREGION' not in vals:
@@ -60,7 +60,7 @@ def uploadTest(keyfile):
     try:
         conn = boto3.Session(aws_access_key_id=awskey, aws_secret_access_key=awssec, region_name=archreg) 
         s3 = conn.resource('s3')
-        target='ukmon-shared'
+        target='ukmda-shared'
         s3.meta.client.upload_file('/tmp/test.txt', target, 'archive/test.txt')
         key = {'Objects': []}
         key['Objects'] = [{'Key': 'archive/test.txt'}]
@@ -72,7 +72,7 @@ def uploadTest(keyfile):
     try:
         conn = boto3.Session(aws_access_key_id=awskey, aws_secret_access_key=awssec, region_name=livereg) 
         s3 = conn.resource('s3')
-        target = 'ukmon-live'
+        target = 'ukmda-live'
         s3.meta.client.upload_file('/tmp/test.txt', target, 'test.txt')
         key = {'Objects': []}
         key['Objects'] = [{'Key': 'test.txt'}]

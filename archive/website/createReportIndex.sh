@@ -107,10 +107,6 @@ if [ "$prefix" == "." ] ; then
     aws s3 cp $repidx  $WEBSITEBUCKET/reports/ --quiet
     aws s3 cp $previdx  $WEBSITEBUCKET/reports/ --quiet
 
-    aws s3 cp $SRC/website/templates/reportindex.html $OLDWEBSITEBUCKET/reports/index.html --quiet
-    aws s3 cp $repidx  $OLDWEBSITEBUCKET/reports/ --quiet
-    aws s3 cp $previdx  $OLDWEBSITEBUCKET/reports/ --quiet
-
     cp $repidx $DATADIR/reports/${yr}/
     cp $previdx $DATADIR/reports/${yr}/
 else
@@ -118,21 +114,12 @@ else
     aws s3 cp $repidx  $WEBSITEBUCKET/reports/$curryr/ --quiet
     aws s3 cp $previdx  $WEBSITEBUCKET/reports/$curryr/ --quiet
 
-    aws s3 cp $SRC/website/templates/reportindex.html $OLDWEBSITEBUCKET/reports/$curryr/index.html --quiet
-    aws s3 cp $repidx  $OLDWEBSITEBUCKET/reports/$curryr/ --quiet
-    aws s3 cp $previdx  $OLDWEBSITEBUCKET/reports/$curryr/ --quiet
-
     realyr=$(date +%Y)
     if [ $curryr -eq $realyr ] ;  then
         aws s3 cp $SRC/website/templates/reportindex.html $WEBSITEBUCKET/reports/index.html --quiet
         aws s3 cp $repidx  $WEBSITEBUCKET/reports/ --quiet
         aws s3 cp $previdx  $WEBSITEBUCKET/reports/ --quiet
-
-        aws s3 cp $SRC/website/templates/reportindex.html $OLDWEBSITEBUCKET/reports/index.html --quiet
-        aws s3 cp $repidx  $OLDWEBSITEBUCKET/reports/ --quiet
-        aws s3 cp $previdx  $OLDWEBSITEBUCKET/reports/ --quiet
     fi 
 fi
 aws s3 sync ${DATADIR}/reports/$curryr/showers $WEBSITEBUCKET/reports/$curryr/showers --quiet
-aws s3 sync ${DATADIR}/reports/$curryr/showers $OLDWEBSITEBUCKET/reports/$curryr/showers --quiet
 logger -s -t createReportIndex "finished"

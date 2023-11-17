@@ -112,9 +112,7 @@ def recreateOrbitFiles(outdir, pickname, doupload=False):
     if doupload:
         files = os.listdir(outdir)
         mdasess = boto3.Session(profile_name='ukmda_admin')
-        ukmsess = boto3.Session(profile_name='realukms')
         s3mda = mdasess.client('s3')
-        s3ukm = ukmsess.client('s3')
         if int(yr) > 2020: 
             webfldr = f'reports/{yr}/orbits/{ym}/{ymd}'
         else:
@@ -128,18 +126,10 @@ def recreateOrbitFiles(outdir, pickname, doupload=False):
             extraargs = getExtraArgs(fil)
             print(f'uploading {keyname}')
             s3mda.upload_file(locfname, 'ukmda-website', keyname, ExtraArgs=extraargs)
-            try:
-                s3ukm.upload_file(locfname, 'ukmeteornetworkarchive', keyname, ExtraArgs=extraargs)
-            except Exception:
-                print('unable to push to old website')
             if 'report' in fil or 'pickle' in fil:
                 targkey = f'matches/RMSCorrelate/trajectories/{yr}/{ym}/{ymd}/{orbfldr}/{fil}'
                 print(f'uploading {targkey}')
                 s3mda.upload_file(locfname, 'ukmda-shared', targkey, ExtraArgs=extraargs)
-                try:
-                    s3ukm.upload_file(locfname, 'ukmon-shared', targkey, ExtraArgs=extraargs)
-                except Exception:
-                    print('unable to push to old shared area')
     return 
 
 

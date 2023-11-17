@@ -48,3 +48,4 @@ dynamodb_json
 pytest
 pytest-cov
 requests
+paho-mqtt

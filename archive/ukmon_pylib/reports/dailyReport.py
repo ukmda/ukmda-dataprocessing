@@ -26,7 +26,7 @@ def AddHeader(body, bodytext, stats):
 
 
 def addFooter(body, bodytext):
-    fbm = 'Seen a fireball? <a href=https://ukmeteornetwork.co.uk/fireball-report/>Click here</a> to report it'
+    fbm = 'Seen a fireball? <a href=http://fireballs.imo.net/?org=spa>Click here</a> to report it'
     body = body + '</table><br><br>\n' + fbm + '<br>'
     bodytext = bodytext + '\n' + fbm + '\n'
     return body, bodytext
@@ -110,7 +110,7 @@ if __name__ == '__main__':
         outf.write(body)
     
     # now send the post to groups.io
-    targeturl='https://archive.ukmeteornetwork.co.uk'
+    targeturl='https://archive.ukmeteors.co.uk'
 
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     recs = open(os.path.join(datadir, 'admin','dailyReportRecips.txt'), 'r').readlines()

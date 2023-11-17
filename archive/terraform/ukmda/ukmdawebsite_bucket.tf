@@ -62,38 +62,6 @@ resource "aws_s3_bucket_policy" "archsite_bp" {
                 "${aws_s3_bucket.archsite.arn}/*",
                 "${aws_s3_bucket.archsite.arn}"
             ]
-        },
-        {
-            "Sid": "DataSyncCreateS3LocationAndTaskAccess",
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "arn:aws:iam::${var.eeaccountid}:role/DataSyncBetweenAccounts"
-            },
-            "Action": [
-                "s3:GetBucketLocation",
-                "s3:ListBucket",
-                "s3:ListBucketMultipartUploads",
-                "s3:AbortMultipartUpload",
-                "s3:DeleteObject",
-                "s3:GetObject",
-                "s3:ListMultipartUploadParts",
-                "s3:PutObject",
-                "s3:GetObjectTagging",
-                "s3:PutObjectTagging"
-            ],
-            "Resource": [
-                "${aws_s3_bucket.archsite.arn}",
-                "${aws_s3_bucket.archsite.arn}/*"
-            ]
-        },
-        {
-            "Sid": "DataSyncCreateS3Location",
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "arn:aws:iam::${var.eeaccountid}:role/AdministratorRole"
-            },
-            "Action": "s3:ListBucket",
-            "Resource": "${aws_s3_bucket.archsite.arn}"
         }
     ]
 }

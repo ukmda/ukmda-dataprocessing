@@ -15,7 +15,7 @@ Resources:
       MemorySize: 512
       Environment:
         Variables:
-          ARCHBUCKET: ukmon-shared
+          ARCHBUCKET: ukmda-shared
           MPLCONFIGDIR: /tmp/mpl
       Tags:
         billingtag: "ukmon"

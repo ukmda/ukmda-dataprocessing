@@ -10,9 +10,9 @@
 #
 # Produces
 #   a webpage showing the list of cameras, colourcoded by status
-#       https://archive.ukmeteornetwork.co.uk/reports/statrep.html
+#       https://archive.ukmeteors.co.uk/reports/statrep.html
 #   a webpage showing the latest stack and map from each camera
-#       https://archive.ukmeteornetwork.co.uk/latest/index.html
+#       https://archive.ukmeteors.co.uk/latest/index.html
 #
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
@@ -39,9 +39,6 @@ python -m reports.cameraStatusReport
 
 aws s3 cp $DATADIR/reports/statrep.html $WEBSITEBUCKET/reports/ --quiet
 aws s3 cp $DATADIR/reports/camrep.js $WEBSITEBUCKET/reports/ --quiet
-
-aws s3 cp $DATADIR/reports/statrep.html $OLDWEBSITEBUCKET/reports/ --quiet
-aws s3 cp $DATADIR/reports/camrep.js $OLDWEBSITEBUCKET/reports/ --quiet
 
 logger -s -t cameraStatusReport "finished"
 

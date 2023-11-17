@@ -42,7 +42,6 @@ done
 echo "</select>" >> $siteidx
 
 aws s3 cp $siteidx $WEBSITEBUCKET/search/ --quiet
-aws s3 cp $siteidx $OLDWEBSITEBUCKET/search/ --quiet
 
 # active-only stations
 siteidx=$DATADIR/activestatopts.html
@@ -65,7 +64,6 @@ do
 done
 
 aws s3 cp $siteidx $WEBSITEBUCKET/search/ --quiet
-aws s3 cp $siteidx $OLDWEBSITEBUCKET/search/ --quiet
 
 # active-only locations
 siteidx=$DATADIR/activestatlocs.html
@@ -88,4 +86,3 @@ do
 done
 
 aws s3 cp $siteidx $WEBSITEBUCKET/search/ --quiet
-aws s3 cp $siteidx $OLDWEBSITEBUCKET/search/ --quiet

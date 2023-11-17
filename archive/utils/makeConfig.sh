@@ -20,9 +20,6 @@ SERVERINSTANCEID=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_
 BKPINSTANCEID=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_backupinstance --query Parameters[0].Value  | tr -d '"')
 SERVERSSHKEY=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_sshkey --query Parameters[0].Value  | tr -d '"')
 
-OLDWEBSITEBUCKET=s3://$(aws ssm get-parameters --region eu-west-2 --names ${envname}_oldwebsitebucket --query Parameters[0].Value  | tr -d '"')
-OLDUKMONSHAREDBUCKET=s3://$(aws ssm get-parameters --region eu-west-2 --names ${envname}_oldsharedbucket --query Parameters[0].Value  | tr -d '"')
-
 # hardcoded
 PYLIB=$SRC/ukmon_pylib
 TEMPLATES=$SRC/website/templates
@@ -46,8 +43,6 @@ echo "SRC=${SRC}" >> ${CFGFILE}
 echo "SITEURL=${SITEURL}" >> ${CFGFILE}
 echo "WEBSITEBUCKET=${WEBSITEBUCKET}" >> ${CFGFILE}
 echo "UKMONSHAREDBUCKET=${UKMONSHAREDBUCKET}" >> ${CFGFILE}
-echo "OLDWEBSITEBUCKET=${OLDWEBSITEBUCKET}" >> ${CFGFILE}
-echo "OLDUKMONSHAREDBUCKET=${OLDUKMONSHAREDBUCKET}" >> ${CFGFILE}
 echo "UKMONLIVEBUCKET=${UKMONLIVEBUCKET}" >> ${CFGFILE}
 echo "PYLIB=${PYLIB}" >> ${CFGFILE}
 echo "TEMPLATES=${TEMPLATES}" >> ${CFGFILE}
@@ -68,7 +63,6 @@ echo "KMLTEMPLATE=${KMLTEMPLATE}" >> ${CFGFILE}
 echo "" >> ${CFGFILE}
 echo "export RUNTIME_ENV SRC SITEURL" >> ${CFGFILE}
 echo "export WEBSITEBUCKET UKMONSHAREDBUCKET" >> ${CFGFILE}
-echo "export OLDWEBSITEBUCKET OLDUKMONSHAREDBUCKET " >> ${CFGFILE}
 echo "export PYLIB TEMPLATES RCODEDIR DATADIR BKPINSTANCEID AWS_DEFAULT_REGION" >> ${CFGFILE}
 echo "export RMS_ENV RMS_LOC WMPL_ENV WMPL_LOC" >> ${CFGFILE}
 echo "export PYTHONPATH=${RMS_LOC}:${WMPL_LOC}:${PYLIB}:${SRC}/share" >> ${CFGFILE}

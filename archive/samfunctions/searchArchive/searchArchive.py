@@ -52,7 +52,7 @@ def FindMatch(bucket, csvfile, d1, d2, op):
             records = event['Records']['Payload'].decode('utf-8')
             lines = records.split('\n')
             for r in lines:
-                res.append(r.replace('https://archive.ukmeteornetwork.co.uk',''))
+                res.append(r.replace('https://archive.ukmeteornetwork.co.uk','').replace('https://archive.ukmeteors.co.uk',''))
     res.sort()
     res2 = []
     for r in res:
@@ -63,8 +63,8 @@ def FindMatch(bucket, csvfile, d1, d2, op):
     res =[]
     for rr in res2:
         res.append('{:s},{:s},{:s},{:s},{:s},{:s},{:s}'.format(rr[0], rr[1], rr[2], rr[3], 
-            rr[4], rr[5].replace('https://archive.ukmeteornetwork.co.uk',''), 
-            rr[6].replace('https://archive.ukmeteornetwork.co.uk','')))
+            rr[4], rr[5].replace('https://archive.ukmeteornetwork.co.uk','').replace('https://archive.ukmeteors.co.uk',''), 
+            rr[6].replace('https://archive.ukmeteornetwork.co.uk','').replace('https://archive.ukmeteors.co.uk','')))
     return res
 
 

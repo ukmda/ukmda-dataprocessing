@@ -26,6 +26,5 @@ rm -f /tmp/jpglist.txt
 
 logger -s -t createLatestTable "done, sending to website"
 aws s3 cp reportindex.js  $WEBSITEBUCKET/latest/ --quiet
-aws s3 cp reportindex.js  $OLDWEBSITEBUCKET/latest/ --quiet
 
 logger -s -t createLatestTable "finished"

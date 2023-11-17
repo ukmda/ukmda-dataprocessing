@@ -28,7 +28,7 @@ def chopFilename(fname):
 
 
 def getLatestLiveFiles(daysback=None, df=None):
-    livebucket = os.getenv("UKMONLIVEBUCKET", default='s3://ukmon-live')[5:]
+    livebucket = os.getenv("UKMONLIVEBUCKET", default='s3://ukmda-live')[5:]
 
     if df is None:
         df=pd.DataFrame(columns=['eventtime','source','shower','Mag','loccam','url','imgs'])
@@ -48,7 +48,7 @@ def getLatestLiveFiles(daysback=None, df=None):
                     fname, ext = os.path.splitext(k['Key'])
                     if ext == '.jpg':
                         dt, site, cam = chopFilename(fname)
-                        url = 'https://live.ukmeteornetwork.co.uk/' + k['Key']
+                        url = 'https://live.ukmeteors.co.uk/' + k['Key']
                         newr={'eventtime':dt,'source':'3Live','shower':'Unk','Mag':99,'loccam':cam,'url':url,'imgs':url}
                         newdf=pd.DataFrame([newr])
                         df = pd.concat([df, newdf], ignore_index=True)
@@ -62,7 +62,7 @@ def getLatestLiveFiles(daysback=None, df=None):
                         fname, ext = os.path.splitext(k['Key'])
                         if ext == '.jpg':
                             dt, site, cam = chopFilename(fname)
-                            url = 'https://live.ukmeteornetwork.co.uk/' + k['Key']
+                            url = 'https://live.ukmeteors.co.uk/' + k['Key']
                             newr={'eventtime':dt,'source':'3Live','shower':'Unk','Mag':99,'loccam':cam,'url':url,'imgs':url}
                             newdf=pd.DataFrame([newr])
                             df = pd.concat([df, newdf], ignore_index=True)

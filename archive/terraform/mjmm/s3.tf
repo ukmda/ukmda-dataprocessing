@@ -1,47 +1,4 @@
 # Copyright (C) 2018-2023 Mark McIntyre
-
-resource "aws_s3_bucket" "ukmon-shared-backup" {
-  bucket = "ukmon-shared-backup"
-  tags = {
-    "billingtag" = "ukmon"
-  }
-  object_lock_enabled = false
-}
-
-resource "aws_s3_bucket_lifecycle_configuration" "bkp_lifecycle_rule" {
-  bucket = aws_s3_bucket.ukmon-shared-backup.id
-  rule {
-    id     = "delete everything" 
-    status = "Enabled"
-    abort_incomplete_multipart_upload {
-      days_after_initiation = 1 
-    }
-
-    expiration {
-      days                         = 1 
-      expired_object_delete_marker = false 
-    }
-    noncurrent_version_expiration {
-      newer_noncurrent_versions = "1" 
-      noncurrent_days           = 1
-    }
-  }
-}
-
-resource "aws_s3_bucket_versioning" "backup_versioning" {
-  bucket = aws_s3_bucket.ukmon-shared-backup.id
-  versioning_configuration {
-    status = "Suspended"
-  }
-}
-
-resource "aws_s3_bucket_logging" "ukmslogging" {
-  bucket = aws_s3_bucket.ukmon-shared-backup.id
-
-  target_bucket = "mjmmauditing"
-  target_prefix = "ukmon-shared-backup/"
-}
-
 ########################################################################
 resource "aws_s3_bucket" "mjmm-ukmonarchive-co-uk" {
   bucket = "mjmm-ukmonarchive.co.uk"

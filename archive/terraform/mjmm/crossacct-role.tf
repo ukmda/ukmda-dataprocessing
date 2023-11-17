@@ -16,7 +16,7 @@ data "aws_iam_policy_document" "terraformpoldoc" {
     ]
     principals {
       type        = "AWS"
-      identifiers = ["arn:aws:iam::${data.aws_caller_identity.eeacct.account_id}:root"]
+      identifiers = ["arn:aws:iam::${var.remote_account_id}:root"]
     }
   }
   statement {

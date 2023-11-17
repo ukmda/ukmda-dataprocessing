@@ -254,7 +254,7 @@ def getAllPickles(datadir, dtstr):
     #
     # Download all the orbit pickle files for a given date pattern (eg 202207)
     #
-    archbucket = 'ukmon-shared'
+    archbucket = 'ukmda-shared'
     outdir = os.path.join(datadir, 'orbits','pickles', str(dtstr))
     os.makedirs(outdir, exist_ok=True)
 
@@ -345,7 +345,7 @@ def getRequiredFTPs(datadir, fltdata):
     # Load the list of unused single-station detections, and download the 
     # FTP and platepars containing them
     #
-    archbucket = 'ukmon-shared'
+    archbucket = 'ukmda-shared'
     s3 = boto3.resource('s3')
     bucket = s3.Bucket(archbucket)
     targfldr = os.path.join(datadir, 'historic')

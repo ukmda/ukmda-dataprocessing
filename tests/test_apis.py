@@ -10,7 +10,7 @@ import pandas as pd
 def test_getMatches():
     reqtyp = 'matches'
     reqval = '20230721'
-    apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
+    apiurl = 'https://api.ukmeteors.co.uk/matches'
     apicall = f'{apiurl}?reqtyp={reqtyp}&reqval={reqval}'
     matchlist = pd.read_json(apicall, lines=True)   
     assert len(matchlist) != 339
@@ -21,7 +21,7 @@ def test_getMatchDetail():
     reqtyp = 'detail'
     reqval = '20230821_000021.339_UK'
     """ get details of one matched event """
-    apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
+    apiurl = 'https://api.ukmeteors.co.uk/matches'
     apicall = f'{apiurl}?reqtyp={reqtyp}&reqval={reqval}'
     try:
         df = pd.read_json(apicall, typ='series')
@@ -35,7 +35,7 @@ def test_getMatchPoints():
     reqtyp = 'detail'
     reqval = '20211121_032219.699_UK'
     """ get the points used by one matched event """
-    apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
+    apiurl = 'https://api.ukmeteors.co.uk/matches'
     apicall = f'{apiurl}?reqtyp={reqtyp}&reqval={reqval}&points=1'
     try:
         df = pd.read_json(apicall)
@@ -48,7 +48,7 @@ def test_getMatchPoints():
 
 def test_getMatchPickle():
     patt = '20220814_205940.252_UK'
-    apiurl = 'https://api.ukmeteornetwork.co.uk/pickle/getpickle'
+    apiurl = 'https://api.ukmeteors.co.uk/pickle/getpickle'
     apicall = f'{apiurl}?reqval={patt}'
     res = requests.get(apicall, stream=True)
     if res.status_code == 200:
@@ -81,7 +81,7 @@ def test_getLiveImages():
 def test_fetchECSV():
     stationID = 'UK0006'
     dateStr = '2023-08-31T01:28:57.41'
-    apiurl='https://api.ukmeteornetwork.co.uk/getecsv?stat={}&dt={}'
+    apiurl='https://api.ukmeteors.co.uk/getecsv?stat={}&dt={}'
     res = requests.get(apiurl.format(stationID, dateStr))
     assert res.status_code == 200
     return 
