@@ -1,6 +1,6 @@
 - hosts: "{{host | default ('ukmonhelper2')}}"
   vars:
-    srcdir: /mnt/e/dev/meteorhunting/UKMON-shared/archive
+    srcdir: /mnt/e/dev/meteorhunting/ukmda-datapocessing/archive
   tasks:
   - name: import dev variables 
     include_vars: dev-vars.yml
