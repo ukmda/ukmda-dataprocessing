@@ -40,7 +40,7 @@ def filterImages(d1, d2, statid=None, maxitems=-1):
     return imglist
 
 
-def getImageUrls(dtstr, dtstr2, statid, token=None, maxitems=100):
+def getImageUrls(dtstr, dtstr2, statid, token=None, maxitems=100, includexml=False):
     s3 = boto3.client('s3')
     buckname = 'ukmda-live'
     if dtstr == 'latest':
@@ -59,6 +59,11 @@ def getImageUrls(dtstr, dtstr2, statid, token=None, maxitems=100):
             print(statid, keyval)
             psurl = s3.generate_presigned_url(ClientMethod='get_object',Params={'Bucket': buckname,'Key': keyval}, ExpiresIn=1800)
             urls.append({'url': f'{psurl}'})
+            if includexml:
+                xmlkey = keyval.replace('P.jpg', '.xml')
+                psurl = s3.generate_presigned_url(ClientMethod='get_object',Params={'Bucket': buckname,'Key': xmlkey}, ExpiresIn=1800)
+                urls.append({'url': f'{psurl}'})
+                
     urls.sort(key = lambda k: k['url'], reverse=True)
     urls = urls[:maxitems]
     retval = {'pagetoken': token, 'urls': urls}
@@ -90,12 +95,25 @@ def lambda_handler(event, context):
         statid = None
         if 'statid' in qs:
             statid = qs['statid']
+        fmt = None
+        incxml = False
+        if 'fmt' in qs:
+            fmt = qs['fmt']
+            if fmt == 'withxml':
+                incxml = True
+                fmt = 'json'
         conttoken = None
         if 'conttoken' in qs:
             conttoken = qs['conttoken']
         print(dtstr, dtstr2, statid, maxitems)
-        retval = getImageUrls(dtstr, dtstr2, statid, conttoken, maxitems)
-        return {
-            'statusCode': 200,
-            'body': "showImages(" + json.dumps(retval) + ")"
-        }
+        retval = getImageUrls(dtstr, dtstr2, statid, conttoken, maxitems, includexml=incxml)
+        if fmt == 'json':
+            return {
+                'statusCode': 200,
+                'body': json.dumps(retval)
+            }
+        else:
+            return {
+                'statusCode': 200,
+                'body': "showImages(" + json.dumps(retval) + ")"
+            }
