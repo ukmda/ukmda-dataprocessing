@@ -70,7 +70,7 @@
         <li>List of points used in the analysis of a specific event.</li>
         <br>
         <h4>URL</h4>
-        <p>https://api.ukmeteornetwork.co.uk/matches</p>
+        <p>https://api.ukmeteors.co.uk/matches</p>
         <h4>Parameters</h4>
         There are two mandatory parameters reqtyp and reqval. 
         <li>reqtyp: matches, reqval: a date in yyyymmdd format</li>
@@ -95,7 +95,7 @@
             combine data from different source networks.
         </p>
         <h4>URL</h4>
-        <p>https://api.ukmeteornetwork.co.uk/getecsv</p>
+        <p>https://api.ukmeteors.co.uk/getecsv</p>
         <h4>Parameters</h4>
         <li>stat: Station ID eg UK0001</li>
         <li>dt: Datetime in the format YYYY-mm-ddTHH:MM:SS.uuuuuu, for example
@@ -144,7 +144,7 @@
         <h2>Examples</h2>
         <h4 id="Examples">Detections API - Windows Powershell or Linux Bash</h4>
         <pre>
-PS> wget "https://api.ukmeteornetwork.co.uk/getecsv?stat=UK0025&dt=2021-07-17T02:41:05.05" -O test.ecsv
+PS> wget "https://api.ukmeteors.co.uk/getecsv?stat=UK0025&dt=2021-07-17T02:41:05.05" -O test.ecsv
         </pre>
         <p>Returns the ECSV format data for the detection from Camera UK0025 at 02:41:05.05 on 2021/07/17</p>
         <h4>Detections API - Python</h4>
@@ -152,7 +152,7 @@ PS> wget "https://api.ukmeteornetwork.co.uk/getecsv?stat=UK0025&dt=2021-07-17T02
         <pre>
 import requests
 
-apiurl='https://api.ukmeteornetwork.co.uk/getecsv?stat={}&dt={}'
+apiurl='https://api.ukmeteors.co.uk/getecsv?stat={}&dt={}'
 stat ='UK0025'
 dt = '2021-07-17T02:41:05.05'
 res = requests.get(apiurl.format(stat, dt))
@@ -180,7 +180,7 @@ if res.status_code == 200:
             <h4 id="MatchExamples">Match API Windows Example</h4>
             Get all matches for 2021-11-21
             <pre>
-PS> curl "https://api.ukmeteornetwork.co.uk/matches?reqtyp=matches&reqval=20211121" > matches-20211121.txt
+PS> curl "https://api.ukmeteors.co.uk/matches?reqtyp=matches&reqval=20211121" > matches-20211121.txt
 PS> get-content .\matches-20211121.txt | convertfrom-json
 
 orbname
@@ -194,7 +194,7 @@ orbname
         </pre>
         Retrieve details for event 20211121_032219.699_UK and extract the visual magnitude
         <pre>
-PS> curl "https://api.ukmeteornetwork.co.uk/matches?reqtyp=detail&reqval=20211121_032219.699_UK" > 20211121_032219.699_UK.txt
+PS> curl "https://api.ukmeteors.co.uk/matches?reqtyp=detail&reqval=20211121_032219.699_UK" > 20211121_032219.699_UK.txt
 PS> (get-content .\20211121_032219.699_UK.txt | convertfrom-json -ashashtable)._mag
 -0.93
 </pre>
@@ -202,16 +202,16 @@ PS> (get-content .\20211121_032219.699_UK.txt | convertfrom-json -ashashtable)._
             that this will download the whole dataset then discard it. So if
             you expect to use more than one value, its better to save the results in a file and query it later.
             <pre>
-PS> (curl "https://api.ukmeteornetwork.co.uk/matches?reqtyp=detail&reqval=20211121_032219.699_UK" | convertfrom-json -ashashtable)._mag
+PS> (curl "https://api.ukmeteors.co.uk/matches?reqtyp=detail&reqval=20211121_032219.699_UK" | convertfrom-json -ashashtable)._mag
   -0.93
 </pre>
             <h4>Match API Linux Bash Example</h4>
             Retrieve details for event 20211121_032219.699_UK and extract the visual magnitude
             <pre>
-$ curl "https://api.ukmeteornetwork.co.uk/matches?reqtyp=detail&reqval=20211121_032219.699_UK" > 20211121_032219.699_UK.txt
+$ curl "https://api.ukmeteors.co.uk/matches?reqtyp=detail&reqval=20211121_032219.699_UK" > 20211121_032219.699_UK.txt
 $ cat 20211121_032219.699_UK.txt | jq ._mag
 "-0.93"
-$ curl "https://api.ukmeteornetwork.co.uk/matches?reqtyp=detail&reqval=20211121_032219.699_UK" | jq ._mag
+$ curl "https://api.ukmeteors.co.uk/matches?reqtyp=detail&reqval=20211121_032219.699_UK" | jq ._mag
 "-0.93"
         </pre>
 
@@ -219,7 +219,7 @@ $ curl "https://api.ukmeteornetwork.co.uk/matches?reqtyp=detail&reqval=20211121_
         <pre>
 import pandas as pd 
 
-apiurl = 'https://api.ukmeteornetwork.co.uk/matches'
+apiurl = 'https://api.ukmeteors.co.uk/matches'
 
 # get all matched events for a given date
 reqtyp = 'matches'
@@ -248,7 +248,7 @@ print(df)
         </pre>
         <h4 id="PickleExample">Full Trajectory API Example</h4>
         <pre>
-            curl "https://api.ukmeteornetwork.co.uk/pickle/getpickle?reqval=20220814_205940.252_UK"
+            curl "https://api.ukmeteors.co.uk/pickle/getpickle?reqval=20220814_205940.252_UK"
         </pre>
         
         <hr>

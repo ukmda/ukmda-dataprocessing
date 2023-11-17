@@ -10,7 +10,7 @@
 #
 # Produces
 #   a webpage showing the costs
-#       https://archive.ukmeteornetwork.co.uk/reports/costs.html
+#       https://archive.ukmeteors.co.uk/reports/costs.html
 #
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"

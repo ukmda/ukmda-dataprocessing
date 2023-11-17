@@ -11,8 +11,6 @@ variable "mda_account_id" { default = "183798037734" }
 variable "webbucket" {default = "ukmda-website"}
 variable "sharedbucket" {default = "ukmda-shared"}
 variable "livebucket" {default = "ukmda-live"}
-variable "old_sharedbucket" { default = "ukmon-shared"}
-variable "old_webbucket" { default = "ukmeteornetworkarchive"}
 
 variable "dev_sharedbucket" { default = "mjmm-ukmon-shared" }
 variable "dev_webbucket" { default = "mjmm-ukmonarchive.co.uk" }

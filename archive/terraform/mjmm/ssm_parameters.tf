@@ -20,24 +20,6 @@ resource "aws_ssm_parameter" "prod_sharedbucket" {
   }
 }
 
-resource "aws_ssm_parameter" "prod_oldwebsitebucket" {
-  name  = "prod_oldwebsitebucket"
-  type  = "String"
-  value = var.old_webbucket
-  tags = {
-    "billingtag" = "ukmon"
-  }
-}
-
-resource "aws_ssm_parameter" "prod_oldsharedbucket" {
-  name  = "prod_oldsharedbucket"
-  type  = "String"
-  value = var.old_sharedbucket
-  tags = {
-    "billingtag" = "ukmon"
-  }
-}
-
 resource "aws_ssm_parameter" "prod_livebucket" {
   name  = "prod_livebucket"
   type  = "String"
@@ -50,7 +32,7 @@ resource "aws_ssm_parameter" "prod_livebucket" {
 resource "aws_ssm_parameter" "prod_siteurl" {
   name  = "prod_siteurl"
   type  = "String"
-  value = "https://archive.ukmeteors.co.uk" # "https://archive.ukmeteornetwork.co.uk"
+  value = "https://archive.ukmeteors.co.uk" 
   tags = {
     "billingtag" = "ukmon"
   }

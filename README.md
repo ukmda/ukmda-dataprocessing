@@ -2,7 +2,7 @@
 
 
 ## archive
-The code for archive.ukmeteornetwork.co.uk, including the data processing pipeline.
+The code for archive.ukmeteors.co.uk, including the data processing pipeline.
 
 ### Software Deployment
 All software deployment uses Ansible. 
