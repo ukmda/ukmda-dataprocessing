@@ -27,3 +27,4 @@ variable ec2_cidr { default = "172.32.16.0/20" }
 variable calcserverip { default = "172.32.16.136" }
 
 variable archalias { default = "archive.ukmeteors.co.uk"}
+variable mainalias { default = "www.ukmeteors.co.uk"}
