@@ -119,7 +119,6 @@ else
         aws s3 cp $SRC/website/templates/reportindex.html $WEBSITEBUCKET/reports/index.html --quiet
         aws s3 cp $repidx  $WEBSITEBUCKET/reports/ --quiet
         aws s3 cp $previdx  $WEBSITEBUCKET/reports/ --quiet
-CKET/reports/ --quiet
     fi 
 fi
 aws s3 sync ${DATADIR}/reports/$curryr/showers $WEBSITEBUCKET/reports/$curryr/showers --quiet
