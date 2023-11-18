@@ -25,18 +25,39 @@
   <script type="text/javascript" src="/js/datepicker/bootstrap-datepicker.js"></script>
   <link rel="stylesheet" type="text/css" href="/css/datepicker/bootstrap-datepicker.standalone.css">
 
-</script>
+  </script>
 
-<style>
-  table {
-    border-collapse: collapse;
-    width: 100%;
-  }
-  
-  tr {
-    border-bottom: 1px solid #ddd;
-  }
-  </style>  
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    tr {
+      border-bottom: 1px solid #ddd;
+    }
+  </style>
+  <style>
+    .datepicker table tr td.day {
+      background: white;
+      color: black;
+    }
+
+    .datepicker table tr td.disabled,
+    .datepicker table tr td.disabled:hover {
+      color: white;
+    }
+
+    .datepicker .datepicker-switch,
+    .datepicker .datepicker-months td,
+    .datepicker .datepicker-years td,
+    .datepicker .next,
+    .datepicker .prev,
+    .datepicker thead {
+      color: black;
+    }
+  </style>
+
 </head>
 
 <body>
@@ -53,7 +74,7 @@
   <script src="/js/gtagadder.js"></script>
 
   <script type="text/javascript" src="/js/datepicker/datepair.js"></script>
-    
+
   <div id="nav-placeholder"></div>
   <script>
     $(function () {
@@ -65,40 +86,48 @@
 
     <p>
       New livestream with some better features. Click Search to get the most recent data.
-      Pick a date range, time range and/or station to filter the data. 
-      At most, 100 images will be displayed. 
+      Pick a date range, time range and/or station to filter the data.
+      At most, 100 images will be displayed.
     </p>
     <form id="selectInterval">
       <label for="date1">Select date range</label>
       <br>
       <input type="text" class="date start" id="date1" />
-      <input type="text" class="time start" id="time1" /> to 
+      <input type="text" class="time start" id="time1" /> to
       <input type="text" class="time end" id="time2" />
       <input type="text" class="date end" id="date2" />
 
       <select class="bootstrap-select" id="statselect" name="statselect"></select>
       <script>
-          $(function () {
-              $("#statselect").load("/search/activestatopts.html");
-          });
+        $(function () {
+          $("#statselect").load("/search/activestatopts.html");
+        });
       </script>
-  
+
       <button type="submit">Search</button>
     </form>
-    <p> <div id="statusfield"></div></p>
-    <p> <h3>RESULTS</h3></p>
-    <p>Events in Date Range <div id="datestart"></div><div id="dateend"></div></p>
+    <p>
+    <div id="statusfield"></div>
+    </p>
+    <p>
+    <h3>RESULTS</h3>
+    </p>
+    <p>Events in Date Range
+    <div id="datestart"></div>
+    <div id="dateend"></div>
+    </p>
     <div id="searchresults" class="top-img-container"></div>
     <script src="/js/livestream.js"></script>
-    <script> $('.top-img-container').magnificPopup({ 
-      delegate: 'a', type: 'image', 
-      image:{
-        verticalFit:false,
-        titleSrc: function(item) {return item.el.attr('title');}
-        }, 
-      gallery:{enabled:true} }); 
+    <script> $('.top-img-container').magnificPopup({
+        delegate: 'a', type: 'image',
+        image: {
+          verticalFit: false,
+          titleSrc: function (item) { return item.el.attr('title'); }
+        },
+        gallery: { enabled: true }
+      }); 
     </script>
-    
+
     <div id="copyrite-placeholder"></div>
     <script>
       $(function () {
