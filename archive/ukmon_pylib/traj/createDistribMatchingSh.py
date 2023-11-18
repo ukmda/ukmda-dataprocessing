@@ -111,6 +111,20 @@ def createDensityPlots(outf, calcdir, enddt):
     return
 
 
+def SyncRawData(outf, matchstart, matchend, shbucket, calcdir):
+    # camera data - no need to replicate it for an historical date
+    outf.write('logger -s -t execdistrib starting raw data sync\n')
+    outf.write(f'targdirs=$(aws s3 ls {shbucket}/matches/RMSCorrelate/ | egrep -v "traj|daily|test|plot|proce"|grep PRE | awk \'{{print $2}}\')\n') 
+    outf.write('for td in $targdirs ; do\n')
+    outf.write('logger -s -t execdistrib processing $td\n')
+    for d in range(matchend+1, matchstart+2):
+        thisdt=datetime.datetime.now() + datetime.timedelta(days=-d)
+        trgdy=thisdt.strftime('%Y%m%d')
+        outf.write(f'	aws s3 sync {shbucket}/matches/RMSCorrelate/$td {calcdir}/$td --exclude "*" --include "${{td:0:6}}_{trgdy}*"\n')
+    outf.write('done\n')
+    return
+
+
 def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
     shbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')
     webbucket = os.getenv('WEBSITEBUCKET', default='s3://ukmda-website')
@@ -140,10 +154,8 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         outf.write('logger -s -t execdistrib syncing the raw data from shared S3\n')
         outf.write(f'aws s3 cp {srcpath}/processed_trajectories.json {calcdir}/processed_trajectories.json --quiet\n')
         outf.write(f'ls -ltr {calcdir}/*.json\n')
-        # camera data - no need to replicate it for an historical date
-        if matchend < 90:
-            outf.write('logger -s -t execdistrib updating camera data\n')
-            outf.write(f'time aws s3 sync {shbucket}/matches/RMSCorrelate {calcdir} --exclude "*" --include "UK*" --include "BE*" --quiet\n')
+
+        SyncRawData(outf, matchstart, matchend, shbucket, calcdir)
         
         outf.write('logger -s -t execdistrib starting correlator to update existing matches and create candidates\n')
         outf.write(f'mkdir -p {calcdir}/candidates\n')
