@@ -10,6 +10,7 @@ $('#selectInterval .date').datepicker({
     'format': 'd/m/yyyy',
     'autoclose': true,
     'endDate': '0'
+    
 });
 
 // initialize datepair
@@ -70,6 +71,7 @@ form.addEventListener("submit", function (event) {
   //jQuery.support.cors = true;
   payload = {"d1":  d1, "d2": d2, "opts":  op };
   console.log(payload);
+  document.getElementById("searchresults").innerHTML = "Searching....";
   $.ajax({
     url: apiurl, 
     type: "GET",
