@@ -120,7 +120,7 @@ def SyncRawData(outf, matchstart, matchend, shbucket, calcdir):
     for d in range(matchend+1, matchstart+2):
         thisdt=datetime.datetime.now() + datetime.timedelta(days=-d)
         trgdy=thisdt.strftime('%Y%m%d')
-        outf.write(f'	aws s3 sync {shbucket}/matches/RMSCorrelate/$td {calcdir}/$td --exclude "*" --include "${{td:0:6}}_{trgdy}*"\n')
+        outf.write(f'	aws s3 sync {shbucket}/matches/RMSCorrelate/$td {calcdir}/$td --exclude "*" --include "${{td:0:6}}_{trgdy}*" --quiet\n')
     outf.write('done\n')
     return
 
