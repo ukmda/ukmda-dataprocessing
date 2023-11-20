@@ -24,3 +24,7 @@ resource "aws_route53_record" "ukmeteors_amazonses_dkim_record" {
   ttl     = "600"
   records = ["${aws_ses_domain_dkim.ukmeteors.dkim_tokens[count.index]}.dkim.amazonses.com"]
 }
+
+resource "aws_ses_email_identity" "example" {
+  email = "markmcintyre99@googlemail.com"
+}
