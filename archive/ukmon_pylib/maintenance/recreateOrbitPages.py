@@ -68,28 +68,32 @@ def createExtraJpgHtml(outdir, parentfldr, yr, ym):
     webfldr = f'img/single/{yr}/{ym}'
     with open(os.path.join(outdir, 'extrajpgs.html'), 'w') as outf:
         jpgfldr = os.path.join(parentfldr, 'jpgs')
-        jpgs = os.listdir(jpgfldr)
-        for jpg in jpgs:
-            li = f"<a href=\"/img/single/{yr}/{ym}/{jpg}\"><img src=\"/img/single/{yr}/{ym}/{jpg}\" width=\"20%\"></a>\n"
-            outf.write(li)
-            locfname = f'{jpgfldr}/{jpg}'
-            keyname = f'{webfldr}/{jpg}'
-            s3mda.upload_file(locfname, 'ukmda-website', keyname, ExtraArgs=getExtraArgs(jpg))
+        if os.path.isdir(jpgfldr):
+            jpgs = os.listdir(jpgfldr)
+            for jpg in jpgs:
+                li = f"<a href=\"/img/single/{yr}/{ym}/{jpg}\"><img src=\"/img/single/{yr}/{ym}/{jpg}\" width=\"20%\"></a>\n"
+                outf.write(li)
+                locfname = f'{jpgfldr}/{jpg}'
+                keyname = f'{webfldr}/{jpg}'
+                s3mda.upload_file(locfname, 'ukmda-website', keyname, ExtraArgs=getExtraArgs(jpg))
     webfldr = f'img/mp4/{yr}/{ym}'
     with open(os.path.join(outdir, 'extrampgs.html'), 'w') as outf:
         jpgfldr = os.path.join(parentfldr, 'mp4s')
-        jpgs = os.listdir(jpgfldr)
-        for jpg in jpgs:
-            li = f"<a href=\"/img/mp4/{yr}/{ym}/{jpg}\"><video width=\"20%\"><source src=\"/img/mp4/{yr}/{ym}/{jpg}\" width=\"20%\" type=\"video/mp4\"></video></a>\n"
-            outf.write(li)
-            locfname = f'{jpgfldr}/{jpg}'
-            keyname = f'{webfldr}/{jpg}'
-            s3mda.upload_file(locfname, 'ukmda-website', keyname, ExtraArgs=getExtraArgs(jpg))
+        if os.path.isdir(jpgfldr):
+            jpgs = os.listdir(jpgfldr)
+            for jpg in jpgs:
+                li = f"<a href=\"/img/mp4/{yr}/{ym}/{jpg}\"><video width=\"20%\"><source src=\"/img/mp4/{yr}/{ym}/{jpg}\" width=\"20%\" type=\"video/mp4\"></video></a>\n"
+                outf.write(li)
+                locfname = f'{jpgfldr}/{jpg}'
+                keyname = f'{webfldr}/{jpg}'
+                s3mda.upload_file(locfname, 'ukmda-website', keyname, ExtraArgs=getExtraArgs(jpg))
 
 
 def recreateOrbitFiles(outdir, pickname, doupload=False):
     traj = loadPickle(outdir, pickname)
     traj.save_results = True
+    if not hasattr(traj,'enable_OSM_plot'):
+        traj.enable_OSM_plot = True
     print('loaded pickle')
     if platform.node() == 'MARKSDT':
         createAdditionalOutput(traj, outdir)
