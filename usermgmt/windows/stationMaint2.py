@@ -508,11 +508,6 @@ def addNewOwner(locstatfile, rmsid, location, user, email):
     ddb = conn.resource('dynamodb', region_name='eu-west-2')
     addRowToDDB(rmsid, location, ddb)
 
-    liveprof = os.getenv('LIVE_PROFILE', default='ukmonshared')
-    conn = boto3.Session(profile_name=liveprof)
-    ddb = conn.resource('dynamodb', region_name='eu-west-1')
-    addRowToDDB(rmsid, location, ddb, tblname='ukmon_camdetails')
-
     return
 
 
@@ -582,12 +577,8 @@ def addNewUnixUser(location, cameraname, oldcamname='', updatemode=0):
 
 def addNewAwsUser(location):
     print(f'adding new location {location} to AWS')
-    group = 'ukmon'
-    livekeyf = 'jsonkeys/' + location + '_live.key'
     archkeyf = 'jsonkeys/' + location + '_arch.key'
-    liveuserdets = 'users/' + location + '_live.txt'
     archuserdets = 'users/' + location + '_arch.txt'
-    livecsvf = os.path.join('csvkeys', location + '_live.csv')
     archcsvf = os.path.join('csvkeys', location + '_arch.csv')
     os.makedirs('jsonkeys', exist_ok=True)
     os.makedirs('csvkeys', exist_ok=True)
@@ -595,30 +586,6 @@ def addNewAwsUser(location):
 
     archprof = os.getenv('ARCH_PROFILE', default='ukmda_admin')
     archconn = boto3.Session(profile_name=archprof)
-    liveprof = os.getenv('LIVE_PROFILE', default='ukmon-markmcintyre')
-    liveconn = boto3.Session(profile_name=liveprof)
-    
-    iamc = liveconn.client('iam')
-    sts = liveconn.client('sts')
-    acct = sts.get_caller_identity()['Account']
-    policyarn = 'arn:aws:iam::' + acct + ':policy/UkmonLive'
-    try: 
-        _ = iamc.get_user(UserName=location)
-        print('location exists, not adding it')
-        livekey = None
-    except Exception:
-        print('new location')
-        usr = iamc.create_user(UserName=location)
-        _ = iamc.attach_user_policy(UserName=location, PolicyArn=policyarn)
-        _ = iamc.add_user_to_group(UserName=location, GroupName=group)
-        with open(liveuserdets, 'w') as outf:
-            outf.write(str(usr))
-        livekey = iamc.create_access_key(UserName=location)
-        with open(livekeyf, 'w') as outf:
-            outf.write(json.dumps(livekey, indent=4, sort_keys=True, default=str))
-        with open(livecsvf,'w') as outf:
-            outf.write('Access key ID,Secret access key\n')
-            outf.write('{},{}\n'.format(livekey['AccessKey']['AccessKeyId'], livekey['AccessKey']['SecretAccessKey']))
 
     iamc = archconn.client('iam')
     sts = archconn.client('sts')
@@ -643,8 +610,8 @@ def addNewAwsUser(location):
             outf.write('Access key ID,Secret access key\n')
             outf.write('{},{}\n'.format(archkey['AccessKey']['AccessKeyId'], archkey['AccessKey']['SecretAccessKey']))
     
-    if archkey is not None and livekey is not None: 
-        createKeyFile(livekey, archkey, location)
+    if archkey is not None: 
+        createKeyFile(archkey, archkey, location)
     return 
 
 

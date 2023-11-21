@@ -22,7 +22,6 @@
     tags: [dev,prod]
     with_items:
     - {src: '{{winsrcdir}}/checkLastLogin.ps1', dest: '{{windestdir}}/', mode: '754', backup: yes, directory_mode: no }
-    - {src: '{{winsrcdir}}/dailyReportUserAdd.ps1', dest: '{{windestdir}}/', mode: '754', backup: yes, directory_mode: no }
     - {src: '{{winsrcdir}}/StationMaint.ps1', dest: '{{windestdir}}/', mode: '754', backup: yes, directory_mode: no }
     - {src: '{{winsrcdir}}/stationMaint2.py', dest: '{{windestdir}}/', mode: '644', backup: yes, directory_mode: no }
     - {src: '{{winsrcdir}}/testkeys.py', dest: '{{windestdir}}/', mode: '644', backup: yes, directory_mode: no }
