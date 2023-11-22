@@ -15,7 +15,7 @@ $('#selectInterval .date').datepicker({
 var res = document.getElementById("selectInterval");
 var dateSelect = new Datepair(res, {
     'defaultDateDelta': 0,      // days
-    'defaultTimeDelta': 7200000 // milliseconds
+    'defaultTimeDelta': 900000 // milliseconds = 15 mins
 });
 
 $('#selectInterval').on('rangeSelected', function(){
@@ -27,8 +27,8 @@ $('#selectInterval').on('rangeSelected', function(){
         var endval = dateval + timediff;
         var endtime = new Date();
         endtime.setTime(endval);
-        $('#datestart').text(starttime.toISOString()); //.toLocaleString('en-GB', { timeZone: 'UTC' }));
-        $('#dateend').text(endtime.toISOString()); //.toLocaleString('en-GB', { timeZone: 'UTC' }));
+        $('#datestart').text(starttime.toISOString()); 
+        $('#dateend').text(endtime.toISOString()); 
         if(timediff > 0){
             $('#statusfield').text('Valid range selected');
         }else{
@@ -63,6 +63,7 @@ form.addEventListener("submit", function (event) {
   }
   var payload = { dtstr: dtval, enddtstr : enddtval, statid: strstat };
   console.log(payload);
+  document.getElementById("searchresults").innerHTML = "<font size=\"+2\">Searching....</font>";
   $.ajax({
     url: apiurl, 
     type: "GET",
@@ -72,6 +73,7 @@ form.addEventListener("submit", function (event) {
       if (status === 'error' ) {
         alert("Too much data, try a narrower range");
         console.log(xhr.status);
+        document.getElementById("searchresults").innerHTML = "<font size=\"+2\">No Data</font>";
       }
     },
     complete: function (xhr, status) {
