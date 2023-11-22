@@ -2,7 +2,8 @@ import sys
 import os
 import boto3
 import platform
-from wmpl.Utils.Pickling import loadPickle
+import datetime
+from wmpl.Utils.Pickling import loadPickle, savePickle
 from traj.pickleAnalyser import createAdditionalOutput
 from boto3.dynamodb.conditions import Key
 
@@ -89,11 +90,43 @@ def createExtraJpgHtml(outdir, parentfldr, yr, ym):
                 s3mda.upload_file(locfname, 'ukmda-website', keyname, ExtraArgs=getExtraArgs(jpg))
 
 
+def fixupTrajComments(traj, availableimages, outdir, picklename, yr, ym):
+    s3 = boto3.client('s3')
+    madeupdate = False
+    for obs in traj.observations:
+        pickdtstr = picklename[:15]
+        pickdt = datetime.datetime.strptime(pickdtstr, '%Y%m%d_%H%M%S')
+        if obs.comment is None:
+            relevantimages = [x for x in availableimages if obs.station_id in x]
+            for img in relevantimages:
+                dtstr = img[1:15]
+                camid = obs.station_id
+                ff_name = f'img/single/{yr}/{ym}/FF_{camid}_{dtstr}'
+                flist = s3.list_objects_v2(Bucket='ukmda-website', Prefix=ff_name)
+                comment = ''
+                if 'Contents' in flist:
+                    for fl in flist['Contents']:
+                        key = fl['Key']
+                        key = key[key.find('FF_'):]
+                        keydt = datetime.datetime.strptime(key[10:25], '%Y%m%d_%H%M%S')
+                        if (pickdt - keydt).seconds < 11:
+                            comment = f'{{"ff_name": "{key}"}}'
+                #print(img, comment)
+            print(f'updated comment to {comment} for {obs.station_id}')
+            obs.comment = comment
+            madeupdate = True
+    if madeupdate:
+        savePickle(traj, outdir, picklename)
+    return
+
+
 def recreateOrbitFiles(outdir, pickname, doupload=False):
     traj = loadPickle(outdir, pickname)
     traj.save_results = True
+    # need to add the enable_OSM_plot attribute if its missing
     if not hasattr(traj,'enable_OSM_plot'):
         traj.enable_OSM_plot = True
+        savePickle(traj, outdir, pickname)
     print('loaded pickle')
     if platform.node() == 'MARKSDT':
         createAdditionalOutput(traj, outdir)
@@ -112,6 +145,7 @@ def recreateOrbitFiles(outdir, pickname, doupload=False):
     availableimages = getImgListFromDdb(pickname)
     createExtraJpgtxt(outdir, traj, availableimages)
     createExtraJpgHtml(outdir, orbparent, yr, ym)
+    fixupTrajComments(traj, availableimages, outdir, pickname, yr, ym)
 
     if doupload:
         files = os.listdir(outdir)

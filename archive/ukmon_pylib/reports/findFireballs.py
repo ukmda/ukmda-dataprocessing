@@ -69,11 +69,14 @@ def createMDFiles(fbs, outdir, orbdir):
                 s3.download_file(srcbucket, fname, targfile)
                 bestimg = getBestView(pickfile)
                 #print(bestimg)
-                if bestimg[:4] != 'img/':
+                if bestimg[:3] == 'FF_':
+                    pth = fb.url[:fb.url.find('reports/')]
+                    bestimg = f'img/single/{yr}/{ym}/{bestimg}'
+                elif bestimg[:4] != 'img/':
                     pth, _ = os.path.split(fb.url)
                 else:
                     pth = fb.url[:fb.url.find('reports/')]
-                bestimgurl = os.path.join(pth, bestimg)
+                bestimgurl = os.path.join(pth, bestimg).replace('ukmeteornetwork','ukmeteors')
             except:
                 print('unable to collect jpgs.lst')
 
@@ -92,7 +95,7 @@ def createMDFiles(fbs, outdir, orbdir):
                         outf.write('mass: {:.0f}g\n'.format(float(fb.mass)*1000))
                     outf.write('vg: {:.2f}km/s\n'.format(float(fb.vg)))
                     outf.write('\n')
-                    outf.write('archive-url: {}\n'.format(fb.url))
+                    outf.write('archive-url: {}\n'.format(fb.url.replace('ukmeteornetwork','ukmeteors')))
                     outf.write('bestimage: {}\n'.format(bestimgurl))
                     outf.write('\n---\n')
     rmtree(tmpdir)
