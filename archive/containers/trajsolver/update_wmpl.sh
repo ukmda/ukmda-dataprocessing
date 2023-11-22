@@ -3,7 +3,7 @@
 
 targ=trajsolver
 
-cd /mnt/e/dev/meteorhunting/ukmon-shared/archive/containers/$targ/
+cd /mnt/e/dev/meteorhunting/ukmda-dataprocessing/archive/containers/$targ/
 ssh ukmonhelper2 "cd src/wmpldev && git stash && git checkout forcontainer && git pull"
 rsync -avz ukmonhelper2:src/wmpldev/* ./WesternMeteorPyLib/ --exclude "build/" --exclude "*.egg*" --exclude "dist/" --exclude ".git/" --exclude "__pycache__/"
 ssh ukmonhelper2 "cd src/wmpldev && git checkout - && git stash apply"

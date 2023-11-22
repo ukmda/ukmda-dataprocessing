@@ -25,6 +25,29 @@
   <script type="text/javascript" src="/js/datepicker/bootstrap-datepicker.js"></script>
   <link rel="stylesheet" type="text/css" href="/css/datepicker/bootstrap-datepicker.standalone.css">
 
+
+  <style>
+    .datepicker table tr td.day {
+      background: white;
+      color: black;
+    }
+
+    .datepicker table tr td.disabled,
+    .datepicker table tr td.disabled:hover {
+      color: white;
+    }
+
+    .datepicker .datepicker-switch,
+    .datepicker .datepicker-months td,
+    .datepicker .datepicker-years td,
+    .datepicker .next,
+    .datepicker .prev,
+    .datepicker thead {
+      color: black;
+    }
+  </style>
+
+
 </head>
 
 <body>
@@ -54,20 +77,21 @@
     <h2>Search the Archive.</h2>
     <p>
       This page allows you to search the archive for specific events. There are three datasources: <br>
-      <li>The live stream captured in realtime each night. Available only for 30 days. 
+      <li>The live stream captured in realtime each night. Available only for 30 days.
         Clicking on the image will show a larger version in a new window.</li>
-      <li>Matched events, for which we've solved to determine the orbit and trajectory. 
+      <li>Matched events, for which we've solved to determine the orbit and trajectory.
         Clicking on the image will take you to the detailed report page, where there is also a link to
         download the raw data</li>
-      <li>Single detections, not matched with any other data in our archive. 
+      <li>Single detections, not matched with any other data in our archive.
         Clicking on the image will allow you to download the image.
       </li>
       A detection may appear in all three datasets. Note however that many of our cameras
       upload only upload analytical information on a monthly basis, so single and matched analysis is often
-      not available for some days or weeks. 
+      not available for some days or weeks.
     </p>
     <p>
-      The data here are released under the <a href= "https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> license, so if you are using the data 
+      The data here are released under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> license,
+      so if you are using the data
       whether for scientific or other purposes, your must reference this web site in your work.
     </p>
     <hr>
@@ -75,7 +99,7 @@
       <label for="date1">Select date range</label>
       <br>
       <input type="text" class="date start" id="date1" />
-      <input type="text" class="time start" id="time1" /> to 
+      <input type="text" class="time start" id="time1" /> to
       <input type="text" class="time end" id="time2" />
       <input type="text" class="date end" id="date2" />
 
@@ -87,7 +111,7 @@
         <option value="1" selected="selected">All Mags</option>
         <option value="2">Mag 0 or brighter</option>
         <option value="3">Fireballs</option>
-      </select>      
+      </select>
 
       <label for="shwrselect">Shower</label>
       <select class="bootstrap-select" id="shwrselect">
@@ -103,19 +127,26 @@
         <option value="3">LEO</option>
         <option value="3">ORI</option>
         <option value="3">GEM</option>
-      </select>      
+      </select>
       <div id="stationsplaceholder"></div>
       <script>
-          $(function () {
-              $("#stationsplaceholder").load("/search/statopts.html");
-          });
+        $(function () {
+          $("#stationsplaceholder").load("/search/statopts.html");
+        });
       </script>
-  
+
       <button type="submit">Search</button>
     </form>
-    <p> <div id="statusfield"></div></p>
-    <p> <h3>RESULTS</h3></p>
-    <p>Events in Date Range <div id="datestart"></div><div id="dateend"></div></p>
+    <p>
+    <div id="statusfield"></div>
+    </p>
+    <p>
+    <h3>RESULTS</h3>
+    </p>
+    <p>Events in Date Range
+    <div id="datestart"></div>
+    <div id="dateend"></div>
+    </p>
     <p id="searchresults"></p>
     <script src="/data/searchdialog.js"></script>
 

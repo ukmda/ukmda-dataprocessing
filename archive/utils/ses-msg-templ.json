@@ -1,0 +1,16 @@
+{
+  "Subject": {
+    "Data": "Disk space alert on calcserver",
+    "Charset": "utf-8"
+  },
+  "Body": {
+    "Text": {
+      "Data": "Diskspace on calcserver exceeded threshold",
+      "Charset": "utf-8"
+    },
+    "Html": {
+      "Data": "diskspace on calcserver exceeded threshold<br>",
+      "Charset": "utf-8"
+    }
+  }
+}

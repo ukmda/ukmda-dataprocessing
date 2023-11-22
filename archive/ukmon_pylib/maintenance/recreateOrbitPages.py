@@ -2,7 +2,8 @@ import sys
 import os
 import boto3
 import platform
-from wmpl.Utils.Pickling import loadPickle
+import datetime
+from wmpl.Utils.Pickling import loadPickle, savePickle
 from traj.pickleAnalyser import createAdditionalOutput
 from boto3.dynamodb.conditions import Key
 
@@ -68,28 +69,64 @@ def createExtraJpgHtml(outdir, parentfldr, yr, ym):
     webfldr = f'img/single/{yr}/{ym}'
     with open(os.path.join(outdir, 'extrajpgs.html'), 'w') as outf:
         jpgfldr = os.path.join(parentfldr, 'jpgs')
-        jpgs = os.listdir(jpgfldr)
-        for jpg in jpgs:
-            li = f"<a href=\"/img/single/{yr}/{ym}/{jpg}\"><img src=\"/img/single/{yr}/{ym}/{jpg}\" width=\"20%\"></a>\n"
-            outf.write(li)
-            locfname = f'{jpgfldr}/{jpg}'
-            keyname = f'{webfldr}/{jpg}'
-            s3mda.upload_file(locfname, 'ukmda-website', keyname, ExtraArgs=getExtraArgs(jpg))
+        if os.path.isdir(jpgfldr):
+            jpgs = os.listdir(jpgfldr)
+            for jpg in jpgs:
+                li = f"<a href=\"/img/single/{yr}/{ym}/{jpg}\"><img src=\"/img/single/{yr}/{ym}/{jpg}\" width=\"20%\"></a>\n"
+                outf.write(li)
+                locfname = f'{jpgfldr}/{jpg}'
+                keyname = f'{webfldr}/{jpg}'
+                s3mda.upload_file(locfname, 'ukmda-website', keyname, ExtraArgs=getExtraArgs(jpg))
     webfldr = f'img/mp4/{yr}/{ym}'
     with open(os.path.join(outdir, 'extrampgs.html'), 'w') as outf:
         jpgfldr = os.path.join(parentfldr, 'mp4s')
-        jpgs = os.listdir(jpgfldr)
-        for jpg in jpgs:
-            li = f"<a href=\"/img/mp4/{yr}/{ym}/{jpg}\"><video width=\"20%\"><source src=\"/img/mp4/{yr}/{ym}/{jpg}\" width=\"20%\" type=\"video/mp4\"></video></a>\n"
-            outf.write(li)
-            locfname = f'{jpgfldr}/{jpg}'
-            keyname = f'{webfldr}/{jpg}'
-            s3mda.upload_file(locfname, 'ukmda-website', keyname, ExtraArgs=getExtraArgs(jpg))
+        if os.path.isdir(jpgfldr):
+            jpgs = os.listdir(jpgfldr)
+            for jpg in jpgs:
+                li = f"<a href=\"/img/mp4/{yr}/{ym}/{jpg}\"><video width=\"20%\"><source src=\"/img/mp4/{yr}/{ym}/{jpg}\" width=\"20%\" type=\"video/mp4\"></video></a>\n"
+                outf.write(li)
+                locfname = f'{jpgfldr}/{jpg}'
+                keyname = f'{webfldr}/{jpg}'
+                s3mda.upload_file(locfname, 'ukmda-website', keyname, ExtraArgs=getExtraArgs(jpg))
+
+
+def fixupTrajComments(traj, availableimages, outdir, picklename, yr, ym):
+    s3 = boto3.client('s3')
+    madeupdate = False
+    for obs in traj.observations:
+        pickdtstr = picklename[:15]
+        pickdt = datetime.datetime.strptime(pickdtstr, '%Y%m%d_%H%M%S')
+        if obs.comment is None:
+            relevantimages = [x for x in availableimages if obs.station_id in x]
+            for img in relevantimages:
+                dtstr = img[1:15]
+                camid = obs.station_id
+                ff_name = f'img/single/{yr}/{ym}/FF_{camid}_{dtstr}'
+                flist = s3.list_objects_v2(Bucket='ukmda-website', Prefix=ff_name)
+                comment = ''
+                if 'Contents' in flist:
+                    for fl in flist['Contents']:
+                        key = fl['Key']
+                        key = key[key.find('FF_'):]
+                        keydt = datetime.datetime.strptime(key[10:25], '%Y%m%d_%H%M%S')
+                        if (pickdt - keydt).seconds < 11:
+                            comment = f'{{"ff_name": "{key}"}}'
+                #print(img, comment)
+            print(f'updated comment to {comment} for {obs.station_id}')
+            obs.comment = comment
+            madeupdate = True
+    if madeupdate:
+        savePickle(traj, outdir, picklename)
+    return
 
 
 def recreateOrbitFiles(outdir, pickname, doupload=False):
     traj = loadPickle(outdir, pickname)
     traj.save_results = True
+    # need to add the enable_OSM_plot attribute if its missing
+    if not hasattr(traj,'enable_OSM_plot'):
+        traj.enable_OSM_plot = True
+        savePickle(traj, outdir, pickname)
     print('loaded pickle')
     if platform.node() == 'MARKSDT':
         createAdditionalOutput(traj, outdir)
@@ -108,6 +145,7 @@ def recreateOrbitFiles(outdir, pickname, doupload=False):
     availableimages = getImgListFromDdb(pickname)
     createExtraJpgtxt(outdir, traj, availableimages)
     createExtraJpgHtml(outdir, orbparent, yr, ym)
+    fixupTrajComments(traj, availableimages, outdir, pickname, yr, ym)
 
     if doupload:
         files = os.listdir(outdir)

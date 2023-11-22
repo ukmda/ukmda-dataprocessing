@@ -16,11 +16,10 @@ elif [ "$(hostname)" == "ukmcalcserver" ] ; then
     source /home/ec2-user/venvs/wmpl/bin/activate
     python $here/statsToMqtt.py
     diskpct=$(df / |tail -1| awk '{print $5 }' | sed 's/%//g')
-    if [ $diskpct -gt 90 ] ; then 
-        msg="$(hostname) diskspace is ${diskpct}%"
-        subj="Diskspace alert for $(hostname)"
-        hn="$(hostname)@aws"
-        python -c "from meteortools.utils.sendAnEmail import sendAnEmail;sendAnEmail('markmcintyre99@googlemail.com', '$msg', '$subj', '$hn')"
+    if [ $diskpct -gt 80 ] ; then 
+        cat $here/ses-msg-templ.json | sed "s/HN/$(hostname)/g;s/USED/${diskpct}/g;s/THRESH/80/g" > $here/msg.json
+        aws ses send-email --destination ToAddresses="markmcintyre99@googlemail.com" --message file://msg.json --from "noreply@ukmeteors.co.uk" --region eu-west-2
+        $here//clearSpace.sh > ~/src/logs/clearspace-$(date +%Y%m%d.log) 2>&1
     fi
 else
     source $here/../config.ini >/dev/null 2>&1

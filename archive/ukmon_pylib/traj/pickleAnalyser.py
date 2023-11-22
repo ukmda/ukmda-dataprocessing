@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import glob
 import datetime
+import json
 
 from wmpl.Utils.TrajConversions import jd2Date
 from meteortools.utils import sollon2jd
@@ -68,6 +69,13 @@ def getBestView(picklename):
     else:
         _, statids, vmags = loadMagData(traj)
         bestvmag = min(vmags)
+        if traj.observations[vmags.index(bestvmag)].comment is not None:
+            try:
+                com = json.loads(traj.observations[vmags.index(bestvmag)].comment)
+                bestimg = com['ff_name'].replace('FR_','FF_').replace('.bin','.jpg').replace('.fits','.jpg')
+                return bestimg
+            except Exception: 
+                pass
         beststatid = statids[vmags.index(bestvmag)]
         imgfn = glob.glob1(outdir, '*{}*.jpg'.format(beststatid))
         if len(imgfn) > 0:

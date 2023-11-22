@@ -28,7 +28,7 @@ else
     yr=$1
 fi
 
-aws s3 mv $indir $outdir --recursive --exclude "*" --include "ukmon_??????_${yr}*.csv" --quiet
+aws s3 mv $indir $outdir --recursive --exclude "*" --include "ukmda_??????_${yr}*.csv" --quiet
 
 mrgfile=$DATADIR/single/singles-${yr}.csv
 newsngl=$DATADIR/single/singles-${yr}-new.csv
@@ -38,7 +38,7 @@ fi
 # file containing only new data
 echo "Ver,Y,M,D,h,mi,s,Mag,Dur,Az1,Alt1,Az2,Alt2,Ra1,Dec1,Ra2,Dec2,ID,Long,Lat,Alt,Tz,AngVel,Shwr,Filename,Dtstamp" > $newsngl
 
-ls -1 $outdir/ukmon_??????_${yr}*.csv | while read i
+ls -1 $outdir/ukmda_??????_${yr}*.csv | while read i
 do
     cat $i >> $mrgfile
     cat $i >> $newsngl
