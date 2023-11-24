@@ -24,22 +24,22 @@
     <style>
         html,
         body {
-            height: 510px;
+            height: 610px;
             padding: 0;
             margin: 0;
         }
 
         #map {
-            height: 500px;
-            width: 500px;
+            height: 600px;
+            width: 800px;
             overflow: hidden;
             float: left;
             border: thin solid #333;
         }
 
         #capture {
-            height: 500px;
-            width: 200px;
+            height: 600px;
+            width: 100px;
             overflow: hidden;
             float: left;
             background-color: #ECECFB;
@@ -83,7 +83,7 @@
             Click on Show to reveal the coverage of those cameras at that altitude.
             Note that the field of view will remain
             centred on the first camera and the second or third may not be visible if they don't overlap.
-            You can click on a shaded area to see which camera it relates to.
+            You can click on a shaded area to see the latitude and longitude.
         </p>
         <p>
             If no coverage is displayed then the camera has not yet been calibrated.
@@ -198,9 +198,10 @@
                 kmlLayer.addListener('click', (mapsMouseEvent) => {
                     var content  = mapsMouseEvent.latLng.toJSON()
                     var testimonial = document.getElementById('capture');
-                    var lat = content.lat
-                    var lng = content.lng
-                    var outputstr = "lat: " + Math.round(lat*100)/100 + "\nlng: " + Math.round(lng*100)/100 ;
+                    var lat = content.lat;
+                    var lng = content.lng;
+                    var outputstr = "<font color=black>" + strstat + "<br>lat: " + Math.round(lat*100)/100 + "<br>lng: " + Math.round(lng*100)/100 + "</font>";
+                    console.log(outputstr);
                     testimonial.innerHTML = outputstr;
                 });
                 if (strstat2 != '') {
@@ -214,9 +215,10 @@
 					kmlLayer.addListener('click', (mapsMouseEvent) => {
 						var content  = mapsMouseEvent.latLng.toJSON()
 						var testimonial = document.getElementById('capture');
-						var lat = content.lat
-						var lng = content.lng
-						var outputstr = "lat: " + Math.round(lat*100)/100 + "\nlng: " + Math.round(lng*100)/100 ;
+						var lat = content.lat;
+						var lng = content.lng;
+						var outputstr = "<font color=black>" + strstat2 + "<br>lat: " + Math.round(lat*100)/100 + "<br>lng: " + Math.round(lng*100)/100 + "</font>";
+                        console.log(outputstr);
 						testimonial.innerHTML = outputstr;
                     });
                 }
@@ -231,9 +233,10 @@
 					kmlLayer.addListener('click', (mapsMouseEvent) => {
 						var content  = mapsMouseEvent.latLng.toJSON()
 						var testimonial = document.getElementById('capture');
-						var lat = content.lat
-						var lng = content.lng
-						var outputstr = "lat: " + Math.round(lat*100)/100 + "\nlng: " + Math.round(lng*100)/100 ;
+						var lat = content.lat;
+						var lng = content.lng;
+						var outputstr = "<font color=black>" + strstat3 + "<br>lat: " + Math.round(lat*100)/100 + "<br>lng: " + Math.round(lng*100)/100 + "</font>";
+                        console.log(outputstr);
 						testimonial.innerHTML = outputstr;
                     });
                 }
