@@ -26,17 +26,18 @@ orbin=$1
 imgname=$2
 orbname=${orbin:0:15}
 yr=${orbname:0:4}
+ym=${orbname:0:6}
 
 if [[ "$orbname" == "" || "$imgname" == "" ]] ; then 
     echo "usage: ./updateFireballImage.sh orbname imgname"
-    echo " eg ./updateFireballImage.sh 20220331_035554 FF_UK002F_20221115_223857_178_0510976.jpg"
+    echo " eg ./updateFireballImage.sh 20220331_035554.123_UK FF_UK002F_20221115_223857_178_0510976.jpg"
     exit
 fi
 tmp_dir=$(mktemp -d -t fb-XXXXXXXXXX)
 scp ukmonhelper2:prod/data/reports/${yr}/fireballs/${orbname}.md ${tmp_dir}
 imgurl=$(grep image ${tmp_dir}/${orbname}.md | awk '{print $2}')
-oldimg=$(basename $(echo $imgurl) )
-cat  ${tmp_dir}/${orbname}.md  | sed "s/${oldimg}/${imgname}/g" > ${tmp_dir}/new_${orbname}.md
+newurl=https://archive.ukmeteors.co.uk/img/single/${yr}/${ym}/$imgname
+cat  ${tmp_dir}/${orbname}.md  | sed "s|${imgurl}|${newurl}|g" > ${tmp_dir}/new_${orbname}.md
 mv ${tmp_dir}/new_${orbname}.md ${tmp_dir}/${orbname}.md
 scp ${tmp_dir}/${orbname}.md ukmonhelper2:prod/data/reports/${yr}/fireballs/
 aws s3 cp ${tmp_dir}/${orbname}.md $WEBSITEBUCKET/reports/${yr}/fireballs/
