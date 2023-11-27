@@ -82,8 +82,9 @@ def createMDFiles(fbs, outdir, orbdir):
 
             fname = loctime.strftime('%Y%m%d_%H%M%S') + '.md'
             if os.path.isfile(os.path.join(outdir,fname)):
-                print('md file exists, not replacing it')
+                print(f'{fname} exists, not replacing it')
             else:
+                print(f'creating md file {fname}')
                 with open(os.path.join(outdir,fname), 'w') as outf:
                     outf.write('---\nlayout: fireball\nsitemap: false\n\n')
                     outf.write('date: {}\n\n'.format(loctime.strftime('%Y-%m-%d %H:%M:%SZ')))
