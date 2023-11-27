@@ -65,7 +65,8 @@ def getImageUrls(dtstr, dtstr2, statid, token=None, maxitems=100, includexml=Fal
                 urls.append({'url': f'{psurl}'})
                 
     urls.sort(key = lambda k: k['url'], reverse=True)
-    urls = urls[:maxitems]
+    if maxitems > 0:
+        urls = urls[:maxitems+1]
     retval = {'pagetoken': token, 'urls': urls}
     return retval
 
@@ -83,7 +84,7 @@ def lambda_handler(event, context):
             'body': json.dumps(ecsvstr['Items'])
         }
     else:
-        maxitems = 100
+        maxitems = 200
         if 'dtstr' in qs:
             dtstr = qs['dtstr'] 
         else:
@@ -105,7 +106,7 @@ def lambda_handler(event, context):
         conttoken = None
         if 'conttoken' in qs:
             conttoken = qs['conttoken']
-        print(dtstr, dtstr2, statid, maxitems)
+        #print(dtstr, dtstr2, statid, maxitems)
         retval = getImageUrls(dtstr, dtstr2, statid, conttoken, maxitems, includexml=incxml)
         if fmt == 'json':
             return {
