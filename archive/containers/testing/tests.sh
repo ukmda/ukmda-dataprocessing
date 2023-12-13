@@ -1,6 +1,5 @@
 #!/bin/bash
 
 echo "some tests"
-ls /
-which curl
+curl --version
 python test.py

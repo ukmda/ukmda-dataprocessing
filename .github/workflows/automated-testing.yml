@@ -5,6 +5,15 @@ on:
     branches:
       - markmac99
 jobs:
+  conttests:
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/markmac99/ukmdatester
+      env:
+        TESTSCRIPT: somefile.sh
+    steps:
+      - name: Check for dockerenv file
+        run: (ls /tests.sh && echo Found test script) || (echo No test script) 
   apitests:
     runs-on: ubuntu-latest
     steps:
