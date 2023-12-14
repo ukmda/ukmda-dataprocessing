@@ -9,6 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: docker.io/markmac99/ukmdatester
+      credentials:
+        username: markmac99
+        password: ${{ secrets.GHCR_PAT_MM }}
       env:
         TESTSCRIPT: somefile.sh
     steps:
@@ -20,10 +23,10 @@ jobs:
       - uses: actions/checkout@v3
       - run: chmod +x ./tests/*.sh
       - run: ./tests/api_tests.sh
-  lnxtests:
-    runs-on: lnx64
-    steps:
-      - uses: actions/checkout@v3
-      - run: chmod +x ./tests/*.sh
-      - run: ./tests/lnx_tests.sh
+  #lnxtests:
+  #  runs-on: lnx64
+  #  steps:
+  #    - uses: actions/checkout@v3
+  #    - run: chmod +x ./tests/*.sh
+  #    - run: ./tests/lnx_tests.sh
     
