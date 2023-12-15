@@ -1,0 +1,15 @@
+{
+  "Records": [
+    {
+      "s3": {
+        "bucket": {
+          "name": "ukmda-live",
+          "arn": "arn:aws:s3:::ukmda-live"
+        },
+        "object": {
+          "key": "KEYHERE"
+        }
+      }
+    }
+  ]
+}
