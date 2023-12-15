@@ -20,9 +20,20 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 # load the configuration
 source $here/../config.ini >/dev/null 2>&1
 
+rundate=$(date +%Y%m%d)
+[ "$1" != "" ] && rundate=$1
+
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 export PYTHONPATH=$PYLIB
 logger -s -t cameraStatusReport "starting"
+
+logger -s -t cameraStatusReport "RUNTIME start createStationLoginTimes"
+sudo grep publickey /var/log/secure* | grep -v ec2-user  | awk '{printf("%s-%s, %s, %s\n", $1, $2, $3,$9)}'  | awk -F ":" '{print $2$3$4}' > $DATADIR/reports/lastlogins.txt
+
+logger -s -t cameraStatusReport "RUNTIME start camMetrics"
+python -m metrics.camMetrics $rundate
+aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --region eu-west-2 --quiet
+
 
 cp $TEMPLATES/header.html $DATADIR/reports/statrep.html
 echo "<h3>Camera status report for the network.</h3> <p>This page provides a status report " >> $DATADIR/reports/statrep.html
