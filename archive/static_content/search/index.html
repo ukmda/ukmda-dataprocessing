@@ -117,14 +117,14 @@
         <option value="3">ORI</option>
         <option value="3">GEM</option>
       </select>
-      <div id="stationsplaceholder"></div>
+      <span id="stationsplaceholder"></span>
       <script>
         $(function () {
           $("#stationsplaceholder").load("/search/statopts.html");
         });
       </script>
 
-      <button type="submit">Search</button>
+      <button type="submit" style="display: inline;">Search</button>
     </form>
     <p>
     <div id="statusfield"></div>
@@ -132,12 +132,10 @@
     <p>
     <h3>RESULTS</h3>
     </p>
-    <p>Events in Date Range
-    <div id="datestart"></div>
-    <div id="dateend"></div>
+    <p><span id="eventcount"></span> events in date range <span id="datestart"></span> to <span id="dateend"></span>
     </p>
     <p id="searchresults"></p>
-    <script src="/data/searchdialog.js"></script>
+    <script src="/js/searchdialog.js"></script>
 
     <hr>
     <div id="copyrite-placeholder"></div>
