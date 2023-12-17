@@ -80,7 +80,7 @@ def getBestView(picklename):
         imgfn = glob.glob1(outdir, '*{}*.jpg'.format(beststatid))
         if len(imgfn) > 0:
             bestimg = imgfn[0]
-        else:
+        elif os.path.isfile(os.path.join(outdir, 'jpgs.lst')):
             with open(os.path.join(outdir, 'jpgs.lst')) as inf:
                 lis = inf.readlines()
             bestimg=''
@@ -94,7 +94,8 @@ def getBestView(picklename):
                 if mag <= worstmag:
                     if len(imgfn) > 0:
                         bestimg = imgfn
-
+        else:
+            bestimg = None
         return bestimg
 
 
