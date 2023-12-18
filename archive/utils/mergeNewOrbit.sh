@@ -9,7 +9,7 @@ cd $DATADIR/manualuploads
 aws s3 sync $UKMONSHAREDBUCKET/fireballs/uploads . --exclude "*" --include "*.zip" --exclude "*.done"
 
 newfiles=$(ls -1 *.zip 2> /dev/null)
-if [ ! -z $newfiles ] ; then 
+if [ "$newfiles" != "" ] ; then 
     for fil in $newfiles ; do
         echo processing $fil
         orb=$(basename $fil .zip)
@@ -25,6 +25,9 @@ if [ ! -z $newfiles ] ; then
         ymd=${fil:0:8}
         yr=${ymd:0:4}
         $SRC/website/createOrbitIndex.sh ${ymd}
+        aws s3 ls ${UKMONSHAREDBUCKET}/matches/${yr}/fullcsv/
+        sleep 30 # to allow the lambda to write the CSV file to s3
+        aws s3 ls ${UKMONSHAREDBUCKET}/matches/${yr}/fullcsv/
         $SRC/analysis/consolidateOutput.sh ${yr}
         $SRC/website/createFireballPage.sh ${yr}
         aws s3 mv $UKMONSHAREDBUCKET/fireballs/uploads/$fil $UKMONSHAREDBUCKET/fireballs/uploads/processed/$fil.done

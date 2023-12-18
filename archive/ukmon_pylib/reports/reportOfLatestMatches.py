@@ -95,7 +95,7 @@ def findNewMatches(dir_path, out_path, offset, repdtstr, dbname):
                 bestvmag, shwr, stationids = 0,'',['']
             stations=[]
             for statid in stationids:
-                loc = cinf.GetSiteLocation(statid)
+                loc = cinf.GetSiteLocation(statid[:6])
                 locbits = loc.split('/')
                 stations.append(locbits[0])
 

@@ -17,7 +17,7 @@ $('#selectInterval .date').datepicker({
 var res = document.getElementById("selectInterval");
 var dateSelect = new Datepair(res, {
     'defaultDateDelta': 0,      // days
-    'defaultTimeDelta': 7200000 // milliseconds
+    'defaultTimeDelta': 900000 // milliseconds = 15 minutes
 });
 
 $('#selectInterval').on('rangeSelected', function(){
@@ -29,8 +29,8 @@ $('#selectInterval').on('rangeSelected', function(){
         var endval = dateval + timediff;
         endtime = new Date();
         endtime.setTime(endval);
-        $('#datestart').text(starttime.toISOString()); //.toLocaleString('en-GB', { timeZone: 'UTC' }));
-        $('#dateend').text(endtime.toISOString()); //.toLocaleString('en-GB', { timeZone: 'UTC' }));
+        $('#datestart').text(starttime.toISOString());
+        $('#dateend').text(endtime.toISOString()); 
         if(timediff > 0){
             $('#statusfield').text('Valid range selected');
         }else{

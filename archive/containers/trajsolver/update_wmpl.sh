@@ -1,7 +1,11 @@
 #!/bin/bash
 # Copyright (C) 2018-2023 Mark McIntyre
 
-targ=trajsolver
+if [ "$1" == "" ] ; then 
+    targ=trajsolver
+else
+    targ=$1
+fi
 
 cd /mnt/e/dev/meteorhunting/ukmda-dataprocessing/archive/containers/$targ/
 ssh ukmonhelper2 "cd src/wmpldev && git stash && git checkout forcontainer && git pull"

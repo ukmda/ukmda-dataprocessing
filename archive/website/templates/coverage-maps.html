@@ -24,22 +24,22 @@
     <style>
         html,
         body {
-            height: 510px;
+            height: 610px;
             padding: 0;
             margin: 0;
         }
 
         #map {
-            height: 500px;
-            width: 500px;
+            height: 600px;
+            width: 800px;
             overflow: hidden;
             float: left;
             border: thin solid #333;
         }
 
         #capture {
-            height: 500px;
-            width: 200px;
+            height: 600px;
+            width: 100px;
             overflow: hidden;
             float: left;
             background-color: #ECECFB;
@@ -67,7 +67,7 @@
     <script src="/js/kit.fontawesome.com_f4e5d7e1d1.js"></script>
     <script src="/js/sharebuttons.js"></script>
     <script src="/js/gtagadder.js"></script>
-    
+
     <div id="nav-placeholder"></div>
 
     <script>
@@ -80,19 +80,15 @@
         <h2>Station Coverage Maps</h2>
         <p>
             To use this page, select a camera or cameras from the dropdown, then select an altitude.
-            Click on Show to reveal the coverage of those cameras at that altitude.
+            Click on Show to reveal the coverage of those cameras at that altitude. If no coverage is displayed
+            for a specific camera, then it means it has not been calibrated by the owner. 
             Note that the field of view will remain
             centred on the first camera and the second or third may not be visible if they don't overlap.
-            You can click on a shaded area to see which camera it relates to.
+            You can click on a shaded area to see the latitude and longitude, and draw a 100km radius circle round the point.
         </p>
         <p>
-            If no coverage is displayed then the camera has not yet been calibrated.
-        </p>
-        <p>
-            You can also click the links below to see total coverage at different altitudes:
-            <li><a href="/data/coverage-25km.html">Coverage at 25km</a> </li>
-            <li><a href="/data/coverage-70km.html">Coverage at 70km</a> </li>
-            <li><a href="/data/coverage-100km.html">Coverage at 100km</a> </li>
+            You can also see total coverage over the UK at different altitudes: 
+            <a href="/data/coverage-25km.html">25km</a>, <a href="/data/coverage-70km.html">70km</a> and <a href="/data/coverage-100km.html">100km</a>
         </p>
 
         <form id="selectStation" onsubmit="return formSubmit()">
@@ -182,8 +178,10 @@
             function initMap() {
                 //var sn = getParameterByName('statselect');
                 var map;
+                var circle;
                 map = new google.maps.Map(document.getElementById('map'), {
                     center: new google.maps.LatLng(54.0, 1.5),
+                    scaleControl: true,
                     zoom: 2,
                     mapTypeId: 'terrain'
                 });
@@ -196,12 +194,25 @@
                     map: map
                 });
                 kmlLayer.addListener('click', (mapsMouseEvent) => {
-                    var content  = mapsMouseEvent.latLng.toJSON()
+                    var content = mapsMouseEvent.latLng.toJSON()
                     var testimonial = document.getElementById('capture');
-                    var lat = content.lat
-                    var lng = content.lng
-                    var outputstr = "lat: " + Math.round(lat*100)/100 + "\nlng: " + Math.round(lng*100)/100 ;
+                    var lati = content.lat;
+                    var lngi = content.lng;
+                    var outputstr = "<font color=black>" + strstat + "<br>lat: " + Math.round(lati * 100) / 100 + "<br>lng: " + Math.round(lngi * 100) / 100 + "</font>";
+                    console.log(outputstr);
                     testimonial.innerHTML = outputstr;
+                    if (circle == null) {
+                        circle = new google.maps.Circle({
+                            map: map,
+                            strokeColor: "#FF0000",
+                            strokeOpacity: 0.5,
+                            center: { lat: lati, lng: lngi },
+                            radius: 100000
+                        });
+                    }
+                    else {
+                        circle.setCenter({ lat: lati, lng: lngi });
+                    }
                 });
                 if (strstat2 != '') {
                     var src2 = 'https://archive.ukmeteors.co.uk/img/kmls/' + strstat2 + '-' + height + '.kml';
@@ -211,13 +222,26 @@
                         preserveViewport: true,
                         map: map
                     });
-					kmlLayer.addListener('click', (mapsMouseEvent) => {
-						var content  = mapsMouseEvent.latLng.toJSON()
-						var testimonial = document.getElementById('capture');
-						var lat = content.lat
-						var lng = content.lng
-						var outputstr = "lat: " + Math.round(lat*100)/100 + "\nlng: " + Math.round(lng*100)/100 ;
-						testimonial.innerHTML = outputstr;
+                    kmlLayer.addListener('click', (mapsMouseEvent) => {
+                        var content = mapsMouseEvent.latLng.toJSON()
+                        var testimonial = document.getElementById('capture');
+                        var lati = content.lat;
+                        var lngi = content.lng;
+                        var outputstr = "<font color=black>" + strstat2 + "<br>lat: " + Math.round(lati * 100) / 100 + "<br>lng: " + Math.round(lngi * 100) / 100 + "</font>";
+                        console.log(outputstr);
+                        testimonial.innerHTML = outputstr;
+                        if (circle == null) {
+                            circle = new google.maps.Circle({
+                                map: map,
+                                strokeColor: "#FF0000",
+                                strokeOpacity: 0.5,
+                                center: { lat: lati, lng: lngi },
+                                radius: 100000
+                            });
+                        }
+                        else {
+                            circle.setCenter({ lat: lati, lng: lngi });
+                        }
                     });
                 }
                 if (strstat3 != '') {
@@ -228,19 +252,33 @@
                         preserveViewport: true,
                         map: map
                     });
-					kmlLayer.addListener('click', (mapsMouseEvent) => {
-						var content  = mapsMouseEvent.latLng.toJSON()
-						var testimonial = document.getElementById('capture');
-						var lat = content.lat
-						var lng = content.lng
-						var outputstr = "lat: " + Math.round(lat*100)/100 + "\nlng: " + Math.round(lng*100)/100 ;
-						testimonial.innerHTML = outputstr;
+                    kmlLayer.addListener('click', (mapsMouseEvent) => {
+                        var content = mapsMouseEvent.latLng.toJSON()
+                        var testimonial = document.getElementById('capture');
+                        var lati = content.lat;
+                        var lngi = content.lng;
+                        var outputstr = "<font color=black>" + strstat3 + "<br>lat: " + Math.round(lati * 100) / 100 + "<br>lng: " + Math.round(lngi * 100) / 100 + "</font>";
+                        console.log(outputstr);
+                        testimonial.innerHTML = outputstr;
+                        if (circle == null) {
+                            circle = new google.maps.Circle({
+                                map: map,
+                                strokeColor: "#FF0000",
+                                strokeOpacity: 0.5,
+                                center: { lat: lati, lng: lngi },
+                                radius: 100000
+                            });
+                        }
+                        else {
+                            circle.setCenter({ lat: lati, lng: lngi });
+                        }
                     });
                 }
             }
         </script>
-        <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBFadTuzvLfkUhz8CwY2CtRDJ_lYlHUYyA&callback=initMap">
-        </script>
+        <script async
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBFadTuzvLfkUhz8CwY2CtRDJ_lYlHUYyA&callback=initMap">
+            </script>
     </div>
 </body>
 

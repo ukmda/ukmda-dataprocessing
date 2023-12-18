@@ -602,3 +602,5 @@ usermgmt/server/ukmon*.json
 **/trajsolver_old/*
 archive/tmp/*
 servercopy/files/*
+archive/containers/testing/RMS/
+archive/containers/testing/WesternMeteorPyLib/
