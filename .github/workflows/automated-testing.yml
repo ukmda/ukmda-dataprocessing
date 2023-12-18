@@ -10,8 +10,8 @@ jobs:
     container:
       image: docker.io/markmac99/ukmdatester
       credentials:
-        username: markmac99
-        password: ${{ secrets.GHCR_PAT_MM }}
+        username: ${{ secrets.DH_LOGIN_MM }}
+        password: ${{ secrets.DH_PATT_MM }}
       env:
         TESTSCRIPT: somefile.sh
     steps:
