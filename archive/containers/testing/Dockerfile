@@ -6,8 +6,10 @@ RUN conda install -y -c conda-forge basemap basemap-data-hires
 RUN conda install -y -c conda-forge pandas cartopy
 RUN conda install -y matplotlib=3.4.3 
 RUN pip install boto3
-RUN apt-get update && apt-get -y upgrade 
-RUN apt-get install -y curl
+RUN apt update
+RUN apt -y upgrade 
+RUN apt install -y apt-utils
+RUN apt install -y curl
 
 COPY WesternMeteorPyLib/ ./WesternMeteorPyLib
 COPY RMS/ ./RMS

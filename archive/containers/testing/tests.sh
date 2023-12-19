@@ -2,4 +2,4 @@
 
 echo "some tests"
 curl --version
-python test.py
+python /test.py
