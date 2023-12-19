@@ -3,7 +3,7 @@
 #
 # Cloudwatch alarms etc
 #
-
+/*
 resource "aws_cloudwatch_metric_alarm" "ukmonhelperDiskSpace" {
   alarm_name                = "ukmonHelperDiskspace"
   comparison_operator       = "GreaterThanThreshold"
@@ -29,3 +29,4 @@ resource "aws_cloudwatch_metric_alarm" "ukmonhelperDiskSpace" {
     "billingtag" = "ukmon"
   }
 }
+*/

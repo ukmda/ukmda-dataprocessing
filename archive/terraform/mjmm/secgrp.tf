@@ -112,17 +112,6 @@ resource "aws_security_group" "launch-wizard-4" {
       self             = true
     },
     {
-      cidr_blocks      = ["86.144.129.18/32"]
-      description      = "MariaDB"
-      from_port        = 3306
-      protocol         = "tcp"
-      to_port          = 3306
-      ipv6_cidr_blocks = []
-      prefix_list_ids  = []
-      security_groups  = []
-      self             = false
-    },
-    {
       cidr_blocks      = []
       description      = "IPv6 SSH for Admin"
       from_port        = 22
@@ -174,6 +163,17 @@ resource "aws_security_group" "ec2publicsg" {
       from_port        = 22
       protocol         = "tcp"
       to_port          = 22
+      ipv6_cidr_blocks = []
+      prefix_list_ids  = []
+      security_groups  = []
+      self             = false
+    },
+    {
+      cidr_blocks      = ["86.0.0.0/8"]
+      description      = "MariaDB"
+      from_port        = 3306
+      protocol         = "tcp"
+      to_port          = 3306
       ipv6_cidr_blocks = []
       prefix_list_ids  = []
       security_groups  = []

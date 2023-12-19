@@ -22,6 +22,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: chmod +x ./tests.sh
+      - run: chmod +x ./tests/api_tests.sh
       - run: ./tests/api_tests.sh
     

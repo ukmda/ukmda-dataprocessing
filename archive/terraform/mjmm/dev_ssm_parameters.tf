@@ -20,24 +20,6 @@ resource "aws_ssm_parameter" "dev_sharedbucket" {
   }
 }
 
-resource "aws_ssm_parameter" "dev_oldwebsitebucket" {
-  name  = "dev_oldwebsitebucket"
-  type  = "String"
-  value = var.dev_oldwebbucket
-  tags = {
-    "billingtag" = "ukmon"
-  }
-}
-
-resource "aws_ssm_parameter" "dev_oldsharedbucket" {
-  name  = "dev_oldsharedbucket"
-  type  = "String"
-  value = var.dev_oldsharedbucket
-  tags = {
-    "billingtag" = "ukmon"
-  }
-}
-
 resource "aws_ssm_parameter" "dev_livebucket" {
   name  = "dev_livebucket"
   type  = "String"

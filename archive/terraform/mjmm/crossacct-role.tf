@@ -16,17 +16,6 @@ data "aws_iam_policy_document" "terraformpoldoc" {
     ]
     principals {
       type        = "AWS"
-      identifiers = ["arn:aws:iam::${var.remote_account_id}:root"]
-    }
-  }
-  statement {
-    actions = [
-      "sts:AssumeRole",
-      "sts:TagSession",
-      "sts:SetSourceIdentity"
-    ]
-    principals {
-      type        = "AWS"
       identifiers = ["arn:aws:iam::${var.mda_account_id}:root"]
     }
   }
