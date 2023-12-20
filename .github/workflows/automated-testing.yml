@@ -31,6 +31,7 @@ jobs:
           chmod +x /tests.sh
           (ls /tests.sh && echo Found test script) || (echo No test script) 
           mkdir -p /tmp/data/{consolidated,admin,reports,matched}
+          aws sts get-caller-identity
           aws s3 cp s3://ukmda-shared/consolidated/camera-details.csv /tmp/data/consolidated/
           aws s3 cp s3://ukmda-shared/admin/cameraLocs.json /tmp/data/admin/
           aws s3 cp s3://ukmda-shared/matches/matches-full-2023.parquet.snap /tmp/data/matches/
