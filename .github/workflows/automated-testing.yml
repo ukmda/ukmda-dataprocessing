@@ -26,9 +26,6 @@ jobs:
           role-to-assume: arn:aws:iam::183798037734:role/testingRole
           role-session-name: github_aws_testing
           aws-region: ${{ env.AWS_REGION }}
-      - name: get caller id
-        run: |
-          aws sts get-caller-identity
       - name: remote tests
         run: |
           chmod +x /tests.sh

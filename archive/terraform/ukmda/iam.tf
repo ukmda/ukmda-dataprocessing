@@ -221,6 +221,10 @@ resource "aws_iam_role_policy" "monitorlive_policy_test" {
   policy = data.template_file.livemonitorlambdatempl.rendered
 }  
 
+resource "aws_iam_role_policy_attachment" "test_s3access" {
+  role       = aws_iam_role.testing_role.id
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
 
 ##############################################################################
 ##############################################################################
