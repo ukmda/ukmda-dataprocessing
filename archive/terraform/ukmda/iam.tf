@@ -174,6 +174,7 @@ resource "aws_iam_role" "testing_role" {
   description = "Allows test containers to connect to AWS"
   assume_role_policy = jsonencode(
     {
+      Version   = "2008-10-17"
       Statement = [
         {
           Action = "sts:AssumeRoleWithWebIdentity"
@@ -183,7 +184,7 @@ resource "aws_iam_role" "testing_role" {
           }          
           Condition =  {
             StringEquals =  {
-              "token.actions.githubusercontent.com:sub": "repo: ukmda/ukmda-dataprocessing:ref:refs/heads/master",
+              "token.actions.githubusercontent.com:sub": "repo:ukmda/ukmda-dataprocessing:ref:refs/heads/master",
               "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
               }
           }
@@ -196,7 +197,7 @@ resource "aws_iam_role" "testing_role" {
           }          
           Condition =  {
             StringEquals =  {
-              "token.actions.githubusercontent.com:sub": "repo: ukmda/ukmda-dataprocessing:ref:refs/heads/markmac99",
+              "token.actions.githubusercontent.com:sub": "repo:ukmda/ukmda-dataprocessing:ref:refs/heads/markmac99",
               "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
               }
           }
@@ -205,6 +206,13 @@ resource "aws_iam_role" "testing_role" {
     }
   )
 }
+
+resource "aws_iam_role_policy" "monitorlive_policy_test" {
+  name   = "monitorLivePolicy_test"
+  role   = aws_iam_role.testing_role.id
+  policy = data.template_file.livemonitorlambdatempl.rendered
+}  
+
 
 ##############################################################################
 ##############################################################################

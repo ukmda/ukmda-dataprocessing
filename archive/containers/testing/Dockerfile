@@ -17,8 +17,9 @@ ENV PYTHONPATH ./WesternMeteorPyLib:./RMS
 ENV PROJ_LIB ./
 COPY requirements.txt ./
 RUN pip install -r requirements.txt
+RUN apt install -y unzip
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && ./aws/install
 RUN pip install MeteorTools
 COPY *.py ./
 COPY tests.sh ./
-
 CMD [ "bash" , "./tests.sh"]

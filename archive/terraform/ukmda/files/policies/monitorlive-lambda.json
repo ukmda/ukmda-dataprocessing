@@ -1,0 +1,29 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+		{
+			"Effect": "Allow",
+			"Action": "logs:CreateLogGroup",
+      "Resource": "arn:aws:logs:${liveregion}:${accountid}:*"
+    },
+    {
+			"Effect": "Allow",
+      "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:${liveregion}:${accountid}:log-group:/aws/lambda/MonitorLiveFeed:*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:*",
+        "s3-object-lambda:*",
+        "ses:SendEmail",
+        "ses:Describe*",
+        "dynamodb:*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
