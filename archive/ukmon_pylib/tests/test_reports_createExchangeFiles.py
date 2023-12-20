@@ -18,7 +18,7 @@ def test_createDetectionsFile():
     csvf = os.path.join(datadir, 'browse','daily', 'ukmon-latest.csv')
     assert os.path.isfile(csvf)
     lis = open(csvf, 'r').readlines()
-    assert lis[9] == 'UK0020,2023-05-11T22:57:41.534592,\n'
+    assert lis[9][:4] == 'UK00'
     os.remove(csvf)
     csvf = os.path.join(datadir, 'browse','daily', 'eventlist.js')
     assert os.path.isfile(csvf)

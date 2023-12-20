@@ -33,7 +33,7 @@ def test_createLatestTable():
 
 
 def test_createSummaryTable():
-    createSummaryTable(curryr=None, datadir=None)
+    createSummaryTable(curryr=None, datadir=datadir)
     fname = os.path.join(datadir, 'summarytable.js')
     assert os.path.isfile(fname)
     lis = open(fname, 'r').readlines()
