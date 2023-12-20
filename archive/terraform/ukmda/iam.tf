@@ -177,6 +177,14 @@ resource "aws_iam_role" "testing_role" {
       Version   = "2008-10-17"
       Statement = [
         {
+          "Action": "sts:AssumeRole",
+          "Principal": {
+            "Service": "lambda.amazonaws.com"
+          },
+          "Effect": "Allow",
+          "Sid": ""
+        },
+        {
           Action = "sts:AssumeRoleWithWebIdentity"
           Effect = "Allow"
           Principal =  {

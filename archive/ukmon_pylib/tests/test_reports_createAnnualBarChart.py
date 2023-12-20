@@ -7,6 +7,7 @@ from reports.createAnnualBarChart import createBarChart
 
 here = os.path.split(os.path.abspath(__file__))[0]
 datadir = os.path.join(here, 'data')
+os.environ['DATADIR'] = datadir
 
 
 def test_createBarChart():

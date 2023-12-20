@@ -21,7 +21,8 @@
         "s3-object-lambda:*",
         "ses:SendEmail",
         "ses:Describe*",
-        "dynamodb:*"
+        "dynamodb:*",
+        "lambda:InvokeFunction"
       ],
       "Resource": "*"
     }
