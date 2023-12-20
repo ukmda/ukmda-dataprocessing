@@ -10,12 +10,15 @@ RUN apt update
 RUN apt -y upgrade 
 RUN apt install -y apt-utils
 RUN apt install -y curl
-
+RUN apt install -y iputils-ping
 COPY WesternMeteorPyLib/ ./WesternMeteorPyLib
 COPY RMS/ ./RMS
 ENV PYTHONPATH ./WesternMeteorPyLib:./RMS
 ENV PROJ_LIB ./
+COPY requirements.txt ./
+RUN pip install -r requirements.txt
+RUN pip install MeteorTools
 COPY *.py ./
 COPY tests.sh ./
 
-ENTRYPOINT [ "bash" , "./tests.sh"]
+CMD [ "bash" , "./tests.sh"]
