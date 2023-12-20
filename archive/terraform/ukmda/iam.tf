@@ -120,26 +120,13 @@ resource "aws_iam_role" "S3FullAccess" {
           Principal = {
             Service = "lambda.amazonaws.com"
           }
-        },
-        {
-          Action = "sts:AssumeRoleWithWebIdentity"
-          Effect = "Allow"
-          Principal =  {
-            Federated =  aws_iam_openid_connect_provider.oidc_github.arn
-          }          
-          Condition =  {
-            StringEquals =  {
-              "token.actions.githubusercontent.com:sub": "repo: ukmda/ukmda-dataprocessing:ref:refs/heads/master",
-              "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
-              }
-          }
         }
       ]
       Version = "2012-10-17"
     }
   )
 }
-
+ 
 resource "aws_iam_instance_profile" "S3FullAccess" {
   name = "S3FullAccess"
   role = aws_iam_role.S3FullAccess.name
@@ -178,6 +165,45 @@ resource "aws_iam_role_policy_attachment" "aws-mps4" {
 resource "aws_iam_role_policy_attachment" "aws-mps5" {
   role       = aws_iam_role.S3FullAccess.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonAthenaFullAccess"
+}
+
+###############################################################
+# Role for testing from a container in GitHub
+resource "aws_iam_role" "testing_role" {
+  name = "testingRole"
+  description = "Allows test containers to connect to AWS"
+  assume_role_policy = jsonencode(
+    {
+      Statement = [
+        {
+          Action = "sts:AssumeRoleWithWebIdentity"
+          Effect = "Allow"
+          Principal =  {
+            Federated =  aws_iam_openid_connect_provider.oidc_github.arn
+          }          
+          Condition =  {
+            StringEquals =  {
+              "token.actions.githubusercontent.com:sub": "repo: ukmda/ukmda-dataprocessing:ref:refs/heads/master",
+              "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+              }
+          }
+        },
+        {
+          Action = "sts:AssumeRoleWithWebIdentity"
+          Effect = "Allow"
+          Principal =  {
+            Federated =  aws_iam_openid_connect_provider.oidc_github.arn
+          }          
+          Condition =  {
+            StringEquals =  {
+              "token.actions.githubusercontent.com:sub": "repo: ukmda/ukmda-dataprocessing:ref:refs/heads/markmac99",
+              "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+              }
+          }
+        }
+      ]
+    }
+  )
 }
 
 ##############################################################################
@@ -423,3 +449,5 @@ resource "aws_iam_role_policy" "orbUploadPolicy" {
 }
 EOF
 }
+
+output "testingrolearn" { value = aws_iam_role.testing_role.arn }

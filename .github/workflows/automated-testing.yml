@@ -10,21 +10,21 @@ on:
     branches:
       - markmac99
 jobs:
-  conttests:
-    runs-on: ubuntu-latest
-    container:
-      image: docker.io/markmac99/ukmdatester
-      credentials:
-        username: ${{ secrets.DH_LOGIN_MM }}
-        password: ${{ secrets.DH_PATT_MM }}
-      env:
-        TESTSCRIPT: somefile.sh
-    steps:
-      - name: remote tests
-        run: |
-          chmod +x /tests.sh
-          (ls /tests.sh && echo Found test script) || (echo No test script) 
-          /tests.sh
+#  conttests:
+#    runs-on: ubuntu-latest
+#    container:
+#      image: docker.io/markmac99/ukmdatester
+#      credentials:
+#        username: ${{ secrets.DH_LOGIN_MM }}
+#        password: ${{ secrets.DH_PATT_MM }}
+#      env:
+#        TESTSCRIPT: somefile.sh
+#    steps:
+#      - name: remote tests
+#        run: |
+#          chmod +x /tests.sh
+#          (ls /tests.sh && echo Found test script) || (echo No test script) 
+#          /tests.sh
   apitests:
     runs-on: ubuntu-latest
     steps:
@@ -45,7 +45,7 @@ jobs:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v1.7.0
         with:
-          role-to-assume: arn:aws:iam::183798037734:role/service-role/S3FullAccess
+          role-to-assume: arn:aws:iam::183798037734:role/testingRole
           role-session-name: github_aws_testing
           aws-region: ${{ env.AWS_REGION }}
       - name: get caller id
