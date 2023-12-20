@@ -17,6 +17,8 @@ jobs:
       credentials:
         username: ${{ secrets.DH_LOGIN_MM }}
         password: ${{ secrets.DH_PATT_MM }}
+      env:
+        DATADIR: /tmp/data
     steps:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v1.7.0
