@@ -47,6 +47,16 @@ resource "aws_iam_policy" "calcserverpol" {
   }
 }
 ##############################################################################
+# OIDC connector for github actions, allows testing to be executed in a container
+resource "aws_iam_openid_connect_provider" "oidc_github" {
+  url = "https://token.actions.githubusercontent.com"
+  client_id_list = [ "sts.amazonaws.com" ]
+  thumbprint_list = [ "1b511abead59c6ce207077c0bf0e0043b1382612" ]
+  tags            = {
+    "billingtag" = "ukmda"
+  }  
+}
+##############################################################################
 # role used by Lambda functions
 resource "aws_iam_role" "S3FullAccess" {
   name = "S3FullAccess"
@@ -111,6 +121,19 @@ resource "aws_iam_role" "S3FullAccess" {
             Service = "lambda.amazonaws.com"
           }
         },
+        {
+          Action = "sts:AssumeRoleWithWebIdentity"
+          Effect = "Allow"
+          Principal =  {
+            Federated =  aws_iam_openid_connect_provider.oidc_github.arn
+          }          
+          Condition =  {
+            StringEquals =  {
+              "token.actions.githubusercontent.com:sub": "repo: ukmda/ukmda-dataprocessing:ref:refs/heads/master",
+              "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+              }
+          }
+        }
       ]
       Version = "2012-10-17"
     }
