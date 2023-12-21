@@ -9,6 +9,10 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 pip install pytest pytest-cov
 
+cd $here
+curl https://archive.ukmeteors.co.uk/browse/testdata/testdata.tar.gz .
+tar -xvf ./testdata.tar.gz ./data/
+
 cd $here/..
 if [ $# == 0 ] ; then
     pytest -v ./tests --cov=. --cov-report=term-missing
