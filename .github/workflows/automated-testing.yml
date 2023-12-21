@@ -19,6 +19,7 @@ jobs:
         password: ${{ secrets.DH_PATT_MM }}
       env:
         DATADIR: /tmp/data
+        BRANCH: ${GITHUB_REF##*/}
     steps:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v1.7.0
@@ -28,6 +29,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: remote tests
         run: |
+          echo running on $BRANCH
           chmod +x /tests.sh
           (ls /tests.sh && echo Found test script) || (echo No test script) 
           mkdir -p /tmp/data/{consolidated,admin,reports,matched}

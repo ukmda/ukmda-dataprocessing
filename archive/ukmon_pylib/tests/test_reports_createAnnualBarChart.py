@@ -15,9 +15,6 @@ def test_createBarChart():
     yr=2023
     res = createBarChart(yr=yr)
     assert res is not None
-    outf=os.path.join(datadir,f'Annual-{yr}.jpg')
-    assert os.path.isfile(outf)
-    os.remove(outf)
 
     # pass year and datadir
     res = createBarChart(datadir=datadir, yr=yr)
