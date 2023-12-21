@@ -18,7 +18,6 @@ jobs:
         username: ${{ secrets.DH_LOGIN_MM }}
         password: ${{ secrets.DH_PATT_MM }}
       env:
-        DATADIR: /tmp/data
         BRANCH: ${{ github.head_ref || github.ref_name }} 
     steps:
       - name: configure aws credentials
@@ -29,13 +28,8 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: remote tests
         run: |
-          echo running on $BRANCH
-          chmod +x /tests.sh
           (ls /tests.sh && echo Found test script) || (echo No test script) 
-          mkdir -p /tmp/data/{consolidated,admin,reports,matched}
-          aws s3 cp s3://ukmda-shared/consolidated/camera-details.csv /tmp/data/consolidated/ --quiet
-          aws s3 cp  s3://ukmda-website/reports/stations/cameraLocs.json /tmp/data/admin/ --quiet
-          aws s3 cp s3://ukmda-shared/matches/matchedpq/matches-full-2023.parquet.snap /tmp/data/matched/ --quiet
+          chmod +x /tests.sh
           /tests.sh
   apitests:
     runs-on: ubuntu-latest
