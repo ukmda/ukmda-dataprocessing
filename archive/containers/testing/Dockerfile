@@ -20,9 +20,6 @@ RUN pip install -r requirements.txt
 RUN apt install -y unzip
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && ./aws/install
 RUN pip install MeteorTools
-ADD https://archive.ukmeteors.co.uk/browse/testdata/testdata.tar.gz ./data/ 
-RUN cd ./data && tar -xzf ./testdata.tar.gz
-ADD https://archive.ukmeteors.co.uk/reports/stations/cameraLocs.json ./data/admin/
 COPY *.py ./
 COPY tests.sh ./
 CMD [ "bash" , "./tests.sh"]
