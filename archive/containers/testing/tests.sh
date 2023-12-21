@@ -9,7 +9,7 @@ cd ./ukmda-dataprocessing/
 git checkout $BRANCH
 cd ./archive/ukmon_pylib/
 curdir=$(pwd -P)
-DATADIR=/data
+export DATADIR=/data
 echo DATADIR is $DATADIR curdir is $curdir
 export PYTHONPATH=/WesternMeteorPyLib:/RMS:${curdir}
 pytest -v ./tests --cov=. --cov-report=term-missing
