@@ -5,8 +5,9 @@ ping -c1 www.ukmeteors.co.uk
 pip install --upgrade MeteorTools
 pip install pytest pytest-cov
 git clone https://github.com/ukmda/ukmda-dataprocessing.git
-cd /ukmda-dataprocessing/
+cd ./ukmda-dataprocessing/
 git checkout $BRANCH
-cd /ukmda-dataprocessing/archive/ukmon_pylib/
-export PYTHONPATH=/WesternMeteorPyLib:/RMS://ukmda-dataprocessing/archive/ukmon_pylib
+cd ./ukmon_pylib/
+curdir=$(pwd -P)
+export PYTHONPATH=/WesternMeteorPyLib:/RMS:${curdir}
 pytest -v ./tests --cov=. --cov-report=term-missing

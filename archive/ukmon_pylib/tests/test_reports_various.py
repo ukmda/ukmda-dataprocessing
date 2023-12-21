@@ -7,8 +7,7 @@ from reports.createSummaryTable import createSummaryTable
 
 
 here = os.path.split(os.path.abspath(__file__))[0]
-datadir = os.path.join(here, 'data')
-os.environ['DATADIR'] = datadir
+datadir = os.getenv('DATADIR', default=os.path.join(here, 'data'))
 
 
 def test_createLatestTable():
