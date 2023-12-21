@@ -604,3 +604,4 @@ archive/tmp/*
 servercopy/files/*
 archive/containers/testing/RMS/
 archive/containers/testing/WesternMeteorPyLib/
+archive/ukmon_pylib/tests/data/testdata.tar.gz
