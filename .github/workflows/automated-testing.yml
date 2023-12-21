@@ -19,7 +19,7 @@ jobs:
         password: ${{ secrets.DH_PATT_MM }}
       env:
         DATADIR: /tmp/data
-        BRANCH: ${GITHUB_REF##*/}
+        BRANCH: ${{ github.head_ref || github.ref_name }} 
     steps:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v1.7.0

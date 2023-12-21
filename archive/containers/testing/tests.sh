@@ -6,6 +6,7 @@ pip install --upgrade MeteorTools
 pip install pytest pytest-cov
 cd /tmp
 git clone https://github.com/ukmda/ukmda-dataprocessing.git
+cd /tmp/ukmda-dataprocessing/
 git checkout $BRANCH
 cd /tmp/ukmda-dataprocessing/archive/ukmon_pylib/
 export PYTHONPATH=/WesternMeteorPyLib:/RMS:/tmp/ukmda-dataprocessing/archive/ukmon_pylib
