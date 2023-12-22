@@ -241,7 +241,6 @@ resource "aws_iam_role" "testing_role" {
   )
 }
 
-
 resource "aws_iam_role_policy" "monitorlive_policy_test" {
   name   = "monitorLivePolicy_test"
   role   = aws_iam_role.testing_role.id
