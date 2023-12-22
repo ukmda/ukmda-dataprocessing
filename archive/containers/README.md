@@ -35,10 +35,11 @@ on:
     branches: [ dev, markmac99 ]
 ```
 
-You can also run the docker container locally by passing the branch name in as an environment parameter:
+You can also run the docker container locally by passing the branch name and AWS keys as as environment variables:
 ```bash
-docker run -e BRANCH=dev -t markmac99/ukmdatester:latest
+docker run -e BRANCH=dev -e AWS_ACCESS_KEY_ID=... -e AWS_SECRET_ACCESS_KEY=... -t markmac99/ukmdatester:latest
 ```
+
 ### Adding new Tests
 Create a pytest-compatible python script and add it to `archive/ukmon_pylib/tests`. 
 
