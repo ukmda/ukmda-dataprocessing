@@ -6,14 +6,20 @@ RUN conda install -y -c conda-forge basemap basemap-data-hires
 RUN conda install -y -c conda-forge pandas cartopy
 RUN conda install -y matplotlib=3.4.3 
 RUN pip install boto3
-RUN apt-get update && apt-get -y upgrade 
-RUN apt-get install -y curl
-
+RUN apt update
+RUN apt -y upgrade 
+RUN apt install -y apt-utils
+RUN apt install -y curl
+RUN apt install -y iputils-ping
 COPY WesternMeteorPyLib/ ./WesternMeteorPyLib
 COPY RMS/ ./RMS
 ENV PYTHONPATH ./WesternMeteorPyLib:./RMS
 ENV PROJ_LIB ./
+COPY requirements.txt ./
+RUN pip install -r requirements.txt
+RUN apt install -y unzip
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && ./aws/install
+RUN pip install MeteorTools
 COPY *.py ./
 COPY tests.sh ./
-
-ENTRYPOINT [ "bash" , "./tests.sh"]
+CMD [ "bash" , "./tests.sh"]

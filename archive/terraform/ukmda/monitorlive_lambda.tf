@@ -57,41 +57,20 @@ EOF
 }
 
 # POLICIES granted to the IAM role used by the Lambda function
+data "template_file" "livemonitorlambdatempl" {
+  template = file("files/policies/monitorlive-lambda.json")
+  vars = {
+    liveregion = var.liveregion
+    accountid = data.aws_caller_identity.current.account_id
+  }
+
+}
+
 resource "aws_iam_role_policy" "monitorlive_policy" {
   name   = "monitorLivePolicy"
   role   = aws_iam_role.monitorlive_role.id
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-		{
-			"Effect": "Allow",
-			"Action": "logs:CreateLogGroup",
-      "Resource": "arn:aws:logs:${var.liveregion}:${data.aws_caller_identity.current.account_id}:*"
-    },
-    {
-			"Effect": "Allow",
-      "Action": [
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ],
-      "Resource": "arn:aws:logs:${var.liveregion}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/MonitorLiveFeed:*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "s3:*",
-        "s3-object-lambda:*",
-        "ses:SendEmail",
-        "ses:Describe*",
-        "dynamodb:*"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
-EOF
-}
+  policy = data.template_file.livemonitorlambdatempl.rendered
+}  
 
 resource "aws_lambda_permission" "permmonitorlivelambda" {
   provider         = aws.eu-west-1-prov

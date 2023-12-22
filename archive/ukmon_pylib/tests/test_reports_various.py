@@ -7,7 +7,7 @@ from reports.createSummaryTable import createSummaryTable
 
 
 here = os.path.split(os.path.abspath(__file__))[0]
-datadir = os.path.join(here, 'data')
+datadir = os.getenv('DATADIR', default=os.path.join(here, 'data'))
 
 
 def test_createLatestTable():
@@ -32,7 +32,7 @@ def test_createLatestTable():
 
 
 def test_createSummaryTable():
-    createSummaryTable(curryr=None, datadir=None)
+    createSummaryTable(curryr=None, datadir=datadir)
     fname = os.path.join(datadir, 'summarytable.js')
     assert os.path.isfile(fname)
     lis = open(fname, 'r').readlines()

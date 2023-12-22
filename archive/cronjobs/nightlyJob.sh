@@ -78,19 +78,12 @@ ${SRC}/analysis/reportActiveShowers.sh ${yr}
 logger -s -t nightlyJob "RUNTIME $SECONDS start createSummaryTable"
 ${SRC}/website/createSummaryTable.sh
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start camMetrics"
-python -m metrics.camMetrics $rundate
-
 logger -s -t nightlyJob "RUNTIME $SECONDS start cameraStatusReport"
-${SRC}/website/cameraStatusReport.sh
+${SRC}/website/cameraStatusReport.sh $rundate
 
 logger -s -t nightlyJob "RUNTIME $SECONDS start createExchangeFiles"
 python -c "from reports.createExchangeFiles import createAll; createAll();"
 aws s3 sync $DATADIR/browse/daily/ $WEBSITEBUCKET/browse/daily/ --region eu-west-2 --quiet
-
-logger -s -t nightlyJob "RUNTIME $SECONDS start createStationLoginTimes"
-sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s, %s\n", $3,$9)}' > $DATADIR/reports/stationlogins.txt
-aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --region eu-west-2 --quiet
 
 cd $DATADIR
 # do this manually when on PC required as it requires too much memory for the batch server; closes #61
@@ -109,10 +102,8 @@ $SRC/website/costReport.sh
 python $PYLIB/maintenance/getNextBatchStart.py 150
 
 # create station reports. This takes hours hence done after everything else
-#if [ "$(date +%a)" == "Sun" ] ; then 
-    logger -s -t nightlyJob "RUNTIME $SECONDS start stationReports"
-    $SRC/analysis/stationReports.sh
-#fi
+logger -s -t nightlyJob "RUNTIME $SECONDS start stationReports"
+$SRC/analysis/stationReports.sh
 
 logger -s -t nightlyJob "RUNTIME $SECONDS start clearSpace"
 $SRC/utils/clearSpace.sh 

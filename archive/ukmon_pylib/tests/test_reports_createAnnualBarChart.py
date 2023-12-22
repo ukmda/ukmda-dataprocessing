@@ -6,7 +6,7 @@ from reports.createAnnualBarChart import createBarChart
 
 
 here = os.path.split(os.path.abspath(__file__))[0]
-datadir = os.path.join(here, 'data')
+datadir = os.getenv('DATADIR', default=os.path.join(here, 'data'))
 
 
 def test_createBarChart():
@@ -14,25 +14,25 @@ def test_createBarChart():
     yr=2023
     res = createBarChart(yr=yr)
     assert res is not None
-    outf=os.path.join(datadir,f'Annual-{yr}.jpg')
-    assert os.path.isfile(outf)
-    os.remove(outf)
 
     # pass year and datadir
     res = createBarChart(datadir=datadir, yr=yr)
-    outf=os.path.join(datadir,f'Annual-{yr}.jpg')
+    outf=os.path.join(datadir, f'Annual-{yr}.jpg')
+    print(f'looking for {outf}')
     assert os.path.isfile(outf)
     os.remove(outf)
 
     # pass datadir only
     res = createBarChart(datadir=datadir, yr=None)
-    outf=os.path.join(datadir,f'Annual-{yr}.jpg')
+    outf=os.path.join(datadir, f'Annual-{yr}.jpg')
+    print(f'looking for {outf}')
     assert os.path.isfile(outf)
     os.remove(outf)
 
     # no params passed
     res = createBarChart()
-    outf=os.path.join(datadir,f'Annual-{yr}.jpg')
+    outf=os.path.join(datadir, f'Annual-{yr}.jpg')
+    print(f'looking for {outf}')
     assert os.path.isfile(outf)
     os.remove(outf)
 

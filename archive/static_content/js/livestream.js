@@ -81,9 +81,9 @@ form.addEventListener("submit", function (event) {
     dataType: 'jsonp',
     error: function (xhr, status, ex ) {
       if (status === 'error' ) {
-        alert("Too much data, try a narrower range");
+        //alert("Too much data, try a narrower range");
         console.log(xhr.status);
-        document.getElementById("searchresults").innerHTML = "<font size=\"+2\">No Data</font>";
+        document.getElementById("searchresults").innerHTML = "<font size=\"+2\">No Matching Data</font>";
       }
     },
     complete: function (xhr, status) {
@@ -115,15 +115,17 @@ function showImages(myObj) {
   pagetok = myObj.pagetoken;
   urls = myObj.urls;
   //console.log(urls);
-  var i = 0;
-  txt = ""
+  txt = "";
   for (x in urls) {
     thisurl = urls[x].url
     txt += "<a href=\"" + 
       thisurl+ "\" title=\"" + getTitle(thisurl) + "\"><img src=\"" + 
       thisurl + "\" width=\"18%\"></a>\n";
   }
+  numimgs = urls.length;
+  console.log(numimgs);
   document.getElementById("searchresults").innerHTML = txt;
+  document.getElementById("eventcount").innerHTML = numimgs;
 }
 
   
