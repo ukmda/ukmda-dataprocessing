@@ -192,6 +192,19 @@ resource "aws_iam_role" "testing_role" {
           }          
           Condition =  {
             StringEquals =  {
+              "token.actions.githubusercontent.com:sub": "repo:ukmda/ukmda-dataprocessing:ref:refs/heads/dev",
+              "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+              }
+          }
+        },
+        {
+          Action = "sts:AssumeRoleWithWebIdentity"
+          Effect = "Allow"
+          Principal =  {
+            Federated =  aws_iam_openid_connect_provider.oidc_github.arn
+          }          
+          Condition =  {
+            StringEquals =  {
               "token.actions.githubusercontent.com:sub": "repo:ukmda/ukmda-dataprocessing:ref:refs/heads/master",
               "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
               }
@@ -206,6 +219,19 @@ resource "aws_iam_role" "testing_role" {
           Condition =  {
             StringEquals =  {
               "token.actions.githubusercontent.com:sub": "repo:ukmda/ukmda-dataprocessing:ref:refs/heads/markmac99",
+              "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+              }
+          }
+        },
+        {
+          Action = "sts:AssumeRoleWithWebIdentity"
+          Effect = "Allow"
+          Principal =  {
+            Federated =  aws_iam_openid_connect_provider.oidc_github.arn
+          }          
+          Condition =  {
+            StringEquals =  {
+              "token.actions.githubusercontent.com:sub": "repo:ukmda/ukmda-dataprocessing:pull_request",
               "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
               }
           }

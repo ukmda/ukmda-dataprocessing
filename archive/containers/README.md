@@ -28,12 +28,7 @@ docker push markmac99/ukmdatester:latest
 (TODO: move this container to the GH ukmda-dataprocessing registry)
 
 ### Using the container
-The GitHub action is launched automatically when you check code into the dev branch. If you'd like to run it on your own branch, add the branch name to the list of branches mentioned in `.github/workflows/automated-testing.yml`:
-```yaml
-on:
-  push:
-    branches: [ dev, markmac99 ]
-```
+The GitHub action is launched automatically when you check code into the dev branch. If you'd like to run it on your own branch, then please contact me so i can configure access.
 
 You can also run the docker container locally by passing the branch name and AWS keys as as environment variables:
 ```bash
