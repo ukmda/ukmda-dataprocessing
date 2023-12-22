@@ -18,7 +18,7 @@ fi
 for fldr in browse css data docs fonts js latest live search templates ; do 
     aws s3 sync $SRC/static_content/$fldr/ $WEBSITEBUCKET/$fldr/ --profile $AWSPROFILE 
 done
-aws s3 cp $SRC/website/templates/searchdialog-${envname}.js $WEBSITEBUCKET/data/searchdialog.js --profile $AWSPROFILE
+aws s3 cp $SRC/website/templates/searchdialog-${envname}.js $WEBSITEBUCKET/js/searchdialog.js --profile $AWSPROFILE
 
 ls -1 *.html *.ico *.txt | while read i ; do 
     aws s3 cp $i $WEBSITEBUCKET/$i --profile $AWSPROFILE 

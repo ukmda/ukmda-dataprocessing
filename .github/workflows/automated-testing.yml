@@ -7,8 +7,10 @@ permissions:
 
 on:
   push:
-    branches:
-      - markmac99
+    branches: [ dev, markmac99 ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ master ]
 jobs:
   conttests:
     runs-on: ubuntu-latest

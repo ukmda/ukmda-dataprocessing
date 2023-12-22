@@ -17,7 +17,7 @@ docker run trajsolver test/20220924_01
 ```
 
 ## TESTING container
-This container is used to test the python and other code in this repository using GitHub Actions. The action itself is in `.github/workflows` in the root of the repository, and is launched automatically when code is checked into github. 
+This container is used to test the python code in this repository using GitHub Actions. The action itself is in `.github/workflows` in the root of the repository, and is launched automatically when code is checked into github. 
 
 The container includes copies of RMS, WMPL, MeteorTools and the other python libraries required to run the tests. If any changes are made to the requirements, these must be added to `testing/requirements.txt`, and the container rebuilt with 
 ```bash
@@ -27,7 +27,28 @@ docker push markmac99/ukmdatester:latest
 ```
 (TODO: move this container to the GH ukmda-dataprocessing registry)
 
-To add new tests, create pytest-compatible python scripts and add them to `archive/ukmon_pylib/tests`, including any necessary data in the `data` folder following the general pattern used by the existing tests. The tests will then be automatically executed whenever the code is pushed to GitHub and you'll be able to see the results in GitHub under Actions. Alternatively if you're using Visual Code you can install the Github Actions plugin which makes results visible in the VSCode GUI. 
+### Using the container
+The GitHub action is launched automatically when you check code into the dev branch. If you'd like to run it on your own branch, add the branch name to the list of branches mentioned in `.github/workflows/automated-testing.yml`:
+```yaml
+on:
+  push:
+    branches: [ dev, markmac99 ]
+```
+
+You can also run the docker container locally by passing the branch name in as an environment parameter:
+```bash
+docker run -e BRANCH=dev -t markmac99/ukmdatester:latest
+```
+### Adding new Tests
+Create a pytest-compatible python script and add it to `archive/ukmon_pylib/tests`. 
+
+If any new data is required you must download the test dataset and add the new data, then upload it back to the server. You'll need AWS access for the latter step, so contact me for further advice. To obtain the test dataset, run the following:
+
+```bash
+curl https://archive.ukmeteors.co.uk/browse/testdata/testdata.tar.gz  -o ./testdata.tar.gz
+tar -xvf ./testdata.tar.gz
+```
+(these instructions assume you're using Linux or WSL2).
 
 # Copyright
 All code Copyright (C) 2018-2023 Mark McIntyre
