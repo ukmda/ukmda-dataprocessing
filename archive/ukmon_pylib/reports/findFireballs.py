@@ -72,11 +72,15 @@ def createMDFiles(fbs, outdir, orbdir):
                 if bestimg[:3] == 'FF_':
                     pth = fb.url[:fb.url.find('reports/')]
                     bestimg = f'img/single/{yr}/{ym}/{bestimg}'
+                    bestimgurl = os.path.join(pth, bestimg).replace('ukmeteornetwork','ukmeteors')
                 elif bestimg[:4] != 'img/':
                     pth, _ = os.path.split(fb.url)
-                else:
+                    bestimgurl = os.path.join(pth, bestimg).replace('ukmeteornetwork','ukmeteors')
+                elif 'reports' in fb.url:
                     pth = fb.url[:fb.url.find('reports/')]
-                bestimgurl = os.path.join(pth, bestimg).replace('ukmeteornetwork','ukmeteors')
+                    bestimgurl = os.path.join(pth, bestimg).replace('ukmeteornetwork','ukmeteors')
+                else:
+                    bestimgurl = ''
             except:
                 print('unable to collect jpgs.lst')
 

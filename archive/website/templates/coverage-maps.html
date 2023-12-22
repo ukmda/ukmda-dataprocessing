@@ -80,15 +80,18 @@
         <h2>Station Coverage Maps</h2>
         <p>
             To use this page, select a camera or cameras from the dropdown, then select an altitude.
-            Click on Show to reveal the coverage of those cameras at that altitude. If no coverage is displayed
-            for a specific camera, then it means it has not been calibrated by the owner. 
-            Note that the field of view will remain
-            centred on the first camera and the second or third may not be visible if they don't overlap.
-            You can click on a shaded area to see the latitude and longitude, and draw a 100km radius circle round the point.
+            Click on Show to reveal the coverage of those cameras at that altitude. You can click on a shaded area to
+            see the latitude and longitude and to draw a 200km radius circle round the point.
+            <br>
+            The view will remain centred on the first camera and the second or third may not be
+            visible if they don't overlap. If no coverage is displayed for a specific camera, then it means it has not
+            been calibrated by the owner.
+
         </p>
         <p>
-            You can also see total coverage over the UK at different altitudes: 
-            <a href="/data/coverage-25km.html">25km</a>, <a href="/data/coverage-70km.html">70km</a> and <a href="/data/coverage-100km.html">100km</a>
+            You can also see total coverage over the UK at different altitudes:
+            <a href="/data/coverage-25km.html">25km</a>, <a href="/data/coverage-70km.html">70km</a> and <a
+                href="/data/coverage-100km.html">100km</a>
         </p>
 
         <form id="selectStation" onsubmit="return formSubmit()">
@@ -207,7 +210,7 @@
                             strokeColor: "#FF0000",
                             strokeOpacity: 0.5,
                             center: { lat: lati, lng: lngi },
-                            radius: 100000
+                            radius: 200000
                         });
                     }
                     else {
@@ -236,7 +239,7 @@
                                 strokeColor: "#FF0000",
                                 strokeOpacity: 0.5,
                                 center: { lat: lati, lng: lngi },
-                                radius: 100000
+                                radius: 200000
                             });
                         }
                         else {
@@ -266,7 +269,7 @@
                                 strokeColor: "#FF0000",
                                 strokeOpacity: 0.5,
                                 center: { lat: lati, lng: lngi },
-                                radius: 100000
+                                radius: 200000
                             });
                         }
                         else {

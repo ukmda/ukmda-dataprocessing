@@ -6,7 +6,7 @@ import os
 from reports.CameraDetails import getCamLocDirFov, updateCamLocDirFovDB, SiteInfo
 
 here = os.path.split(os.path.abspath(__file__))[0]
-datadir = os.path.join(here, 'data')
+datadir = os.getenv('DATADIR', default=os.path.join(here, 'data'))
 targdate = datetime.datetime(2023,5,12)
 
 

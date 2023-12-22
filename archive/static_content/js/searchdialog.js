@@ -10,13 +10,14 @@ $('#selectInterval .date').datepicker({
     'format': 'd/m/yyyy',
     'autoclose': true,
     'endDate': '0'
+    
 });
 
 // initialize datepair
 var res = document.getElementById("selectInterval");
 var dateSelect = new Datepair(res, {
     'defaultDateDelta': 0,      // days
-    'defaultTimeDelta': 7200000 // milliseconds
+    'defaultTimeDelta': 900000 // milliseconds = 15 minutes
 });
 
 $('#selectInterval').on('rangeSelected', function(){
@@ -28,8 +29,8 @@ $('#selectInterval').on('rangeSelected', function(){
         var endval = dateval + timediff;
         endtime = new Date();
         endtime.setTime(endval);
-        $('#datestart').text(starttime.toISOString()); //.toLocaleString('en-GB', { timeZone: 'UTC' }));
-        $('#dateend').text(endtime.toISOString()); //.toLocaleString('en-GB', { timeZone: 'UTC' }));
+        $('#datestart').text(starttime.toISOString());
+        $('#dateend').text(endtime.toISOString()); 
         if(timediff > 0){
             $('#statusfield').text('Valid range selected');
         }else{
@@ -38,7 +39,7 @@ $('#selectInterval').on('rangeSelected', function(){
     }
 });
       
-var apiurl = '{{APIURL}}';
+var apiurl = 'https://api.ukmeteors.co.uk/detections';
 var form = document.querySelector("form");
 form.addEventListener("submit", function (event) {
   //console.log("Saving value", form.elements.value.value);
@@ -68,8 +69,9 @@ form.addEventListener("submit", function (event) {
     op = op + "l:" + strstat + "_";
   }
   //jQuery.support.cors = true;
-  payload = {"a":  d1, "b": d2, "op":  op };
+  payload = {"d1":  d1, "d2": d2, "opts":  op };
   console.log(payload);
+  document.getElementById("searchresults").innerHTML = "Searching....";
   $.ajax({
     url: apiurl, 
     type: "GET",
@@ -116,4 +118,5 @@ function myFunc(myObj) {
     }
     txt += "</table>";
     document.getElementById("searchresults").innerHTML = txt;
+    document.getElementById("eventcount").innerHTML = myObj.length;
 }

@@ -9,6 +9,9 @@ import sys
 import glob
 from boto3.dynamodb.conditions import Key
 import pandas as pd
+import datetime
+
+import reports.CameraDetails as cc
 
 
 def addRowCamTimings(s3bucket, s3object, ftpname, ddb=None):
@@ -168,3 +171,48 @@ if __name__ == '__main__':
     else:
         fulldf = newdata
     fulldf.to_csv(outfile, index=False)
+
+    camdets = cc.SiteInfo()
+    cams = camdets.getActiveCameras()
+    sites=[]
+    ids = []
+    for c in cams:
+        sites.append((c['Site'].decode('utf-8') + '_' + c['SID'].decode('utf-8')).lower())
+        ids.append(c['CamID'].decode('utf-8'))
+    caminfo = pd.DataFrame(zip(sites,ids), columns=['siteid','stationid'])
+
+    logindf = pd.read_csv(os.path.join(datadir, 'reports', 'lastlogins.txt'), names=['dateval','timeval','siteid'], skipinitialspace=True)
+    logindf['timeval'] = logindf.timeval.astype('str').str.pad(6,fillchar='0')
+    logindf.dateval.fillna('Jan-01',inplace=True)
+    logindf.timeval.fillna('00:00:00',inplace=True)
+    logindf['lastseen'] = [datetime.datetime.strptime(x, '%b-%d_%H%M%S') for x in logindf.dateval+'_'+logindf.timeval]
+    logindf = logindf.sort_values(by=['lastseen'])
+    logindf.drop_duplicates(subset=['siteid'], inplace=True, keep='last')
+
+    # create a merged dataframe with siteid and stationid
+    intdf = pd.merge(logindf,caminfo, on=['siteid'], how='outer')
+    df = pd.merge(intdf, fulldf, on=['stationid'])
+    df.dateval.fillna('Jan-01',inplace=True)
+    df.timeval.fillna('00:00:00',inplace=True)
+    #df['lastseen']=[datetime.datetime.strptime(x, '%b-%d_%H:%M:%S') for x in df.dateval+'_'+df.timeval]
+    df['uploadtime']=df.uploadtime.astype("str").str.pad(6,fillchar="0")
+    df['lastupload']=df.upddate.astype('str') + '_' +df.uploadtime
+    df.lastupload = [datetime.datetime.strptime(x, '%Y%m%d_%H%M%S') for x in df.lastupload]
+    df = df.drop(columns=['timeval','stationid','manual','rundate', 'upddate','uploadtime', 'dateval'])
+    df['dateval']=[x.strftime('%b-%d') for x in df.lastupload]
+    df = df.sort_values(by=['lastupload'])
+        
+    outfile=os.path.join(datadir, 'reports', 'stationlogins.txt')
+    zerodate = datetime.datetime(1970,1,1,0,0,0)
+    with open(outfile,'w') as outf:
+        outf.write('Last Upload,      StationID,         Last Login\n')
+        for _,rw in df.iterrows():
+            dtval = rw.dateval
+            lastup = rw.lastupload.strftime('%H:%M:%S')
+            if pd.isnull(rw.lastseen):
+                lastseen = '> 1 month'
+            else:
+                lastseen = rw.lastseen.strftime('%b-%d %H:%M:%S')
+            if lastseen == 'Jan-01 00:00:00':
+                lastseen = '> 1 month'
+            outf.write(f'{dtval}, {lastup}, {rw.siteid:20s}, {lastseen}\n')

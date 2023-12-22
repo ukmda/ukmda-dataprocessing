@@ -98,12 +98,12 @@ def fixupTrajComments(traj, availableimages, outdir, picklename, yr, ym):
         pickdt = datetime.datetime.strptime(pickdtstr, '%Y%m%d_%H%M%S')
         if obs.comment is None:
             relevantimages = [x for x in availableimages if obs.station_id in x]
+            comment = ''
             for img in relevantimages:
                 dtstr = img[1:15]
                 camid = obs.station_id
                 ff_name = f'img/single/{yr}/{ym}/FF_{camid}_{dtstr}'
                 flist = s3.list_objects_v2(Bucket='ukmda-website', Prefix=ff_name)
-                comment = ''
                 if 'Contents' in flist:
                     for fl in flist['Contents']:
                         key = fl['Key']

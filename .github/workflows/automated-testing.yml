@@ -1,32 +1,47 @@
 name: automated_testing
+env:
+  AWS_REGION: eu-west-2
+permissions:
+  id-token: write
+  contents: read
 
 on:
   push:
-    branches:
-      - markmac99
+    branches: [ dev, markmac99 ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ master ]
 jobs:
   conttests:
     runs-on: ubuntu-latest
     container:
       image: docker.io/markmac99/ukmdatester
       credentials:
-        username: markmac99
-        password: ${{ secrets.GHCR_PAT_MM }}
+        username: ${{ secrets.DH_LOGIN_MM }}
+        password: ${{ secrets.DH_PATT_MM }}
       env:
-        TESTSCRIPT: somefile.sh
+        BRANCH: ${{ github.head_ref || github.ref_name }} 
     steps:
-      - name: Check for dockerenv file
-        run: (ls /tests.sh && echo Found test script) || (echo No test script) 
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v1.7.0
+        with:
+          role-to-assume: arn:aws:iam::183798037734:role/testingRole
+          role-session-name: github_aws_testing
+          aws-region: ${{ env.AWS_REGION }}
+      - name: remote tests
+        run: |
+          chmod +x /tests.sh
+          mkdir /data
+          curl https://archive.ukmeteors.co.uk/browse/testdata/testdata.tar.gz  -o /data/testdata.tar.gz
+          cd /data && tar -xzf ./testdata.tar.gz
+          curl https://archive.ukmeteors.co.uk/reports/stations/cameraLocs.json -o /data/admin/cameraLocs.json
+          /tests.sh
   apitests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - run: chmod +x ./tests/*.sh
-      - run: ./tests/api_tests.sh
-  #lnxtests:
-  #  runs-on: lnx64
-  #  steps:
-  #    - uses: actions/checkout@v3
-  #    - run: chmod +x ./tests/*.sh
-  #    - run: ./tests/lnx_tests.sh
-    
+      - name: checkout code 
+        uses: actions/checkout@v3
+      - name: run api tests
+        run: |
+          chmod +x ./tests/api_tests.sh
+          ./tests/api_tests.sh

@@ -8,7 +8,7 @@ from reports.createExchangeFiles import createDetectionsFile, createMatchesFile,
     createWebpage, createCameraFile
 
 here = os.path.split(os.path.abspath(__file__))[0]
-datadir = os.path.join(here, 'data')
+datadir = os.getenv('DATADIR', default=os.path.join(here, 'data'))
 targdate = datetime.datetime(2023,5,12)
 
 
@@ -17,12 +17,12 @@ def test_createDetectionsFile():
     csvf = os.path.join(datadir, 'browse','daily', 'ukmon-latest.csv')
     assert os.path.isfile(csvf)
     lis = open(csvf, 'r').readlines()
-    assert lis[9] == 'UK0020,2023-05-11T22:57:41.534592,\n'
+    assert lis[9][:4] == 'UK00'
     os.remove(csvf)
     csvf = os.path.join(datadir, 'browse','daily', 'eventlist.js')
     assert os.path.isfile(csvf)
     lis = open(csvf, 'r').readlines()
-    assert lis[9] == 'cell.innerHTML = "2023-05-11T22:59:50.648359";\n'
+    assert 'cell.innerHTML' in lis[9]
     os.remove(csvf)
 
 
@@ -31,7 +31,7 @@ def test_createMatchesFile():
     csvf = os.path.join(datadir, 'browse','daily', 'matchlist.js')
     assert os.path.isfile(csvf)
     lis = open(csvf, 'r').readlines()
-    assert lis[9] == 'cell.innerHTML = "ELY";\n'
+    assert 'cell.innerHTML' in lis[9]
     os.remove(csvf)
 
 

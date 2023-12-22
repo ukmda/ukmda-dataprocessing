@@ -66,12 +66,8 @@ echo "outer_div.appendChild(table);" >> reportindex.js
 echo "})" >> reportindex.js
 cp $TEMPLATES/statreportindex.html index.html
 
-logger -s -t stationReports "create list of connected stations"
-sudo grep publickey /var/log/secure | grep -v ec2-user | egrep "$(date "+%b %d")|$(date "+%b  %-d")" | awk '{printf("%s-%s, %s, %s\n", $1, $2, $3,$9)}' > $DATADIR/reports/stationlogins.txt
-
 aws s3 cp $DATADIR/reports/$yr/stations/index.html  $WEBSITEBUCKET/reports/$yr/stations/ --quiet
 aws s3 cp $DATADIR/reports/$yr/stations/reportindex.js  $WEBSITEBUCKET/reports/$yr/stations/ --quiet
-aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --quiet
 
 logger -s -t stationReports "finished"
 $SRC/utils/clearCaches.sh
