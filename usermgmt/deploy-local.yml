@@ -76,3 +76,10 @@
       line: '$env:HELPERIP="{{serverip}}"'
     delegate_to: localhost
     tags: [dev,prod]
+  - name: update helper remotedir
+    lineinfile:
+      path: '{{windestdir}}/StationMaint.ps1'
+      regexp: '\$env:REMOTEDIR='
+      line: '$env:REMOTEDIR="{{remotedir}}"'
+    delegate_to: localhost
+    tags: [dev,prod]

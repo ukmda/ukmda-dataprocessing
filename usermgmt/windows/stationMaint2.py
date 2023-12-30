@@ -176,7 +176,9 @@ class CamMaintenance(Frame):
         camMenu.add_separator()
         camMenu.add_command(label = "Remove Location", command = self.delOperator)
         camMenu.add_separator()
+        camMenu.add_command(label = "Download Platepar", command = self.getPlate)
         camMenu.add_command(label = "Update platepar", command = self.newPlate)
+        camMenu.add_separator()
         camMenu.add_command(label = "Update SSH Key", command = self.newSSHKey)
         camMenu.add_command(label = "Update AWS Key", command = self.newAWSKey)
         camMenu.add_separator()
@@ -429,7 +431,47 @@ class CamMaintenance(Frame):
             addNewUnixUser(location, cameraname, updatemode=2)
             self.datachanged = True
         return 
+    
+    def getPlate(self):
+        cursel = self.sheet.get_selected_cells()
+        cr = list(cursel)[0][0]
+        curdata = self.data[cr]
+        ppdir = os.getenv('PLATEPARDIR', default='f:/videos/meteorcam/platepars')
+        ppdir = os.path.join(ppdir, curdata[1])
+        os.makedirs(ppdir, exist_ok=True)
+        ppfile = 'platepar_cmn2010.cal'
+        site = curdata[0].capitalize()
+        camid = curdata[1].upper()
 
+        server=os.getenv('HELPERSERVER', default='ukmonhelper')
+        user='ec2-user'
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser('~/.ssh/ukmonhelper'))
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = user, pkey = k)
+        scpcli = SCPClient(c.get_transport())
+        remotedir = os.getenv('REMOTEDIR', default='/home/ec2-user/prod/data')
+        remotef=f'{remotedir}/consolidated/platepars/{camid}.json'
+        localf = os.path.join(ppdir, ppfile)
+        scpcli.get(remotef, localf)
+
+        s3 = boto3.client('s3')
+        res = s3.list_objects_v2(Bucket=self.bucket_name, Prefix=f'archive/{site}/{camid}/2023/202312/')
+        if res['KeyCount'] > 0:
+            keys=res['Contents']
+            fitsfiles = [x['Key'] for x in keys if 'fits' in x['Key']]
+            fitsfiles.sort()
+            fitsfiles = fitsfiles[-10:]
+            for ff in fitsfiles:
+                _, ffname = os.path.split(ff)
+                dlf = os.path.join(ppdir, ffname)
+                s3.download_file(self.bucket_name, ff, dlf)
+            cfgfiles = [x['Key'] for x in keys if '.config' in x['Key']]
+            cfgfiles.sort()
+            dlf = os.path.join(ppdir,'.config')
+            s3.download_file(self.bucket_name, cfgfiles[-1], dlf)
+        return 
+    
     def newPlate(self):
         cursel = self.sheet.get_selected_cells()
         cr = list(cursel)[0][0]
@@ -464,7 +506,7 @@ class CamMaintenance(Frame):
         scpcli.put(self.localfile, 'prod/data/consolidated/')
         scpcli.put(self.locstatfile, 'prod/data/admin/')
         return
-
+    
     def uploadPlatepar(self, camdets, plateparfile):
         server=os.getenv('HELPERSERVER', default='ukmonhelper')
         user='ec2-user'
