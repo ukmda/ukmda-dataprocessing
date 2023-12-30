@@ -13,7 +13,10 @@ Each _camera_ is allocated a unique *Unix* ID. The public ssh key provided by th
 
 
 # User Management tool
-Unix and AWS User creation and configuration are managed by *stationMaint.ps1* which calls a python programme that uses native AWS and Unix libraries to execute the required commands. The tool requires AWS credentials which are restricted to administrators (see note below). 
+Unix and AWS User creation and configuration are managed by *stationMaint.ps1* which calls a python programme that uses native AWS and Unix libraries to execute the required commands. The tool requires AWS and SSH credentials which are restricted to administrators (see note below). 
+
+## setup
+To use this too you need anaconda or miniconda installed. Copy the python files, requirements.txt and powershell script to a folder of your choosing, and update the environment variables in the powershell script if needed.  Now run the powershell script, which will create a suitable Conda environment, install the requirements and launch the tool. 
 
 ## Adding a new camera
 To add a new camera the camera operator must supply the following:
@@ -38,7 +41,7 @@ To move a camera to a new location, select the row containing the camera then se
 IMPORTANT NOTE: the camera owner should NOT make any changes - the system will automatically update their configuration.
 
 ## Disabling a camera
-To disable a camera, change the Active column from 1 to today's date in YYYYMMDD format eg 20220715. This removes the camera from current  reporting, but retains the details for any historical reporting. 
+To disable a camera, change the Active column from 1 to today's date in YYYYMMDD format eg 20220715. This removes the camera from current reporting, but retains the details for any historical reporting. 
 
 # Disabling a location
 To disable a location, we revoke the corresponding AWS user's keys, and if necessary, delete the AWS user and Unix ID. No other user will be affected. This is not currently managed by the UI as it is a drastic action that we do not want to carry out accidentally! 

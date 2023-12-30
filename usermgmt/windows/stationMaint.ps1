@@ -1,14 +1,14 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 Set-Location $psscriptroot
 
-$env:SRCBUCKET=""
-$env:LIVE_PROFILE=""
-$env:ARCH_PROFILE=""
-$env:REMOTEDIR=""
-$env:HELPERSERVER=""
-$env:HELPERIP=""
-$env:LIVEBUCKET=""
-$env:WEBSITEBUCKET=""
+$env:SRCBUCKET="ukmda-shared"
+$env:LIVEBUCKET="ukmda-live"
+$env:WEBSITEBUCKET="ukmda-website"
+$env:LIVE_PROFILE="ukmda_admin"
+$env:ARCH_PROFILE="ukmda_admin"
+$env:HELPERSERVER="ukmonhelper2"
+$env:HELPERIP="3.11.55.160"
+$env:REMOTEDIR="/home/ec2-user/prod/data"
 $env:PLATEPARDIR=""
 
 # create conda env if not aleady there
