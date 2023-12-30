@@ -15,7 +15,7 @@ The shell scripts and python code are deployed with `deploy-analysis.yml`. Use t
 ansible-playbook deploy-analysis.yml -t prod
 ```
 #### Configuration Files
-Parameters are created with Terraform and stored in the AWS Systems Manager Parameter store. 
+Parameters are created with Terraform and stored in the AWS Systems Manager Parameter Store. 
 The configuration is then deployed with `deploy-config.yml` which runs a script to create the `config.ini` file. 
 
 #### Website 
@@ -32,7 +32,4 @@ This folder contains tests for the APIs and some of the Python code. Further tes
 
 ## USERMGMT folder
 A python app that is used to add/modify contributors' camera details and grant them permission to upload.
-Relies on SSH access to the batch server and suitable AWS access keys. 
-
-
-
+Not intended for general use, this tool can only be used if you have SSH and AWS keys for the admin role. 
