@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox, Frame, Menu
 from tkinter import simpledialog
+from tkinter.filedialog import askopenfilename
 import boto3
 import shutil
 import datetime
@@ -175,6 +176,7 @@ class CamMaintenance(Frame):
         camMenu.add_separator()
         camMenu.add_command(label = "Remove Location", command = self.delOperator)
         camMenu.add_separator()
+        camMenu.add_command(label = "Update platepar", command = self.newPlate)
         camMenu.add_command(label = "Update SSH Key", command = self.newSSHKey)
         camMenu.add_command(label = "Update AWS Key", command = self.newAWSKey)
         camMenu.add_separator()
@@ -428,6 +430,21 @@ class CamMaintenance(Frame):
             self.datachanged = True
         return 
 
+    def newPlate(self):
+        cursel = self.sheet.get_selected_cells()
+        cr = list(cursel)[0][0]
+        curdata = self.data[cr]
+        ppdir = os.getenv('PLATEPARDIR', default='f:/videos/meteorcam/platepars')
+        ppdir = os.path.join(ppdir, curdata[1])
+        ppfile = 'platepar_cmn2010.cal'
+        plate = ''
+        title = 'Select New Platepar File'
+        plate = askopenfilename(title=title, defaultextension='*.cal',initialdir=ppdir, initialfile=ppfile)
+        if plate:
+            self.uploadPlatepar(curdata, plate)
+        print(plate)
+        return 
+
     def newAWSKey(self):
         cursel = self.sheet.get_selected_cells()
         cr = list(cursel)[0][0]
@@ -446,6 +463,40 @@ class CamMaintenance(Frame):
         # push the raw keyfile
         scpcli.put(self.localfile, 'prod/data/consolidated/')
         scpcli.put(self.locstatfile, 'prod/data/admin/')
+        return
+
+    def uploadPlatepar(self, camdets, plateparfile):
+        server=os.getenv('HELPERSERVER', default='ukmonhelper')
+        user='ec2-user'
+        uplfile = f'/tmp/platepar_cmn2010_{camdets[1]}.cal'
+        camname = f'{camdets[0]}_{camdets[3]}'.lower()
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser('~/.ssh/ukmonhelper'))
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = user, pkey = k)
+        scpcli = SCPClient(c.get_transport())
+        scpcli.put(plateparfile, uplfile)
+        command = f'sudo mkdir -p /var/sftp/{camname}/platepar/ && sudo chown {camname}:{camname} /var/sftp/{camname}/platepar'
+        print(f'running {command}')
+        _, stdout, stderr = c.exec_command(command, timeout=10)
+        for line in iter(stdout.readline, ""):
+            print(line, end="")
+        for line in iter(stderr.readline, ""):
+            print(line, end="")
+        command = f'sudo mv {uplfile} /var/sftp/{camname}/platepar/platepar_cmn2010.cal'
+        print(f'running {command}')
+        _, stdout, stderr = c.exec_command(command, timeout=10)
+        for line in iter(stdout.readline, ""):
+            print(line, end="")
+        for line in iter(stderr.readline, ""):
+            print(line, end="")
+        command = f'sudo chown {camname}:{camname} /var/sftp/{camname}/platepar/platepar_cmn2010.cal'
+        print(f'running {command}')
+        _, stdout, stderr = c.exec_command(command, timeout=10)
+        for line in iter(stdout.readline, ""):
+            print(line, end="")
+        for line in iter(stderr.readline, ""):
+            print(line, end="")
         return
 
 
