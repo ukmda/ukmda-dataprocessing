@@ -6,10 +6,12 @@ $env:LIVEBUCKET="ukmda-live"
 $env:WEBSITEBUCKET="ukmda-website"
 $env:LIVE_PROFILE="ukmda_admin"
 $env:ARCH_PROFILE="ukmda_admin"
+$env:SSHKEY="ukmonhelper"
 $env:HELPERSERVER="ukmonhelper2"
 $env:HELPERIP="3.11.55.160"
 $env:REMOTEDIR="/home/ec2-user/prod/data"
 $env:PLATEPARDIR=""
+
 
 # create conda env if not aleady there
 $isadm=(conda env list  | select-string "ukmon-admin")

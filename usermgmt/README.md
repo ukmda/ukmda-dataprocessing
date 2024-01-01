@@ -3,20 +3,25 @@
 This folder contains the scripts used to add/maintain new cameras to the network. 
 
 ## Basic Principles
-A camera consists of a location and pointing direction. 
+A camera consists of an RMS ID, location and pointing direction. 
 
 Each _location_ is assigned a unique *AWS* user with credentials that grant suitable permissions to the S3 storage. For example, a contributor in Toytown might be assigned a unique AWS user "Toytown".
 
 AWS credentials are not shared between locations. If a location's credentials are compromised, they can be disabled without impacting the rest of the network and new credentials can then be issued. The *ukmon-pitools* toolset is designed so that new credentials will be picked up the next time *refreshTools.sh* is run on the impacted Pi (either at reboot or manually).
 
-Each _camera_ is allocated a unique *Unix* ID. The public ssh key provided by the operator is used to enable *ukmon-pitools* to login and collect configuration information for the camera. For example if the contributor at Toytown had two cameras facing North and South, the cameras might be named "toytown_s" and "toytown_n". Note that camera names are in lower case, must be unique and also that SSH keys are not shared between cameras.  
+Each _camera_ is allocated a unique *Unix* ID. The public ssh key provided by the operator is used to enable *ukmon-pitools* to login and collect configuration information for the camera. For example if the contributor at Toytown had two cameras facing North and South, the cameras might be named "toytown_s" and "toytown_n". Note that camera names are in lower case, must be unique and that SSH keys should not be shared between cameras. If the operator chooses to share keys they do so at their own risk and it means that if the key is compromised, all their cameras will be unable to connect.  
 
 
 # User Management tool
 Unix and AWS User creation and configuration are managed by *stationMaint.ps1* which calls a python programme that uses native AWS and Unix libraries to execute the required commands. The tool requires AWS and SSH credentials which are restricted to administrators (see note below). 
 
-## setup
-To use this too you need anaconda or miniconda installed. Copy the python files, requirements.txt and powershell script to a folder of your choosing, and update the environment variables in the powershell script if needed.  Now run the powershell script, which will create a suitable Conda environment, install the requirements and launch the tool. 
+## Setup
+Prerequisites:  
+* anaconda or miniconda
+* An AWS profile with the usermaintenance IAM role. The default profile name is *ukmda_admin*.
+* An SSH key thats permissioned to connect to the server. The default key name is *ukmda_admin*.
+ 
+To install the app, copy the python files, requirements.txt and powershell script to a folder of your choosing, and update the environment variables in the powershell script as needed.  Now run the powershell script which will create a suitable Conda environment, install the requirements and launch the tool. 
 
 ## Adding a new camera
 To add a new camera the camera operator must supply the following:
