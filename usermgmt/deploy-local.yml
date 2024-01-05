@@ -62,13 +62,6 @@
       line: '$env:ARCH_PROFILE="{{archprofile}}"'
     delegate_to: localhost
     tags: [dev,prod]
-  - name: update helper servername
-    lineinfile:
-      path: '{{windestdir}}/StationMaint.ps1'
-      regexp: '\$env:HELPERSERVER='
-      line: '$env:HELPERSERVER="{{helper}}"'
-    delegate_to: localhost
-    tags: [dev,prod]
   - name: update helper ipaddress
     lineinfile:
       path: '{{windestdir}}/StationMaint.ps1'

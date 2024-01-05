@@ -443,7 +443,7 @@ class CamMaintenance(Frame):
         site = curdata[0].capitalize()
         camid = curdata[1].upper()
 
-        server = os.getenv('HELPERSERVER', default='ukmonhelper2')
+        server=os.getenv('HELPERIP', default='3.11.55.160')
         user='ec2-user'
         keyfile = os.getenv('SSHKEY', default='ukmda_admmin')
         k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
@@ -496,7 +496,7 @@ class CamMaintenance(Frame):
         createNewAwsKey(location, self.caminfo)
 
     def uploadCfgToServer(self):
-        server=os.getenv('HELPERSERVER', default='ukmonhelper2')
+        server=os.getenv('HELPERIP', default='3.11.55.160')
         user='ec2-user'
         keyfile = os.getenv('SSHKEY', default='ukmda_admin')
         k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
@@ -510,7 +510,7 @@ class CamMaintenance(Frame):
         return
     
     def uploadPlatepar(self, camdets, plateparfile):
-        server=os.getenv('HELPERSERVER', default='ukmonhelper2')
+        server=os.getenv('HELPERIP', default='3.11.55.160')
         user='ec2-user'
         uplfile = f'/tmp/platepar_cmn2010_{camdets[1]}.cal'
         camname = f'{camdets[0]}_{camdets[3]}'.lower()
@@ -546,7 +546,7 @@ class CamMaintenance(Frame):
 
 
 def updateKeyfile(caminfo, location):
-    server=os.getenv('HELPERSERVER', default='ukmonhelper2')
+    server=os.getenv('HELPERIP', default='3.11.55.160')
     user='ec2-user'
     keyf = os.path.join('jsonkeys', location + '.key')
     currkey = json.load(open(keyf, 'r'))
@@ -609,7 +609,7 @@ def addNewOwner(locstatfile, rmsid, location, user, email):
 
 
 def getSSHkey(loc, dir):
-    server=os.getenv('HELPERSERVER', default='ukmonhelper2')
+    server=os.getenv('HELPERIP', default='3.11.55.160')
     user='ec2-user'
     tmpdir=os.getenv('TEMP', default='c:/temp')
     cameraname = (loc + '_' + dir).lower()
@@ -642,14 +642,17 @@ def getUserDetails(statfile, camid):
 
 
 def addNewUnixUser(location, cameraname, oldcamname='', updatemode=0):
-    server=os.getenv('HELPERSERVER', default='ukmonhelper2')
+    server=os.getenv('HELPERIP', default='3.11.55.160')
     user='ec2-user'
     print(f'adding new Unix user {cameraname}')
     keyfile = os.getenv('SSHKEY', default='ukmda_admin')
     k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
     c = paramiko.SSHClient()
     c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    c.connect(hostname = server, username = user, pkey = k)
+    try:
+        c.connect(hostname = server, username = user, pkey = k)
+    except Exception:
+        c.connect(hostname = server+'.', username = user, pkey = k)
     scpcli = SCPClient(c.get_transport())
     scpcli.put(os.path.join('sshkeys', cameraname + '.pub'), 'keymgmt/sshkeys/')
     scpcli.put(os.path.join('keys', location.lower() + '.key'), 'keymgmt/keys/')
