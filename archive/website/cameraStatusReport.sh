@@ -52,5 +52,3 @@ aws s3 cp $DATADIR/reports/statrep.html $WEBSITEBUCKET/reports/ --quiet
 aws s3 cp $DATADIR/reports/camrep.js $WEBSITEBUCKET/reports/ --quiet
 
 logger -s -t cameraStatusReport "finished"
-
-#$SRC/website/createLatestTable.sh

@@ -32,16 +32,16 @@ def test_SiteInfo():
     assert si.getFolder('UK0000') == 'Unknown'
     assert si.checkCameraActive('UK0006') == 1
     assert si.checkCameraActive('UK0000') == 0
-    assert si.getCameraOffset('UK0006') == 6
-    assert si.getCameraOffset('UK0000') == -1
+    assert si.getCameraOffset('UK0006') is not None
+    assert si.getCameraOffset('UK0000') is None
     assert si.getCameraLocAndDir('UK0006', activeonly=True) == 'Tackley_SW'
     assert si.getCameraType('UK0006') == 2
-    assert si.getCameraType('UK0000') == -1
+    assert si.getCameraType('UK0000') is None
 
     cams = si.getActiveCameras()
     match = 0
-    for cam in cams:
-        if b'Tackley' in cam:
+    for _, cam in cams.iterrows():
+        if 'Tackley' in cam.site:
             match = 1
     assert match == 1
 

@@ -4,7 +4,7 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 
 import os
-import reports.CameraDetails as cc
+import reports.CameraDetails as cd
 import datetime
 import pandas as pd 
 
@@ -19,14 +19,10 @@ def getLastUpdateDate(datadir=None, camfname=None):
         includenever (bool) default false, include cameras that have never uploaded
         
     """
-    camdets = cc.SiteInfo(fname=camfname)
+    camdets = cd.SiteInfo(fname=camfname)
     cams = camdets.getActiveCameras()
-    sites=[]
-    ids = []
-    for c in cams:
-        sites.append(c['Site'].decode('utf-8'))
-        ids.append(c['CamID'].decode('utf-8'))
-    caminfo = pd.DataFrame(zip(sites,ids), columns=['Site','stationid'])
+    caminfo = cams.drop(columns=['lid','sid','camtype','dummycode','active'])
+    caminfo.rename(columns={'site':'Site', 'camid':'stationid'}, inplace=True)
     if datadir is None:
         datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     fldrlist = pd.read_csv(os.path.join(datadir,'reports','camuploadtimes.csv'), index_col=False)
