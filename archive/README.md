@@ -105,7 +105,6 @@ Flow in terms of files
     nightly --> summary[website/createSummaryTable.sh]
     nightly --> cammets[create cam metrics]
     nightly --> camstat[website/cameraStatusReport.sh]
-    camstat --> crlatab[website/createLatestTable.sh]
     nightly --> statstat[analysis/getBadStations.sh]
     nightly --> costs[website/costReport.sh]
     nightly --> statreps[analysis/stationReports.sh]
