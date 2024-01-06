@@ -70,6 +70,7 @@ def getLogStats(nightlogf, matchlogf):
     msgs = []
     for li in loglines:
         if matchstr in li:
+            li = ' '.join(li.split()) # remove double-spaces eg when date is ' 6 Jan' as opposed to '16 Jan'
             spls = li.split()
             msg = ''
             for s in range(6, len(spls)):
