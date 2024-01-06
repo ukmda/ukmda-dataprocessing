@@ -58,7 +58,26 @@ resource "aws_s3_bucket_policy" "adminbucket_bp" {
                     "aws:Referer": "${data.aws_caller_identity.current.account_id}"
                 }
             }
-        }
+        },
+        {
+          "Sid": "2",
+          "Effect": "Allow",
+          "Principal": {
+              "AWS": [
+                  "arn:aws:iam::${var.remote_account_id}:role/S3FullAccess",
+              ]
+          },
+          "Action": [
+              "s3:Put*",
+              "s3:ListBucket",
+              "s3:Get*",
+              "s3:Delete*"
+          ],
+          "Resource": [
+              "${aws_s3_bucket.adminbucket.arn}/*",
+              "${aws_s3_bucket.adminbucket.arn}"
+          ]
+      }
     ]
 })
 }

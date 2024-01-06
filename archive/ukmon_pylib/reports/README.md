@@ -5,7 +5,6 @@ Routines that create reports from the Match and Single-station data
 * cameraStatusReport.py - creates a textual camera status report
 * createAnnualBarChart.py - creates the annual bar chart of detections.
 * createExchangeFiles.py - creates files in the format used for exchange with other networks
-* createLatestTable.py - creates the table of latest camera images, used as a sort of status report
 * createSearchableFormat.py - creates the search indexes
 * createSummaryTable.py - creates the summary table visible on the front page
 * extractors.py - various routines to extract data in CSV format

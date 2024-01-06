@@ -62,17 +62,17 @@
       line: '$env:ARCH_PROFILE="{{archprofile}}"'
     delegate_to: localhost
     tags: [dev,prod]
-  - name: update helper servername
-    lineinfile:
-      path: '{{windestdir}}/StationMaint.ps1'
-      regexp: '\$env:HELPERSERVER='
-      line: '$env:HELPERSERVER="{{helper}}"'
-    delegate_to: localhost
-    tags: [dev,prod]
   - name: update helper ipaddress
     lineinfile:
       path: '{{windestdir}}/StationMaint.ps1'
       regexp: '\$env:HELPERIP='
       line: '$env:HELPERIP="{{serverip}}"'
+    delegate_to: localhost
+    tags: [dev,prod]
+  - name: update helper remotedir
+    lineinfile:
+      path: '{{windestdir}}/StationMaint.ps1'
+      regexp: '\$env:REMOTEDIR='
+      line: '$env:REMOTEDIR="{{remotedir}}"'
     delegate_to: localhost
     tags: [dev,prod]

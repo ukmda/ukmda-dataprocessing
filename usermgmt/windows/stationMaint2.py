@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox, Frame, Menu
 from tkinter import simpledialog
+from tkinter.filedialog import askopenfilename
 import boto3
 import shutil
 import datetime
@@ -174,6 +175,9 @@ class CamMaintenance(Frame):
         camMenu.add_command(label = "Remove Camera", command = self.delCamera)
         camMenu.add_separator()
         camMenu.add_command(label = "Remove Location", command = self.delOperator)
+        camMenu.add_separator()
+        camMenu.add_command(label = "Download Platepar", command = self.getPlate)
+        camMenu.add_command(label = "Update platepar", command = self.newPlate)
         camMenu.add_separator()
         camMenu.add_command(label = "Update SSH Key", command = self.newSSHKey)
         camMenu.add_command(label = "Update AWS Key", command = self.newAWSKey)
@@ -427,6 +431,62 @@ class CamMaintenance(Frame):
             addNewUnixUser(location, cameraname, updatemode=2)
             self.datachanged = True
         return 
+    
+    def getPlate(self):
+        cursel = self.sheet.get_selected_cells()
+        cr = list(cursel)[0][0]
+        curdata = self.data[cr]
+        ppdir = os.getenv('PLATEPARDIR', default='f:/videos/meteorcam/platepars')
+        ppdir = os.path.join(ppdir, curdata[1])
+        os.makedirs(ppdir, exist_ok=True)
+        ppfile = 'platepar_cmn2010.cal'
+        site = curdata[0].capitalize()
+        camid = curdata[1].upper()
+
+        server=os.getenv('HELPERIP', default='3.11.55.160')
+        user='ec2-user'
+        keyfile = os.getenv('SSHKEY', default='ukmda_admmin')
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = user, pkey = k)
+        scpcli = SCPClient(c.get_transport())
+        remotedir = os.getenv('REMOTEDIR', default='/home/ec2-user/prod/data')
+        remotef=f'{remotedir}/consolidated/platepars/{camid}.json'
+        localf = os.path.join(ppdir, ppfile)
+        scpcli.get(remotef, localf)
+
+        s3 = boto3.client('s3')
+        res = s3.list_objects_v2(Bucket=self.bucket_name, Prefix=f'archive/{site}/{camid}/2023/202312/')
+        if res['KeyCount'] > 0:
+            keys=res['Contents']
+            fitsfiles = [x['Key'] for x in keys if 'fits' in x['Key']]
+            fitsfiles.sort()
+            fitsfiles = fitsfiles[-10:]
+            for ff in fitsfiles:
+                _, ffname = os.path.split(ff)
+                dlf = os.path.join(ppdir, ffname)
+                s3.download_file(self.bucket_name, ff, dlf)
+            cfgfiles = [x['Key'] for x in keys if '.config' in x['Key']]
+            cfgfiles.sort()
+            dlf = os.path.join(ppdir,'.config')
+            s3.download_file(self.bucket_name, cfgfiles[-1], dlf)
+        return 
+    
+    def newPlate(self):
+        cursel = self.sheet.get_selected_cells()
+        cr = list(cursel)[0][0]
+        curdata = self.data[cr]
+        ppdir = os.getenv('PLATEPARDIR', default='f:/videos/meteorcam/platepars')
+        ppdir = os.path.join(ppdir, curdata[1])
+        ppfile = 'platepar_cmn2010.cal'
+        plate = ''
+        title = 'Select New Platepar File'
+        plate = askopenfilename(title=title, defaultextension='*.cal',initialdir=ppdir, initialfile=ppfile)
+        if plate:
+            self.uploadPlatepar(curdata, plate)
+        print(plate)
+        return 
 
     def newAWSKey(self):
         cursel = self.sheet.get_selected_cells()
@@ -436,9 +496,10 @@ class CamMaintenance(Frame):
         createNewAwsKey(location, self.caminfo)
 
     def uploadCfgToServer(self):
-        server=os.getenv('HELPERSERVER', default='ukmonhelper')
+        server=os.getenv('HELPERIP', default='3.11.55.160')
         user='ec2-user'
-        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser('~/.ssh/ukmonhelper'))
+        keyfile = os.getenv('SSHKEY', default='ukmda_admin')
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
         c = paramiko.SSHClient()
         c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         c.connect(hostname = server, username = user, pkey = k)
@@ -447,17 +508,53 @@ class CamMaintenance(Frame):
         scpcli.put(self.localfile, 'prod/data/consolidated/')
         scpcli.put(self.locstatfile, 'prod/data/admin/')
         return
+    
+    def uploadPlatepar(self, camdets, plateparfile):
+        server=os.getenv('HELPERIP', default='3.11.55.160')
+        user='ec2-user'
+        uplfile = f'/tmp/platepar_cmn2010_{camdets[1]}.cal'
+        camname = f'{camdets[0]}_{camdets[3]}'.lower()
+        keyfile = os.getenv('SSHKEY', default='ukmda_admin')
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = user, pkey = k)
+        scpcli = SCPClient(c.get_transport())
+        scpcli.put(plateparfile, uplfile)
+        command = f'sudo mkdir -p /var/sftp/{camname}/platepar/ && sudo chown {camname}:{camname} /var/sftp/{camname}/platepar'
+        print(f'running {command}')
+        _, stdout, stderr = c.exec_command(command, timeout=10)
+        for line in iter(stdout.readline, ""):
+            print(line, end="")
+        for line in iter(stderr.readline, ""):
+            print(line, end="")
+        command = f'sudo mv {uplfile} /var/sftp/{camname}/platepar/platepar_cmn2010.cal'
+        print(f'running {command}')
+        _, stdout, stderr = c.exec_command(command, timeout=10)
+        for line in iter(stdout.readline, ""):
+            print(line, end="")
+        for line in iter(stderr.readline, ""):
+            print(line, end="")
+        command = f'sudo chown {camname}:{camname} /var/sftp/{camname}/platepar/platepar_cmn2010.cal'
+        print(f'running {command}')
+        _, stdout, stderr = c.exec_command(command, timeout=10)
+        for line in iter(stdout.readline, ""):
+            print(line, end="")
+        for line in iter(stderr.readline, ""):
+            print(line, end="")
+        return
 
 
 def updateKeyfile(caminfo, location):
-    server=os.getenv('HELPERSERVER', default='ukmonhelper')
+    server=os.getenv('HELPERIP', default='3.11.55.160')
     user='ec2-user'
     keyf = os.path.join('jsonkeys', location + '.key')
     currkey = json.load(open(keyf, 'r'))
     keyid = currkey['AccessKey']['AccessKeyId']
     secid = currkey['AccessKey']['SecretAccessKey']
     affectedcamlist = caminfo[caminfo.site == location]
-    k = paramiko.RSAKey.from_private_key_file(os.path.expanduser('~/.ssh/ukmonhelper'))
+    keyfile = os.getenv('SSHKEY', default='ukmda_admin')
+    k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
     c = paramiko.SSHClient()
     c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     c.connect(hostname = server, username = user, pkey = k)
@@ -512,11 +609,12 @@ def addNewOwner(locstatfile, rmsid, location, user, email):
 
 
 def getSSHkey(loc, dir):
-    server=os.getenv('HELPERSERVER', default='ukmonhelper')
+    server=os.getenv('HELPERIP', default='3.11.55.160')
     user='ec2-user'
     tmpdir=os.getenv('TEMP', default='c:/temp')
     cameraname = (loc + '_' + dir).lower()
-    k = paramiko.RSAKey.from_private_key_file(os.path.expanduser('~/.ssh/ukmonhelper'))
+    keyfile = os.getenv('SSHKEY', default='ukmda_admin')
+    k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
     c = paramiko.SSHClient()
     c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     c.connect(hostname = server, username = user, pkey = k)
@@ -544,13 +642,17 @@ def getUserDetails(statfile, camid):
 
 
 def addNewUnixUser(location, cameraname, oldcamname='', updatemode=0):
-    server=os.getenv('HELPERSERVER', default='ukmonhelper2')
+    server=os.getenv('HELPERIP', default='3.11.55.160')
     user='ec2-user'
     print(f'adding new Unix user {cameraname}')
-    k = paramiko.RSAKey.from_private_key_file(os.path.expanduser('~/.ssh/ukmonhelper'))
+    keyfile = os.getenv('SSHKEY', default='ukmda_admin')
+    k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
     c = paramiko.SSHClient()
     c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    c.connect(hostname = server, username = user, pkey = k)
+    try:
+        c.connect(hostname = server, username = user, pkey = k)
+    except Exception:
+        c.connect(hostname = server+'.', username = user, pkey = k)
     scpcli = SCPClient(c.get_transport())
     scpcli.put(os.path.join('sshkeys', cameraname + '.pub'), 'keymgmt/sshkeys/')
     scpcli.put(os.path.join('keys', location.lower() + '.key'), 'keymgmt/keys/')
