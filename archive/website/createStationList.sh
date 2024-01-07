@@ -30,7 +30,7 @@ cinfo=cd.SiteInfo()
 ci=cinfo.getAllCamsStr()
 print(ci)
 EOD
-camlist=$(cat /tmp/camlist.txt)
+camlist=$(cat /tmp/camlist.txt  | sed 's/,/ /g')
 rm -f /tmp/camlist.txt  
 rowid=2
 
@@ -53,7 +53,7 @@ cinfo=cd.SiteInfo()
 ci=cinfo.getAllCamsStr(onlyActive=True)
 print(ci)
 EOD
-camlist=$(cat /tmp/camlist.txt)
+camlist=$(cat /tmp/camlist.txt | sed 's/,/ /g')
 rm -f /tmp/camlist.txt  
 rowid=2
 
@@ -75,7 +75,7 @@ cinfo=cd.SiteInfo()
 ci=cinfo.getAllLocsStr(onlyActive=True)
 print(ci)
 EOD
-camlist=$(cat /tmp/loclist.txt)
+camlist=$(cat /tmp/loclist.txt  | sed 's/,/ /g')
 rm -f /tmp/loclist.txt  
 rowid=2
 
