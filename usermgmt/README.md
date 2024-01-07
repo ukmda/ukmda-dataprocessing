@@ -18,7 +18,7 @@ Unix and AWS User creation and configuration are managed by *stationMaint.ps1* w
 ## Setup
 Prerequisites:  
 * anaconda or miniconda
-* An AWS profile with the usermaintenance IAM role. The default profile name is *ukmda_admin*.
+* An AWS profile with the usermaintenance IAM permissions. The default profile name is *ukmda_maint*.
 * An SSH key thats permissioned to connect to the server. The default key name is *ukmda_admin*.
  
 To install the app, copy the python files, requirements.txt and powershell script to a folder of your choosing, and update the environment variables in the powershell script as needed.  Now run the powershell script which will create a suitable Conda environment, install the requirements and launch the tool. 
