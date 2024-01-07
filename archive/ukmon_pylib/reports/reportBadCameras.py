@@ -95,7 +95,7 @@ if __name__ == '__main__':
             #sendAnEmail(mailrecip, latemsg1.format(statid, dayslate), subj, mailfrom)
             mailmsg = mailmsg + '{} {} {}\n'.format(row['stationid'], row['ts'], row['eMail'])
 
-    subj = 'camera upload missing - final notice'
+    subj = 'camera upload missing'
     longerdt = int(sys.argv[1])+7
     targdate=datetime.date.today() + datetime.timedelta(days=-longerdt)
 
