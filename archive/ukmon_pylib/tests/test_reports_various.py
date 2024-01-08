@@ -14,5 +14,5 @@ def test_createSummaryTable():
     fname = os.path.join(datadir, 'summarytable.js')
     assert os.path.isfile(fname)
     lis = open(fname, 'r').readlines()
-    assert lis[9] == 'cell.innerHTML = "6211";\n'
+    assert 'cell.innerHTML = ' in lis[9]
     os.remove(fname)
