@@ -27,7 +27,10 @@ def test_createBarChart():
     outf=os.path.join(datadir, f'Annual-{yr}.jpg')
     print(f'looking for {outf}')
     assert os.path.isfile(outf) is False
-    os.remove(outf)
+    try:
+        os.remove(outf)
+    except Exception:
+        assert 1==0
 
     # no params passed
     res = createBarChart()
