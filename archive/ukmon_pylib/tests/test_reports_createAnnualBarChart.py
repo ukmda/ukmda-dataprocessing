@@ -29,8 +29,9 @@ def test_createBarChart():
     assert os.path.isfile(outf) is False
     try:
         os.remove(outf)
-    except Exception:
         assert 1==0
+    except Exception:
+        pass
 
     # no params passed
     res = createBarChart()
