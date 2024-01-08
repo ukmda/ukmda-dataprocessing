@@ -23,7 +23,7 @@ jobs:
         BRANCH: ${{ github.head_ref || github.ref_name }} 
     steps:
       - name: configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v1.7.0
+        uses: aws-actions/configure-aws-credentials@v4.0.1
         with:
           role-to-assume: arn:aws:iam::183798037734:role/testingRole
           role-session-name: github_aws_testing
