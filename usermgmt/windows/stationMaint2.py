@@ -16,8 +16,7 @@ import json
 import time
 from scp import SCPClient
 
-from camTable import addRow as addRowToDDB
-from camTable import getCamUpdateDate
+from camTable import addRow, getCamUpdateDate, deleteRow, loadLocationDetails
 
 
 class infoDialog(simpledialog.Dialog):
@@ -33,7 +32,6 @@ class infoDialog(simpledialog.Dialog):
         super().__init__(parent, title)    
 
     def body(self, frame):
-        # print(type(frame)) # tkinter.Frame
         self.camid_label = tk.Label(frame, width=25, text="RMS ID")
         self.camid_label.pack()
         self.camid_box = tk.Entry(frame, width=25)
@@ -79,7 +77,6 @@ class infoDialog(simpledialog.Dialog):
         self.destroy()
 
     def cancel_pressed(self):
-        # print("cancel")
         self.data[0] = ''
         self.destroy()
 
@@ -93,26 +90,21 @@ class infoDialog(simpledialog.Dialog):
 
 
 class statOwnerDialog(simpledialog.Dialog):
-    def __init__(self, parent, statfile):
-        self.statfile = statfile
+    def __init__(self, parent):
+        self.stationdetails = parent.stationdetails
         self.parent = parent
         super().__init__(parent, 'Owner Info')    
     
     def body(self, frame):
         columns = ('#1','#2','#3','#4')
-        print(columns)
         tree = ttk.Treeview(frame, columns=columns, show='headings')
         tree.heading('#1', text='camid')
         tree.heading('#2', text='site')
-        tree.heading('#3', text='humanName')
-        tree.heading('#4', text='email')
+        tree.heading('#3', text='email')
+        tree.heading('#4', text='humanName')
         contacts = []
-        with open(os.path.join('caminfo', self.statfile),'r') as inf:
-            _ = inf.readline() # skip header
-            lis=inf.readlines()
-            for li in lis:
-                spls = li.split(',')
-                contacts.append((spls[0], spls[1], spls[2], spls[3]))
+        for _, li in self.stationdetails.iterrows():
+            contacts.append((li['stationid'], li['site'], li['eMail'], li['humanName']))
         for contact in contacts:
             tree.insert('', tk.END, values=contact)
         tree.grid(row=0, column=0, sticky='nsew')
@@ -128,9 +120,9 @@ class CamMaintenance(Frame):
         self.parent = parent
         Frame.__init__(self, parent)
 
-        self.archprof = os.getenv('ARCH_PROFILE', default='ukmda_admin')
-        conn = boto3.Session(profile_name=self.archprof)
-        s3 = conn.client('s3')
+        self.archprof = os.getenv('ADM_PROFILE', default='ukmda_maint')
+        self.conn = boto3.Session(profile_name=self.archprof)
+        s3 = self.conn.client('s3')
         self.bucket_name = os.getenv('SRCBUCKET', default='ukmda-shared')
 
         os.makedirs('jsonkeys', exist_ok=True)
@@ -142,15 +134,17 @@ class CamMaintenance(Frame):
         self.camfile = 'camera-details.csv'
         self.fullname = 'consolidated/{}'.format(self.camfile)
         self.localfile = os.path.join('caminfo', self.camfile)
-        self.statfile='stationdetails.csv'
-        self.fullstat = 'admin/'+self.statfile
-        self.locstatfile = os.path.join('caminfo', self.statfile)
+        self.ddb = self.conn.resource('dynamodb', region_name='eu-west-2')
+        try:
+            self.stationdetails = loadLocationDetails(ddb=self.ddb)
+        except Exception:
+            print('unable to get operator details - probably wrong AWS profile')
+            exit(1)
         try: 
             s3.download_file(Bucket=self.bucket_name, Key=self.fullname, Filename=self.localfile)
-            s3.download_file(Bucket=self.bucket_name, Key=self.fullstat, Filename=self.locstatfile)
-            pass
-        except:
-            print('unable to get data files, using last good files')
+        except Exception:
+            print('unable to get camera details - probably wrong AWS profile')
+            exit(1)
 
         self.caminfo = pandas.read_csv(self.localfile)
         self.caminfo = self.caminfo.sort_values(by=['active','camtype','camid'],ascending=[True,False,False])
@@ -158,7 +152,6 @@ class CamMaintenance(Frame):
         self.hdrs = self.caminfo.columns.tolist()
         self.datachanged = True
      
-        #self.parent = tk.Tk.__init__(self)
         self.parent.title('Station Maintenance')
 
         # Make menu
@@ -336,7 +329,6 @@ class CamMaintenance(Frame):
         conn = boto3.Session(profile_name=self.archprof)
         s3 = conn.client('s3')
         s3.upload_file(Bucket=self.bucket_name, Key=self.fullname, Filename=self.localfile)
-        s3.upload_file(Bucket=self.bucket_name, Key=self.fullstat, Filename=self.locstatfile)
         self.uploadCfgToServer()
 
         return 
@@ -360,7 +352,7 @@ class CamMaintenance(Frame):
         return
     
     def viewOwnerData(self):
-        statOwnerDialog(self, self.statfile)
+        statOwnerDialog(self)
         return
 
     def moveCamera(self):
@@ -372,7 +364,7 @@ class CamMaintenance(Frame):
         cr = list(cursel)[0][0]
         curdata = self.data[cr]
         camid = curdata[1]
-        lastupd = getCamUpdateDate(camid)
+        lastupd = getCamUpdateDate(camid, ddb=self.ddb)
         msg = f'{camid} last sent a live image on {lastupd}'
         tk.messagebox.showinfo(title="Information", message=msg)
         return 
@@ -385,7 +377,7 @@ class CamMaintenance(Frame):
         cursel = self.sheet.get_selected_cells()
         cr = list(cursel)[0][0]
         curdata = self.data[cr]
-        user,email = getUserDetails(self.statfile, curdata[1])
+        user,email = getUserDetails(self.stationdetails, curdata[1])
         if move is True:
             sshkey = getSSHkey(curdata[0], curdata[3])
             id = curdata[1]
@@ -406,10 +398,10 @@ class CamMaintenance(Frame):
                 outf.write(d[5])
             rowdata=[d[1],d[0],d[0],d[2],'2',d[0],'1']
             self.sheet.insert_row(values=rowdata, idx=0)
-            addNewAwsUser(location)
+            self.addNewAwsUser(location)
             createIniFile(cameraname)
             addNewUnixUser(location, cameraname, oldloc)
-            addNewOwner(self.locstatfile, rmsid, location, d[3], d[4])
+            self.addNewOwner(rmsid, location, d[3], d[4])
             self.datachanged = True
         return 
 
@@ -417,7 +409,7 @@ class CamMaintenance(Frame):
         cursel = self.sheet.get_selected_cells()
         cr = list(cursel)[0][0]
         curdata = self.data[cr]
-        user,email = getUserDetails(self.statfile, curdata[1])
+        user,email = getUserDetails(self.stationdetails, curdata[1])
         sshkey = ''
         id = ''
         title = 'Update SSH Key'
@@ -493,7 +485,7 @@ class CamMaintenance(Frame):
         cr = list(cursel)[0][0]
         curdata = self.data[cr]
         location = curdata[0]
-        createNewAwsKey(location, self.caminfo)
+        self.createNewAwsKey(location, self.caminfo)
 
     def uploadCfgToServer(self):
         server=os.getenv('HELPERIP', default='3.11.55.160')
@@ -506,7 +498,6 @@ class CamMaintenance(Frame):
         scpcli = SCPClient(c.get_transport())
         # push the raw keyfile
         scpcli.put(self.localfile, 'prod/data/consolidated/')
-        scpcli.put(self.locstatfile, 'prod/data/admin/')
         return
     
     def uploadPlatepar(self, camdets, plateparfile):
@@ -543,6 +534,73 @@ class CamMaintenance(Frame):
         for line in iter(stderr.readline, ""):
             print(line, end="")
         return
+    
+    def addNewOwner(self, rmsid, location, user, email):
+        print(f'adding new owner {user} {email} for {rmsid} at {location}')
+        newdata = {'stationid': rmsid, 'site': location, 'humanName':user, 'eMail': email}
+        deleteRow(rmsid, ddb=self.ddb)
+        addRow(newdata=newdata, ddb=self.ddb)
+        return
+
+    def addNewAwsUser(self, location):
+        print(f'adding new location {location} to AWS')
+        archkeyf = 'jsonkeys/' + location + '_arch.key'
+        archuserdets = 'users/' + location + '_arch.txt'
+        archcsvf = os.path.join('csvkeys', location + '_arch.csv')
+        os.makedirs('jsonkeys', exist_ok=True)
+        os.makedirs('csvkeys', exist_ok=True)
+        os.makedirs('users', exist_ok=True)
+
+        iamc = self.conn.client('iam')
+        sts = self.conn.client('sts')
+        acct = sts.get_caller_identity()['Account']
+        policyarn = 'arn:aws:iam::' + acct + ':policy/UkmonLive'
+        policyarn2 = 'arn:aws:iam::' + acct + ':policy/UKMDA-shared'
+        try: 
+            _ = iamc.get_user(UserName=location)
+            print('location exists, not adding it')
+            archkey = None
+        except Exception:
+            print('new location')
+            usr = iamc.create_user(UserName=location)
+            _ = iamc.attach_user_policy(UserName=location, PolicyArn=policyarn)
+            _ = iamc.attach_user_policy(UserName=location, PolicyArn=policyarn2)
+            with open(archuserdets, 'w') as outf:
+                outf.write(str(usr))
+            archkey = iamc.create_access_key(UserName=location)
+            with open(archkeyf, 'w') as outf:
+                outf.write(json.dumps(archkey, indent=4, sort_keys=True, default=str))
+            with open(archcsvf,'w') as outf:
+                outf.write('Access key ID,Secret access key\n')
+                outf.write('{},{}\n'.format(archkey['AccessKey']['AccessKeyId'], archkey['AccessKey']['SecretAccessKey']))
+        
+        if archkey is not None: 
+            createKeyFile(archkey, archkey, location)
+        return 
+
+    def createNewAwsKey(self, location, caminfo):
+        keyf = os.path.join('jsonkeys', location + '.key')
+        oldkeyf = os.path.join('jsonkeys', location + '-prev.key')
+        csvf = os.path.join('csvkeys', location + '.csv')
+        shutil.copyfile(keyf, oldkeyf)
+        currkey = json.load(open(keyf, 'r'))
+        keyid = currkey['AccessKey']['AccessKeyId']
+        print(location, keyid)
+        affectedcamlist = caminfo[caminfo.site == location]
+        for _, cam in affectedcamlist.iterrows():
+            print(cam.site.lower(), cam.sid.lower())
+        return 
+
+        iamc = self.conn.client('iam')
+        iamc.update_access_key(UserName=location, AccessKeyId=keyid, Status='Inactive')
+        key = iamc.create_access_key(UserName=location)
+        with open(keyf, 'w') as outf:
+            outf.write(json.dumps(key, indent=4, sort_keys=True, default=str))
+        with open(csvf,'w') as outf:
+            outf.write('Access key ID,Secret access key\n')
+            outf.write('{},{}\n'.format(key['AccessKey']['AccessKeyId'], key['AccessKey']['SecretAccessKey']))
+
+        return 
 
 
 def updateKeyfile(caminfo, location):
@@ -592,21 +650,6 @@ def updateKeyfile(caminfo, location):
             print(line, end="")
 
 
-def addNewOwner(locstatfile, rmsid, location, user, email):
-    print('adding new owner')
-    caminfo = pandas.read_csv(locstatfile)
-    newdata = {'camid': [rmsid], 'site': [location], 'humanName':[user], 'eMail': [email]}
-    newdf = pandas.DataFrame(newdata)
-    caminfo = caminfo.append(newdf).sort_values(by=['camid'])
-    caminfo.to_csv(locstatfile, index=False)
-
-    archprof = os.getenv('ARCH_PROFILE', default='ukmda_admin')
-    conn = boto3.Session(profile_name=archprof)
-    ddb = conn.resource('dynamodb', region_name='eu-west-2')
-    addRowToDDB(rmsid, location, ddb)
-
-    return
-
 
 def getSSHkey(loc, dir):
     server=os.getenv('HELPERIP', default='3.11.55.160')
@@ -629,16 +672,11 @@ def getSSHkey(loc, dir):
     return lis[0].strip()
 
 
-def getUserDetails(statfile, camid):
-    with open(os.path.join('caminfo', statfile),'r') as inf:
-        lis = inf.readlines()
-    print(camid)
-    for li in lis:
-        if li[:6] == camid:
-            spls = li.split(',')
-            print(li)
-            return spls[2],spls[3]
-    return '',''
+def getUserDetails(stationdetails, camid):
+    reqdf = stationdetails[stationdetails.stationid == camid]
+    if len(reqdf) == 0:
+        return '',''
+    return reqdf.eMail.iloc[0], reqdf.humanName.iloc[0]
 
 
 def addNewUnixUser(location, cameraname, oldcamname='', updatemode=0):
@@ -677,46 +715,6 @@ def addNewUnixUser(location, cameraname, oldcamname='', updatemode=0):
     return
 
 
-def addNewAwsUser(location):
-    print(f'adding new location {location} to AWS')
-    archkeyf = 'jsonkeys/' + location + '_arch.key'
-    archuserdets = 'users/' + location + '_arch.txt'
-    archcsvf = os.path.join('csvkeys', location + '_arch.csv')
-    os.makedirs('jsonkeys', exist_ok=True)
-    os.makedirs('csvkeys', exist_ok=True)
-    os.makedirs('users', exist_ok=True)
-
-    archprof = os.getenv('ARCH_PROFILE', default='ukmda_admin')
-    archconn = boto3.Session(profile_name=archprof)
-
-    iamc = archconn.client('iam')
-    sts = archconn.client('sts')
-    acct = sts.get_caller_identity()['Account']
-    policyarn = 'arn:aws:iam::' + acct + ':policy/UkmonLive'
-    policyarn2 = 'arn:aws:iam::' + acct + ':policy/UKMDA-shared'
-    try: 
-        _ = iamc.get_user(UserName=location)
-        print('location exists, not adding it')
-        archkey = None
-    except Exception:
-        print('new location')
-        usr = iamc.create_user(UserName=location)
-        _ = iamc.attach_user_policy(UserName=location, PolicyArn=policyarn)
-        _ = iamc.attach_user_policy(UserName=location, PolicyArn=policyarn2)
-        with open(archuserdets, 'w') as outf:
-            outf.write(str(usr))
-        archkey = iamc.create_access_key(UserName=location)
-        with open(archkeyf, 'w') as outf:
-            outf.write(json.dumps(archkey, indent=4, sort_keys=True, default=str))
-        with open(archcsvf,'w') as outf:
-            outf.write('Access key ID,Secret access key\n')
-            outf.write('{},{}\n'.format(archkey['AccessKey']['AccessKeyId'], archkey['AccessKey']['SecretAccessKey']))
-    
-    if archkey is not None: 
-        createKeyFile(archkey, archkey, location)
-    return 
-
-
 def createKeyFile(livekey, archkey, location):
     archbucket = os.getenv('SRCBUCKET', default='ukmda-shared')
     livebucket = os.getenv('LIVEBUCKET', default='ukmda-live')
@@ -751,31 +749,6 @@ def createIniFile(cameraname):
         outf.write(f'export UKMONHELPER={helperip}\n')
         outf.write('export UKMONKEY=~/.ssh/ukmon\n')
         outf.write('export RMSCFG=~/source/RMS/.config\n')
-    return 
-
-
-def createNewAwsKey(location, caminfo):
-    keyf = os.path.join('jsonkeys', location + '.key')
-    oldkeyf = os.path.join('jsonkeys', location + '-prev.key')
-    csvf = os.path.join('csvkeys', location + '.csv')
-    shutil.copyfile(keyf, oldkeyf)
-    currkey = json.load(open(keyf, 'r'))
-    keyid = currkey['AccessKey']['AccessKeyId']
-    print(location, keyid)
-    affectedcamlist = caminfo[caminfo.site == location]
-    for _, cam in affectedcamlist.iterrows():
-        print(cam.site.lower(), cam.sid.lower())
-    return 
-
-    iamc = boto3.client('iam')
-    iamc.update_access_key(UserName=location, AccessKeyId=keyid, Status='Inactive')
-    key = iamc.create_access_key(UserName=location)
-    with open(keyf, 'w') as outf:
-        outf.write(json.dumps(key, indent=4, sort_keys=True, default=str))
-    with open(csvf,'w') as outf:
-        outf.write('Access key ID,Secret access key\n')
-        outf.write('{},{}\n'.format(key['AccessKey']['AccessKeyId'], key['AccessKey']['SecretAccessKey']))
-
     return 
 
 
