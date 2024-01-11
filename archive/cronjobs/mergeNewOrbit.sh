@@ -33,6 +33,7 @@ if [ "$newfiles" != "" ] ; then
         aws s3 mv $UKMONSHAREDBUCKET/fireballs/uploads/$fil $UKMONSHAREDBUCKET/fireballs/uploads/processed/$fil.done
         rm $fil
     done
-else
-    echo nothing to process
+#else
+#    echo nothing to process
 fi
+find $SRC/logs -name "mergeNewOrbit*" -mtime +10 -exec rm -f {} \;
