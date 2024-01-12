@@ -21,6 +21,14 @@ if [ "$newfiles" != "" ] ; then
         mv *.pickle $orb
         cd ..
         pick=$(ls -1 $evt/$orb/*.pickle)
+        pickname=$(basename $pick)
+        origdir=$(python -c "from wmpl.Utils.Pickling import loadPickle;pick = loadPickle('${evt}/$orb','${pickname}');print(pick.output_dir)")
+        odux=$(echo $origdir | sed 's|\\|/|g')
+        pickname=$(basename $odux)
+        truncpn=${pickname:0:19}_UK
+        mv $evt/$orb $evt/$truncpn
+        orb=$truncpn
+        pick=$(ls -1 $evt/$orb/*.pickle)
         python -m maintenance.recreateOrbitPages $pick force
         ymd=${fil:0:8}
         yr=${ymd:0:4}
