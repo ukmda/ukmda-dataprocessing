@@ -401,7 +401,7 @@ class CamMaintenance(Frame):
             self.addNewAwsUser(location)
             createIniFile(cameraname)
             addNewUnixUser(location, cameraname, oldloc)
-            self.addNewOwner(rmsid, location, d[3], d[4])
+            self.addNewOwner(rmsid, location, str(d[4]), str(d[3]))
             self.datachanged = True
         return 
 
@@ -536,7 +536,7 @@ class CamMaintenance(Frame):
         return
     
     def addNewOwner(self, rmsid, location, user, email):
-        print(f'adding new owner {user} {email} for {rmsid} at {location}')
+        print(f'adding new owner {user} with {email} for {rmsid} at {location}')
         newdata = {'stationid': rmsid, 'site': location, 'humanName':user, 'eMail': email}
         deleteRow(rmsid, ddb=self.ddb)
         addRow(newdata=newdata, ddb=self.ddb)
@@ -546,7 +546,7 @@ class CamMaintenance(Frame):
         print(f'adding new location {location} to AWS')
         archkeyf = 'jsonkeys/' + location + '_arch.key'
         archuserdets = 'users/' + location + '_arch.txt'
-        archcsvf = os.path.join('csvkeys', location + '_arch.csv')
+        archcsvf = os.path.join('csvkeys', location.lower() + '_arch.csv')
         os.makedirs('jsonkeys', exist_ok=True)
         os.makedirs('csvkeys', exist_ok=True)
         os.makedirs('users', exist_ok=True)
@@ -575,7 +575,7 @@ class CamMaintenance(Frame):
                 outf.write('{},{}\n'.format(archkey['AccessKey']['AccessKeyId'], archkey['AccessKey']['SecretAccessKey']))
         
         if archkey is not None: 
-            createKeyFile(archkey, archkey, location)
+            createKeyFile(archkey, location)
         return 
 
     def createNewAwsKey(self, location, caminfo):
@@ -608,9 +608,12 @@ def updateKeyfile(caminfo, location):
     user='ec2-user'
     keyf = os.path.join('jsonkeys', location + '.key')
     currkey = json.load(open(keyf, 'r'))
-    keyid = currkey['AccessKey']['AccessKeyId']
-    secid = currkey['AccessKey']['SecretAccessKey']
-    affectedcamlist = caminfo[caminfo.site == location]
+    archcsvf = os.path.join('csvkeys', location.lower() + '_arch.csv')
+    with open(archcsvf,'w') as outf:
+        outf.write('Access key ID,Secret access key\n')
+        outf.write('{},{}\n'.format(currkey['AccessKey']['AccessKeyId'], currkey['AccessKey']['SecretAccessKey']))
+
+    affectedcamlist = caminfo[caminfo.site==location]
     keyfile = os.getenv('SSHKEY', default='ukmda_admin')
     k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
     c = paramiko.SSHClient()
@@ -619,36 +622,17 @@ def updateKeyfile(caminfo, location):
     scpcli = SCPClient(c.get_transport())
     # push the raw keyfile
     scpcli.put(keyf, 'keymgmt/rawkeys/live/')
-
+    scpcli.put(archcsvf, 'keymgmt/rawkeys/csvkeys/')
+    scpcli.close()
     for _, cam in affectedcamlist.iterrows():
         cameraname = cam.site.lower() + '_' + cam.site.lower()
-        # get live.key for the camera
-        livef=f'/var/sftp/{cameraname}/live.key'
-        localf = f'./keys/{location.lower()}.key'
-        scpcli.get(livef, localf)
-        # replace the key and secret
-        lis = open(localf, 'r').readlines()
-        newlis=[]            
-        for li in lis:
-            if 'AWS_ACCESS_KEY_ID' in li:
-                newlis.append(f'export AWS_ACCESS_KEY_ID={keyid}\n')
-            if 'AWS_SECRET_ACCESS_KEY' in li:
-                newlis.append(f'export AWS_SECRET_ACCESS_KEY={secid}\n')
-            else:
-                newlis.append(li)
-        with open(localf, 'w') as outf:
-            for li in newlis:
-                outf.write(li)
-        # reupload it to the central loc
-        scpcli.put(localf, 'keymgmt/live/')
-        command = f'sudo cp keymgmt/live/{location.lower()}.key /var/sftp/{cameraname}/'
-        print(f'running {command}')
-        _, stdout, stderr = c.exec_command(command, timeout=10)
-        for line in iter(stdout.readline, ""):
-            print(line, end="")
-        for line in iter(stderr.readline, ""):
-            print(line, end="")
-
+        keyfile = os.path.join('sshkeys', cameraname + '.pub')
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = cameraname, pkey = k)
+        scpcli = SCPClient(c.get_transport())
+        scpcli.put(archcsvf, '.')
 
 
 def getSSHkey(loc, dir):
@@ -694,6 +678,7 @@ def addNewUnixUser(location, cameraname, oldcamname='', updatemode=0):
     scpcli = SCPClient(c.get_transport())
     scpcli.put(os.path.join('sshkeys', cameraname + '.pub'), 'keymgmt/sshkeys/')
     scpcli.put(os.path.join('keys', location.lower() + '.key'), 'keymgmt/keys/')
+    scpcli.put(os.path.join('csvkeys', location.lower() + '_arch.csv'), 'keymgmt/csvkeys/')
     scpcli.put(os.path.join('inifs', cameraname + '.ini'), 'keymgmt/inifs/')
     command = f'/home/{user}/keymgmt/addSftpUser.sh {cameraname} {location} {updatemode} {oldcamname}'
     print(f'running {command}')
@@ -715,7 +700,7 @@ def addNewUnixUser(location, cameraname, oldcamname='', updatemode=0):
     return
 
 
-def createKeyFile(livekey, archkey, location):
+def createKeyFile(archkey, location):
     archbucket = os.getenv('SRCBUCKET', default='ukmda-shared')
     livebucket = os.getenv('LIVEBUCKET', default='ukmda-live')
     webbucket = os.getenv('WEBSITEBUCKET', default='ukmda-website')
@@ -723,10 +708,6 @@ def createKeyFile(livekey, archkey, location):
     os.makedirs('keys', exist_ok=True)
     outf = 'keys/' + location.lower() + '.key'
     with open(outf, 'w') as ouf:
-        ouf.write(f"export AWS_ACCESS_KEY_ID={archkey['AccessKey']['AccessKeyId']}\n")
-        ouf.write(f"export AWS_SECRET_ACCESS_KEY={archkey['AccessKey']['SecretAccessKey']}\n")
-        ouf.write(f"export LIVE_ACCESS_KEY_ID={livekey['AccessKey']['AccessKeyId']}\n")
-        ouf.write(f"export LIVE_SECRET_ACCESS_KEY={livekey['AccessKey']['SecretAccessKey']}\n")
         ouf.write('export AWS_DEFAULT_REGION=eu-west-1\n')
         ouf.write(f'export CAMLOC="{location}"\n')
         ouf.write(f'export S3FOLDER="archive/{location}/"\n')
