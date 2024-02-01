@@ -19,6 +19,35 @@ from scp import SCPClient
 from camTable import addRow, getCamUpdateDate, deleteRow, loadLocationDetails
 
 
+class srcResBox(tk.Toplevel):
+    def __init__(self, title, message):
+        tk.Toplevel.__init__(self)
+        self.details_expanded = False
+        self.title(title)
+        self.geometry('600x250')
+        self.minsize(700, 250)
+        self.maxsize(700, 550)
+        self.rowconfigure(0, weight=0)
+        self.rowconfigure(1, weight=1)
+        self.columnconfigure(0, weight=1)
+
+        button_frame = tk.Frame(self)
+        button_frame.grid(row=0, column=0, sticky='nsew')
+        button_frame.columnconfigure(0, weight=1)
+        button_frame.columnconfigure(1, weight=1)
+
+        text_frame = tk.Frame(self)
+        text_frame.grid(row=1, column=0, padx=(7, 7), pady=(7, 7), sticky='nsew')
+        text_frame.rowconfigure(0, weight=1)
+        text_frame.columnconfigure(0, weight=1)
+
+        self.textbox = tk.Text(text_frame, height=6)
+        self.textbox.insert('1.0', message)
+        self.textbox.grid(row=0, column=0, sticky='nsew')
+        self.geometry('700x550')
+        self.details_expanded = True
+
+
 class infoDialog(simpledialog.Dialog):
     def __init__(self, parent, title, location, user, email, sshkey='', id=''):
         self.data = []
@@ -179,6 +208,7 @@ class CamMaintenance(Frame):
 
         ownMenu = Menu(self.menuBar, tearoff=0)
         ownMenu.add_command(label = "View Owner Data", command = self.viewOwnerData)
+        ownMenu.add_command(label = "Search Data", command = self.searchOwnerData)
 
         self.menuBar.add_cascade(label="File", underline=0, menu=fileMenu)
         self.menuBar.add_cascade(label="Camera", underline=0, menu=camMenu)
@@ -353,6 +383,22 @@ class CamMaintenance(Frame):
     
     def viewOwnerData(self):
         statOwnerDialog(self)
+        return
+
+    def searchOwnerData(self):
+        srchstring = simpledialog.askstring("Some_Name", "Search String",parent=root) 
+        #print(srchstring)
+        statdets = self.stationdetails
+        #print(statdets.keys())
+        s1 = statdets[statdets.stationid.str.contains(srchstring)]
+        s2 = statdets[statdets.eMail.str.contains(srchstring)]
+        s3 = statdets[statdets.humanName.str.contains(srchstring)]
+        s4 = statdets[statdets.site.str.contains(srchstring)]
+        srchres = s1.append(s2).append(s3).append(s4)
+        msgtext = ''
+        for _, li in srchres.iterrows():
+            msgtext = msgtext + f'{li.stationid:10s}{li.site:20s}{li.eMail:30s}{li.humanName:20s}\n'
+        srcResBox(title="Results", message=msgtext)
         return
 
     def moveCamera(self):
