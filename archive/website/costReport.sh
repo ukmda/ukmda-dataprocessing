@@ -27,13 +27,6 @@ if [ $# -gt 1 ] ; then numdays = $1 ; fi
 
 mkdir  -p $DATADIR/costs > /dev/null 
 
-#export AWS_PROFILE=Mark
-#python -m metrics.costMetrics $DATADIR/costs eu-west-2 $numdays
-
-#export AWS_PROFILE=realukms
-#python -m metrics.costMetrics $DATADIR/costs eu-west-2 $numdays
-#unset AWS_PROFILE
-
 export AWS_PROFILE=ukmonshared
 logger -s -t costReport "getting data for $numdays for $AWS_PROFILE"
 python -m metrics.costMetrics $DATADIR/costs eu-west-2 $numdays
@@ -47,15 +40,10 @@ fi
 cp $DATADIR/costs/costs-*-90-days.jpg $DATADIR/reports
 
 costfile=$DATADIR/reports/costs.html
-#imgfile=/reports/costs-317976261112-90-days.jpg
-#imgfile2=/reports/costs-822069317839-90-days.jpg
 imgfile3=/reports/costs-183798037734-90-days.jpg
 
-#v1=$(cat $DATADIR/costs/costs-317976261112-last.csv)
-#v2=$(cat $DATADIR/costs/costs-822069317839-last.csv)
 v3=$(cat $DATADIR/costs/costs-183798037734-last.csv)
 
-#lastfullcost=$(echo $v1 + $v2 + $v3 | bc)
 lastfullcost=$v3
 
 cp $TEMPLATES/header.html $costfile
@@ -64,8 +52,6 @@ echo "<p>This page shows daily running costs by service of the Archive and Calcu
 echo "in USD. <br> " >> $costfile
 echo "The last complete day's cost is \$${lastfullcost}" >> $costfile
 echo "</p><p>" >> $costfile
-#echo "<a href=$imgfile><img src=$imgfile width=100%></a><br>" >> $costfile
-#echo "<a href=$imgfile2><img src=$imgfile2 width=100%></a><br>" >> $costfile
 echo "<a href=$imgfile3><img src=$imgfile3 width=100%></a><br>" >> $costfile
 
 if [ -f $DATADIR/shwrinfo/costnotes.html ] ; then 
@@ -76,10 +62,19 @@ fi
 
 cat $TEMPLATES/footer.html >> $costfile
 
+finreps=$(aws s3 ls $WEBSITEBUCKET/docs/financial/ | awk '{print $4}')
+frjs=$DATADIR/reports/docindex.js
+echo "\$(function() { var table = document.createElement(\"table\");" > $frjs
+echo "table.className = \"table table-striped table-bordered table-hover table-condensed w-100\";" >> $frjs
+echo "table.setAttribute(\"id\", \"fbtableid\");" >> $frjs
+for fr in $finreps ; do
+    echo "var row = table.insertRow(-1); var cell = row.insertCell(0);" >> $frjs
+    echo "cell.innerHTML = \"<a href=/docs/financial/$fr>$fr</a>\";" >> $frjs   
+done 
+echo "var outer_div = document.getElementById(\"docindex\"); outer_div.appendChild(table); })" >> $frjs
+
 logger -s -t costReport "publishing data"
 aws s3 cp $costfile $WEBSITEBUCKET/reports/ --quiet --profile ukmonshared
-#aws s3 cp $DATADIR/$imgfile $WEBSITEBUCKET/reports/ --quiet 
-#aws s3 cp $DATADIR/$imgfile2 $WEBSITEBUCKET/reports/ --quiet --profile ukmonshared
 aws s3 cp $DATADIR/$imgfile3 $WEBSITEBUCKET/reports/ --quiet --profile ukmonshared
-
+aws s3 cp $frjs $WEBSITEBUCKET/docs/ --quiet --profile ukmonshared
 logger -s -t costReport "done"
