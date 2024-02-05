@@ -74,6 +74,7 @@ done
 echo "var outer_div = document.getElementById(\"docindex\"); outer_div.appendChild(table); })" >> $frjs
 
 logger -s -t costReport "publishing data"
+aws s3 sync $DATADIR/costs/ $WEBSITEBUCKET/docs/financial/raw/ --exclude "*" --include "costs-18*.csv" --quiet --profile ukmonshared
 aws s3 cp $costfile $WEBSITEBUCKET/reports/ --quiet --profile ukmonshared
 aws s3 cp $DATADIR/$imgfile3 $WEBSITEBUCKET/reports/ --quiet --profile ukmonshared
 aws s3 cp $frjs $WEBSITEBUCKET/docs/ --quiet --profile ukmonshared
