@@ -4,6 +4,8 @@ import pandas as pd
 import datetime
 from boto3.dynamodb.conditions import Key
 
+from reports.CameraDetails import loadLocationDetails
+
 
 def findSite(stationid, tbl):
     response = tbl.query(KeyConditionExpression=Key('stationid').eq(stationid))
@@ -59,7 +61,7 @@ def ftpsAfterBatchStart(batchtime=None, archbucket='ukmda-shared'):
     ddb = sess.resource('dynamodb', region_name='eu-west-2')
     tbl = ddb.Table('camdetails')
     lateftps['location'] = [findSite(c,tbl) for c in lateftps.camid]
-    camdets = pd.read_csv(os.path.join(datadir, 'admin','stationdetails.csv'))
+    camdets = loadLocationDetails()
     lateftps['owner'] = [findEmail(c,camdets) for c in lateftps.camid]
     lateftps = lateftps.sort_values(by=['owner','camid'])
     lateftps.to_csv(os.path.join(datadir, 'lateftps.csv'), index=True)
