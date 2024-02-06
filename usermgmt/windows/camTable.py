@@ -77,17 +77,3 @@ def getCamUpdateDate(camid, ddb=None):
         return int(resp['Items'][0]['CaptureNight'])
     else:
         return 0
-
-
-"""
-def backPopulate():
-    ddb = boto3.resource('dynamodb', region_name='eu-west-2') 
-    with open('f:/videos/meteorcam/ukmondata/admin/stationdetails.csv') as inf:
-        lis = inf.readlines()
-    for li in lis:
-        if 'camid,site' in li:
-            continue
-        spls = li.strip().split(',')
-        newdata = {'stationid': spls[0], 'site': spls[1], 'humanName':spls[2], 'eMail': spls[3]}
-        addRow(newdata=newdata, ddb=ddb)
-"""

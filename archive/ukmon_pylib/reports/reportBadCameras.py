@@ -8,6 +8,7 @@ import sys
 import pandas as pd
 import datetime
 import textwrap
+from reports.CameraDetails import loadLocationDetails
 
 from meteortools.utils import sendAnEmail
 
@@ -68,7 +69,7 @@ if __name__ == '__main__':
     """)
 
     mailmsg = ''
-    camowners = pd.read_csv(os.path.join(datadir, 'admin', 'stationdetails.csv'))
+    camowners = loadLocationDetails()
     camowners = camowners.rename(columns={'camid':'stationid'})
     dts = pd.read_csv(os.path.join(datadir,'reports','camuploadtimes.csv'), index_col=False)
     dts['tcol']=[t.zfill(6) for t in dts.uploadtime.map(str)]

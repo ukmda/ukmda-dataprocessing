@@ -10,7 +10,7 @@ import boto3
 import shutil
 import datetime
 import os
-import pandas
+import pandas as pd
 import paramiko
 import json 
 import time
@@ -175,7 +175,7 @@ class CamMaintenance(Frame):
             print('unable to get camera details - probably wrong AWS profile')
             exit(1)
 
-        self.caminfo = pandas.read_csv(self.localfile)
+        self.caminfo = pd.read_csv(self.localfile)
         self.caminfo = self.caminfo.sort_values(by=['active','camtype','camid'],ascending=[True,False,False])
         self.data = self.caminfo.values.tolist()
         self.hdrs = self.caminfo.columns.tolist()
@@ -352,7 +352,7 @@ class CamMaintenance(Frame):
         bkpfile = '{}.{}'.format(self.camfile, datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
         shutil.copy(self.localfile, os.path.join('caminfo', bkpfile))
 
-        newdf = pandas.DataFrame(self.data, columns=self.hdrs)
+        newdf = pd.DataFrame(self.data, columns=self.hdrs)
         newdf = newdf.sort_values(by=['active','camtype','camid'],ascending=[True,False,True])
         newdf.to_csv(self.localfile, index=False)
 
@@ -394,7 +394,7 @@ class CamMaintenance(Frame):
         s2 = statdets[statdets.eMail.str.contains(srchstring)]
         s3 = statdets[statdets.humanName.str.contains(srchstring)]
         s4 = statdets[statdets.site.str.contains(srchstring)]
-        srchres = s1.append(s2).append(s3).append(s4)
+        srchres = pd.concat([s1, s2, s3, s4])
         msgtext = ''
         for _, li in srchres.iterrows():
             msgtext = msgtext + f'{li.stationid:10s}{li.site:20s}{li.eMail:30s}{li.humanName:20s}\n'
