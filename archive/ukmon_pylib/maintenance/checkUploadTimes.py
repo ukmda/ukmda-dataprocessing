@@ -2,31 +2,8 @@ import os
 import boto3
 import pandas as pd
 import datetime
-from boto3.dynamodb.conditions import Key
 
-from reports.CameraDetails import loadLocationDetails
-
-
-def findSite(stationid, tbl):
-    response = tbl.query(KeyConditionExpression=Key('stationid').eq(stationid))
-    try:
-        items = response['Items']
-        if len(items) > 0:
-            return items[0]['site']
-        else:
-            return 'unknown'
-    except Exception:
-        print('record not found')
-    return None
-
-
-def findEmail(stationid, camdets):
-    cc = camdets[camdets.camid==stationid]
-    if len(cc) > 0:
-        res = cc.iloc[0]['eMail']
-    else:
-        res = 'Unknown'
-    return res
+from reports.CameraDetails import loadLocationDetails, findSite, findEmail
 
 
 def findLatestFTPs(dtstr='20230813', archbucket='ukmda-shared'):
@@ -59,10 +36,9 @@ def ftpsAfterBatchStart(batchtime=None, archbucket='ukmda-shared'):
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
     sess = boto3.Session(profile_name='ukmonshared')
     ddb = sess.resource('dynamodb', region_name='eu-west-2')
-    tbl = ddb.Table('camdetails')
-    lateftps['location'] = [findSite(c,tbl) for c in lateftps.camid]
-    camdets = loadLocationDetails()
-    lateftps['owner'] = [findEmail(c,camdets) for c in lateftps.camid]
+    camdets = loadLocationDetails(ddb=ddb)
+    lateftps['location'] = [findSite(c, camdets) for c in lateftps.camid]
+    lateftps['owner'] = [findEmail(c, camdets) for c in lateftps.camid]
     lateftps = lateftps.sort_values(by=['owner','camid'])
     lateftps.to_csv(os.path.join(datadir, 'lateftps.csv'), index=True)
     return lateftps

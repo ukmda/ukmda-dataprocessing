@@ -30,8 +30,14 @@ log2cw $NJLOGGRP $NJLOGSTREAM "updating the camera location/dir/fov database" ni
 python -c "from reports.CameraDetails import updateCamLocDirFovDB; updateCamLocDirFovDB();"
 aws s3 cp $DATADIR/admin/cameraLocs.json $UKMONSHAREDBUCKET/admin/ --profile ukmonshared --quiet
 aws s3 sync $UKMONSHAREDBUCKET/admin/ $DATADIR/admin --profile ukmonshared --quiet
+
+# create the CSV file of camera info, and the html versions for search functions on the website
+log2cw $NJLOGGRP $NJLOGSTREAM "updating the camera details files for searching" nightlyJob
 python -c "from reports.CameraDetails import createCDCsv; createCDCsv('consolidated');"
-aws s3 sync $DATADIR/consolidated/ $UKMONSHAREDBUCKET/consolidated/  --exclude "*" --include "camera-details.csv" --profile ukmonshared --quiet
+aws s3 cp $DATADIR/consolidated/camera-details.csv $UKMONSHAREDBUCKET/consolidated/ --profile ukmonshared --quiet
+aws s3 cp $DATADIR/statopts.html $WEBSITEBUCKET/search/ --profile ukmonshared --quiet
+aws s3 cp $DATADIR/activestatopts.html $WEBSITEBUCKET/search/ --profile ukmonshared --quiet
+aws s3 cp $DATADIR/activestatlocs.html $WEBSITEBUCKET/search/ --profile ukmonshared --quiet
 
 # run this only once as it scoops up all unprocessed data
 log2cw $NJLOGGRP $NJLOGSTREAM "start findAllMatches" nightlyJob
