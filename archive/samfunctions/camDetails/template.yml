@@ -6,29 +6,25 @@ Resources:
   camDetails:
     Type: AWS::Serverless::Function
     Properties:
-      PackageType: Image
-      Architectures:
-        - x86_64
+      Handler: camDetails.lambda_handler
+      Runtime: python3.8
       FunctionName: camDetails
-      Description: API backend that manages cameras
+      Description: API backend that retrieves camera details
       Timeout: 30
-      MemorySize: 512
-      Environment:
-        Variables:
-          ARCHBUCKET: ukmda-shared
-          MPLCONFIGDIR: /tmp/mpl
-      Tags:
-        billingtag: "ukmon"
-      Role: arn:aws:iam::822069317839:role/service-role/S3FullAccess
+      Policies: [AmazonS3ReadOnlyAccess, AmazonDynamoDBReadOnlyAccess]
+      MemorySize: 128
       Events:
         HttpGet:
           Type: Api
           Properties:
             Path: '/camdetails'
             Method: get
+            RequestParameters: 
+              - method.request.querystring.camid:
+                  Required: true
+      Tags:
+        billingtag: "ukmda"
+        typetag: "api"
     Metadata:
       BuildMethod: python3.8
-      Dockerfile: Dockerfile
-      DockerContext: ./pythoncode
-      DockerTag: python3.8-v1
 
