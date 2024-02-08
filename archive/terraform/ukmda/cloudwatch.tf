@@ -65,8 +65,8 @@ resource "aws_cloudwatch_log_group" "nightlyjob" {
   }
 }
 
-resource "aws_cloudwatch_log_group" "matches" {
-  name = "/ukmonbatch/matches"
+resource "aws_cloudwatch_log_group" "devnightly" {
+  name = "/ukmondev/nightlyjob"
   retention_in_days = 60
   tags = {
     "billingtag" = "ukmda"

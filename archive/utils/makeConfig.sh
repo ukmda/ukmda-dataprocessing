@@ -19,6 +19,7 @@ WMPL_LOC=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_wmplhome
 SERVERINSTANCEID=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_calcinstance --query Parameters[0].Value  | tr -d '"')
 BKPINSTANCEID=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_backupinstance --query Parameters[0].Value  | tr -d '"')
 SERVERSSHKEY=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_sshkey --query Parameters[0].Value  | tr -d '"')
+NJLOGGRP=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_batchloggroup --query Parameters[0].Value  | tr -d '"')
 
 # hardcoded
 PYLIB=$SRC/ukmon_pylib
@@ -60,6 +61,7 @@ echo "MATCHEND=${MATCHEND}" >> ${CFGFILE}
 echo "SERVERSSHKEY=${SERVERSSHKEY}" >> ${CFGFILE}
 echo "APIKEY=${APIKEY}" >> ${CFGFILE}
 echo "KMLTEMPLATE=${KMLTEMPLATE}" >> ${CFGFILE}
+echo "NJLOGGRP=${NJLOGGRP}" >> ${CFGFILE}
 echo "" >> ${CFGFILE}
 echo "export RUNTIME_ENV SRC SITEURL" >> ${CFGFILE}
 echo "export WEBSITEBUCKET UKMONSHAREDBUCKET" >> ${CFGFILE}
@@ -67,7 +69,14 @@ echo "export PYLIB TEMPLATES RCODEDIR DATADIR BKPINSTANCEID AWS_DEFAULT_REGION" 
 echo "export RMS_ENV RMS_LOC WMPL_ENV WMPL_LOC" >> ${CFGFILE}
 echo "export PYTHONPATH=${RMS_LOC}:${WMPL_LOC}:${PYLIB}:${SRC}/share" >> ${CFGFILE}
 echo "export MATCHSTART MATCHEND SERVERSSHKEY" >> ${CFGFILE}
-echo "export APIKEY KMLTEMPLATE SERVERINSTANCEID" >> ${CFGFILE}
+echo "export APIKEY KMLTEMPLATE SERVERINSTANCEID NJLOGGRP" >> ${CFGFILE}
 echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/local/geos/lib:/usr/local/proj4/lib" >> ${CFGFILE}
+# enable miniconda
 echo "source ~/.condaon" >> ${CFGFILE}
+# function to log to cloudwatch
+echo 'function log2cw() { ' >> ${CFGFILE}
+echo 'aws logs put-log-events --log-group-name $1 --log-stream-name $2 --log-events "[{\"timestamp\": $(date +%s%3N), \"message\": \"$3\"}]" --profile ukmonshared > /dev/null ' >> ${CFGFILE}
+echo 'logger -s -t $4 RUNTIME $SECONDS $3' >> ${CFGFILE}
+echo '}' >> ${CFGFILE}
+
 
