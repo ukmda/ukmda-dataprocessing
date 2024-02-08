@@ -11,7 +11,7 @@
 
 """
 To use this function, first create the candidate pickle files, then copy them to the candidates
-folder on the calcserver and submit themto the distributed processing engine with the following:
+folder on the calcserver and submit them to the distributed processing engine with the following:
 
 source $here/../config.ini >/dev/null 2>&1
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
@@ -29,7 +29,7 @@ merge in the data
 
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-logger -s -t onlyConsolDistrib "RUNTIME $SECONDS starting onlyConsolDistrib"
+logger -s -t onlyConsolDistrib "starting onlyConsolDistrib"
 
 # load the configuration
 source $here/../config.ini >/dev/null 2>&1
@@ -44,7 +44,7 @@ if [ "$1" == "" ] ; then
 else
     rundate=$1
 fi 
-logger -s -t onlyConsolDistrib "RUNTIME $SECONDS consolidating for $rundate"
+logger -s -t onlyConsolDistrib "consolidating for $rundate"
 
 python -c "from traj.distributeCandidates import monitorProgress as mp; mp('${rundate}'); "
 
@@ -61,12 +61,12 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
 
     numtoconsol=$(ls -1 $DATADIR/distrib/${rundate}*.json | wc -l)
     if [ $numtoconsol -gt 5 ] ; then 
-        logger -s -t onlyConsolDistrib "RUNTIME $SECONDS restarting calcserver to consolidate results"
+        logger -s -t onlyConsolDistrib "restarting calcserver to consolidate results"
         stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text --profile ukmonshared)
         if [ $stat -eq 80 ]; then 
             aws ec2 start-instances --instance-ids $SERVERINSTANCEID --profile ukmonshared
         fi
-        logger -s -t onlyConsolDistrib "RUNTIME $SECONDS waiting for the server to be ready"
+        logger -s -t onlyConsolDistrib "waiting for the server to be ready"
         while [ "$stat" -ne 16 ]; do
             sleep 30
             if [ $stat -eq 80 ]; then 
@@ -106,7 +106,7 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
     # push the updated traj db to the S3 bucket
     aws s3 cp $DATADIR/distrib/processed_trajectories.json $UKMONSHAREDBUCKET/matches/distrib/ --quiet
 
-    logger -s -t runDistrib "RUNTIME $SECONDS compressing the procssed data"
+    logger -s -t onlyConsolDistrib "compressing the procssed data"
     gzip < $DATADIR/distrib/processed_trajectories.json > $DATADIR/trajdb/processed_trajectories.json.${rundate}.gz
     aws s3 mv $UKMONSHAREDBUCKET/matches/distrib/${rundate}.pickle $DATADIR/distrib --quiet
     tar czvf $DATADIR/distrib/${rundate}.tgz $DATADIR/distrib/${rundate}*.json $DATADIR/distrib/${rundate}.pickle
@@ -119,3 +119,4 @@ fi
 python -m reports.reportOfLatestMatches $DATADIR/distrib $DATADIR $MATCHEND $rundate processed_trajectories.json
 dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
 $SRC/website/updateIndexPages.sh $dailyrep
+logger -s -t onlyConsolDistrib "finished"
