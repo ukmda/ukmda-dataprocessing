@@ -3,7 +3,7 @@
 from tksheet import Sheet
 import tkinter as tk
 from tkinter import ttk
-from tkinter import messagebox, Frame, Menu
+from tkinter import Frame, Menu
 from tkinter import simpledialog
 from tkinter.filedialog import askopenfilename
 import boto3
@@ -16,7 +16,7 @@ import json
 import time
 from scp import SCPClient
 
-from camTable import addRow, getCamUpdateDate, deleteRow, loadLocationDetails
+from camTable import addRow, getCamUpdateDate, deleteRow, loadLocationDetails, findLocationInfo
 
 
 class srcResBox(tk.Toplevel):
@@ -151,7 +151,6 @@ class CamMaintenance(Frame):
 
         self.archprof = os.getenv('ADM_PROFILE', default='ukmda_maint')
         self.conn = boto3.Session(profile_name=self.archprof)
-        s3 = self.conn.client('s3')
         self.bucket_name = os.getenv('SRCBUCKET', default='ukmda-shared')
 
         os.makedirs('jsonkeys', exist_ok=True)
@@ -160,26 +159,16 @@ class CamMaintenance(Frame):
         os.makedirs('inifs', exist_ok=True)
         os.makedirs('sshkeys', exist_ok=True)
 
-        self.camfile = 'camera-details.csv'
-        self.fullname = 'consolidated/{}'.format(self.camfile)
-        self.localfile = os.path.join('caminfo', self.camfile)
         self.ddb = self.conn.resource('dynamodb', region_name='eu-west-2')
         try:
             self.stationdetails = loadLocationDetails(ddb=self.ddb)
         except Exception:
             print('unable to get operator details - probably wrong AWS profile')
             exit(1)
-        try: 
-            s3.download_file(Bucket=self.bucket_name, Key=self.fullname, Filename=self.localfile)
-        except Exception:
-            print('unable to get camera details - probably wrong AWS profile')
-            exit(1)
-
-        self.caminfo = pd.read_csv(self.localfile)
-        self.caminfo = self.caminfo.sort_values(by=['active','camtype','camid'],ascending=[True,False,False])
-        self.data = self.caminfo.values.tolist()
-        self.hdrs = self.caminfo.columns.tolist()
-        self.datachanged = True
+        tmpdf = self.stationdetails[['site','stationid','direction','camtype','active','humanName','eMail','oldcode']]
+        tmpdf = tmpdf.sort_values(by=['active','site','stationid'], ascending=[True,True,True])
+        self.data = tmpdf.values.tolist()
+        self.hdrs = tmpdf.columns.tolist()
      
         self.parent.title('Station Maintenance')
 
@@ -194,7 +183,7 @@ class CamMaintenance(Frame):
         camMenu = Menu(self.menuBar, tearoff=0)
         camMenu.add_command(label = "Add Camera", command = self.addCamera)
         camMenu.add_command(label = "Relocate Camera", command = self.moveCamera)
-        camMenu.add_command(label = "Remove Camera", command = self.delCamera)
+        camMenu.add_command(label = "Deactivate Camera", command = self.delCamera)
         camMenu.add_separator()
         camMenu.add_command(label = "Remove Location", command = self.delOperator)
         camMenu.add_separator()
@@ -232,23 +221,23 @@ class CamMaintenance(Frame):
             width = 700) 
 
         self.sheet.enable_bindings(("single_select", 
-                                         "drag_select", 
+                                    "drag_select", 
                                     "select_all",
-                                         "column_width_resize",
-                                         "double_click_column_resize",
-                                         "row_width_resize",
-                                         "column_height_resize",
-                                         "arrowkeys",
-                                         "row_height_resize",
-                                         "double_click_row_resize",
-                                         "right_click_popup_menu",
-                                         "rc_delete_row",
-                                         "copy",
-                                         "cut",
-                                         "paste",
-                                         "delete",
-                                         "undo",
-                                         "edit_cell"
+                                    "column_width_resize",
+                                    "double_click_column_resize",
+                                    "row_width_resize",
+                                    "column_height_resize",
+                                    "arrowkeys",
+                                    "row_height_resize",
+                                    "double_click_row_resize",
+                                    "right_click_popup_menu",
+                                    "rc_delete_row",
+                                    "copy",
+                                    "cut",
+                                    "paste",
+                                    "delete",
+                                    "undo",
+                                    "edit_cell"
                                     ))
         self.sheet.popup_menu_add_command("Sort by this Column", self.columns_sort)
 
@@ -259,11 +248,11 @@ class CamMaintenance(Frame):
 
         self.sheet.set_all_column_widths()
 
-        self.sheet.extra_bindings("begin_edit_cell", self.begin_edit_cell)
-        self.sheet.extra_bindings("end_edit_cell", self.end_edit_cell)
-        self.sheet.extra_bindings("end_delete_rows", self.end_delete_rows)
-        self.sheet.extra_bindings("column_select", self.column_select)
-        self.sheet.extra_bindings([("all_select_events", self.all_extra_bindings)])
+        #self.sheet.extra_bindings("end_delete_rows", self.end_delete_rows)
+        #self.sheet.extra_bindings("column_select", self.column_select)
+        self.sheet.extra_bindings([("all_select_events", self.all_extra_bindings),
+                                   ("begin_edit_cell", self.begin_edit_cell),
+                                   ("end_edit_cell", self.end_edit_cell)])
 
         self.sheet.popup_menu_add_command('Sort', self.columns_sort, table_menu = False, index_menu = False)
 
@@ -279,21 +268,25 @@ class CamMaintenance(Frame):
 
     def begin_edit_cell(self, event):
         self.oldval = self.data[event[0]][event[1]]
-        # print(event)   # event[2] is keystroke
-        #return event[2] # return value is the text to be put into cell edit window
         return self.oldval
 
     def end_edit_cell(self, event):
-        self.newval = self.data[event[0]][event[1]]
-        if self.newval != self.oldval and self.datachanged is False: 
-            self.datachanged = True
-
+        #print(event)
+        if event[3] != self.oldval: 
+            data = self.data[event[0]]
+            data[event[1]] = event[3]
+            newdata = {'stationid': data[1], 'site': data[0], 'humanName':data[5], 'eMail': data[6], 
+                    'direction': data[2], 'camtype': str(data[3]), 'active': str(data[4]), 'oldcode': data[1]}
+            addRow(newdata, ddb=self.ddb)
+        return event[3]
+    
     def end_delete_rows(self, event):
-        self.datachanged = True
+        #print(event)
+        pass
 
     def window_resized(self, event):
-        pass
         #print(event)
+        pass
 
     def mouse_motion(self, event):
         pass
@@ -364,16 +357,11 @@ class CamMaintenance(Frame):
         return 
 
     def on_closing(self):
-        if self.datachanged is True:
-            if messagebox.askyesno("Quit", "Do you want to save changes?"):
-                self.doSaveChanges()
         self.destroy()
         self.parent.quit()
         self.parent.destroy()
 
     def delCamera(self):
-        # TODO : when active marked zero, find and deactivate corresponding row in stationdetails. 
-        #        needs an active flag in that file
         tk.messagebox.showinfo(title="Information", message='To remove a camera, set Active=current date yyyymmdd')
         return
 
@@ -387,14 +375,7 @@ class CamMaintenance(Frame):
 
     def searchOwnerData(self):
         srchstring = simpledialog.askstring("Some_Name", "Search String",parent=root) 
-        #print(srchstring)
-        statdets = self.stationdetails
-        #print(statdets.keys())
-        s1 = statdets[statdets.stationid.str.contains(srchstring)]
-        s2 = statdets[statdets.eMail.str.contains(srchstring)]
-        s3 = statdets[statdets.humanName.str.contains(srchstring)]
-        s4 = statdets[statdets.site.str.contains(srchstring)]
-        srchres = pd.concat([s1, s2, s3, s4])
+        srchres = findLocationInfo(srchstring, self.stationdetails)
         msgtext = ''
         for _, li in srchres.iterrows():
             msgtext = msgtext + f'{li.stationid:10s}{li.site:20s}{li.eMail:30s}{li.humanName:20s}\n'
@@ -423,12 +404,13 @@ class CamMaintenance(Frame):
         cursel = self.sheet.get_selected_cells()
         cr = list(cursel)[0][0]
         curdata = self.data[cr]
-        user,email = getUserDetails(self.stationdetails, curdata[1])
+        user = curdata[5]
+        email = curdata[6]
         if move is True:
-            sshkey = getSSHkey(curdata[0], curdata[3])
+            sshkey = getSSHkey(curdata[0], curdata[2])
             id = curdata[1]
             title = 'Move Camera'
-            oldloc = curdata[0].lower() + '_' + curdata[3].lower()
+            oldloc = curdata[0].lower() + '_' + curdata[2].lower()
         else:
             sshkey = ''
             id = ''
@@ -442,13 +424,12 @@ class CamMaintenance(Frame):
             cameraname = d[1].lower() + '_' + d[2].lower()
             with open(os.path.join('sshkeys', cameraname + '.pub'), 'w') as outf:
                 outf.write(d[5])
-            rowdata=[d[1],d[0],d[0],d[2],'2',d[0],'1']
+            rowdata=[d[1],d[0],d[2],'2','1',d[3],d[4],d[0]]
             self.sheet.insert_row(values=rowdata, idx=0)
             self.addNewAwsUser(location)
             createIniFile(cameraname)
             addNewUnixUser(location, cameraname, oldloc)
-            self.addNewOwner(rmsid, location, str(d[4]), str(d[3]))
-            self.datachanged = True
+            self.addNewOwner(rmsid, location, str(d[4]), str(d[3]), str(d[2]), '2','1')
         return 
 
     def newSSHKey(self):
@@ -531,7 +512,7 @@ class CamMaintenance(Frame):
         cr = list(cursel)[0][0]
         curdata = self.data[cr]
         location = curdata[0]
-        self.createNewAwsKey(location, self.caminfo)
+        self.createNewAwsKey(location, self.stationdetails)
 
     def uploadCfgToServer(self):
         server=os.getenv('HELPERIP', default='3.11.55.160')
@@ -581,9 +562,10 @@ class CamMaintenance(Frame):
             print(line, end="")
         return
     
-    def addNewOwner(self, rmsid, location, user, email):
+    def addNewOwner(self, rmsid, location, user, email, direction, camtype, active):
         print(f'adding new owner {user} with {email} for {rmsid} at {location}')
-        newdata = {'stationid': rmsid, 'site': location, 'humanName':user, 'eMail': email}
+        newdata = {'stationid': rmsid, 'site': location, 'humanName':user, 'eMail': email, 
+                   'direction': direction, 'camtype': camtype, 'active': active, 'oldcode': rmsid}
         deleteRow(rmsid, ddb=self.ddb)
         addRow(newdata=newdata, ddb=self.ddb)
         return
