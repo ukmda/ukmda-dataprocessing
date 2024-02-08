@@ -50,9 +50,6 @@ $SRC/analysis/consolidateOutput.sh ${yr}
 log2cw $NJLOGGRP $NJLOGSTREAM "start createSearchable pass 2" nightlyJob 
 $SRC/analysis/createSearchable.sh $yr matches
 
-log2cw $NJLOGGRP $NJLOGSTREAM "start createStationList" nightlyJob 
-$SRC/website/createStationList.sh
-
 # add daily report to the website
 log2cw $NJLOGGRP $NJLOGSTREAM "start publishDailyReport" nightlyJob 
 $SRC/website/createStationList.sh
