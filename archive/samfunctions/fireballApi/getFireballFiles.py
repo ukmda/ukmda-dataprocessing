@@ -6,25 +6,17 @@ import boto3
 import os
 import datetime 
 import json
+from boto3.dynamodb.conditions import Key
 
 
-def _getCamLoc(camid):
-    s3 = boto3.client('s3', region_name='eu-west-2')
-    tmpdir = os.getenv('TMP', default='/tmp')
-    localf = os.path.join(tmpdir, 'camera-details.csv')
-    buck = os.getenv('ARCHBUCKET', default='ukmda-shared')
-    s3.download_file(buck, 'consolidated/camera-details.csv', localf)
-    camdets = open(localf, 'r').readlines()
-    os.remove(localf)
-    mtchs = [cam for cam in camdets if camid in cam]
-    if len(mtchs) == 0:
-        return None
-    for li in mtchs:
-        spls = li.split(',')
-        active = int(spls[-1].strip())
-        if active == 1:
-            return spls[0] + '/' + spls[1]
-    return None
+def _getCamLoc(stationid):
+    ddb = boto3.resource('dynamodb', region_name='eu-west-2') 
+    table = ddb.Table('camdetails')
+    res = table.query(KeyConditionExpression=Key('stationid').eq(stationid))
+    if res['Count'] > 0:
+        return res['Items'][0]['site']
+    else:
+        return False
 
 
 def getFBfiles(patt):
@@ -87,7 +79,7 @@ def getFBfiles(patt):
     # specimen FITS files where available (useful for calibration)
     dtstr = patt.split('_')[1]
     camloc = _getCamLoc(camid)
-    fullpatt = f'archive/{camloc}/{dtstr[:4]}/{dtstr[:6]}/{dtstr}/FF_{camid}'
+    fullpatt = f'archive/{camloc}/{camid}/{dtstr[:4]}/{dtstr[:6]}/{dtstr}/FF_{camid}'
     x = s3.list_objects_v2(Bucket=buck_name,Prefix=fullpatt)
     if x['KeyCount'] > 0:
         for k in x['Contents']:

@@ -11,7 +11,7 @@ Resources:
       FunctionName: fetchECSV
       Description: API backend that retrieves an ECSV file for a detection
       Timeout: 30
-      Policies: AmazonS3ReadOnlyAccess
+      Policies: [AmazonS3ReadOnlyAccess, AmazonDynamoDBReadOnlyAccess]
       Environment:
         Variables:
           ARCHBUCKET: ukmda-shared

@@ -17,7 +17,7 @@ Resources:
       FunctionName: getFireballFiles
       Description: API backend that retrieves fireball files matching a pattern if available
       Timeout: 120
-      Policies: AmazonS3ReadOnlyAccess
+      Policies: [AmazonS3ReadOnlyAccess, AmazonDynamoDBReadOnlyAccess]
       Environment:
         Variables:
           ARCHBUCKET: ukmda-shared

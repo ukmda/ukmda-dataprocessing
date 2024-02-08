@@ -79,38 +79,3 @@ def getCamUpdateDate(camid, ddb=None):
         return int(resp['Items'][0]['CaptureNight'])
     else:
         return 0
-
-   
-def mergeTables():
-    # one off to merge in the CSV file
-    conn = boto3.Session(profile_name='ukmda_maint')
-    s3 = conn.client('s3')
-    ddb = conn.resource('dynamodb', region_name='eu-west-2')
-    locationdets = loadLocationDetails(ddb=ddb, loadall=True)
-    camfile = 'consolidated/camera-details.csv'
-    localfile = 'c:/temp/camera-details.csv'
-    s3.download_file(Bucket='ukmda-shared', Key=camfile, Filename=localfile)
-    caminfo = pd.read_csv(localfile)
-    locationdets = locationdets[locationdets.direction.isna()]
-    for _,rw in locationdets.iterrows():
-        #print('ddb:', rw.stationid, rw.site, rw.eMail, rw.humanName, rw.direction, rw.camtype, rw.active, rw.oldcode)
-        thiscam = caminfo[caminfo.dummycode==rw.stationid]
-        if len(thiscam) > 1:
-            thiscam = thiscam[caminfo.active==1]
-        if len(thiscam) == 1:
-            csvdata = thiscam.iloc[0]
-            em = str(rw.eMail)
-            if em == 'nan':
-                em = 'unknown@unknown'
-            hn = str(rw.humanName)
-            if hn == 'nan':
-                hn = 'unknown'
-            direc = str(csvdata.sid)
-            if direc == 'nan':
-                direc = ''
-            newdata = {'stationid': rw.stationid, 'site': rw.site, 'humanName':hn, 'eMail': em, 
-                    'direction': direc, 'camtype': str(csvdata.camtype), 'active': str(csvdata.active), 'oldcode': csvdata.dummycode}
-            print(newdata)
-            addRow(newdata, ddb=ddb)
-        else:
-            print(f'csv: {len(thiscam)} matches for {rw.stationid}')

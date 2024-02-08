@@ -10,6 +10,7 @@ from matplotlib import pyplot as plt
 import shutil
 import datetime
 import boto3
+from reports.CameraDetails import loadLocationDetails
 
 SMALL_SIZE = 8
 MEDIUM_SIZE = 10
@@ -291,11 +292,12 @@ if __name__ == '__main__':
     matchcols = ['_Y_ut','_M_ut','_mag','_mjd','mjd','_stream','orbname','stations']
     snglcols = ['ID','Shwr','Dtstamp','Ver', 'M', 'Y']
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-    cifile = os.path.join(datadir,'consolidated','camera-details.csv')
-    
+    conn = boto3.Session(profile_name='ukmonshared')
+    ddb = conn.resource('dynamodb', region_name='eu-west-2') 
+    camlist = loadLocationDetails(ddb=ddb)
+   
     sngl = pd.read_parquet(os.path.join(datadir, 'single', f'singles-{yr}.parquet.snap'), columns=snglcols)
     mful = pd.read_parquet(os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.snap'), columns=matchcols)
-    camlist = pd.read_csv(cifile)
 
     sngl = sngl[sngl['Y']==int(yr)] # just in case there's some pollution in the database
     mful = mful[mful['_Y_ut']==int(yr)] 
