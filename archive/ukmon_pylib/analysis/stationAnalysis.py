@@ -292,9 +292,7 @@ if __name__ == '__main__':
     matchcols = ['_Y_ut','_M_ut','_mag','_mjd','mjd','_stream','orbname','stations']
     snglcols = ['ID','Shwr','Dtstamp','Ver', 'M', 'Y']
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-    conn = boto3.Session(profile_name='ukmonshared')
-    ddb = conn.resource('dynamodb', region_name='eu-west-2') 
-    camlist = loadLocationDetails(ddb=ddb)
+    camlist = loadLocationDetails()
    
     sngl = pd.read_parquet(os.path.join(datadir, 'single', f'singles-{yr}.parquet.snap'), columns=snglcols)
     mful = pd.read_parquet(os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.snap'), columns=matchcols)
@@ -310,8 +308,7 @@ if __name__ == '__main__':
     for loc in locs: 
         camlistfltr = camlist[camlist.site == loc]
         camlistfltr = camlistfltr[camlistfltr.active == 1]
-        # use dummycode here to find data for both UFO and RMS cams
-        idlist = list(camlistfltr.dummycode) 
+        idlist = list(camlistfltr.stationid) 
 
         if mth is None:
             sampleinterval="1M"

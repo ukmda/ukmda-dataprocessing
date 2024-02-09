@@ -41,7 +41,9 @@ def updateCamLocDirFovDB(datadir=None):
 
 def loadLocationDetails(table='camdetails', ddb=None, loadall=False):
     if not ddb:
-        ddb = boto3.resource('dynamodb', region_name='eu-west-2')
+        prof = os.getenv('UKMPROFILE',default='ukmonshared')
+        conn = boto3.Session(profile_name=prof)
+        ddb = conn.resource('dynamodb', region_name='eu-west-2') 
     table = ddb.Table(table)
     res = table.scan()
     # strictly, should check for LastEvaluatedKey here, in case there was more than 1MB of data,
@@ -70,9 +72,7 @@ def findLocationInfo(srchstring, ddb=None, statdets=None):
 
 
 def createCDCsv(targetloc):
-    sess = boto3.Session(profile_name='ukmonshared')
-    ddb = sess.resource('dynamodb', region_name='eu-west-2')
-    camdets = loadLocationDetails(ddb=ddb)
+    camdets = loadLocationDetails()
     cd4csv = camdets[['site','stationid','oldcode','direction','camtype','active']]
     pd.options.mode.chained_assignment = None
     cd4csv['dummycode'] = camdets.stationid

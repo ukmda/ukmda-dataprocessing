@@ -19,9 +19,7 @@ from reports.CameraDetails import findSite, loadLocationDetails
 
 def processLocalFolder(trajdir, basedir):
     # load camera details
-    conn = boto3.Session(profile_name='ukmonshared')
-    ddb = conn.resource('dynamodb', region_name='eu-west-2') 
-    caminfo = loadLocationDetails(ddb=ddb)
+    caminfo = loadLocationDetails()
     caminfo = caminfo[caminfo.active==1]
 
     bestvmag, shwr, stationids = getVMagCodeAndStations(trajdir)
@@ -66,9 +64,7 @@ def findNewMatches(dir_path, out_path, offset, repdtstr, dbname):
     prevdbname = 'prev_' + dbname
     newdirs = getListOfNewMatches(dir_path, dbname, prevdbname)
     # load camera details
-    conn = boto3.Session(profile_name='ukmonshared')
-    ddb = conn.resource('dynamodb', region_name='eu-west-2') 
-    caminfo = loadLocationDetails(ddb=ddb)
+    caminfo = loadLocationDetails()
     caminfo = caminfo[caminfo.active==1]
 
     if repdtstr is not None:

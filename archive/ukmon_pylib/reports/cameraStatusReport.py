@@ -7,7 +7,6 @@ import os
 from reports.CameraDetails import loadLocationDetails
 import datetime
 import pandas as pd 
-import boto3
 
 
 def getLastUpdateDate(datadir=None, camfname=None):
@@ -20,9 +19,7 @@ def getLastUpdateDate(datadir=None, camfname=None):
         includenever (bool) default false, include cameras that have never uploaded
         
     """
-    conn = boto3.Session(profile_name='ukmonshared')
-    ddb = conn.resource('dynamodb', region_name='eu-west-2') 
-    caminfo = loadLocationDetails(ddb=ddb)
+    caminfo = loadLocationDetails()
     caminfo = caminfo[caminfo.active==1]
 
     caminfo = caminfo.drop(columns=['direction','oldcode','active','camtype','eMail', 'humanName'])
