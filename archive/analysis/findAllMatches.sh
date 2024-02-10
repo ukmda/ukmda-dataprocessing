@@ -5,7 +5,7 @@
 # then copy the results to the Archive website. 
 # Parameters:
 #   optional start and end days back to process. 
-#   If not supplied, the environment vaNJLOGGRPriables MATCHSTART and MATCHEND are used
+#   If not supplied, the environment variables MATCHSTART and MATCHEND are used
 #
 # Consumes:
 #   All UFO and RMS single-station data (ftpdetect, platepars_all and A.xml files)
