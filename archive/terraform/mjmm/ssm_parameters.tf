@@ -109,3 +109,13 @@ resource "aws_ssm_parameter" "prod_sshkey" {
     "billingtag" = "ukmon"
   }
 }
+
+resource "aws_ssm_parameter" "prod_batchloggroup" {
+  name  = "prod_batchloggroup"
+  type  = "String"
+  value = "/ukmonbatch/nightlyjob"
+  tags = {
+    "billingtag" = "ukmon"
+  }
+}
+

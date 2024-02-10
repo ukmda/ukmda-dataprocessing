@@ -3,19 +3,16 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
 Resources:
-  fetchECSV:
+  camDetails:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: fetchECSV.lambda_handler
+      Handler: camDetails.lambda_handler
       Runtime: python3.8
-      FunctionName: fetchECSV
-      Description: API backend that retrieves an ECSV file for a detection
+      FunctionName: camDetails
+      Description: API backend that retrieves camera details
       Timeout: 30
       Policies: [AmazonS3ReadOnlyAccess, AmazonDynamoDBReadOnlyAccess]
-      Environment:
-        Variables:
-          ARCHBUCKET: ukmda-shared
-          MPLCONFIGDIR: /tmp/mpl
+      MemorySize: 128
       Events:
         HttpGet:
           Type: Api
@@ -23,12 +20,11 @@ Resources:
             Path: '/'
             Method: get
             RequestParameters: 
-              - method.request.querystring.stat:
-                  Required: true
-              - method.request.querystring.dt: 
+              - method.request.querystring.camid:
                   Required: true
       Tags:
         billingtag: "ukmda"
         typetag: "api"
     Metadata:
       BuildMethod: python3.8
+

@@ -4,7 +4,7 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 
 import os
-import reports.CameraDetails as cd
+from reports.CameraDetails import loadLocationDetails
 import datetime
 import pandas as pd 
 
@@ -19,22 +19,22 @@ def getLastUpdateDate(datadir=None, camfname=None):
         includenever (bool) default false, include cameras that have never uploaded
         
     """
-    camdets = cd.SiteInfo(fname=camfname)
-    cams = camdets.getActiveCameras()
-    caminfo = cams.drop(columns=['lid','sid','camtype','dummycode','active'])
-    caminfo.rename(columns={'site':'Site', 'camid':'stationid'}, inplace=True)
+    caminfo = loadLocationDetails()
+    caminfo = caminfo[caminfo.active==1]
+
+    caminfo = caminfo.drop(columns=['direction','oldcode','active','camtype','eMail', 'humanName'])
+    caminfo.rename(columns={'site':'Site'}, inplace=True)
     if datadir is None:
         datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-    fldrlist = pd.read_csv(os.path.join(datadir,'reports','camuploadtimes.csv'), index_col=False)
+    tmplist = pd.read_csv(os.path.join(datadir,'reports','camuploadtimes.csv'), index_col=False)
 
-    now = datetime.datetime.now()
-    fldrlist['isactive'] = [camdets.checkCameraActive(f) for f in fldrlist.stationid]
-    fldrlist = fldrlist[fldrlist.isactive]
+    fldrlist = pd.merge(tmplist, caminfo, on=['stationid'], how='inner')
+    nowdt = datetime.datetime.now()
     fldrlist.rundate.fillna(fldrlist.upddate.astype(str) + '_' + fldrlist.uploadtime.astype(str).str.pad(width=6,fillchar='0'), inplace=True)
     fldrlist['dtstamp'] = [datetime.datetime.strptime(f,'%Y%m%d_%H%M%S') for f in fldrlist.rundate]
     fldrlist = fldrlist.sort_values(by=['stationid','dtstamp'])
     fldrlist.drop_duplicates(keep='last', subset=['stationid'], inplace=True)
-    fldrlist['lateness'] = [(now - f) for f in fldrlist.dtstamp]
+    fldrlist['lateness'] = [(nowdt - f) for f in fldrlist.dtstamp]
 
     # create a colour column
     fldrlist = fldrlist.assign(colour=fldrlist.rundate)
@@ -47,12 +47,8 @@ def getLastUpdateDate(datadir=None, camfname=None):
     fldrlist.loc[fldrlist.lateness > datetime.timedelta(days=365), 'colour'] = 'mediumpurple'
 
     # drop unused columns
-    fldrlist = fldrlist.drop(columns=['lateness','dtstamp','isactive','manual', 'upddate','uploadtime'])
-
-    # now add the site name
-    fldrlist = fldrlist.merge(caminfo, on=['stationid'])
+    fldrlist = fldrlist.drop(columns=['lateness','dtstamp','manual', 'upddate','uploadtime'])
     fldrlist = fldrlist.sort_values(by=['Site','stationid'])
-    
     return fldrlist
 
 

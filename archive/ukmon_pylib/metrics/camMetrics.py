@@ -11,7 +11,7 @@ from boto3.dynamodb.conditions import Key
 import pandas as pd
 import datetime
 
-import reports.CameraDetails as cd
+from reports.CameraDetails import loadLocationDetails
 
 
 def addRowCamTimings(s3bucket, s3object, ftpname, ddb=None):
@@ -150,7 +150,7 @@ if __name__ == '__main__':
 
     ddb = boto3.resource('dynamodb', region_name='eu-west-2') 
     if os.path.isfile('/sys/devices/virtual/dmi/id/board_asset_tag'):  # crude check for EC2
-        print('asset tag file exists')
+        #print('asset tag file exists')
         lis = open('/sys/devices/virtual/dmi/id/board_asset_tag').readlines()
         if 'i-' in lis[0]:
             sts_client = boto3.client('sts')
@@ -177,13 +177,13 @@ if __name__ == '__main__':
         fulldf = newdata
     fulldf.to_csv(outfile, index=False)
 
-    camdets = cd.SiteInfo()
-    cams = camdets.getActiveCameras()
-    sep = ['_'] * len(cams)
+    camlist = loadLocationDetails(ddb=ddb)
+    camlist=camlist[camlist.active==1]
+    sep = ['_'] * len(camlist)
     pd.options.mode.chained_assignment = None  # default='warn'
-    cams['stationid'] = (cams.site + sep + cams.sid).str.lower()
+    camlist['location'] = (camlist.site + sep + camlist.direction).str.lower()    
     pd.options.mode.chained_assignment = 'warn'
-    caminfo = cams.drop(columns=['site','lid','sid','active','camtype','dummycode'])
+    caminfo = camlist.drop(columns=['site','direction','oldcode','active','camtype','eMail', 'humanName'])
 
     logindf = pd.read_csv(os.path.join(datadir, 'reports', 'lastlogins.txt'), names=['dateval','timeval','siteid'], skipinitialspace=True)
     logindf['timeval'] = logindf.timeval.astype('str').str.pad(6,fillchar='0')
@@ -198,20 +198,19 @@ if __name__ == '__main__':
     logindf.loc[logindf.lastseen > nowdt, 'lastseen'] = logindf.lastseen2
     logindf = logindf.sort_values(by=['lastseen'])
     logindf.drop_duplicates(subset=['siteid'], inplace=True, keep='last')
-    logindf.rename(columns={'siteid':'stationid'}, inplace=True)
+    logindf.rename(columns={'siteid':'location'}, inplace=True)
     logindf.drop(columns = ['lastseen2'], inplace=True)
 
     # create a merged dataframe with siteid and stationid
-    intdf = pd.merge(logindf,caminfo, on=['stationid'], how='outer')
-    fulldf.rename(columns={'stationid':'camid'}, inplace=True)
+    intdf = pd.merge(logindf,caminfo, on=['location'], how='outer')
 
-    df = pd.merge(intdf, fulldf, on=['camid'])
+    df = pd.merge(intdf, fulldf, on=['stationid'])
     df.dateval.fillna('Jan-01',inplace=True)
     df.timeval.fillna('00:00:00',inplace=True)
     df['uploadtime']=df.uploadtime.astype("str").str.pad(6,fillchar="0")
     df['lastupload']=df.upddate.astype('str') + '_' +df.uploadtime
     df.lastupload = [datetime.datetime.strptime(x, '%Y%m%d_%H%M%S') for x in df.lastupload]
-    df = df.drop(columns=['timeval','camid','manual','rundate', 'upddate','uploadtime', 'dateval'])
+    df = df.drop(columns=['timeval','stationid','manual','rundate', 'upddate','uploadtime', 'dateval'])
     df['dateval']=[x.strftime('%b-%d') for x in df.lastupload]
     df = df.sort_values(by=['lastupload'])
 
@@ -228,4 +227,4 @@ if __name__ == '__main__':
                 lastseen = rw.lastseen.strftime('%b-%d %H:%M:%S')
             if lastseen == 'Jan-01 00:00:00':
                 lastseen = '> 1 month'
-            outf.write(f'{dtval}, {lastup}, {rw.stationid:20s}, {lastseen}\n')
+            outf.write(f'{dtval}, {lastup}, {rw.location:20s}, {lastseen}\n')

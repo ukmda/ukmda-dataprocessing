@@ -13,8 +13,7 @@ targdate = datetime.datetime(2023,5,12)
 
 
 def test_createStatusReportJSfile():
-    camfile = os.path.join(datadir, 'consolidated', 'camera-details.csv')
-    stati = getLastUpdateDate(datadir, camfile)
+    stati = getLastUpdateDate(datadir)
     assert 'UK0006' in list(stati.stationid)
     createStatusReportJSfile(stati, datadir)
     csvf = os.path.join(datadir, 'reports', 'camrep.js')

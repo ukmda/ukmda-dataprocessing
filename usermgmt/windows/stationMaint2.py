@@ -3,21 +3,49 @@
 from tksheet import Sheet
 import tkinter as tk
 from tkinter import ttk
-from tkinter import messagebox, Frame, Menu
+from tkinter import Frame, Menu
 from tkinter import simpledialog
 from tkinter.filedialog import askopenfilename
 import boto3
 import shutil
 import datetime
 import os
-import pandas
+import pandas as pd
 import paramiko
 import json 
 import time
 from scp import SCPClient
 
-from camTable import addRow as addRowToDDB
-from camTable import getCamUpdateDate
+from camTable import addRow, getCamUpdateDate, deleteRow, loadLocationDetails, findLocationInfo
+
+
+class srcResBox(tk.Toplevel):
+    def __init__(self, title, message):
+        tk.Toplevel.__init__(self)
+        self.details_expanded = False
+        self.title(title)
+        self.geometry('600x250')
+        self.minsize(700, 250)
+        self.maxsize(700, 550)
+        self.rowconfigure(0, weight=0)
+        self.rowconfigure(1, weight=1)
+        self.columnconfigure(0, weight=1)
+
+        button_frame = tk.Frame(self)
+        button_frame.grid(row=0, column=0, sticky='nsew')
+        button_frame.columnconfigure(0, weight=1)
+        button_frame.columnconfigure(1, weight=1)
+
+        text_frame = tk.Frame(self)
+        text_frame.grid(row=1, column=0, padx=(7, 7), pady=(7, 7), sticky='nsew')
+        text_frame.rowconfigure(0, weight=1)
+        text_frame.columnconfigure(0, weight=1)
+
+        self.textbox = tk.Text(text_frame, height=6)
+        self.textbox.insert('1.0', message)
+        self.textbox.grid(row=0, column=0, sticky='nsew')
+        self.geometry('700x550')
+        self.details_expanded = True
 
 
 class infoDialog(simpledialog.Dialog):
@@ -33,7 +61,6 @@ class infoDialog(simpledialog.Dialog):
         super().__init__(parent, title)    
 
     def body(self, frame):
-        # print(type(frame)) # tkinter.Frame
         self.camid_label = tk.Label(frame, width=25, text="RMS ID")
         self.camid_label.pack()
         self.camid_box = tk.Entry(frame, width=25)
@@ -79,7 +106,6 @@ class infoDialog(simpledialog.Dialog):
         self.destroy()
 
     def cancel_pressed(self):
-        # print("cancel")
         self.data[0] = ''
         self.destroy()
 
@@ -93,26 +119,21 @@ class infoDialog(simpledialog.Dialog):
 
 
 class statOwnerDialog(simpledialog.Dialog):
-    def __init__(self, parent, statfile):
-        self.statfile = statfile
+    def __init__(self, parent):
+        self.stationdetails = parent.stationdetails
         self.parent = parent
         super().__init__(parent, 'Owner Info')    
     
     def body(self, frame):
         columns = ('#1','#2','#3','#4')
-        print(columns)
         tree = ttk.Treeview(frame, columns=columns, show='headings')
         tree.heading('#1', text='camid')
         tree.heading('#2', text='site')
-        tree.heading('#3', text='humanName')
-        tree.heading('#4', text='email')
+        tree.heading('#3', text='email')
+        tree.heading('#4', text='humanName')
         contacts = []
-        with open(os.path.join('caminfo', self.statfile),'r') as inf:
-            _ = inf.readline() # skip header
-            lis=inf.readlines()
-            for li in lis:
-                spls = li.split(',')
-                contacts.append((spls[0], spls[1], spls[2], spls[3]))
+        for _, li in self.stationdetails.iterrows():
+            contacts.append((li['stationid'], li['site'], li['eMail'], li['humanName']))
         for contact in contacts:
             tree.insert('', tk.END, values=contact)
         tree.grid(row=0, column=0, sticky='nsew')
@@ -128,9 +149,8 @@ class CamMaintenance(Frame):
         self.parent = parent
         Frame.__init__(self, parent)
 
-        self.archprof = os.getenv('ARCH_PROFILE', default='ukmda_admin')
-        conn = boto3.Session(profile_name=self.archprof)
-        s3 = conn.client('s3')
+        self.archprof = os.getenv('ADM_PROFILE', default='ukmda_maint')
+        self.conn = boto3.Session(profile_name=self.archprof)
         self.bucket_name = os.getenv('SRCBUCKET', default='ukmda-shared')
 
         os.makedirs('jsonkeys', exist_ok=True)
@@ -139,26 +159,17 @@ class CamMaintenance(Frame):
         os.makedirs('inifs', exist_ok=True)
         os.makedirs('sshkeys', exist_ok=True)
 
-        self.camfile = 'camera-details.csv'
-        self.fullname = 'consolidated/{}'.format(self.camfile)
-        self.localfile = os.path.join('caminfo', self.camfile)
-        self.statfile='stationdetails.csv'
-        self.fullstat = 'admin/'+self.statfile
-        self.locstatfile = os.path.join('caminfo', self.statfile)
-        try: 
-            s3.download_file(Bucket=self.bucket_name, Key=self.fullname, Filename=self.localfile)
-            s3.download_file(Bucket=self.bucket_name, Key=self.fullstat, Filename=self.locstatfile)
-            pass
-        except:
-            print('unable to get data files, using last good files')
-
-        self.caminfo = pandas.read_csv(self.localfile)
-        self.caminfo = self.caminfo.sort_values(by=['active','camtype','camid'],ascending=[True,False,False])
-        self.data = self.caminfo.values.tolist()
-        self.hdrs = self.caminfo.columns.tolist()
-        self.datachanged = True
+        self.ddb = self.conn.resource('dynamodb', region_name='eu-west-2')
+        try:
+            self.stationdetails = loadLocationDetails(ddb=self.ddb)
+        except Exception:
+            print('unable to get operator details - probably wrong AWS profile')
+            exit(1)
+        tmpdf = self.stationdetails[['site','stationid','direction','camtype','active','humanName','eMail','oldcode']]
+        tmpdf = tmpdf.sort_values(by=['active','site','stationid'], ascending=[True,True,True])
+        self.data = tmpdf.values.tolist()
+        self.hdrs = tmpdf.columns.tolist()
      
-        #self.parent = tk.Tk.__init__(self)
         self.parent.title('Station Maintenance')
 
         # Make menu
@@ -172,7 +183,7 @@ class CamMaintenance(Frame):
         camMenu = Menu(self.menuBar, tearoff=0)
         camMenu.add_command(label = "Add Camera", command = self.addCamera)
         camMenu.add_command(label = "Relocate Camera", command = self.moveCamera)
-        camMenu.add_command(label = "Remove Camera", command = self.delCamera)
+        camMenu.add_command(label = "Deactivate Camera", command = self.delCamera)
         camMenu.add_separator()
         camMenu.add_command(label = "Remove Location", command = self.delOperator)
         camMenu.add_separator()
@@ -186,6 +197,7 @@ class CamMaintenance(Frame):
 
         ownMenu = Menu(self.menuBar, tearoff=0)
         ownMenu.add_command(label = "View Owner Data", command = self.viewOwnerData)
+        ownMenu.add_command(label = "Search Data", command = self.searchOwnerData)
 
         self.menuBar.add_cascade(label="File", underline=0, menu=fileMenu)
         self.menuBar.add_cascade(label="Camera", underline=0, menu=camMenu)
@@ -209,23 +221,23 @@ class CamMaintenance(Frame):
             width = 700) 
 
         self.sheet.enable_bindings(("single_select", 
-                                         "drag_select", 
+                                    "drag_select", 
                                     "select_all",
-                                         "column_width_resize",
-                                         "double_click_column_resize",
-                                         "row_width_resize",
-                                         "column_height_resize",
-                                         "arrowkeys",
-                                         "row_height_resize",
-                                         "double_click_row_resize",
-                                         "right_click_popup_menu",
-                                         "rc_delete_row",
-                                         "copy",
-                                         "cut",
-                                         "paste",
-                                         "delete",
-                                         "undo",
-                                         "edit_cell"
+                                    "column_width_resize",
+                                    "double_click_column_resize",
+                                    "row_width_resize",
+                                    "column_height_resize",
+                                    "arrowkeys",
+                                    "row_height_resize",
+                                    "double_click_row_resize",
+                                    "right_click_popup_menu",
+                                    "rc_delete_row",
+                                    "copy",
+                                    "cut",
+                                    "paste",
+                                    "delete",
+                                    "undo",
+                                    "edit_cell"
                                     ))
         self.sheet.popup_menu_add_command("Sort by this Column", self.columns_sort)
 
@@ -236,11 +248,11 @@ class CamMaintenance(Frame):
 
         self.sheet.set_all_column_widths()
 
-        self.sheet.extra_bindings("begin_edit_cell", self.begin_edit_cell)
-        self.sheet.extra_bindings("end_edit_cell", self.end_edit_cell)
-        self.sheet.extra_bindings("end_delete_rows", self.end_delete_rows)
-        self.sheet.extra_bindings("column_select", self.column_select)
-        self.sheet.extra_bindings([("all_select_events", self.all_extra_bindings)])
+        #self.sheet.extra_bindings("end_delete_rows", self.end_delete_rows)
+        #self.sheet.extra_bindings("column_select", self.column_select)
+        self.sheet.extra_bindings([("all_select_events", self.all_extra_bindings),
+                                   ("begin_edit_cell", self.begin_edit_cell),
+                                   ("end_edit_cell", self.end_edit_cell)])
 
         self.sheet.popup_menu_add_command('Sort', self.columns_sort, table_menu = False, index_menu = False)
 
@@ -256,21 +268,25 @@ class CamMaintenance(Frame):
 
     def begin_edit_cell(self, event):
         self.oldval = self.data[event[0]][event[1]]
-        # print(event)   # event[2] is keystroke
-        #return event[2] # return value is the text to be put into cell edit window
         return self.oldval
 
     def end_edit_cell(self, event):
-        self.newval = self.data[event[0]][event[1]]
-        if self.newval != self.oldval and self.datachanged is False: 
-            self.datachanged = True
-
+        #print(event)
+        if event[3] != self.oldval: 
+            data = self.data[event[0]]
+            data[event[1]] = event[3]
+            newdata = {'stationid': data[1], 'site': data[0], 'humanName':data[5], 'eMail': data[6], 
+                    'direction': data[2], 'camtype': str(data[3]), 'active': str(data[4]), 'oldcode': data[1]}
+            addRow(newdata, ddb=self.ddb)
+        return event[3]
+    
     def end_delete_rows(self, event):
-        self.datachanged = True
+        #print(event)
+        pass
 
     def window_resized(self, event):
-        pass
         #print(event)
+        pass
 
     def mouse_motion(self, event):
         pass
@@ -329,29 +345,23 @@ class CamMaintenance(Frame):
         bkpfile = '{}.{}'.format(self.camfile, datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
         shutil.copy(self.localfile, os.path.join('caminfo', bkpfile))
 
-        newdf = pandas.DataFrame(self.data, columns=self.hdrs)
+        newdf = pd.DataFrame(self.data, columns=self.hdrs)
         newdf = newdf.sort_values(by=['active','camtype','camid'],ascending=[True,False,True])
         newdf.to_csv(self.localfile, index=False)
 
         conn = boto3.Session(profile_name=self.archprof)
         s3 = conn.client('s3')
         s3.upload_file(Bucket=self.bucket_name, Key=self.fullname, Filename=self.localfile)
-        s3.upload_file(Bucket=self.bucket_name, Key=self.fullstat, Filename=self.locstatfile)
         self.uploadCfgToServer()
 
         return 
 
     def on_closing(self):
-        if self.datachanged is True:
-            if messagebox.askyesno("Quit", "Do you want to save changes?"):
-                self.doSaveChanges()
         self.destroy()
         self.parent.quit()
         self.parent.destroy()
 
     def delCamera(self):
-        # TODO : when active marked zero, find and deactivate corresponding row in stationdetails. 
-        #        needs an active flag in that file
         tk.messagebox.showinfo(title="Information", message='To remove a camera, set Active=current date yyyymmdd')
         return
 
@@ -360,7 +370,16 @@ class CamMaintenance(Frame):
         return
     
     def viewOwnerData(self):
-        statOwnerDialog(self, self.statfile)
+        statOwnerDialog(self)
+        return
+
+    def searchOwnerData(self):
+        srchstring = simpledialog.askstring("Some_Name", "Search String",parent=root) 
+        srchres = findLocationInfo(srchstring, self.stationdetails)
+        msgtext = ''
+        for _, li in srchres.iterrows():
+            msgtext = msgtext + f'{li.stationid:10s}{li.site:20s}{li.eMail:30s}{li.humanName:20s}\n'
+        srcResBox(title="Results", message=msgtext)
         return
 
     def moveCamera(self):
@@ -372,7 +391,7 @@ class CamMaintenance(Frame):
         cr = list(cursel)[0][0]
         curdata = self.data[cr]
         camid = curdata[1]
-        lastupd = getCamUpdateDate(camid)
+        lastupd = getCamUpdateDate(camid, ddb=self.ddb)
         msg = f'{camid} last sent a live image on {lastupd}'
         tk.messagebox.showinfo(title="Information", message=msg)
         return 
@@ -385,12 +404,13 @@ class CamMaintenance(Frame):
         cursel = self.sheet.get_selected_cells()
         cr = list(cursel)[0][0]
         curdata = self.data[cr]
-        user,email = getUserDetails(self.statfile, curdata[1])
+        user = curdata[5]
+        email = curdata[6]
         if move is True:
-            sshkey = getSSHkey(curdata[0], curdata[3])
+            sshkey = getSSHkey(curdata[0], curdata[2])
             id = curdata[1]
             title = 'Move Camera'
-            oldloc = curdata[0].lower() + '_' + curdata[3].lower()
+            oldloc = curdata[0].lower() + '_' + curdata[2].lower()
         else:
             sshkey = ''
             id = ''
@@ -404,20 +424,19 @@ class CamMaintenance(Frame):
             cameraname = d[1].lower() + '_' + d[2].lower()
             with open(os.path.join('sshkeys', cameraname + '.pub'), 'w') as outf:
                 outf.write(d[5])
-            rowdata=[d[1],d[0],d[0],d[2],'2',d[0],'1']
+            rowdata=[d[1],d[0],d[2],'2','1',d[3],d[4],d[0]]
             self.sheet.insert_row(values=rowdata, idx=0)
-            addNewAwsUser(location)
+            self.addNewAwsUser(location)
             createIniFile(cameraname)
             addNewUnixUser(location, cameraname, oldloc)
-            addNewOwner(self.locstatfile, rmsid, location, d[3], d[4])
-            self.datachanged = True
+            self.addNewOwner(rmsid, location, str(d[4]), str(d[3]), str(d[2]), '2','1')
         return 
 
     def newSSHKey(self):
         cursel = self.sheet.get_selected_cells()
         cr = list(cursel)[0][0]
         curdata = self.data[cr]
-        user,email = getUserDetails(self.statfile, curdata[1])
+        user,email = getUserDetails(self.stationdetails, curdata[1])
         sshkey = ''
         id = ''
         title = 'Update SSH Key'
@@ -493,7 +512,7 @@ class CamMaintenance(Frame):
         cr = list(cursel)[0][0]
         curdata = self.data[cr]
         location = curdata[0]
-        createNewAwsKey(location, self.caminfo)
+        self.createNewAwsKey(location, self.stationdetails)
 
     def uploadCfgToServer(self):
         server=os.getenv('HELPERIP', default='3.11.55.160')
@@ -506,7 +525,6 @@ class CamMaintenance(Frame):
         scpcli = SCPClient(c.get_transport())
         # push the raw keyfile
         scpcli.put(self.localfile, 'prod/data/consolidated/')
-        scpcli.put(self.locstatfile, 'prod/data/admin/')
         return
     
     def uploadPlatepar(self, camdets, plateparfile):
@@ -543,6 +561,74 @@ class CamMaintenance(Frame):
         for line in iter(stderr.readline, ""):
             print(line, end="")
         return
+    
+    def addNewOwner(self, rmsid, location, user, email, direction, camtype, active):
+        print(f'adding new owner {user} with {email} for {rmsid} at {location}')
+        newdata = {'stationid': rmsid, 'site': location, 'humanName':user, 'eMail': email, 
+                   'direction': direction, 'camtype': camtype, 'active': active, 'oldcode': rmsid}
+        deleteRow(rmsid, ddb=self.ddb)
+        addRow(newdata=newdata, ddb=self.ddb)
+        return
+
+    def addNewAwsUser(self, location):
+        print(f'adding new location {location} to AWS')
+        archkeyf = 'jsonkeys/' + location + '_arch.key'
+        archuserdets = 'users/' + location + '_arch.txt'
+        archcsvf = os.path.join('csvkeys', location.lower() + '_arch.csv')
+        os.makedirs('jsonkeys', exist_ok=True)
+        os.makedirs('csvkeys', exist_ok=True)
+        os.makedirs('users', exist_ok=True)
+
+        iamc = self.conn.client('iam')
+        sts = self.conn.client('sts')
+        acct = sts.get_caller_identity()['Account']
+        policyarn = 'arn:aws:iam::' + acct + ':policy/UkmonLive'
+        policyarn2 = 'arn:aws:iam::' + acct + ':policy/UKMDA-shared'
+        try: 
+            _ = iamc.get_user(UserName=location)
+            print('location exists, not adding it')
+            archkey = None
+        except Exception:
+            print('new location')
+            usr = iamc.create_user(UserName=location)
+            _ = iamc.attach_user_policy(UserName=location, PolicyArn=policyarn)
+            _ = iamc.attach_user_policy(UserName=location, PolicyArn=policyarn2)
+            with open(archuserdets, 'w') as outf:
+                outf.write(str(usr))
+            archkey = iamc.create_access_key(UserName=location)
+            with open(archkeyf, 'w') as outf:
+                outf.write(json.dumps(archkey, indent=4, sort_keys=True, default=str))
+            with open(archcsvf,'w') as outf:
+                outf.write('Access key ID,Secret access key\n')
+                outf.write('{},{}\n'.format(archkey['AccessKey']['AccessKeyId'], archkey['AccessKey']['SecretAccessKey']))
+        
+        if archkey is not None: 
+            createKeyFile(archkey, location)
+        return 
+
+    def createNewAwsKey(self, location, caminfo):
+        keyf = os.path.join('jsonkeys', location + '.key')
+        oldkeyf = os.path.join('jsonkeys', location + '-prev.key')
+        csvf = os.path.join('csvkeys', location + '.csv')
+        shutil.copyfile(keyf, oldkeyf)
+        currkey = json.load(open(keyf, 'r'))
+        keyid = currkey['AccessKey']['AccessKeyId']
+        print(location, keyid)
+        affectedcamlist = caminfo[caminfo.site == location]
+        for _, cam in affectedcamlist.iterrows():
+            print(cam.site.lower(), cam.sid.lower())
+        return 
+
+        iamc = self.conn.client('iam')
+        iamc.update_access_key(UserName=location, AccessKeyId=keyid, Status='Inactive')
+        key = iamc.create_access_key(UserName=location)
+        with open(keyf, 'w') as outf:
+            outf.write(json.dumps(key, indent=4, sort_keys=True, default=str))
+        with open(csvf,'w') as outf:
+            outf.write('Access key ID,Secret access key\n')
+            outf.write('{},{}\n'.format(key['AccessKey']['AccessKeyId'], key['AccessKey']['SecretAccessKey']))
+
+        return 
 
 
 def updateKeyfile(caminfo, location):
@@ -550,9 +636,12 @@ def updateKeyfile(caminfo, location):
     user='ec2-user'
     keyf = os.path.join('jsonkeys', location + '.key')
     currkey = json.load(open(keyf, 'r'))
-    keyid = currkey['AccessKey']['AccessKeyId']
-    secid = currkey['AccessKey']['SecretAccessKey']
-    affectedcamlist = caminfo[caminfo.site == location]
+    archcsvf = os.path.join('csvkeys', location.lower() + '_arch.csv')
+    with open(archcsvf,'w') as outf:
+        outf.write('Access key ID,Secret access key\n')
+        outf.write('{},{}\n'.format(currkey['AccessKey']['AccessKeyId'], currkey['AccessKey']['SecretAccessKey']))
+
+    affectedcamlist = caminfo[caminfo.site==location]
     keyfile = os.getenv('SSHKEY', default='ukmda_admin')
     k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
     c = paramiko.SSHClient()
@@ -561,51 +650,17 @@ def updateKeyfile(caminfo, location):
     scpcli = SCPClient(c.get_transport())
     # push the raw keyfile
     scpcli.put(keyf, 'keymgmt/rawkeys/live/')
-
+    scpcli.put(archcsvf, 'keymgmt/rawkeys/csvkeys/')
+    scpcli.close()
     for _, cam in affectedcamlist.iterrows():
         cameraname = cam.site.lower() + '_' + cam.site.lower()
-        # get live.key for the camera
-        livef=f'/var/sftp/{cameraname}/live.key'
-        localf = f'./keys/{location.lower()}.key'
-        scpcli.get(livef, localf)
-        # replace the key and secret
-        lis = open(localf, 'r').readlines()
-        newlis=[]            
-        for li in lis:
-            if 'AWS_ACCESS_KEY_ID' in li:
-                newlis.append(f'export AWS_ACCESS_KEY_ID={keyid}\n')
-            if 'AWS_SECRET_ACCESS_KEY' in li:
-                newlis.append(f'export AWS_SECRET_ACCESS_KEY={secid}\n')
-            else:
-                newlis.append(li)
-        with open(localf, 'w') as outf:
-            for li in newlis:
-                outf.write(li)
-        # reupload it to the central loc
-        scpcli.put(localf, 'keymgmt/live/')
-        command = f'sudo cp keymgmt/live/{location.lower()}.key /var/sftp/{cameraname}/'
-        print(f'running {command}')
-        _, stdout, stderr = c.exec_command(command, timeout=10)
-        for line in iter(stdout.readline, ""):
-            print(line, end="")
-        for line in iter(stderr.readline, ""):
-            print(line, end="")
-
-
-def addNewOwner(locstatfile, rmsid, location, user, email):
-    print('adding new owner')
-    caminfo = pandas.read_csv(locstatfile)
-    newdata = {'camid': [rmsid], 'site': [location], 'humanName':[user], 'eMail': [email]}
-    newdf = pandas.DataFrame(newdata)
-    caminfo = caminfo.append(newdf).sort_values(by=['camid'])
-    caminfo.to_csv(locstatfile, index=False)
-
-    archprof = os.getenv('ARCH_PROFILE', default='ukmda_admin')
-    conn = boto3.Session(profile_name=archprof)
-    ddb = conn.resource('dynamodb', region_name='eu-west-2')
-    addRowToDDB(rmsid, location, ddb)
-
-    return
+        keyfile = os.path.join('sshkeys', cameraname + '.pub')
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = cameraname, pkey = k)
+        scpcli = SCPClient(c.get_transport())
+        scpcli.put(archcsvf, '.')
 
 
 def getSSHkey(loc, dir):
@@ -629,16 +684,11 @@ def getSSHkey(loc, dir):
     return lis[0].strip()
 
 
-def getUserDetails(statfile, camid):
-    with open(os.path.join('caminfo', statfile),'r') as inf:
-        lis = inf.readlines()
-    print(camid)
-    for li in lis:
-        if li[:6] == camid:
-            spls = li.split(',')
-            print(li)
-            return spls[2],spls[3]
-    return '',''
+def getUserDetails(stationdetails, camid):
+    reqdf = stationdetails[stationdetails.stationid == camid]
+    if len(reqdf) == 0:
+        return '',''
+    return reqdf.eMail.iloc[0], reqdf.humanName.iloc[0]
 
 
 def addNewUnixUser(location, cameraname, oldcamname='', updatemode=0):
@@ -656,6 +706,7 @@ def addNewUnixUser(location, cameraname, oldcamname='', updatemode=0):
     scpcli = SCPClient(c.get_transport())
     scpcli.put(os.path.join('sshkeys', cameraname + '.pub'), 'keymgmt/sshkeys/')
     scpcli.put(os.path.join('keys', location.lower() + '.key'), 'keymgmt/keys/')
+    scpcli.put(os.path.join('csvkeys', location.lower() + '_arch.csv'), 'keymgmt/csvkeys/')
     scpcli.put(os.path.join('inifs', cameraname + '.ini'), 'keymgmt/inifs/')
     command = f'/home/{user}/keymgmt/addSftpUser.sh {cameraname} {location} {updatemode} {oldcamname}'
     print(f'running {command}')
@@ -677,47 +728,7 @@ def addNewUnixUser(location, cameraname, oldcamname='', updatemode=0):
     return
 
 
-def addNewAwsUser(location):
-    print(f'adding new location {location} to AWS')
-    archkeyf = 'jsonkeys/' + location + '_arch.key'
-    archuserdets = 'users/' + location + '_arch.txt'
-    archcsvf = os.path.join('csvkeys', location + '_arch.csv')
-    os.makedirs('jsonkeys', exist_ok=True)
-    os.makedirs('csvkeys', exist_ok=True)
-    os.makedirs('users', exist_ok=True)
-
-    archprof = os.getenv('ARCH_PROFILE', default='ukmda_admin')
-    archconn = boto3.Session(profile_name=archprof)
-
-    iamc = archconn.client('iam')
-    sts = archconn.client('sts')
-    acct = sts.get_caller_identity()['Account']
-    policyarn = 'arn:aws:iam::' + acct + ':policy/UkmonLive'
-    policyarn2 = 'arn:aws:iam::' + acct + ':policy/UKMDA-shared'
-    try: 
-        _ = iamc.get_user(UserName=location)
-        print('location exists, not adding it')
-        archkey = None
-    except Exception:
-        print('new location')
-        usr = iamc.create_user(UserName=location)
-        _ = iamc.attach_user_policy(UserName=location, PolicyArn=policyarn)
-        _ = iamc.attach_user_policy(UserName=location, PolicyArn=policyarn2)
-        with open(archuserdets, 'w') as outf:
-            outf.write(str(usr))
-        archkey = iamc.create_access_key(UserName=location)
-        with open(archkeyf, 'w') as outf:
-            outf.write(json.dumps(archkey, indent=4, sort_keys=True, default=str))
-        with open(archcsvf,'w') as outf:
-            outf.write('Access key ID,Secret access key\n')
-            outf.write('{},{}\n'.format(archkey['AccessKey']['AccessKeyId'], archkey['AccessKey']['SecretAccessKey']))
-    
-    if archkey is not None: 
-        createKeyFile(archkey, archkey, location)
-    return 
-
-
-def createKeyFile(livekey, archkey, location):
+def createKeyFile(archkey, location):
     archbucket = os.getenv('SRCBUCKET', default='ukmda-shared')
     livebucket = os.getenv('LIVEBUCKET', default='ukmda-live')
     webbucket = os.getenv('WEBSITEBUCKET', default='ukmda-website')
@@ -725,10 +736,6 @@ def createKeyFile(livekey, archkey, location):
     os.makedirs('keys', exist_ok=True)
     outf = 'keys/' + location.lower() + '.key'
     with open(outf, 'w') as ouf:
-        ouf.write(f"export AWS_ACCESS_KEY_ID={archkey['AccessKey']['AccessKeyId']}\n")
-        ouf.write(f"export AWS_SECRET_ACCESS_KEY={archkey['AccessKey']['SecretAccessKey']}\n")
-        ouf.write(f"export LIVE_ACCESS_KEY_ID={livekey['AccessKey']['AccessKeyId']}\n")
-        ouf.write(f"export LIVE_SECRET_ACCESS_KEY={livekey['AccessKey']['SecretAccessKey']}\n")
         ouf.write('export AWS_DEFAULT_REGION=eu-west-1\n')
         ouf.write(f'export CAMLOC="{location}"\n')
         ouf.write(f'export S3FOLDER="archive/{location}/"\n')
@@ -751,31 +758,6 @@ def createIniFile(cameraname):
         outf.write(f'export UKMONHELPER={helperip}\n')
         outf.write('export UKMONKEY=~/.ssh/ukmon\n')
         outf.write('export RMSCFG=~/source/RMS/.config\n')
-    return 
-
-
-def createNewAwsKey(location, caminfo):
-    keyf = os.path.join('jsonkeys', location + '.key')
-    oldkeyf = os.path.join('jsonkeys', location + '-prev.key')
-    csvf = os.path.join('csvkeys', location + '.csv')
-    shutil.copyfile(keyf, oldkeyf)
-    currkey = json.load(open(keyf, 'r'))
-    keyid = currkey['AccessKey']['AccessKeyId']
-    print(location, keyid)
-    affectedcamlist = caminfo[caminfo.site == location]
-    for _, cam in affectedcamlist.iterrows():
-        print(cam.site.lower(), cam.sid.lower())
-    return 
-
-    iamc = boto3.client('iam')
-    iamc.update_access_key(UserName=location, AccessKeyId=keyid, Status='Inactive')
-    key = iamc.create_access_key(UserName=location)
-    with open(keyf, 'w') as outf:
-        outf.write(json.dumps(key, indent=4, sort_keys=True, default=str))
-    with open(csvf,'w') as outf:
-        outf.write('Access key ID,Secret access key\n')
-        outf.write('{},{}\n'.format(key['AccessKey']['AccessKeyId'], key['AccessKey']['SecretAccessKey']))
-
     return 
 
 

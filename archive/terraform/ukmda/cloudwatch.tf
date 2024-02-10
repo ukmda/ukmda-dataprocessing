@@ -56,3 +56,19 @@ resource "aws_cloudwatch_metric_alarm" "calcServerIdle" {
 
    actions_enabled           = true
 }
+
+resource "aws_cloudwatch_log_group" "nightlyjob" {
+  name = "/ukmonbatch/nightlyjob"
+  retention_in_days = 60
+  tags = {
+    "billingtag" = "ukmda"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "devnightly" {
+  name = "/ukmondev/nightlyjob"
+  retention_in_days = 60
+  tags = {
+    "billingtag" = "ukmda"
+  }
+}

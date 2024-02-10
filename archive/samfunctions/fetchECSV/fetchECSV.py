@@ -8,6 +8,7 @@ import json
 import datetime
 import numpy as np
 import boto3
+from boto3.dynamodb.conditions import Key
 
 from ftpDetectInfo import loadFTPDetectInfo
 from Math import jd2Date
@@ -203,24 +204,13 @@ def fetchECSV(camid, reqevent):
 
     if localftpname is None:
         # download the camera details file and find the location
-        s3object = 'consolidated/camera-details.csv'
-        camfname = os.path.join(tmpdir, 'camera-details.csv')
-        s3.meta.client.download_file(s3bucket, s3object, camfname)
-        loc=''
-        with open(camfname) as inf:
-            lis = inf.readlines()
-            for li in lis:
-                if camid in li:
-                    loc = li.split(',')[0]
-                    trucam = li.split(',')[1]
-                    break
-        os.remove(camfname)
-        if loc == '':
-            print('camera not found')
-            return    
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2') 
+        loc = findSite(camid, ddb)
+        if loc is False:
+            return 'site not found'
         ym = f'{dt.year}{dt.month:02d}'
         ymd = f'{dt.year}{dt.month:02d}{dt.day:02d}'   
-        s3path = f'archive/{loc}/{trucam}/{dt.year}/{ym}/{ymd}/'
+        s3path = f'archive/{loc}/{camid}/{dt.year}/{ym}/{ymd}/'
 
         print(f'no objects found at {pref}, trying alternate location {s3path}')
         # get the config, platepar and ftpfile
@@ -244,6 +234,15 @@ def fetchECSV(camid, reqevent):
         
     removefiles(localftpname, ppname, cfgname)
     return 'not available, check details'
+
+
+def findSite(stationid, ddb=None):
+    table = ddb.Table('camdetails')
+    res = table.query(KeyConditionExpression=Key('stationid').eq(stationid))
+    if res['Count'] > 0:
+        return res['Items'][0]['site']
+    else:
+        return False
 
 
 def removefiles(localftpname, ppname, cfgname):

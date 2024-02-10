@@ -35,7 +35,8 @@ def getExtraArgs(fname):
 
 
 def getImgListFromDdb(pickname):
-    sess = boto3.Session(profile_name='ukmonshared')
+    prof = os.getenv('UKMPROFILE',default='ukmonshared')
+    sess = boto3.Session(profile_name=prof)
     ddb = sess.resource('dynamodb', region_name='eu-west-2')
     dtstr = pickname[:12]
     table = ddb.Table('live')

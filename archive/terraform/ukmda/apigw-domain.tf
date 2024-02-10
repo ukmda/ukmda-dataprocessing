@@ -30,6 +30,11 @@ data "aws_api_gateway_rest_api" "fetchECSVapi" {
   provider                 = aws.eu-west-1-prov
 }
 
+data "aws_api_gateway_rest_api" "camDetailsapi" {
+  name = "camDetails"
+  provider                 = aws.eu-west-1-prov
+}
+
 data "aws_api_gateway_rest_api" "matchpickleapi" {
   name = "matchPickleApi"
   provider                 = aws.eu-west-1-prov
@@ -55,6 +60,14 @@ resource "aws_api_gateway_base_path_mapping" "ecsvapi" {
   stage_name  = "Prod"
   domain_name = aws_api_gateway_domain_name.apigwdomain.domain_name
   base_path = "getecsv"
+  provider                 = aws.eu-west-1-prov
+}
+
+resource "aws_api_gateway_base_path_mapping" "camdetapi" {
+  api_id      = data.aws_api_gateway_rest_api.camDetailsapi.id
+  stage_name  = "Prod"
+  domain_name = aws_api_gateway_domain_name.apigwdomain.domain_name
+  base_path = "camdetails"
   provider                 = aws.eu-west-1-prov
 }
 
