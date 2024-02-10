@@ -52,28 +52,22 @@ $SRC/analysis/createSearchable.sh $yr matches
 
 # add daily report to the website
 log2cw $NJLOGGRP $NJLOGSTREAM "start publishDailyReport" nightlyJob 
-$SRC/website/createStationList.sh
 $SRC/website/publishDailyReport.sh 
 
 log2cw $NJLOGGRP $NJLOGSTREAM "start createMthlyExtracts" nightlyJob 
-$SRC/website/createStationList.sh
 ${SRC}/website/createMthlyExtracts.sh ${mth}
 
 log2cw $NJLOGGRP $NJLOGSTREAM "start createShwrExtracts" nightlyJob 
-$SRC/website/createStationList.sh
 ${SRC}/website/createShwrExtracts.sh ${rundate}
 
 log2cw $NJLOGGRP $NJLOGSTREAM "start createFireballPage" nightlyJob 
-$SRC/website/createStationList.sh
 #requires search index to have been updated first 
 ${SRC}/website/createFireballPage.sh ${yr} -3.99
 
 log2cw $NJLOGGRP $NJLOGSTREAM "start showerReport ALL $mth" nightlyJob 
-$SRC/website/createStationList.sh
 $SRC/analysis/showerReport.sh ALL ${mth} force
 
 log2cw $NJLOGGRP $NJLOGSTREAM "start showerReport ALL $yr" nightlyJob 
-$SRC/website/createStationList.sh
 $SRC/analysis/showerReport.sh ALL ${yr} force
 
 # if we ran on the 1st of the month we need to catch any late-arrivals for last month
