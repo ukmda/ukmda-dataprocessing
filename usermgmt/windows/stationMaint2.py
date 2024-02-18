@@ -14,7 +14,8 @@ import json
 import time
 from scp import SCPClient
 
-from camTable import addRow, getCamUpdateDate, deleteRow, loadLocationDetails, findLocationInfo, dumpCamTable
+from camTable import addRow, getCamUpdateDate, deleteRow, loadLocationDetails
+from camTable import findLocationInfo, dumpCamTable, cameraExists
 
 
 class srcResBox(tk.Toplevel):
@@ -55,6 +56,7 @@ class infoDialog(simpledialog.Dialog):
         self.data.append(user)
         self.data.append(email)
         self.data.append(sshkey)
+        self.parent = parent
 
         super().__init__(parent, title)    
 
@@ -96,12 +98,16 @@ class infoDialog(simpledialog.Dialog):
 
     def ok_pressed(self):
         self.data[0] = self.camid_box.get().strip()
-        self.data[1] = self.location_box.get().strip()
-        self.data[2] = self.direction_box.get().strip()
+        self.data[1] = self.location_box.get().strip().capitalize()
+        self.data[2] = self.direction_box.get().strip().upper()
         self.data[3] = self.ownername_box.get().strip()
         self.data[4] = self.email_box.get().strip()
         self.data[5] = self.sshkey_box.get().strip()
-        self.destroy()
+        if cameraExists(location=self.data[1],direction=self.data[2], statdets=self.parent.stationdetails):
+            msg = f'{self.data[1]}_{self.data[2]} already exists'
+            tk.messagebox.showinfo(title="Information", message=msg)
+        else:
+            self.destroy()
 
     def cancel_pressed(self):
         self.data[0] = ''
