@@ -8,15 +8,13 @@ from tkinter import simpledialog
 from tkinter.filedialog import askopenfilename
 import boto3
 import shutil
-import datetime
 import os
-import pandas as pd
 import paramiko
 import json 
 import time
 from scp import SCPClient
 
-from camTable import addRow, getCamUpdateDate, deleteRow, loadLocationDetails, findLocationInfo
+from camTable import addRow, getCamUpdateDate, deleteRow, loadLocationDetails, findLocationInfo, dumpCamTable
 
 
 class srcResBox(tk.Toplevel):
@@ -341,22 +339,10 @@ class CamMaintenance(Frame):
         #print(response)
         pass
     
-    def doSaveChanges(self):
-        bkpfile = '{}.{}'.format(self.camfile, datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
-        shutil.copy(self.localfile, os.path.join('caminfo', bkpfile))
-
-        newdf = pd.DataFrame(self.data, columns=self.hdrs)
-        newdf = newdf.sort_values(by=['active','camtype','camid'],ascending=[True,False,True])
-        newdf.to_csv(self.localfile, index=False)
-
-        conn = boto3.Session(profile_name=self.archprof)
-        s3 = conn.client('s3')
-        s3.upload_file(Bucket=self.bucket_name, Key=self.fullname, Filename=self.localfile)
-        self.uploadCfgToServer()
-
-        return 
-
     def on_closing(self):
+        outdir = 'stationdetails'
+        os.makedirs(outdir, exist_ok=True)
+        dumpCamTable(outdir=outdir, statdets=self.stationdetails, exportmindets=False)
         self.destroy()
         self.parent.quit()
         self.parent.destroy()
@@ -514,19 +500,6 @@ class CamMaintenance(Frame):
         location = curdata[0]
         self.createNewAwsKey(location, self.stationdetails)
 
-    def uploadCfgToServer(self):
-        server=os.getenv('HELPERIP', default='3.11.55.160')
-        user='ec2-user'
-        keyfile = os.getenv('SSHKEY', default='ukmda_admin')
-        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
-        c = paramiko.SSHClient()
-        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        c.connect(hostname = server, username = user, pkey = k)
-        scpcli = SCPClient(c.get_transport())
-        # push the raw keyfile
-        scpcli.put(self.localfile, 'prod/data/consolidated/')
-        return
-    
     def uploadPlatepar(self, camdets, plateparfile):
         server=os.getenv('HELPERIP', default='3.11.55.160')
         user='ec2-user'
