@@ -69,10 +69,6 @@ resource "aws_dynamodb_table" "camera_table" {
           read_capacity      = 0
           write_capacity     = 0
         }
-  #ttl {
-  #  attribute_name = "ExpiryDate"
-  #  enabled        = true
-  #}
   tags = {
     Name       = "camdetails"
     billingtag = "ukmda"

@@ -32,14 +32,15 @@ def addRowCamTimings(s3bucket, s3object, ftpname, ddb=None):
         manual = False
     uploaddate = dtstamp.strftime('%Y%m%d')
     uploadtime = dtstamp.strftime('%H%M%S')
+    expirydate = (dtstamp + datetime.timedelta(days=180)).timestamp()
     table.put_item(
         Item={
             'stationid': spls[1],
             'dtstamp': uploaddate + '_' + uploadtime + manflag,
             'uploaddate': int(uploaddate),
             'uploadtime': int(uploadtime),
-            'manual': manual
-            #,'ExpiryDate', int(expirydate)
+            'manual': manual,
+            'ExpiryDate': int(expirydate)
         }
     )    
     return 
