@@ -167,7 +167,7 @@ resource "aws_dynamodb_table" "live_table" {
     write_capacity     = 0
   }
   ttl {
-    attribute_name = "expiry_date"
+    attribute_name = "expirydate"
     enabled        = true
   }
   tags = {
