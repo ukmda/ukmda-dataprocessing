@@ -1,0 +1,20 @@
+---
+- hosts: "{{host | default ('thelinux')}}"
+  vars:
+    srcdir: /mnt/e/dev/meteorhunting/ukmda-dataprocessing/utils
+  tasks:
+  - name: import dev variables 
+    include_vars: ./dev-vars.yml
+    tags: dev
+  - name: import prod variables
+    include_vars: ./prod-vars.yml
+    tags: prod
+  - name: Ensures {{destdir}} exists
+    file: path={{destdir}} state=directory  
+    tags: [dev,prod]
+
+  - name: Copy files
+    tags: [dev,prod]
+    copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
+    with_items:
+    - {src: '{{srcdir}}/backup.sh', dest: '{{destdir}}/', mode: '754', backup: yes, directory_mode: no }
