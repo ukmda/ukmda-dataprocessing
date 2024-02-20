@@ -1,6 +1,14 @@
 # copyright 2023- Mark McIntyre
 # all rights reserved
 
+# one-off script to create a backup of the legacy, UFO, data from s3://ukmda-shared/archive
+#
+# usage : python3 backupOldData.py /path/to/local {subfldr}
+#
+# where 
+# /path/to/local is the target location to create the backup at
+# subfldr is an optional subfolder to backup, for example "birmingham" would only backup that subfolder
+
 import boto3
 import sys
 import os
@@ -46,7 +54,13 @@ def processFolders(archbucket='ukmda-shared', targfldr='/data3/backups/ukmda', s
 
 
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print('usage : python3 backupOldData.py /path/to/local [subfldr]')
+        print('where')
+        print('/path/to/local is the target location to create the backup at')
+        print('subfldr is an optional subfolder to backup, for example "birmingham" would only backup that subfolder')
+        exit(0)
     subfldr = None
     if len(sys.argv) > 2:
         subfldr = sys.argv[2]
-    processFolders(sys.argv[1], subfldr=subfldr)
+    processFolders(targfldr=sys.argv[1], subfldr=subfldr)
