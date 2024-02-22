@@ -50,36 +50,8 @@ resource "aws_iam_policy" "usermaintpolicy" {
               "iam:GetUser",
               "iam:CreateUser",
               "iam:AttachUserPolicy",
+              "iam:AddUserToGroup",
               "iam:CreateAccessKey"
-            ],
-            "Resource": "*"
-        }
-    ]
-}
-EOF
-}
-
-resource "aws_iam_policy" "developerpolicy" {
-  name   = "DeveloperPolicy"
-  policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "DeveloperPolicies",
-            "Effect": "Allow",
-            "Action": [
-      			  "logs:*",
-      			  "ec2:*",
-              "ec2messages:*",
-              "ecs:*",
-              "ecr:*",
-              "dynamodb:*",
-              "ses:*",
-              "lambda:*",
-              "ssm:*",
-              "ssmmessages:*",
-              "iam:Get*"
             ],
             "Resource": "*"
         }

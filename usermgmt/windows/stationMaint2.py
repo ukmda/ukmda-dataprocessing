@@ -559,10 +559,6 @@ class CamMaintenance(Frame):
         os.makedirs('users', exist_ok=True)
 
         iamc = self.conn.client('iam')
-        sts = self.conn.client('sts')
-        acct = sts.get_caller_identity()['Account']
-        policyarn = 'arn:aws:iam::' + acct + ':policy/UkmonLive'
-        policyarn2 = 'arn:aws:iam::' + acct + ':policy/UKMDA-shared'
         try: 
             _ = iamc.get_user(UserName=location)
             print('location exists, not adding it')
@@ -570,8 +566,6 @@ class CamMaintenance(Frame):
         except Exception:
             print('new location')
             usr = iamc.create_user(UserName=location)
-            _ = iamc.attach_user_policy(UserName=location, PolicyArn=policyarn)
-            _ = iamc.attach_user_policy(UserName=location, PolicyArn=policyarn2)
             with open(archuserdets, 'w') as outf:
                 outf.write(str(usr))
             archkey = iamc.create_access_key(UserName=location)
@@ -580,7 +574,7 @@ class CamMaintenance(Frame):
             with open(archcsvf,'w') as outf:
                 outf.write('Access key ID,Secret access key\n')
                 outf.write('{},{}\n'.format(archkey['AccessKey']['AccessKeyId'], archkey['AccessKey']['SecretAccessKey']))
-        
+        _ = iamc.add_user_to_group(GroupName='cameras', UserName=location)
         if archkey is not None: 
             createKeyFile(archkey, location)
         return 

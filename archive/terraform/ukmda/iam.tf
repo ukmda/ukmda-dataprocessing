@@ -254,6 +254,11 @@ resource "aws_iam_role_policy_attachment" "test_s3access" {
 
 ##############################################################################
 ##############################################################################
+
+resource "aws_iam_group" "camera_group" {
+  name = "cameras"
+}
+
 # policy applied to all ukmda members to enable uploads 
 data "template_file" "ukmshared_pol_templ" {
   template = file("files/policies/ukmda-shared.json")
@@ -287,6 +292,16 @@ resource "aws_iam_policy" "ukmdalivepol" {
   tags = {
     "billingtag" = "ukmda"
   }
+}
+
+resource "aws_iam_group_policy_attachment" "camgrp_shrpol_att1" {
+  group      = aws_iam_group.camera_group.name
+  policy_arn = aws_iam_policy.ukmdasharedpol.arn
+}
+
+resource "aws_iam_group_policy_attachment" "camgrp_livepol_att" {
+  group      = aws_iam_group.camera_group.name
+  policy_arn = aws_iam_policy.ukmdalivepol.arn
 }
 
 ##############################################################################
@@ -496,4 +511,3 @@ resource "aws_iam_role_policy" "orbUploadPolicy" {
 }
 EOF
 }
-# output "testingrolearn" { value = aws_iam_role.testing_role.arn }
