@@ -5,9 +5,9 @@ cd $here/ukmda-shared
 
 yr=$(date +%Y)
 echo $(date) singlepq
-aws s3 sync s3://ukmda-shared/matches/singlepq ./matches/singlepq --exclude "*" --include "*${yr}*"
+aws s3 sync s3://ukmda-shared/matches/singlepq ./matches/single --exclude "*" --include "*${yr}*"
 echo $(date) matchedpq
-aws s3 sync s3://ukmda-shared/matches/matchedpq ./matches/matchedpq --exclude "*" --include "*${yr}*"
+aws s3 sync s3://ukmda-shared/matches/matchedpq ./matches/matched --exclude "*" --include "*${yr}*"
 
 echo $(date) fireballs
 aws s3 sync s3://ukmda-shared/fireballs ./fireballs --exclude "*" --include "${yr}/"

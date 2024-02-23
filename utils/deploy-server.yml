@@ -18,5 +18,6 @@
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     with_items:
     - {src: '{{srcdir}}/backup.sh', dest: '{{destdir}}/', mode: '754', backup: yes, directory_mode: no }
+    - {src: '{{srcdir}}/getImages.py', dest: '{{destdir}}/', mode: '644', backup: yes, directory_mode: no }
     - {src: '{{srcdir}}/backupOldData.py', dest: '{{destdir}}/', mode: '644', backup: yes, directory_mode: no }
     - {src: '{{srcdir}}/requirements.txt', dest: '{{destdir}}/', mode: '644', backup: yes, directory_mode: no }
