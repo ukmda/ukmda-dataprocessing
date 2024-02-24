@@ -253,6 +253,20 @@ resource "aws_iam_role_policy_attachment" "test_s3access" {
 }
 
 ##############################################################################
+resource "aws_iam_group" "admin_group" {
+  name = "Administrators"
+}
+
+resource "aws_iam_group_policy_attachment" "admin_perms_att" {
+  group      = aws_iam_group.admin_group.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
+resource "aws_iam_group_policy_attachment" "fbcadm_perms_att" {
+  group      = aws_iam_group.admin_group.name
+  policy_arn = aws_iam_policy.fbc_assumerole_pol.arn
+}
+
 ##############################################################################
 
 resource "aws_iam_group" "camera_group" {
