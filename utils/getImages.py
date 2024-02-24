@@ -94,7 +94,10 @@ def getMatchImages(yr, mth, minbri=-3):
                 print(f'skipping {fname}')
             else:
                 print(f'getting {fname}')
-                _download(f'https://archive.ukmeteors.co.uk{dl}', outdir)
+                if dl[0] !='/':
+                    _download(f'https://archive.ukmeteors.co.uk/{dl}', outdir)
+                else:
+                    _download(f'https://archive.ukmeteors.co.uk{dl}', outdir)
     return imglist
 
 
