@@ -8,6 +8,7 @@ Transform: 'AWS::Serverless-2016-10-31'
 #  Api:
 #    BinaryMediaTypes:
 #    - application~1zip
+Description: get and put Fireball data
 Resources:
   getFireballFiles:
     Type: AWS::Serverless::Function
@@ -47,6 +48,7 @@ Resources:
         HttpMethod: PUT
         ResourceId: !GetAtt ServerlessRestApi.RootResourceId
         RestApiId: !Ref ServerlessRestApi
+        ApiKeyRequired: True
         AuthorizationType: "NONE"
         MethodResponses:
           - StatusCode: "200"
