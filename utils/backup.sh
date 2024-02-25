@@ -4,6 +4,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd $here/ukmda-shared
 
 yr=$(date +%Y)
+mth=$(date +%m)
 echo $(date) singlepq
 aws s3 sync s3://ukmda-shared/matches/singlepq ./matches/single --exclude "*" --include "*${yr}*"
 echo $(date) matchedpq
@@ -20,6 +21,10 @@ echo $(date) consolidated
 
 echo $(date) RMSCorrelate
 aws s3 sync s3://ukmda-shared/matches/RMSCorrelate ./matches/RMSCorrelate --exclude "*" --include "*_${yr}*"
+
+echo $(date) images
+source $HOME/miniconda3/bin/activate ukmon-shared
+python $here/getImages.py $yr $mth
 
 echo $(date) done
 
