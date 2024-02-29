@@ -421,7 +421,7 @@ class CamMaintenance(Frame):
             self.addNewAwsUser(location)
             createIniFile(cameraname)
             addNewUnixUser(location, cameraname, oldloc)
-            self.addNewOwner(rmsid, location, str(d[4]), str(d[3]), str(d[2]), '2','1')
+            self.addNewOwner(rmsid, location, str(d[3]), str(d[4]), str(d[2]), '2','1')
         return 
 
     def newSSHKey(self):
