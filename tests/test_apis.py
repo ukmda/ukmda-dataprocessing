@@ -112,6 +112,7 @@ def test_getDetections():
 
 def test_getECSV():
     stationID = 'UK009C'
+    dateStr = '2024-02-25T20:02:06.9'
     apiurl='https://api.ukmeteors.co.uk/getecsv?stat={}&dt={}'
     res = requests.get(apiurl.format(stationID, dateStr))
     assert res.status_code == 200
