@@ -37,10 +37,10 @@ jobs:
             echo "getting test data"
             curl https://archive.ukmeteors.co.uk/browse/testdata/testdata.tar.gz  -o /data/testdata.tar.gz
             cd /data && tar -xzf ./testdata.tar.gz
-            curl https://archive.ukmeteors.co.uk/reports/stations/cameraLocs.json -o /data/admin/cameraLocs.json
           else
             echo "test data available"
           fi 
+          curl https://archive.ukmeteors.co.uk/reports/stations/cameraLocs.json -o /data/admin/cameraLocs.json
           mkdir -p ~/.aws
           cp /data/profile/credentials ~/.aws/
           /tests.sh
