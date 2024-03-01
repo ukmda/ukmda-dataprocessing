@@ -367,7 +367,7 @@ class CamMaintenance(Frame):
 
     def searchOwnerData(self):
         srchstring = simpledialog.askstring("Some_Name", "Search String",parent=root) 
-        srchres = findLocationInfo(srchstring, self.stationdetails)
+        srchres = findLocationInfo(srchstring, statdets=self.stationdetails)
         msgtext = ''
         for _, li in srchres.iterrows():
             msgtext = msgtext + f'{li.stationid:10s}{li.site:20s}{li.eMail:30s}{li.humanName:20s}\n'
