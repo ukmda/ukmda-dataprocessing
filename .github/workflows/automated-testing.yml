@@ -13,7 +13,7 @@ on:
     branches: [ master ]
 jobs:
   conttests:
-    runs-on: ubuntu-latest
+    runs-on: ukmonhelper2
     container:
       image: docker.io/markmac99/ukmdatester
       credentials:
