@@ -33,7 +33,7 @@ jobs:
       - name: remote tests
         run: |
           chmod +x /tests.sh
-          if [ ! -f /data/testdata.tar.gz ] ; then 
+          if [ ! -f /data/profile/credentials ] ; then 
             echo "getting test data"
             curl https://archive.ukmeteors.co.uk/browse/testdata/testdata.tar.gz  -o /data/testdata.tar.gz
             cd /data && tar -xzf ./testdata.tar.gz
@@ -41,7 +41,7 @@ jobs:
           else
             echo "test data available"
           fi 
-          mkdir ~/.aws
+          mkdir -p ~/.aws
           cp /data/profile/credentials ~/.aws/
           /tests.sh
   apitests:
