@@ -21,6 +21,8 @@ jobs:
         password: ${{ secrets.DH_PATT_MM }}
       env:
         BRANCH: ${{ github.head_ref || github.ref_name }} 
+      volumes:
+        - testdata:/data
     steps:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v4.0.1
@@ -31,9 +33,13 @@ jobs:
       - name: remote tests
         run: |
           chmod +x /tests.sh
-          mkdir /data
-          curl https://archive.ukmeteors.co.uk/browse/testdata/testdata.tar.gz  -o /data/testdata.tar.gz
-          cd /data && tar -xzf ./testdata.tar.gz
+          if [ ! -f /data/testdata.tar.gz ] ; then 
+            echo "getting test data"
+            curl https://archive.ukmeteors.co.uk/browse/testdata/testdata.tar.gz  -o /data/testdata.tar.gz
+            cd /data && tar -xzf ./testdata.tar.gz
+          else
+            echo "test data available"
+          fi 
           mkdir ~/.aws
           cp /data/profile/credentials ~/.aws/
           curl https://archive.ukmeteors.co.uk/reports/stations/cameraLocs.json -o /data/admin/cameraLocs.json
