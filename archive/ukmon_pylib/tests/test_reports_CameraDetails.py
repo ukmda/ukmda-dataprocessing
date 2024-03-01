@@ -8,7 +8,7 @@ from reports.CameraDetails import getCamLocDirFov, updateCamLocDirFovDB
 from reports.CameraDetails import loadLocationDetails, findEmail, findSite
 
 here = os.path.split(os.path.abspath(__file__))[0]
-datadir = os.getenv('TMP')
+datadir = os.getenv('TMP', default='/tmp')
 targdate = datetime.datetime(2023,5,12)
 
 
