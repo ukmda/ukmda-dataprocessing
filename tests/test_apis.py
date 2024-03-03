@@ -78,6 +78,41 @@ def test_getLiveImages():
         assert False
 
 
+def test_getLiveImageUrls():
+    testdt = datetime.datetime.now() + datetime.timedelta(days=-1)
+    dtstr = testdt.strftime('%Y-%m-%d') + 'T01:00:00.000Z'
+    dtstr2 = testdt.strftime('%Y-%m-%d') + 'T01:15:00.000Z'
+    apiurl = 'https://api.ukmeteors.co.uk/liveimages/getlive'
+    apiurl = f'{apiurl}?dtstr={dtstr}&enddtstr={dtstr2}'
+    res = requests.get(apiurl)
+    assert res.status_code == 200
+    jsondata = json.loads(res.text[11:-1])
+    if len(jsondata['urls']) > 0:
+        firstmatch = jsondata['urls'][0]['url']
+        pjpgloc = firstmatch.find('P.jpg')
+        if pjpgloc:
+            camid = firstmatch[pjpgloc-6:pjpgloc]
+            apiurl = f'{apiurl}?dtstr={dtstr}&enddtstr={dtstr2}&statid={camid}'
+            res = requests.get(apiurl)
+            assert res.status_code == 200
+            jsondata = json.loads(res.text[11:-1])
+            assert len(jsondata['urls']) > 0
+    else:
+        print('no data so unable to test statid')
+
+
+def test_getLiveImageList():
+    testdt = datetime.datetime.now() + datetime.timedelta(days=-1)
+    dtstr = testdt.strftime('%Y-%m-%d') + 'T01:00:00.000Z'
+    dtstr2 = testdt.strftime('%Y-%m-%d') + 'T01:15:00.000Z'
+    apiurl = 'https://api.ukmeteors.co.uk/liveimages/getlive'
+    apiurl = f'{apiurl}?dtstr={dtstr}&enddtstr={dtstr2}&fmt=trueimg'
+    res = requests.get(apiurl)
+    assert res.status_code == 200
+    jsondata = json.loads(res.text[11:-1])
+    assert len(jsondata['images']) > 0
+
+
 def test_getFireballFiles():
     patt = 'UK0006_20230421_2122'
     apiurl = 'https://api.ukmeteors.co.uk/fireballfiles'
