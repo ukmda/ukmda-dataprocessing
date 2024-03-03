@@ -2,10 +2,11 @@ import sys
 import os
 import boto3
 import platform
-import datetime
 from wmpl.Utils.Pickling import loadPickle, savePickle
 from traj.pickleAnalyser import createAdditionalOutput
-from boto3.dynamodb.conditions import Key
+import requests
+import datetime
+import json
 
 
 def getExtraArgs(fname):
@@ -34,20 +35,23 @@ def getExtraArgs(fname):
     return extraargs
 
 
-def getImgListFromDdb(pickname):
-    prof = os.getenv('UKMPROFILE',default='ukmonshared')
-    sess = boto3.Session(profile_name=prof)
-    ddb = sess.resource('dynamodb', region_name='eu-west-2')
-    dtstr = pickname[:12]
-    table = ddb.Table('live')
-    resp = table.query(IndexName='month-image_name-index', 
-                        KeyConditionExpression=Key('month').eq(dtstr[4:6]) & Key('image_name').begins_with(f'M{dtstr}'),
-                        ProjectionExpression='image_name')
-    imglist = []
-    if 'Items' in resp:
-        for item in resp['Items']:
-            imglist.append(item['image_name'])
-    return imglist
+def getImgList(outdir, traj):
+    if os.path.isdir(os.path.join(outdir, '..', 'jpgs')):
+        imglist = os.listdir(os.path.join(outdir, '..', 'jpgs'))
+        return imglist
+    orbname=traj.output_dir.replace('\\','/').split('/')[-1]
+    testdt = datetime.datetime.strptime(orbname.replace('-','_')[:15], '%Y%m%d_%h%m%s')
+    testdt = testdt + datetime.timedelta(seconds=-10)
+    dtstr = testdt.strftime('%Y-%m-%dT%H:%M:%S.000Z')
+    dtstr2 = (testdt + datetime.timedelta(seconds=30)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
+    apiurl = 'https://api.ukmeteors.co.uk/liveimages/getlive'
+    apiurl = f'{apiurl}?dtstr={dtstr}&enddtstr={dtstr2}&fmt=trueimg'
+    res = requests.get(apiurl)
+    if res.status_code == 200:
+        jsondata = json.loads(res.text)
+        return jsondata['images']
+    else:
+        return []
 
 
 def createExtraJpgtxt(outdir, traj, availableimages):
@@ -91,31 +95,40 @@ def createExtraJpgHtml(outdir, parentfldr, yr, ym):
                 s3mda.upload_file(locfname, 'ukmda-website', keyname, ExtraArgs=getExtraArgs(jpg))
 
 
-def fixupTrajComments(traj, availableimages, outdir, picklename, yr, ym):
+def fixupTrajComments(traj, availableimages, outdir, picklename):
     s3 = boto3.client('s3')
     madeupdate = False
+    camcount = 0
+    prevcamid = ''
     for obs in traj.observations:
-        pickdtstr = picklename[:15]
-        pickdt = datetime.datetime.strptime(pickdtstr, '%Y%m%d_%H%M%S')
-        if obs.comment is None:
-            relevantimages = [x for x in availableimages if obs.station_id in x]
+        camid = obs.station_id
+        if obs.comment is None or len(obs.comment) < 5:
+            #print(prevcamid, camid)
+            if prevcamid != camid[:6]:
+                camcount = 0
+            statimages = [x for x in availableimages if camid in x]
+            #print(camid, camcount, statimages)
+            if len(statimages) == 0:
+                continue
+            img = statimages[camcount]
+            if len(statimages) > 1:
+                camcount += 1
+            else:
+                camcount = 0
             comment = ''
-            for img in relevantimages:
+            if img[0]=='M':
                 dtstr = img[1:15]
-                camid = obs.station_id
-                ff_name = f'img/single/{yr}/{ym}/FF_{camid}_{dtstr}'
-                flist = s3.list_objects_v2(Bucket='ukmda-website', Prefix=ff_name)
-                if 'Contents' in flist:
-                    for fl in flist['Contents']:
-                        key = fl['Key']
-                        key = key[key.find('FF_'):]
-                        keydt = datetime.datetime.strptime(key[10:25], '%Y%m%d_%H%M%S')
-                        if (pickdt - keydt).seconds < 11:
-                            comment = f'{{"ff_name": "{key}"}}'
-                #print(img, comment)
-            print(f'updated comment to {comment} for {obs.station_id}')
+                ff_name = f'img/single/{dtstr[:4]}/{dtstr[:6]}/FF_{camid}_{dtstr}'
+            else:
+                dtstr = img[10:25]
+                ff_name = f'img/single/{dtstr[:4]}/{dtstr[:6]}/{img}'
+            flist = s3.list_objects_v2(Bucket='ukmda-website', Prefix=ff_name)
+            if 'Contents' in flist:
+                comment = f'{{"ff_name": "{img}"}}'
+                print(f'updated comment to {comment} for {obs.station_id}')
             obs.comment = comment
             madeupdate = True
+        prevcamid = camid[:6]
     if madeupdate:
         savePickle(traj, outdir, picklename)
     return
@@ -143,10 +156,10 @@ def recreateOrbitFiles(outdir, pickname, doupload=False):
     ymd = orbfldr[:8]
     print(f'orbit folder is {orbfldr}')
 
-    availableimages = getImgListFromDdb(pickname)
+    availableimages = getImgList(outdir, traj)
     createExtraJpgtxt(outdir, traj, availableimages)
     createExtraJpgHtml(outdir, orbparent, yr, ym)
-    fixupTrajComments(traj, availableimages, outdir, pickname, yr, ym)
+    fixupTrajComments(traj, availableimages, outdir, pickname)
 
     if doupload:
         files = os.listdir(outdir)

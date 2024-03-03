@@ -6,6 +6,7 @@
 import boto3
 from boto3.dynamodb.conditions import Key
 import pandas as pd
+import os
 
 
 def addRow(newdata=None, stationid=None, site=None, user=None, email=None, ddb=None, 
@@ -63,6 +64,30 @@ def findLocationInfo(srchstring, ddb=None, statdets=None):
     srchres = pd.concat([s1, s2, s3, s4])
     srchres.drop(columns=['oldcode','active','camtype'], inplace=True)
     return srchres
+
+
+def cameraExists(stationid=None, location=None, direction=None, ddb=None, statdets=None):
+    if statdets is None:
+        statdets = loadLocationDetails(ddb=ddb) 
+        statdets = statdets[statdets.active==1]
+    if stationid:
+        if len(statdets[statdets.stationid == stationid]) > 0:
+            return True
+    if location and direction:
+        s1 = statdets[statdets.site == location]
+        if len(s1) > 0:
+            if len(s1[s1.direction == direction]) > 0:
+                return True
+    return False
+
+
+def dumpCamTable(outdir, statdets=None, ddb=None, exportmindets=False):
+    if statdets is None:
+        statdets = loadLocationDetails(ddb=ddb) 
+        statdets = statdets[statdets.active==1]
+    if exportmindets:
+        statdets = statdets[['stationid', 'eMail']]
+    statdets.to_csv(os.path.join(outdir,'camtable.csv'), index=False)
 
 
 def getCamUpdateDate(camid, ddb=None):

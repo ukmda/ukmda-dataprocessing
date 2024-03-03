@@ -12,6 +12,8 @@ pip install pytest pytest-cov
 cd $here
 curl https://archive.ukmeteors.co.uk/browse/testdata/testdata.tar.gz .
 tar -xvf ./testdata.tar.gz ./data/
+mkdir ~/.aws
+cp ./data/profile/credentials ~/.aws/
 
 cd $here/..
 if [ $# == 0 ] ; then

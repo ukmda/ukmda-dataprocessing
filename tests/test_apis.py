@@ -78,14 +78,40 @@ def test_getLiveImages():
         assert False
 
 
-def test_fetchECSV():
-    stationID = 'UK0006'
-    dateStr = '2023-08-31T01:28:57.41'
-    apiurl='https://api.ukmeteors.co.uk/getecsv?stat={}&dt={}'
-    res = requests.get(apiurl.format(stationID, dateStr))
+def test_getLiveImageUrls():
+    testdt = datetime.datetime.now() + datetime.timedelta(days=-1)
+    dtstr = testdt.strftime('%Y-%m-%d') + 'T01:00:00.000Z'
+    dtstr2 = testdt.strftime('%Y-%m-%d') + 'T01:15:00.000Z'
+    apiurl = 'https://api.ukmeteors.co.uk/liveimages/getlive'
+    apiurl = f'{apiurl}?dtstr={dtstr}&enddtstr={dtstr2}'
+    res = requests.get(apiurl)
     assert res.status_code == 200
-    return 
-    
+    jsondata = json.loads(res.text[11:-1])
+    if len(jsondata['urls']) > 0:
+        firstmatch = jsondata['urls'][0]['url']
+        pjpgloc = firstmatch.find('P.jpg')
+        if pjpgloc:
+            camid = firstmatch[pjpgloc-6:pjpgloc]
+            apiurl = f'{apiurl}?dtstr={dtstr}&enddtstr={dtstr2}&statid={camid}'
+            res = requests.get(apiurl)
+            assert res.status_code == 200
+            jsondata = json.loads(res.text[11:-1])
+            assert len(jsondata['urls']) > 0
+    else:
+        print('no data so unable to test statid')
+
+
+def test_getLiveImageList():
+    testdt = datetime.datetime.now() + datetime.timedelta(days=-1)
+    dtstr = testdt.strftime('%Y-%m-%d') + 'T01:00:00.000Z'
+    dtstr2 = testdt.strftime('%Y-%m-%d') + 'T01:15:00.000Z'
+    apiurl = 'https://api.ukmeteors.co.uk/liveimages/getlive'
+    apiurl = f'{apiurl}?dtstr={dtstr}&enddtstr={dtstr2}&fmt=trueimg'
+    res = requests.get(apiurl)
+    assert res.status_code == 200
+    jsondata = json.loads(res.text)
+    assert len(jsondata['images']) > 0
+
 
 def test_getFireballFiles():
     patt = 'UK0006_20230421_2122'
@@ -117,3 +143,51 @@ def test_getDetections():
     except Exception as e:
         print(repr(e))
         assert False
+
+
+def test_getECSV():
+    stationID = 'UK009C'
+    dateStr = '2024-02-25T20:02:06.9'
+    apiurl='https://api.ukmeteors.co.uk/getecsv?stat={}&dt={}'
+    res = requests.get(apiurl.format(stationID, dateStr))
+    assert res.status_code == 200
+    assert res.text.split()[-1] == '593.580'
+
+    stationID = 'UK009C'
+    dateStr = '2024-02-25T20:02:06.978'
+    apiurl='https://api.ukmeteors.co.uk/getecsv?stat={}&dt={}'
+    res = requests.get(apiurl.format(stationID, dateStr))
+    assert res.status_code == 200
+    assert res.text.split()[-1] == '593.580'
+
+    stationID = 'UK009C'
+    dateStr = '20240225_200206_978'
+    apiurl='https://api.ukmeteors.co.uk/getecsv?stat={}&dt={}'
+    res = requests.get(apiurl.format(stationID, dateStr))
+    assert res.status_code == 200
+    assert res.text.split()[-1] == '593.580'
+
+    stationID = 'UK009C'
+    dateStr = '20240225_200206_977'
+    apiurl='https://api.ukmeteors.co.uk/getecsv?stat={}&dt={}'
+    res = requests.get(apiurl.format(stationID, dateStr))
+    assert res.status_code == 200
+    assert res.text.split()[-1] == 'time'
+
+    stationID = 'UK0080'
+    dateStr = '2024-02-25T20:02:00.1'
+    apiurl='https://api.ukmeteors.co.uk/getecsv?stat={}&dt={}'
+    res = requests.get(apiurl.format(stationID, dateStr))
+    assert res.status_code == 200
+    assert res.text.split()[-1] == '351.420'
+    return 
+
+
+def test_getECSVbadDate():
+    stationID = 'UK0080'
+    dateStr = '2024-02-25T20:02:'
+    apiurl='https://api.ukmeteors.co.uk/getecsv?stat={}&dt={}'
+    res = requests.get(apiurl.format(stationID, dateStr))
+    assert res.status_code == 200
+    assert res.text.split()[-1] == 'format'
+    return 

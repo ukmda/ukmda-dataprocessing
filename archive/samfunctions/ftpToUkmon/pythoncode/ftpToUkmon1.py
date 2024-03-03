@@ -245,6 +245,7 @@ def addRowCamTimings(s3bucket, s3object):
     manual = False
     uploaddate = dtstamp.strftime('%Y%m%d')
     uploadtime = dtstamp.strftime('%H%M%S')
+    expirydate = (dtstamp + datetime.timedelta(days=90)).timestamp()
     table.put_item(
         Item={
             'stationid': camid,
@@ -252,7 +253,8 @@ def addRowCamTimings(s3bucket, s3object):
             'uploaddate': int(uploaddate),
             'uploadtime': int(uploadtime),
             'manual': manual,
-            'rundate': rundate
+            'rundate': rundate,
+            'ExpiryDate': int(expirydate)
         }
     )   
     return 
