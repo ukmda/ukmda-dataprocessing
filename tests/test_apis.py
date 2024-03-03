@@ -109,7 +109,7 @@ def test_getLiveImageList():
     apiurl = f'{apiurl}?dtstr={dtstr}&enddtstr={dtstr2}&fmt=trueimg'
     res = requests.get(apiurl)
     assert res.status_code == 200
-    jsondata = json.loads(res.text[11:-1])
+    jsondata = json.loads(res.text)
     assert len(jsondata['images']) > 0
 
 
