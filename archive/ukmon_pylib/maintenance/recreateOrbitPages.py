@@ -4,7 +4,9 @@ import boto3
 import platform
 from wmpl.Utils.Pickling import loadPickle, savePickle
 from traj.pickleAnalyser import createAdditionalOutput
-from boto3.dynamodb.conditions import Key
+import requests
+import datetime
+import json
 
 
 def getExtraArgs(fname):
@@ -33,24 +35,23 @@ def getExtraArgs(fname):
     return extraargs
 
 
-def getImgListFromDdb(outdir, traj):
+def getImgList(outdir, traj):
     if os.path.isdir(os.path.join(outdir, '..', 'jpgs')):
         imglist = os.listdir(os.path.join(outdir, '..', 'jpgs'))
         return imglist
     orbname=traj.output_dir.replace('\\','/').split('/')[-1]
-    dtstr = orbname.replace('-','_')[:12]
-    prof = os.getenv('UKMPROFILE',default='ukmonshared')
-    sess = boto3.Session(profile_name=prof)
-    ddb = sess.resource('dynamodb', region_name='eu-west-2')
-    table = ddb.Table('live')
-    resp = table.query(IndexName='month-image_name-index', 
-                        KeyConditionExpression=Key('month').eq(dtstr[4:6]) & Key('image_name').begins_with(f'M{dtstr}'),
-                        ProjectionExpression='image_name')
-    imglist = []
-    if 'Items' in resp:
-        for item in resp['Items']:
-            imglist.append(item['image_name'])
-    return imglist
+    testdt = datetime.datetime.strptime(orbname.replace('-','_')[:15], '%Y%m%d_%h%m%s')
+    testdt = testdt + datetime.timedelta(seconds=-10)
+    dtstr = testdt.strftime('%Y-%m-%dT%H:%M:%S.000Z')
+    dtstr2 = (testdt + datetime.timedelta(seconds=30)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
+    apiurl = 'https://api.ukmeteors.co.uk/liveimages/getlive'
+    apiurl = f'{apiurl}?dtstr={dtstr}&enddtstr={dtstr2}&fmt=trueimg'
+    res = requests.get(apiurl)
+    if res.status_code == 200:
+        jsondata = json.loads(res.text)
+        return jsondata['images']
+    else:
+        return []
 
 
 def createExtraJpgtxt(outdir, traj, availableimages):
@@ -155,7 +156,7 @@ def recreateOrbitFiles(outdir, pickname, doupload=False):
     ymd = orbfldr[:8]
     print(f'orbit folder is {orbfldr}')
 
-    availableimages = getImgListFromDdb(outdir, traj)
+    availableimages = getImgList(outdir, traj)
     createExtraJpgtxt(outdir, traj, availableimages)
     createExtraJpgHtml(outdir, orbparent, yr, ym)
     fixupTrajComments(traj, availableimages, outdir, pickname)
