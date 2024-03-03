@@ -12,6 +12,9 @@ newfiles=$(ls -1 *.zip 2> /dev/null)
 if [ "$newfiles" != "" ] ; then 
     for fil in $newfiles ; do
         echo processing $fil
+        ymd=${fil:0:8}
+        ym=${fil:0:6}
+        yr=${ymd:0:4}
         orb=$(basename $fil .zip)
         evt=$(echo ${orb:0:15} | sed 's/-/_/g')
         [ -d $evt ]  && rm -Rf $evt
@@ -27,11 +30,10 @@ if [ "$newfiles" != "" ] ; then
         pickname=$(basename $odux)
         truncpn=${pickname:0:19}_UK
         mv $evt/$orb $evt/$truncpn
+        aws s3 sync $evt/jpgs s3://ukmda-website/img/single/${yr}/${ym}/
         orb=$truncpn
         pick=$(ls -1 $evt/$orb/*.pickle)
         python -m maintenance.recreateOrbitPages $pick force
-        ymd=${fil:0:8}
-        yr=${ymd:0:4}
         $SRC/website/createOrbitIndex.sh ${ymd}
         aws s3 ls ${UKMONSHAREDBUCKET}/matches/${yr}/fullcsv/
         sleep 30 # to allow the lambda to write the CSV file to s3
