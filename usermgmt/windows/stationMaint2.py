@@ -12,9 +12,10 @@ import os
 import paramiko
 import json 
 import time
+import datetime
 from scp import SCPClient
 
-from camTable import addRow, getCamUpdateDate, deleteRow, loadLocationDetails
+from camTable import addRow, getCamUpdateDate, loadLocationDetails
 from camTable import findLocationInfo, dumpCamTable, cameraExists
 
 
@@ -169,7 +170,7 @@ class CamMaintenance(Frame):
         except Exception:
             print('unable to get operator details - probably wrong AWS profile')
             exit(1)
-        tmpdf = self.stationdetails[['site','stationid','direction','camtype','active','humanName','eMail','oldcode']]
+        tmpdf = self.stationdetails[['site','stationid','direction','camtype','active','humanName','eMail','oldcode','created']]
         tmpdf = tmpdf.sort_values(by=['active','site','stationid'], ascending=[True,True,True])
         self.data = tmpdf.values.tolist()
         self.hdrs = tmpdf.columns.tolist()
@@ -280,7 +281,8 @@ class CamMaintenance(Frame):
             data = self.data[event[0]]
             data[event[1]] = event[3]
             newdata = {'stationid': data[1], 'site': data[0], 'humanName':data[5], 'eMail': data[6], 
-                    'direction': data[2], 'camtype': str(data[3]), 'active': str(data[4]), 'oldcode': data[1]}
+                    'direction': data[2], 'camtype': str(data[3]), 'active': str(data[4]), 'oldcode': data[1],
+                    'created': data[8]}
             addRow(newdata, ddb=self.ddb)
         return event[3]
     
@@ -403,11 +405,13 @@ class CamMaintenance(Frame):
             id = curdata[1]
             title = 'Move Camera'
             oldloc = curdata[0].lower() + '_' + curdata[2].lower()
+            created = curdata[7]
         else:
             sshkey = ''
             id = ''
             title = 'Add Camera'
             oldloc = ''
+            created = datetime.datetime.now().strftime('%Y%m%d')
         answer = infoDialog(self, title, curdata[0], user, email, sshkey, id)
         if answer.data[0].strip() != '': 
             d = answer.data
@@ -421,7 +425,7 @@ class CamMaintenance(Frame):
             self.addNewAwsUser(location)
             createIniFile(cameraname)
             addNewUnixUser(location, cameraname, oldloc)
-            self.addNewOwner(rmsid, location, str(d[3]), str(d[4]), str(d[2]), '2','1')
+            self.addNewOwner(rmsid, location, str(d[3]), str(d[4]), str(d[2]), '2','1', created)
         return 
 
     def newSSHKey(self):
@@ -541,11 +545,11 @@ class CamMaintenance(Frame):
             print(line, end="")
         return
     
-    def addNewOwner(self, rmsid, location, user, email, direction, camtype, active):
+    def addNewOwner(self, rmsid, location, user, email, direction, camtype, active, created):
         print(f'adding new owner {user} with {email} for {rmsid} at {location}')
         newdata = {'stationid': rmsid, 'site': location, 'humanName':user, 'eMail': email, 
-                   'direction': direction, 'camtype': camtype, 'active': active, 'oldcode': rmsid}
-        deleteRow(rmsid, ddb=self.ddb)
+                   'direction': direction, 'camtype': camtype, 'active': active, 'oldcode': rmsid, 
+                   'created': created}
         addRow(newdata=newdata, ddb=self.ddb)
         return
 
