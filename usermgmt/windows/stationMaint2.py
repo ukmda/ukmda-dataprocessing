@@ -281,7 +281,7 @@ class CamMaintenance(Frame):
             data = self.data[event[0]]
             data[event[1]] = event[3]
             newdata = {'stationid': data[1], 'site': data[0], 'humanName':data[5], 'eMail': data[6], 
-                    'direction': data[2], 'camtype': str(data[3]), 'active': str(data[4]), 'oldcode': data[1],
+                    'direction': data[2], 'camtype': str(data[3]), 'active': int(data[4]), 'oldcode': data[1],
                     'created': data[8]}
             addRow(newdata, ddb=self.ddb)
         return event[3]
@@ -548,7 +548,7 @@ class CamMaintenance(Frame):
     def addNewOwner(self, rmsid, location, user, email, direction, camtype, active, created):
         print(f'adding new owner {user} with {email} for {rmsid} at {location}')
         newdata = {'stationid': rmsid, 'site': location, 'humanName':user, 'eMail': email, 
-                   'direction': direction, 'camtype': camtype, 'active': active, 'oldcode': rmsid, 
+                   'direction': direction, 'camtype': camtype, 'active': int(active), 'oldcode': rmsid, 
                    'created': created}
         addRow(newdata=newdata, ddb=self.ddb)
         return
@@ -594,17 +594,6 @@ class CamMaintenance(Frame):
         affectedcamlist = caminfo[caminfo.site == location]
         for _, cam in affectedcamlist.iterrows():
             print(cam.site.lower(), cam.sid.lower())
-        return 
-
-        iamc = self.conn.client('iam')
-        iamc.update_access_key(UserName=location, AccessKeyId=keyid, Status='Inactive')
-        key = iamc.create_access_key(UserName=location)
-        with open(keyf, 'w') as outf:
-            outf.write(json.dumps(key, indent=4, sort_keys=True, default=str))
-        with open(csvf,'w') as outf:
-            outf.write('Access key ID,Secret access key\n')
-            outf.write('{},{}\n'.format(key['AccessKey']['AccessKeyId'], key['AccessKey']['SecretAccessKey']))
-
         return 
 
 
