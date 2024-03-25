@@ -7,7 +7,6 @@ from tkinter import Frame, Menu
 from tkinter import simpledialog
 from tkinter.filedialog import askopenfilename
 import boto3
-import shutil
 import os
 import paramiko
 import json 
@@ -584,16 +583,22 @@ class CamMaintenance(Frame):
         return 
 
     def createNewAwsKey(self, location, caminfo):
-        keyf = os.path.join('jsonkeys', location + '.key')
-        oldkeyf = os.path.join('jsonkeys', location + '-prev.key')
-        csvf = os.path.join('csvkeys', location + '.csv')
-        shutil.copyfile(keyf, oldkeyf)
-        currkey = json.load(open(keyf, 'r'))
-        keyid = currkey['AccessKey']['AccessKeyId']
-        print(location, keyid)
-        affectedcamlist = caminfo[caminfo.site == location]
-        for _, cam in affectedcamlist.iterrows():
-            print(cam.site.lower(), cam.sid.lower())
+        server=os.getenv('HELPERIP', default='3.11.55.160')
+        user='ec2-user'
+        keyfile = os.getenv('SSHKEY', default='ukmda_admin')
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = user, pkey = k)
+        command = f'/home/{user}/keymgmt/updateAwsKey.sh {location} force'
+        print(f'running {command}')
+        _, stdout, stderr = c.exec_command(command, timeout=10)
+        for line in iter(stdout.readline, ""):
+            print(line, end="")
+        for line in iter(stderr.readline, ""):
+            print(line, end="")
+        print('done')
+        c.close()
         return 
 
 
@@ -729,7 +734,9 @@ def createIniFile(cameraname):
 
 if __name__ == '__main__':
     # Initialize main window
+    dir_ = os.path.dirname(os.path.realpath(__file__))
     root = tk.Tk()
     app = CamMaintenance(root)
+    root.iconbitmap(os.path.join(dir_,'ukmda.ico'))
     root.protocol("WM_DELETE_WINDOW", app.on_closing)
     app.mainloop()

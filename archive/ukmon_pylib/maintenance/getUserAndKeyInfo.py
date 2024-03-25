@@ -195,6 +195,7 @@ def issueNewKey(uid, force=False):
         print('adding new key from scratch')
         createAndSaveKey(uid)
         copyToHomedirs(uid, locs)
+        return
     else:
         numkeys = len(resp['AccessKeyMetadata'])
         # can only have two keys so delete the 2nd of them
@@ -208,21 +209,23 @@ def issueNewKey(uid, force=False):
             print(f'already two keys, deleting {keyid} last used on {lastused}')
             iamc.delete_access_key(UserName=uid, AccessKeyId=keyid)
         # create a new key
-        k = resp['AccessKeyMetadata'][0]
-        oldkeyid = k['AccessKeyId']
-        oldkeyage = (now - k['CreateDate']).days
-        if oldkeyage <= MAXAGE and force is False:
-            print(f'key {oldkeyid} for {uid} is only {oldkeyage} days old, not replacing')
-            return 
+        if numkeys > 0:
+            k = resp['AccessKeyMetadata'][0]
+            oldkeyid = k['AccessKeyId']
+            oldkeyage = (now - k['CreateDate']).days
+            if oldkeyage <= MAXAGE and force is False:
+                print(f'key {oldkeyid} for {uid} is only {oldkeyage} days old, not replacing')
+                return 
         newkey = createAndSaveKey(uid)
         copyToHomedirs(uid, locs)
         # and then delete the old one
-        lastused = 'never'
-        luresp = iamc.get_access_key_last_used(AccessKeyId=oldkeyid)
-        if 'LastUsedDate' in luresp['AccessKeyLastUsed']:
-            lastused = luresp['AccessKeyLastUsed']['LastUsedDate']
-        print(f'new key {newkey} issued to replace {oldkeyid}, last used on {lastused}')
-        iamc.delete_access_key(UserName=uid, AccessKeyId=oldkeyid)
+        if numkeys > 0:
+            lastused = 'never'
+            luresp = iamc.get_access_key_last_used(AccessKeyId=oldkeyid)
+            if 'LastUsedDate' in luresp['AccessKeyLastUsed']:
+                lastused = luresp['AccessKeyLastUsed']['LastUsedDate']
+            print(f'new key {newkey} issued to replace {oldkeyid}, last used on {lastused}')
+            iamc.delete_access_key(UserName=uid, AccessKeyId=oldkeyid)
     return 
 
 
