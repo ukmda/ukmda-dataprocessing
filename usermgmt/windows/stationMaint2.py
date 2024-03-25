@@ -737,6 +737,6 @@ if __name__ == '__main__':
     dir_ = os.path.dirname(os.path.realpath(__file__))
     root = tk.Tk()
     app = CamMaintenance(root)
-    root.iconbitmap(os.path.join(dir_,'ukmda.ico'))
+    root.iconbitmap(os.path.join(dir_,'camera.ico'))
     root.protocol("WM_DELETE_WINDOW", app.on_closing)
     app.mainloop()
