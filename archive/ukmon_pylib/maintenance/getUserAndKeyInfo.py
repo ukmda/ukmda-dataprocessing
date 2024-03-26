@@ -291,7 +291,7 @@ def rollKeysForUsers(nusers=3):
             continue
         _, _, _, locs = getLinkedCams(uid, camdets, active=True)
         print(f'rolling key for {uid}, old key age {rw.k1age} last used {rw.k1used} days ago affects {locs}')
-        # issueNewKey(uid)
+        issueNewKey(uid)
 
 
 if __name__ == '__main__':
