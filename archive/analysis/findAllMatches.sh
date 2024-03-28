@@ -65,8 +65,7 @@ log2cw $NJLOGGRP $NJLOGSTREAM "start runDistrib" findAllMatches
 $SRC/analysis/runDistrib.sh $MATCHSTART $MATCHEND
 
 log2cw $NJLOGGRP $NJLOGSTREAM "start checkForFailures" findAllMatches
-logf=$(ls -1tr $SRC/logs/matches-*.log | tail -1)
-success=$(grep "Total run time:" $logf)
+success=$(grep "Total run time:" $SRC/logs/matchJob.log)
 
 if [ "$success" == "" ]
 then
@@ -86,7 +85,7 @@ log2cw $NJLOGGRP $NJLOGSTREAM "start getMatchStats" findAllMatches
 dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
 trajlist=$(cat $dailyrep | awk -F, '{print $2}')
 
-matchlog=$( ls -1 ${SRC}/logs/matches-*.log | tail -1)
+matchlog=${SRC}/logs/matchJob.log
 vals=$(python -m metrics.getMatchStats $matchlog )
 evts=$(echo $vals | awk '{print $2}')
 trajs=$(echo $vals | awk '{print $6}')
