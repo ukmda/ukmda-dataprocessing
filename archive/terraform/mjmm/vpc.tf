@@ -65,7 +65,7 @@ resource "aws_route_table" "default" {
   }
   route {
     cidr_block                = "172.32.0.0/16"
-    vpc_peering_connection_id = "pcx-04bcbf8428c045637"
+    vpc_peering_connection_id = "pcx-0beef413172ec795e"
   }
 
   tags = {
@@ -79,14 +79,6 @@ resource "aws_internet_gateway" "main_igw" {
   tags = {
     Name       = "main_igw"
     billingtag = "Management"
-  }
-}
-
-resource "aws_vpc_peering_connection_accepter" "eetommpeering" {
-  vpc_peering_connection_id = "pcx-04bcbf8428c045637"
-  tags = {
-    "Name"       = "ee-to-mm-peering"
-    "billingtag" = "ukmon"
   }
 }
 
