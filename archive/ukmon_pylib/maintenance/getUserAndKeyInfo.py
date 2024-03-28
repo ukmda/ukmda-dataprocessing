@@ -5,8 +5,8 @@
 
 # getUserAndKeyInfo.py audit        = An audit report of unused or stale acconts and keys
 # getUserAndKeyInfo.py dormant      - reports on dormant AWS accounts
-# getUserAndKeyInfo.py update xxxx  - issues a new key to site xxxx and deploys it to the unix users
-# getUserAndKeyInfo.py delete xxxx  - deletes user xxxx, their keys and associated unix users
+# getUserAndKeyInfo.py update xxxx  - issues a new key to site xxxx and deploys it to the corresponding unix homedirs
+# getUserAndKeyInfo.py delete xxxx  - deletes user xxxx, their keys and associated corresponding unix homedirs
 
 import boto3
 import datetime
@@ -14,6 +14,7 @@ import time
 import pandas as pd
 import os
 import sys
+import requests
 import subprocess
 from reports.CameraDetails import loadLocationDetails
 
@@ -25,6 +26,27 @@ if sys.platform == 'win32':
 else:
     csvdir='/home/ec2-user/keymgmt/csvkeys'
     lnxdir='/home/ec2-user/keymgmt/csvkeys'
+
+
+def checkIfOnGMN(camid):
+    """
+    Check if a station is still on GMN, and if so, when it last uploaded.
+    """
+    baseurl = f'https://globalmeteornetwork.org/weblog/{camid[0:2]}/{camid}/latest/index.html'
+    r = requests.get(baseurl)
+    if r.status_code != 200:
+        return False, f'data for {camid} not available'
+    text = r.text
+    rb=text.find('Recording begin: ')
+    if rb < 50:
+        return False, f'data for {camid} not available'
+    rb = rb + len('Recording begin: ')
+    lastdt = text[rb:rb+19]
+    try:
+        dtval = datetime.datetime.strptime(lastdt, '%Y-%m-%d %H:%M:%S')
+        return True, dtval
+    except:
+        return False, "date not parseable"
 
 
 def getLinkedCams(site, camdets, active=False):
@@ -50,7 +72,10 @@ def getLinkedCams(site, camdets, active=False):
 
 
 def auditReport():
-    stalepwds, stalekeys, unusedkeys, twokeys = getDormantUsersV2()
+    """
+    Generate an audit report showing accounts with stale passwords, stale keys, unused keys or extra keys 
+    """
+    stalepwds, stalekeys, unusedkeys, twokeys = getKeyStatuses()
     print('\nAccounts with Stale Passwords\n============================')
     if len(stalepwds) == 0:
         print('None')
@@ -73,7 +98,9 @@ def auditReport():
         print(twokeys)
 
 
-def getDormantUsersV2(excludeadm=False):
+def getKeyStatuses(excludeadm=False):
+    """
+    """
     now = datetime.datetime.now()
     iamc = boto3.client('iam')
     try:
@@ -121,12 +148,14 @@ def getDormantUsersV2(excludeadm=False):
     newdf['k1age'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%S+00:00')).days for x in newdf.access_key_1_last_rotated]
     newdf['k1used'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%S+00:00')).days for x in newdf.access_key_1_last_used_date]
     newdf = newdf[newdf.k1used > MAXAGE]
+    newdf = newdf[newdf.k1age > 2]
     newdf = newdf.filter(items=['user','k1age','k1used'])
 
     newdf2 = df2[df2.access_key_1_active == 'true']
     newdf2 = newdf2[newdf2.access_key_1_last_used_date=='N/A']
     newdf2['k1age'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%S+00:00')).days for x in newdf2.access_key_1_last_rotated]
     newdf2['k1used'] = ['N/A'] * len(newdf2)
+    newdf2 = newdf2[newdf2.k1age > 2]
     newdf2 = newdf2.filter(items=['user','k1age','k1used'])
     unusedkeys = pd.concat([newdf, newdf2])
 
@@ -142,11 +171,18 @@ def getDormantUsers():
     Get a list of dormant AWS accounts, keys, and corresponding camera and unix IDs 
     """
     camdets = loadLocationDetails()
-    _, _, unusedkeys, _ = getDormantUsersV2()
+    _, _, unusedkeys, _ = getKeyStatuses()
     for _, rw in unusedkeys.iterrows():
         uid = rw.user
         email, active, ids, locs = getLinkedCams(uid, camdets, active=True)
-        print(f'{uid}, {rw.k1age}, {rw.k1used}, {email}, {active}, {ids}, {locs}')
+        statuses = []
+        for id in ids:
+            sts,dt = checkIfOnGMN(id)
+            if sts:
+                statuses.append(dt.strftime('%Y-%m-%d'))
+            else:
+                statuses.append('n/a')
+        print(f'{uid}, {rw.k1age}, {rw.k1used}, {email}, {active}, {ids}, {locs}, {statuses}')
 
 
 def createAndSaveKey(uid):
@@ -280,10 +316,10 @@ def deleteDormantAwsUser(uid, force=False):
 
 def rollKeysForUsers(nusers=3):
     """ 
-    Get a list of stale keys, and roll the next N of them
+    Get a list of stale keys, then roll a random sample of them
     """
     camdets = loadLocationDetails()
-    _, stalekeys, _, _ = getDormantUsersV2(excludeadm=True)
+    _, stalekeys, _, _ = getKeyStatuses(excludeadm=True)
     sampledf = stalekeys.sample(n=nusers)
     for _, rw in sampledf.iterrows():
         uid = rw.user
