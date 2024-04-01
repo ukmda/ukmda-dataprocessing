@@ -88,8 +88,8 @@ def plotMap(srcpath, intersect=False, plotlabels=False):
         thiscam = jsdata[cam]
         lats.append(thiscam['lat'])
         longs.append(thiscam['lon'])
-        maxn, minn = 5, -11
-        maxa, mina = 62.5, 49.0
+    maxn, minn = round(max(longs) + 2.5, 1), round(min(longs) - 3.5, 1)
+    maxa, mina = round(max(lats) + 1.5, 1), round(min(lats) - 1.5,1)
 
 
     mapproj = ccrs.AlbersEqualArea()
