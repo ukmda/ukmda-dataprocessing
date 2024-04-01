@@ -34,7 +34,7 @@ function prd {
 
 function calcserver { 
 	sts=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State --output text --profile ukmonshared)
-	ipaddr=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PublicIpAddress --output text --profile ukmonshared)
+	ipaddr=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text --profile ukmonshared)
 	isrunning=$(echo $sts | cut -d " " -f 1)
 	if [ $isrunning -ne 16 ] ; then
 		/home/ec2-user/prod/utils/stopstart-calcengine.sh start
