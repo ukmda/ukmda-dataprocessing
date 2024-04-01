@@ -101,6 +101,7 @@ def auditReport():
 def getKeyStatuses(excludeadm=False):
     """
     """
+    maxage = int(os.getenv('MAXAGE', default=MAXAGE))
     now = datetime.datetime.now()
     iamc = boto3.client('iam')
     try:
@@ -119,7 +120,7 @@ def getKeyStatuses(excludeadm=False):
     pd.options.mode.chained_assignment = None
     newdf = df2[df2.password_enabled == 'true']
     newdf['pwage'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%S+00:00')).days for x in newdf.password_last_changed]
-    newdf = newdf[newdf.pwage > MAXAGE]
+    newdf = newdf[newdf.pwage > maxage]
     stalepwds = newdf.filter(items=['user','pwage'])
 
     # check age of active keys
@@ -127,7 +128,7 @@ def getKeyStatuses(excludeadm=False):
     newdf = newdf[newdf.access_key_1_last_used_date!='N/A']
     newdf['k1age'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%S+00:00')).days for x in newdf.access_key_1_last_rotated]
     newdf['k1used'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%S+00:00')).days for x in newdf.access_key_1_last_used_date]
-    newdf = newdf[newdf.k1age > MAXAGE]
+    newdf = newdf[newdf.k1age > maxage]
     if excludeadm:
         newdf = newdf[newdf.password_enabled == 'false']
     newdf = newdf.filter(items=['user','k1age','k1used'])
@@ -136,7 +137,7 @@ def getKeyStatuses(excludeadm=False):
     newdf2 = newdf2[newdf2.access_key_1_last_used_date=='N/A']
     newdf2['k1age'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%S+00:00')).days for x in newdf2.access_key_1_last_rotated]
     newdf2['k1used'] = ['N/A'] * len(newdf2)
-    newdf2 = newdf2[newdf2.k1age > MAXAGE]
+    newdf2 = newdf2[newdf2.k1age > maxage]
     if excludeadm:
         newdf2 = newdf2[newdf2.password_enabled == 'false']
     newdf2 = newdf2.filter(items=['user','k1age','k1used'])
@@ -147,7 +148,7 @@ def getKeyStatuses(excludeadm=False):
     newdf = newdf[newdf.access_key_1_last_used_date!='N/A']
     newdf['k1age'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%S+00:00')).days for x in newdf.access_key_1_last_rotated]
     newdf['k1used'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%S+00:00')).days for x in newdf.access_key_1_last_used_date]
-    newdf = newdf[newdf.k1used > MAXAGE]
+    newdf = newdf[newdf.k1used > maxage]
     newdf = newdf[newdf.k1age > 2]
     newdf = newdf.filter(items=['user','k1age','k1used'])
 
@@ -171,6 +172,9 @@ def getDormantUsers():
     Get a list of dormant AWS accounts, keys, and corresponding camera and unix IDs 
     """
     camdets = loadLocationDetails()
+    maxage = int(os.getenv('MAXAGE', default=MAXAGE))
+    print(f'Cameras not active for more than {maxage} days')
+    print('=========================================')
     _, _, unusedkeys, _ = getKeyStatuses()
     for _, rw in unusedkeys.iterrows():
         uid = rw.user
@@ -219,9 +223,10 @@ def copyToHomedirs(uid, camlocs):
 def issueNewKey(uid, force=False):
     """
     issue a new AWS key for a site and deploy it to the correct unix folders
-    but check first if the key is due for replacement (greater than MAXAGE days old)
+    but check first if the key is due for replacement 
     and only replace it if either its old, or 'force' is True
     """
+    maxage = int(os.getenv('MAXAGE', default=MAXAGE))
     now = datetime.datetime.now(datetime.timezone.utc)
     camdets = loadLocationDetails()
     _, _, _, locs = getLinkedCams(uid, camdets, active=True)
@@ -249,7 +254,7 @@ def issueNewKey(uid, force=False):
             k = resp['AccessKeyMetadata'][0]
             oldkeyid = k['AccessKeyId']
             oldkeyage = (now - k['CreateDate']).days
-            if oldkeyage <= MAXAGE and force is False:
+            if oldkeyage <= maxage and force is False:
                 print(f'key {oldkeyid} for {uid} is only {oldkeyage} days old, not replacing')
                 return 
         newkey = createAndSaveKey(uid)
@@ -270,6 +275,7 @@ def deleteDormantAwsUser(uid, force=False):
     Delete a dormant AWS non-interactive account
     Checks are done that the user exists and is not a console-user
     """
+    maxage = int(os.getenv('MAXAGE', default=MAXAGE))
     now = datetime.datetime.now(datetime.timezone.utc)
     iamc = boto3.client('iam')
     camdets = loadLocationDetails()
@@ -288,7 +294,7 @@ def deleteDormantAwsUser(uid, force=False):
         k = resp['AccessKeyMetadata'][0]
         oldkeyid = k['AccessKeyId']
         oldkeyage = (now - k['CreateDate']).days
-        if oldkeyage <= MAXAGE and force is False:
+        if oldkeyage <= maxage and force is False:
             print(f'key {oldkeyid} for {uid} is only {oldkeyage} days old, not deleting')
             return 
     print('pausing for thought....')
