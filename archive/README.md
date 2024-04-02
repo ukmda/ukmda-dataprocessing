@@ -12,14 +12,13 @@ This diagram shows the overall flow of data from Cameras to websites and out to 
     P -- next day --> D;
     D --> E[matching engine];
     E --> F[reports generator];
-    F --> G[opt-in email of matches];
+    F --> G[match report on groups.io];
     F --> I[bad-data alerts];
     F --> H[Archive];
-    H -- on demand --> J[other networks];
-    H --> M[public];
-    C --> M[public];
+    H --> M[website];
+    C --> M[website];
     C --> N{bright event?};
-    N -->|yes| K[social media];
+    N --> K[social media];
     H -- manual --> K;
     I --> O[camera owners];
     G --> O;
@@ -43,10 +42,12 @@ This diagram shows the various scripts and processes called, in order
     rep3 --> summ[Create summary date for homepage]
     summ --> camst[Create Camera status reports]
     camst --> exch[Create files for exchange with other networks]
-    exch --> stats[Create Station Reports]
-    stats --> mets[Create Metrics]
-    mets --> badc[Send out bad camera emails]
-    badc --> d[FINISHED]
+    exch --> badc[Send out bad camera emails]
+    badc --> cost[Create Cost Report]
+    cost --> stats[Create Station Reports]
+    stats --> clsp[Clear space]
+    clsp --> mdb[update mariadb tables]
+    mdb --> d[FINISHED]
 ```
 
 Find All Matches
@@ -56,22 +57,20 @@ Flow in findAllMatches.sh
 ```mermaid
     flowchart TD
 
-    setd[Set the Dates] --> rmssngl[Create RMS single station data files]
-    rmssngl --> bkp1[Backup the current trajectory database]
-    bkp1 --> rmat[Invoke runDistrib]
-    rmat --> start[runDistrib Start calc engine]
-    start --> creat[runDistrib Create batch script and copy to server]
-    creat --> sync1[runDistrib script syncs new ftpdetect files]
-    sync1 --> run[runDistrib  Then runs the the Phase 1 solver]
-    run --> sync2[runDistrib Then syncs back to S3]
-    sync2 --> done[runDistrib Stop calc engine]
-    done --> stage2[run the distributed solver phase 2 using ECS and Fargate]
-    stage2 --> consol[wait for containers to finish then consolidate the data]
-    consol --> repo[Create file of latest matches]
-    repo --> stats[Create Stats and sync back to S3]
-    stats --> idxpg[Update website index pages]
-    idxpg --> gzi[Backup and gzip old trajectory databases]
-    gzi --> d[FINISHED]
+    setd[findAllMatches sets up the date range] --> bkp1[findAllMatches saves the current trajectory database]
+    bkp1 --> rmat[findAllMatches then invokes runDistrib]
+    rmat --> start[runDistrib Starts the calc engine server]
+    start --> creat[runDistrib Creates batch script and copies to calc engine]
+    creat --> sync1[runDistrib syncs new ftpdetect files to the calc engine]
+    sync1 --> run[runDistrib runs the the Phase 1 solver. This identifies candidate groups]
+    run --> sync2[runDistrib syncs data back to the data store]
+    sync2 --> done[runDistrib stops calc engine for now, to save cost]
+    done --> stage2[runDistrib starts the distributed solver phase 2 using ECS and Fargate]
+    stage2 --> consol[runDistrib waits for containers to finish then consolidate the data]
+    consol --> repo[runDistrib creates file of latest matches]
+    repo --> stats[runDistrib syncs the solved orbit files back to S3 and backs up the data]
+    stats --> idxpg[findAllMatches creates some stats updates website index pages and sends the daily report]
+    idxpg --> d[FINISHED]
 ```
 
 Flow in terms of files
@@ -79,10 +78,7 @@ Flow in terms of files
 ```mermaid
     flowchart LR
 
-    nightly[cronjobs/nightlyJob.sh] --> datasync[utils/dataSync.sh]
-    nightly --> findmatches[analysis/findAllMatches.sh]
-    findmatches --> rmssngl[analysis/getRMSSingleData.sh]
-    findmatches --> srchabl[analysis/createSearchable.sh]
+    nightly[cronjobs/nightlyJob.sh] --> findmatches[analysis/findAllMatches.sh]
     findmatches --> rundist[analysis/runDistrib.sh]
     rundist --> trajcont[launches docker containers which solve and post directly to the website]
     findmatches --> daily[creates daily report and stats]
@@ -106,8 +102,8 @@ Flow in terms of files
     nightly --> statstat[analysis/getBadStations.sh]
     nightly --> costs[website/costReport.sh]
     nightly --> statreps[analysis/stationReports.sh]
-    nightly --> databack[utils/dataSyncBack.sh ]
     nightly --> clearsp[utils/clearSpace.sh ]
+    nightly --> mariadb[utils/loadMatchCsvDB.sh ]
     nightly --> getlogs[analysis/getLogData.sh]
     nightly --> done[done]
 
