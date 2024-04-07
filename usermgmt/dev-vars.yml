@@ -8,3 +8,4 @@
     archprofile: ukmda_admin
     helper: ukmonhelper2
     serverip: "3.11.55.160"
+    remotedir: /home/ec2-user/dev/data

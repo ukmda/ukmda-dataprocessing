@@ -576,7 +576,6 @@ archive/samfunctions*/matchPickle/pythoncode/*.npy
 .terraform/
 archive/utils/tmp.json
 usermgmt/windows/caminfo/camera-details-new.csv
-usermgmt/windows/caminfo/stationdetails.csv
 ukmon_pylib/tests/testFilter/FTP*new.txt
 ukmon_pylib/tests/MaxCams/**/*.old
 ukmon_pylib/tests/MaxCams/*.png
@@ -602,6 +601,7 @@ usermgmt/server/ukmon*.json
 **/trajsolver_old/*
 archive/tmp/*
 servercopy/files/*
-archive/containers/testing/RMS/
-archive/containers/testing/WesternMeteorPyLib/
+tests/testing/RMS/
+tests/testing/WesternMeteorPyLib/
 archive/ukmon_pylib/tests/testdata.tar.gz
+servercopybkp/*

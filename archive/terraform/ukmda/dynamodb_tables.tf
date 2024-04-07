@@ -60,11 +60,15 @@ resource "aws_dynamodb_table" "camera_table" {
     name = "site"
     type = "S"
   }
-
-  #ttl {
-  #  attribute_name = "ExpiryDate"
-  #  enabled        = true
-  #}
+      global_secondary_index {
+          hash_key           = "site"
+          name               = "site-stationid-index"
+          non_key_attributes = []
+          projection_type    = "ALL"
+          range_key          = "stationid"
+          read_capacity      = 0
+          write_capacity     = 0
+        }
   tags = {
     Name       = "camdetails"
     billingtag = "ukmda"
@@ -159,7 +163,7 @@ resource "aws_dynamodb_table" "live_table" {
     write_capacity     = 0
   }
   ttl {
-    attribute_name = "expiry_date"
+    attribute_name = "expirydate"
     enabled        = true
   }
   tags = {

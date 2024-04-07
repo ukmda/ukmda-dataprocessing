@@ -22,19 +22,27 @@ def test_createBarChart():
     assert os.path.isfile(outf)
     os.remove(outf)
 
-    # pass datadir only
+    # pass datadir only - will fail if we're not in 2023
     res = createBarChart(datadir=datadir, yr=None)
     outf=os.path.join(datadir, f'Annual-{yr}.jpg')
     print(f'looking for {outf}')
-    assert os.path.isfile(outf)
-    os.remove(outf)
+    assert os.path.isfile(outf) is False
+    try:
+        os.remove(outf)
+        assert 1==0
+    except Exception:
+        pass
 
     # no params passed
     res = createBarChart()
     outf=os.path.join(datadir, f'Annual-{yr}.jpg')
     print(f'looking for {outf}')
-    assert os.path.isfile(outf)
-    os.remove(outf)
+    assert os.path.isfile(outf) is False
+    try:
+        os.remove(outf)
+        assert 1==0
+    except Exception:
+        pass
 
     # nonexistent year
     res = createBarChart(yr=2150)

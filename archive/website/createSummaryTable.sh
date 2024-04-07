@@ -51,7 +51,7 @@ python -c "from reports.createAnnualBarChart import createBarChart; createBarCha
 popd
 
 # update index page
-numcams=$(python -c "from reports import CameraDetails as cd; print(len(cd.SiteInfo().getActiveCameras()))")
+numcams=$(cat $DATADIR/activecamcount.txt)
 cat $TEMPLATES/frontpage.html | sed "s/#NUMCAMS#/$numcams/g" > $DATADIR/newindex.html
 
 logger -s -t createSummaryTable "copying to website"

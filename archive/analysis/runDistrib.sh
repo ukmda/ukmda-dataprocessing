@@ -16,63 +16,69 @@
 #
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-logger -s -t runDistrib "RUNTIME $SECONDS starting runDistrib"
 
 # load the configuration
 source $here/../config.ini >/dev/null 2>&1
+
+# logstream name inherited from parent environment but set it if not
+if [ "$NJLOGSTREAM" == "" ]; then
+    NJLOGSTREAM=$(date +%Y%m%d-%H%M%S)
+    aws logs create-log-stream --log-group-name $NJLOGGRP --log-stream-name $NJLOGSTREAM --profile ukmonshared
+fi
+log2cw $NJLOGGRP $NJLOGSTREAM "starting runDistrib" runDistrib
 
 # set the profile to the EE account so we can run the server and monitor progress
 export AWS_PROFILE=ukmonshared
 
 if [ $# -gt 0 ] ; then
     if [ "$1" != "" ] ; then
-        echo "selecting range"
+        log2cw $NJLOGGRP $NJLOGSTREAM "selecting range" runDistrib
         MATCHSTART=$1
     fi
     if [ "$2" != "" ] ; then
         MATCHEND=$2
     else
-        echo "matchend was not supplied, using 2"
+        log2cw $NJLOGGRP $NJLOGSTREAM "matchend was not supplied, using 2 days" runDistrib
         MATCHEND=$(( $MATCHSTART - 2 ))
     fi
 fi
 begdate=$(date --date="-$MATCHSTART days" '+%Y%m%d')
 rundate=$(date --date="-$MATCHEND days" '+%Y%m%d')
 
-logger -s -t runDistrib "RUNTIME $SECONDS start correlation server"
+log2cw $NJLOGGRP $NJLOGSTREAM "start correlation server" runDistrib
 stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
 if [ $stat -eq 80 ]; then 
     aws ec2 start-instances --instance-ids $SERVERINSTANCEID
 fi
-logger -s -t runDistrib "RUNTIME $SECONDS wait for correlation server"
+log2cw $NJLOGGRP $NJLOGSTREAM "start correlation server" runDistrib
 while [ "$stat" -ne 16 ]; do
     sleep 5
-    echo "checking"
+    log2cw $NJLOGGRP $NJLOGSTREAM "checking server status" runDistrib
     stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
 done
-logger -s -t runDistrib "RUNTIME $SECONDS running phase 1 for dates ${begdate} to ${rundate}"
+log2cw $NJLOGGRP $NJLOGSTREAM "running phase 1 for dates ${begdate} to ${rundate}" runDistrib
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
-logger -s -t runDistrib "RUNTIME $SECONDS creating the run script"
+log2cw $NJLOGGRP $NJLOGSTREAM "creating the run script" runDistrib
 execMatchingsh=/tmp/execdistrib.sh
 python -m traj.createDistribMatchingSh $MATCHSTART $MATCHEND $execMatchingsh
 chmod +x $execMatchingsh
 
-logger -s -t runDistrib "RUNTIME $SECONDS get server details"
+log2cw $NJLOGGRP $NJLOGSTREAM "get server details" runDistrib
 privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PublicIpAddress --output text)
 while [ "$privip" == "" ] ; do
     sleep 5
-    echo "getting ipaddress"
+    log2cw $NJLOGGRP $NJLOGSTREAM "getting IP address" runDistrib
     privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PublicIpAddress --output text)
 done
 
-logger -s -t runDistrib "RUNTIME $SECONDS deploy the script to the server $privip and run it"
+log2cw $NJLOGGRP $NJLOGSTREAM "deploy the script to the server $privip and run it" runDistrib
 
 scp -i $SERVERSSHKEY $execMatchingsh ec2-user@$privip:/tmp
 while [ $? -ne 0 ] ; do
     # in case the server isn't responding to ssh sessions yet
     sleep 10
-    echo "server not responding yet, retrying"
+    log2cw $NJLOGGRP $NJLOGSTREAM "server not responding yet, retrying" runDistrib
     scp -i $SERVERSSHKEY $execMatchingsh ec2-user@$privip:/$execMatchingsh
 done 
 # push the python and templates required
@@ -84,14 +90,14 @@ rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/distributeCandidates.py ec2-us
 # now run the script
 ssh -i $SERVERSSHKEY ec2-user@$privip /$execMatchingsh
 
-logger -s -t runDistrib "RUNTIME $SECONDS job run, stop the server again"
+log2cw $NJLOGGRP $NJLOGSTREAM "job run, stop the server again" runDistrib
 aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 
-logger -s -t runDistrib "RUNTIME $SECONDS monitoring and waiting for completion"
+log2cw $NJLOGGRP $NJLOGSTREAM "monitoring and waiting for completion" runDistrib
 
 python -c "from traj.distributeCandidates import monitorProgress as mp; mp('${rundate}'); "
 
-logger -s -t runDistrib "RUNTIME $SECONDS merging in the new json files"
+log2cw $NJLOGGRP $NJLOGSTREAM "merging in the new json files" runDistrib
 mkdir -p $DATADIR/distrib
 cd $DATADIR/distrib
 
@@ -102,18 +108,18 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
 
     numtoconsol=$(ls -1 $DATADIR/distrib/${rundate}*.json | wc -l)
     if [ $numtoconsol -gt 5 ] ; then 
-        logger -s -t runDistrib "RUNTIME $SECONDS restarting calcserver to consolidate results"
+        log2cw $NJLOGGRP $NJLOGSTREAM "restarting server to consolidate results" runDistrib
         stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
         if [ $stat -eq 80 ]; then 
             aws ec2 start-instances --instance-ids $SERVERINSTANCEID
         fi
-        logger -s -t runDistrib "RUNTIME $SECONDS waiting for the server to be ready"
+        log2cw $NJLOGGRP $NJLOGSTREAM "waiting for the server to be ready" runDistrib
         while [ "$stat" -ne 16 ]; do
             sleep 30
             if [ $stat -eq 80 ]; then 
                 aws ec2 start-instances --instance-ids $SERVERINSTANCEID
             fi
-            echo "checking - status is ${stat}"
+            log2cw $NJLOGGRP $NJLOGSTREAM "checking - status is ${stat}" runDistrib
             stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
         done
 
@@ -121,7 +127,7 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
         while [ $? -ne 0 ] ; do
             # in case the server isn't responding to ssh sessions yet
             sleep 10
-            echo "server not responding yet, retrying"
+            log2cw $NJLOGGRP $NJLOGSTREAM "server not responding yet, retrying" runDistrib
             scp -i $SERVERSSHKEY $DATADIR/distrib/processed_trajectories.json ec2-user@$privip:data/distrib
         done 
         scp -i $SERVERSSHKEY $DATADIR/distrib/${rundate}*.json ec2-user@$privip:data/distrib
@@ -141,7 +147,7 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
         # prune trajdb folder on calcserver
         ssh -i $SERVERSSHKEY ec2-user@$privip "find ~/ukmon-shared/matches/RMSCorrelate/trajdb -maxdepth 1 -name "*.json*"  -mtime +30 -exec rm -f {} \;"
 
-        logger -s -t runDistrib "stopping calcserver again"
+        log2cw $NJLOGGRP $NJLOGSTREAM "stopping calcserver again" runDistrib
         aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 
         python -c "from traj.consolidateDistTraj import patchTrajDB ; patchTrajDB('$DATADIR/distrib/processed_trajectories.json','/home/ec2-user/ukmon-shared/matches/RMSCorrelate', '/home/ec2-user/data/distrib');"
@@ -151,7 +157,7 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
     # push the updated traj db to the S3 bucket
     aws s3 cp $DATADIR/distrib/processed_trajectories.json $UKMONSHAREDBUCKET/matches/distrib/ --quiet
 
-    logger -s -t runDistrib "RUNTIME $SECONDS compressing the procssed data"
+    log2cw $NJLOGGRP $NJLOGSTREAM "compressing the procssed data" runDistrib
     gzip < $DATADIR/distrib/processed_trajectories.json > $DATADIR/trajdb/processed_trajectories.json.${rundate}.gz
     aws s3 mv $UKMONSHAREDBUCKET/matches/distrib/${rundate}.pickle $DATADIR/distrib --quiet
     tar czvf $DATADIR/distrib/${rundate}.tgz $DATADIR/distrib/${rundate}*.json $DATADIR/distrib/${rundate}.pickle
@@ -159,8 +165,8 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
     rm -f $DATADIR/distrib/${rundate}*.json $DATADIR/distrib/${rundate}.pickle
     aws s3 rm $UKMONSHAREDBUCKET/matches/distrib/ --exclude "*" --include "${rundate}*.json" --exclude "test/*" --recursive
 else
-    echo "trajectory database is size zero... not proceeding with copy"
+    log2cw $NJLOGGRP $NJLOGSTREAM "trajectory database is size zero... not proceeding with copy" runDistrib
 fi 
 # and then clear the profile again
 unset AWS_PROFILE
-logger -s -t runDistrib "RUNTIME $SECONDS finished runDistrib"
+log2cw $NJLOGGRP $NJLOGSTREAM "finished runDistrib" runDistrib

@@ -8,6 +8,7 @@ import json
 import datetime
 import numpy as np
 import boto3
+from boto3.dynamodb.conditions import Key
 
 from ftpDetectInfo import loadFTPDetectInfo
 from Math import jd2Date
@@ -18,7 +19,7 @@ isodate_format_entry = "%Y-%m-%dT%H:%M:%S.%f"
 isodate_format_file = "%Y-%m-%dT%H:%M:%S"
 
 
-def createECSV(ftpFile, required_event = None):
+def createECSV(ftpFile, required_event):
     """ Save the picks into the GDEF ECSV standard. 
     Arguments: 
         ftpFile:        string  full path and ftp File name
@@ -37,77 +38,56 @@ def createECSV(ftpFile, required_event = None):
         except:
             return 'malformed platepar file - cannot continue'
     kvals = platepars_recalibrated_dict[list(platepars_recalibrated_dict.keys())[0]]
-    #print(kvals)
     meteors = loadFTPDetectInfo(ftpFile, locdata=kvals)
 
-    if required_event is not None:
-        fmtstr=isodate_format_entry[:min(len(required_event)-2, 24)]
-        reqdate = datetime.datetime.strptime(required_event, fmtstr)
-        statid = ftpFile.split('_')[1]
-        reqstr = f'FF_{statid}_{reqdate.strftime("%Y%m%d_%H%M%S")}'
-        reqevt = reqdate.timestamp()
-    else:
-        reqevt = 0
-        reqstr = ''
+    revt = required_event.replace('-','').replace(':','').replace('T','_').replace('.','_')
+    met = None
+    for thismet in meteors:
+        if revt in thismet.ff_name:
+            met = thismet
+            break
+    if not met:
+        return 'no match in the ftpdetect file, check time'
+    print(f'matched {met.ff_name}')
+    dt_ref = jd2Date(met.jdt_ref, dt_obj=True)
+    # meteors split over 2 ffs get merged into one entry relative to the 1st frame, indexed by both ff names
+    ffnames = os.path.basename(met.ff_name).split(',')
+    ffname = ffnames[0]
+    try:
+        print(f'trying to find plate for {ffname}')
+        platepar = platepars_recalibrated_dict[ffname]
+    except Exception:
+        return 'no match in the platepar file'
 
-    # check input precision
-    spls = required_event.split('.')
-    if len(spls) == 1:
-        prec = 11
-    else:
-        decis = spls[1]
-        prec = pow(10, -len(decis))
-
-    #print(f' prec {prec}, reqevt {reqevt}')
-    # find matching meteors. If more than one matches you will get multiple datasets concatenated
-
-    for met in meteors:
-        # Reference time
-        dt_ref = jd2Date(met.jdt_ref, dt_obj=True)
-        
-        ffname = os.path.basename(met.ff_name)
-        try:
-            platepar = platepars_recalibrated_dict[ffname]
-        except Exception:
-            continue
-        evtdate = datetime.datetime.strptime(ffname[10:29], '%Y%m%d_%H%M%S_%f')
-        obscalib = evtdate + datetime.timedelta(microseconds=(met.time_data[0]*1e6))
-        
-        if prec!=11 and reqevt > 0 and abs(obscalib.timestamp() - reqevt) >= prec:
-            continue
-        if prec == 11 and reqstr not in ffname:
-            continue
-
-        #print('found match')
-        azim, elev = platepar['az_centre'], platepar['alt_centre']
-        fov_horiz, fov_vert = platepar['fov_h'], platepar['fov_v']
-
-        # Write the meta header
-        meta_dict = {
-            'obs_latitude': platepar['lat'],   # Decimal signed latitude (-90 S to +90 N)
-            'obs_longitude': platepar['lon'],  # Decimal signed longitude (-180 W to +180 E)
-            'obs_elevation': platepar['elev'], # Altitude in metres above MSL. Note not WGS84
-            'origin': 'ukmda',              # The software which produced the data file
-            'camera_id': met.station_id,    # The code name of the camera, likely to be network-specific
-            'cx': platepar['X_res'],           # Horizontal camera resolution in pixels
-            'cy': platepar['Y_res'],           # Vertical camera resolution in pixels
-            'photometric_band': 'unknown',  # The photometric band of the star catalogue
-            'image_file': ffname,           # The name of the original image or video
-            'isodate_start_obs': str(dt_ref.strftime(isodate_format_entry)),               # The date and time of the start of the video or exposure
-            'isodate_calib': str(obscalib.strftime(isodate_format_entry)),          # The date and time corresponding to the astrometric calibration
-            'astrometry_number_stars': len(platepar['star_list']),       # The number of stars identified and used in the astrometric calibration
-            'mag_label': 'mag',             # The label of the Magnitude column in the Point Observation data
-            'no_frags': 1,                  # The number of meteoroid fragments described in this data
-            'obs_az': azim,                 # The azimuth of the centre of the field of view in decimal degrees. North = 0, increasing to the East
-            'obs_ev': elev,                 # The elevation of the centre of the field of view in decimal degrees. Horizon =0, Zenith = 90
-            'obs_rot': platepar['rotation_from_horiz'],                  # Rotation of the field of view from horizontal, decimal degrees. Clockwise is positive
-            'fov_horiz': fov_horiz,         # Horizontal extent of the field of view, decimal degrees
-            'fov_vert': fov_vert,           # Vertical extent of the field of view, decimal degrees
-        }
+    ffdate = datetime.datetime.strptime(ffname[10:29], '%Y%m%d_%H%M%S_%f')
+    obscalib = ffdate + datetime.timedelta(microseconds=(met.time_data[0]*1e6))
+   
+    # Write the meta header
+    meta_dict = {
+        'obs_latitude': platepar['lat'],   # Decimal signed latitude (-90 S to +90 N)
+        'obs_longitude': platepar['lon'],  # Decimal signed longitude (-180 W to +180 E)
+        'obs_elevation': platepar['elev'], # Altitude in metres above MSL. Note not WGS84
+        'origin': 'ukmda',              # The software which produced the data file
+        'camera_id': met.station_id,    # The code name of the camera, likely to be network-specific
+        'cx': platepar['X_res'],           # Horizontal camera resolution in pixels
+        'cy': platepar['Y_res'],           # Vertical camera resolution in pixels
+        'photometric_band': 'unknown',  # The photometric band of the star catalogue
+        'image_file': ffnames,           # The name of the original image or video
+        'isodate_start_obs': str(dt_ref.strftime(isodate_format_entry)),               # The date and time of the start of the video or exposure
+        'isodate_calib': str(obscalib.strftime(isodate_format_entry)),          # The date and time corresponding to the astrometric calibration
+        'astrometry_number_stars': len(platepar['star_list']),       # The number of stars identified and used in the astrometric calibration
+        'mag_label': 'mag',                         # The label of the Magnitude column in the Point Observation data
+        'no_frags': 1,                              # The number of meteoroid fragments described in this data
+        'obs_az': platepar['az_centre'],            # The azimuth of the centre of the field of view in decimal degrees. North = 0, increasing to the East
+        'obs_ev': platepar['alt_centre'],           # The elevation of the centre of the field of view in decimal degrees. Horizon =0, Zenith = 90
+        'obs_rot': platepar['rotation_from_horiz'], # Rotation of the field of view from horizontal, decimal degrees. Clockwise is positive
+        'fov_horiz': platepar['fov_h'],             # Horizontal extent of the field of view, decimal degrees
+        'fov_vert': platepar['fov_v'],              # Vertical extent of the field of view, decimal degrees
+    }
 
 
-        # Write the header
-        out_str += """# %ECSV 0.9
+    # Write the header
+    out_str += """# %ECSV 0.9
 # ---
 # datatype:
 # - {name: datetime, datatype: string}
@@ -121,55 +101,39 @@ def createECSV(ftpFile, required_event = None):
 # delimiter: ','
 # meta: !!omap
 """
-        # Add the meta information
-        for key in meta_dict:
+    # Add the meta information
+    for key in meta_dict:
 
-            value = meta_dict[key]
+        value = meta_dict[key]
 
-            if isinstance(value, str):
-                value_str = "'{:s}'".format(value)
-            else:
-                value_str = str(value)
+        if isinstance(value, str):
+            value_str = "'{:s}'".format(value)
+        else:
+            value_str = str(value)
 
-            out_str += "# - {" + "{:s}: {:s}".format(key, value_str) + "}\n"
-
-
-        out_str += "# schema: astropy-2.0\n"
-        out_str += "datetime,ra,dec,azimuth,altitude,mag_data,x_image,y_image\n"
+        out_str += "# - {" + "{:s}: {:s}".format(key, value_str) + "}\n"
 
 
-        # Add the data
-        for f, t, ra, dec, azim, alt, x, y, mag in zip(met.frames,met.time_data, met.ra_data, 
-                met.dec_data, met.azim_data, met.elev_data, met.x_data, met.y_data, met.mag_data):
+    out_str += "# schema: astropy-2.0\n"
+    out_str += "datetime,ra,dec,azimuth,altitude,mag_data,x_image,y_image\n"
 
-            musadj = t*1e6
-            ptdate = evtdate + datetime.timedelta(microseconds=musadj)
-            #print(evtdate, t, musadj)
-            #if meta_dict['isodate_calib'] is None:
-            #    meta_dict['isodate_calib'] = str(ptdate.strftime(isodate_format_file))
-            #print(meta_dict['isodate_calib'], ptdate)
-            # Add an entry to the ECSV file
-            ra = np.degrees(ra)
-            dec = np.degrees(dec)
-            azim = np.degrees(azim)
-            alt = np.degrees(alt)
-            entry = [ptdate.strftime(isodate_format_entry), "{:10.6f}".format(ra),
-                "{:+10.6f}".format(dec), "{:10.6f}".format(azim), "{:+10.6f}".format(alt),
-                "{:+7.2f}".format(mag), "{:9.3f}".format(x), "{:9.3f}".format(y)]
 
-            out_str += ",".join(entry) + "\n"
+    # Add the data
+    for f, t, ra, dec, azim, alt, x, y, mag in zip(met.frames,met.time_data, met.ra_data, 
+            met.dec_data, met.azim_data, met.elev_data, met.x_data, met.y_data, met.mag_data):
 
-        # ESCV files name
-        #ecsv_file_name = obscalib.strftime(isodate_format_file) + '_RMS_' + met.station_id + ".ecsv"
+        musadj = t*1e6
+        ptdate = ffdate + datetime.timedelta(microseconds=musadj)
+        ra = np.degrees(ra)
+        dec = np.degrees(dec)
+        azim = np.degrees(azim)
+        alt = np.degrees(alt)
+        entry = [ptdate.strftime(isodate_format_entry), "{:10.6f}".format(ra),
+            "{:+10.6f}".format(dec), "{:10.6f}".format(azim), "{:+10.6f}".format(alt),
+            "{:+7.2f}".format(mag), "{:9.3f}".format(x), "{:9.3f}".format(y)]
 
-        #ecsv_file_path = os.path.join(outdir, ecsv_file_name)
+        out_str += ",".join(entry) + "\n"
 
-        # Write file to disk
-        #with open(ecsv_file_path, 'w') as f:
-        #    f.write(out_str)
-
-    if len(out_str) == 0:
-        out_str = 'issue getting data, check details'
     return out_str
 
 
@@ -178,11 +142,22 @@ def fetchECSV(camid, reqevent):
     s3 = boto3.resource('s3')
 
     # construct the path
-    try:
-        dt = datetime.datetime.strptime(reqevent, isodate_format_entry)
-    except:
-        dt = datetime.datetime.strptime(reqevent, isodate_format_file)
-
+    if '-' in reqevent:
+        try:
+            dt = datetime.datetime.strptime(reqevent, isodate_format_entry)
+        except Exception:
+            try:
+                dt = datetime.datetime.strptime(reqevent, isodate_format_file)
+            except Exception:
+                return 'check date format'
+    else:
+        try:
+            dt = datetime.datetime.strptime(reqevent, '%Y%m%d_%H%M%S_%f')
+        except Exception:
+            try:
+                dt = datetime.datetime.strptime(reqevent, '%Y%m%d_%H%M%S')
+            except Exception:
+                return 'check date format'
     if dt.hour < 12:
         dt = dt + datetime.timedelta(days=-1)
     ymd = dt.strftime('%Y%m%d')
@@ -203,24 +178,13 @@ def fetchECSV(camid, reqevent):
 
     if localftpname is None:
         # download the camera details file and find the location
-        s3object = 'consolidated/camera-details.csv'
-        camfname = os.path.join(tmpdir, 'camera-details.csv')
-        s3.meta.client.download_file(s3bucket, s3object, camfname)
-        loc=''
-        with open(camfname) as inf:
-            lis = inf.readlines()
-            for li in lis:
-                if camid in li:
-                    loc = li.split(',')[0]
-                    trucam = li.split(',')[1]
-                    break
-        os.remove(camfname)
-        if loc == '':
-            print('camera not found')
-            return    
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2') 
+        loc = findSite(camid, ddb)
+        if loc is False:
+            return 'site not found'
         ym = f'{dt.year}{dt.month:02d}'
         ymd = f'{dt.year}{dt.month:02d}{dt.day:02d}'   
-        s3path = f'archive/{loc}/{trucam}/{dt.year}/{ym}/{ymd}/'
+        s3path = f'archive/{loc}/{camid}/{dt.year}/{ym}/{ymd}/'
 
         print(f'no objects found at {pref}, trying alternate location {s3path}')
         # get the config, platepar and ftpfile
@@ -244,6 +208,15 @@ def fetchECSV(camid, reqevent):
         
     removefiles(localftpname, ppname, cfgname)
     return 'not available, check details'
+
+
+def findSite(stationid, ddb=None):
+    table = ddb.Table('camdetails')
+    res = table.query(KeyConditionExpression=Key('stationid').eq(stationid))
+    if res['Count'] > 0:
+        return res['Items'][0]['site']
+    else:
+        return False
 
 
 def removefiles(localftpname, ppname, cfgname):

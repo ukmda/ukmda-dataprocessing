@@ -57,7 +57,8 @@ def deleteFromCalcServerByMonth(outfname):
         ec2 = boto3.client('ec2', region_name='eu-west-2')
     else:
         ssmc = boto3.client('ssm', region_name='eu-west-2')
-        sess = boto3.Session(profile_name='ukmonshared')
+        prof = os.getenv('UKMPROFILE',default='ukmonshared')
+        sess = boto3.Session(profile_name=prof)
         ec2 = sess.client('ec2', region_name='eu-west-2')
     resp = ssmc.get_parameter(Name=f'{env}_calcinstance')
     instId = resp['Parameter']['Value']

@@ -68,7 +68,7 @@ def updateLiveTable(event, dtval):
     if 'P.jpg' not in barefname:
         print(f'{barefname} not a jpg')
         return 
-    expdate = int((dtval + datetime.timedelta(days=30)).timestamp())
+    expdate = int((dtval + datetime.timedelta(days=90)).timestamp())
     tstamp = str(int(dtval.timestamp()*1000))
     yr = dtval.strftime('%Y')
     mth = dtval.strftime('%m')

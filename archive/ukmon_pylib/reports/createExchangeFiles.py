@@ -8,7 +8,7 @@ import pandas as pd
 
 
 def createDetectionsFile(eDate, datadir, daysback=7):
-    yr = datetime.datetime.now().year
+    yr = eDate.year
     cols = ['Dtstamp','ID','Y']
     df = pd.read_parquet(os.path.join(datadir, 'single',f'singles-{yr}.parquet.snap'), columns=cols)
     df = df[df['Y']==int(yr)]

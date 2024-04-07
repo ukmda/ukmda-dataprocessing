@@ -13,7 +13,7 @@ on:
     branches: [ master ]
 jobs:
   conttests:
-    runs-on: ubuntu-latest
+    runs-on: thelinux
     container:
       image: docker.io/markmac99/ukmdatester
       credentials:
@@ -21,9 +21,11 @@ jobs:
         password: ${{ secrets.DH_PATT_MM }}
       env:
         BRANCH: ${{ github.head_ref || github.ref_name }} 
+      volumes:
+        - testdata:/data
     steps:
       - name: configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v1.7.0
+        uses: aws-actions/configure-aws-credentials@v4.0.1
         with:
           role-to-assume: arn:aws:iam::183798037734:role/testingRole
           role-session-name: github_aws_testing
@@ -31,10 +33,15 @@ jobs:
       - name: remote tests
         run: |
           chmod +x /tests.sh
-          mkdir /data
-          curl https://archive.ukmeteors.co.uk/browse/testdata/testdata.tar.gz  -o /data/testdata.tar.gz
-          cd /data && tar -xzf ./testdata.tar.gz
-          curl https://archive.ukmeteors.co.uk/reports/stations/cameraLocs.json -o /data/admin/cameraLocs.json
+          if [ ! -f /data/admin/cameraLocs.json ] ; then 
+            echo "getting test data"
+            curl https://archive.ukmeteors.co.uk/browse/testdata/testdata.tar.gz  -o /data/testdata.tar.gz
+            cd /data && tar -xzf ./testdata.tar.gz
+          else
+            echo "test data available"
+          fi 
+          mkdir -p ~/.aws
+          cp /data/profile/credentials ~/.aws/
           /tests.sh
   apitests:
     runs-on: ubuntu-latest

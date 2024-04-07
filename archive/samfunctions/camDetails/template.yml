@@ -1,0 +1,30 @@
+# SAM build file for searchArchive
+# Copyright (C) 2018-2023 Mark McIntyre
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Resources:
+  camDetails:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: camDetails.lambda_handler
+      Runtime: python3.8
+      FunctionName: camDetails
+      Description: API backend that retrieves camera details
+      Timeout: 30
+      Policies: [AmazonS3ReadOnlyAccess, AmazonDynamoDBReadOnlyAccess]
+      MemorySize: 128
+      Events:
+        HttpGet:
+          Type: Api
+          Properties:
+            Path: '/'
+            Method: get
+            RequestParameters: 
+              - method.request.querystring.camid:
+                  Required: true
+      Tags:
+        billingtag: "ukmda"
+        typetag: "api"
+    Metadata:
+      BuildMethod: python3.8
+

@@ -253,7 +253,26 @@ resource "aws_iam_role_policy_attachment" "test_s3access" {
 }
 
 ##############################################################################
+resource "aws_iam_group" "admin_group" {
+  name = "Administrators"
+}
+
+resource "aws_iam_group_policy_attachment" "admin_perms_att" {
+  group      = aws_iam_group.admin_group.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
+resource "aws_iam_group_policy_attachment" "fbcadm_perms_att" {
+  group      = aws_iam_group.admin_group.name
+  policy_arn = aws_iam_policy.fbc_assumerole_pol.arn
+}
+
 ##############################################################################
+
+resource "aws_iam_group" "camera_group" {
+  name = "cameras"
+}
+
 # policy applied to all ukmda members to enable uploads 
 data "template_file" "ukmshared_pol_templ" {
   template = file("files/policies/ukmda-shared.json")
@@ -287,6 +306,16 @@ resource "aws_iam_policy" "ukmdalivepol" {
   tags = {
     "billingtag" = "ukmda"
   }
+}
+
+resource "aws_iam_group_policy_attachment" "camgrp_shrpol_att1" {
+  group      = aws_iam_group.camera_group.name
+  policy_arn = aws_iam_policy.ukmdasharedpol.arn
+}
+
+resource "aws_iam_group_policy_attachment" "camgrp_livepol_att" {
+  group      = aws_iam_group.camera_group.name
+  policy_arn = aws_iam_policy.ukmdalivepol.arn
 }
 
 ##############################################################################
@@ -444,6 +473,7 @@ policy = <<EOF
 EOF
 }
 
+# role used by the Orbit Uploader API
 resource "aws_iam_role" "orbUploadRole" {
   name        = "orbUploadRole"
   description = "Allows API Gateway to upload orbit files"
@@ -462,7 +492,7 @@ resource "aws_iam_role" "orbUploadRole" {
     }
   )
 }
-
+# policy used by the Orbit Uploader API
 resource "aws_iam_role_policy" "orbUploadPolicy" {
   name   = "orbUploadPolicy"
   role   = aws_iam_role.orbUploadRole.name
@@ -495,5 +525,3 @@ resource "aws_iam_role_policy" "orbUploadPolicy" {
 }
 EOF
 }
-
-output "testingrolearn" { value = aws_iam_role.testing_role.arn }

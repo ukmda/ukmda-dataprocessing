@@ -12,6 +12,9 @@ newfiles=$(ls -1 *.zip 2> /dev/null)
 if [ "$newfiles" != "" ] ; then 
     for fil in $newfiles ; do
         echo processing $fil
+        ymd=${fil:0:8}
+        ym=${fil:0:6}
+        yr=${ymd:0:4}
         orb=$(basename $fil .zip)
         evt=$(echo ${orb:0:15} | sed 's/-/_/g')
         [ -d $evt ]  && rm -Rf $evt
@@ -21,9 +24,16 @@ if [ "$newfiles" != "" ] ; then
         mv *.pickle $orb
         cd ..
         pick=$(ls -1 $evt/$orb/*.pickle)
+        pickname=$(basename $pick)
+        origdir=$(python -c "from wmpl.Utils.Pickling import loadPickle;pick = loadPickle('${evt}/$orb','${pickname}');print(pick.output_dir)")
+        odux=$(echo $origdir | sed 's|\\|/|g')
+        pickname=$(basename $odux)
+        truncpn=${pickname:0:19}_UK
+        mv $evt/$orb $evt/$truncpn
+        aws s3 sync $evt/jpgs s3://ukmda-website/img/single/${yr}/${ym}/
+        orb=$truncpn
+        pick=$(ls -1 $evt/$orb/*.pickle)
         python -m maintenance.recreateOrbitPages $pick force
-        ymd=${fil:0:8}
-        yr=${ymd:0:4}
         $SRC/website/createOrbitIndex.sh ${ymd}
         aws s3 ls ${UKMONSHAREDBUCKET}/matches/${yr}/fullcsv/
         sleep 30 # to allow the lambda to write the CSV file to s3
@@ -33,6 +43,7 @@ if [ "$newfiles" != "" ] ; then
         aws s3 mv $UKMONSHAREDBUCKET/fireballs/uploads/$fil $UKMONSHAREDBUCKET/fireballs/uploads/processed/$fil.done
         rm $fil
     done
-else
-    echo nothing to process
+#else
+#    echo nothing to process
 fi
+find $SRC/logs -name "mergeNewOrbit*" -mtime +10 -exec rm -f {} \;

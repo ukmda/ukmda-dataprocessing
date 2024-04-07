@@ -8,6 +8,7 @@ import sys
 import pandas as pd
 import datetime
 import textwrap
+from reports.CameraDetails import loadLocationDetails
 
 from meteortools.utils import sendAnEmail
 
@@ -68,8 +69,7 @@ if __name__ == '__main__':
     """)
 
     mailmsg = ''
-    camowners = pd.read_csv(os.path.join(datadir, 'admin', 'stationdetails.csv'))
-    camowners = camowners.rename(columns={'camid':'stationid'})
+    camowners = loadLocationDetails()
     dts = pd.read_csv(os.path.join(datadir,'reports','camuploadtimes.csv'), index_col=False)
     dts['tcol']=[t.zfill(6) for t in dts.uploadtime.map(str)]
     dts['DateTime']=dts.upddate.map(str)+'_'+dts.tcol
@@ -95,7 +95,7 @@ if __name__ == '__main__':
             #sendAnEmail(mailrecip, latemsg1.format(statid, dayslate), subj, mailfrom)
             mailmsg = mailmsg + '{} {} {}\n'.format(row['stationid'], row['ts'], row['eMail'])
 
-    subj = 'camera upload missing - final notice'
+    subj = 'camera upload missing'
     longerdt = int(sys.argv[1])+7
     targdate=datetime.date.today() + datetime.timedelta(days=-longerdt)
 

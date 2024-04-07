@@ -11,7 +11,7 @@ from boto3.dynamodb.conditions import Key
 import pandas as pd
 import datetime
 
-import reports.CameraDetails as cc
+from reports.CameraDetails import loadLocationDetails
 
 
 def addRowCamTimings(s3bucket, s3object, ftpname, ddb=None):
@@ -32,14 +32,15 @@ def addRowCamTimings(s3bucket, s3object, ftpname, ddb=None):
         manual = False
     uploaddate = dtstamp.strftime('%Y%m%d')
     uploadtime = dtstamp.strftime('%H%M%S')
+    expirydate = (dtstamp + datetime.timedelta(days=90)).timestamp()
     table.put_item(
         Item={
             'stationid': spls[1],
             'dtstamp': uploaddate + '_' + uploadtime + manflag,
             'uploaddate': int(uploaddate),
             'uploadtime': int(uploadtime),
-            'manual': manual
-            #,'ExpiryDate', int(expirydate)
+            'manual': manual,
+            'ExpiryDate': int(expirydate)
         }
     )    
     return 
@@ -148,16 +149,21 @@ def backPopulate(stationid):
 if __name__ == '__main__':
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
 
-    sts_client = boto3.client('sts')
-    assumed_role_object=sts_client.assume_role(
-        RoleArn="arn:aws:iam::183798037734:role/service-role/S3FullAccess",
-        RoleSessionName="AssumeRoleSession1")
-    credentials=assumed_role_object['Credentials']
+    ddb = boto3.resource('dynamodb', region_name='eu-west-2') 
+    if os.path.isfile('/sys/devices/virtual/dmi/id/board_asset_tag'):  # crude check for EC2
+        #print('asset tag file exists')
+        lis = open('/sys/devices/virtual/dmi/id/board_asset_tag').readlines()
+        if 'i-' in lis[0]:
+            sts_client = boto3.client('sts')
+            assumed_role_object=sts_client.assume_role(
+                RoleArn="arn:aws:iam::183798037734:role/service-role/S3FullAccess",
+                RoleSessionName="AssumeRoleSession1")
+            credentials=assumed_role_object['Credentials']
 
-    ddb = boto3.resource('dynamodb', region_name='eu-west-2',
-        aws_access_key_id=credentials['AccessKeyId'],
-        aws_secret_access_key=credentials['SecretAccessKey'],
-        aws_session_token=credentials['SessionToken'])
+            ddb = boto3.resource('dynamodb', region_name='eu-west-2',
+                aws_access_key_id=credentials['AccessKeyId'],
+                aws_secret_access_key=credentials['SecretAccessKey'],
+                aws_session_token=credentials['SessionToken'])
 
     s,d,t,m,r = getDayCamTimings(sys.argv[1], ddb=ddb)
     newdata=pd.DataFrame(zip(s,d,t,m,r), columns=['stationid','upddate','uploadtime','manual','rundate'])
@@ -172,36 +178,43 @@ if __name__ == '__main__':
         fulldf = newdata
     fulldf.to_csv(outfile, index=False)
 
-    camdets = cc.SiteInfo()
-    cams = camdets.getActiveCameras()
-    sites=[]
-    ids = []
-    for c in cams:
-        sites.append((c['Site'].decode('utf-8') + '_' + c['SID'].decode('utf-8')).lower())
-        ids.append(c['CamID'].decode('utf-8'))
-    caminfo = pd.DataFrame(zip(sites,ids), columns=['siteid','stationid'])
+    camlist = loadLocationDetails(ddb=ddb)
+    camlist=camlist[camlist.active==1]
+    sep = ['_'] * len(camlist)
+    pd.options.mode.chained_assignment = None  # default='warn'
+    camlist['location'] = (camlist.site + sep + camlist.direction).str.lower()    
+    pd.options.mode.chained_assignment = 'warn'
+    caminfo = camlist.drop(columns=['site','direction','oldcode','active','camtype','eMail', 'humanName'])
 
     logindf = pd.read_csv(os.path.join(datadir, 'reports', 'lastlogins.txt'), names=['dateval','timeval','siteid'], skipinitialspace=True)
     logindf['timeval'] = logindf.timeval.astype('str').str.pad(6,fillchar='0')
     logindf.dateval.fillna('Jan-01',inplace=True)
     logindf.timeval.fillna('00:00:00',inplace=True)
-    logindf['lastseen'] = [datetime.datetime.strptime(x, '%b-%d_%H%M%S') for x in logindf.dateval+'_'+logindf.timeval]
+    # handle case round yearend where the log may have prev year's details as well as current year
+    nowdt = datetime.datetime.now()
+    yrval = str(nowdt.year) + '-'
+    yrvalback = str(nowdt.year-1) + '-'
+    logindf['lastseen'] = [datetime.datetime.strptime(x, '%Y-%b-%d_%H%M%S') for x in yrval + logindf.dateval+'_'+logindf.timeval]
+    logindf['lastseen2'] = [datetime.datetime.strptime(x, '%Y-%b-%d_%H%M%S') for x in yrvalback + logindf.dateval+'_'+logindf.timeval]
+    logindf.loc[logindf.lastseen > nowdt, 'lastseen'] = logindf.lastseen2
     logindf = logindf.sort_values(by=['lastseen'])
     logindf.drop_duplicates(subset=['siteid'], inplace=True, keep='last')
+    logindf.rename(columns={'siteid':'location'}, inplace=True)
+    logindf.drop(columns = ['lastseen2'], inplace=True)
 
     # create a merged dataframe with siteid and stationid
-    intdf = pd.merge(logindf,caminfo, on=['siteid'], how='outer')
+    intdf = pd.merge(logindf,caminfo, on=['location'], how='outer')
+
     df = pd.merge(intdf, fulldf, on=['stationid'])
     df.dateval.fillna('Jan-01',inplace=True)
     df.timeval.fillna('00:00:00',inplace=True)
-    #df['lastseen']=[datetime.datetime.strptime(x, '%b-%d_%H:%M:%S') for x in df.dateval+'_'+df.timeval]
     df['uploadtime']=df.uploadtime.astype("str").str.pad(6,fillchar="0")
     df['lastupload']=df.upddate.astype('str') + '_' +df.uploadtime
     df.lastupload = [datetime.datetime.strptime(x, '%Y%m%d_%H%M%S') for x in df.lastupload]
     df = df.drop(columns=['timeval','stationid','manual','rundate', 'upddate','uploadtime', 'dateval'])
     df['dateval']=[x.strftime('%b-%d') for x in df.lastupload]
     df = df.sort_values(by=['lastupload'])
-        
+
     outfile=os.path.join(datadir, 'reports', 'stationlogins.txt')
     zerodate = datetime.datetime(1970,1,1,0,0,0)
     with open(outfile,'w') as outf:
@@ -215,4 +228,4 @@ if __name__ == '__main__':
                 lastseen = rw.lastseen.strftime('%b-%d %H:%M:%S')
             if lastseen == 'Jan-01 00:00:00':
                 lastseen = '> 1 month'
-            outf.write(f'{dtval}, {lastup}, {rw.siteid:20s}, {lastseen}\n')
+            outf.write(f'{dtval}, {lastup}, {rw.location:20s}, {lastseen}\n')

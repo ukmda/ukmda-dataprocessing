@@ -1,0 +1,41 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetBucketLocation",
+                "s3:ListAllMyBuckets"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "s3:ListBucket",
+            "Resource": [ 
+                "${livearn}",
+                "${websitearn}",
+                "${sharedarn}"
+                ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": "s3:GetObject",
+            "Resource": [
+                "${livearn}/*",
+                "${sharedarn}/fireballs/interesting/*",
+                "${websitearn}",
+                "${sharedarn}"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": "s3:PutObject",
+            "Resource": [
+                "${livearn}/*",
+                "${websitearn}",
+                "${sharedarn}"
+            ]
+        }
+    ]
+}

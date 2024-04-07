@@ -7,7 +7,12 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start nightlyJob"
+NJLOGSTREAM=$(date +%Y%m%d-%H%M%S)
+export NJLOGSTREAM
+aws logs create-log-stream --log-group-name $NJLOGGRP --log-stream-name $NJLOGSTREAM --profile ukmonshared
+
+# log2cw is a function defined in config.ini and logs to cloudwatch, syslog and console
+log2cw $NJLOGGRP $NJLOGSTREAM "start nightlyJob" nightlyJob
 
 # dates to process for
 rundate=$(date +%Y%m%d)
@@ -21,98 +26,102 @@ mkdir -p $DATADIR/{lastlogs,latest,matched,orbits,reports,searchidx,single,trajd
 mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
 
 mkdir -p $DATADIR/admin
-logger -s -t nightlyJob "RUNTIME $SECONDS updating the camera location/dir/fov database"
+log2cw $NJLOGGRP $NJLOGSTREAM "updating the camera location/dir/fov database" nightlyJob
 python -c "from reports.CameraDetails import updateCamLocDirFovDB; updateCamLocDirFovDB();"
 aws s3 cp $DATADIR/admin/cameraLocs.json $UKMONSHAREDBUCKET/admin/ --profile ukmonshared --quiet
 aws s3 sync $UKMONSHAREDBUCKET/admin/ $DATADIR/admin --profile ukmonshared --quiet
-aws s3 sync $UKMONSHAREDBUCKET/consolidated/ $DATADIR/consolidated/ --exclude "*" --include "camera-details.csv" --profile ukmonshared --quiet
+
+# create the CSV file of camera info, and the html versions for search functions on the website
+log2cw $NJLOGGRP $NJLOGSTREAM "updating the camera details files for searching" nightlyJob
+python -c "from reports.CameraDetails import createCDCsv; createCDCsv('consolidated');"
+aws s3 cp $DATADIR/consolidated/camera-details.csv $UKMONSHAREDBUCKET/consolidated/ --profile ukmonshared --quiet
+aws s3 cp $DATADIR/statopts.html $WEBSITEBUCKET/search/ --profile ukmonshared --quiet
+aws s3 cp $DATADIR/activestatopts.html $WEBSITEBUCKET/search/ --profile ukmonshared --quiet
+aws s3 cp $DATADIR/activestatlocs.html $WEBSITEBUCKET/search/ --profile ukmonshared --quiet
 
 # run this only once as it scoops up all unprocessed data
-logger -s -t nightlyJob "RUNTIME $SECONDS start findAllMatches"
+log2cw $NJLOGGRP $NJLOGSTREAM "start findAllMatches" nightlyJob
 matchlog=matches-$(date +%Y%m%d-%H%M%S).log
 ${SRC}/analysis/findAllMatches.sh > ${SRC}/logs/${matchlog} 2>&1
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start consolidateOutput"
+log2cw $NJLOGGRP $NJLOGSTREAM "start consolidateOutput" nightlyJob 
 $SRC/analysis/consolidateOutput.sh ${yr}
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start createSearchable pass 2"
+log2cw $NJLOGGRP $NJLOGSTREAM "start createSearchable pass 2" nightlyJob 
 $SRC/analysis/createSearchable.sh $yr matches
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start createStationList"
-$SRC/website/createStationList.sh
-
 # add daily report to the website
-logger -s -t nightlyJob "RUNTIME $SECONDS start publishDailyReport"
+log2cw $NJLOGGRP $NJLOGSTREAM "start publishDailyReport" nightlyJob 
 $SRC/website/publishDailyReport.sh 
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start createMthlyExtracts"
+log2cw $NJLOGGRP $NJLOGSTREAM "start createMthlyExtracts" nightlyJob 
 ${SRC}/website/createMthlyExtracts.sh ${mth}
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start createShwrExtracts"
+log2cw $NJLOGGRP $NJLOGSTREAM "start createShwrExtracts" nightlyJob 
 ${SRC}/website/createShwrExtracts.sh ${rundate}
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start createFireballPage"
+log2cw $NJLOGGRP $NJLOGSTREAM "start createFireballPage" nightlyJob 
 #requires search index to have been updated first 
 ${SRC}/website/createFireballPage.sh ${yr} -3.99
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start showerReport ALL $mth"
+log2cw $NJLOGGRP $NJLOGSTREAM "start showerReport ALL $mth" nightlyJob 
 $SRC/analysis/showerReport.sh ALL ${mth} force
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start showerReport ALL $yr"
+log2cw $NJLOGGRP $NJLOGSTREAM "start showerReport ALL $yr" nightlyJob 
 $SRC/analysis/showerReport.sh ALL ${yr} force
 
 # if we ran on the 1st of the month we need to catch any late-arrivals for last month
 if [ $(date +%d) -eq 1 ] ; then
     lastmth=$(date -d '-1 month' +%Y%m)
-    logger -s -t nightlyJob "RUNTIME $SECONDS start showerMthlyExtracts ALL $lastmth"
+    log2cw $NJLOGGRP $NJLOGSTREAM "start showerMthlyExtracts ALL $lastmth" nightlyJob
     ${SRC}/website/createMthlyExtracts.sh ${lastmth}
-    logger -s -t nightlyJob "RUNTIME $SECONDS start showerShwrExtracts ALL $lastmth"
+    log2cw $NJLOGGRP $NJLOGSTREAM "start createShwrExtracts ALL $lastmth" nightlyJob
     ${SRC}/website/createShwrExtracts.sh ${lastmth}28
-    logger -s -t nightlyJob "RUNTIME $SECONDS start showerReport ALL $lastmth"
+    log2cw $NJLOGGRP $NJLOGSTREAM "start showerReport ALL $lastmth" nightlyJob
     $SRC/analysis/showerReport.sh ALL ${lastmth} force
 fi 
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start reportActiveShowers"
+log2cw $NJLOGGRP $NJLOGSTREAM "start reportActiveShowers" nightlyJob
 ${SRC}/analysis/reportActiveShowers.sh ${yr}
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start createSummaryTable"
+log2cw $NJLOGGRP $NJLOGSTREAM "start createSummaryTable" nightlyJob
 ${SRC}/website/createSummaryTable.sh
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start cameraStatusReport"
+log2cw $NJLOGGRP $NJLOGSTREAM "start cameraStatusReport" nightlyJob
 ${SRC}/website/cameraStatusReport.sh $rundate
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start createExchangeFiles"
-python -c "from reports.createExchangeFiles import createAll; createAll();"
+log2cw $NJLOGGRP $NJLOGSTREAM "start createExchangeFiles" nightlyJob
+python -c "from reports.createExchangeFiles import createAll;createAll();"
 aws s3 sync $DATADIR/browse/daily/ $WEBSITEBUCKET/browse/daily/ --region eu-west-2 --quiet
 
 cd $DATADIR
 # do this manually when on PC required as it requires too much memory for the batch server; closes #61
-#python $PYLIB/maintenance/plotStationsOnMap.py False
+# python $PYLIB/maintenance/plotStationsOnMap.py False
 aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/ --region eu-west-2 --quiet
 
 rm -f $SRC/data/.nightly_running
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start getBadStations"
+log2cw $NJLOGGRP $NJLOGSTREAM "start getBadStations" nightlyJob
 $SRC/analysis/getBadStations.sh
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start costReport"
+log2cw $NJLOGGRP $NJLOGSTREAM "start costReport" nightlyJob
 $SRC/website/costReport.sh
 
 # set time of next run
 python $PYLIB/maintenance/getNextBatchStart.py 150
 
 # create station reports. This takes hours hence done after everything else
-logger -s -t nightlyJob "RUNTIME $SECONDS start stationReports"
+log2cw $NJLOGGRP $NJLOGSTREAM "start stationReports" nightlyJob
 $SRC/analysis/stationReports.sh
 
-logger -s -t nightlyJob "RUNTIME $SECONDS start clearSpace"
+log2cw $NJLOGGRP $NJLOGSTREAM "start clearSpace" nightlyJob
 $SRC/utils/clearSpace.sh 
 
-logger -s -t nightlyJob "RUNTIME $SECONDS update MariaDB tables"
+log2cw $NJLOGGRP $NJLOGSTREAM "update MariaDB tables" nightlyJob
 $SRC/utils/loadMatchCsvMDB.sh
 $SRC/utils/loadSingleCsvMDB.sh
 
-logger -s -t nightlyJob "RUNTIME $SECONDS finished nightlyJob"
+log2cw $NJLOGGRP $NJLOGSTREAM "finished nightlyJob" nightlyJob
 
 # grab the logs for the website - run this last to capture the above Finished message
 $SRC/analysis/getLogData.sh

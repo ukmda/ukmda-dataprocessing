@@ -1,208 +1,10 @@
 # Create a data type for the camera location details
 # Copyright (C) 2018-2023 Mark McIntyre
 import os
-import numpy as np
 import glob 
 import json
-
-
-# defines the data content of a UFOAnalyser CSV file
-CameraDetails = np.dtype([('Site', 'S32'), ('CamID', 'S32'), ('LID', 'S16'),
-    ('SID', 'S8'), ('camtyp', 'i4'), ('dummycode','S6'),('active','i4')])
-
-
-class SiteInfo:
-    """
-    Class to read and manage camera site information
-
-    Note that this class 
-    """
-    def __init__(self, fname=None):
-        if fname is None:
-            datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-            fname = os.path.join(datadir, 'consolidated', 'camera-details.csv')
-
-        self.camdets = np.loadtxt(fname, delimiter=',', skiprows=1, dtype=CameraDetails)
-        #print(self.camdets)
-
-    def getCameraOffset(self, statid, activeonly=True):
-        spls=statid.split('_')
-        statid = statid.encode('utf-8')
-        #if statid not in self.camdets['CamID']:
-        #    return -1
-        cam = np.where(self.camdets['CamID'] == statid) 
-        if len(cam[0]) == 0:
-            statid = statid.upper()
-            cam = np.where(self.camdets['CamID'] == statid) 
-        if len(cam[0]) == 0:
-            cam = np.where(self.camdets['dummycode'] == statid) 
-        if len(cam[0]) == 0:
-            try:
-                cam = np.where(np.logical_and(self.camdets['LID']==spls[0].encode('utf-8'), self.camdets['SID']==spls[1].encode('utf-8')))
-            except: 
-                pass
-
-        # if we can't find the camera, assume its inactive
-        if len(cam[0]) == 0:
-            return -1
-        else:
-            c = cam[0][0]
-            if activeonly is True and self.camdets[c]['active'] != 1:
-                return -1
-            return c
-
-    def GetSiteLocation(self, camname, activeonly=True):
-        c = self.getCameraOffset(camname, activeonly)
-        if c == -1:
-            return 'unknown'
-
-        site = self.camdets[c]['Site'].decode('utf-8').strip()
-        camid = self.camdets[c]['CamID'].decode('utf-8').strip()
-        if camid == '':
-            return site
-        else:
-            return site + '/' + camid
-
-    def getDummyCode(self, lid, sid):
-        lid = lid.encode('utf-8')
-        sid = sid.encode('utf-8')
-        cam = np.where((self.camdets['LID'] == lid) & (self.camdets['SID'] == sid))   
-        if len(cam[0]) == 0:
-            sid = sid.upper()
-            lid = lid.upper()
-            cam = np.where((self.camdets['LID'] == lid) & (self.camdets['SID'] == sid))
-        if len(cam[0]) == 0:
-            return 'Unknown'
-        else:
-            c = cam[0][0]
-            return self.camdets[c]['dummycode'].decode('utf-8').strip()
-
-    def getFolder(self, statid):
-        c = self.getCameraOffset(statid)
-        if c < 0:
-            return 'Unknown'
-        else:
-            site = self.camdets[c]['Site'].decode('utf-8').strip()
-            camid = self.camdets[c]['CamID'].decode('utf-8').strip()
-            return site + '/' + camid
-
-    def checkCameraActive(self, statid):
-        c = self.getCameraOffset(statid)
-        if c < 0:
-            return False
-        else:
-            if self.camdets[c]['active'] != 1: 
-                return False
-            return True
-
-    def getActiveCameras(self):
-        return self.camdets[self.camdets['active']==1]
-
-    def getCameraType(self, statid):
-        c = self.getCameraOffset(statid)
-        if c < 0:
-            return -1
-        else:
-            return self.camdets[c]['camtyp'] 
-
-    def getAllCamsAndFolders(self, isactive=False):
-        # fetch camera details from the CSV file
-        fldrs = []
-        cams = []
-
-        for row in self.camdets:
-            if isactive is True and row['active'] != 1: 
-                continue
-            if row['Site'][:1] != '#':
-                # print(row)
-                if row['CamID'] == '':
-                    fldrs.append(row['Site'].decode('utf-8'))
-                else:
-                    fldrs.append(row['Site'].decode('utf-8') + '/' + row['CamID'].decode('utf-8'))
-                if int(row['camtyp']) == 1:
-                    cams.append(row['LID'].decode('utf-8') + '_' + row['SID'].decode('utf-8'))
-                else:
-                    cams.append(row['LID'].decode('utf-8'))
-        return cams, fldrs
-
-    def getAllCamsStr(self, onlyActive=False):
-        if onlyActive is False:
-            cams, _ = self.getAllCamsAndFolders()
-            cams.sort()
-            tmpcams = ''
-            for cam in cams:
-                tmpcams = tmpcams + cam + ' ' 
-            return tmpcams.strip()
-        else:
-            cams = self.getActiveCameras()
-            tmpcams = ''
-            for cam in cams:
-                cname = cam['CamID'].decode('utf-8')
-                if ' ' not in cname:
-                    tmpcams = tmpcams + cname + ' ' 
-            #tcc = tmpcams.split()
-            #tcc.sort()
-            #tmpcams = ''
-            #for cname in tcc:
-            #    tmpcams = tmpcams + cname + ' ' 
-            return tmpcams.strip()
-
-    def getAllLocsStr(self, onlyActive=False):
-        if onlyActive is False:
-            _, locs = self.getAllCamsAndFolders()
-            locs.sort()
-            tmpcams = ''
-            for loc in locs:
-                spls = loc.split('/')
-                tmpcams = tmpcams + spls[0] + ' ' 
-            return tmpcams.strip()
-        else:
-            cams = self.getActiveCameras()
-            tmpcams = ''
-            for cam in cams:
-                if cam['active']==1:
-                    cname = cam['Site'].decode('utf-8')
-                    if ' ' not in cname:
-                        tmpcams = tmpcams + cname + ' ' 
-            return tmpcams.strip()
-
-    def getStationsAtSite(self, sitename, onlyactive=False):
-        idlist = []
-        bsite = sitename.encode('utf-8')
-        fltred = self.camdets[self.camdets['Site'] == bsite]
-        if onlyactive is True:
-            fltred = fltred[fltred['active']==1]
-        for rw in fltred:
-            if int(rw['camtyp']) == 1:
-                idlist.append(rw['LID'].decode('utf-8') + '_' + rw['SID'].decode('utf-8'))
-            else:
-                idlist.append(rw['LID'].decode('utf-8'))
-        return idlist
-
-    def getSites(self, onlyactive=True):
-        sites=[]
-        silist=self.camdets['Site']
-        silist = np.unique(silist)
-        sites = [si.decode('utf-8') for si in silist]
-        return sites
-
-    def getUFOCameras(self, onlyactive=False):
-        camlist=[]
-        ufo=self.camdets[self.camdets['camtyp']==1]
-        if onlyactive is True:
-            ufo = ufo[ufo['active'] == 1]
-        for rw in ufo:
-            ufoname = rw['LID'].decode('utf-8') + '_' + rw['SID'].decode('utf-8') 
-            camlist.append({'Site':rw['Site'].decode('utf-8'), 'CamID':rw['CamID'].decode('utf-8'), 'dummycode':rw['dummycode'].decode('utf-8'), 'ufoid':ufoname})
-        return camlist
-
-    def getCameraLocAndDir(self, camid, activeonly=True):
-        c = self.getCameraOffset(camid, activeonly=activeonly)
-        if c < 0:
-            return ''
-        else:
-            return self.camdets[c]['Site'].decode('utf_8') + '_' + self.camdets[c]['SID'].decode('utf_8')
-
+import pandas as pd 
+import boto3
 
 '''
 creating and managing the more-accurate camera location info
@@ -235,3 +37,109 @@ def updateCamLocDirFovDB(datadir=None):
             continue
     with open(os.path.join(datadir, 'admin', 'cameraLocs.json'), 'w') as outf:
         json.dump(camdb, outf, indent=4)
+
+
+def loadLocationDetails(table='camdetails', ddb=None, loadall=False):
+    if not ddb:
+        prof = os.getenv('UKMPROFILE',default='ukmonshared')
+        conn = boto3.Session(profile_name=prof)
+        ddb = conn.resource('dynamodb', region_name='eu-west-2') 
+    table = ddb.Table(table)
+    res = table.scan()
+    # strictly, should check for LastEvaluatedKey here, in case there was more than 1MB of data,
+    # however that equates to around 30,000 users which i hope we never have... 
+    values = res.get('Items', [])
+    camdets = pd.DataFrame(values)
+    camdets.sort_values(by=['stationid'], inplace=True)
+    if not loadall:
+        camdets.dropna(inplace=True, subset=['eMail','humanName','site'])
+    camdets['camtype'] = camdets['camtype'].astype(int)
+    camdets['active'] = camdets['active'].astype(int)
+    return camdets
+
+
+def findLocationInfo(srchstring, ddb=None, statdets=None):
+    if statdets is None:
+        statdets = loadLocationDetails(ddb=ddb) 
+        statdets = statdets[statdets.active==1]
+    s1 = statdets[statdets.stationid.str.contains(srchstring)]
+    s2 = statdets[statdets.eMail.str.contains(srchstring)]
+    s3 = statdets[statdets.humanName.str.contains(srchstring)]
+    s4 = statdets[statdets.site.str.contains(srchstring)]
+    srchres = pd.concat([s1, s2, s3, s4])
+    srchres.drop(columns=['oldcode','active','camtype'], inplace=True)
+    return srchres
+
+
+def createCDCsv(targetloc):
+    camdets = loadLocationDetails()
+    cd4csv = camdets[['site','stationid','oldcode','direction','camtype','active']]
+    pd.options.mode.chained_assignment = None
+    cd4csv['dummycode'] = camdets.stationid
+    pd.options.mode.chained_assignment = 'warn'
+    cd4csv = cd4csv[['site','stationid','oldcode','direction','camtype','dummycode','active']]
+    cd4csv = cd4csv.rename(columns={'stationid':'camid', 'oldcode':'lid', 'direction':'sid'})
+    cd4csv.sort_values(by=['active','camid'], inplace=True)
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data/')
+    outfname = os.path.join(datadir, targetloc, 'camera-details.csv')
+    cd4csv.to_csv(outfname, index=False)
+    with open(os.path.join(datadir, 'activecamcount.txt'), 'w') as outf:
+        outf.write(str(len(cd4csv[cd4csv.active==1])))
+    createStatOptsHtml(camdets, datadir)
+    createStatOptsHtml(camdets, datadir, True)
+    createStatOptsHtml(camdets, datadir, True, True)
+    return
+
+
+def createStatOptsHtml(sitedets, datadir, active=False, locs=False):
+    """
+    Create an HTML file containing a list of stations or locations
+    These files are used by the website search functions
+    """
+    if active:
+        if locs:
+            siteidx = os.path.join(datadir, 'activestatlocs.html')  
+            sitedets = sitedets.sort_values(by=['site', 'stationid'])
+        else:
+            siteidx = os.path.join(datadir, 'activestatopts.html')  
+        sitedets = sitedets[sitedets.active==1]
+    else:
+        siteidx = os.path.join(datadir, 'statopts.html')  
+    with open(siteidx, 'w') as outf:
+        if not active:
+            outf.write('<label for="statselect">Station</label>\n')
+            outf.write('<select class="bootstrap-select" id="statselect">\n')
+        outf.write('<option value="1" selected="selected">All</option>\n')
+        rowid = 2
+        for _, rw in sitedets.iterrows():
+            if locs:
+                cam = f'{str(rw.site)}/{str(rw.stationid)}'
+            else:
+                cam = str(rw.stationid)
+            outf.write(f'<option value="{rowid}">{cam}</option>\n')
+            rowid += 1
+        if not active:
+            outf.write('</select>\n')
+    return 
+
+
+def findSite(stationid, camdets=None, ddb=None):
+    if camdets is None:
+        camdets = loadLocationDetails(ddb=ddb) 
+    cc = camdets[camdets.stationid==stationid]
+    if len(cc) > 0:
+        res = cc.iloc[0]['site']
+    else:
+        res = 'Unknown'
+    return res
+
+
+def findEmail(stationid, camdets=None, ddb=None):
+    if camdets is None:
+        camdets = loadLocationDetails(ddb=ddb) 
+    cc = camdets[camdets.stationid==stationid]
+    if len(cc) > 0:
+        res = cc.iloc[0]['eMail']
+    else:
+        res = 'Unknown'
+    return res

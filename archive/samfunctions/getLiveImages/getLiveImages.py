@@ -6,6 +6,7 @@ import boto3
 from boto3.dynamodb.conditions import Key
 import json
 import datetime
+from decimal import Decimal
 
 
 def getLiveImages(dtstr):
@@ -38,6 +39,27 @@ def filterImages(d1, d2, statid=None, maxitems=-1):
     else:
         imglist = [x['image_name'] for x in resp['Items']]
     return imglist
+
+
+def getTrueImgs(dtstr, dtstr2, statid):
+    ddb = boto3.resource('dynamodb', region_name='eu-west-2')
+    table = ddb.Table('LiveBrightness')
+    d1 = datetime.datetime.strptime(dtstr, '%Y-%m-%dT%H:%M:%S.000Z')
+    d2 = datetime.datetime.strptime(dtstr2, '%Y-%m-%dT%H:%M:%S.000Z')
+    if d1.hour < 13:
+        capnight=(d1 + datetime.timedelta(days=-1)).strftime('%Y%m%d')
+    else:
+        capnight = dtstr[:8]
+    lv=Decimal(f'{d1.timestamp():.0f}')
+    hv=Decimal(f'{d2.timestamp():.0f}')
+    resp = table.query(KeyConditionExpression=Key('CaptureNight').eq(int(capnight)) & Key('Timestamp').between(lv, hv),
+                        ProjectionExpression='ffname',
+                        ScanIndexForward = False)
+    if statid is not None:
+        imglist = [x['ffname'] for x in resp['Items'] if statid in x['ffname']]
+    else:
+        imglist = [x['ffname'] for x in resp['Items']]
+    return {'images': imglist}
 
 
 def getImageUrls(dtstr, dtstr2, statid, token=None, maxitems=100, includexml=False):
@@ -98,16 +120,23 @@ def lambda_handler(event, context):
             statid = qs['statid']
         fmt = None
         incxml = False
+        trueimg = False
         if 'fmt' in qs:
             fmt = qs['fmt']
             if fmt == 'withxml':
                 incxml = True
                 fmt = 'json'
+            elif fmt == 'trueimg': 
+                trueimg = True
+                fmt = 'json'
         conttoken = None
         if 'conttoken' in qs:
             conttoken = qs['conttoken']
         #print(dtstr, dtstr2, statid, maxitems)
-        retval = getImageUrls(dtstr, dtstr2, statid, conttoken, maxitems, includexml=incxml)
+        if trueimg:
+            retval = getTrueImgs(dtstr, dtstr2, statid)
+        else:
+            retval = getImageUrls(dtstr, dtstr2, statid, conttoken, maxitems, includexml=incxml)
         if fmt == 'json':
             return {
                 'statusCode': 200,

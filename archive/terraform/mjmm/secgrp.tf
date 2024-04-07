@@ -169,7 +169,7 @@ resource "aws_security_group" "ec2publicsg" {
       self             = false
     },
     {
-      cidr_blocks      = ["86.0.0.0/8"]
+      cidr_blocks      = ["194.0.0.0/8"]
       description      = "MariaDB"
       from_port        = 3306
       protocol         = "tcp"

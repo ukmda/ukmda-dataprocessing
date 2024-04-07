@@ -13,19 +13,20 @@ import shutil
 import tempfile
 import boto3
 
-import reports.CameraDetails as cd
 from traj.pickleAnalyser import getVMagCodeAndStations
+from reports.CameraDetails import findSite, loadLocationDetails
 
 
 def processLocalFolder(trajdir, basedir):
     # load camera details
-    cinf = cd.SiteInfo()
+    caminfo = loadLocationDetails()
+    caminfo = caminfo[caminfo.active==1]
+
     bestvmag, shwr, stationids = getVMagCodeAndStations(trajdir)
     stations=[]
     for statid in stationids:
-        loc = cinf.GetSiteLocation(statid)
-        locbits = loc.split('/')
-        stations.append(locbits[0])
+        loc = findSite(statid, caminfo) 
+        stations.append(loc)
 
     _, dname = os.path.split(trajdir)
     realtraj = trajdir[trajdir.find('tra'):]
@@ -63,7 +64,8 @@ def findNewMatches(dir_path, out_path, offset, repdtstr, dbname):
     prevdbname = 'prev_' + dbname
     newdirs = getListOfNewMatches(dir_path, dbname, prevdbname)
     # load camera details
-    cinf = cd.SiteInfo()
+    caminfo = loadLocationDetails()
+    caminfo = caminfo[caminfo.active==1]
 
     if repdtstr is not None:
         repdt = datetime.datetime.strptime(repdtstr, '%Y%m%d')
@@ -95,9 +97,8 @@ def findNewMatches(dir_path, out_path, offset, repdtstr, dbname):
                 bestvmag, shwr, stationids = 0,'',['']
             stations=[]
             for statid in stationids:
-                loc = cinf.GetSiteLocation(statid[:6])
-                locbits = loc.split('/')
-                stations.append(locbits[0])
+                loc = findSite(statid, caminfo)
+                stations.append(loc)
 
             _, dname = os.path.split(trajdir)
             tstamp = datetime.datetime.strptime(dname[:15],'%Y%m%d_%H%M%S').timestamp()
