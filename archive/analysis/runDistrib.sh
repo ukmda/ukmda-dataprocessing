@@ -65,11 +65,11 @@ python -m traj.createDistribMatchingSh $MATCHSTART $MATCHEND $execMatchingsh
 chmod +x $execMatchingsh
 
 log2cw $NJLOGGRP $NJLOGSTREAM "get server details" runDistrib
-privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PublicIpAddress --output text)
+privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
 while [ "$privip" == "" ] ; do
     sleep 5
     log2cw $NJLOGGRP $NJLOGSTREAM "getting IP address" runDistrib
-    privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PublicIpAddress --output text)
+    privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
 done
 
 log2cw $NJLOGGRP $NJLOGSTREAM "deploy the script to the server $privip and run it" runDistrib

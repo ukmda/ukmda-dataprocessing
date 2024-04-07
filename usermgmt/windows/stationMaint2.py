@@ -7,14 +7,14 @@ from tkinter import Frame, Menu
 from tkinter import simpledialog
 from tkinter.filedialog import askopenfilename
 import boto3
-import shutil
 import os
 import paramiko
 import json 
 import time
+import datetime
 from scp import SCPClient
 
-from camTable import addRow, getCamUpdateDate, deleteRow, loadLocationDetails
+from camTable import addRow, getCamUpdateDate, loadLocationDetails
 from camTable import findLocationInfo, dumpCamTable, cameraExists
 
 
@@ -169,7 +169,7 @@ class CamMaintenance(Frame):
         except Exception:
             print('unable to get operator details - probably wrong AWS profile')
             exit(1)
-        tmpdf = self.stationdetails[['site','stationid','direction','camtype','active','humanName','eMail','oldcode']]
+        tmpdf = self.stationdetails[['site','stationid','direction','camtype','active','humanName','eMail','oldcode','created']]
         tmpdf = tmpdf.sort_values(by=['active','site','stationid'], ascending=[True,True,True])
         self.data = tmpdf.values.tolist()
         self.hdrs = tmpdf.columns.tolist()
@@ -280,7 +280,8 @@ class CamMaintenance(Frame):
             data = self.data[event[0]]
             data[event[1]] = event[3]
             newdata = {'stationid': data[1], 'site': data[0], 'humanName':data[5], 'eMail': data[6], 
-                    'direction': data[2], 'camtype': str(data[3]), 'active': str(data[4]), 'oldcode': data[1]}
+                    'direction': data[2], 'camtype': str(data[3]), 'active': int(data[4]), 'oldcode': data[1],
+                    'created': data[8]}
             addRow(newdata, ddb=self.ddb)
         return event[3]
     
@@ -403,11 +404,13 @@ class CamMaintenance(Frame):
             id = curdata[1]
             title = 'Move Camera'
             oldloc = curdata[0].lower() + '_' + curdata[2].lower()
+            created = curdata[7]
         else:
             sshkey = ''
             id = ''
             title = 'Add Camera'
             oldloc = ''
+            created = datetime.datetime.now().strftime('%Y%m%d')
         answer = infoDialog(self, title, curdata[0], user, email, sshkey, id)
         if answer.data[0].strip() != '': 
             d = answer.data
@@ -421,7 +424,7 @@ class CamMaintenance(Frame):
             self.addNewAwsUser(location)
             createIniFile(cameraname)
             addNewUnixUser(location, cameraname, oldloc)
-            self.addNewOwner(rmsid, location, str(d[3]), str(d[4]), str(d[2]), '2','1')
+            self.addNewOwner(rmsid, location, str(d[3]), str(d[4]), str(d[2]), '2','1', created)
         return 
 
     def newSSHKey(self):
@@ -541,11 +544,11 @@ class CamMaintenance(Frame):
             print(line, end="")
         return
     
-    def addNewOwner(self, rmsid, location, user, email, direction, camtype, active):
+    def addNewOwner(self, rmsid, location, user, email, direction, camtype, active, created):
         print(f'adding new owner {user} with {email} for {rmsid} at {location}')
         newdata = {'stationid': rmsid, 'site': location, 'humanName':user, 'eMail': email, 
-                   'direction': direction, 'camtype': camtype, 'active': active, 'oldcode': rmsid}
-        deleteRow(rmsid, ddb=self.ddb)
+                   'direction': direction, 'camtype': camtype, 'active': int(active), 'oldcode': rmsid, 
+                   'created': created}
         addRow(newdata=newdata, ddb=self.ddb)
         return
 
@@ -580,27 +583,22 @@ class CamMaintenance(Frame):
         return 
 
     def createNewAwsKey(self, location, caminfo):
-        keyf = os.path.join('jsonkeys', location + '.key')
-        oldkeyf = os.path.join('jsonkeys', location + '-prev.key')
-        csvf = os.path.join('csvkeys', location + '.csv')
-        shutil.copyfile(keyf, oldkeyf)
-        currkey = json.load(open(keyf, 'r'))
-        keyid = currkey['AccessKey']['AccessKeyId']
-        print(location, keyid)
-        affectedcamlist = caminfo[caminfo.site == location]
-        for _, cam in affectedcamlist.iterrows():
-            print(cam.site.lower(), cam.sid.lower())
-        return 
-
-        iamc = self.conn.client('iam')
-        iamc.update_access_key(UserName=location, AccessKeyId=keyid, Status='Inactive')
-        key = iamc.create_access_key(UserName=location)
-        with open(keyf, 'w') as outf:
-            outf.write(json.dumps(key, indent=4, sort_keys=True, default=str))
-        with open(csvf,'w') as outf:
-            outf.write('Access key ID,Secret access key\n')
-            outf.write('{},{}\n'.format(key['AccessKey']['AccessKeyId'], key['AccessKey']['SecretAccessKey']))
-
+        server=os.getenv('HELPERIP', default='3.11.55.160')
+        user='ec2-user'
+        keyfile = os.getenv('SSHKEY', default='ukmda_admin')
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = user, pkey = k)
+        command = f'/home/{user}/keymgmt/updateAwsKey.sh {location} force'
+        print(f'running {command}')
+        _, stdout, stderr = c.exec_command(command, timeout=10)
+        for line in iter(stdout.readline, ""):
+            print(line, end="")
+        for line in iter(stderr.readline, ""):
+            print(line, end="")
+        print('done')
+        c.close()
         return 
 
 
@@ -736,7 +734,9 @@ def createIniFile(cameraname):
 
 if __name__ == '__main__':
     # Initialize main window
+    dir_ = os.path.dirname(os.path.realpath(__file__))
     root = tk.Tk()
     app = CamMaintenance(root)
+    root.iconbitmap(os.path.join(dir_,'camera.ico'))
     root.protocol("WM_DELETE_WINDOW", app.on_closing)
     app.mainloop()

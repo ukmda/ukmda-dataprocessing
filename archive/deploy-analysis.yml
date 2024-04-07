@@ -14,12 +14,27 @@
     tags: [dev,prod]
   - name: Ensures {{destdir}}/logs exists
     file: path={{destdir}}/logs state=directory  
+  - name: clean local filesystem
+    ansible.builtin.command: 'pyclean {{srcdir}}/archive/ukmon_pylib -v --debris all'
+    delegate_to: localhost
+    tags: [dev,prod]
   - name: Copy files
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     tags: [dev,prod]
     with_items:
     - {src: '{{srcdir}}/archive/static_content/', dest: '{{destdir}}/static_content/', mode: '754', backup: no, directory_mode: yes }
-    - {src: '{{srcdir}}/archive/ukmon_pylib/', dest: '{{destdir}}/ukmon_pylib/', mode: '644', backup: no, directory_mode: yes }
+
+    - {src: '{{srcdir}}/archive/ukmon_pylib/analysis/', dest: '{{destdir}}/ukmon_pylib/analysis/', mode: '644', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/archive/ukmon_pylib/converters/', dest: '{{destdir}}/ukmon_pylib/converters/', mode: '644', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/archive/ukmon_pylib/maintenance/', dest: '{{destdir}}/ukmon_pylib/maintenance/', mode: '644', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/archive/ukmon_pylib/metrics/', dest: '{{destdir}}/ukmon_pylib/metrics/', mode: '644', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/archive/ukmon_pylib/reports/', dest: '{{destdir}}/ukmon_pylib/reports/', mode: '644', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/archive/ukmon_pylib/share/', dest: '{{destdir}}/ukmon_pylib/share/', mode: '644', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/archive/ukmon_pylib/tests/', dest: '{{destdir}}/ukmon_pylib/tests/', mode: '644', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/archive/ukmon_pylib/traj/', dest: '{{destdir}}/ukmon_pylib/traj/', mode: '644', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/archive/ukmon_pylib/README.md', dest: '{{destdir}}/ukmon_pylib/', mode: '644', backup: no, directory_mode: no }
+    - {src: '{{srcdir}}/archive/ukmon_pylib/requirements.txt', dest: '{{destdir}}/ukmon_pylib/', mode: '644', backup: no, directory_mode: no }
+
     - {src: '{{srcdir}}/archive/analysis/', dest: '{{destdir}}/analysis/', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/cronjobs/', dest: '{{destdir}}/cronjobs/', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/archive/utils/', dest: '{{destdir}}/utils/', mode: '754', backup: no, directory_mode: yes }

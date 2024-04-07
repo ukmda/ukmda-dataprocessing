@@ -10,17 +10,41 @@ import os
 
 
 def addRow(newdata=None, stationid=None, site=None, user=None, email=None, ddb=None, 
-           direction=None, camtype=None, active=None, tblname='camdetails'):
+           direction=None, camtype=None, active=None, createdate=None, tblname='camdetails'):
     # add a row to the CamTimings table
     if not ddb:
         ddb = boto3.resource('dynamodb', region_name='eu-west-2')
     if not newdata:
         newdata = {'stationid': stationid, 'site': site, 'humanName':user, 'eMail': email, 
-                   'direction': direction, 'camtype': camtype, 'active': active}
+                   'direction': direction, 'camtype': camtype, 'active': active, 'created': createdate,
+                   'oldcode': stationid}
     table = ddb.Table(tblname)
+#    resp = table.get_item(Key={'stationid': stationid, 'site': site})
+#    if 'Item' in resp:
+#        if 'created' in resp['Item']:
+#            newdata['created'] = resp['Item']['created']
     response = table.put_item(Item=newdata)
     if response['ResponseMetadata']['HTTPStatusCode'] != 200:
         print(response)
+    return 
+
+
+def addCreatedDate():
+    bucket = 'ukmda-shared'
+    s3 = boto3.client('s3')
+    camdets = loadLocationDetails()
+    for _, cam in camdets.iterrows():
+        res = s3.list_objects_v2(Bucket=bucket,Prefix=f'matches/RMSCorrelate/{cam["stationid"]}/', Delimiter='/')
+        if 'CommonPrefixes' in res:
+            earliest_fldr = os.path.split(res['CommonPrefixes'][0]['Prefix'][:-1])[1]
+            created = earliest_fldr.split('_')[1]
+        else:
+            created = ''
+        newdata = {'stationid': cam['stationid'], 'site': cam['site'], 'humanName':cam['humanName'], 'eMail': cam['eMail'], 
+                    'direction': cam['direction'], 'camtype': cam['camtype'], 'active': cam['active'], 
+                    'created': created, 'oldcode': cam['stationid']}
+        print(newdata)
+        addRow(newdata)
     return 
 
 

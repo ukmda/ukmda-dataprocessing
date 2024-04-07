@@ -8,6 +8,7 @@ import sys
 import os
 import matplotlib.pyplot as plt
 import glob
+import datetime
 
 
 def graphOfData(logf, dtstr):
@@ -51,13 +52,13 @@ def graphOfData(logf, dtstr):
 
 
 
-def getLogStats(nightlogf, matchlogf):
+def getLogStats(nightlogf, matchlogf, thisdy):
     with open(nightlogf,'r') as inf:
         loglines = inf.readlines()
     
-    logf = os.path.basename(nightlogf)
-    spls = logf.split('-')
-    thisdy= spls[1]
+    #logf = os.path.basename(nightlogf)
+    #spls = logf.split('-')
+    #thisdy= spls[1]
     matchstr = 'RUNTIME'    
 
     # <13>Nov  1 11:49:55 nightlyJob: RUNTIME 10554 showerReport ALL 202211
@@ -127,17 +128,22 @@ def getLogStats(nightlogf, matchlogf):
 if __name__ == '__main__':
     dtstr = sys.argv[1]
     logdir = os.path.join(os.getenv('SRC', default='/home/ec2-user/prod'), 'logs')
-    logs = glob.glob(os.path.join(logdir, f'*{dtstr}*.log'))
-    nightf = None
-    matchf = None
-    for fn in logs:
-        if 'matches' in fn:
-            matchf = fn
-        if 'nightlyJob' in fn:
-            nightf = fn
-    if nightf is None or matchf is None:
+    nowdt = datetime.datetime.now().strftime('%Y%m%d')
+    if nowdt == dtstr:
+        nightf = os.path.join(logdir, 'nightlyJob.log')
+        matchf = os.path.join(logdir, 'matchJob.log')
+    else:
+        logs = glob.glob(os.path.join(logdir, f'*{dtstr}*.log'))
+        nightf = None
+        matchf = None
+        for fn in logs:
+            if 'matches' in fn:
+                matchf = fn
+            if 'nightlyJob' in fn:
+                nightf = fn
+    if nightf is None or matchf is None or not os.path.isfile(nightf) or not os.path.isfile(matchf):
         print('logfile missing')
         print(nightf, matchf)
     else:        
-        getLogStats(nightf, matchf)
+        getLogStats(nightf, matchf, dtstr)
         graphOfData('perfNightly.csv', dtstr)

@@ -46,8 +46,9 @@ fi
 # add a unix user and set their homedir to /var/sftp/userid
 grep $userid /etc/passwd
 if [ $? -eq 1 ] ; then 
+    dt=$(date +%Y-%m-%d)
     logger -s -t addSftpUser "Creating unix user $userid"
-    sudo useradd --system --shell /usr/sbin/nologin --groups sftp --home /var/sftp/$userid $userid
+    sudo useradd --system --shell /usr/sbin/nologin --groups sftp --home /var/sftp/$userid --comment '${dt}' $userid
     sudo mkdir /var/sftp/$userid
     sudo chown root:sftp /var/sftp/$userid
     sudo chmod 751 /var/sftp/$userid

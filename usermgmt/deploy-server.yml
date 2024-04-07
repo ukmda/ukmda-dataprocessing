@@ -17,6 +17,6 @@
     tags: [dev,prod]
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     with_items:
-    - {src: '{{srcdir}}/addSftpUser.sh', dest: '{{destdir}}/', mode: '754', backup: yes, directory_mode: no }
-    - {src: '{{srcdir}}/installKeys.sh', dest: '{{destdir}}/', mode: '754', backup: yes, directory_mode: no }
+    - {src: '{{srcdir}}/addSftpUser.sh', dest: '{{destdir}}/', mode: '744', backup: yes, directory_mode: no }
+    - {src: '{{srcdir}}/updateAwsKey.sh', dest: '{{destdir}}/', mode: '744', backup: yes, directory_mode: no }
     - {src: '{{srcdir}}/ukmon.ini', dest: '{{destdir}}/', mode: '644', backup: yes, directory_mode: no }
