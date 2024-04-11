@@ -204,15 +204,7 @@ def pushToWebsite(s3, localfldr, webbucket, webfldr, outbucket, outpth, oldwebb=
     return
 
 
-# starting point for the process
-def startup(srcfldr, startdt, enddt, isTest=False):
-    print(f'processing {srcfldr}')
-    print(f"Starting at {datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}")
-
-    localfldr = tempfile.mkdtemp()
-    canddir = os.path.join(localfldr,'candidates')
-    os.makedirs(canddir, exist_ok = True)
-
+def getS3Client():
     sts_client = boto3.client('sts')
     try: 
         assumed_role_object=sts_client.assume_role( 
@@ -233,7 +225,19 @@ def startup(srcfldr, startdt, enddt, isTest=False):
             aws_access_key_id=lis[0].strip(),
             aws_secret_access_key=lis[1].strip(), 
             region_name = 'eu-west-2')
+    return s3
 
+
+# starting point for the process
+def startup(srcfldr, startdt, enddt, isTest=False):
+    print(f'processing {srcfldr}')
+    print(f"Starting at {datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}")
+
+    localfldr = tempfile.mkdtemp()
+    canddir = os.path.join(localfldr,'candidates')
+    os.makedirs(canddir, exist_ok = True)
+
+    s3 = getS3Client()
     srcbucket, srcpth, outbucket, outpth, webbucket, webpth, oldwebb, oldoutb = getSourceAndTargets()
     if isTest is True:
         outpth = os.path.join(outpth, 'test')
@@ -256,6 +260,9 @@ def startup(srcfldr, startdt, enddt, isTest=False):
 
         print('uploading data to website')
         trajfldr = os.path.join(localfldr,'trajectories')
+
+        # reacquire tokens just in case the 1hour time limit on chained roles is exceeded
+        s3 = getS3Client()
         pushToWebsite(s3, trajfldr, webbucket, webpth, outbucket, outpth, oldwebb=oldwebb, oldoutb=oldoutb)
 
         fname = f'{srcfldr}.json'
