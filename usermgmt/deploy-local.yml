@@ -16,63 +16,71 @@
     file: path={{windestdir}}/caminfo state=directory  
     delegate_to: localhost
     tags: [dev,prod]
+
+  - name: build exe
+    ansible.builtin.shell: | 
+      conda activate ukmon-admin
+      cd windows
+      pyinstaller ./stationMaint2.py --noconsole --onefile --windowed --icon .\camera.ico
+    args:
+      executable: pwsh.exe
+    delegate_to: localhost
+    register: outdata
+    tags: [dev,prod]
+
+  - name: print debug
+    debug:
+      var: outdata.stdout
   - name: Copy files
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     delegate_to: localhost
     tags: [dev,prod]
     with_items:
-    - {src: '{{winsrcdir}}/StationMaint.ps1', dest: '{{windestdir}}/', mode: '754', backup: yes, directory_mode: no }
-    - {src: '{{winsrcdir}}/stationMaint2.py', dest: '{{windestdir}}/', mode: '644', backup: yes, directory_mode: no }
-    - {src: '{{winsrcdir}}/testkeys.py', dest: '{{windestdir}}/', mode: '644', backup: yes, directory_mode: no }
-    - {src: '{{winsrcdir}}/camTableMaintenance.py', dest: '{{windestdir}}/', mode: '644', backup: yes, directory_mode: no }
+    - {src: '{{winsrcdir}}/dist/StationMaint2.exe', dest: '{{windestdir}}/', mode: '754', backup: yes, directory_mode: no }
+#    - {src: '{{winsrcdir}}/StationMaint.ps1', dest: '{{windestdir}}/', mode: '754', backup: yes, directory_mode: no }
+#    - {src: '{{winsrcdir}}/stationMaint2.py', dest: '{{windestdir}}/', mode: '644', backup: yes, directory_mode: no }
     - {src: '{{winsrcdir}}/camera.ico', dest: '{{windestdir}}/', mode: '644', backup: yes, directory_mode: no }
-    - {src: '{{winsrcdir}}/requirements.txt', dest: '{{windestdir}}/', mode: '644', backup: yes, directory_mode: no }
+    - {src: '{{winsrcdir}}/stationmaint.cfg', dest: '{{windestdir}}/', mode: '644', backup: yes, directory_mode: no }
+#    - {src: '{{winsrcdir}}/requirements.txt', dest: '{{windestdir}}/', mode: '644', backup: yes, directory_mode: no }
   - name: update source bucket
     lineinfile:
-      path: '{{windestdir}}/StationMaint.ps1'
-      regexp: '\$env:SRCBUCKET='
-      line: '$env:SRCBUCKET="{{srcbucket}}"'
+      path: '{{windestdir}}/stationmaint.cfg'
+      regexp: 'SRCBUCKET='
+      line: 'SRCBUCKET={{srcbucket}}'
     delegate_to: localhost
     tags: [dev,prod]
   - name: update live bucket
     lineinfile:
-      path: '{{windestdir}}/StationMaint.ps1'
-      regexp: '\$env:LIVEBUCKET='
-      line: '$env:LIVEBUCKET="{{livebucket}}"'
+      path: '{{windestdir}}/stationmaint.cfg'
+      regexp: 'LIVEBUCKET='
+      line: 'LIVEBUCKET={{livebucket}}'
     delegate_to: localhost
     tags: [dev,prod]
   - name: update web bucket
     lineinfile:
-      path: '{{windestdir}}/StationMaint.ps1'
-      regexp: '\$env:WEBSITEBUCKET='
-      line: '$env:WEBSITEBUCKET="{{websitebucket}}"'
+      path: '{{windestdir}}/stationmaint.cfg'
+      regexp: 'WEBSITEBUCKET='
+      line: 'WEBSITEBUCKET={{websitebucket}}'
     delegate_to: localhost
     tags: [dev,prod]
   - name: update AWS profile for LIVE
     lineinfile:
-      path: '{{windestdir}}/StationMaint.ps1'
-      regexp: '\$env:LIVE_PROFILE='
-      line: '$env:LIVE_PROFILE="{{liveprofile}}"'
-    delegate_to: localhost
-    tags: [dev,prod]
-  - name: update AWS profile for ARCH
-    lineinfile:
-      path: '{{windestdir}}/StationMaint.ps1'
-      regexp: '\$env:ARCH_PROFILE='
-      line: '$env:ARCH_PROFILE="{{archprofile}}"'
+      path: '{{windestdir}}/stationmaint.cfg'
+      regexp: 'AWSPROFILE='
+      line: 'AWSPROFILE={{liveprofile}}'
     delegate_to: localhost
     tags: [dev,prod]
   - name: update helper ipaddress
     lineinfile:
-      path: '{{windestdir}}/StationMaint.ps1'
-      regexp: '\$env:HELPERIP='
-      line: '$env:HELPERIP="{{serverip}}"'
+      path: '{{windestdir}}/stationmaint.cfg'
+      regexp: 'HELPERIP='
+      line: 'HELPERIP={{serverip}}'
     delegate_to: localhost
     tags: [dev,prod]
   - name: update helper remotedir
     lineinfile:
-      path: '{{windestdir}}/StationMaint.ps1'
-      regexp: '\$env:REMOTEDIR='
-      line: '$env:REMOTEDIR="{{remotedir}}"'
+      path: '{{windestdir}}/stationmaint.cfg'
+      regexp: 'REMOTEDIR='
+      line: 'REMOTEDIR={{remotedir}}'
     delegate_to: localhost
     tags: [dev,prod]
