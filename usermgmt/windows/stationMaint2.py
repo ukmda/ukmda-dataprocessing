@@ -13,6 +13,7 @@ import paramiko
 import json 
 import time
 import datetime
+import tempfile
 from scp import SCPClient
 from boto3.dynamodb.conditions import Key
 import pandas as pd
@@ -26,7 +27,34 @@ def loadConfig(cfgdir):
         tkMessageBox.showinfo('Warning', f'config file {cfgfile} not found')
         exit(0)
     cfg.read(cfgfile)
-    return cfg
+    server = cfg['helper']['helperip'] 
+    user = cfg['helper']['user']
+    keyfile = cfg['helper']['sshkey']
+    k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
+    c = paramiko.SSHClient()
+    c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    c.connect(hostname = server, username = user, pkey = k)
+    scpcli = c.open_sftp()
+    try:
+        handle, tmpfnam = tempfile.mkstemp()
+        scpcli.get(f'{user}.csv', tmpfnam)
+    except Exception:
+        print('unable to find AWS key')
+    scpcli.close()
+    c.close()
+    try:
+        lis = open(tmpfnam, 'r').readlines()
+        os.close(handle)
+        os.remove(tmpfnam)
+        key, sec = lis[1].split(',')
+    except Exception:
+        print('malformed AWS key')
+    if key:
+        print('retrieved key details')
+        awskeys = {'key': key.strip(), 'secret': sec.strip()}
+    else: 
+        awskeys = {}
+    return cfg, awskeys
 
 
 def addRow(newdata=None, stationid=None, site=None, user=None, email=None, ddb=None, 
@@ -263,10 +291,8 @@ class CamMaintenance(Frame):
         self.parent = parent
         Frame.__init__(self, parent)
 
-        self.cfg = loadConfig(cfgdir)
-
-        self.archprof = self.cfg['store']['awsprofile'] 
-        self.conn = boto3.Session(profile_name=self.archprof)
+        self.cfg, awskeys = loadConfig(cfgdir)
+        self.conn = boto3.Session(aws_access_key_id=awskeys['key'], aws_secret_access_key=awskeys['secret']) 
         self.bucket_name = self.cfg['store']['srcbucket'] 
 
         os.makedirs('jsonkeys', exist_ok=True)
@@ -572,7 +598,7 @@ class CamMaintenance(Frame):
         server = self.cfg['helper']['helperip'] 
         user='ec2-user'
         keyfile = self.cfg['helper']['sshkey']
-        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
         c = paramiko.SSHClient()
         c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         c.connect(hostname = server, username = user, pkey = k)
@@ -581,6 +607,8 @@ class CamMaintenance(Frame):
         remotef=f'{remotedir}/consolidated/platepars/{camid}.json'
         localf = os.path.join(ppdir, ppfile)
         scpcli.get(remotef, localf)
+        scpcli.close()
+        c.close()
 
         s3 = boto3.client('s3')
         res = s3.list_objects_v2(Bucket=self.bucket_name, Prefix=f'archive/{site}/{camid}/2023/202312/')
@@ -627,7 +655,7 @@ class CamMaintenance(Frame):
         uplfile = f'/tmp/platepar_cmn2010_{camdets[1]}.cal'
         camname = f'{camdets[0]}_{camdets[3]}'.lower()
         keyfile = self.cfg['helper']['sshkey'] 
-        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
         c = paramiko.SSHClient()
         c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         c.connect(hostname = server, username = user, pkey = k)
@@ -654,6 +682,8 @@ class CamMaintenance(Frame):
             print(line, end="")
         for line in iter(stderr.readline, ""):
             print(line, end="")
+        scpcli.close()
+        c.close()
         return
     
     def addNewOwner(self, rmsid, location, user, email, direction, camtype, active, created):
@@ -698,7 +728,7 @@ class CamMaintenance(Frame):
         server = self.cfg['helper']['helperip'] 
         user='ec2-user'
         keyfile = self.cfg['helper']['sshkey'] 
-        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
         c = paramiko.SSHClient()
         c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         c.connect(hostname = server, username = user, pkey = k)
@@ -726,7 +756,7 @@ class CamMaintenance(Frame):
 
         affectedcamlist = caminfo[caminfo.site==location]
         keyfile = self.cfg['helper']['sshkey']
-        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
         c = paramiko.SSHClient()
         c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         c.connect(hostname = server, username = user, pkey = k)
@@ -735,6 +765,7 @@ class CamMaintenance(Frame):
         scpcli.put(keyf, 'keymgmt/rawkeys/live/')
         scpcli.put(archcsvf, 'keymgmt/rawkeys/csvkeys/')
         scpcli.close()
+        c.close()
         for _, cam in affectedcamlist.iterrows():
             cameraname = cam.site.lower() + '_' + cam.site.lower()
             keyfile = os.path.join('sshkeys', cameraname + '.pub')
@@ -744,6 +775,8 @@ class CamMaintenance(Frame):
             c.connect(hostname = server, username = cameraname, pkey = k)
             scpcli = SCPClient(c.get_transport())
             scpcli.put(archcsvf, '.')
+            scpcli.close()
+            c.close()
 
 
     def getSSHkey(self, loc, dir):
@@ -752,7 +785,7 @@ class CamMaintenance(Frame):
         tmpdir=os.getenv('TEMP', default='c:/temp')
         cameraname = (loc + '_' + dir).lower()
         keyfile = self.cfg['helper']['sshkey']
-        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
         c = paramiko.SSHClient()
         c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         c.connect(hostname = server, username = user, pkey = k)
@@ -760,6 +793,8 @@ class CamMaintenance(Frame):
         tmpfil = os.path.join(tmpdir,'./tmp.txt')
         # dont use os.path.join - source is on unix we are on windows!
         scpcli.get(f'keymgmt/sshkeys/{cameraname}.pub', tmpfil)
+        scpcli.close()
+        c.close()
 
         with open(tmpfil, 'r') as inf:
             lis = inf.readlines()
@@ -779,7 +814,7 @@ class CamMaintenance(Frame):
         user='ec2-user'
         print(f'adding new Unix user {cameraname}')
         keyfile = self.cfg['helper']['sshkey'] 
-        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
         c = paramiko.SSHClient()
         c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
@@ -808,6 +843,8 @@ class CamMaintenance(Frame):
                 scpcli.get(infname, outfname)
             except Exception:
                 continue
+        scpcli.close()
+        c.close()
         return
 
 
