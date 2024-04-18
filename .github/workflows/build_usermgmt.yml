@@ -1,0 +1,29 @@
+name: build_usermgmt
+env:
+  AWS_REGION: eu-west-2
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  push:
+    branches: [ dev, markmac99 ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ master ]
+jobs:
+  local_tests:
+    name: local test stage
+    runs-on: ubuntu-latest # win10
+    steps:
+      - name: testing
+        run: | 
+          echo hello from test
+  build:
+    name: build stage
+    runs-on: ubuntu-latest # win10
+    needs: local_tests
+    steps:
+      - name: building
+        run: |
+            echo hello from build

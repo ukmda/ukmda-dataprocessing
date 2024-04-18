@@ -37,11 +37,8 @@
     tags: [dev,prod]
     with_items:
     - {src: '{{winsrcdir}}/dist/StationMaint2.exe', dest: '{{windestdir}}/', mode: '754', backup: yes, directory_mode: no }
-#    - {src: '{{winsrcdir}}/StationMaint.ps1', dest: '{{windestdir}}/', mode: '754', backup: yes, directory_mode: no }
-#    - {src: '{{winsrcdir}}/stationMaint2.py', dest: '{{windestdir}}/', mode: '644', backup: yes, directory_mode: no }
     - {src: '{{winsrcdir}}/camera.ico', dest: '{{windestdir}}/', mode: '644', backup: yes, directory_mode: no }
     - {src: '{{winsrcdir}}/stationmaint.cfg', dest: '{{windestdir}}/', mode: '644', backup: yes, directory_mode: no }
-#    - {src: '{{winsrcdir}}/requirements.txt', dest: '{{windestdir}}/', mode: '644', backup: yes, directory_mode: no }
   - name: update source bucket
     lineinfile:
       path: '{{windestdir}}/stationmaint.cfg'
@@ -61,13 +58,6 @@
       path: '{{windestdir}}/stationmaint.cfg'
       regexp: 'WEBSITEBUCKET='
       line: 'WEBSITEBUCKET={{websitebucket}}'
-    delegate_to: localhost
-    tags: [dev,prod]
-  - name: update AWS profile for LIVE
-    lineinfile:
-      path: '{{windestdir}}/stationmaint.cfg'
-      regexp: 'AWSPROFILE='
-      line: 'AWSPROFILE={{liveprofile}}'
     delegate_to: localhost
     tags: [dev,prod]
   - name: update helper ipaddress
