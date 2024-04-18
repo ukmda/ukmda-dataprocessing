@@ -16,17 +16,23 @@ jobs:
     name: local test stage
     runs-on: win10
     steps:
+      - name: "☁️ checkout repository"
+        uses: actions/checkout@v3
       - name: testing
         run: | 
           echo "hello from test"
           whoami
           conda activate ukmon-admin
           python -V
+          pwd
+          dir
   build:
     name: build stage
     runs-on: win10
     needs: local_tests
     steps:
-      - name: building
-        run: |
+        - name: "☁️ checkout repository"
+          uses: actions/checkout@v3
+        - name: building
+          run: |
             echo hello from build
