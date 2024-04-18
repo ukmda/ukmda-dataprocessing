@@ -21,7 +21,6 @@ jobs:
       - name: testing
         run: | 
           echo "hello from test"
-          whoami
           conda activate ukmon-admin
           dir usermgmt\windows
   build:
@@ -33,5 +32,7 @@ jobs:
         #  uses: actions/checkout@v3
         - name: building
           run: |
-            echo hello from build
-            dir usermgmt
+            echo running build step
+            cd usermgmt\windows
+            pyinstaller ./stationMaint2.py --noconsole --onefile --windowed --icon .\camera.ico
+            dir usermgmt\dist
