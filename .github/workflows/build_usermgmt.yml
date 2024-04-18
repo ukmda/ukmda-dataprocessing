@@ -19,6 +19,7 @@ jobs:
       - name: testing
         run: | 
           echo "hello from test"
+          whoami
           conda activate ukmon-admin
           python -V
   build:
