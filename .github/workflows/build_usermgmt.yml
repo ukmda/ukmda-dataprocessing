@@ -34,5 +34,16 @@ jobs:
             conda activate ukmon-admin
             cd usermgmt\windows
             pyinstaller ./stationMaint2.py --noconsole --onefile --windowed --icon .\camera.ico
-            dir usermgmt\dist
-    
+            dir dist
+    package:
+        name: package app
+        runs-on: win10
+        needs: 
+        - local_tests
+        - build
+        steps:
+        - name: packaging
+          run: | 
+            echo "packaging the app now"
+            
+        
