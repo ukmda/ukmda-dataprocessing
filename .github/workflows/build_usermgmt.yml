@@ -1,38 +1,38 @@
 name: build_usermgmt
 env:
-  AWS_REGION: eu-west-2
+    AWS_REGION: eu-west-2
 permissions:
-  id-token: write
-  contents: read
+    id-token: write
+    contents: read
 
 on:
-  push:
-    branches: [ dev, markmac99 ]
-  pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ master ]
+    push:
+        branches: [ dev, markmac99 ]
+    pull_request:
+        # The branches below must be a subset of the branches above
+        branches: [ master ]
 jobs:
-  local_tests:
-    name: local test stage
-    runs-on: win10
-    steps:
-      - name: "☁️ checkout repository"
-        uses: actions/checkout@v3
-      - name: testing
-        run: | 
-          echo "hello from test"
-          conda activate ukmon-admin
-          dir usermgmt\windows
-  build:
-    name: build stage
-    runs-on: win10
-    needs: local_tests
-    steps:
-        #- name: "☁️ checkout repository"
-        #  uses: actions/checkout@v3
+    local_tests:
+        name: local test stage
+        runs-on: win10
+        steps:
+        - name: "☁️ checkout repository"
+          uses: actions/checkout@v3
+        - name: testing
+          run: | 
+            echo "hello from test"
+            conda activate ukmon-admin
+            dir usermgmt\windows
+    build:
+        name: build stage
+        runs-on: win10
+        needs: local_tests
+        steps:
         - name: building
           run: |
-            echo running build step
+            echo "running build step"
+            conda activate ukmon-admin
             cd usermgmt\windows
             pyinstaller ./stationMaint2.py --noconsole --onefile --windowed --icon .\camera.ico
             dir usermgmt\dist
+    
