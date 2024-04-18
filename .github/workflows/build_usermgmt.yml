@@ -14,14 +14,14 @@ on:
 jobs:
   local_tests:
     name: local test stage
-    runs-on: ubuntu-latest # win10
+    runs-on: win10
     steps:
       - name: testing
         run: | 
           echo hello from test
   build:
     name: build stage
-    runs-on: ubuntu-latest # win10
+    runs-on: win10
     needs: local_tests
     steps:
       - name: building
