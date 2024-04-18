@@ -69,7 +69,7 @@ Flow in findAllMatches.sh
     stage2 --> consol[runDistrib waits for containers to finish then consolidate the data]
     consol --> repo[runDistrib creates file of latest matches]
     repo --> stats[runDistrib syncs the solved orbit files back to S3 and backs up the data]
-    stats --> idxpg[findAllMatches creates some stats updates website index pages and sends the daily report]
+    stats --> idxpg[findAllMatches creates some stats, updates website index pages and sends the daily report]
     idxpg --> d[FINISHED]
 ```
 
