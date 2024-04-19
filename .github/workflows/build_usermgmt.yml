@@ -49,5 +49,21 @@ jobs:
             copy ../camera.ico .
             ((get-content ..\stationmaint.cfg) -replace "adm_mark","") -replace "~/.ssh/ukmonhelper","" | set-content -path ./stationmaint.cfg
             compress-archive -path . -update -destinationpath c:\temp\ukmon_usermgmt.zip
-
+    release:
+        name: release package
+        runs-on: win10
+        needs:
+        - local_tests
+        - build
+        - package
+        steps:
+        - name: release
+          uses: xresloader/upload-to-github-release@v1
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            file: c:\temp\ukmon_usermgmt.zip
+            tags: true
+            draft: true 
+            overwrite: true       
         
