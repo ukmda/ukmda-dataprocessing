@@ -7,7 +7,7 @@ permissions:
 
 on:
     push:
-        branches: [ dev, markmac99 ]
+        branches: [ dev, markmac99, master ]
     pull_request:
         # The branches below must be a subset of the branches above
         branches: [ master ]
@@ -45,5 +45,9 @@ jobs:
         - name: packaging
           run: | 
             echo "packaging the app now"
-            
+            cd usermgmt\windows\dist
+            copy ../camera.ico .
+            ((get-content ..\stationmaint.cfg) -replace "adm_mark","") -replace "~/.ssh/ukmonhelper","" | set-content -path ./stationmaint.cfg
+            compress-archive -path . -update -destinationpath c:\temp\ukmon_usermgmt.zip
+
         
