@@ -4,8 +4,6 @@
     srcbucket: ukmda-shared
     livebucket: ukmda-live
     websitebucket: ukmda-website
-    liveprofile: ukmda_admin
-    archprofile: ukmda_admin
     helper: ukmonhelper2
     serverip: "3.11.55.160"
     remotedir: /home/ec2-user/prod/data

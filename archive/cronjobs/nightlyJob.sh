@@ -25,7 +25,6 @@ mkdir -p $DATADIR/{admin,browse,consolidated,costs,dailyreports,distrib,kmls}
 mkdir -p $DATADIR/{lastlogs,latest,matched,orbits,reports,searchidx,single,trajdb,videos}
 mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
 
-mkdir -p $DATADIR/admin
 log2cw $NJLOGGRP $NJLOGSTREAM "updating the camera location/dir/fov database" nightlyJob
 python -c "from reports.CameraDetails import updateCamLocDirFovDB; updateCamLocDirFovDB();"
 aws s3 cp $DATADIR/admin/cameraLocs.json $UKMONSHAREDBUCKET/admin/ --profile ukmonshared --quiet

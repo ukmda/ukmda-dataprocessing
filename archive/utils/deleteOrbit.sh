@@ -19,5 +19,4 @@ if [ $? == 0 ] ; then
         cat $repfile  | grep -v $traj > /tmp/newrep.txt
         mv -f /tmp/newrep.txt $repfile
     done 
-    $SRC/website/publishDailyReport.sh
 fi
