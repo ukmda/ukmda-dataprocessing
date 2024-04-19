@@ -48,11 +48,11 @@ logger -s -t onlyConsolDistrib "consolidating for $rundate"
 
 python -c "from traj.distributeCandidates import monitorProgress as mp; mp('${rundate}'); "
 
-privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PublicIpAddress --output text --profile ukmonshared)
+privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text --profile ukmonshared)
 while [ "$privip" == "" ] ; do
     sleep 5
     echo "getting ipaddress"
-    privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PublicIpAddress --output text --profile ukmonshared)
+    privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text --profile ukmonshared)
 done
 
 if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then 

@@ -195,7 +195,10 @@ if __name__ == '__main__':
     yrval = str(nowdt.year) + '-'
     yrvalback = str(nowdt.year-1) + '-'
     logindf['lastseen'] = [datetime.datetime.strptime(x, '%Y-%b-%d_%H%M%S') for x in yrval + logindf.dateval+'_'+logindf.timeval]
-    logindf['lastseen2'] = [datetime.datetime.strptime(x, '%Y-%b-%d_%H%M%S') for x in yrvalback + logindf.dateval+'_'+logindf.timeval]
+    try: # will fail on 29th Feb in a leapyear, as previous year is not leap
+        logindf['lastseen2'] = [datetime.datetime.strptime(x, '%Y-%b-%d_%H%M%S') for x in yrvalback + logindf.dateval+'_'+logindf.timeval]
+    except Exception:
+        logindf['lastseen2'] = [datetime.datetime.strptime(x, '%Y-%b-%d_%H%M%S') for x in yrval + logindf.dateval+'_'+logindf.timeval]
     logindf.loc[logindf.lastseen > nowdt, 'lastseen'] = logindf.lastseen2
     logindf = logindf.sort_values(by=['lastseen'])
     logindf.drop_duplicates(subset=['siteid'], inplace=True, keep='last')

@@ -46,7 +46,7 @@ resource "aws_security_group" "ec2_secgrp" {
   description = "Security Group for EC2 instances"
   vpc_id      = aws_vpc.ec2_vpc.id
   ingress = [
-    {
+/*    {
       cidr_blocks      = [data.aws_vpc.mjmm_ec2_vpc.cidr_block]
       description      = "SSH for Admin"
       from_port        = 22
@@ -56,7 +56,7 @@ resource "aws_security_group" "ec2_secgrp" {
       prefix_list_ids  = []
       security_groups  = []
       self             = false
-    },
+    },*/
     {
       cidr_blocks      = [aws_vpc.ec2_vpc.cidr_block]
       description      = "SSH for Admin"

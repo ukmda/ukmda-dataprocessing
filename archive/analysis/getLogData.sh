@@ -16,9 +16,15 @@ fi
 # create performance metrics
 cd $SRC/logs
 python -m metrics.timingMetrics $rundate
-aws s3 cp $rundate-perfNightly.jpg $WEBSITEBUCKET/reports/batchcharts/ --quiet
+mv -f $rundate-perfNightly.jpg $DATADIR/
+aws s3 cp $DATADIR/$rundate-perfNightly.jpg $WEBSITEBUCKET/reports/batchcharts/ --quiet
 
-lastmtch=$(ls -1tr $SRC/logs/matches-${rundate}-*.log | tail -1)
+#lastmtch=$(ls -1tr $SRC/logs/matches-${rundate}-*.log | tail -1)
+if [ $rundate != $(date +%Y%m%d) ] ; then
+    lastmtch=matchJob.log-$rundate
+else
+    lastmtch=matchJob.log
+fi 
 
 python -m reports.findFailedMatches $rundate
 

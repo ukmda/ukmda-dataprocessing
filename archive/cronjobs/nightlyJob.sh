@@ -41,7 +41,11 @@ aws s3 cp $DATADIR/activestatlocs.html $WEBSITEBUCKET/search/ --profile ukmonsha
 
 # run this only once as it scoops up all unprocessed data
 log2cw $NJLOGGRP $NJLOGSTREAM "start findAllMatches" nightlyJob
-matchlog=matches-$(date +%Y%m%d-%H%M%S).log
+matchlog=matchJob.log
+if [ -f $SRC/logs/$matchlog ] ; then
+    suff=$(stat matchJob.log -c %X)
+    mv $SRC/logs/$matchlog $SRC/logs/$matchlog-$suff
+fi 
 ${SRC}/analysis/findAllMatches.sh > ${SRC}/logs/${matchlog} 2>&1
 
 log2cw $NJLOGGRP $NJLOGSTREAM "start consolidateOutput" nightlyJob 
