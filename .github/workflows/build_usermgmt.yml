@@ -63,7 +63,7 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           with:
             file: c:\temp\ukmon_usermgmt.zip
-            tags: true
+            #tags: true
             draft: true 
             overwrite: true       
         
