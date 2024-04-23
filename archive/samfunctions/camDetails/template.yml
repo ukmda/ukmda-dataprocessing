@@ -7,7 +7,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: camDetails.lambda_handler
-      Runtime: python3.8
+      Runtime: python3.11
       FunctionName: camDetails
       Description: API backend that retrieves camera details
       Timeout: 30
@@ -26,5 +26,5 @@ Resources:
         billingtag: "ukmda"
         typetag: "api"
     Metadata:
-      BuildMethod: python3.8
+      BuildMethod: python3.11
 

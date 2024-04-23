@@ -14,7 +14,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: getFireballFiles.lambda_handler
-      Runtime: python3.8
+      Runtime: python3.11
       FunctionName: getFireballFiles
       Description: API backend that retrieves fireball files matching a pattern if available
       Timeout: 120
@@ -35,7 +35,7 @@ Resources:
       Tags:
         billingtag: "ukmda"
     Metadata:
-      BuildMethod: python3.8
+      BuildMethod: python3.11
   uploadResource:
     Type: AWS::ApiGateway::Resource
     Properties:
