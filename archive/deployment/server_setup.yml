@@ -1,0 +1,34 @@
+---
+- hosts: "{{host | default ('ukmonhelper2')}}"
+  vars:
+    srcdir: /mnt/e/dev/meteorhunting/ukmda-dataprocessing/archive
+  tasks:
+  - name: import dev variables 
+    include_vars: ./dev-vars.yml
+    tags: dev
+  - name: import prod variables
+    include_vars: ./prod-vars.yml
+    tags: prod
+  - name: Ensures {{destdir}}/server_setup exists
+    file: path={{destdir}}/server_setup state=directory  
+    tags: [dev,prod]
+  - name: Copy files
+    copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
+    tags: [dev,prod]
+    with_items:
+    - {src: '{{srcdir}}/server_setup/copyTestData.sh', dest: '{{destdir}}/server_setup', mode: '754', backup: no }
+    - {src: '{{srcdir}}/server_setup/install-cartopy.sh', dest: '{{destdir}}/server_setup', mode: '754', backup: no }
+    - {src: '{{srcdir}}/server_setup/install-geos.sh', dest: '{{destdir}}/server_setup', mode: '754', backup: no }
+    - {src: '{{srcdir}}/server_setup/install-proj4.sh', dest: '{{destdir}}/server_setup', mode: '754', backup: no }
+    - {src: '{{srcdir}}/server_setup/install-sqlite3.sh', dest: '{{destdir}}/server_setup', mode: '754', backup: no }
+    - {src: '{{srcdir}}/server_setup/install_opencv.sh', dest: '{{destdir}}/server_setup', mode: '754', backup: no }
+    - {src: '{{srcdir}}/server_setup/libs/libgeos-3.7.2.so', dest: '{{destdir}}/server_setu/libsp', mode: '644', backup: no }
+    - {src: '{{srcdir}}/server_setup/libs/libgeos.so', dest: '{{destdir}}/server_setup/libs', mode: '644', backup: no }
+    - {src: '{{srcdir}}/server_setup/libs/libgeos_c.so', dest: '{{destdir}}/server_setup/libs', mode: '644', backup: no }
+    - {src: '{{srcdir}}/server_setup/libs/libproj.so', dest: '{{destdir}}/server_setup/libs', mode: '644', backup: no }
+    - {src: '{{srcdir}}/server_setup/migratingBatchServer.md', dest: '{{destdir}}/server_setup', mode: '644', backup: no }
+    - {src: '{{srcdir}}/server_setup/newserver.sh', dest: '{{destdir}}/server_setup', mode: '754', backup: no }
+    - {src: '{{srcdir}}/server_setup/remount-s3.sh', dest: '{{destdir}}/server_setup', mode: '754', backup: no }
+    - {src: '{{srcdir}}/server_setup/ssh-setup.sh', dest: '{{destdir}}/server_setup', mode: '754', backup: no }
+    - {src: '{{srcdir}}/server_setup/yum-installs.sh', dest: '{{destdir}}/server_setup', mode: '754', backup: no }
+    - {src: '{{srcdir}}/server_setup/README.md', dest: '{{destdir}}/server_setup', mode: '644', backup: no }

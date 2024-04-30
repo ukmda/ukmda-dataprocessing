@@ -1,0 +1,103 @@
+---
+- hosts: "{{host | default ('ukmonhelper2')}}"
+  vars:
+    srcdir: /mnt/e/dev/meteorhunting/ukmda-dataprocessing/archive
+  tasks:
+  - name: import dev variables 
+    include_vars: ./dev-vars.yml
+    tags: dev
+  - name: import prod variables
+    include_vars: ./prod-vars.yml
+    tags: prod
+  - name: Ensures {{destdir}}/ukmon_pylib exists
+    file: path={{destdir}}/ukmon_pylib state=directory  
+    tags: [dev,prod]
+  - name: Copy files
+    copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
+    tags: [dev,prod]
+    with_items:
+
+    - {src: '{{srcdir}}/ukmon_pylib/analysis/compareBrightnessData.py', dest: '{{destdir}}/ukmon_pylib/analysis', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/analysis/gatherDetectionData.py', dest: '{{destdir}}/ukmon_pylib/analysis', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/analysis/meteorFlux.py', dest: '{{destdir}}/ukmon_pylib/analysis', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/analysis/showerAnalysis.py', dest: '{{destdir}}/ukmon_pylib/analysis', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/analysis/stationAnalysis.py', dest: '{{destdir}}/ukmon_pylib/analysis', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/analysis/summaryAnalysis.py', dest: '{{destdir}}/ukmon_pylib/analysis', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/analysis/__init__.py', dest: '{{destdir}}/ukmon_pylib/analysis', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/analysis/README.md', dest: '{{destdir}}/ukmon_pylib/analysis', mode: '644', backup: no }
+
+    - {src: '{{srcdir}}/ukmon_pylib/converters/gmnTxtToPandas.py', dest: '{{destdir}}/ukmon_pylib/converters', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/converters/toParquet.py', dest: '{{destdir}}/ukmon_pylib/converters', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/converters/__init__.py', dest: '{{destdir}}/ukmon_pylib/converters', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/converters/README.md', dest: '{{destdir}}/ukmon_pylib/converters', mode: '644', backup: no }
+
+    - {src: '{{srcdir}}/ukmon_pylib/maintenance/cleanDdbTables.py', dest: '{{destdir}}/ukmon_pylib/maintenance', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/maintenance/dataMaintenance.py', dest: '{{destdir}}/ukmon_pylib/maintenance', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/maintenance/deDuplicate.py', dest: '{{destdir}}/ukmon_pylib/maintenance', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/maintenance/getNextBatchStart.py', dest: '{{destdir}}/ukmon_pylib/maintenance', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/maintenance/getUserAndKeyInfo.py', dest: '{{destdir}}/ukmon_pylib/maintenance', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/maintenance/hcVaultActions.py', dest: '{{destdir}}/ukmon_pylib/maintenance', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/maintenance/manageTraj.py', dest: '{{destdir}}/ukmon_pylib/maintenance', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/maintenance/plotStationsOnMap.py', dest: '{{destdir}}/ukmon_pylib/maintenance', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/maintenance/purgeOldImages.py', dest: '{{destdir}}/ukmon_pylib/maintenance', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/maintenance/purgeOldOrbits.py', dest: '{{destdir}}/ukmon_pylib/maintenance', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/maintenance/recreateOrbitPages.py', dest: '{{destdir}}/ukmon_pylib/maintenance', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/maintenance/rerunFailedLambdas.py', dest: '{{destdir}}/ukmon_pylib/maintenance', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/maintenance/sortToDateDirs.py', dest: '{{destdir}}/ukmon_pylib/maintenance', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/maintenance/README.md', dest: '{{destdir}}/ukmon_pylib/maintenance', mode: '644', backup: no }
+
+    - {src: '{{srcdir}}/ukmon_pylib/metrics/camMetrics.py', dest: '{{destdir}}/ukmon_pylib/metrics', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/metrics/costMetrics.py', dest: '{{destdir}}/ukmon_pylib/metrics', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/metrics/getMatchStats.py', dest: '{{destdir}}/ukmon_pylib/metrics', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/metrics/statsToMqtt.py', dest: '{{destdir}}/ukmon_pylib/metrics', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/metrics/timingMetrics.py', dest: '{{destdir}}/ukmon_pylib/metrics', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/metrics/volumeMetrics.py', dest: '{{destdir}}/ukmon_pylib/metrics', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/metrics/README.md', dest: '{{destdir}}/ukmon_pylib/metrics', mode: '644', backup: no }
+
+    - {src: '{{srcdir}}/ukmon_pylib/reports/CameraDetails.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/cameraStatusReport.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/createAnnualBarChart.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/createExchangeFiles.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/createSearchableFormat.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/createSummaryTable.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/dailyReport.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/extractors.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/filterBylocDirBri.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/findBestMp4s.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/findFailedMatches.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/findFireballs.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/getLivestreamData.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/getSolutionStati.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/makeCoverageMap.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/reportActiveShowers.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/reportBadCameras.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/reportOfLatestMatches.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/trackThumbnails.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/__init__.py', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/reports/README.md', dest: '{{destdir}}/ukmon_pylib/reports', mode: '644', backup: no }
+
+    - {src: '{{srcdir}}/ukmon_pylib/requirements.txt', dest: '{{destdir}}/ukmon_pylib', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/README.md', dest: '{{destdir}}/ukmon_pylib', mode: '644', backup: no }
+
+    - {src: '{{srcdir}}/ukmon_pylib/share/maps/BM.jpg', dest: '{{destdir}}/ukmon_pylib/share/maps', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/share/maps/BMNG_hirez.png', dest: '{{destdir}}/ukmon_pylib/share/maps', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/share/maps/BMUK_hirez.png', dest: '{{destdir}}/ukmon_pylib/share/maps', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/share/maps/BMWE_hirez.png', dest: '{{destdir}}/ukmon_pylib/share/maps', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/share/maps/BM_medres.jpg', dest: '{{destdir}}/ukmon_pylib/share/maps', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/share/maps/images.json', dest: '{{destdir}}/ukmon_pylib/share/maps', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/share/maps/population.jpg', dest: '{{destdir}}/ukmon_pylib/share/maps', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/share/README.md', dest: '{{destdir}}/ukmon_pylib/share', mode: '644', backup: no }
+
+    - {src: '{{srcdir}}/ukmon_pylib/traj/clusdetails-mda.txt', dest: '{{destdir}}/ukmon_pylib/traj', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/traj/clusdetails-mm.txt', dest: '{{destdir}}/ukmon_pylib/traj', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/traj/clusdetails.txt', dest: '{{destdir}}/ukmon_pylib/traj', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/traj/consolidateDistTraj.py', dest: '{{destdir}}/ukmon_pylib/traj', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/traj/createDistribMatchingSh.py', dest: '{{destdir}}/ukmon_pylib/traj', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/traj/distributeCandidates.py', dest: '{{destdir}}/ukmon_pylib/traj', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/traj/gatherMissedPlatepars.py', dest: '{{destdir}}/ukmon_pylib/traj', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/traj/manualBulkReruns.py', dest: '{{destdir}}/ukmon_pylib/traj', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/traj/pickleAnalyser.py', dest: '{{destdir}}/ukmon_pylib/traj', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/traj/plotOSMGroundTrack.py', dest: '{{destdir}}/ukmon_pylib/traj', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/traj/ShowerAssociation.py', dest: '{{destdir}}/ukmon_pylib/traj', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/traj/taskrunner.json', dest: '{{destdir}}/ukmon_pylib/traj', mode: '644', backup: no }
+    - {src: '{{srcdir}}/ukmon_pylib/traj/README.md', dest: '{{destdir}}/ukmon_pylib/traj', mode: '644', backup: no }
