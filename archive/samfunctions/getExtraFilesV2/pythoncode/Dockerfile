@@ -1,8 +1,10 @@
 # Copyright (C) 2018-2023 Mark McIntyre
-FROM public.ecr.aws/lambda/python:3.8
+FROM public.ecr.aws/lambda/python:3.9
 
 COPY requirements.txt ./
-RUN python3.8 -m pip install -r requirements.txt -t .
+RUN python -m pip install -r requirements.txt -t .
+RUN python -m pip install numba watchdog basemap-data-hires -t .
+RUN python -m pip install cartopy -t .
 RUN yum update -y
 ENV LD_LIBRARY_PATH ./
 COPY WesternMeteorPyLib/ ./WesternMeteorPyLib
