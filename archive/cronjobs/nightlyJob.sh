@@ -25,12 +25,13 @@ mkdir -p $DATADIR/{admin,browse,consolidated,costs,dailyreports,distrib,kmls}
 mkdir -p $DATADIR/{lastlogs,latest,matched,orbits,reports,searchidx,single,trajdb,videos}
 mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
 
+# update the JSON file containing camera location details. This is used by the website
 log2cw $NJLOGGRP $NJLOGSTREAM "updating the camera location/dir/fov database" nightlyJob
 python -c "from reports.CameraDetails import updateCamLocDirFovDB; updateCamLocDirFovDB();"
 aws s3 cp $DATADIR/admin/cameraLocs.json $UKMONSHAREDBUCKET/admin/ --profile ukmonshared --quiet
 aws s3 sync $UKMONSHAREDBUCKET/admin/ $DATADIR/admin --profile ukmonshared --quiet
 
-# create the CSV file of camera info, and the html versions for search functions on the website
+# create the CSV file of camera info and the html versions for search functions on the website
 log2cw $NJLOGGRP $NJLOGSTREAM "updating the camera details files for searching" nightlyJob
 python -c "from reports.CameraDetails import createCDCsv; createCDCsv('consolidated');"
 aws s3 cp $DATADIR/consolidated/camera-details.csv $UKMONSHAREDBUCKET/consolidated/ --profile ukmonshared --quiet
@@ -38,18 +39,22 @@ aws s3 cp $DATADIR/statopts.html $WEBSITEBUCKET/search/ --profile ukmonshared --
 aws s3 cp $DATADIR/activestatopts.html $WEBSITEBUCKET/search/ --profile ukmonshared --quiet
 aws s3 cp $DATADIR/activestatlocs.html $WEBSITEBUCKET/search/ --profile ukmonshared --quiet
 
-# run this only once as it scoops up all unprocessed data
+# set up logging for the match process
 log2cw $NJLOGGRP $NJLOGSTREAM "start findAllMatches" nightlyJob
 matchlog=matchJob.log
 if [ -f $SRC/logs/$matchlog ] ; then
     suff=$(stat matchJob.log -c %X)
     mv $SRC/logs/$matchlog $SRC/logs/$matchlog-$suff
 fi 
+# Run the match process - run this only once as it scoops up all unprocessed data
 ${SRC}/analysis/findAllMatches.sh > ${SRC}/logs/${matchlog} 2>&1
 
+# from here down, we're creating reports
+# consolidate the output of the match process for further analysos
 log2cw $NJLOGGRP $NJLOGSTREAM "start consolidateOutput" nightlyJob 
 $SRC/analysis/consolidateOutput.sh ${yr}
 
+# create the search indexes used on the website
 log2cw $NJLOGGRP $NJLOGSTREAM "start createSearchable pass 2" nightlyJob 
 $SRC/analysis/createSearchable.sh $yr matches
 
@@ -57,16 +62,19 @@ $SRC/analysis/createSearchable.sh $yr matches
 log2cw $NJLOGGRP $NJLOGSTREAM "start publishDailyReport" nightlyJob 
 $SRC/website/publishDailyReport.sh 
 
+# create monthly and per-shower CSV extracts of the data
 log2cw $NJLOGGRP $NJLOGSTREAM "start createMthlyExtracts" nightlyJob 
 ${SRC}/website/createMthlyExtracts.sh ${mth}
 
 log2cw $NJLOGGRP $NJLOGSTREAM "start createShwrExtracts" nightlyJob 
 ${SRC}/website/createShwrExtracts.sh ${rundate}
 
+# create the fireballs page
 log2cw $NJLOGGRP $NJLOGSTREAM "start createFireballPage" nightlyJob 
 #requires search index to have been updated first 
 ${SRC}/website/createFireballPage.sh ${yr} -3.99
 
+# create a report of activity for the current month and whole year 
 log2cw $NJLOGGRP $NJLOGSTREAM "start showerReport ALL $mth" nightlyJob 
 $SRC/analysis/showerReport.sh ALL ${mth} force
 
@@ -84,12 +92,15 @@ if [ $(date +%d) -eq 1 ] ; then
     $SRC/analysis/showerReport.sh ALL ${lastmth} force
 fi 
 
+# create a per-shower report for any currently active showers
 log2cw $NJLOGGRP $NJLOGSTREAM "start reportActiveShowers" nightlyJob
 ${SRC}/analysis/reportActiveShowers.sh ${yr}
 
+# create the website front page
 log2cw $NJLOGGRP $NJLOGSTREAM "start createSummaryTable" nightlyJob
 ${SRC}/website/createSummaryTable.sh
 
+# create the camera status reports
 log2cw $NJLOGGRP $NJLOGSTREAM "start cameraStatusReport" nightlyJob
 ${SRC}/website/cameraStatusReport.sh $rundate
 
@@ -104,6 +115,7 @@ aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/ --region eu-west-2 --quiet
 
 rm -f $SRC/data/.nightly_running
 
+# various reports for management - bad stations, costs, next batch start time.
 log2cw $NJLOGGRP $NJLOGSTREAM "start getBadStations" nightlyJob
 $SRC/analysis/getBadStations.sh
 
@@ -113,13 +125,15 @@ $SRC/website/costReport.sh
 # set time of next run
 python $PYLIB/maintenance/getNextBatchStart.py 150
 
-# create station reports. This takes hours hence done after everything else
+# create station reports. This takes a while hence done after everything else
 log2cw $NJLOGGRP $NJLOGSTREAM "start stationReports" nightlyJob
 $SRC/analysis/stationReports.sh
 
+# clear down space where possible
 log2cw $NJLOGGRP $NJLOGSTREAM "start clearSpace" nightlyJob
 $SRC/utils/clearSpace.sh 
 
+# load the MariaDB with the latest data. The mariadb database isn't used much
 log2cw $NJLOGGRP $NJLOGSTREAM "update MariaDB tables" nightlyJob
 $SRC/utils/loadMatchCsvMDB.sh
 $SRC/utils/loadSingleCsvMDB.sh
