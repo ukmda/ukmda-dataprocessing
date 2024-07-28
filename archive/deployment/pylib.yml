@@ -13,7 +13,7 @@
     file: path={{destdir}}/ukmon_pylib state=directory  
     tags: [dev,prod]
   - name: clean local filesystem
-    ansible.builtin.command: 'pyclean {{srcdir}}/archive/ukmon_pylib -v --debris all'
+    ansible.builtin.command: 'pyclean {{srcdir}}/ukmon_pylib -v --debris all'
     delegate_to: localhost
     tags: [dev,prod]
   - name: Copy files
