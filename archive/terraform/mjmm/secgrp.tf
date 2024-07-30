@@ -4,10 +4,15 @@
 # Security Groups
 #
 
+# built in the aws_infra project as shared resource
+data "aws_vpc" "main_vpc" {
+  id = var.vpc_id
+}
+
 resource "aws_security_group" "default" {
   name                   = "default"
   description            = "default VPC security group"
-  vpc_id                 = aws_vpc.main_vpc.id
+  vpc_id                 = data.aws_vpc.main_vpc.id
   revoke_rules_on_delete = false
   ingress = [
     {
@@ -87,7 +92,7 @@ egress = [
 resource "aws_security_group" "launch-wizard-4" {
   name        = "launch-wizard-4"
   description = "launch-wizard-4 created 2020-02-10T21:59:13.598+00:00"
-  vpc_id      = aws_vpc.main_vpc.id
+  vpc_id      = data.aws_vpc.main_vpc.id
   ingress = [
     {
       cidr_blocks      = ["0.0.0.0/0"]
@@ -149,73 +154,5 @@ resource "aws_security_group" "launch-wizard-4" {
   ]
   tags = {
     billingtag = "ukmon"
-  }
-}
-
-resource "aws_security_group" "ec2publicsg" {
-  name        = "ec2PublicSG"
-  description = "Public SG used by EC2"
-  vpc_id      = aws_vpc.main_vpc.id
-  ingress = [
-    {
-      cidr_blocks      = ["0.0.0.0/0"]
-      description      = "SSH for Admin"
-      from_port        = 22
-      protocol         = "tcp"
-      to_port          = 22
-      ipv6_cidr_blocks = []
-      prefix_list_ids  = []
-      security_groups  = []
-      self             = false
-    },
-    {
-      cidr_blocks      = ["194.0.0.0/8"]
-      description      = "MariaDB"
-      from_port        = 3306
-      protocol         = "tcp"
-      to_port          = 3306
-      ipv6_cidr_blocks = []
-      prefix_list_ids  = []
-      security_groups  = []
-      self             = false
-    },
-    {
-      cidr_blocks      = []
-      description      = "NFS"
-      from_port        = 2049
-      protocol         = "tcp"
-      to_port          = 2049
-      ipv6_cidr_blocks = []
-      prefix_list_ids  = []
-      security_groups  = []
-      self             = true
-    },
-  ]
-  egress = [
-    {
-      cidr_blocks      = ["0.0.0.0/0"]
-      description      = ""
-      from_port        = 0
-      ipv6_cidr_blocks = []
-      prefix_list_ids  = []
-      protocol         = "-1"
-      security_groups  = []
-      self             = false
-      to_port          = 0
-    },
-    {
-      cidr_blocks      = []
-      description      = ""
-      from_port        = 0
-      ipv6_cidr_blocks = ["::/0"]
-      prefix_list_ids  = []
-      protocol         = "-1"
-      security_groups  = []
-      self             = false
-      to_port          = 0
-    }
-  ]
-  tags = {
-    billingtag = "Management"
   }
 }

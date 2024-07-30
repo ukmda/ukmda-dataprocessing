@@ -7,7 +7,7 @@
           "arn": "arn:aws:s3:::ukmda-shared"
         },
         "object": {
-          "key": "matches/RMSCorrelate/trajectories/2022/202212/20221201/20221201_061108.141_UK/20221201_061108_trajectory.pickle"
+          "key": "matches/RMSCorrelate/trajectories/2024/202407/20240714/20240714_000041.319_UK/20240714_000041_trajectory.pickle"
         }
       }
     }

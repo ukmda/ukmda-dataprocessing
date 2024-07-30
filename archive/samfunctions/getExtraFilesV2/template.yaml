@@ -38,4 +38,4 @@ Resources:
     Metadata:
       Dockerfile: Dockerfile
       DockerContext: ./pythoncode
-      DockerTag: python3.8-v1
+      DockerTag: python3.9-v1

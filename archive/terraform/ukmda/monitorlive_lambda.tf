@@ -11,7 +11,7 @@ resource "aws_lambda_function" "monitorlivelambda" {
   filename         = data.archive_file.monitorlivezip.output_path
   source_code_hash = data.archive_file.monitorlivezip.output_base64sha256
   handler          = "monitorLiveFeed.lambda_handler"
-  runtime          = "python3.8"
+  runtime          = "python3.11"
   memory_size      = 128
   timeout          = 300
   role             = aws_iam_role.monitorlive_role.arn

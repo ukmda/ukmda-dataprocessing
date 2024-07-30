@@ -1,12 +1,20 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 
+# built in aws_infra project as shared resources
+data "aws_security_group" "ec2publicsg" {
+    name        = "ec2PublicSG"
+}
+data "aws_key_pair" "marks_key" {
+  key_name           = "markskey"
+}
+
 
 resource "aws_instance" "ukmonhelper_g" {
   ami                  = "ami-0c127ddea5a07804b"
   instance_type        = "t4g.micro"
   iam_instance_profile = aws_iam_instance_profile.S3FullAccess.name
-  key_name             = aws_key_pair.marks_key.key_name
-  security_groups      = [aws_security_group.ec2publicsg.name]
+  key_name             = data.aws_key_pair.marks_key.key_name
+  security_groups      = [data.aws_security_group.ec2publicsg.name]
 
   root_block_device {
     tags = {

@@ -14,3 +14,5 @@ variable "livebucket" {default = "ukmda-live"}
 variable "dev_sharedbucket" { default = "mjmm-ukmon-shared" }
 variable "dev_webbucket" { default = "mjmm-ukmonarchive.co.uk" }
 variable "dev_livebucket" { default = "mjmm-ukmon-live" }
+
+variable "vpc_id" { default = "vpc-a19015c8" }

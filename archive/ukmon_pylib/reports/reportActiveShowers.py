@@ -176,7 +176,7 @@ def reportActiveShowers(ymd, thisshower=None, thismth=None, includeMinor=False):
         shwrlist = [thisshower]
 
     datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
-    pltdir=os.path.join(datadir, 'showerplots')
+    # pltdir=os.path.join(datadir, 'showerplots')
     dtstr = ymd[:4]
     if thismth is not None:
         dtstr = dtstr + thismth
@@ -189,7 +189,7 @@ def reportActiveShowers(ymd, thisshower=None, thismth=None, includeMinor=False):
             outdir=os.path.join(datadir, 'reports', dtstr, shwr)
         else:
             outdir=os.path.join(datadir, 'reports', dtstr[:4], shwr, thismth)
-        findRelevantPngs(shwr, pltdir, outdir)
+        # findRelevantPngs(shwr, pltdir, outdir) # WMPL no longer generates the plots
         createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir)
     return shwrlist
 

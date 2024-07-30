@@ -21,11 +21,20 @@ def lambda_handler(event, context):
     if 'points' in qs:
         points = True
 
-    if reqtyp not in ['matches','detail','station']:
-        res = '{"invalid request type - must be one of \'matches\', \'details\' or \'station\'"}'
+    if reqtyp not in ['matches','detail','station','summary']:
+        res = '{"invalid request type - must be one of \'matches\', \'details\', \'station\',\'summary\'"}'
     else:
         print(f'{reqtyp} {reqval} {points}')
-        if reqtyp == 'matches':
+        if reqtyp == 'summary':
+            d1 = datetime.datetime.strptime(reqval, '%Y%m%d')
+            idxfile = 'matches/matched/matches-full-{:04d}.csv'.format(d1.year)
+            res = '{"no matches"}'
+            fieldlist = '_localtime,_mjd,_sol,_ID1,_amag,_ra_o,_dc_o,_ra_t,_dc_t,_elng,_elat,_vo,_vi,_vg,_vs,_a,_q,_e,_p,_peri,_node,_incl,'\
+                '_stream,_mag,_dur,_lng1,_lat1,_H1,_lng2,_lat2,_H2,_LD21,_az1r,_ev1r,_Nts,_Nos,_leap,_tme,_dt,'\
+                'dtstamp,orbname,iau,name,mass,pi,Q,true_anom,EA,MA,Tj,T,last_peri,jacchia1,Jacchia2,numstats,stations'
+            expr = f"SELECT {fieldlist} from s3object s where s._localtime like '_{reqval}%'"
+            fhi = {"FileHeaderInfo": "Use"}
+        elif reqtyp == 'matches':
             d1 = datetime.datetime.strptime(reqval, '%Y%m%d')
             idxfile = 'matches/matched/matches-full-{:04d}.csv'.format(d1.year)
             res = '{"no matches"}'
@@ -51,6 +60,8 @@ def lambda_handler(event, context):
         for event in resp['Payload']:
             if 'Records' in event:
                 res = res + event['Records']['Payload'].decode('utf-8')
+        if reqtyp == 'summary':
+            res = '[' + res.replace('}\n{','},\n{') +']'
         if points is True:
             print('requested points')
             url = json.loads(res)['img']

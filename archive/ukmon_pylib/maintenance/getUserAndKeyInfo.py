@@ -326,6 +326,8 @@ def rollKeysForUsers(nusers=3):
     """
     camdets = loadLocationDetails()
     _, stalekeys, _, _ = getKeyStatuses(excludeadm=True)
+    if len(stalekeys) == 0:
+        return 
     sampledf = stalekeys.sample(n=nusers)
     for _, rw in sampledf.iterrows():
         uid = rw.user
@@ -334,6 +336,7 @@ def rollKeysForUsers(nusers=3):
         _, _, _, locs = getLinkedCams(uid, camdets, active=True)
         print(f'rolling key for {uid}, old key age {rw.k1age} last used {rw.k1used} days ago affects {locs}')
         issueNewKey(uid)
+    return 
 
 
 if __name__ == '__main__':

@@ -35,7 +35,7 @@ def refreshTrajectories(outf, matchstart, matchend, trajpath):
         mth = thisdt.month
         dy = thisdt.day
         trajloc=f'trajectories/{yr}/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}'
-        outf.write(f'aws s3 sync {trajpath}/{trajloc} {trajloc} --exclude "*" --include "*.pickle" --quiet\n')
+        outf.write(f'aws s3 sync {trajpath}/{trajloc} {trajloc} --exclude "*" --include "*.pickle" \n')
     return 
 
 
@@ -85,29 +85,23 @@ def createDensityPlots(outf, calcdir, enddt):
     yr = enddt.year
     ym = enddt.strftime('%Y%m')
 
-    outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot  {calcdir}/trajectories/{yr} -p -s 30\n')
-    outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot  {calcdir}/trajectories/{yr}/{ym} -p -s 30\n')
     outf.write(f'mkdir -p {calcdir}/trajectories/{yr}/plots\n')
-    outf.write(f'rm -f {calcdir}/trajectories/{yr}/world_map.png\n')
-    outf.write(f'mv {calcdir}/trajectories/{yr}/sc*.png {calcdir}/trajectories/{yr}/plots\n')
-    outf.write(f'mv {calcdir}/trajectories/{yr}/trajectory_summary.txt {calcdir}/trajectories/{yr}/plots\n')
-
     outf.write(f'mkdir -p {calcdir}/trajectories/{yr}/{ym}/plots\n')
-    outf.write(f'rm -f {calcdir}/trajectories/{yr}/{ym}/world_map.png\n')
-    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/sc*.png {calcdir}/trajectories/{yr}/{ym}/plots\n')
-    outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/trajectory_summary.txt {calcdir}/trajectories/{yr}/{ym}/plots\n')
+
+    outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot {calcdir}/trajectories/{yr} -p -s 30 -o {calcdir}/trajectories/{yr}/plots\n')
+    outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot {calcdir}/trajectories/{yr}/{ym} -p -s 30 -o {calcdir}/trajectories/{yr}/{ym}/plots\n')
+
+    outf.write(f'rm -f {calcdir}/trajectories/{yr}/plots/world_map.png\n')
+    outf.write(f'rm -f {calcdir}/trajectories/{yr}/{ym}/plots/world_map.png\n')
 
     for i in range(5):
         thisdt = enddt + datetime.timedelta(days=-i)
         yr = thisdt.year
         ym = thisdt.strftime('%Y%m')
         ymd = thisdt.strftime('%Y%m%d')
-        outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot  {calcdir}/trajectories/{yr}/{ym}/{ymd} -p -s 30\n')    
         outf.write(f'mkdir -p {calcdir}/trajectories/{yr}/{ym}/{ymd}/plots\n')
-        outf.write(f'rm -f {calcdir}/trajectories/{yr}/{ym}/{ymd}/world_map.png\n')
-        outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/{ymd}/sc*.png {calcdir}/trajectories/{yr}/{ym}/{ymd}/plots\n')
-        outf.write(f'mv {calcdir}/trajectories/{yr}/{ym}/{ymd}/trajectory_summary.txt {calcdir}/trajectories/{yr}/{ym}/{ymd}/plots\n')
-
+        outf.write(f'python -m wmpl.Trajectory.AggregateAndPlot {calcdir}/trajectories/{yr}/{ym}/{ymd} -p -s 30 -o {calcdir}/trajectories/{yr}/{ym}/{ymd}/plots\n')
+        outf.write(f'rm -f {calcdir}/trajectories/{yr}/{ym}/{ymd}/plots/world_map.png\n')
     return
 
 
@@ -122,6 +116,32 @@ def SyncRawData(outf, matchstart, matchend, shbucket, calcdir):
         trgdy=thisdt.strftime('%Y%m%d')
         outf.write(f'	aws s3 sync {shbucket}/matches/RMSCorrelate/$td {calcdir}/$td --exclude "*" --include "${{td:0:6}}_{trgdy}*" --quiet\n')
     outf.write('done\n')
+    return
+
+
+def createExecConsolSh(matchstart, matchend, execconsolsh):
+    shbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')
+    webbucket = os.getenv('WEBSITEBUCKET', default='s3://ukmda-website')
+    calcdir = '/home/ec2-user/ukmon-shared/matches/RMSCorrelate' # hardcoded!
+    _, outpath, _ = getTrajsolverPaths()
+    enddt = datetime.datetime.now() + datetime.timedelta(days=-matchend)
+
+    with open(execconsolsh, 'w') as outf:
+        outf.write('#!/bin/bash\n')
+        outf.write('source /home/ec2-user/venvs/wmpl/bin/activate\n')
+        outf.write('export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib:/home/ec2-user/src/ukmon_pylib\n')
+        outf.write('export AWS_PROFILE=ukmonshared\n')
+        outf.write(f'cd {calcdir}\n')
+        outf.write('logger -s -t execConsol start\n')
+
+        outf.write('python -m traj.consolidateDistTraj ~/data/distrib/ ~/data/distrib/processed_trajectories.json\n')
+
+        refreshTrajectories(outf, matchstart, matchend, outpath)
+        createDensityPlots(outf, calcdir, enddt)
+        pushUpdatedTrajectoriesShared(outf, matchstart, matchend, shbucket)
+        pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webbucket)
+        outf.write('unset AWS_PROFILE\n')
+        outf.write('logger -s -t execConsol done\n')
     return
 
 
@@ -176,7 +196,7 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         # do this again to fetch todays results
         refreshTrajectories(outf, matchstart, matchend, outpath)
         
-        createDensityPlots(outf, calcdir, enddt)
+        #createDensityPlots(outf, calcdir, enddt)
 
         pushUpdatedTrajectoriesShared(outf, matchstart, matchend, shbucket)
         pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webbucket)

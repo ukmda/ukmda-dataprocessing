@@ -8,6 +8,7 @@ RUN conda install -y -c conda-forge pandas cartopy
 RUN conda install -y matplotlib=3.4.3 
 RUN pip install boto3
 RUN apt-get update && apt-get -y upgrade 
+RUN conda install -y -c conda-forge numba
 
 COPY WesternMeteorPyLib/ ./WesternMeteorPyLib
 ENV PYTHONPATH ./WesternMeteorPyLib

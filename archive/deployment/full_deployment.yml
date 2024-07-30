@@ -1,0 +1,9 @@
+---
+- import_playbook: cronjobs.yml
+- import_playbook: analysis.yml
+- import_playbook: website.yml
+- import_playbook: database.yml
+- import_playbook: pylib.yml
+- import_playbook: server_setup.yml
+- import_playbook: shwrinfo.yml
+- import_playbook: utils.yml

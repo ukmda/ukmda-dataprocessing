@@ -1,0 +1,26 @@
+---
+- hosts: "{{host | default ('ukmonhelper2')}}"
+  vars:
+    srcdir: /mnt/e/dev/meteorhunting/ukmda-dataprocessing/archive
+  tasks:
+  - name: import dev variables 
+    include_vars: ./dev-vars.yml
+    tags: dev
+  - name: import prod variables
+    include_vars: ./prod-vars.yml
+    tags: prod
+  - name: Ensures {{destdir}}/database exists
+    file: path={{destdir}}/database state=directory  
+    tags: [dev,prod]
+  - name: Copy files
+    copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
+    tags: [dev,prod]
+    with_items:
+
+    - {src: '{{srcdir}}/database/ddl/create_brightness_table.sql', dest: '{{destdir}}/database/ddl', mode: '644', backup: no }
+    - {src: '{{srcdir}}/database/ddl/create_dbs_and_users.sql', dest: '{{destdir}}/database/ddl', mode: '644', backup: no }
+    - {src: '{{srcdir}}/database/ddl/create_tables.sql', dest: '{{destdir}}/database/ddl', mode: '644', backup: no }
+    - {src: '{{srcdir}}/database/dml/load_data.sql', dest: '{{destdir}}/database/dml', mode: '644', backup: no }
+    - {src: '{{srcdir}}/database/Setup.md', dest: '{{destdir}}/database', mode: '644', backup: no }
+    - {src: '{{srcdir}}/database/testDB.py', dest: '{{destdir}}/database', mode: '644', backup: no }
+    - {src: '{{srcdir}}/database/README.md', dest: '{{destdir}}/database', mode: '644', backup: no }
