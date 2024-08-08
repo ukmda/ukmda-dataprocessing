@@ -182,6 +182,11 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         outf.write(f'rm {calcdir}/candidates/*.pickle >/dev/null 2>&1\n')
         outf.write(f'time python -m wmpl.Trajectory.CorrelateRMS {calcdir} -i 1 -l -r \"({startdtstr},{enddtstr})\"\n')
 
+        # backup the raw candidates in case i need to reprocess some by hand
+        outf.write(f'mkdir -p {calcdir}/candidates/bkp\n')
+        outf.write(f'tar cvfz {calcdir}/candidates/bkp/{rundatestr}.tgz {calcdir}/candidates/*.pickle\n')
+        outf.write(f'find {calcdir}/candidates/bkp/ -name "*.tgz" -mtime + 14 -exec rm -f ' + '{} \\;\n')
+
         outf.write('logger -s -t execdistrib backing up the database to trajdb\n')
         outf.write(f'cp {calcdir}/processed_trajectories.json {calcdir}/trajdb/processed_trajectories.json.{rundatestr}\n')
 
