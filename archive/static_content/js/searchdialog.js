@@ -55,6 +55,7 @@ form.addEventListener("submit", function (event) {
   if (magSelect != 1 ) {
     if(magSelect == 2) {op = op + "m:0_"}
     if(magSelect == 3) {op = op + "m:-4_"}
+    if(magSelect == 4) {op = op + "b:50_"}
   }
   var shwrSelect = document.getElementById("shwrselect").value;
   if (shwrSelect != 1 ) {

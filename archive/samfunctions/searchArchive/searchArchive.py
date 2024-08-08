@@ -12,15 +12,14 @@ from operator import itemgetter
 
 def FindMatch(bucket, csvfile, d1, d2, op):
     s3 = boto3.client('s3')
-
     ds1 = d1.timestamp()
     ds2 = d2.timestamp()
-
     expr = "SELECT * FROM s3object s where s.eventtime > '"+ f'{ds1}' + "' and s.eventtime < '" + f'{ds2}' +"'"
     utc=pytz.UTC
     comptime = utc.localize(datetime.datetime.today() + datetime.timedelta(days=-30))
     if d1 < comptime:
         expr = expr + " and s.source != '3Live' "
+    best = False
     if len(op) > 0:
         splits = op.split('_')
         for spl in splits:
@@ -38,7 +37,11 @@ def FindMatch(bucket, csvfile, d1, d2, op):
                     expr = expr + "and s.source =  '2Single' "
                 else:
                     expr = expr + "and s.source =  '1Matched' "
-
+            if spl[:2] == 'b:':
+                best = True
+                expr = expr + "and s.source =  '2Single' "
+                expr = expr + "and cast(s.mag as float) <= -1 "
+                bestcount= int(spl[2:])
     print(expr)
     resp = s3.select_object_content(Bucket=bucket, Key=csvfile, ExpressionType='SQL',
         Expression=expr,
@@ -59,12 +62,18 @@ def FindMatch(bucket, csvfile, d1, d2, op):
         s = r.split(',')
         if len(s) > 6: 
             res2.append([s[0], s[1], s[2], s[3], s[4], s[5], s[6]])
-    res2 = sorted(res2, key=itemgetter(1,0))
+    if best:
+        res2 = sorted(res2, key=itemgetter(3,0), reverse=True)
+    else:
+        res2 = sorted(res2, key=itemgetter(1,0))
     res =[]
     for rr in res2:
         res.append('{:s},{:s},{:s},{:s},{:s},{:s},{:s}'.format(rr[0], rr[1], rr[2], rr[3], 
             rr[4], rr[5].replace('https://archive.ukmeteornetwork.co.uk','').replace('https://archive.ukmeteors.co.uk',''), 
             rr[6].replace('https://archive.ukmeteornetwork.co.uk','').replace('https://archive.ukmeteors.co.uk','')))
+        if len(res) == bestcount:
+            print(f'got {bestcount}')
+            break
     return res
 
 
