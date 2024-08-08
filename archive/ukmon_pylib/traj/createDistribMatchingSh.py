@@ -35,7 +35,7 @@ def refreshTrajectories(outf, matchstart, matchend, trajpath):
         mth = thisdt.month
         dy = thisdt.day
         trajloc=f'trajectories/{yr}/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}'
-        outf.write(f'aws s3 sync {trajpath}/{trajloc} {trajloc} --exclude "*" --include "*.pickle" \n')
+        outf.write(f'aws s3 sync {trajpath}/{trajloc} {trajloc} --exclude "*" --include "*.pickle --quiet" \n')
     return 
 
 
