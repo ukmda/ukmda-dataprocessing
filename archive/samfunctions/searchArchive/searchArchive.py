@@ -20,6 +20,7 @@ def FindMatch(bucket, csvfile, d1, d2, op):
     if d1 < comptime:
         expr = expr + " and s.source != '3Live' "
     best = False
+    bestcount = 9999
     if len(op) > 0:
         splits = op.split('_')
         for spl in splits:

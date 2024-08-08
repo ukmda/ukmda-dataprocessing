@@ -80,7 +80,7 @@ form.addEventListener("submit", function (event) {
     dataType: 'jsonp',
     error: function (xhr, status, ex ) {
       if (status === 'error' ) {
-        alert("Too much data, try a narrower range");
+        alert("API error, check date/time ranges");
         console.log(xhr.status);
       }
     },
