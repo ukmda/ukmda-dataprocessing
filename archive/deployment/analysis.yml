@@ -16,6 +16,7 @@
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     tags: [dev,prod]
     with_items:
+    - {src: '{{srcdir}}/analysis/updatePlotsAndDetStatus.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
     - {src: '{{srcdir}}/analysis/consolidateOutput.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
     - {src: '{{srcdir}}/analysis/createSearchable.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
     - {src: '{{srcdir}}/analysis/findAllMatches.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
