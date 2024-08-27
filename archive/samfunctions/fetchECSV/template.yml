@@ -27,6 +27,8 @@ Resources:
                   Required: true
               - method.request.querystring.dt: 
                   Required: true
+              - method.request.querystring.metcount: 
+                  Required: false
       Tags:
         billingtag: "ukmda"
         typetag: "api"
