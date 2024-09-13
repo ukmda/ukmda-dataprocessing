@@ -819,7 +819,7 @@ class CamMaintenance(Frame):
         scpcli = SCPClient(c.get_transport())
         scpcli.put(os.path.join('sshkeys', cameraname + '.pub'), 'keymgmt/sshkeys/')
         scpcli.put(os.path.join('keys', location.lower() + '.key'), 'keymgmt/keys/')
-        scpcli.put(os.path.join('csvkeys', location.lower() + '_arch.csv'), 'keymgmt/csvkeys/')
+        scpcli.put(os.path.join('csvkeys', location + '.csv'), 'keymgmt/csvkeys/')
         scpcli.put(os.path.join('inifs', cameraname + '.ini'), 'keymgmt/inifs/')
         command = f'/home/{user}/keymgmt/addSftpUser.sh {cameraname} {location} {updatemode} {oldcamname}'
         log.info(f'running {command}')
