@@ -17,6 +17,7 @@ import sys
 import requests
 import subprocess
 from reports.CameraDetails import loadLocationDetails
+from botocore.exceptions import ClientError
 
 MAXAGE = 90     # connections older than this are regarded stale
 
@@ -106,10 +107,23 @@ def getKeyStatuses(excludeadm=False):
     iamc = boto3.client('iam')
     try:
         res = iamc.get_credential_report()
-    except Exception:
-        res = iamc.generate_credential_report()
-        time.sleep(120)
-        res = iamc.get_credential_report()
+        print('got the report')
+    except ClientError as error:
+        err = error.response['Error']['Code']
+        if err == 'CredentialReportNotPresentException' or err == 'CredentialReportExpiredException':
+            res = iamc.generate_credential_report()
+        elif err == 'CredentialReportNotReadyException':
+            time.sleep(30)
+        gotit = False
+        while not gotit:
+            try:
+                res = iamc.get_credential_report()
+                gotit = True
+                print('got the report')
+            except ClientError:
+                time.sleep(30)
+                print('waiting for report')
+
     txtcontent = res['Content'].decode('utf-8').split('\n')
     data = [sub.split(",") for sub in txtcontent]
     df = pd.DataFrame(data[1:], columns=data[:1][0])
