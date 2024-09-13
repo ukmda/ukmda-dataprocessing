@@ -66,7 +66,7 @@ def loadConfig(cfgdir):
 def addRow(newdata=None, stationid=None, site=None, user=None, email=None, ddb=None, 
            direction=None, camtype=None, active=None, createdate=None, tblname='camdetails'):
     '''
-    add a row to the CamTimings table
+    add a row to the CamDetails table
     '''
     if not ddb:
         ddb = boto3.resource('dynamodb', region_name='eu-west-2')
@@ -483,6 +483,7 @@ class CamMaintenance(Frame):
         outdir = 'stationdetails'
         os.makedirs(outdir, exist_ok=True)
         dumpCamTable(outdir=outdir, statdets=self.stationdetails, exportmindets=False)
+        log.info('quitting')
         self.destroy()
         self.parent.quit()
         self.parent.destroy()
@@ -558,6 +559,7 @@ class CamMaintenance(Frame):
             self.createIniFile(cameraname)
             self.addNewUnixUser(location, cameraname, oldloc)
             self.addNewOwner(rmsid, location, str(d[3]), str(d[4]), str(d[2]), '2','1', created)
+            log.info('done')
         return 
 
     def newSSHKey(self):
@@ -823,11 +825,11 @@ class CamMaintenance(Frame):
         scpcli.put(os.path.join('inifs', cameraname + '.ini'), 'keymgmt/inifs/')
         command = f'/home/{user}/keymgmt/addSftpUser.sh {cameraname} {location} {updatemode} {oldcamname}'
         log.info(f'running {command}')
-        _, stdout, stderr = c.exec_command(command, timeout=10)
+        _, stdout, stderr = c.exec_command(command, timeout=60)
         for line in iter(stdout.readline, ""):
-            log.info(line, end="")
+            log.info(line)
         for line in iter(stderr.readline, ""):
-            log.info(line, end="")
+            log.info(line)
 
         log.info('done, collecting output')
         infname = os.path.join('keymgmt/inifs/',cameraname + '.ini')
