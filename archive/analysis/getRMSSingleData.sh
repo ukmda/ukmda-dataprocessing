@@ -33,10 +33,10 @@ aws s3 mv $indir $outdir --recursive --exclude "*" --include "ukmda_??????_${yr}
 mrgfile=$DATADIR/single/singles-${yr}.csv
 newsngl=$DATADIR/single/singles-${yr}-new.csv
 if [ ! -f $mrgfile ] ; then 
-    echo "Ver,Y,M,D,h,mi,s,Mag,Dur,Az1,Alt1,Az2,Alt2,Ra1,Dec1,Ra2,Dec2,ID,Long,Lat,Alt,Tz,AngVel,Shwr,Filename,Dtstamp,status" > $mrgfile
+    cat $SRC/analysis/templates/ukmon-single.txt > $mrgfile
 fi 
 # file containing only new data
-echo "Ver,Y,M,D,h,mi,s,Mag,Dur,Az1,Alt1,Az2,Alt2,Ra1,Dec1,Ra2,Dec2,ID,Long,Lat,Alt,Tz,AngVel,Shwr,Filename,Dtstamp,status" > $newsngl
+cat $SRC/analysis/templates/ukmon-single.txt > > $newsngl
 
 ls -1 $outdir/ukmda_??????_${yr}*.csv | while read i
 do
