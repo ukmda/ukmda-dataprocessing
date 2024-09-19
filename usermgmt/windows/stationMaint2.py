@@ -306,6 +306,7 @@ class CamMaintenance(Frame):
         os.makedirs('users', exist_ok=True)
         os.makedirs('inifs', exist_ok=True)
         os.makedirs('sshkeys', exist_ok=True)
+        self.resyncLocalFiles()
 
         self.ddb = self.conn.resource('dynamodb', region_name='eu-west-2')
         try:
@@ -637,6 +638,36 @@ class CamMaintenance(Frame):
         if plate:
             self.uploadPlatepar(curdata, plate)
         log.info(plate)
+        return 
+    
+    def resyncLocalFiles(self):
+        server = self.cfg['helper']['helperip'] 
+        user='ec2-user'
+        keyfile = self.cfg['helper']['sshkey'] 
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = user, pkey = k)
+        scpcli = c.open_sftp()
+        for fldr in ['csvkeys','inifs','keys','sshkeys']:
+            targdir = f'/home/{user}/keymgmt/{fldr}'
+            flist = scpcli.listdir_attr(targdir)
+            for fil in flist:
+                copyme = True
+                fname = fil.filename
+                localfname = os.path.join(fldr, fname)
+                if os.path.isfile(localfname):
+                    mtime = os.path.getmtime(localfname)
+                    if fil.st_mtime - mtime > 1:
+                        copyme = True
+                    else:
+                        copyme = False
+                if copyme:
+                    scpcli.get(f'{targdir}/{fname}', localfname)
+                    print(f'Updated {fname}')
+        scpcli.close()
+        c.close()
+
         return 
 
     def newAWSKey(self):
