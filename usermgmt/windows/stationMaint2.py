@@ -9,6 +9,7 @@ import tkinter.messagebox as tkMessageBox
 from tkinter.filedialog import askopenfilename
 import boto3
 import os
+import sys
 import paramiko
 import json 
 import time
@@ -18,6 +19,11 @@ from scp import SCPClient
 from boto3.dynamodb.conditions import Key
 import pandas as pd
 from configparser import ConfigParser
+import logging
+import logging.handlers
+
+
+log = logging.getLogger("logger")
 
 
 def loadConfig(cfgdir):
@@ -39,7 +45,7 @@ def loadConfig(cfgdir):
         handle, tmpfnam = tempfile.mkstemp()
         scpcli.get(f'{user}.csv', tmpfnam)
     except Exception:
-        print('unable to find AWS key')
+        log.warning('unable to find AWS key')
     scpcli.close()
     c.close()
     try:
@@ -48,9 +54,9 @@ def loadConfig(cfgdir):
         os.remove(tmpfnam)
         key, sec = lis[1].split(',')
     except Exception:
-        print('malformed AWS key')
+        log.warning('malformed AWS key')
     if key:
-        print('retrieved key details')
+        log.info('retrieved key details')
         awskeys = {'key': key.strip(), 'secret': sec.strip()}
     else: 
         awskeys = {}
@@ -60,7 +66,7 @@ def loadConfig(cfgdir):
 def addRow(newdata=None, stationid=None, site=None, user=None, email=None, ddb=None, 
            direction=None, camtype=None, active=None, createdate=None, tblname='camdetails'):
     '''
-    add a row to the CamTimings table
+    add a row to the CamDetails table
     '''
     if not ddb:
         ddb = boto3.resource('dynamodb', region_name='eu-west-2')
@@ -71,7 +77,7 @@ def addRow(newdata=None, stationid=None, site=None, user=None, email=None, ddb=N
     table = ddb.Table(tblname)
     response = table.put_item(Item=newdata)
     if response['ResponseMetadata']['HTTPStatusCode'] != 200:
-        print(response)
+        log.info(response)
     return 
 
 
@@ -300,12 +306,13 @@ class CamMaintenance(Frame):
         os.makedirs('users', exist_ok=True)
         os.makedirs('inifs', exist_ok=True)
         os.makedirs('sshkeys', exist_ok=True)
+        self.resyncLocalFiles()
 
         self.ddb = self.conn.resource('dynamodb', region_name='eu-west-2')
         try:
             self.stationdetails = loadLocationDetails(ddb=self.ddb)
         except Exception:
-            print('unable to get operator details - probably wrong AWS profile')
+            log.info('unable to get operator details - probably wrong AWS profile')
             exit(1)
         tmpdf = self.stationdetails[['site','stationid','direction','camtype','active','humanName','eMail','oldcode','created']]
         tmpdf = tmpdf.sort_values(by=['active','site','stationid'], ascending=[True,True,True])
@@ -405,7 +412,6 @@ class CamMaintenance(Frame):
         self.sheet.display_columns(indexes = indexes, enable = True, refresh = True)
 
     def all_extra_bindings(self, event):
-        #print(event)
         pass
 
     def begin_edit_cell(self, event):
@@ -413,7 +419,7 @@ class CamMaintenance(Frame):
         return self.oldval
 
     def end_edit_cell(self, event):
-        #print(event)
+        #log.info(event)
         if event[3] != self.oldval: 
             data = self.data[event[0]]
             data[event[1]] = event[3]
@@ -424,70 +430,61 @@ class CamMaintenance(Frame):
         return event[3]
     
     def end_delete_rows(self, event):
-        #print(event)
         pass
 
     def window_resized(self, event):
-        #print(event)
         pass
 
     def mouse_motion(self, event):
         pass
 
     def deselect(self, event):
-        print(event, self.sheet.get_selected_cells())
+        log.info(f'{event} {self.sheet.get_selected_cells()}')
 
     def rc(self, event):
-        print(event)
+        log.info(event)
         
     def cell_select(self, response):
-        #print(response)
         pass
 
     def shift_select_cells(self, response):
-        #print(response)
         pass
 
     def drag_select_cells(self, response):
-        #print (response)
         pass
 
     def ctrl_a(self, response):
-        #print(response)
         pass
 
     def row_select(self, response):
-        #print(response)
         pass
 
     def shift_select_rows(self, response):
-        print(response)
+        log.info(response)
 
     def drag_select_rows(self, response):
         pass
-        #print(response)
 
     def columns_sort(self):
         cursel = self.sheet.get_selected_cells()
         col = list(cursel)[0][1]
-        print(self.hdrs[col])
+        log.info(self.hdrs[col])
         pass
         
     def column_select(self, response):
         pass
 
     def shift_select_columns(self, response):
-        #print(response)
         pass 
 
     def drag_select_columns(self, response):
-        #print(response)
         pass
     
     def on_closing(self):
         outdir = 'stationdetails'
         os.makedirs(outdir, exist_ok=True)
         dumpCamTable(outdir=outdir, statdets=self.stationdetails, exportmindets=False)
+        log.info('quitting')
         self.destroy()
         self.parent.quit()
         self.parent.destroy()
@@ -563,6 +560,7 @@ class CamMaintenance(Frame):
             self.createIniFile(cameraname)
             self.addNewUnixUser(location, cameraname, oldloc)
             self.addNewOwner(rmsid, location, str(d[3]), str(d[4]), str(d[2]), '2','1', created)
+            log.info('done')
         return 
 
     def newSSHKey(self):
@@ -639,7 +637,37 @@ class CamMaintenance(Frame):
         plate = askopenfilename(title=title, defaultextension='*.cal',initialdir=ppdir, initialfile=ppfile)
         if plate:
             self.uploadPlatepar(curdata, plate)
-        print(plate)
+        log.info(plate)
+        return 
+    
+    def resyncLocalFiles(self):
+        server = self.cfg['helper']['helperip'] 
+        user='ec2-user'
+        keyfile = self.cfg['helper']['sshkey'] 
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = user, pkey = k)
+        scpcli = c.open_sftp()
+        for fldr in ['csvkeys','inifs','keys','sshkeys']:
+            targdir = f'/home/{user}/keymgmt/{fldr}'
+            flist = scpcli.listdir_attr(targdir)
+            for fil in flist:
+                copyme = True
+                fname = fil.filename
+                localfname = os.path.join(fldr, fname)
+                if os.path.isfile(localfname):
+                    mtime = os.path.getmtime(localfname)
+                    if fil.st_mtime - mtime > 1:
+                        copyme = True
+                    else:
+                        copyme = False
+                if copyme:
+                    scpcli.get(f'{targdir}/{fname}', localfname)
+                    print(f'Updated {fname}')
+        scpcli.close()
+        c.close()
+
         return 
 
     def newAWSKey(self):
@@ -662,32 +690,32 @@ class CamMaintenance(Frame):
         scpcli = SCPClient(c.get_transport())
         scpcli.put(plateparfile, uplfile)
         command = f'sudo mkdir -p /var/sftp/{camname}/platepar/ && sudo chown {camname}:{camname} /var/sftp/{camname}/platepar'
-        print(f'running {command}')
+        log.info(f'running {command}')
         _, stdout, stderr = c.exec_command(command, timeout=10)
         for line in iter(stdout.readline, ""):
-            print(line, end="")
+            log.info(line, end="")
         for line in iter(stderr.readline, ""):
-            print(line, end="")
+            log.info(line, end="")
         command = f'sudo mv {uplfile} /var/sftp/{camname}/platepar/platepar_cmn2010.cal'
-        print(f'running {command}')
+        log.info(f'running {command}')
         _, stdout, stderr = c.exec_command(command, timeout=10)
         for line in iter(stdout.readline, ""):
-            print(line, end="")
+            log.info(line, end="")
         for line in iter(stderr.readline, ""):
-            print(line, end="")
+            log.info(line, end="")
         command = f'sudo chown {camname}:{camname} /var/sftp/{camname}/platepar/platepar_cmn2010.cal'
-        print(f'running {command}')
+        log.info(f'running {command}')
         _, stdout, stderr = c.exec_command(command, timeout=10)
         for line in iter(stdout.readline, ""):
-            print(line, end="")
+            log.info(line, end="")
         for line in iter(stderr.readline, ""):
-            print(line, end="")
+            log.info(line, end="")
         scpcli.close()
         c.close()
         return
     
     def addNewOwner(self, rmsid, location, user, email, direction, camtype, active, created):
-        print(f'adding new owner {user} with {email} for {rmsid} at {location}')
+        log.info(f'adding new owner {user} with {email} for {rmsid} at {location}')
         newdata = {'stationid': rmsid, 'site': location, 'humanName':user, 'eMail': email, 
                    'direction': direction, 'camtype': camtype, 'active': int(active), 'oldcode': rmsid, 
                    'created': created}
@@ -695,7 +723,7 @@ class CamMaintenance(Frame):
         return
 
     def addNewAwsUser(self, location):
-        print(f'adding new location {location} to AWS')
+        log.info(f'adding new location {location} to AWS')
         archkeyf = 'jsonkeys/' + location + '_arch.key'
         archuserdets = 'users/' + location + '_arch.txt'
         archcsvf = os.path.join('csvkeys', location.lower() + '_arch.csv')
@@ -706,10 +734,10 @@ class CamMaintenance(Frame):
         iamc = self.conn.client('iam')
         try: 
             _ = iamc.get_user(UserName=location)
-            print('location exists, not adding it')
+            log.info('location exists, not adding it')
             archkey = None
         except Exception:
-            print('new location')
+            log.info('new location')
             usr = iamc.create_user(UserName=location)
             with open(archuserdets, 'w') as outf:
                 outf.write(str(usr))
@@ -733,13 +761,13 @@ class CamMaintenance(Frame):
         c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         c.connect(hostname = server, username = user, pkey = k)
         command = f'/home/{user}/keymgmt/updateAwsKey.sh {location} force'
-        print(f'running {command}')
+        log.info(f'running {command}')
         _, stdout, stderr = c.exec_command(command, timeout=10)
         for line in iter(stdout.readline, ""):
-            print(line, end="")
+            log.info(line, end="")
         for line in iter(stderr.readline, ""):
-            print(line, end="")
-        print('done')
+            log.info(line, end="")
+        log.info('done')
         c.close()
         return 
 
@@ -812,7 +840,7 @@ class CamMaintenance(Frame):
     def addNewUnixUser(self, location, cameraname, oldcamname='', updatemode=0):
         server = self.cfg['helper']['helperip'] 
         user='ec2-user'
-        print(f'adding new Unix user {cameraname}')
+        log.info(f'adding new Unix user {cameraname}')
         keyfile = self.cfg['helper']['sshkey'] 
         k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
         c = paramiko.SSHClient()
@@ -824,17 +852,17 @@ class CamMaintenance(Frame):
         scpcli = SCPClient(c.get_transport())
         scpcli.put(os.path.join('sshkeys', cameraname + '.pub'), 'keymgmt/sshkeys/')
         scpcli.put(os.path.join('keys', location.lower() + '.key'), 'keymgmt/keys/')
-        scpcli.put(os.path.join('csvkeys', location.lower() + '_arch.csv'), 'keymgmt/csvkeys/')
+        scpcli.put(os.path.join('csvkeys', location + '.csv'), 'keymgmt/csvkeys/')
         scpcli.put(os.path.join('inifs', cameraname + '.ini'), 'keymgmt/inifs/')
         command = f'/home/{user}/keymgmt/addSftpUser.sh {cameraname} {location} {updatemode} {oldcamname}'
-        print(f'running {command}')
-        _, stdout, stderr = c.exec_command(command, timeout=10)
+        log.info(f'running {command}')
+        _, stdout, stderr = c.exec_command(command, timeout=60)
         for line in iter(stdout.readline, ""):
-            print(line, end="")
+            log.info(line)
         for line in iter(stderr.readline, ""):
-            print(line, end="")
+            log.info(line)
 
-        print('done, collecting output')
+        log.info('done, collecting output')
         infname = os.path.join('keymgmt/inifs/',cameraname + '.ini')
         outfname = os.path.join('./inifs', cameraname + '.ini')
         while os.path.isfile(outfname) is False:
@@ -881,9 +909,36 @@ class CamMaintenance(Frame):
         return 
 
 
+def log_timestamp():
+    """ Returns timestamp for logging.
+    """
+    return datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+
 if __name__ == '__main__':
     # Initialize main window
     dir_ = os.getcwd() #os.path.dirname(os.path.realpath(__file__))
+
+    log.setLevel(logging.INFO)
+
+    os.makedirs(os.path.join(dir_, 'logs'), exist_ok=True)
+    log_file = os.path.join(dir_, 'logs', log_timestamp() + '.log')
+    handler = logging.handlers.TimedRotatingFileHandler(log_file, when='D', interval=1)  # Log to a different file each day
+    handler.setLevel(logging.INFO)
+
+    formatter = logging.Formatter(fmt='%(asctime)s-%(levelname)s-%(module)s-line:%(lineno)d - %(message)s', datefmt='%Y/%m/%d %H:%M:%S')
+    handler.setFormatter(formatter)
+    log.addHandler(handler)
+
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(fmt='%(asctime)s-%(levelname)s: %(message)s', datefmt='%Y/%m/%d %H:%M:%S')
+    ch.setFormatter(formatter)
+    log.addHandler(ch)
+
+    # Log program start
+    log.info("Program start")
+
     root = tk.Tk()
     app = CamMaintenance(root, dir_)
     root.iconbitmap(os.path.join(dir_,'camera.ico'))

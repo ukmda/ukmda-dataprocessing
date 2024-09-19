@@ -138,6 +138,10 @@ log2cw $NJLOGGRP $NJLOGSTREAM "update MariaDB tables" nightlyJob
 $SRC/utils/loadMatchCsvMDB.sh
 $SRC/utils/loadSingleCsvMDB.sh
 
+# rerun the job to plot solar longitude graphs and update the database of used/unused detections
+# has to be run quite late as not all trajectories have synced to the website earlier
+$SRC/analysis/updatePlotsAndDetStatus.sh
+
 log2cw $NJLOGGRP $NJLOGSTREAM "finished nightlyJob" nightlyJob
 
 # grab the logs for the website - run this last to capture the above Finished message

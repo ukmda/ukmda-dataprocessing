@@ -17,6 +17,7 @@ import sys
 import requests
 import subprocess
 from reports.CameraDetails import loadLocationDetails
+from botocore.exceptions import ClientError
 
 MAXAGE = 90     # connections older than this are regarded stale
 
@@ -106,10 +107,23 @@ def getKeyStatuses(excludeadm=False):
     iamc = boto3.client('iam')
     try:
         res = iamc.get_credential_report()
-    except Exception:
-        res = iamc.generate_credential_report()
-        time.sleep(10)
-        res = iamc.get_credential_report()
+        print('got the report')
+    except ClientError as error:
+        err = error.response['Error']['Code']
+        if err == 'CredentialReportNotPresentException' or err == 'CredentialReportExpiredException':
+            res = iamc.generate_credential_report()
+        elif err == 'CredentialReportNotReadyException':
+            time.sleep(30)
+        gotit = False
+        while not gotit:
+            try:
+                res = iamc.get_credential_report()
+                gotit = True
+                print('got the report')
+            except ClientError:
+                time.sleep(30)
+                print('waiting for report')
+
     txtcontent = res['Content'].decode('utf-8').split('\n')
     data = [sub.split(",") for sub in txtcontent]
     df = pd.DataFrame(data[1:], columns=data[:1][0])
@@ -119,15 +133,15 @@ def getKeyStatuses(excludeadm=False):
     # check accounts with passwords
     pd.options.mode.chained_assignment = None
     newdf = df2[df2.password_enabled == 'true']
-    newdf['pwage'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%S+00:00')).days for x in newdf.password_last_changed]
+    newdf['pwage'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%SZ')).days for x in newdf.password_last_changed]
     newdf = newdf[newdf.pwage > maxage]
     stalepwds = newdf.filter(items=['user','pwage'])
 
     # check age of active keys
     newdf = df2[df2.access_key_1_active == 'true']
     newdf = newdf[newdf.access_key_1_last_used_date!='N/A']
-    newdf['k1age'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%S+00:00')).days for x in newdf.access_key_1_last_rotated]
-    newdf['k1used'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%S+00:00')).days for x in newdf.access_key_1_last_used_date]
+    newdf['k1age'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%SZ')).days for x in newdf.access_key_1_last_rotated]
+    newdf['k1used'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%SZ')).days for x in newdf.access_key_1_last_used_date]
     newdf = newdf[newdf.k1age > maxage]
     if excludeadm:
         newdf = newdf[newdf.password_enabled == 'false']
@@ -135,7 +149,7 @@ def getKeyStatuses(excludeadm=False):
 
     newdf2 = df2[df2.access_key_1_active == 'true']
     newdf2 = newdf2[newdf2.access_key_1_last_used_date=='N/A']
-    newdf2['k1age'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%S+00:00')).days for x in newdf2.access_key_1_last_rotated]
+    newdf2['k1age'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%SZ')).days for x in newdf2.access_key_1_last_rotated]
     newdf2['k1used'] = ['N/A'] * len(newdf2)
     newdf2 = newdf2[newdf2.k1age > maxage]
     if excludeadm:
@@ -146,15 +160,15 @@ def getKeyStatuses(excludeadm=False):
     # check last-used-date of active keys
     newdf = df2[df2.access_key_1_active == 'true']
     newdf = newdf[newdf.access_key_1_last_used_date!='N/A']
-    newdf['k1age'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%S+00:00')).days for x in newdf.access_key_1_last_rotated]
-    newdf['k1used'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%S+00:00')).days for x in newdf.access_key_1_last_used_date]
+    newdf['k1age'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%SZ')).days for x in newdf.access_key_1_last_rotated]
+    newdf['k1used'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%SZ')).days for x in newdf.access_key_1_last_used_date]
     newdf = newdf[newdf.k1used > maxage]
     newdf = newdf[newdf.k1age > 2]
     newdf = newdf.filter(items=['user','k1age','k1used'])
 
     newdf2 = df2[df2.access_key_1_active == 'true']
     newdf2 = newdf2[newdf2.access_key_1_last_used_date=='N/A']
-    newdf2['k1age'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%S+00:00')).days for x in newdf2.access_key_1_last_rotated]
+    newdf2['k1age'] = [(now-datetime.datetime.strptime(x,'%Y-%m-%dT%H:%M:%SZ')).days for x in newdf2.access_key_1_last_rotated]
     newdf2['k1used'] = ['N/A'] * len(newdf2)
     newdf2 = newdf2[newdf2.k1age > 2]
     newdf2 = newdf2.filter(items=['user','k1age','k1used'])

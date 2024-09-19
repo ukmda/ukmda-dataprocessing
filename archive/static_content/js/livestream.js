@@ -18,15 +18,6 @@ var dateSelect = new Datepair(res, {
     'defaultTimeDelta': 900000 // milliseconds = 15 mins
 });
 
-// prepopulate with the current date/time
-var nowtime = new Date();
-let totalMilliSeconds = Math.ceil(nowtime.getTime()/1000)*1000;
-let fromtime = new Date ( totalMilliSeconds - 900000);
-let nowtime2 = new Date (Math.ceil(nowtime.getTime()/1000)*1000);
-$('#datestart').text(fromtime.toISOString()); 
-$('#dateend').text(nowtime2.toISOString()); 
-
-
 $('#selectInterval').on('rangeSelected', function(){
     var startdate = $('#selectInterval .date:first').datepicker('getDate');
     var starttime = $('#selectInterval .time:first').timepicker('getTime', startdate);
@@ -127,6 +118,3 @@ function showImages(myObj) {
   document.getElementById("searchresults").innerHTML = txt;
   document.getElementById("eventcount").innerHTML = numimgs;
 }
-
-  
-  
