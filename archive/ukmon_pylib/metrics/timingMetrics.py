@@ -47,7 +47,9 @@ def graphOfData(logf, dtstr):
     plt.grid(axis='x')
     plt.gca().invert_yaxis()
     logname, _ = os.path.splitext(os.path.basename(logf))
-    plt.savefig(f'./{dtstr}-{logname}.jpg', dpi=100)
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    os.makedirs(os.path.join(datadir, 'batchcharts'), exist_ok=True)
+    plt.savefig(os.path.join(datadir, 'batchcharts',f'./{dtstr}-{logname}.jpg'), dpi=100)
     plt.close()
 
 
@@ -122,7 +124,8 @@ def getLogStats(nightlogf, matchlogf, thisdy):
     df = pd.DataFrame(zip(dts,tss,secs,tsks,msgs), columns=['dts','tss','secs','tsk','msgs'])
     df = df.sort_values(by=['tss'])
     #print(df)
-    df.to_csv('perfNightly.csv', mode='a', header=False, index=False)
+    outdir = os.path.split(nightlogf)[0]
+    df.to_csv(os.path.join(outdir, 'perfNightly.csv'), mode='a', header=False, index=False)
     
 
 if __name__ == '__main__':
