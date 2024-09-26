@@ -32,4 +32,5 @@
     - {src: '{{srcdir}}/analysis/templates/match_hdr_full.txt', dest: '{{destdir}}/analysis/templates', mode: '644', backup: no }
     - {src: '{{srcdir}}/analysis/templates/UA_header.txt', dest: '{{destdir}}/analysis/templates', mode: '644', backup: no }
     - {src: '{{srcdir}}/analysis/templates/UO_header.txt', dest: '{{destdir}}/analysis/templates', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/templates/ukmon-single.txt', dest: '{{destdir}}/analysis/templates', mode: '644', backup: no }
     - {src: '{{srcdir}}/analysis/README.md', dest: '{{destdir}}/analysis', mode: '644', backup: no }
