@@ -50,12 +50,13 @@ stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reser
 if [ $stat -eq 80 ]; then 
     aws ec2 start-instances --instance-ids $SERVERINSTANCEID
 fi
-log2cw $NJLOGGRP $NJLOGSTREAM "start correlation server" runDistrib
+
 while [ "$stat" -ne 16 ]; do
     sleep 5
     log2cw $NJLOGGRP $NJLOGSTREAM "checking server status" runDistrib
     stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
 done
+
 log2cw $NJLOGGRP $NJLOGSTREAM "running phase 1 for dates ${begdate} to ${rundate}" runDistrib
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
@@ -89,6 +90,7 @@ rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/consolidateDistTraj.py ec2-use
 rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/distributeCandidates.py ec2-user@$privip:src/ukmon_pylib/traj
 
 # now run the script
+log2cw $NJLOGGRP $NJLOGSTREAM "start distributed processing" runDistrib
 ssh -i $SERVERSSHKEY ec2-user@$privip "data/distrib/$execdist"
 
 log2cw $NJLOGGRP $NJLOGSTREAM "job run, stop the server again" runDistrib
@@ -135,9 +137,12 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
     execConsolsh=/tmp/$execcons
     python -c "from traj.createDistribMatchingSh import createExecConsolSh;createExecConsolSh($MATCHSTART, $MATCHEND, '$execConsolsh')"
     chmod +x $execConsolsh
+
+    log2cw $NJLOGGRP $NJLOGSTREAM "running consolidation" runDistrib
     scp -i $SERVERSSHKEY $execConsolsh ec2-user@$privip:data/distrib/$execcons
     ssh -i $SERVERSSHKEY ec2-user@$privip "data/distrib/$execcons"
 
+    log2cw $NJLOGGRP $NJLOGSTREAM "finished consolidation" runDistrib
     scp -i $SERVERSSHKEY ec2-user@$privip:data/distrib/processed_trajectories.json $DATADIR/distrib
 
     ssh -i $SERVERSSHKEY ec2-user@$privip "rm -f data/distrib/*.json /tmp/processed_trajectories.json"
@@ -151,7 +156,8 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
 
     python -c "from traj.consolidateDistTraj import patchTrajDB ; patchTrajDB('$DATADIR/distrib/processed_trajectories.json','/home/ec2-user/ukmon-shared/matches/RMSCorrelate', '/home/ec2-user/data/distrib');"
 
-    # push the updated traj db to the S3 bucket
+    # archive older data then push the updated traj db to the S3 bucket
+    python -m traj.jsonDbMaintenance $DATADIR/distrib/
     aws s3 cp $DATADIR/distrib/processed_trajectories.json $UKMONSHAREDBUCKET/matches/distrib/ --quiet
 
     log2cw $NJLOGGRP $NJLOGSTREAM "compressing the procssed data" runDistrib
