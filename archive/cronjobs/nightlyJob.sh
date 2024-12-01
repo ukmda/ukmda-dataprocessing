@@ -142,6 +142,8 @@ $SRC/utils/loadSingleCsvMDB.sh
 # has to be run quite late as not all trajectories have synced to the website earlier
 $SRC/analysis/updatePlotsAndDetStatus.sh
 
+aws s3 sync $SRC/share/ s3://ukmda-website/browse --exclude "*" --include "datadictionary.xlsx" --quiet
+
 log2cw $NJLOGGRP $NJLOGSTREAM "finished nightlyJob" nightlyJob
 
 # grab the logs for the website - run this last to capture the above Finished message

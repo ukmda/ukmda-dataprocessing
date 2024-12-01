@@ -36,7 +36,7 @@ if [ ! -f $mrgfile ] ; then
     cat $SRC/analysis/templates/ukmon-single.txt > $mrgfile
 fi 
 # file containing only new data
-cat $SRC/analysis/templates/ukmon-single.txt > > $newsngl
+cat $SRC/analysis/templates/ukmon-single.txt >> $newsngl
 
 ls -1 $outdir/ukmda_??????_${yr}*.csv | while read i
 do
