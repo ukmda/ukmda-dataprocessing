@@ -12,30 +12,30 @@ import datetime
 
 
 def graphOfData(logf, dtstr):
-    with open(logf,'r') as inf:
-        lis = inf.readlines()
+    lis = open(logf,'r').readlines()
     dta = [li for li in lis if li[:8]==dtstr]
 
     # note: timings in log are the start times of the process
     # so we offset the labels by 1 to align with the end times
     times = []
-    events = ['start']
+    events = []
     elapsed = []
-    lasttime = 0
+    lasttime = None
+    starttime = None
     for li in dta:
         spls = li.split(',')
-        elapsed.append(int(spls[2]))        # runtime so far
+        currtime = datetime.datetime.strptime(f'{spls[0]}_{spls[1]}', '%Y%m%d_%H:%M:%S')
+        if starttime is None:
+            starttime = currtime
+            lasttime = currtime
+        elap = (currtime - starttime).seconds
+        elapsed.append(elap)        # runtime so far
         events.append(spls[4].strip())      # event name
-        times.append(int(spls[2])-lasttime) # duration of event
-        lasttime = int(spls[2])
+        times.append((currtime - lasttime).seconds) # duration of event
+        lasttime = currtime
     
-    # add two dummy end-time values
-    elapsed.append(elapsed[-1])
-    times.append(0)
-
     fig, ax = plt.subplots()
     width = 0.35       
-
     ax.set_ylabel('Task')
     ax.set_xlabel('Duration (s)')
     ax.set_title('Batch Phases: {}'.format(dtstr))
