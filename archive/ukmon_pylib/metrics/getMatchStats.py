@@ -7,6 +7,31 @@ from datetime import datetime
 import sys
 
 
+def getDailyObsCounts(logf):
+    loglines = open(logf).readlines()
+    addlines = [line.strip() for line in loglines if ('Added' in line and 'observations' in line) or 'Processing station' in line]
+    res=[0,0,0,0]
+    stn = ''
+    offs = 0
+    totalval = 0
+    uniquestns = 0
+    for i in range(len(addlines)):
+        if 'Processing' in addlines[i]:
+            #print(addlines[i])
+            newstn = addlines[i].split(' ')[-1]
+            if stn != newstn:
+                stn = newstn
+                offs = 0
+                uniquestns += 1
+            val = int(addlines[i+1].split(' ')[1])
+            #print(addlines[i+1])
+            totalval += val
+            res[offs] += val
+            offs += 1
+    print(res, uniquestns)
+    return
+
+
 def getMatchStats(logf):
     with open(logf) as inf:
         loglines = inf.readlines()
