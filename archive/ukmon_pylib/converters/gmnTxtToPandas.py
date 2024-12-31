@@ -55,5 +55,29 @@ def doYear(yr):
         newdata.to_parquet(os.path.join(dirpath, 'parquet', f'gmn_{ym}.parquet.snap'), index=False)
 
 
+def getStats():
+    for yr in range(2022,2025):
+        df = pd.read_parquet(f'gmn_{yr}01.parquet.snap')
+        for mth in range(2,13):
+            try: 
+                df2 = pd.read_parquet(f'gmn_{yr}{mth:02d}.parquet.snap')
+                df = pd.concat(df, df2)
+            except:
+                pass
+#        df = df[df.Amag < -3.99]
+        print(f'{yr}, {len(df)}, {df.Lat1.mean():.1f}, {df.Lat1.max():.1f}, {df.Lat1.min():.1f}, {df.Lat1.std():.1f}')
+    print('-----')
+    for yr in range(2022,2025):
+        df = pd.read_parquet(f'gmn_{yr}01.parquet.snap')
+        for mth in range(2,13):
+            try: 
+                df2 = pd.read_parquet(f'gmn_{yr}{mth:02d}.parquet.snap')
+                df = pd.concat(df, df2)
+            except:
+                pass
+        df = df[df.Amag < -3.99]
+        print(f'{yr}, {len(df)}, {df.Lat1.mean():.1f}, {df.Lat1.max():.1f}, {df.Lat1.min():.1f}, {df.Lat1.std():.1f}')
+
+
 if __name__ == '__main__':
     doYear(sys.argv[1])
