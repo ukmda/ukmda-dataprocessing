@@ -17,14 +17,15 @@ def getDailyObsCounts(logf):
     uniquestns = 0
     for i in range(len(addlines)):
         if 'Processing' in addlines[i]:
-            #print(addlines[i])
+            print(addlines[i])
             newstn = addlines[i].split(' ')[-1]
             if stn != newstn:
                 stn = newstn
                 offs = 0
                 uniquestns += 1
+            if 'Processing' in addlines[i+1]:
+                continue
             val = int(addlines[i+1].split(' ')[1])
-            #print(addlines[i+1])
             totalval += val
             res[offs] += val
             offs += 1
