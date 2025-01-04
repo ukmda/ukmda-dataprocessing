@@ -28,6 +28,7 @@ else
 fi
 
 cd ${DATADIR}/reports
+mkdir -p ${DATADIR}/reports/${fldr}
 
 repidx=$fldr/reportindex.js
 echo "\$(function() {" > $repidx
