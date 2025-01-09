@@ -10,9 +10,9 @@ if ($isadm.count -eq 0) {
 conda activate ukmon-admin
 
 bash -c "rsync -avz --delete ukmonhelper2:keymgmt/sshkeys/ ./sshkeys"
-bash -c "rsync -avz --delete ukmonhelper2:keymgmt/sshkeys/ ./keys"
-bash -c "rsync -avz --delete ukmonhelper2:keymgmt/sshkeys/ ./csvkeys"
-bash -c "rsync -avz --delete ukmonhelper2:keymgmt/sshkeys/ ./inifs"
+bash -c "rsync -avz --delete ukmonhelper2:keymgmt/keys/ ./keys"
+bash -c "rsync -avz --delete ukmonhelper2:keymgmt/csvkeys/ ./csvkeys"
+bash -c "rsync -avz --delete ukmonhelper2:keymgmt/inifs/ ./inifs"
 
 python stationMaint2.py
 Pop-Location

@@ -724,9 +724,9 @@ class CamMaintenance(Frame):
 
     def addNewAwsUser(self, location):
         log.info(f'adding new location {location} to AWS')
-        archkeyf = 'jsonkeys/' + location + '_arch.key'
-        archuserdets = 'users/' + location + '_arch.txt'
-        archcsvf = os.path.join('csvkeys', location.lower() + '_arch.csv')
+        archkeyf = 'jsonkeys/' + location + '.key'
+        archuserdets = 'users/' + location + '.txt'
+        archcsvf = os.path.join('csvkeys', location + '.csv')
         os.makedirs('jsonkeys', exist_ok=True)
         os.makedirs('csvkeys', exist_ok=True)
         os.makedirs('users', exist_ok=True)
@@ -736,7 +736,7 @@ class CamMaintenance(Frame):
             _ = iamc.get_user(UserName=location)
             log.info('location exists, not adding it')
             archkey = None
-        except Exception:
+        except iamc.exceptions.NoSuchEntityException:
             log.info('new location')
             usr = iamc.create_user(UserName=location)
             with open(archuserdets, 'w') as outf:
