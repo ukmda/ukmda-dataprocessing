@@ -5,6 +5,7 @@ import numpy as np
 import os
 import glob
 import sys
+import datetime
 
 
 colhdrs = ['id','jd_beg','utc_beg','iau_no','iau_code','sollon','lst',
@@ -15,6 +16,8 @@ colhdrs = ['id','jd_beg','utc_beg','iau_no','iau_code','sollon','lst',
            'Azim','Azimsd','Elev','Elevsd','Vinit','Vinitsd','Vavg','Vavgsd',
            'Lat1','Lat1sd','Lon1','Lon1sd','H1','H1sd','Lat2','Lat2sd','Lon2','Lon2sd','H2','H2sd',
            'Dur','Amag','PkHt','F1','mass','Qc','MedianFitErr','BegIn','EndIn','NumStat','stats']
+
+dirpath='F:/videos/MeteorCam/gmndata'
 
 
 def loadOneFile(fname):
@@ -45,14 +48,68 @@ def loadOneFile(fname):
     return df
 
 
-def doYear(yr):
-    dirpath='F:/videos/MeteorCam/gmndata'
-    datafiles = glob.glob(os.path.join(dirpath, f'traj_summary_monthly_{yr}*.txt'))
+def compareTwoFiles(file1, file2):
+    df1 = loadOneFile(file1)
+    df2 = loadOneFile(file2)
+
+    df1['dupe']=df1.duplicated(subset=['id'])
+    print(f'file 1 contains {len(df1[df1.dupe==True].id.unique())} duplicates')
+    dupe1 = df1[df1.dupe==True] # noqa: E712
+    df1.drop(columns=['dupe'])
+
+    df2['dupe']=df2.duplicated(subset=['id'])
+    print(f'file 2 contains {len(df2[df2.dupe==True].id.unique())} duplicates')
+    dupe2 = df2[df2.dupe==True] # noqa: E712
+    df2.drop(columns=['dupe'])
+
+    mrg = df1.merge(df2.drop_duplicates(), on=['id'], how='left', indicator=True)
+    old_not_new = mrg[mrg._merge!='both']
+    print(f'there are {len(old_not_new)} rows in the first file not in the second')
+
+    mrg = df2.merge(df1.drop_duplicates(), on=['id'], how='left', indicator=True)
+    new_not_old = mrg[mrg._merge!='both']
+    print(f'there are {len(new_not_old)} rows in the second file not in the first')
+
+    print(old_not_new)
+    old_not_new.to_csv('./old_not_new.csv')
+    new_not_old.to_csv('./old_not_new.csv')
+    return df1,df2, old_not_new, new_not_old, dupe1, dupe2
+
+
+def aggregateOneMonth(yr, mth):
+    startdt = datetime.datetime(yr, mth, 1) - datetime.timedelta(days=1)
+    syr = startdt.year
+    smth = startdt.month
+    sday = startdt.day
+    datafiles = glob.glob(os.path.join(dirpath, 'daily', f'traj_summary_{syr:04d}{smth:02d}{sday:02d}*.txt'))
+    prevfile = datafiles[0]
+    datafiles = [prevfile] + glob.glob(os.path.join(dirpath, 'daily', f'traj_summary_{yr:04d}{mth:02d}*.txt'))
+    mthlydata = None
     for datfile in datafiles:
+        newdata = loadOneFile(datfile)
+        if mthlydata is None:
+            mthlydata = newdata
+        else:
+            mthlydata = pd.concat([mthlydata, newdata], sort=True)
+    mthlydata = mthlydata[mthlydata.utc_beg >= datetime.datetime(yr,mth,1,0,0,0)]
+    return mthlydata
+
+
+def doYear(yr):
+    datafiles = glob.glob(os.path.join(dirpath, 'monthly', f'traj_summary_monthly_{yr}*.txt'))
+    for datfile in datafiles:
+        print(f'processing {datfile}')
         newdata = loadOneFile(datfile)
         fn, _ = os.path.splitext(datfile)
         ym = fn[-6:]
-        newdata.to_parquet(os.path.join(dirpath, 'parquet', f'gmn_{ym}.parquet.snap'), index=False)
+        newdata.to_parquet(os.path.join(dirpath, 'parquet', 'monthly', f'gmn_{ym}.parquet.snap'), index=False)
+
+    datafiles = glob.glob(os.path.join(dirpath, f'traj_summary_yearly_{yr}.txt'))
+    for datfile in datafiles:
+        print(f'processing {datfile}')
+        newdata = loadOneFile(datfile)
+        newdata.to_parquet(os.path.join(dirpath, 'parquet', f'gmn_{yr}.parquet.snap'), index=False)
+    return
 
 
 def getStats():
