@@ -98,6 +98,7 @@ function myFunc(myObj) {
     for (x in myObj) {
       console.log(myObj[x]);
       var dtarr = myObj[x].split(',');
+      var cams = dtarr[4].replaceAll(";", "; ");
       if (dtarr[0] > 0 ){
         txt +='<tr><td>';
         dt = new Date(dtarr[0]*1000);
@@ -109,7 +110,7 @@ function myFunc(myObj) {
         txt += "</td><td>";
         txt += dtarr[3];
         txt += "</td><td>";
-        txt += dtarr[4];
+        txt += cams;
         txt += "</td><td>";
         errimg = "onerror=\"this.onerror=null;this.src='/img/missing.png';\"";
         txt += "<a href=\"" + dtarr[5] + "\" target=\"_blank\"><img src=\"" + dtarr[6] + "\" " + errimg + " alt=\"Image unavailable\" width=\"100\"></a>";
