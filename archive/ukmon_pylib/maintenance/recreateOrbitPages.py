@@ -40,7 +40,9 @@ def getImgList(outdir, traj):
         imglist = os.listdir(os.path.join(outdir, '..', 'jpgs'))
         return imglist
     orbname=traj.output_dir.replace('\\','/').split('/')[-1]
-    testdt = datetime.datetime.strptime(orbname.replace('-','_')[:15], '%Y%m%d_%h%m%s')
+    if orbname == '.':
+        orbname = os.path.split(outdir)[1]
+    testdt = datetime.datetime.strptime(orbname.replace('-','_')[:15], '%Y%m%d_%H%M%S')
     testdt = testdt + datetime.timedelta(seconds=-10)
     dtstr = testdt.strftime('%Y-%m-%dT%H:%M:%S.000Z')
     dtstr2 = (testdt + datetime.timedelta(seconds=30)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
