@@ -30,4 +30,6 @@ def stationsNearPoint(lat, lon, dist):
     caminfo.drop(columns=['active','oldcode','direction','created','site','camtype'], inplace=True)    
 
     camlist = nearby.merge(caminfo, how='left', left_index=True, right_index=True)
+    camlist.drop(columns=['lat','lon','dist'], inplace=True)
+    camlist.drop_duplicates(inplace=True)
     return camlist
