@@ -10,6 +10,8 @@
   <meta name="author" content="Mark McIntyre">
   <meta name="keywords" content="meteors,astronomy,space" />
 
+  <meta http-equiv="refresh" content="120">
+
   <link href="/css/bootstrap.min.css" rel="stylesheet">
   <link href="/css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
   <link href="/css/plugins/timeline.css" rel="stylesheet">
@@ -60,7 +62,7 @@
 
 </head>
 
-<body>
+<body onload="initialLoad();">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
   <script src="/js/bootstrap.min.js"></script>
   <script src="/js/plugins/metisMenu/metisMenu.min.js"></script>
@@ -74,6 +76,29 @@
   <script src="/js/gtagadder.js"></script>
 
   <script type="text/javascript" src="/js/datepicker/datepair.js"></script>
+  <script>
+    function initialLoad(e) {
+      console.log('on load called');
+      var apiurl = 'https://api.ukmeteors.co.uk/liveimages/getlive';
+      var payload = { dtstr: 'latest', enddtstr: 'latest' };
+      $.ajax({
+        url: apiurl,
+        type: "GET",
+        data: payload,
+        dataType: 'jsonp',
+        error: function (xhr, status, ex) {
+          if (status === 'error') {
+            console.log(xhr.status);
+            document.getElementById("searchresults").innerHTML = "<font size=\"+2\">Error encountered</font>";
+          }
+        },
+        complete: function (xhr, status) {
+        }
+      });
+      event.preventDefault();
+      document.getElementById("evtmsg").innerHTML='Latest events'
+    }
+  </script>
 
   <div id="nav-placeholder"></div>
   <script>
@@ -85,12 +110,10 @@
   <div class="container">
 
     <p>
-      New livestream with some better features. Click Search to get the most recent data.
-      Pick a date range, time range and/or station to filter the data.
-      At most, 100 images will be displayed.
+      The latest 100 images will be automatically loaded and refreshed every two minutes, or press F5 to immediately reload.  
     </p>
     <form id="selectInterval">
-      <label for="date1">Select date range</label>
+      <label for="date1">Or pick a date range, time range and/or station to filter the data.</label>
       <br>
       <input type="text" class="date start" id="date1" />
       <input type="text" class="time start" id="time1" /> to
@@ -107,12 +130,15 @@
       <button type="submit">Search</button>
     </form>
     <p>
+      Time should be entered as <em>local time</em>, so in the UK summer you should enter the time in BST.
+    </p>
+    <p>
     <div id="statusfield"></div>
     </p>
     <p>
     <h3>RESULTS</h3>
     </p>
-    <p><span id="eventcount"></span> events in date range <span id="datestart"></span> to <span id="dateend"></span>
+    <p><span id="eventcount"></span> <span id="evtmsg">events in date range</span> <span id="datestart"></span> <span id="dateend"></span>
     </p>
     <div id="searchresults" class="top-img-container"></div>
     <script src="/js/livestream.js"></script>

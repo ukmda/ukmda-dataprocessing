@@ -13,6 +13,11 @@ def lambda_handler(event, context):
     table = ddb.Table('camdetails')
     res = table.query(KeyConditionExpression=Key('stationid').eq(camid))
     if res['Count'] > 0:
+        # convert Decimals to str
+        for i in range(0, res['Count']):
+            print(res['Items'][i])
+            res['Items'][i]['active']=str(res['Items'][i]['active'])
+            res['Items'][i]['camtype']=str(res['Items'][i]['camtype'])        
         return {
             'statusCode': 200,
             'body': json.dumps(res['Items'])

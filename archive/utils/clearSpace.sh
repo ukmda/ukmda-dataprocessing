@@ -29,4 +29,7 @@ find $DATADIR/browse/monthly -name "*.csv" -mtime +40 -exec rm -f {} \;
 find $DATADIR/browse/daily -name "*.csv" -mtime +40 -exec rm -f {} \;
 find $DATADIR/browse/showers -name "*.csv" -mtime +40 -exec rm -f {} \;
 
+logger -s -t cleanSpace "clean up old performance graphs"
+find $DATADIR/batchcharts -maxdepth 1 -name "*perfNightly.jpg" -mtime +20 -exec rm -f {} \;
+
 logger -s -t cleanSpace "finished"

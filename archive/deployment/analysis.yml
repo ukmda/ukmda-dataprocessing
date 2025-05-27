@@ -1,0 +1,36 @@
+---
+- hosts: "{{host | default ('ukmonhelper2')}}"
+  vars:
+    srcdir: /mnt/e/dev/meteorhunting/ukmda-dataprocessing/archive
+  tasks:
+  - name: import dev variables 
+    include_vars: ./dev-vars.yml
+    tags: dev
+  - name: import prod variables
+    include_vars: ./prod-vars.yml
+    tags: prod
+  - name: Ensures {{destdir}}/analysis exists
+    file: path={{destdir}}/analysis state=directory  
+    tags: [dev,prod]
+  - name: Copy files
+    copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
+    tags: [dev,prod]
+    with_items:
+    - {src: '{{srcdir}}/analysis/updatePlotsAndDetStatus.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
+    - {src: '{{srcdir}}/analysis/consolidateOutput.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
+    - {src: '{{srcdir}}/analysis/createSearchable.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
+    - {src: '{{srcdir}}/analysis/findAllMatches.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
+    - {src: '{{srcdir}}/analysis/getBadStations.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
+    - {src: '{{srcdir}}/analysis/getLogData.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
+    - {src: '{{srcdir}}/analysis/getRMSSingleData.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
+    - {src: '{{srcdir}}/analysis/onlyConsolDistrib.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
+    - {src: '{{srcdir}}/analysis/reportActiveShowers.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
+    - {src: '{{srcdir}}/analysis/runDistrib.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
+    - {src: '{{srcdir}}/analysis/showerReport.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
+    - {src: '{{srcdir}}/analysis/stationReports.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
+    - {src: '{{srcdir}}/analysis/templates/extracsv.txt', dest: '{{destdir}}/analysis/templates', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/templates/match_hdr_full.txt', dest: '{{destdir}}/analysis/templates', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/templates/UA_header.txt', dest: '{{destdir}}/analysis/templates', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/templates/UO_header.txt', dest: '{{destdir}}/analysis/templates', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/templates/ukmon-single.txt', dest: '{{destdir}}/analysis/templates', mode: '644', backup: no }
+    - {src: '{{srcdir}}/analysis/README.md', dest: '{{destdir}}/analysis', mode: '644', backup: no }

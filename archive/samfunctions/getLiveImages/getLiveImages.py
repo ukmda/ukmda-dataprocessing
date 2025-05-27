@@ -9,8 +9,9 @@ import datetime
 from decimal import Decimal
 
 
-def getLiveImages(dtstr):
-    ddb = boto3.resource('dynamodb', region_name='eu-west-2')
+def getLiveImages(dtstr, ddb=None):
+    if ddb is None:
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2')
     table = ddb.Table('live')
     resp = table.query(IndexName='month-image_name-index', 
                         KeyConditionExpression=Key('month').eq(dtstr[4:6]) & Key('image_name').begins_with(f'M{dtstr}'),
@@ -18,10 +19,12 @@ def getLiveImages(dtstr):
     return resp
 
 
-def filterImages(d1, d2, statid=None, maxitems=-1):
-    ddb = boto3.resource('dynamodb', region_name='eu-west-2')
+def filterImages(d1, d2, statid=None, maxitems=-1, ddb=None):
+    if ddb is None:
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2')
     table = ddb.Table('live')
-    if maxitems == -1:
+    # print(maxitems, d1, d2)
+    if maxitems == -1 or isinstance(d1, datetime.datetime):
         lv=f'{d1.timestamp()*1000:.0f}'
         hv=f'{d2.timestamp()*1000:.0f}'
         resp = table.query(IndexName='year-image_timestamp-index', 
@@ -30,7 +33,7 @@ def filterImages(d1, d2, statid=None, maxitems=-1):
                             ScanIndexForward = False)
     else:
         resp = table.query(IndexName='year-image_timestamp-index', 
-                            KeyConditionExpression=Key('year').eq(str(d1.year)),
+                            KeyConditionExpression=Key('year').eq(str(d2.year)),
                             Limit=maxitems,
                             ProjectionExpression='image_name',
                             ScanIndexForward = False)
@@ -41,8 +44,9 @@ def filterImages(d1, d2, statid=None, maxitems=-1):
     return imglist
 
 
-def getTrueImgs(dtstr, dtstr2, statid):
-    ddb = boto3.resource('dynamodb', region_name='eu-west-2')
+def getTrueImgs(dtstr, dtstr2, statid, ddb=None):
+    if ddb is None:
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2')
     table = ddb.Table('LiveBrightness')
     d1 = datetime.datetime.strptime(dtstr, '%Y-%m-%dT%H:%M:%S.000Z')
     d2 = datetime.datetime.strptime(dtstr2, '%Y-%m-%dT%H:%M:%S.000Z')
@@ -62,19 +66,19 @@ def getTrueImgs(dtstr, dtstr2, statid):
     return {'images': imglist}
 
 
-def getImageUrls(dtstr, dtstr2, statid, token=None, maxitems=100, includexml=False):
+def getImageUrls(dtstr, dtstr2, statid, token=None, maxitems=100, includexml=False, ddb=None):
+    if ddb is None:
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2')
     s3 = boto3.client('s3')
     buckname = 'ukmda-live'
     if dtstr == 'latest':
         enddt = datetime.datetime.now()
-        enddt = enddt.replace(hour=8, minute=9)
-        startdt = enddt + datetime.timedelta(hours=-2)
+        startdt = 'latest'
     else:
         startdt = datetime.datetime.strptime(dtstr, '%Y-%m-%dT%H:%M:%S.000Z')
         enddt = datetime.datetime.strptime(dtstr2, '%Y-%m-%dT%H:%M:%S.000Z')
         maxitems = -1
-    imglist = filterImages(startdt, enddt, statid, maxitems)
-
+    imglist = filterImages(startdt, enddt, statid, maxitems, ddb)
     urls = []
     for keyval in imglist:
         if '.jpg' in keyval:
@@ -85,7 +89,6 @@ def getImageUrls(dtstr, dtstr2, statid, token=None, maxitems=100, includexml=Fal
                 xmlkey = keyval.replace('P.jpg', '.xml')
                 psurl = s3.generate_presigned_url(ClientMethod='get_object',Params={'Bucket': buckname,'Key': xmlkey}, ExpiresIn=1800)
                 urls.append({'url': f'{psurl}'})
-                
     urls.sort(key = lambda k: k['url'], reverse=True)
     if maxitems > 0:
         urls = urls[:maxitems+1]
@@ -94,23 +97,25 @@ def getImageUrls(dtstr, dtstr2, statid, token=None, maxitems=100, includexml=Fal
 
 
 def lambda_handler(event, context):
-    #print(event)
+    ddb = None
     qs = event['queryStringParameters']
     if 'pattern' in qs:
         patt = qs['pattern']
         print(f'searching for {patt}')
-        ecsvstr = getLiveImages(patt)
+        ecsvstr = getLiveImages(patt, ddb=ddb)
         print(f"found {ecsvstr['Items']}")
         return {
             'statusCode': 200,
             'body': json.dumps(ecsvstr['Items'])
         }
     else:
-        maxitems = 200
         if 'dtstr' in qs:
             dtstr = qs['dtstr'] 
         else:
             dtstr = 'latest'
+        maxitems = 200
+        if dtstr == 'latest':
+            maxitems = 100
         if 'enddtstr' in qs:
             dtstr2 = qs['enddtstr'] 
         else:
@@ -134,9 +139,9 @@ def lambda_handler(event, context):
             conttoken = qs['conttoken']
         #print(dtstr, dtstr2, statid, maxitems)
         if trueimg:
-            retval = getTrueImgs(dtstr, dtstr2, statid)
+            retval = getTrueImgs(dtstr, dtstr2, statid, ddb=ddb)
         else:
-            retval = getImageUrls(dtstr, dtstr2, statid, conttoken, maxitems, includexml=incxml)
+            retval = getImageUrls(dtstr, dtstr2, statid, conttoken, maxitems, includexml=incxml, ddb=ddb)
         if fmt == 'json':
             return {
                 'statusCode': 200,

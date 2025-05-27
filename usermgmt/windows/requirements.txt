@@ -5,3 +5,4 @@ pandas
 scp
 tksheet
 paramiko
+pyinstaller

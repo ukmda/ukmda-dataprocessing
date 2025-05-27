@@ -7,7 +7,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: fetchECSV.lambda_handler
-      Runtime: python3.8
+      Runtime: python3.11
       FunctionName: fetchECSV
       Description: API backend that retrieves an ECSV file for a detection
       Timeout: 30
@@ -27,8 +27,10 @@ Resources:
                   Required: true
               - method.request.querystring.dt: 
                   Required: true
+              - method.request.querystring.metcount: 
+                  Required: false
       Tags:
         billingtag: "ukmda"
         typetag: "api"
     Metadata:
-      BuildMethod: python3.8
+      BuildMethod: python3.11

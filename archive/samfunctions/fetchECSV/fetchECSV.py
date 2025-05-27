@@ -19,18 +19,13 @@ isodate_format_entry = "%Y-%m-%dT%H:%M:%S.%f"
 isodate_format_file = "%Y-%m-%dT%H:%M:%S"
 
 
-def createECSV(ftpFile, required_event):
+def createECSV(ftpFile, ppfilename, required_event, metcount=1):
     """ Save the picks into the GDEF ECSV standard. 
     Arguments: 
         ftpFile:        string  full path and ftp File name
         required_event  string  target event in the format isodate_format_entry (see below)
     """
     out_str=''
-
-    outdir, _ = os.path.split(ftpFile)
-    ppfilename = os.path.join(outdir, 'platepars_all_recalibrated.json')
-    if not os.path.isfile(ppfilename):
-        return 'no platepar file - cannot continue'
 
     with open(ppfilename) as f:
         try:
@@ -40,10 +35,29 @@ def createECSV(ftpFile, required_event):
     kvals = platepars_recalibrated_dict[list(platepars_recalibrated_dict.keys())[0]]
     meteors = loadFTPDetectInfo(ftpFile, locdata=kvals)
 
-    revt = required_event.replace('-','').replace(':','').replace('T','_').replace('.','_')
+    reqdtstr = required_event.replace('-','').replace(':','').replace('T','_').replace('.','_')
+    if len(reqdtstr.split('_')) < 3:
+        reqdtstr = (reqdtstr + '_000').replace('__','_')
+    reqdt = datetime.datetime.strptime(reqdtstr, '%Y%m%d_%H%M%S_%f')
+    # print(reqdt, metcount)
     met = None
+    lastff = None
+    currmet = 1
     for thismet in meteors:
-        if revt in thismet.ff_name:
+        dt_ref = jd2Date(thismet.jdt_ref, dt_obj=True) + datetime.timedelta(microseconds=(thismet.time_data[0]*1e6))
+        dtdiff = (dt_ref - reqdt).total_seconds()
+        if lastff == thismet.ff_name:
+            currmet += 1
+        else:
+            lastff = thismet.ff_name
+            currmet = 1
+        #print(thismet.ff_name, dt_ref, dtdiff)
+        if abs(dtdiff) < 1.0:
+            met = thismet
+            break
+        #print(thismet.ff_name, currmet, metcount)
+        if reqdtstr in thismet.ff_name and currmet == metcount:
+            print('matched by name and metcount')
             met = thismet
             break
     if not met:
@@ -137,35 +151,23 @@ def createECSV(ftpFile, required_event):
     return out_str
 
 
-def fetchECSV(camid, reqevent):
+def fetchECSV(camid, reqevent, metcount=1):
     s3bucket = os.getenv('ARCHBUCKET', default='ukmda-shared')
     s3 = boto3.resource('s3')
 
     # construct the path
+    print(reqevent, metcount)
     if '-' in reqevent:
-        try:
-            dt = datetime.datetime.strptime(reqevent, isodate_format_entry)
-        except Exception:
-            try:
-                dt = datetime.datetime.strptime(reqevent, isodate_format_file)
-            except Exception:
-                return 'check date format'
+        ftpdt = datetime.datetime.strptime(reqevent[:19], '%Y-%m-%dT%H:%M:%S')
     else:
-        try:
-            dt = datetime.datetime.strptime(reqevent, '%Y%m%d_%H%M%S_%f')
-        except Exception:
-            try:
-                dt = datetime.datetime.strptime(reqevent, '%Y%m%d_%H%M%S')
-            except Exception:
-                return 'check date format'
-    if dt.hour < 12:
-        dt = dt + datetime.timedelta(days=-1)
-    ymd = dt.strftime('%Y%m%d')
+        ftpdt = datetime.datetime.strptime(reqevent[:15], '%Y%m%d_%H%M%S')
+    if ftpdt.hour < 12:
+        ftpdt = ftpdt + datetime.timedelta(days=-1)
+    ymd = ftpdt.strftime('%Y%m%d')
     pref = f'matches/RMSCorrelate/{camid}/{camid}_{ymd}'
 
     localftpname = None
     ppname = None
-    cfgname = None
     for _, obj in enumerate(s3.Bucket(s3bucket).objects.filter(Prefix=pref)):
         fldr = obj.key.split('/')[3].strip()
         localf = os.path.basename(obj.key)
@@ -182,9 +184,7 @@ def fetchECSV(camid, reqevent):
         loc = findSite(camid, ddb)
         if loc is False:
             return 'site not found'
-        ym = f'{dt.year}{dt.month:02d}'
-        ymd = f'{dt.year}{dt.month:02d}{dt.day:02d}'   
-        s3path = f'archive/{loc}/{camid}/{dt.year}/{ym}/{ymd}/'
+        s3path = f'archive/{loc}/{camid}/{ymd[:4]}/{ymd[:6]}/{ymd}/'
 
         print(f'no objects found at {pref}, trying alternate location {s3path}')
         # get the config, platepar and ftpfile
@@ -202,11 +202,11 @@ def fetchECSV(camid, reqevent):
     
     # if we got the ftpfile, call createECSV
     if localftpname is not None:
-        ecsvstr = createECSV(localftpname, reqevent)
-        removefiles(localftpname, ppname, cfgname)
+        ecsvstr = createECSV(localftpname, ppname, reqevent, metcount)
+        removefiles(localftpname, ppname)
         return ecsvstr
         
-    removefiles(localftpname, ppname, cfgname)
+    removefiles(localftpname, ppname)
     return 'not available, check details'
 
 
@@ -219,7 +219,7 @@ def findSite(stationid, ddb=None):
         return False
 
 
-def removefiles(localftpname, ppname, cfgname):
+def removefiles(localftpname, ppname):
     try:
         os.remove(localftpname)
     except:
@@ -228,34 +228,43 @@ def removefiles(localftpname, ppname, cfgname):
         os.remove(ppname)
     except:
         pass
-    try:
-        os.remove(cfgname)
-    except:
-        pass
+    return 
 
 
 def lambda_handler(event, context):
     qs = event['queryStringParameters']
     if qs is not None:
-        if 'stat' in qs or 'dt' in qs:
+        if 'stat' in qs and 'dt' in qs:
             stat = qs['stat']
             dt = qs['dt']
+            if 'metcount' in qs:
+                metcount = int(qs['metcount'])
+            else:
+                metcount = 1
             #print(stat, dt)
-            ecsvstr = fetchECSV(stat, dt)
+            ecsvstr = fetchECSV(stat, dt, metcount=metcount)
             return {
                 'statusCode': 200,
                 'body': ecsvstr # json.dumps(res)
             }
+        else:
+            return {
+                'statusCode': 200,
+                'body': "usage: getecsv?stat=UKxxxx&dt=YYYY-mm-ddTHH:MM:SS.fff&metcount=n"
+            }
     else:
         return {
             'statusCode': 200,
-            'body': "usage: getecsv?stat=UKxxxx&dt=YYYY-mm-ddTHH:MM:SS.fff"
+            'body': "usage: getecsv?stat=UKxxxx&dt=YYYY-mm-ddTHH:MM:SS.fff&metcount=n"
         }
 
 
 if __name__ == '__main__':
     camid = sys.argv[1]
     reqdate = sys.argv[2]
-    ecsvstr = fetchECSV(camid, reqdate)
+    if len(sys.argv) > 3:
+        ecsvstr = fetchECSV(camid, reqdate, int(sys.argv[3]))
+    else:
+        ecsvstr = fetchECSV(camid, reqdate)
     #ecsvstr = fetchECSV('UK001M', '2022-01-10T19:43:30.567111')
     print(ecsvstr)

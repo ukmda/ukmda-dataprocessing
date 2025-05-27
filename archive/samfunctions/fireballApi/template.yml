@@ -14,7 +14,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: getFireballFiles.lambda_handler
-      Runtime: python3.8
+      Runtime: python3.11
       FunctionName: getFireballFiles
       Description: API backend that retrieves fireball files matching a pattern if available
       Timeout: 120
@@ -35,7 +35,7 @@ Resources:
       Tags:
         billingtag: "ukmda"
     Metadata:
-      BuildMethod: python3.8
+      BuildMethod: python3.11
   uploadResource:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -61,7 +61,7 @@ Resources:
             - StatusCode: "200"
           Credentials: "arn:aws:iam::183798037734:role/orbUploadRole"
           Uri: "arn:aws:apigateway:eu-west-2:s3:path/ukmda-shared/fireballs/uploads/{key}"
-          PassthroughBehavior: "when_no_templates"
+          PassthroughBehavior: "WHEN_NO_TEMPLATES"
           CacheNamespace: "ttby7fcykg"
           CacheKeyParameters:
           - "method.request.querystring.orbitfile"

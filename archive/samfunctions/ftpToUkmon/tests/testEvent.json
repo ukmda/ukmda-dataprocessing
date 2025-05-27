@@ -7,7 +7,7 @@
           "arn": "arn:aws:s3:::ukmda-shared"
         },
         "object": {
-          "key": "matches/RMSCorrelate/UK0006/UK0006_20230202_173030_429632/FTPdetectinfo_UK0006_20230202_173030_429632.txt"
+          "key": "matches/RMSCorrelate/UK0006/UK0006_20240811_201327_827902/FTPdetectinfo_UK0006_20240811_201327_827902.txt"
         }
       }
     }

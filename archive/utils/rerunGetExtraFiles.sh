@@ -1,14 +1,16 @@
 #!/bin/bash
 # Copyright (C) 2018-2023 Mark McIntyre
 
+here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+source $here/../config.ini >/dev/null 2>&1
+conda activate $HOME/miniconda3/envs/${WMPL_ENV}
+cd $here
+
 fn=$DATADIR/dailyreports/latest.txt
-if [ $# -lt 1 ] ; then
-	echo "usage: ./rerunGetExtraFiles.sh optionalsourcefile"
-	exit
-fi 
 profile=ukmonshared
 bucket=ukmda-shared
-if [ "$1" != "" ] ; then fn=$2 ; fi
+
+if [ "$1" != "" ] ; then fn=$1 ; fi
 
 cat $fn | while read i
 do

@@ -36,6 +36,46 @@ resource "aws_network_interface" "calcserver_if" {
   }
 }
 ################################################
+#  Ubuntu calc server
+################################################
+
+resource "aws_instance" "ubuntu_calc_server" {
+  ami                    = "ami-0bdf149a42243bde8" 
+  instance_type          = "c6g.4xlarge"
+  iam_instance_profile   = aws_iam_instance_profile.calcserverrole.name
+  key_name               = aws_key_pair.marks_key.key_name
+  tags = {
+    "Name"       = "Calcengine2"
+    "billingtag" = "ukmda"
+  }
+  root_block_device {
+    tags = {
+      "Name"       = "calcengine2"
+      "billingtag" = "ukmda"
+    }
+    volume_size = 100
+  }
+  network_interface {
+    network_interface_id = aws_network_interface.ubuntu_calcserver_if.id
+    device_index         = 0
+  }
+}
+
+# elastic network interface attached to the calc server
+
+resource "aws_network_interface" "ubuntu_calcserver_if" {
+  subnet_id                 = aws_subnet.ec2_subnet.id
+  description               = "Primary network interface"
+  private_ips               = [var.ubuntu_calcserverip]
+  security_groups           = [aws_security_group.ec2_secgrp.id]
+  ipv6_address_list_enabled = false
+  tags = {
+    "Name"       = "calcengine2"
+    "billingtag" = "ukmda"
+  }
+}
+
+################################################
 #  admin server
 ################################################
 

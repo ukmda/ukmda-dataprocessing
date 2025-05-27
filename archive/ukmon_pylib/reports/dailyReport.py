@@ -2,6 +2,7 @@
 # scan the live stream for potential matches
 
 import os
+import glob
 import sys
 import datetime
 
@@ -94,8 +95,10 @@ if __name__ == '__main__':
     doff = int(sys.argv[1])
     reppth = sys.argv[2]
     outpth = sys.argv[3]
-    repdtstr = (datetime.date.today() - datetime.timedelta(days=doff-1)).strftime('%Y%m%d.txt')
-    dailyrep = os.path.join(reppth, repdtstr)
+    repdtstr = (datetime.date.today() - datetime.timedelta(days=doff-1)).strftime('%Y%m%d')
+    dailyreps = glob.glob(os.path.join(reppth, f'{repdtstr}*.txt'))
+    dailyreps.sort()
+    dailyrep = dailyreps[-1]
     statfile = os.path.join(reppth, 'stats.txt')
     _, _, body, bodytext = LookForMatchesRMS(doff, dailyrep, statfile)
 

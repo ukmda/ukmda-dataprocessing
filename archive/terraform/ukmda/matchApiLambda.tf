@@ -13,7 +13,7 @@ resource "aws_lambda_function" "matchapilambda" {
   filename         = data.archive_file.matchapizip.output_path
   source_code_hash = data.archive_file.matchapizip.output_base64sha256
   handler          = "matchDataApiHandler.lambda_handler"
-  runtime          = "python3.9"
+  runtime          = "python3.11"
   memory_size      = 128
   timeout          = 30
   role             = aws_iam_role.S3FullAccess.arn

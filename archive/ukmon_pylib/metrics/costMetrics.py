@@ -32,21 +32,21 @@ def getAllMthly():
     lastmth=(datetime.datetime.now() + datetime.timedelta(days=-20)).strftime('%Y%m')
     monthlyCostByService(lastmth, '183798037734')
     monthlyCostByService(lastmth, '317976261112')
-    monthlyCostByService(lastmth, '822069317839')
+    #monthlyCostByService(lastmth, '822069317839')
 
 
 def getAllPrvMthly():
     lastmth=(datetime.datetime.now() + datetime.timedelta(days=-50)).strftime('%Y%m')
     monthlyCostByService(lastmth, '183798037734')
     monthlyCostByService(lastmth, '317976261112')
-    monthlyCostByService(lastmth, '822069317839')
+    #monthlyCostByService(lastmth, '822069317839')
 
 
 def getAllMthToDate():
     lastmth=(datetime.datetime.now()).strftime('%Y%m')
     monthlyCostByService(lastmth, '183798037734')
     monthlyCostByService(lastmth, '317976261112')
-    monthlyCostByService(lastmth, '822069317839')
+    #monthlyCostByService(lastmth, '822069317839')
 
 
 def getAllCostsAndUsage(ceclient, startdt, enddt, svcs, tagval, acctid):

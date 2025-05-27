@@ -5,20 +5,156 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import Frame, Menu
 from tkinter import simpledialog
+import tkinter.messagebox as tkMessageBox
 from tkinter.filedialog import askopenfilename
 import boto3
 import os
+import sys
 import paramiko
 import json 
 import time
 import datetime
+import tempfile
 from scp import SCPClient
+from boto3.dynamodb.conditions import Key
+import pandas as pd
+from configparser import ConfigParser
+import logging
+import logging.handlers
 
-from camTable import addRow, getCamUpdateDate, loadLocationDetails
-from camTable import findLocationInfo, dumpCamTable, cameraExists
+
+log = logging.getLogger("logger")
+
+
+def loadConfig(cfgdir):
+    cfgfile = os.path.join(cfgdir, 'stationmaint.cfg')
+    cfg = ConfigParser()
+    if not os.path.isfile(cfgfile):
+        tkMessageBox.showinfo('Warning', f'config file {cfgfile} not found')
+        exit(0)
+    cfg.read(cfgfile)
+    server = cfg['helper']['helperip'] 
+    user = cfg['helper']['user']
+    keyfile = cfg['helper']['sshkey']
+    k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
+    c = paramiko.SSHClient()
+    c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    c.connect(hostname = server, username = user, pkey = k)
+    scpcli = c.open_sftp()
+    try:
+        handle, tmpfnam = tempfile.mkstemp()
+        scpcli.get(f'{user}.csv', tmpfnam)
+    except Exception:
+        log.warning('unable to find AWS key')
+    scpcli.close()
+    c.close()
+    try:
+        lis = open(tmpfnam, 'r').readlines()
+        os.close(handle)
+        os.remove(tmpfnam)
+        key, sec = lis[1].split(',')
+    except Exception:
+        log.warning('malformed AWS key')
+    if key:
+        log.info('retrieved key details')
+        awskeys = {'key': key.strip(), 'secret': sec.strip()}
+    else: 
+        awskeys = {}
+    return cfg, awskeys
+
+
+def addRow(newdata=None, stationid=None, site=None, user=None, email=None, ddb=None, 
+           direction=None, camtype=None, active=None, createdate=None, tblname='camdetails'):
+    '''
+    add a row to the CamDetails table
+    '''
+    if not ddb:
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2')
+    if not newdata:
+        newdata = {'stationid': stationid, 'site': site, 'humanName':user, 'eMail': email, 
+                   'direction': direction, 'camtype': camtype, 'active': active, 'created': createdate,
+                   'oldcode': stationid}
+    table = ddb.Table(tblname)
+    response = table.put_item(Item=newdata)
+    if response['ResponseMetadata']['HTTPStatusCode'] != 200:
+        log.info(response)
+    return 
+
+
+def loadLocationDetails(table='camdetails', ddb=None, loadall=False):
+    if not ddb:
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2')
+    table = ddb.Table(table)
+    res = table.scan()
+    # strictly, should check for LastEvaluatedKey here, in case there was more than 1MB of data,
+    # however that equates to around 30,000 users which i hope we never have... 
+    values = res.get('Items', [])
+    camdets = pd.DataFrame(values)
+    camdets.sort_values(by=['stationid'], inplace=True)
+    if not loadall:
+        camdets.dropna(inplace=True, subset=['eMail','humanName','site'])
+    camdets['camtype'] = camdets['camtype'].astype(int)
+    camdets['active'] = camdets['active'].astype(int)
+    return camdets
+
+
+def findLocationInfo(srchstring, ddb=None, statdets=None):
+    if statdets is None:
+        statdets = loadLocationDetails(ddb=ddb) 
+        statdets = statdets[statdets.active==1]
+    s1 = statdets[statdets.stationid.str.contains(srchstring)]
+    s2 = statdets[statdets.eMail.str.contains(srchstring)]
+    s3 = statdets[statdets.humanName.str.contains(srchstring)]
+    s4 = statdets[statdets.site.str.contains(srchstring)]
+    srchres = pd.concat([s1, s2, s3, s4])
+    srchres.drop(columns=['oldcode','active','camtype'], inplace=True)
+    return srchres
+
+
+def cameraExists(stationid=None, location=None, direction=None, ddb=None, statdets=None):
+    if statdets is None:
+        statdets = loadLocationDetails(ddb=ddb) 
+        statdets = statdets[statdets.active==1]
+    if stationid:
+        if len(statdets[statdets.stationid == stationid]) > 0:
+            return True
+    if location and direction:
+        s1 = statdets[statdets.site == location]
+        if len(s1) > 0:
+            if len(s1[s1.direction == direction]) > 0:
+                return True
+    return False
+
+
+def dumpCamTable(outdir, statdets=None, ddb=None, exportmindets=False):
+    if statdets is None:
+        statdets = loadLocationDetails(ddb=ddb) 
+        statdets = statdets[statdets.active==1]
+    if exportmindets:
+        statdets = statdets[['stationid', 'eMail']]
+    statdets.to_csv(os.path.join(outdir,'camtable.csv'), index=False)
+
+
+def getCamUpdateDate(camid, ddb=None):
+    if not ddb:
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2')
+    table = ddb.Table('LiveBrightness')
+    resp = table.query(KeyConditionExpression=Key('camid').eq(camid),
+                       IndexName = 'camid-CaptureNight-index',
+                       ScanIndexForward=False,
+                       Limit=1,
+                       Select='SPECIFIC_ATTRIBUTES',
+                       ProjectionExpression='CaptureNight')
+    if len(resp['Items']) > 0:
+        return int(resp['Items'][0]['CaptureNight'])
+    else:
+        return 0
 
 
 class srcResBox(tk.Toplevel):
+    '''
+    A class for the search dialog
+    '''
     def __init__(self, title, message):
         tk.Toplevel.__init__(self)
         self.details_expanded = False
@@ -48,6 +184,9 @@ class srcResBox(tk.Toplevel):
 
 
 class infoDialog(simpledialog.Dialog):
+    '''
+    A class to gather or display info on a camera
+    '''
     def __init__(self, parent, title, location, user, email, sshkey='', id=''):
         self.data = []
         self.data.append(id)
@@ -123,6 +262,9 @@ class infoDialog(simpledialog.Dialog):
 
 
 class statOwnerDialog(simpledialog.Dialog):
+    '''
+    A class to display station ownership data
+    '''
     def __init__(self, parent):
         self.stationdetails = parent.stationdetails
         self.parent = parent
@@ -148,26 +290,29 @@ class statOwnerDialog(simpledialog.Dialog):
 
 
 class CamMaintenance(Frame):
-
-    def __init__(self, parent):
+    '''
+    The main camera maintenance window class
+    '''
+    def __init__(self, parent, cfgdir):
         self.parent = parent
         Frame.__init__(self, parent)
 
-        self.archprof = os.getenv('ADM_PROFILE', default='ukmda_maint')
-        self.conn = boto3.Session(profile_name=self.archprof)
-        self.bucket_name = os.getenv('SRCBUCKET', default='ukmda-shared')
+        self.cfg, awskeys = loadConfig(cfgdir)
+        self.conn = boto3.Session(aws_access_key_id=awskeys['key'], aws_secret_access_key=awskeys['secret']) 
+        self.bucket_name = self.cfg['store']['srcbucket'] 
 
         os.makedirs('jsonkeys', exist_ok=True)
         os.makedirs('csvkeys', exist_ok=True)
         os.makedirs('users', exist_ok=True)
         os.makedirs('inifs', exist_ok=True)
         os.makedirs('sshkeys', exist_ok=True)
+        self.resyncLocalFiles()
 
         self.ddb = self.conn.resource('dynamodb', region_name='eu-west-2')
         try:
             self.stationdetails = loadLocationDetails(ddb=self.ddb)
         except Exception:
-            print('unable to get operator details - probably wrong AWS profile')
+            log.info('unable to get operator details - probably wrong AWS profile')
             exit(1)
         tmpdf = self.stationdetails[['site','stationid','direction','camtype','active','humanName','eMail','oldcode','created']]
         tmpdf = tmpdf.sort_values(by=['active','site','stationid'], ascending=[True,True,True])
@@ -267,7 +412,6 @@ class CamMaintenance(Frame):
         self.sheet.display_columns(indexes = indexes, enable = True, refresh = True)
 
     def all_extra_bindings(self, event):
-        #print(event)
         pass
 
     def begin_edit_cell(self, event):
@@ -275,7 +419,7 @@ class CamMaintenance(Frame):
         return self.oldval
 
     def end_edit_cell(self, event):
-        #print(event)
+        #log.info(event)
         if event[3] != self.oldval: 
             data = self.data[event[0]]
             data[event[1]] = event[3]
@@ -286,70 +430,61 @@ class CamMaintenance(Frame):
         return event[3]
     
     def end_delete_rows(self, event):
-        #print(event)
         pass
 
     def window_resized(self, event):
-        #print(event)
         pass
 
     def mouse_motion(self, event):
         pass
 
     def deselect(self, event):
-        print(event, self.sheet.get_selected_cells())
+        log.info(f'{event} {self.sheet.get_selected_cells()}')
 
     def rc(self, event):
-        print(event)
+        log.info(event)
         
     def cell_select(self, response):
-        #print(response)
         pass
 
     def shift_select_cells(self, response):
-        #print(response)
         pass
 
     def drag_select_cells(self, response):
-        #print (response)
         pass
 
     def ctrl_a(self, response):
-        #print(response)
         pass
 
     def row_select(self, response):
-        #print(response)
         pass
 
     def shift_select_rows(self, response):
-        print(response)
+        log.info(response)
 
     def drag_select_rows(self, response):
         pass
-        #print(response)
 
     def columns_sort(self):
         cursel = self.sheet.get_selected_cells()
         col = list(cursel)[0][1]
-        print(self.hdrs[col])
+        log.info(self.hdrs[col])
         pass
         
     def column_select(self, response):
         pass
 
     def shift_select_columns(self, response):
-        #print(response)
         pass 
 
     def drag_select_columns(self, response):
-        #print(response)
         pass
     
     def on_closing(self):
         outdir = 'stationdetails'
         os.makedirs(outdir, exist_ok=True)
         dumpCamTable(outdir=outdir, statdets=self.stationdetails, exportmindets=False)
+        log.info('quitting')
         self.destroy()
         self.parent.quit()
         self.parent.destroy()
@@ -400,7 +535,7 @@ class CamMaintenance(Frame):
         user = curdata[5]
         email = curdata[6]
         if move is True:
-            sshkey = getSSHkey(curdata[0], curdata[2])
+            sshkey = self.getSSHkey(curdata[0], curdata[2])
             id = curdata[1]
             title = 'Move Camera'
             oldloc = curdata[0].lower() + '_' + curdata[2].lower()
@@ -422,16 +557,17 @@ class CamMaintenance(Frame):
             rowdata=[d[1],d[0],d[2],'2','1',d[3],d[4],d[0]]
             self.sheet.insert_row(values=rowdata, idx=0)
             self.addNewAwsUser(location)
-            createIniFile(cameraname)
-            addNewUnixUser(location, cameraname, oldloc)
+            self.createIniFile(cameraname)
+            self.addNewUnixUser(location, cameraname, oldloc)
             self.addNewOwner(rmsid, location, str(d[3]), str(d[4]), str(d[2]), '2','1', created)
+            log.info('done')
         return 
 
     def newSSHKey(self):
         cursel = self.sheet.get_selected_cells()
         cr = list(cursel)[0][0]
         curdata = self.data[cr]
-        user,email = getUserDetails(self.stationdetails, curdata[1])
+        user,email = self.getUserDetails(self.stationdetails, curdata[1])
         sshkey = ''
         id = ''
         title = 'Update SSH Key'
@@ -442,7 +578,7 @@ class CamMaintenance(Frame):
             cameraname = d[1].lower() + '_' + d[2].lower()
             with open(os.path.join('sshkeys', cameraname + '.pub'), 'w') as outf:
                 outf.write(d[5])
-            addNewUnixUser(location, cameraname, updatemode=2)
+            self.addNewUnixUser(location, cameraname, updatemode=2)
             self.datachanged = True
         return 
     
@@ -450,25 +586,27 @@ class CamMaintenance(Frame):
         cursel = self.sheet.get_selected_cells()
         cr = list(cursel)[0][0]
         curdata = self.data[cr]
-        ppdir = os.getenv('PLATEPARDIR', default='f:/videos/meteorcam/platepars')
+        ppdir = self.cfg['helper']['platepardir'] 
         ppdir = os.path.join(ppdir, curdata[1])
         os.makedirs(ppdir, exist_ok=True)
         ppfile = 'platepar_cmn2010.cal'
         site = curdata[0].capitalize()
         camid = curdata[1].upper()
 
-        server=os.getenv('HELPERIP', default='3.11.55.160')
+        server = self.cfg['helper']['helperip'] 
         user='ec2-user'
-        keyfile = os.getenv('SSHKEY', default='ukmda_admmin')
-        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
+        keyfile = self.cfg['helper']['sshkey']
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
         c = paramiko.SSHClient()
         c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         c.connect(hostname = server, username = user, pkey = k)
         scpcli = SCPClient(c.get_transport())
-        remotedir = os.getenv('REMOTEDIR', default='/home/ec2-user/prod/data')
+        remotedir = self.cfg['helper']['remotedir'] 
         remotef=f'{remotedir}/consolidated/platepars/{camid}.json'
         localf = os.path.join(ppdir, ppfile)
         scpcli.get(remotef, localf)
+        scpcli.close()
+        c.close()
 
         s3 = boto3.client('s3')
         res = s3.list_objects_v2(Bucket=self.bucket_name, Prefix=f'archive/{site}/{camid}/2023/202312/')
@@ -491,7 +629,7 @@ class CamMaintenance(Frame):
         cursel = self.sheet.get_selected_cells()
         cr = list(cursel)[0][0]
         curdata = self.data[cr]
-        ppdir = os.getenv('PLATEPARDIR', default='f:/videos/meteorcam/platepars')
+        ppdir =self.cfg['helper']['platepardir'] 
         ppdir = os.path.join(ppdir, curdata[1])
         ppfile = 'platepar_cmn2010.cal'
         plate = ''
@@ -499,7 +637,37 @@ class CamMaintenance(Frame):
         plate = askopenfilename(title=title, defaultextension='*.cal',initialdir=ppdir, initialfile=ppfile)
         if plate:
             self.uploadPlatepar(curdata, plate)
-        print(plate)
+        log.info(plate)
+        return 
+    
+    def resyncLocalFiles(self):
+        server = self.cfg['helper']['helperip'] 
+        user='ec2-user'
+        keyfile = self.cfg['helper']['sshkey'] 
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = user, pkey = k)
+        scpcli = c.open_sftp()
+        for fldr in ['csvkeys','inifs','keys','sshkeys']:
+            targdir = f'/home/{user}/keymgmt/{fldr}'
+            flist = scpcli.listdir_attr(targdir)
+            for fil in flist:
+                copyme = True
+                fname = fil.filename
+                localfname = os.path.join(fldr, fname)
+                if os.path.isfile(localfname):
+                    mtime = os.path.getmtime(localfname)
+                    if fil.st_mtime - mtime > 1:
+                        copyme = True
+                    else:
+                        copyme = False
+                if copyme:
+                    scpcli.get(f'{targdir}/{fname}', localfname)
+                    print(f'Updated {fname}')
+        scpcli.close()
+        c.close()
+
         return 
 
     def newAWSKey(self):
@@ -510,42 +678,44 @@ class CamMaintenance(Frame):
         self.createNewAwsKey(location, self.stationdetails)
 
     def uploadPlatepar(self, camdets, plateparfile):
-        server=os.getenv('HELPERIP', default='3.11.55.160')
+        server = self.cfg['helper']['helperip'] 
         user='ec2-user'
         uplfile = f'/tmp/platepar_cmn2010_{camdets[1]}.cal'
         camname = f'{camdets[0]}_{camdets[3]}'.lower()
-        keyfile = os.getenv('SSHKEY', default='ukmda_admin')
-        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
+        keyfile = self.cfg['helper']['sshkey'] 
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
         c = paramiko.SSHClient()
         c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         c.connect(hostname = server, username = user, pkey = k)
         scpcli = SCPClient(c.get_transport())
         scpcli.put(plateparfile, uplfile)
         command = f'sudo mkdir -p /var/sftp/{camname}/platepar/ && sudo chown {camname}:{camname} /var/sftp/{camname}/platepar'
-        print(f'running {command}')
+        log.info(f'running {command}')
         _, stdout, stderr = c.exec_command(command, timeout=10)
         for line in iter(stdout.readline, ""):
-            print(line, end="")
+            log.info(line, end="")
         for line in iter(stderr.readline, ""):
-            print(line, end="")
+            log.info(line, end="")
         command = f'sudo mv {uplfile} /var/sftp/{camname}/platepar/platepar_cmn2010.cal'
-        print(f'running {command}')
+        log.info(f'running {command}')
         _, stdout, stderr = c.exec_command(command, timeout=10)
         for line in iter(stdout.readline, ""):
-            print(line, end="")
+            log.info(line, end="")
         for line in iter(stderr.readline, ""):
-            print(line, end="")
+            log.info(line, end="")
         command = f'sudo chown {camname}:{camname} /var/sftp/{camname}/platepar/platepar_cmn2010.cal'
-        print(f'running {command}')
+        log.info(f'running {command}')
         _, stdout, stderr = c.exec_command(command, timeout=10)
         for line in iter(stdout.readline, ""):
-            print(line, end="")
+            log.info(line, end="")
         for line in iter(stderr.readline, ""):
-            print(line, end="")
+            log.info(line, end="")
+        scpcli.close()
+        c.close()
         return
     
     def addNewOwner(self, rmsid, location, user, email, direction, camtype, active, created):
-        print(f'adding new owner {user} with {email} for {rmsid} at {location}')
+        log.info(f'adding new owner {user} with {email} for {rmsid} at {location}')
         newdata = {'stationid': rmsid, 'site': location, 'humanName':user, 'eMail': email, 
                    'direction': direction, 'camtype': camtype, 'active': int(active), 'oldcode': rmsid, 
                    'created': created}
@@ -553,7 +723,7 @@ class CamMaintenance(Frame):
         return
 
     def addNewAwsUser(self, location):
-        print(f'adding new location {location} to AWS')
+        log.info(f'adding new location {location} to AWS')
         archkeyf = 'jsonkeys/' + location + '_arch.key'
         archuserdets = 'users/' + location + '_arch.txt'
         archcsvf = os.path.join('csvkeys', location.lower() + '_arch.csv')
@@ -564,10 +734,10 @@ class CamMaintenance(Frame):
         iamc = self.conn.client('iam')
         try: 
             _ = iamc.get_user(UserName=location)
-            print('location exists, not adding it')
+            log.info('location exists, not adding it')
             archkey = None
         except Exception:
-            print('new location')
+            log.info('new location')
             usr = iamc.create_user(UserName=location)
             with open(archuserdets, 'w') as outf:
                 outf.write(str(usr))
@@ -579,164 +749,198 @@ class CamMaintenance(Frame):
                 outf.write('{},{}\n'.format(archkey['AccessKey']['AccessKeyId'], archkey['AccessKey']['SecretAccessKey']))
         _ = iamc.add_user_to_group(GroupName='cameras', UserName=location)
         if archkey is not None: 
-            createKeyFile(archkey, location)
+            self.createKeyFile(location)
         return 
 
     def createNewAwsKey(self, location, caminfo):
-        server=os.getenv('HELPERIP', default='3.11.55.160')
+        server = self.cfg['helper']['helperip'] 
         user='ec2-user'
-        keyfile = os.getenv('SSHKEY', default='ukmda_admin')
-        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
+        keyfile = self.cfg['helper']['sshkey'] 
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
         c = paramiko.SSHClient()
         c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         c.connect(hostname = server, username = user, pkey = k)
         command = f'/home/{user}/keymgmt/updateAwsKey.sh {location} force'
-        print(f'running {command}')
+        log.info(f'running {command}')
         _, stdout, stderr = c.exec_command(command, timeout=10)
         for line in iter(stdout.readline, ""):
-            print(line, end="")
+            log.info(line, end="")
         for line in iter(stderr.readline, ""):
-            print(line, end="")
-        print('done')
+            log.info(line, end="")
+        log.info('done')
         c.close()
         return 
 
 
-def updateKeyfile(caminfo, location):
-    server=os.getenv('HELPERIP', default='3.11.55.160')
-    user='ec2-user'
-    keyf = os.path.join('jsonkeys', location + '.key')
-    currkey = json.load(open(keyf, 'r'))
-    archcsvf = os.path.join('csvkeys', location.lower() + '_arch.csv')
-    with open(archcsvf,'w') as outf:
-        outf.write('Access key ID,Secret access key\n')
-        outf.write('{},{}\n'.format(currkey['AccessKey']['AccessKeyId'], currkey['AccessKey']['SecretAccessKey']))
+    def updateKeyfile(self, caminfo, location):
+        server = self.cfg['helper']['platepardir']
+        user='ec2-user'
+        keyf = os.path.join('jsonkeys', location + '.key')
+        currkey = json.load(open(keyf, 'r'))
+        archcsvf = os.path.join('csvkeys', location.lower() + '_arch.csv')
+        with open(archcsvf,'w') as outf:
+            outf.write('Access key ID,Secret access key\n')
+            outf.write('{},{}\n'.format(currkey['AccessKey']['AccessKeyId'], currkey['AccessKey']['SecretAccessKey']))
 
-    affectedcamlist = caminfo[caminfo.site==location]
-    keyfile = os.getenv('SSHKEY', default='ukmda_admin')
-    k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
-    c = paramiko.SSHClient()
-    c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    c.connect(hostname = server, username = user, pkey = k)
-    scpcli = SCPClient(c.get_transport())
-    # push the raw keyfile
-    scpcli.put(keyf, 'keymgmt/rawkeys/live/')
-    scpcli.put(archcsvf, 'keymgmt/rawkeys/csvkeys/')
-    scpcli.close()
-    for _, cam in affectedcamlist.iterrows():
-        cameraname = cam.site.lower() + '_' + cam.site.lower()
-        keyfile = os.path.join('sshkeys', cameraname + '.pub')
+        affectedcamlist = caminfo[caminfo.site==location]
+        keyfile = self.cfg['helper']['sshkey']
         k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
         c = paramiko.SSHClient()
         c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        c.connect(hostname = server, username = cameraname, pkey = k)
-        scpcli = SCPClient(c.get_transport())
-        scpcli.put(archcsvf, '.')
-
-
-def getSSHkey(loc, dir):
-    server=os.getenv('HELPERIP', default='3.11.55.160')
-    user='ec2-user'
-    tmpdir=os.getenv('TEMP', default='c:/temp')
-    cameraname = (loc + '_' + dir).lower()
-    keyfile = os.getenv('SSHKEY', default='ukmda_admin')
-    k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
-    c = paramiko.SSHClient()
-    c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    c.connect(hostname = server, username = user, pkey = k)
-    scpcli = SCPClient(c.get_transport())
-    tmpfil = os.path.join(tmpdir,'./tmp.txt')
-    # dont use os.path.join - source is on unix we are on windows!
-    scpcli.get(f'keymgmt/sshkeys/{cameraname}.pub', tmpfil)
-
-    with open(tmpfil, 'r') as inf:
-        lis = inf.readlines()
-    #os.remove('./tmp.txt')
-    return lis[0].strip()
-
-
-def getUserDetails(stationdetails, camid):
-    reqdf = stationdetails[stationdetails.stationid == camid]
-    if len(reqdf) == 0:
-        return '',''
-    return reqdf.eMail.iloc[0], reqdf.humanName.iloc[0]
-
-
-def addNewUnixUser(location, cameraname, oldcamname='', updatemode=0):
-    server=os.getenv('HELPERIP', default='3.11.55.160')
-    user='ec2-user'
-    print(f'adding new Unix user {cameraname}')
-    keyfile = os.getenv('SSHKEY', default='ukmda_admin')
-    k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(f'~/.ssh/{keyfile}'))
-    c = paramiko.SSHClient()
-    c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    try:
         c.connect(hostname = server, username = user, pkey = k)
-    except Exception:
-        c.connect(hostname = server+'.', username = user, pkey = k)
-    scpcli = SCPClient(c.get_transport())
-    scpcli.put(os.path.join('sshkeys', cameraname + '.pub'), 'keymgmt/sshkeys/')
-    scpcli.put(os.path.join('keys', location.lower() + '.key'), 'keymgmt/keys/')
-    scpcli.put(os.path.join('csvkeys', location.lower() + '_arch.csv'), 'keymgmt/csvkeys/')
-    scpcli.put(os.path.join('inifs', cameraname + '.ini'), 'keymgmt/inifs/')
-    command = f'/home/{user}/keymgmt/addSftpUser.sh {cameraname} {location} {updatemode} {oldcamname}'
-    print(f'running {command}')
-    _, stdout, stderr = c.exec_command(command, timeout=10)
-    for line in iter(stdout.readline, ""):
-        print(line, end="")
-    for line in iter(stderr.readline, ""):
-        print(line, end="")
+        scpcli = SCPClient(c.get_transport())
+        # push the raw keyfile
+        scpcli.put(keyf, 'keymgmt/rawkeys/live/')
+        scpcli.put(archcsvf, 'keymgmt/rawkeys/csvkeys/')
+        scpcli.close()
+        c.close()
+        for _, cam in affectedcamlist.iterrows():
+            cameraname = cam.site.lower() + '_' + cam.site.lower()
+            keyfile = os.path.join('sshkeys', cameraname + '.pub')
+            k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
+            c = paramiko.SSHClient()
+            c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            c.connect(hostname = server, username = cameraname, pkey = k)
+            scpcli = SCPClient(c.get_transport())
+            scpcli.put(archcsvf, '.')
+            scpcli.close()
+            c.close()
 
-    print('done, collecting output')
-    infname = os.path.join('keymgmt/inifs/',cameraname + '.ini')
-    outfname = os.path.join('./inifs', cameraname + '.ini')
-    while os.path.isfile(outfname) is False:
+
+    def getSSHkey(self, loc, dir):
+        server= self.cfg['helper']['helperip'] 
+        user='ec2-user'
+        tmpdir=os.getenv('TEMP', default='c:/temp')
+        cameraname = (loc + '_' + dir).lower()
+        keyfile = self.cfg['helper']['sshkey']
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = user, pkey = k)
+        scpcli = SCPClient(c.get_transport())
+        tmpfil = os.path.join(tmpdir,'./tmp.txt')
+        # dont use os.path.join - source is on unix we are on windows!
+        scpcli.get(f'keymgmt/sshkeys/{cameraname}.pub', tmpfil)
+        scpcli.close()
+        c.close()
+
+        with open(tmpfil, 'r') as inf:
+            lis = inf.readlines()
+        #os.remove('./tmp.txt')
+        return lis[0].strip()
+
+
+    def getUserDetails(self, stationdetails, camid):
+        reqdf = stationdetails[stationdetails.stationid == camid]
+        if len(reqdf) == 0:
+            return '',''
+        return reqdf.eMail.iloc[0], reqdf.humanName.iloc[0]
+
+
+    def addNewUnixUser(self, location, cameraname, oldcamname='', updatemode=0):
+        server = self.cfg['helper']['helperip'] 
+        user='ec2-user'
+        log.info(f'adding new Unix user {cameraname}')
+        keyfile = self.cfg['helper']['sshkey'] 
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
-            time.sleep(3)
-            scpcli.get(infname, outfname)
+            c.connect(hostname = server, username = user, pkey = k)
         except Exception:
-            continue
-    return
+            c.connect(hostname = server+'.', username = user, pkey = k)
+        scpcli = SCPClient(c.get_transport())
+        scpcli.put(os.path.join('sshkeys', cameraname + '.pub'), 'keymgmt/sshkeys/')
+        scpcli.put(os.path.join('keys', location.lower() + '.key'), 'keymgmt/keys/')
+        scpcli.put(os.path.join('csvkeys', location + '.csv'), 'keymgmt/csvkeys/')
+        scpcli.put(os.path.join('inifs', cameraname + '.ini'), 'keymgmt/inifs/')
+        command = f'/home/{user}/keymgmt/addSftpUser.sh {cameraname} {location} {updatemode} {oldcamname}'
+        log.info(f'running {command}')
+        _, stdout, stderr = c.exec_command(command, timeout=60)
+        for line in iter(stdout.readline, ""):
+            log.info(line)
+        for line in iter(stderr.readline, ""):
+            log.info(line)
+
+        log.info('done, collecting output')
+        infname = os.path.join('keymgmt/inifs/',cameraname + '.ini')
+        outfname = os.path.join('./inifs', cameraname + '.ini')
+        while os.path.isfile(outfname) is False:
+            try:
+                time.sleep(3)
+                scpcli.get(infname, outfname)
+            except Exception:
+                continue
+        scpcli.close()
+        c.close()
+        return
 
 
-def createKeyFile(archkey, location):
-    archbucket = os.getenv('SRCBUCKET', default='ukmda-shared')
-    livebucket = os.getenv('LIVEBUCKET', default='ukmda-live')
-    webbucket = os.getenv('WEBSITEBUCKET', default='ukmda-website')
+    def createKeyFile(self, location):
+        archbucket = self.cfg['store']['srcbucket'] 
+        livebucket = self.cfg['store']['livebucket'] 
+        webbucket = self.cfg['store']['websitebucket'] 
 
-    os.makedirs('keys', exist_ok=True)
-    outf = 'keys/' + location.lower() + '.key'
-    with open(outf, 'w') as ouf:
-        ouf.write('export AWS_DEFAULT_REGION=eu-west-1\n')
-        ouf.write(f'export CAMLOC="{location}"\n')
-        ouf.write(f'export S3FOLDER="archive/{location}/"\n')
-        ouf.write(f'export ARCHBUCKET={archbucket}\n')
-        ouf.write(f'export LIVEBUCKET={livebucket}\n')
-        ouf.write(f'export WEBBUCKET={webbucket}\n')
-        ouf.write('export ARCHREGION=eu-west-2\n')
-        ouf.write('export LIVEREGION=eu-west-1\n')
-        ouf.write('export MATCHDIR=matches/RMSCorrelate\n')
-    return 
+        os.makedirs('keys', exist_ok=True)
+        outf = 'keys/' + location.lower() + '.key'
+        with open(outf, 'w') as ouf:
+            ouf.write('export AWS_DEFAULT_REGION=eu-west-1\n')
+            ouf.write(f'export CAMLOC="{location}"\n')
+            ouf.write(f'export S3FOLDER="archive/{location}/"\n')
+            ouf.write(f'export ARCHBUCKET={archbucket}\n')
+            ouf.write(f'export LIVEBUCKET={livebucket}\n')
+            ouf.write(f'export WEBBUCKET={webbucket}\n')
+            ouf.write('export ARCHREGION=eu-west-2\n')
+            ouf.write('export LIVEREGION=eu-west-1\n')
+            ouf.write('export MATCHDIR=matches/RMSCorrelate\n')
+        return 
 
 
-def createIniFile(cameraname):
-    helperip = os.getenv('HELPERIP', default='3.11.55.160')
-    os.makedirs('inifs', exist_ok=True)
-    outf = 'inifs/' + cameraname + '.ini'
-    with open(outf, 'w') as outf:
-        outf.write('# config data for this station\n')
-        outf.write(f'export LOCATION={cameraname}\n')
-        outf.write(f'export UKMONHELPER={helperip}\n')
-        outf.write('export UKMONKEY=~/.ssh/ukmon\n')
-        outf.write('export RMSCFG=~/source/RMS/.config\n')
-    return 
+    def createIniFile(self, cameraname):
+        helperip = self.cfg['helper']['helperip'] 
+        os.makedirs('inifs', exist_ok=True)
+        outf = 'inifs/' + cameraname + '.ini'
+        with open(outf, 'w') as outf:
+            outf.write('# config data for this station\n')
+            outf.write(f'export LOCATION={cameraname}\n')
+            outf.write(f'export UKMONHELPER={helperip}\n')
+            outf.write('export UKMONKEY=~/.ssh/ukmon\n')
+            outf.write('export RMSCFG=~/source/RMS/.config\n')
+        return 
+
+
+def log_timestamp():
+    """ Returns timestamp for logging.
+    """
+    return datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
 
 if __name__ == '__main__':
     # Initialize main window
-    dir_ = os.path.dirname(os.path.realpath(__file__))
+    dir_ = os.getcwd() #os.path.dirname(os.path.realpath(__file__))
+
+    log.setLevel(logging.INFO)
+
+    os.makedirs(os.path.join(dir_, 'logs'), exist_ok=True)
+    log_file = os.path.join(dir_, 'logs', log_timestamp() + '.log')
+    handler = logging.handlers.TimedRotatingFileHandler(log_file, when='D', interval=1)  # Log to a different file each day
+    handler.setLevel(logging.INFO)
+
+    formatter = logging.Formatter(fmt='%(asctime)s-%(levelname)s-%(module)s-line:%(lineno)d - %(message)s', datefmt='%Y/%m/%d %H:%M:%S')
+    handler.setFormatter(formatter)
+    log.addHandler(handler)
+
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(fmt='%(asctime)s-%(levelname)s: %(message)s', datefmt='%Y/%m/%d %H:%M:%S')
+    ch.setFormatter(formatter)
+    log.addHandler(ch)
+
+    # Log program start
+    log.info("Program start")
+
     root = tk.Tk()
-    app = CamMaintenance(root)
+    app = CamMaintenance(root, dir_)
     root.iconbitmap(os.path.join(dir_,'camera.ico'))
     root.protocol("WM_DELETE_WINDOW", app.on_closing)
     app.mainloop()

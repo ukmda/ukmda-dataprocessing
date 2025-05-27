@@ -28,7 +28,8 @@ create table singles(
     AngVel float,
     Shwr varchar(6),
     filname varchar(64),
-    Dtstamp double(18,6));
+    Dtstamp double(18,6)),
+    status varchar(3);
 
 alter ignore table ukmon.singles add unique uniq_Dtstamp (Dtstamp);
 

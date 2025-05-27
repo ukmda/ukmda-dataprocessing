@@ -96,7 +96,7 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
     for obs in traj.observations:
         LD21 = max(max(obs.length), LD21)
         omag = min(min(obs.magnitudes), omag)
-        dur = max(max(obs.time_data) - min(obs.time_data), dur)
+        dur = max(max(obs.time_data), dur)
         totsamp += len(obs.magnitudes)
     LD21 /= 1000
     leap = (totsamp - nO) / totsamp * 100.0

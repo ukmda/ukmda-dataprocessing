@@ -15,13 +15,17 @@ import datetime
 import json
 
 from wmpl.Utils.TrajConversions import jd2Date
-from meteortools.utils import sollon2jd
+try:
+    from meteortools.utils import sollon2jd
+    from traj.ShowerAssociation import associateShower
+except:
+    pass
 from wmpl.Utils.Math import mergeClosePoints, angleBetweenSphericalCoords
 from wmpl.Utils.Physics import calcMass
 from wmpl.Utils.Pickling import loadPickle
 from wmpl.Config import config
-from traj.ShowerAssociation import associateShower
 from wmpl.Utils.Earth import greatCircleDistance
+from wmpl.Trajectory.AggregateAndPlot import loadTrajectoryPickles
 
 
 def getVMagCodeAndStations(picklename):
@@ -152,7 +156,7 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
     for obs in traj.observations:
         LD21 = max(max(obs.length), LD21)
         omag = min(min(obs.magnitudes), omag)
-        dur = max(max(obs.time_data) - min(obs.time_data), dur)
+        dur = max(max(obs.time_data), dur)
         totsamp += len(obs.magnitudes)
     LD21 /= 1000
     leap = (totsamp - nO) / totsamp * 100.0
@@ -557,3 +561,49 @@ def createAdditionalOutput(traj, outdir):
         print('no orbit object')
 
     return 
+
+
+def getListOfImages(picklename):
+    try:
+        traj = loadPickle(*os.path.split(picklename))
+    except Exception:
+        print('no picklefile', picklename)
+        return []
+    imglist = []
+    for obs in traj.observations:
+        if obs.comment is not None:
+            try:
+                com = json.loads(obs.comment)
+                imglist.append(com['ff_name'])
+            except Exception: 
+                pass
+    return imglist
+
+
+class TrajQualityParams(object):
+    def __init__(self):
+        self. min_traj_points = 6
+        self. min_qc = 5.0
+        self. max_e = 1.5
+        self. max_radiant_err = 2.0
+        self. max_vg_err = 10.0
+        self. max_begin_ht = 160
+        self. min_end_ht = 20
+
+
+def getAllImages(dir_path, out_path):
+    traj_quality_params = TrajQualityParams()
+    trajs = loadTrajectoryPickles(dir_path, traj_quality_params, verbose=True)
+    imglist = []
+    for traj in trajs:
+        for obs in traj.observations:
+            if obs.comment is not None:
+                try:
+                    com = json.loads(obs.comment)
+                    imglist.append(com['ff_name'])
+                except Exception: 
+                    pass
+    outfname = os.path.split(dir_path)[1]
+    with open(os.path.join(out_path, f'consumed_{outfname}.txt'), 'w') as outf:
+        for img in imglist:
+            outf.write(f'{img}\n')

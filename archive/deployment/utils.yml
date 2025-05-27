@@ -1,0 +1,41 @@
+---
+- hosts: "{{host | default ('ukmonhelper2')}}"
+  vars:
+    srcdir: /mnt/e/dev/meteorhunting/ukmda-dataprocessing/archive
+  tasks:
+  - name: import dev variables 
+    include_vars: ./dev-vars.yml
+    tags: dev
+  - name: import prod variables
+    include_vars: ./prod-vars.yml
+    tags: prod
+  - name: Ensures {{destdir}}/utils exists
+    file: path={{destdir}}/utils state=directory  
+    tags: [dev,prod]
+  - name: Copy files
+    copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
+    tags: [dev,prod]
+    with_items:
+    - {src: '{{srcdir}}/utils/calcserver/clearSpace.sh', dest: '{{destdir}}/utils/calcserver', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/cftpd_templ.json', dest: '{{destdir}}/utils', mode: '644', backup: no }
+    - {src: '{{srcdir}}/utils/checkAndRollKeys.sh', dest: '{{destdir}}/utils', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/clearCaches.sh', dest: '{{destdir}}/utils', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/clearSpace.sh', dest: '{{destdir}}/utils', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/createTestDataSet.sh', dest: '{{destdir}}/utils', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/deleteOrbit.sh', dest: '{{destdir}}/utils', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/getCostMetrics.sh', dest: '{{destdir}}/utils', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/liveevent.template', dest: '{{destdir}}/utils', mode: '644', backup: no }
+    - {src: '{{srcdir}}/utils/loadMatchCsvMDB.sh', dest: '{{destdir}}/utils', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/loadSingleCsvMDB.sh', dest: '{{destdir}}/utils', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/makeConfig.sh', dest: '{{destdir}}/utils', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/monthlyCleardown.sh', dest: '{{destdir}}/utils', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/rerunFTPtoUKMONlambda.sh', dest: '{{destdir}}/utils', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/rerunGetExtraFiles.sh', dest: '{{destdir}}/utils', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/ses-msg-templ.json', dest: '{{destdir}}/utils', mode: '644', backup: no }
+    - {src: '{{srcdir}}/utils/statsToMqtt.sh', dest: '{{destdir}}/utils', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/stopstart-calcengine.sh', dest: '{{destdir}}/utils', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/updateDb.sh', dest: '{{destdir}}/utils', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/updateFireballFlag.sh', dest: '{{destdir}}/utils', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/updateFireballImage.sh', dest: '{{destdir}}/utils', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/userAudit.sh', dest: '{{destdir}}/utils', mode: '754', backup: no }
+    - {src: '{{srcdir}}/utils/README.md', dest: '{{destdir}}/utils', mode: '644', backup: no }

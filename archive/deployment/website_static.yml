@@ -1,0 +1,41 @@
+---
+- hosts: "{{host | default ('ukmonhelper2')}}"
+  vars:
+    srcdir: /mnt/e/dev/meteorhunting/ukmda-dataprocessing/archive
+  tasks:
+  - name: import dev variables 
+    include_vars: ./dev-vars.yml
+    tags: dev
+  - name: import prod variables
+    include_vars: ./prod-vars.yml
+    tags: prod
+  - name: Ensures {{destdir}}/static_content exists
+    file: path={{destdir}}/static_content state=directory  
+    tags: [dev,prod]
+  - name: Copy files
+    copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
+    tags: [dev,prod]
+    with_items:
+    - {src: '{{srcdir}}/static_content/browse/', dest: '{{destdir}}/static_content/browse', mode: '754', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/static_content/css/', dest: '{{destdir}}/static_content/css', mode: '754', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/static_content/data/', dest: '{{destdir}}/static_content/data', mode: '754', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/static_content/docs/', dest: '{{destdir}}/static_content/docs', mode: '754', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/static_content/fonts/', dest: '{{destdir}}/static_content/fonts', mode: '754', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/static_content/img/', dest: '{{destdir}}/static_content/img', mode: '754', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/static_content/js/', dest: '{{destdir}}/static_content/js', mode: '754', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/static_content/latest/', dest: '{{destdir}}/static_content/latest', mode: '754', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/static_content/live/', dest: '{{destdir}}/static_content/live', mode: '754', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/static_content/reports/', dest: '{{destdir}}/static_content/reports', mode: '754', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/static_content/search/', dest: '{{destdir}}/static_content/search', mode: '754', backup: no, directory_mode: yes }
+    - {src: '{{srcdir}}/static_content/templates/', dest: '{{destdir}}/static_content/templates', mode: '754', backup: no, directory_mode: yes }
+
+    - {src: '{{srcdir}}/static_content/favicon.ico', dest: '{{destdir}}/static_content', mode: '644', backup: no }
+    - {src: '{{srcdir}}/static_content/fundraising.html', dest: '{{destdir}}/static_content', mode: '644', backup: no }
+    - {src: '{{srcdir}}/static_content/privacy_data.html', dest: '{{destdir}}/static_content', mode: '644', backup: no }
+    - {src: '{{srcdir}}/static_content/README.md', dest: '{{destdir}}/static_content', mode: '644', backup: no }
+    - {src: '{{srcdir}}/static_content/robots.txt', dest: '{{destdir}}/static_content', mode: '644', backup: no }
+
+
+  #- name: Update Static Content on the S3 website bucket
+  #  shell: '{{destdir}}/website/pushStatic.sh {{env}}'
+  #  tags: [dev,prod]

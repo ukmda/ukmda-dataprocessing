@@ -7,7 +7,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: searchArchive.lambda_handler
-      Runtime: python3.8
+      Runtime: python3.11
       FunctionName: searchArchive
       Policies: AmazonS3ReadOnlyAccess
       Timeout: 60
@@ -29,4 +29,4 @@ Resources:
       Tags:
         billingtag: "ukmda"
     Metadata:
-      BuildMethod: python3.8
+      BuildMethod: python3.11
