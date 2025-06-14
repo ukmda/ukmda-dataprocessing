@@ -1,7 +1,9 @@
 ---
 - hosts: "{{host | default ('ukmonhelper2')}}"
+  vars_files: 
+    - /mnt/c/Users/{{ lookup('env','USER' )}}/apikeys/mqvariables.enc
   vars:
-    srcdir: /mnt/e/dev/meteorhunting/ukmda-dataprocessing/archive
+    srcdir: "/mnt/c/Users/{{ lookup('env','USER' )}}/OneDrive/dev/ukmda-dataprocessing/archive"
   tasks:
   - name: import dev variables 
     include_vars: ./dev-vars.yml
@@ -18,7 +20,7 @@
     with_items:
     - {src: '{{srcdir}}/static_content/browse/', dest: '{{destdir}}/static_content/browse', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/static_content/css/', dest: '{{destdir}}/static_content/css', mode: '754', backup: no, directory_mode: yes }
-    - {src: '{{srcdir}}/static_content/data/', dest: '{{destdir}}/static_content/data', mode: '754', backup: no, directory_mode: yes }
+    #- {src: '{{srcdir}}/static_content/data/', dest: '{{destdir}}/static_content/data', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/static_content/docs/', dest: '{{destdir}}/static_content/docs', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/static_content/fonts/', dest: '{{destdir}}/static_content/fonts', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/static_content/img/', dest: '{{destdir}}/static_content/img', mode: '754', backup: no, directory_mode: yes }

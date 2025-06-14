@@ -1,7 +1,9 @@
 ---
 - hosts: "{{host | default ('ukmonhelper2')}}"
+  vars_files: 
+    - /mnt/c/Users/{{ lookup('env','USER' )}}/apikeys/mqvariables.enc
   vars:
-    srcdir: /mnt/e/dev/meteorhunting/ukmda-dataprocessing/usermgmt/server
+    srcdir: "/mnt/c/Users/{{ lookup('env','USER' )}}/OneDrive/dev/ukmda-dataprocessing/usermgmt/server"
   tasks:
   - name: import dev variables 
     include_vars: ./dev-vars.yml
