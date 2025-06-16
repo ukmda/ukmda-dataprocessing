@@ -302,6 +302,7 @@ class CamMaintenance(Frame):
         self.bucket_name = self.cfg['store']['srcbucket'] 
 
         os.makedirs('keys', exist_ok=True)
+        os.makedirs('jsonkeys', exist_ok=True)
         os.makedirs('csvkeys', exist_ok=True)
         os.makedirs('users', exist_ok=True)
         os.makedirs('inifs', exist_ok=True)
