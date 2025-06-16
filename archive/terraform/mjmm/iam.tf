@@ -71,6 +71,14 @@ resource "aws_iam_policy" "pol4s3fullaccess" {
           ]
         },
         {
+            Action = [
+                "iam:GetCredentialReport",
+                "iam:GenerateCredentialReport"
+            ]
+            Effect =  "Allow"
+            Resource = [ "*" ]
+        },
+        {
           Sid      = "PassRolePermission"
           Effect   = "Allow"
           Action   = [

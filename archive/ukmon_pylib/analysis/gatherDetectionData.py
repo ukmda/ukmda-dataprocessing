@@ -6,6 +6,7 @@
 import os 
 import sys
 import datetime
+import pandas as pd
 
 from meteortools.ukmondb import getECSVs, getLiveJpgs, getFBfiles, getDetections
 
@@ -33,6 +34,21 @@ def getRawData(idlist, outpth):
         getFBfiles(f'{stat}_{dtstr}', fboutdir)
         getECSVs(stat, dt, True, fboutdir)
     return 
+
+
+def updateSingleDB(yr, consdt):
+    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')    
+    sngls = pd.read_csv(os.path.join(datadir, 'single', f'singles-{yr}.csv'))
+    consdf = pd.read_csv(os.path.join(datadir, 'single', 'used', f'consumed_{consdt}.txt'), names=['Filename'])
+    conslist = list(consdf.Filename)
+    for ff in conslist:
+        mtch = sngls.Filename == ff
+        if mtch.any():
+            print(f'updating {ff}')
+            sngls.loc[mtch, 'status'] = 'Y'
+        else:
+            print(f'skipping {ff}')
+    sngls.to_csv(os.path.join(datadir, 'single', f'singles-{yr}.csv'), index=False)
 
 
 if __name__ == '__main__':

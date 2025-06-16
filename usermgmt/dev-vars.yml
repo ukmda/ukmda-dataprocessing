@@ -1,5 +1,5 @@
-    winsrcdir: /mnt/e/dev/meteorhunting/ukmda-dataprocessing/usermgmt/windows
-    windestdir: /mnt/e/dev/meteorhunting/testing/usermgmt
+    winsrcdir: /mnt/c/Users/{{ lookup('env','USER' )}}/OneDrive/dev/ukmda-dataprocessing/usermgmt/windows
+    windestdir: /mnt/c/Users/{{ lookup('env','USER' )}}/OneDrive/dev/testing/usermgmt
     destdir: /home/ec2-user/dev/keymgmt
     srcbucket: mjmm-ukmon-shared
     livebucket: mjmm-ukmon-live

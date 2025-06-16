@@ -141,7 +141,7 @@ body {
 .sticky + .content {
     padding-top: 60px;
   }
-  
+
 .sidebar .sidebar-nav.navbar-collapse {
     padding-right: 0;
     padding-left: 0;
@@ -522,6 +522,12 @@ li > a:only-child:after { content: ''; }
     top: 10px;
     left: 10px;
     font-size: 15px;
+}
+
+@media screen and (max-width: 1100px) {
+    .sidenav {
+        display: none !important;
+   }
 }
 
 .table {

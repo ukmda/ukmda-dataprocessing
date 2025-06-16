@@ -29,6 +29,7 @@ mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
 log2cw $NJLOGGRP $NJLOGSTREAM "updating the camera location/dir/fov database" nightlyJob
 python -c "from reports.CameraDetails import updateCamLocDirFovDB; updateCamLocDirFovDB();"
 aws s3 cp $DATADIR/admin/cameraLocs.json $UKMONSHAREDBUCKET/admin/ --profile ukmonshared --quiet
+aws s3 cp $DATADIR/admin/cameraLocs.json $WEBSITEBUCKET/browse/ --profile ukmonshared --quiet
 aws s3 sync $UKMONSHAREDBUCKET/admin/ $DATADIR/admin --profile ukmonshared --quiet
 
 # create the CSV file of camera info and the html versions for search functions on the website

@@ -47,7 +47,7 @@ v3=$(cat $DATADIR/costs/costs-183798037734-last.csv)
 lastfullcost=$v3
 
 cp $TEMPLATES/header.html $costfile
-echo "<h3>Daily running costs</h3>" >> $costfile
+echo "<br><br><h3>Daily running costs</h3>" >> $costfile
 echo "<p>This page shows daily running costs by service of the Archive and Calculation Engine " >> $costfile
 echo "in USD. <br> " >> $costfile
 echo "The last complete day's cost is \$${lastfullcost}" >> $costfile

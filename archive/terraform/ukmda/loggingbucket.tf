@@ -44,7 +44,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmdalogslcp" {
     }
 
     filter {
-      prefix = "archsite/"
+      prefix = "website/"
     }
 
     noncurrent_version_expiration {
