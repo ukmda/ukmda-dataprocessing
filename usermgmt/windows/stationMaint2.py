@@ -301,6 +301,7 @@ class CamMaintenance(Frame):
         self.conn = boto3.Session(aws_access_key_id=awskeys['key'], aws_secret_access_key=awskeys['secret']) 
         self.bucket_name = self.cfg['store']['srcbucket'] 
 
+        os.makedirs('keys', exist_ok=True)
         os.makedirs('jsonkeys', exist_ok=True)
         os.makedirs('csvkeys', exist_ok=True)
         os.makedirs('users', exist_ok=True)
