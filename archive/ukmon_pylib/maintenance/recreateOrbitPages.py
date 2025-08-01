@@ -149,8 +149,12 @@ def recreateOrbitFiles(outdir, pickname, doupload=False):
         print('created additional output')
     basename = pickname[:15]
     repname = basename + '_report.txt'
-    traj.saveReport(outdir, repname, None, False)
-    traj.savePlots(outdir, basename, show_plots=False, ret_figs=False)
+    try: 
+        traj.saveReport(outdir, repname, None, False)
+        traj.savePlots(outdir, basename, show_plots=False, ret_figs=False)
+    except:
+        print('unable to process pickle properly')
+        pass
     print('created reports and figures')
     orbparent, orbfldr = os.path.split(outdir)
     yr = orbfldr[:4]
@@ -161,7 +165,12 @@ def recreateOrbitFiles(outdir, pickname, doupload=False):
     availableimages = getImgList(outdir, traj)
     createExtraJpgtxt(outdir, traj, availableimages)
     createExtraJpgHtml(outdir, orbparent, yr, ym)
-    fixupTrajComments(traj, availableimages, outdir, pickname)
+    try:
+        fixupTrajComments(traj, availableimages, outdir, pickname)
+    except:
+        print('unable to fixup traj comments')
+        pass
+    
 
     if doupload:
         files = os.listdir(outdir)
