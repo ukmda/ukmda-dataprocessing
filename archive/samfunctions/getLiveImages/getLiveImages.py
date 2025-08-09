@@ -53,7 +53,7 @@ def getTrueImgs(dtstr, dtstr2, statid, ddb=None):
     if d1.hour < 13:
         capnight=(d1 + datetime.timedelta(days=-1)).strftime('%Y%m%d')
     else:
-        capnight = dtstr[:8]
+        capnight = d1.strftime('%Y%m%d')
     lv=Decimal(f'{d1.timestamp():.0f}')
     hv=Decimal(f'{d2.timestamp():.0f}')
     resp = table.query(KeyConditionExpression=Key('CaptureNight').eq(int(capnight)) & Key('Timestamp').between(lv, hv),
