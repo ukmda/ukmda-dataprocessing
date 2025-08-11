@@ -5,7 +5,11 @@ source $here/../config.ini >/dev/null 2>&1
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 mkdir -p $DATADIR/manualuploads
-cd $DATADIR/manualuploads
+cd $DATADIR/manualuploadsif [ -f ./running ] ; then
+   echo "already running"
+   exit
+fi
+touch .running
 aws s3 sync $UKMONSHAREDBUCKET/fireballs/uploads . --exclude "*" --include "*.zip" --exclude "*.done"
 
 newfiles=$(ls -1 *.zip 2> /dev/null)
@@ -57,4 +61,5 @@ EOD
 #else
 #    echo nothing to process
 fi
+rm $DATADIR/manualuploads/.running
 find $SRC/logs -name "mergeNewOrbit*" -mtime +10 -exec rm -f {} \;
