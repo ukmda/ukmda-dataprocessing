@@ -17,7 +17,7 @@ Set-Location $Loc
 Add-Type -AssemblyName System.Windows.Forms
 
 conda activate $ini['wmpl']['wmpl_env']
-$wmplloc = $ini['wmpl']['wmpl_loc']
+$wmplloc = $ini['wmpl']['wmpl_loc'].replace('$HOME',$home)
 $env:pythonpath="$wmplloc;$env:pythonpath"
 
 write-output "Find the pickle"

@@ -5,17 +5,24 @@
 # requirements - you must clone WesternMeteorPyLib and ukmda-dataprocessing from github
 # to your local development space. I use onedrive\dev for my code - set this location in $codeloc
 
-# you also need to specify the output folder, $outdir
 
 # copyright (c) Mark McIntyre, 2025-
 
-$codeloc ="$env:userprofile\onedrive\dev" 
-$outdirw = "$env:userprofile\pictures\_ToBeProcessed\brightest"
+set-location $PSScriptRoot
 
-$repdir = "$codeloc\ukmda-dataprocessing\archive\ukmon_pylib"
-$outdir  = $outdirw.replace('\','/')
+# load the helper functions
+. .\helperfunctions.ps1
+$ini=get-inicontent analysis.ini
+$bdir = $ini['localdata']['fbfolder'].replace('$HOME',$home)
+$bdir = $bdir + "/brightest"
+set-location $bdir
 
-$env:pythonpath="$codeloc\WesternMeteorPyLib"
+$outdir  = $bdir.replace('\','/')
+
+$wmplloc = $ini['wmpl']['wmpl_loc'].replace('$HOME',$home)
+$repdir = $ini['pylib']['pylib'].replace('$HOME',$home)
+
+$env:pythonpath="$wmplloc"
 Push-Location $repdir
 
 conda activate ukmon-shared
@@ -28,6 +35,7 @@ if ($args.count -eq 0) {
     python -c "from reports.findBestMp4s import getBestNSingles;getBestNSingles(numtoget=30,outdir='$outdir', reqdate='$reqdate')"
 }
 
+$outdirw = $outdir.replace('/','\')
 explorer "$outdirw"
 
 Pop-Location

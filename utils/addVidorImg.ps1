@@ -15,7 +15,8 @@ set-location $PSScriptRoot
 # load the helper functions
 . .\helperfunctions.ps1
 $ini=get-inicontent analysis.ini
-$fbfolder = $ini['localdata']['fbfolder']
+$fbfolder = $ini['localdata']['fbfolder'].replace('$HOME',$home)
+$fbfolder = $fbfolder + "/fireballs"
 set-location $fbfolder
 $traj = (split-path -leaf $pth)
 
