@@ -1,0 +1,33 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS Lambda function for updating Route53 record when public ip of EC2 instance.
+
+Resources:
+  updateDnsRecords:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: updateDnsRecords
+      MemorySize: 128
+      Handler: lambda_function.lambda_handler
+      Timeout: 10
+      Policies:
+      - Statement:
+        - Action:
+          - ec2:DescribeInstances
+          - ec2:DescribeTags
+          - route53:ListHostedZones
+          - route53:ChangeResourceRecordSets
+          Resource: '*'
+          Effect: Allow
+      Runtime: python3.11
+      Events:
+        EC2StateChangeEvent:
+          Type: CloudWatchEvent
+          Properties:
+            Pattern:
+              source:
+              - aws.ec2
+              detail:
+                state:
+                - running
+      Description: AWS Lambda function for updating Route53 record when public ip of EC2 instance.
