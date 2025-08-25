@@ -623,11 +623,16 @@ class fbCollector(Frame):
                 os.makedirs(archdir, exist_ok=True)
                 zfname = os.path.join(archdir, fldr)
                 shutil.make_archive(zfname,'zip',self.fb_dir, fldr)
-                shutil.rmtree(self.dir_path)
-                self.dir_path = self.fb_dir
             except Exception as e:
-                log.warning(f'unable to archive {self.dir_path}')
+                log.warning(f'unable to create archive {self.dir_path}')
                 log.warning(e)
+            try:
+                os.chdir(self.fb_dir)
+                shutil.rmtree(self.dir_path)
+            except Exception as e:
+                log.warning(f'unable to remove folder, please do it manually {self.dir_path}')
+                log.warning(e)
+                self.dir_path = self.fb_dir
 
     def delFolder(self):
         noimgdata = img.open(noimg_file).resize((640,360))
