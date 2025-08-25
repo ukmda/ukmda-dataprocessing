@@ -34,6 +34,8 @@ resource "aws_instance" "ukmonhelper_g" {
     "Name"       = "UKMonHelper2"
     "billingtag" = "ukmon"
     "project"    = "UKMonHelper2"
+    "Route53FQDN" = "ukmonhelper2.markmcintyreastro.co.uk"
+    "DNSRecordType" = "A"
   }
 }
 
