@@ -33,6 +33,8 @@ resource "aws_network_interface" "calcserver_if" {
   tags = {
     "Name"       = "calcengine"
     "billingtag" = "ukmda"
+    "Route53FQDN" = "calcengine.ukmeteors.co.uk"
+    "DNSRecordType" = "A"
   }
 }
 ################################################
@@ -47,6 +49,8 @@ resource "aws_instance" "ubuntu_calc_server" {
   tags = {
     "Name"       = "Calcengine2"
     "billingtag" = "ukmda"
+    "Route53FQDN" = "calcengine2.ukmeteors.co.uk"
+    "DNSRecordType" = "A"
   }
   root_block_device {
     tags = {
@@ -88,6 +92,8 @@ resource "aws_instance" "admin_server" {
   tags = {
     "Name"       = "AdminServer"
     "billingtag" = "ukmda"
+    "Route53FQDN" = "adminserver.ukmeteors.co.uk"
+    "DNSRecordType" = "A"
   }
   root_block_device {
     tags = {
