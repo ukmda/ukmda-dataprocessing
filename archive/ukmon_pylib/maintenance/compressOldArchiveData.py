@@ -16,6 +16,9 @@ import boto3
 import zipfile
 import io
 import sys
+import datetime 
+
+maxyear = datetime.datetime.now().year - 1
 
 s3 = boto3.client('s3')
 s3res = boto3.resource('s3')
@@ -108,7 +111,7 @@ def compressObjects(srcbucket='ukmda-shared', camprefix=None):
         spls = lcmprefix.split('/')
         zfname = f'{spls[0]}/{spls[1]}/{spls[1]}_{spls[2]}_{spls[3]}.zip'
         try: 
-            if int(spls[3]) > 2024 or 'miscellan' in spls[3] or 'profiles' in spls[3]: 
+            if int(spls[3]) > maxyear or 'miscellan' in spls[3] or 'profiles' in spls[3]: 
                 continue
         except Exception:
             pass
