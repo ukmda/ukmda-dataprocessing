@@ -425,7 +425,8 @@ class fbCollector(Frame):
             show_plots=False, v_init_part=velpart, v_init_ht=vinitht, 
             show_jacchia=jacchia, enable_OSM_plot=True, mc_cores=8)
         tkMessageBox.showinfo('Info', 'Solver Finished')
-        self.soln_outputdir = traj.output_dir
+        if traj is not None:
+            self.soln_outputdir = traj.output_dir
         return 
     
     def viewSolution(self):
