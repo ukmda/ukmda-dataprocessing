@@ -5,7 +5,6 @@ import os
 import sys
 import shutil
 import json
-from zipfile import ZipFile, ZIP_DEFLATED
 from datetime import datetime, timedelta
 from boto3.dynamodb.conditions import Key
 
@@ -157,7 +156,6 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
             print('no extrampgs.html')
             pass
 
-        # pushFilesBack creates the zipfile so we need to do this first
         print('pushing files back')
         pushFilesBack(outdir, archbucket, websitebucket, fuloutdir, s3)
         print('updating the index page')
@@ -239,9 +237,8 @@ def findOtherFiles(evtdt, archbucket, websitebucket, outdir, fldr, s3):
 
 
 def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
-    # get filelist before creating the zipfile! 
-    flist = os.listdir(outdir)
 
+    flist = os.listdir(outdir)
     _, pth =os.path.split(outdir)
     yr = pth[:4]
     ym = pth[:6]
@@ -251,13 +248,9 @@ def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
     else:
         webpth = f'reports/{yr}/orbits/{ym}/{pth}/'
 
-    zipfname = os.path.join(outdir, pth +'.zip')
-    zipf = ZipFile(zipfname, 'w', compression=ZIP_DEFLATED, compresslevel=9)
-
     for f in flist:
-        #print(f)
+        print(f)
         locfname = os.path.join(outdir, f)
-        zipf.write(locfname)
         # some files need to be pushed to the website, some to the archive bucket
         if '3dtrack' in f or '2dtrack' in f:
             key = os.path.join(webpth, f)
@@ -277,11 +270,6 @@ def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
             extraargs = getExtraArgs(locfname)
             s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
 
-    zipf.close()
-    # now we push the zipfile
-    key = os.path.join(webpth, pth + '.zip')
-    extraargs = getExtraArgs(zipfname)
-    s3.meta.client.upload_file(zipfname, websitebucket, key, ExtraArgs=extraargs) 
     return 
 
 
