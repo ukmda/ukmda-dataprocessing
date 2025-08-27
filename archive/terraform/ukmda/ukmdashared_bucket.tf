@@ -24,9 +24,9 @@ resource "aws_s3_bucket_policy" "ukmdasharedbp" {
           Effect = "Allow"
           Principal = {
             AWS = [
-              "arn:aws:iam::${var.remote_account_id}:role/S3FullAccess", # role used by lambdas
+              "arn:aws:iam::${var.remote_account_id}:role/S3FullAccess",               # role used by lambdas
               "arn:aws:iam::${var.remote_account_id}:role/lambda-s3-full-access-role", # role used by SAM functions
-              "arn:aws:iam::${var.remote_account_id}:role/ecsTaskExecutionRole", # role used by ECS tasks
+              "arn:aws:iam::${var.remote_account_id}:role/ecsTaskExecutionRole",       # role used by ECS tasks
               "arn:aws:iam::${var.remote_account_id}:user/Mary",
               "arn:aws:iam::${var.remote_account_id}:user/Mark"
             ]
@@ -38,22 +38,22 @@ resource "aws_s3_bucket_policy" "ukmdasharedbp" {
           Sid = "DelegateS3Access"
         },
         {
-            "Sid": "BlockAccessToAdmin",
-            "Effect": "Deny",
-            "Principal": "*",
-            "Action": "s3:*",
-            "Resource": "arn:aws:s3:::ukmda-shared/admin/*",
-            "Condition": {
-                "StringNotLike": {
-                    "aws:userId": [ # update with new relevant IDs
-                        "AIDASVSZXPTTB3UZT4E2B",  # MarkMcIntyreUKM
-                        "AROAUUCG4WH4GFCTQIKH3", # S3FullAccess in MJMM account
-                        "AROAUUCG4WH4GFCTQIKH3:*", # S3FullAccess in MJMM account
-                        "${data.aws_caller_identity.current.account_id}",            # root account
-                        "AROA36ZZGKDHYW6XYFNJD:*"
-                      ]
-                }
+          "Sid" : "BlockAccessToAdmin",
+          "Effect" : "Deny",
+          "Principal" : "*",
+          "Action" : "s3:*",
+          "Resource" : "arn:aws:s3:::ukmda-shared/admin/*",
+          "Condition" : {
+            "StringNotLike" : {
+              "aws:userId" : [                                    # update with new relevant IDs
+                "AIDASVSZXPTTB3UZT4E2B",                          # MarkMcIntyreUKM
+                "AROAUUCG4WH4GFCTQIKH3",                          # S3FullAccess in MJMM account
+                "AROAUUCG4WH4GFCTQIKH3:*",                        # S3FullAccess in MJMM account
+                "${data.aws_caller_identity.current.account_id}", # root account
+                "AROA36ZZGKDHYW6XYFNJD:*"
+              ]
             }
+          }
         }
       ]
       Version = "2012-10-17"
@@ -94,8 +94,20 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmdasharedlcp" {
     }
 
     transition {
-      days          = 45
+      days          = 30
       storage_class = "STANDARD_IA"
+    }
+  }
+  rule {
+    status = "Enabled"
+    id     = "Transition to Glacier"
+    filter {
+      prefix = "archive/"
+    }
+
+    transition {
+      days          = 45
+      storage_class = "GLACIER_IR"
     }
   }
   rule {

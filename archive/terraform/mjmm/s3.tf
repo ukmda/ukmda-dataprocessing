@@ -56,6 +56,7 @@ data "aws_iam_policy_document" "websiteacesspolicy" {
 ########################################################################
 resource "aws_s3_bucket" "mjmm-ukmon-shared" {
   bucket = "mjmm-ukmon-shared"
+  timeouts {}
   tags = {
     "billingtag" = "ukmon"
   }
@@ -79,7 +80,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "mjmm_ukmon_shared
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "shared_lifecycle_rule" {
-  bucket = aws_s3_bucket.mjmm-ukmon-shared.id
+  bucket                                 = aws_s3_bucket.mjmm-ukmon-shared.id
+  transition_default_minimum_object_size = "varies_by_storage_class"
   rule {
     id     = "MoveToArchive"
     status = "Enabled"
@@ -87,18 +89,16 @@ resource "aws_s3_bucket_lifecycle_configuration" "shared_lifecycle_rule" {
       days          = 30
       storage_class = "STANDARD_IA"
     }
+    filter {}
   }
   rule {
     id     = "PurgeOldVersions"
     status = "Enabled"
 
     expiration {
-      days                         = 0
-      expired_object_delete_marker = true
+      days = 0
     }
-
-    filter {
-    }
+    filter {}
 
     noncurrent_version_expiration {
       newer_noncurrent_versions = "1"
@@ -140,7 +140,9 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "mjmm_ukmon_live_e
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "live_lifecycle_rule" {
-  bucket = aws_s3_bucket.mjmm-ukmon-live.id
+  bucket                                 = aws_s3_bucket.mjmm-ukmon-live.id
+  transition_default_minimum_object_size = "varies_by_storage_class"
+
   rule {
     id     = "MoveToArchive"
     status = "Enabled"
@@ -148,18 +150,17 @@ resource "aws_s3_bucket_lifecycle_configuration" "live_lifecycle_rule" {
       days          = 30
       storage_class = "STANDARD_IA"
     }
+    filter {}
   }
   rule {
     id     = "PurgeOldVersions"
     status = "Enabled"
 
     expiration {
-      days                         = 0
-      expired_object_delete_marker = true
+      days = 0
     }
 
-    filter {
-    }
+    filter {}
 
     noncurrent_version_expiration {
       newer_noncurrent_versions = "1"

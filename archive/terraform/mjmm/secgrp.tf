@@ -14,6 +14,7 @@ resource "aws_security_group" "default" {
   description            = "default VPC security group"
   vpc_id                 = data.aws_vpc.main_vpc.id
   revoke_rules_on_delete = false
+  timeouts {}
   ingress = [
     {
       description      = "http in"
@@ -60,9 +61,9 @@ resource "aws_security_group" "default" {
       self             = false
     }
   ]
-egress = [
+  egress = [
     {
-      cidr_blocks      = ["0.0.0.0/0",]
+      cidr_blocks      = ["0.0.0.0/0", ]
       description      = ""
       from_port        = 0
       ipv6_cidr_blocks = []
@@ -120,13 +121,13 @@ resource "aws_security_group" "launch-wizard-4" {
       cidr_blocks      = []
       description      = "IPv6 SSH for Admin"
       from_port        = 22
-      ipv6_cidr_blocks = ["::/0",]
+      ipv6_cidr_blocks = ["::/0", ]
       prefix_list_ids  = []
       protocol         = "tcp"
       security_groups  = []
       self             = false
       to_port          = 22
-    },    
+    },
   ]
   egress = [
     {

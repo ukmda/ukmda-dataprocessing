@@ -24,8 +24,12 @@ data "aws_iam_policy_document" "terraformpoldoc" {
 resource "aws_iam_role" "terraformrole" {
   name                = "TerraformRole"
   assume_role_policy  = data.aws_iam_policy_document.terraformpoldoc.json
-  managed_policy_arns = [data.aws_iam_policy.terraformpol.arn]
   tags                = {
     billingtag = "ukmon"
   }
+}
+
+resource "aws_iam_role_policy_attachment" "tfrole_pol_attachment" {
+  role       = aws_iam_role.terraformrole.name
+  policy_arn = data.aws_iam_policy.terraformpol.arn
 }
