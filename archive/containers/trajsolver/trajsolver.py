@@ -36,7 +36,7 @@ def runCorrelator(dir_path, time_beg, time_end):
     trajectory_constraints.geometric_uncert = not uncerttime
 
     # Clock for measuring script time
-    t1 = datetime.datetime.utcnow()
+    t1 = datetime.datetime.now(datetime.timezone.utc)
 
     # If auto run is enabled, compute the time range to use
     event_time_range = None
@@ -115,7 +115,7 @@ def runCorrelator(dir_path, time_beg, time_end):
         tc = TrajectoryCorrelator(dh, trajectory_constraints, velpart, data_in_j2000=True, distribute=distribute, enableOSM=True)
         tc.run(event_time_range=event_time_range)
     
-    print("Total run time: {:s}".format(str(datetime.datetime.utcnow() - t1)))
+    print("Total run time: {:s}".format(str(datetime.datetime.now(datetime.timezone.utc) - t1)))
     return 
 
 
@@ -136,9 +136,7 @@ def getSourceAndTargets():
     webbucket = webpth[:webpth.find('/')]
     webpth = webpth[webpth.find('/')+1:]
 
-    oldoutb = os.getenv('OLDOUTB', default=None)
-    oldwebb = os.getenv('OLDWEBB', default=None)
-    return srcbucket, srcpth, outbucket, outpth, webbucket, webpth, oldwebb, oldoutb
+    return srcbucket, srcpth, outbucket, outpth, webbucket, webpth
 
 
 # extra args for setting the MIME type when uploading to S3. 
@@ -168,10 +166,30 @@ def getExtraArgs(fname):
     return extraargs
 
 
+def checkIfFileNeeded(filename):
+
+    # update this if there's an additional file created by WMPL that we want
+    # to use on the website
+    if 'orbit_top.png' in filename or 'orbit_side.png' in filename or 'ground_track.png' in filename:
+        return True
+    if 'velocities.png' in filename or 'lengths.png' in filename or 'lags_all.png' in filename:
+        return True
+    if 'abs_mag.png' in filename or 'abs_mag_ht.png' in filename or 'report.txt' in filename:
+        return True
+    if 'all_angular_residuals.png' in filename or 'all_spatial_total_residuals_height.png' in filename:
+        return True
+    if 'trajectory.pickle' in filename:
+        return True
+    return False
+
+
 #push solutions to the website, and push the pickle and report to shared bucket
-def pushToWebsite(s3, localfldr, webbucket, webfldr, outbucket, outpth, oldwebb=None, oldoutb=None):
+def pushToWebsite(s3, localfldr, webbucket, webfldr, outbucket, outpth):
     for root, _, files in os.walk(localfldr):
         for fil in files:
+            if not checkIfFileNeeded(fil):
+                print(f'skipping {fil}')
+                continue
             fullname = os.path.join(localfldr, root, fil)
             fname = os.path.split(fil)[1]
             orbname = os.path.split(root)[1]
@@ -181,26 +199,10 @@ def pushToWebsite(s3, localfldr, webbucket, webfldr, outbucket, outpth, oldwebb=
             targkey = f'{webfldr}/{yr}/orbits/{ym}/{ymd}/{orbname}/{fname}'
             print(f'uploading {fname} to s3://{webbucket}/{targkey}')
             s3.meta.client.upload_file(fullname, webbucket, targkey, ExtraArgs = getExtraArgs(fname))
-            if oldwebb:
-                print(f' and uploading to {oldwebb}')
-                try:
-                    s3.meta.client.upload_file(fullname, oldwebb, targkey, ExtraArgs = getExtraArgs(fname))
-                except:
-                    print('unable to push to old website')
-            else:
-                print('not pushing to old website')
             if 'report' in fname or 'pickle' in fname:
                 targkey = f'{outpth}/trajectories/{yr}/{ym}/{ymd}/{orbname}/{fname}'
                 print(f'uploading {fname} to s3://{outbucket}/{targkey}')
                 s3.meta.client.upload_file(fullname, outbucket, targkey, ExtraArgs = getExtraArgs(fname))
-                if oldoutb:
-                    print(f' and uploading to {oldoutb}')
-                    try:
-                        s3.meta.client.upload_file(fullname, oldoutb, targkey, ExtraArgs = getExtraArgs(fname))
-                    except:
-                        print('unable to push to old share')
-                else:
-                    print('not pushing to old share')
     return
 
 
@@ -238,7 +240,7 @@ def startup(srcfldr, startdt, enddt, isTest=False):
     os.makedirs(canddir, exist_ok = True)
 
     s3 = getS3Client()
-    srcbucket, srcpth, outbucket, outpth, webbucket, webpth, oldwebb, oldoutb = getSourceAndTargets()
+    srcbucket, srcpth, outbucket, outpth, webbucket, webpth = getSourceAndTargets()
     if isTest is True:
         outpth = os.path.join(outpth, 'test')
 
@@ -263,7 +265,7 @@ def startup(srcfldr, startdt, enddt, isTest=False):
 
         # reacquire tokens just in case the 1hour time limit on chained roles is exceeded
         s3 = getS3Client()
-        pushToWebsite(s3, trajfldr, webbucket, webpth, outbucket, outpth, oldwebb=oldwebb, oldoutb=oldoutb)
+        pushToWebsite(s3, trajfldr, webbucket, webpth, outbucket, outpth)
 
         fname = f'{srcfldr}.json'
         jsonfile = os.path.join(localfldr, 'processed_trajectories.json')
