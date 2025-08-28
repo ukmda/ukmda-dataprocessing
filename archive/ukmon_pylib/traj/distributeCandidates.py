@@ -19,9 +19,7 @@ import pickle
 def getClusterDetails(templdir):
     sts = boto3.client('sts')
     accid = sts.get_caller_identity()['Account']
-    if accid == '822069317839':
-        clusdetails = os.path.join(templdir, 'clusdetails-ee.txt')
-    elif accid == '183798037734':
+    if accid == '183798037734':
         clusdetails = os.path.join(templdir, 'clusdetails-mda.txt')
     else:
         clusdetails = os.path.join(templdir, 'clusdetails-mm.txt')
