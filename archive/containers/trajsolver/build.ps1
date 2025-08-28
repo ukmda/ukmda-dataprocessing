@@ -17,7 +17,7 @@ write-output "building $imagename in $accid"
 $yn=read-host -prompt "update WMPL?"
 if ($yn.tolower() -eq "y") { bash -c "./update_wmpl.sh $env" } 
 
-if ($env -eq "test") { copy-item awskeys.test awskeys}
+if ($env -eq "test") { move-item awskeys.test awskeys}
 
 docker build . -t ${imagename}
 if (! $?)
@@ -26,7 +26,7 @@ if (! $?)
     exit
 }
 set-location $loc
-if ($env -eq "test") { Remove-Item awskeys}
+if ($env -eq "test") { move-item awskeys awskeys.test }
 
 $yn=read-host -prompt "upload to ECR?"
 if ($yn.tolower() -eq "y") {
