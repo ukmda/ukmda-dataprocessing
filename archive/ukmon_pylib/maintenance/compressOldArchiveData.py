@@ -2,11 +2,17 @@
 # all rights reserved
 
 """
- a function to compress the ukmda-shared/archive data from before the current year
+ a set of functions to 
+    - compress the ukmda-shared/archive data from before the current year
+    - remove unused but easily recreated files from the website
+    - remove links to the old downloadable zip file
 
 usage:
-    1) python compressOldArchiveData.py - this will scan and compress ALL data from prior years
-    2) python compressOldArchiveData.py "archive/somefolder" will scan and compress only the named location folder
+    1) python compressOldArchiveData.py - will scan and compress ALL data from prior years
+    2) python compressOldArchiveData.py "archive/somefolder" - will scan and compress only the named location folder
+    3) python compressOldArchiveData.py prune_website - will scan and remove unused files from the website 
+    3) python compressOldArchiveData.py prune_website reports/2024/202401 - will scan and remove unused files 
+        from the named location and below
 
 note that any MP4 or AVI files that have been uploaded to this area are removed by this process. The videos should be 
 on the website in ukmda-website/img/mp4s in mp4 format
@@ -15,8 +21,9 @@ on the website in ukmda-website/img/mp4s in mp4 format
 import boto3
 import zipfile
 import io
-import sys
+import os
 import datetime 
+import argparse
 
 maxyear = datetime.datetime.now().year - 1
 
@@ -57,6 +64,8 @@ def listYears(srcbucket='ukmda-shared', camid='archive/Tackley/c1/'):
         return []
     
 
+"""
+Not used
 def getAllS3Objects(s3, **base_kwargs):
     continuation_token = None
     while True:
@@ -68,7 +77,7 @@ def getAllS3Objects(s3, **base_kwargs):
         if not response.get('IsTruncated'):  # At the end of the list?
             break
         continuation_token = response.get('NextContinuationToken')
-
+"""
 
 def deleteFiles(flist, srcbucket='ukmda-shared'):
     chunk_size = 900
@@ -139,14 +148,86 @@ def compressObjects(srcbucket='ukmda-shared', camprefix=None):
         # now delete the files
         print(f'deleting files from {lcmprefix}')
         deleteFiles(files)
+
+
+def updateIndexes(idxs, source_bucket):
+    for idx in idxs:
+        if len(idx.split('/')) < 7:
+            continue
+        s3.download_file(source_bucket, idx, f'/tmp/oldindex.html')
+        lis = open('/tmp/oldindex.html', 'r').readlines()
+        with open('/tmp/newindex.html', 'w') as outf:
+            for li in lis:
+                if 'download a zip of the' in li:
+                    continue
+                outf.write(li)
+        extraargs = {'ContentType': 'text/html'}
+        s3.upload_file('/tmp/newindex.html', source_bucket, idx, ExtraArgs=extraargs)
+    return 
+
+
+def pruneObjects(source_bucket, prefix_str):
+    spls = prefix_str.split('/')
+    bucket = s3res.Bucket(source_bucket)
+    if len(spls) < 3:
+        years = listYears(source_bucket, prefix_str)
+        years = [x['Prefix'] for x in years if 'reports/20' in x['Prefix']]
+    else:
+        years = [f'reports/{spls[1]}/']
+    for yr in years:
+        print(f'processing {yr}')
+        yr_prefix = f'{yr}orbits/'
+        mths = listYears(source_bucket, yr_prefix)
+        mths = [x['Prefix'] for x in mths if 'csv/' not in x['Prefix'] and 'plots/' not in x['Prefix']]
+        for mth in mths:
+            print(f'processing {mth}')
+            files = [os.key for os in bucket.objects.filter(Prefix=mth)]
+            print('purging zip files')
+            zipfs = [file for file in files if '.zip' in file]
+            deleteFiles(zipfs, source_bucket)
+            if len(zipfs) > 0:
+                print('updating indexes')
+                idxs = [file for file in files if '/index.html' in file]
+                updateIndexes(idxs, source_bucket)
+            print('purging pngs')
+            spatres = [file for file in files if '_spatial_residuals.png' in file and '_all' not in file]
+            deleteFiles(spatres, source_bucket)
+            print('purging kml and ftpdetect')
+            others = [file for file in files if '.kml' in file or 'FTPdetectinfo' in file]
+            deleteFiles(others, source_bucket)
+            print('purging csv')
+            csvs = [file for file in files if '.csv' in file]
+            deleteFiles(csvs, source_bucket)
+    return 
             
 
 if __name__ == '__main__':
-    source_bucket = 'ukmda-shared'
     prefix_str = None
-    if len(sys.argv) > 1:
-        prefix_str = sys.argv[1]
-        if prefix_str[-1] != '/':
-            prefix_str = prefix_str + '/'
-    print(f'compressing {prefix_str}')
-    compressObjects(source_bucket, prefix_str)
+
+    arg_parser = argparse.ArgumentParser(description='Compress, prune or clear down older data')
+
+    arg_parser.add_argument('command_str', nargs=1, metavar='COMMAND_STR', type=str,
+        help='action to take. Options are COMPRESS or PRUNE to compress archive files or prune the website.')
+
+    arg_parser.add_argument('-f', '--folder', help="""area to act on, eg "Tackley" or "2025/202504".""")
+    
+    args = arg_parser.parse_args()
+
+    if args.command_str[0].upper() == 'COMPRESS':
+        source_bucket = 'ukmda-shared'
+        if args.folder:
+            prefix_str = 'archive/' + prefix_str
+            prefix_str = args.folder
+            if prefix_str[-1] != '/':
+                prefix_str = prefix_str + '/'
+        print(f'compressing {prefix_str}')
+        compressObjects(source_bucket, prefix_str)
+
+    if args.command_str[0].upper() == 'PRUNE':
+        source_bucket = 'ukmda-website'
+        if args.folder:
+            prefix_str = 'reports/' + args.folder
+            if prefix_str[-1] != '/':
+                prefix_str = prefix_str + '/'
+        print(f'pruning {prefix_str}')
+        pruneObjects(source_bucket, prefix_str)
