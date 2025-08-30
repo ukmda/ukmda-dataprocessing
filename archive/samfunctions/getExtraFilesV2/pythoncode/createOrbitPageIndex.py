@@ -31,10 +31,10 @@ def createOrbitPageIndex(fldr, websitebucket, s3):
             lis = sumf.readlines()
         idxf.writelines(lis)
 
-        zipf = orbitname + '.zip'
-        if os.path.isfile(os.path.join(fldr, zipf)):
-            idxf.write(f"Click <a href=\"./{zipf}\">here</a> to download a zip of the raw and processed data.\n")
-        idxf.write("</pre>\n")
+        #zipf = orbitname + '.zip'
+        #if os.path.isfile(os.path.join(fldr, zipf)):
+        #    idxf.write(f"Click <a href=\"./{zipf}\">here</a> to download a zip of the raw and processed data.\n")
+        #idxf.write("</pre>\n")
         idxf.write("<p><b>Detailed report below graphs</b></p>\n")
         idxf.write("<h3>Click on an image to see a larger view</h3>\n")
 
