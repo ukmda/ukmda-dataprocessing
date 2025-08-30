@@ -150,12 +150,114 @@ def compressObjects(srcbucket='ukmda-shared', camprefix=None):
         deleteFiles(files)
 
 
+def moveJpgsAndMp4s(source_bucket, yr, ym):
+    print(f'moving jpgs and mp4s from {ym}')
+    bucket = s3res.Bucket(source_bucket)
+    files = [os.key for os in bucket.objects.filter(Prefix=f'reports/{yr}/orbits/{ym}/')]
+    jpgs = [x for x in files if '.jpg' in x or '.mp4' in x]
+    print(f'moving {len(jpgs)} jpgs or mp4s')
+    for jpg in jpgs:
+        print(jpg)
+        keyname = os.path.split(jpg)[1]
+        if '.jpg' in keyname:
+            newkey = f'img/single/{yr}/{ym}/{keyname}'
+        else:
+            newkey = f'img/mp4/{yr}/{ym}/{keyname}'
+        s3.copy_object(Bucket=source_bucket, 
+                       CopySource={'Bucket':source_bucket,'Key':jpg}, 
+                       Key=newkey, MetadataDirective='COPY')
+        s3.delete_object(Bucket=source_bucket, Key=jpg)
+    jpgfldrs = [os.path.split(x)[0] for x in jpgs]
+    jpgfldrs = list(set(jpgfldrs))
+    jpgfldrs.sort()
+    print(f'updating {len(jpgfldrs)} indexes')
+    for fldr in jpgfldrs:
+        print(fldr)
+        idx = f'{fldr}/index.html'
+        rootdir = os.path.split(idx)[0]
+        try:
+            s3.download_file(source_bucket, idx, f'/tmp/oldindex.html')
+        except Exception:
+            continue
+        lis = open('/tmp/oldindex.html', 'r').readlines()
+        # skip files that dont have the line in them
+        mtch = [li for li in lis if '.jpg' in li or '.mp4' in li]
+        if len(mtch) == 0: 
+            continue
+        with open('/tmp/newindex.html', 'w') as outf:
+            for li in lis:
+                if '.jpg' in li and '/img/single/' not in li:
+                    newpth=f'/img/single/{yr}/{ym}/'
+                    li = li.replace('a href="', f'a href="{newpth}')
+                    li = li.replace('img src="', f'img src="{newpth}')
+                if '.mp4' in li and '/img/mp4/' not in li:
+                    newpth=f'/img/mp4/{yr}/{ym}/'
+                    li = li.replace('a href="', f'a href="{newpth}')
+                    li = li.replace('source src="', f'source src="{newpth}')
+                    li = li.replace(rootdir, '')
+                li = li.replace('//', '/')
+                li = li.replace('//', '/')
+                outf.write(li)
+        extraargs = {'ContentType': 'text/html'}
+        s3.upload_file('/tmp/newindex.html', source_bucket, idx, ExtraArgs=extraargs)
+    print('done')
+
+def fixBrokenIndexes(source_bucket, yr, ym):
+    bucket = s3res.Bucket(source_bucket)
+    files = [os.key for os in bucket.objects.filter(Prefix=f'reports/{yr}/orbits/{ym}/')]
+    idxs = [x for x in files if 'index.html' in x]
+    for idx in idxs:
+        print(idx)
+        s3.download_file(source_bucket, idx, f'/tmp/oldindex.html')
+        lis = open('/tmp/oldindex.html', 'r').readlines()
+        rootdir = os.path.split(idx)[0]
+        # skip files that dont have the line in them
+        mtch = [li for li in lis if '.jpg' in li or '.mp4' in li]
+        if len(mtch) == 0: 
+            continue
+        with open('/tmp/newindex.html', 'w') as outf:
+            for li in lis:
+                if '.jpg' in li and '/img/single/' not in li:
+                    newpth=f'/img/single/{yr}/{ym}/'
+                    li = li.replace('a href="', f'a href="{newpth}')
+                    li = li.replace('img src="', f'img src="{newpth}')
+                if '.mp4' in li and '/img/mp4/' not in li:
+                    newpth=f'/img/mp4/{yr}/{ym}/'
+                    li = li.replace('a href="', f'a href="{newpth}')
+                    li = li.replace('source src="', f'source src="{newpth}')
+                    li = li.replace(rootdir, '')
+                li = li.replace('//', '/')
+                li = li.replace('//', '/')
+                outf.write(li)
+#            for li in lis:
+#                if '.jpg' in li:
+#                    oldpth = f'/img/single/{yr}/{ym}'
+#                    newpth = f'/img/single/{yr}/{ym}/'
+#                    li = li.replace(f'a href="{oldpth}', f'a href="{newpth}')
+#                    li = li.replace(f'img src="{oldpth}', f'img src="{newpth}')
+#                if '.mp4' in li:
+#                    oldpth = f'/img/single/{yr}/{ym}'
+#                    newpth=f'/img/mp4/{yr}/{ym}/'
+#                    li = li.replace(f'a href="{oldpth}', f'a href="{newpth}')
+#                    li = li.replace(f'source src="{oldpth}', f'source src="{newpth}')
+#                    li = li.replace(rootdir, '')
+#                li = li.replace('//', '/')
+#                li = li.replace('//', '/')
+#                outf.write(li)
+        extraargs = {'ContentType': 'text/html'}
+        s3.upload_file('/tmp/newindex.html', source_bucket, idx, ExtraArgs=extraargs)
+
+
 def updateIndexes(idxs, source_bucket):
     for idx in idxs:
         if len(idx.split('/')) < 7:
             continue
         s3.download_file(source_bucket, idx, f'/tmp/oldindex.html')
         lis = open('/tmp/oldindex.html', 'r').readlines()
+        # skip files that dont have the line in them
+        mtch = [li for li in lis if 'download a zip of the' in li]
+        if len(mtch) == 0: 
+            continue
         with open('/tmp/newindex.html', 'w') as outf:
             for li in lis:
                 if 'download a zip of the' in li:
@@ -166,7 +268,7 @@ def updateIndexes(idxs, source_bucket):
     return 
 
 
-def pruneObjects(source_bucket, prefix_str):
+def pruneObjects(source_bucket, prefix_str, force_reindex=False):
     spls = prefix_str.split('/')
     bucket = s3res.Bucket(source_bucket)
     if len(spls) < 3:
@@ -177,15 +279,18 @@ def pruneObjects(source_bucket, prefix_str):
     for yr in years:
         print(f'processing {yr}')
         yr_prefix = f'{yr}orbits/'
-        mths = listYears(source_bucket, yr_prefix)
-        mths = [x['Prefix'] for x in mths if 'csv/' not in x['Prefix'] and 'plots/' not in x['Prefix']]
+        if len(spls) > 3:
+            mths = [f'{yr_prefix}{spls[2]}/']
+        else:
+            mths = listYears(source_bucket, yr_prefix)
+            mths = [x['Prefix'] for x in mths if 'csv/' not in x['Prefix'] and 'plots/' not in x['Prefix']]
         for mth in mths:
             print(f'processing {mth}')
             files = [os.key for os in bucket.objects.filter(Prefix=mth)]
             print('purging zip files')
             zipfs = [file for file in files if '.zip' in file]
             deleteFiles(zipfs, source_bucket)
-            if len(zipfs) > 0:
+            if len(zipfs) > 0 or force_reindex:
                 print('updating indexes')
                 idxs = [file for file in files if '/index.html' in file]
                 updateIndexes(idxs, source_bucket)
@@ -211,6 +316,8 @@ if __name__ == '__main__':
 
     arg_parser.add_argument('-f', '--folder', help="""area to act on, eg "Tackley" or "2025/202504".""")
     
+    arg_parser.add_argument('-i', '--reindex', action='store_true', help="""force recreation of indexes".""")
+
     args = arg_parser.parse_args()
 
     if args.command_str[0].upper() == 'COMPRESS':
@@ -229,5 +336,8 @@ if __name__ == '__main__':
             prefix_str = 'reports/' + args.folder
             if prefix_str[-1] != '/':
                 prefix_str = prefix_str + '/'
-        print(f'pruning {prefix_str}')
-        pruneObjects(source_bucket, prefix_str)
+        force_reindex = False
+        if args.reindex:
+            force_reindex = True
+        print(f'pruning {prefix_str} and forcing reindex')
+        pruneObjects(source_bucket, prefix_str, force_reindex)
