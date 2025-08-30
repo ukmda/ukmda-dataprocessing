@@ -106,7 +106,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmdasharedlcp" {
     }
 
     transition {
-      days          = 45
+      days          = 180
       storage_class = "GLACIER_IR"
     }
   }
