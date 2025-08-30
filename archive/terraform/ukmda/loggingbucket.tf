@@ -10,12 +10,14 @@ resource "aws_s3_bucket" "logbucket" {
 
 resource "aws_s3_bucket_lifecycle_configuration" "ukmdalogslcp" {
   bucket = aws_s3_bucket.logbucket.id
+  transition_default_minimum_object_size = "all_storage_classes_128K"
   rule {
     status = "Enabled"
     id     = "purge old versions"
     noncurrent_version_expiration {
       noncurrent_days = 30
     }
+    filter {}
   }
   rule {
     id     = "purge old ukmda-shared logs"
@@ -23,7 +25,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmdalogslcp" {
 
     expiration {
       days                         = 10
-      expired_object_delete_marker = false
     }
 
     filter {
@@ -40,7 +41,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmdalogslcp" {
 
     expiration {
       days                         = 10
-      expired_object_delete_marker = false
     }
 
     filter {
@@ -57,7 +57,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmdalogslcp" {
 
     expiration {
       days                         = 10
-      expired_object_delete_marker = false
     }
 
     filter {
@@ -106,12 +105,14 @@ resource "aws_s3_bucket" "logbucket_w1" {
 resource "aws_s3_bucket_lifecycle_configuration" "ukmdalogslcp_w1" {
   bucket = aws_s3_bucket.logbucket_w1.id
   provider = aws.eu-west-1-prov
+  transition_default_minimum_object_size = "varies_by_storage_class"
   rule {
     status = "Enabled"
     id     = "purge old versions"
     noncurrent_version_expiration {
       noncurrent_days = 30
     }
+    filter {}
   }
   rule {
     id     = "purge old ukmda-live logs"
@@ -119,7 +120,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmdalogslcp_w1" {
 
     expiration {
       days                         = 10
-      expired_object_delete_marker = false
     }
 
     filter {

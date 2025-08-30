@@ -79,12 +79,14 @@ resource "aws_s3_bucket_acl" "ukmdasharedacl" {
 
 resource "aws_s3_bucket_lifecycle_configuration" "ukmdasharedlcp" {
   bucket = aws_s3_bucket.ukmdashared.id
+  transition_default_minimum_object_size = "all_storage_classes_128K"
   rule {
     status = "Enabled"
     id     = "purge old versions"
     noncurrent_version_expiration {
       noncurrent_days = 30
     }
+    filter {}
   }
   rule {
     status = "Enabled"
@@ -99,24 +101,11 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmdasharedlcp" {
     }
   }
   rule {
-    status = "Enabled"
-    id     = "Transition to Glacier"
-    filter {
-      prefix = "archive/"
-    }
-
-    transition {
-      days          = 180
-      storage_class = "GLACIER_IR"
-    }
-  }
-  rule {
     id     = "purge athena queries"
     status = "Enabled"
 
     expiration {
       days                         = 2
-      expired_object_delete_marker = false
     }
 
     filter {
@@ -133,7 +122,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmdasharedlcp" {
 
     expiration {
       days                         = 30
-      expired_object_delete_marker = false
     }
 
     filter {
@@ -150,7 +138,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmdasharedlcp" {
 
     expiration {
       days                         = 60
-      expired_object_delete_marker = false
     }
 
     filter {
@@ -167,7 +154,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmdasharedlcp" {
 
     expiration {
       days                         = 30
-      expired_object_delete_marker = false
     }
 
     filter {
@@ -184,7 +170,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmdasharedlcp" {
 
     expiration {
       days                         = 30
-      expired_object_delete_marker = false
     }
 
     filter {
@@ -193,6 +178,18 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmdasharedlcp" {
 
     noncurrent_version_expiration {
       noncurrent_days = 10
+    }
+  }
+  rule {
+    status = "Enabled"
+    id     = "Transition to Glacier"
+    filter {
+      prefix = "archive/"
+    }
+
+    transition {
+      days          = 180
+      storage_class = "GLACIER_IR"
     }
   }
 
