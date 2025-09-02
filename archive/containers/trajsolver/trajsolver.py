@@ -170,6 +170,7 @@ def checkIfFileNeeded(filename):
 
     # update this if there's an additional file created by WMPL that we want
     # to use on the website
+    # NB THIS ALSO HAS TO BE CHANGED in maintenance.recreateOrbitPagesif more files needed
     if 'orbit_top.png' in filename or 'orbit_side.png' in filename or 'ground_track.png' in filename:
         return True
     if 'velocities.png' in filename or 'lengths.png' in filename or 'lags_all.png' in filename:

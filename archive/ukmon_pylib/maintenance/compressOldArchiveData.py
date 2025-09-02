@@ -79,6 +79,7 @@ def getAllS3Objects(s3, **base_kwargs):
         continuation_token = response.get('NextContinuationToken')
 """
 
+
 def deleteFiles(flist, srcbucket='ukmda-shared'):
     chunk_size = 900
     chunked_list = [flist[i:i + chunk_size] for i in range(0, len(flist), chunk_size)]
@@ -176,7 +177,7 @@ def moveJpgsAndMp4s(source_bucket, yr, ym):
         idx = f'{fldr}/index.html'
         rootdir = os.path.split(idx)[0]
         try:
-            s3.download_file(source_bucket, idx, f'/tmp/oldindex.html')
+            s3.download_file(source_bucket, idx, '/tmp/oldindex.html')
         except Exception:
             continue
         lis = open('/tmp/oldindex.html', 'r').readlines()
@@ -202,13 +203,14 @@ def moveJpgsAndMp4s(source_bucket, yr, ym):
         s3.upload_file('/tmp/newindex.html', source_bucket, idx, ExtraArgs=extraargs)
     print('done')
 
+
 def fixBrokenIndexes(source_bucket, yr, ym):
     bucket = s3res.Bucket(source_bucket)
     files = [os.key for os in bucket.objects.filter(Prefix=f'reports/{yr}/orbits/{ym}/')]
     idxs = [x for x in files if 'index.html' in x]
     for idx in idxs:
         print(idx)
-        s3.download_file(source_bucket, idx, f'/tmp/oldindex.html')
+        s3.download_file(source_bucket, idx, '/tmp/oldindex.html')
         lis = open('/tmp/oldindex.html', 'r').readlines()
         rootdir = os.path.split(idx)[0]
         # skip files that dont have the line in them
@@ -252,7 +254,7 @@ def updateIndexes(idxs, source_bucket):
     for idx in idxs:
         if len(idx.split('/')) < 7:
             continue
-        s3.download_file(source_bucket, idx, f'/tmp/oldindex.html')
+        s3.download_file(source_bucket, idx, '/tmp/oldindex.html')
         lis = open('/tmp/oldindex.html', 'r').readlines()
         # skip files that dont have the line in them
         mtch = [li for li in lis if 'download a zip of the' in li]
