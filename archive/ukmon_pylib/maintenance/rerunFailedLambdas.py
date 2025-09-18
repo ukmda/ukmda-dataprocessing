@@ -83,17 +83,17 @@ def checkFails(fails):
     s3bucket=os.getenv('WEBSITEBUCKET', default='s3://ukmda-website')[5:]
     realfails = []
     for f in fails:
-        # example f : matches/RMSCorrelate/trajectories/2022/202202/20220227/20220227_011240.522_UK
+        # example f : matches/RMSCorrelate/trajectories/2022/202202/20220227/20220227_011240.522_UK/20220227_011240_trajectory.pickle
         orb = f[f.find('/20')+1:]
+
         orb = 'reports/' + orb[:5] + 'orbits' + orb[4:]
         pth, _ = os.path.split(orb)
-        _, zipname = os.path.split(pth) 
-        keyf = pth + '/' + zipname + '.zip'
+        keyf = f'{pth}/index.html'
         try:
             _ = s3.head_object(Bucket=s3bucket, Key=keyf)
             #print(f'{pth} already done')
         except:
-            print(f'adding {keyf}')
+            print(f'adding {f}')
             realfails.append(f)
     return realfails
 
