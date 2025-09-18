@@ -44,7 +44,7 @@ resource "aws_network_interface" "calcserver_if" {
 ################################################
 #  Ubuntu calc server
 ################################################
-
+/*
 resource "aws_instance" "ubuntu_calc_server" {
   ami                  = "ami-0bdf149a42243bde8"
   instance_type        = "c6g.4xlarge"
@@ -84,7 +84,7 @@ resource "aws_network_interface" "ubuntu_calcserver_if" {
     "billingtag" = "ukmda"
   }
 }
-
+*/
 ################################################
 #  admin server
 ################################################
