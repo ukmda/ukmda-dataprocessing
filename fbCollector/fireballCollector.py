@@ -890,7 +890,8 @@ class fbCollector(Frame):
         return 
 
     def getGMNData(self):
-        camlist = [line for line in os.listdir(self.dir_path) if self.correct_datafile_name(line)]
+        print(self.dir_path)
+        camlist = [line for line in os.listdir(os.path.join(self.dir_path,'jpgs')) if self.correct_datafile_name(line)]
         dts=[]
         camids=[]
         for cam in camlist:
@@ -939,7 +940,10 @@ class fbCollector(Frame):
             os.makedirs(targ, exist_ok=True)
             for f in os.listdir(srcdir):
                 shutil.copy(os.path.join(srcdir, f), targ)
-        shutil.rmtree(os.path.join(self.dir_path, dtstr))
+        try:
+            shutil.rmtree(os.path.join(self.dir_path, dtstr))
+        except Exception:
+            pass
         tkMessageBox.showinfo("Data Collected", 'data collected from GMN')
         self.update_listbox(self.get_bin_list())
         return
