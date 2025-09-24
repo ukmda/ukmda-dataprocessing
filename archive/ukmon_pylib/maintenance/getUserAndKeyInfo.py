@@ -347,7 +347,10 @@ def rollKeysForUsers(nusers=3):
     _, stalekeys, _, _ = getKeyStatuses(excludeadm=True)
     if len(stalekeys) == 0:
         return 
-    sampledf = stalekeys.sample(n=nusers)
+    if len(stalekeys) > nusers:
+        sampledf = stalekeys.sample(n=nusers)
+    else:
+        sampledf = stalekeys
     for _, rw in sampledf.iterrows():
         uid = rw.user
         if 'testtraj' in uid:
