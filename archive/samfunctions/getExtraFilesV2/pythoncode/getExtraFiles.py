@@ -85,7 +85,7 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
                 if 'FF_' not in ffname and 'FR_' not in ffname:
                     ffname = 'FF_' + ffname
                 ffname = ffname.replace('FR_', 'FF_').replace('.bin', '.fits')
-                if '.bin' not in ffname and '.fits' not in ffname:
+                if '.bin' not in ffname and '.fits' not in ffname and '.jpg' not in ffname:
                     ffname = ffname + '.fits'
                 gotff = True
             except Exception:
@@ -101,9 +101,10 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
                 id = spls[1]
                 dtstr = spls[2]
                 tmstr = spls[3]
-                jpgname=f'img/single/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('fits','jpg')
-                mp4name=f'img/mp4/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('fits','mp4')
+                jpgname=f'img/single/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('.fits','.jpg')
+                mp4name=f'img/mp4/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('.fits','.mp4').replace('.jpg','.mp4')
                 print('about to get a list of available jpgs')
+                print(jpgname)
                 res = s3.meta.client.list_objects_v2(Bucket=websitebucket,Prefix=jpgname)
                 if res['KeyCount'] > 0:
                     jpgf.write(f'{jpgname}\n')
