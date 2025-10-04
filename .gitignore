@@ -614,3 +614,4 @@ tests/testing/RMS/
 tests/testing/WesternMeteorPyLib/
 archive/ukmon_pylib/tests/testdata.tar.gz
 servercopybkp/*
+fbcollector/config.ini
