@@ -16,11 +16,11 @@ import glob
 import xmltodict
 from PIL import Image 
 import requests
+import pandas as pd
 
 import paramiko
 from scp import SCPClient
 
-from meteortools.ukmondb import getECSVs, getLiveJpgs
 from wmpl.Formats.ECSV import loadECSVs
 from wmpl.Formats.GenericFunctions import solveTrajectoryGeneric
 
@@ -108,6 +108,82 @@ class ConstrainedEntry(StyledEntry):
             return False
 
         return True
+
+
+def getECSVs(stationID, dateStr, savefiles=False, outdir='.'):
+    """
+    Retrieve a detection in ECSV format for the specified date  
+    """
+    apiurl='https://api.ukmeteors.co.uk/getecsv?stat={}&dt={}'
+    res = requests.get(apiurl.format(stationID, dateStr))
+    ecsvlines=''
+    if res.status_code == 200:
+        rawdata=res.text.strip()
+        if len(rawdata) > 10:
+            ecsvlines=rawdata.split('\n') # convert the raw data into a python list
+            if savefiles is True:
+                os.makedirs(outdir, exist_ok=True)
+                fnamebase = dateStr.replace(':','_').replace('.','_') # create an output filename
+                j=0
+                outf = False
+                for li in ecsvlines:
+                    if 'issue getting data' in li:
+                        print(li)
+                        return li
+                    if '# %ECSV' in li:
+                        if outf is not False:
+                            outf.close()
+                        j=j+1
+                        fname = fnamebase + f'_ukmda_{stationID}_M{j:03d}.ecsv'
+                        outf = open(os.path.join(outdir, fname), 'w')
+                        print('saving to ', os.path.join(outdir,fname))
+                    if outf:
+                        outf.write(f'{li}\n')
+                    else:
+                        print('no ECSV marker found in data')
+        else:
+            print('no error, but no data returned')
+    else:
+        print(res.status_code)
+    return ecsvlines
+
+
+def _download(url, outdir, fname=None):
+    get_response = requests.get(url, stream=True)
+    if fname is None:
+        fname = url.split('?')[0].split("/")[-1]
+    with open(os.path.join(outdir, fname), 'wb') as f:
+        for chunk in get_response.iter_content(chunk_size=4096):
+            if chunk: # filter out keep-alive new chunks
+                f.write(chunk)
+    return fname
+
+
+def getLiveJpgs(dtstr, outdir=None):
+    """
+    Retrieve live images from the ukmon website that match a pattern  
+    """
+    if outdir is None:
+        outdir = dtstr
+    os.makedirs(outdir, exist_ok=True)
+
+    apiurl = 'https://api.ukmeteors.co.uk/liveimages/getlive'
+
+    while len(dtstr) < 15:
+        dtstr = dtstr + '0'    
+    isodt1 = datetime.datetime.strptime(dtstr[:15],'%Y%m%d_%H%M%S')
+    fromdstr = isodt1.isoformat()[:19]+'.000Z'
+    isodt2 = isodt1 + datetime.timedelta(minutes=1)
+    todstr = isodt2.isoformat()[:19]+'.000Z'
+    liveimgs = pd.read_json(f'{apiurl}?dtstr={fromdstr}&enddtstr={todstr}&fmt=withxml')
+
+    for _, thisimg in liveimgs.iterrows():
+        try:
+            jpgurl = thisimg .urls['url']
+            fname = _download(jpgurl, outdir)
+            log.info(f'retrieved {fname}')
+        except:
+            log.warning(f'{img.image_name} unavailable')
 
 
 class fbCollector(Frame):
