@@ -4,14 +4,15 @@
 #
 push-location $PSScriptRoot
 
-. .\helperfunctions.ps1
-$ini=get-inicontent .\config.ini
+$wmpl_env=((select-string .\config.ini -pattern "wmpl_env" -list).line).split('=')[1]
+$wmpl_loc=((select-string .\config.ini -pattern "wmpl_loc" -list).line).split('=')[1]
 
-conda activate $ini['solver']['wmpl_env']
-$wmplloc = $ini['solver']['wmpl_loc']
-$wmplloc = $wmplloc.replace('$HOME',$env:userprofile)
+conda activate $wmpl_env
 
-$env:pythonpath="$wmplloc"
+$wmpl_loc = $wmpl_loc.replace('$HOME',$env:userprofile)
+$wmpl_loc = $wmpl_loc.replace('\','/')
+
+$env:pythonpath="$wmpl_loc"
 
 if ($args.count -lt 1) {
     python fireballCollector.py

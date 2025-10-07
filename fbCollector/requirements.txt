@@ -6,3 +6,5 @@ paramiko
 meteortools
 scp
 pyqtgraph
+xmltodict
+requests

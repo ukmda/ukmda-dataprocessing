@@ -17,11 +17,10 @@ import xmltodict
 from PIL import Image 
 import requests
 
-import boto3
 import paramiko
 from scp import SCPClient
 
-from meteortools.ukmondb import getECSVs as getecsv
+from meteortools.ukmondb import getECSVs, getLiveJpgs
 from wmpl.Formats.ECSV import loadECSVs
 from wmpl.Formats.GenericFunctions import solveTrajectoryGeneric
 
@@ -34,8 +33,6 @@ from tkinter.ttk import Label, Style, LabelFrame, Scrollbar
 
 from PIL import Image as img
 from PIL import ImageTk
-
-from meteortools.ukmondb import getLiveJpgs, createTxtFile
 
 
 config_file = ''
@@ -125,9 +122,6 @@ class fbCollector(Frame):
         self.parent = parent
 
         self.fb_dir = ''
-        self.upload_bucket = ''
-        self.upload_folder = ''
-        self.live_bucket = ''
         self.gmn_key = ''
         self.gmn_user = ''
         self.gmn_server = ''
@@ -135,6 +129,8 @@ class fbCollector(Frame):
         self.wmpl_env = ''
         self.rms_loc = ''
         self.rms_env = ''
+        self.api_key = None
+        self.share_loc = ''
         self.selected = {}
         self.evtMonTriggered = None
         self.review_stack = False
@@ -167,24 +163,44 @@ class fbCollector(Frame):
         localcfg = configparser.ConfigParser()
         localcfg.read(config_file)
         self.fb_dir = os.path.expanduser(localcfg['Fireballs']['basedir'].replace('$HOME','~')).replace('\\','/')
-        self.upload_bucket = localcfg['Fireballs']['uploadbucket']
-        self.upload_folder = localcfg['Fireballs']['uploadfolder']
-        self.live_bucket = localcfg['Fireballs']['livebucket']
         os.makedirs(self.fb_dir, exist_ok=True)
 
         try: 
-            self.gmn_key = localcfg['gmnconnection']['gmnkey']
-            self.gmn_user = localcfg['gmnconnection']['gmnuser']
-            self.gmn_server = localcfg['gmnconnection']['gmnserver']
+            self.gmn_key = localcfg['gmn']['gmnkey']
+            self.gmn_user = localcfg['gmn']['gmnuser']
+            self.gmn_server = localcfg['gmn']['gmnserver']
         except:
-            pass
+            self.gmn_key = None
 
-        self.wmpl_loc = os.path.expanduser(localcfg['solver']['wmpl_loc'].replace('$HOME','~')).replace('\\','/')
-        self.wmpl_env= localcfg['solver']['wmpl_env']
-        self.rms_loc = os.path.expanduser(localcfg['reduction']['rms_loc'].replace('$HOME','~')).replace('\\','/')
-        self.rms_env = localcfg['reduction']['rms_env']
+        try:
+            self.api_key = localcfg['ukmon']['apikey']
+            if os.path.isfile(os.path.expanduser(self.api_key)):
+                key = open(os.path.expanduser(self.api_key), 'r').readlines()[0].strip()
+            else:
+                key = self.api_key
+                if len(key) < 40:
+                    key = None
+            self.api_key = key
+        except:
+            self.api_key = None
+        # log.info(f'apikey "{self.api_key}"')
 
-        self.shareloc = os.path.expanduser(localcfg['sharing']['shrfldr'].replace('$HOME','~')).replace('\\','/')
+        try:
+            self.wmpl_loc = os.path.expanduser(localcfg['solver']['wmpl_loc'].replace('$HOME','~')).replace('\\','/')
+            self.wmpl_env= localcfg['solver']['wmpl_env']
+        except:
+            log.error('WMPL location and environment name must be configured')
+            quitApp()
+        try:
+            self.rms_loc = os.path.expanduser(localcfg['reduction']['rms_loc'].replace('$HOME','~')).replace('\\','/')
+            self.rms_env = localcfg['reduction']['rms_env']
+        except:
+            self.rms_loc = None
+    
+        try:
+            self.share_loc = os.path.expanduser(localcfg['sharing']['shrfldr'].replace('$HOME','~')).replace('\\','/')
+        except:
+            self.share_loc = None
         return
 
     def quitApplication(self):
@@ -260,40 +276,48 @@ class fbCollector(Frame):
         rawMenu = Menu(self.menuBar, tearoff=0)
         rawMenu.add_command(label="Get Live Images", command=self.get_data)
         rawMenu.add_command(label="Get Videos", command=self.get_vids)
-        rawMenu.add_command(label="Get Traj Pickle", command=self.get_trajpickle)
         rawMenu.add_separator()
-        rawMenu.add_command(label="Get GMN Raw Data", command=self.getGMNData)
-        rawMenu.add_separator()
-        rawMenu.add_command(label="Get ECSVs", command=self.getECSVs)
-        self.menuBar.add_cascade(label="Raw", underline=0, menu=rawMenu)
+        rawMenu.add_command(label="Get ECSVs", command=self.getRequestedECSVs)
+        rawMenu.add_command(label="Excl/Incl ECSV", command=self.ignoreCamera)
+        if self.rms_loc:
+            rawMenu.add_command(label="Reduce Selected Image", command=self.reduceCamera)
+            rawMenu.add_separator()
+        if self.share_loc:
+            rawMenu.add_command(label="Share Raw Data", command=self.uploadRaw)
+        if self.gmn_key: 
+            rawMenu.add_separator()
+            watchMenu = Menu(self.menuBar, tearoff=0)
+            watchMenu.add_command(label="Get GMN Raw Data", command=self.getGMNData)
+            watchMenu.add_separator()
+            watchMenu.add_command(label="Get Watchlist", command=self.getWatchlist)
+            watchMenu.add_command(label="View Watchlist", command=self.viewWatchlist)
+            watchMenu.add_command(label="Upload Watchlist", command=self.putWatchlist)
+            watchMenu.add_separator()
+            watchMenu.add_command(label="Fetch Watchlist Event", command=self.getEventData)
+            rawMenu.add_cascade(label='GMN', menu=watchMenu)
+            # self.menuBar.add_cascade(label="Watchlist", underline=0, menu=watchMenu)
 
-        watchMenu = Menu(self.menuBar, tearoff=0)
-        watchMenu.add_command(label="Get Watchlist", command=self.getWatchlist)
-        watchMenu.add_command(label="View Watchlist", command=self.viewWatchlist)
-        watchMenu.add_command(label="Upload Watchlist", command=self.putWatchlist)
-        watchMenu.add_separator()
-        watchMenu.add_command(label="Fetch Event Data", command=self.getEventData)
-        self.menuBar.add_cascade(label="Watchlist", underline=0, menu=watchMenu)
+        self.menuBar.add_cascade(label="Raw", underline=0, menu=rawMenu)
 
         revMenu = Menu(self.menuBar, tearoff=0)
         revMenu.add_command(label="Review Stacks", command=self.checkStacks)
+        revMenu.add_command(label="Review Images", command=self.viewData)
         revMenu.add_command(label="Clean Folder", command=self.clean_folder)
         self.menuBar.add_cascade(label="Review", underline=0, menu=revMenu)
 
         solveMenu = Menu(self.menuBar, tearoff=0)
-        solveMenu.add_command(label="Reduce Data", command=self.reduceCamera)
-        solveMenu.add_command(label="Toggle Ignore", command=self.ignoreCamera)
-        solveMenu.add_separator()
-        solveMenu.add_command(label="View Raw Data", command=self.viewData)
-        solveMenu.add_command(label="Upload Raw Data", command=self.uploadRaw)
-        solveMenu.add_separator()
         solveMenu.add_command(label="Solve", command=self.solveOrbit)
         solveMenu.add_separator()
         solveMenu.add_command(label="View Solution", command=self.viewSolution)
         solveMenu.add_command(label="Delete Solution", command=self.removeSolution)
         solveMenu.add_separator()
-        solveMenu.add_command(label="Upload Orbit", command=self.uploadOrbit)
+        solveMenu.add_command(label="Upload Solution", command=self.uploadOrbit)
         self.menuBar.add_cascade(label="Solve", underline=0, menu=solveMenu)
+
+        otherMenu = Menu(self.menuBar, tearoff=0)
+        otherMenu.add_command(label="Get Traj Pickle", command=self.get_trajpickle)
+        self.menuBar.add_cascade(label="Other", underline=0, menu=otherMenu)
+
         # buttons
         self.save_panel = LabelFrame(self, text=' Image Selection ')
         self.save_panel.grid(row = 1, columnspan = 2, sticky='WE')
@@ -375,14 +399,18 @@ class fbCollector(Frame):
         if len(ecsvs) == 0 and len(rejs) == 0:
             log.info('no files to reject or include')
             return 
-        elif len(ecsvs) == 1 and len(rejs) == 0:
-            os.rename(ecsvs[0], ecsvs[0].replace('.ecsv','_REJECT.ecsv'))
-            jpgname = glob.glob(os.path.join(self.dir_path, 'jpgs', current_image))
-            os.rename(jpgname[0], jpgname[0].replace('.jpg','_REJECT.jpg'))
-        elif len(ecsvs) == 0 and len(rejs) == 1:
-            os.rename(rejs[0], rejs[0].replace('_REJECT.ecsv','.ecsv'))
-            jpgname = glob.glob(os.path.join(self.dir_path, 'jpgs', current_image))
-            os.rename(jpgname[0], jpgname[0].replace('_REJECT.jpg','.jpg'))
+        elif len(ecsvs) > 0 and len(rejs) == 0:
+            for ecsv in ecsvs:
+                os.rename(ecsv, ecsv.replace('.ecsv','_REJECT.ecsv'))
+            jpgnames = glob.glob(os.path.join(self.dir_path, 'jpgs', current_image))
+            for jpgname in jpgnames:
+                os.rename(jpgname, jpgname.replace('.jpg','_REJECT.jpg'))
+        elif len(ecsvs) == 0 and len(rejs) > 0:
+            for rej in rejs: 
+                os.rename(rej, rej.replace('_REJECT.ecsv','.ecsv'))
+            jpgnames = glob.glob(os.path.join(self.dir_path, 'jpgs', current_image))
+            for jpgname in jpgnames:
+                os.rename(jpgname, jpgname.replace('_REJECT.jpg','.jpg'))
         else:
             # more than one ECSV or REJ file to handle, urk
             log.info('urk')
@@ -490,38 +518,45 @@ class fbCollector(Frame):
             shutil.rmtree(tmpdir)
         except Exception:
             pass
-        apikey = open(os.path.expanduser('~/.ssh/fbuploadkey.txt')).readlines()[0].strip()
-        headers = {'Content-type': 'application/zip', 'Slug': orbname[:15], 'apikey': apikey}
-        url = f'https://api.ukmeteors.co.uk/fireballfiles?orbitfile={orbname[:15]}.zip'
-        r = requests.put(url, data=open(zfname+'.zip', 'rb'), headers=headers) #, auth=('username', 'pass'))
-        #print(r.text)
-        if r.status_code != 200:
-            tkMessageBox.showinfo('Warning', 'Problem with upload')
+
+        if self.api_key: 
+            headers = {'Content-type': 'application/zip', 'Slug': orbname[:15], 'apikey': self.api_key}
+            url = f'https://api.ukmeteors.co.uk/fireballfiles?orbitfile={orbname[:15]}.zip'
+            r = requests.put(url, data=open(zfname+'.zip', 'rb'), headers=headers) #, auth=('username', 'pass'))
+            #print(r.text)
+            if r.status_code != 200:
+                tkMessageBox.showinfo('Warning', f'Problem with upload, {r.status_code}')
+            else:
+                tkMessageBox.showinfo('Info', 'Orbit Uploaded')
+            return 
         else:
-            tkMessageBox.showinfo('Info', 'Orbit Uploaded')
-        return 
+            tkMessageBox.showinfo('Info', 'Zip File created')
     
     def uploadRaw(self):
         zfname = os.path.join(os.getenv('TMP'), os.path.basename(self.dir_path))
         log.info(f'zfname is {zfname}')
         shutil.make_archive(zfname,'zip',self.dir_path)
         try:
-            targname = os.path.join(self.shareloc, os.path.basename(zfname)+'.zip')
+            targname = os.path.join(self.share_loc, os.path.basename(zfname)+'.zip')
             log.info(f'targname is {targname}')
             shutil.copyfile(zfname+'.zip', targname)
             tkMessageBox.showinfo('Info', 'Raw Data Uploaded to Dropbox')
-            subprocess.Popen(f'explorer "{self.shareloc}"')
+            subprocess.Popen(f'explorer "{self.share_loc}"')
         except Exception:
             tkMessageBox.showinfo('Warning', 'Problem with upload')
         return 
     
     def viewData(self):
-        dirpath = self.dir_path.replace('/', '\\')
-        log.info(f'self-dir-path {dirpath}')
-        subprocess.Popen(f'explorer "{dirpath}"')
+        self.review_stack = False
+        self.soln_outputdir = None
+        print(self.dir_path)
+        bin_list = self.get_bin_list()
+        for b in bin_list:
+            self.selected[b] = (0, '')
+        self.update_listbox(bin_list)
         return 
     
-    def getECSVs(self):
+    def getRequestedECSVs(self):
         notgotlist=[]
         img_list = self.get_bin_list()
         for current_image in img_list:
@@ -543,7 +578,7 @@ class fbCollector(Frame):
         #dtval = datetime.datetime.strptime(datestr, '%Y%m%d_%H%M%S')
         #datestr = dtval.strftime('%Y-%m-%dT%H:%M:%S')
         try:
-            lis = getecsv(statid, datestr, savefiles=True, outdir=os.path.join(self.dir_path, statid))
+            lis = getECSVs(statid, datestr, savefiles=True, outdir=os.path.join(self.dir_path, statid))
             for li in lis:
                 if 'issue getting data' in li:
                     return False
@@ -717,21 +752,6 @@ class fbCollector(Frame):
 
         self.timestamp_label.configure(text = os.path.split(self.current_image)[1])
         return 
-
-    def save_image(self):
-        """ Marks the image as of interest
-        """
-        current_image = self.listbox.get(ACTIVE)
-        if current_image == '':
-            return 
-        log.info(f'marking {current_image}')
-        srcfile = createTxtFile(current_image, self.dir_path)
-        _, targfile = os.path.split(srcfile)
-        s3 = boto3.client('s3')
-        s3.upload_file(srcfile, self.upload_bucket, f'{self.upload_folder}/{targfile}')
-        cur_index = int(self.listbox.curselection()[0])
-        self.listbox.itemconfig(cur_index, fg = 'green')
-        self.selected[current_image] = (1, srcfile)
 
     def clean_folder(self):
         stacklist = os.listdir(os.path.join(self.dir_path, 'stacks'))

@@ -1,24 +1,9 @@
 # tailor this config file to your needs
 # Note that $HOME will be translated into your homedir (~ on linux, $env:userprofile on windows)
+
 [Fireballs]
 # the location to which fireball data will be downloaded eg c:\fireballs.
 basedir=
-
-# You must have a UKMON AWS key/secret pair with write permission to the upload folder
-# Add these to your ~/.aws/credentials file and put the name of the profile here
-ukmonprofile=
-
-# don't change these
-livebucket=ukmda-live
-uploadbucket=ukmda-shared
-uploadfolder=fireballs/uploads
-
-[gmnconnection]
-# the GMN key needs to be configured with Denis Vida
-# if you have permission you can then collect data from the GMN server
-gmnkey=~/.ssh/gmnanalysis
-gmnserver=gmn.uwo.ca
-gmnuser=analysis
 
 [reduction]
 # To use the reduction options RMS must be installed and an RMS python conda environment created 
@@ -28,8 +13,20 @@ rms_env=RMS
 [solver]
 # To use the solver options WMPL must be installed and a WMPL python conda environment created 
 wmpl_loc=
-wmpl_env=wmpl_env
+wmpl_env=wmpl
 
 [sharing]
-# create this folder if you want to share raw data with other UKMON members
+# create a folder in Dropbox or similar if you want to share raw data with others and then put 
+# its *local* path here eg c:\users\yourname\dropbox\meteors
 shrfldr=
+
+[gmn]
+# the GMN key needs to be configured with Denis Vida
+# if you have permission you can then collect data from the GMN server
+gmnkey=~/.ssh/gmnanalysis
+gmnserver=gmn.uwo.ca
+gmnuser=analysis
+
+[ukmon]
+apikey=
+
