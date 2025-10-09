@@ -80,7 +80,10 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
             try:
                 js = json.loads(obs.comment)
                 ffname = js['ff_name']
-                print(ffname)
+                if ffname[0] == '[':
+                    ffname = ffname[2:-2].split(',')
+                if isinstance(ffname, list):
+                    ffname = ffname[0]
                 # case when filename is nonstandard 
                 if 'FF_' not in ffname and 'FR_' not in ffname:
                     ffname = 'FF_' + ffname
@@ -97,6 +100,7 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
                 else:
                     pass
             if gotff is True: 
+                print(ffname)
                 spls = ffname.split('_')
                 id = spls[1]
                 dtstr = spls[2]
