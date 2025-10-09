@@ -151,6 +151,8 @@ def checkIfFileNeeded(filename):
         return True
     if 'trajectory.pickle' in filename:
         return True
+    if 'extra' in filename: 
+        return True
     return False
 
 
