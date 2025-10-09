@@ -4,8 +4,8 @@ This tool allows authorised users to collect fireball data from UKMON and GMN an
 
 ## Prerequisites
   
-* [WMPL](https://github.com/wmpg/WesternMeteorPyLib/), used to solve trajectories. 
-* [RMS](https://github.com/CroatianMeteorNetwork/RMS), used to reduce raw data.
+* You have installed [WMPL](https://github.com/wmpg/WesternMeteorPyLib/), used to solve trajectories. 
+* You have installed [RMS](https://github.com/CroatianMeteorNetwork/RMS), used to reduce raw data.
 * A local folder where you will store fireball data. This is called `basedir` in this documentation. 
 
 The above are sufficient to collect data from UKMON and to analyse data either collected from UKMON or by other means.  There are additional configuration options that can be used to collect data from GMN and upload solutions to UKMON. These are described inline below. 
