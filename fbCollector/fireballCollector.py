@@ -212,6 +212,7 @@ class fbCollector(Frame):
         self.review_stack = False
         self.soln_outputdir = None
         self.log_files_to_keep = 30
+        self.script_loc = os.path.dirname(__file__)
 
         self.readConfig()
 
@@ -220,7 +221,8 @@ class fbCollector(Frame):
             self.dir_path = self.fb_dir.strip()
         else:
             self.dir_path = os.path.join(self.fb_dir, patt)
-        log.info(f"Fireball folder is {self.fb_dir}")
+        log.info(f'Fireball folder is {self.fb_dir}')
+        log.info(f'Scripts folder is {self.script_loc}')
 
         self.initUI()
         if self.dir_path != self.fb_dir:
@@ -958,7 +960,7 @@ class fbCollector(Frame):
         log.info('Uploading watchlist')
         evtfile = os.path.join(self.fb_dir,'event_watchlist.txt')
         scpcli.put(evtfile, 'event_watchlist.txt')
-        self.evtMonTriggered = datetime.datetime.now() + datetime.timedelta(minutes=10)
+        self.evtMonTriggered = datetime.datetime.now() + datetime.timedelta(minutes=5)
         return 
     
     def getEventData(self):
@@ -966,18 +968,20 @@ class fbCollector(Frame):
         if len(evtdate) < 15:
             tkMessageBox.showinfo("Warning", f'Need seconds in the event date field {evtdate}')
             return
-        cmd = os.path.join(os.path.dirname(__file__), 'download_events.sh') + f' {evtdate} 1'
+        cmd = os.path.join(self.script_loc, 'download_events.sh') + f' {evtdate} 1'
         if ':' in cmd:
             drv = cmd[0].lower()
             cmd = '/mnt/' + drv + cmd[2:]
         cmd = cmd.replace('\\','/')
-        log.warning(f'executing {cmd}')
+        log.info(f'executing {cmd}')
         if self.evtMonTriggered is None:
-            tkMessageBox.showinfo("Warning", 'Event Monitor has not been triggered')
-            return
-        if datetime.datetime.now() < self.evtMonTriggered:
-            tkMessageBox.showinfo("Warning", f'Wait till at least {self.evtMonTriggered.strftime("%H:%M:%S")}')
-            return
+            ret = tkMessageBox.askyesno("Warning", 'Event Monitor has not been triggered, continue?')
+            if ret is False:
+                return 
+        elif datetime.datetime.now() < self.evtMonTriggered:
+            ret = tkMessageBox.askyesno("Wait", f'Should wait till {self.evtMonTriggered.strftime("%H:%M:%S")} - continue anyway?')
+            if ret is False:
+                return
         os.chdir(self.fb_dir)
         log.info(f'getting data for {evtdate}')
         procid = subprocess.Popen(('bash','-c', cmd))

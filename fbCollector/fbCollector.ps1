@@ -15,9 +15,9 @@ $wmpl_loc = $wmpl_loc.replace('\','/')
 $env:pythonpath="$wmpl_loc"
 
 if ($args.count -lt 1) {
-    python fireballCollector.py
+    python $PSScriptRoot/fireballCollector.py
 }else {
-    python fireballCollector.py -d $args[0]
+    python $PSScriptRoot/fireballCollector.py -d $args[0]
 }
 
 Pop-Location
