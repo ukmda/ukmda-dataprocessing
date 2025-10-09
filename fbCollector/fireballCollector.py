@@ -579,9 +579,9 @@ class fbCollector(Frame):
         os.makedirs(tmpdir, exist_ok=True)
         shutil.copyfile(pickfile, os.path.join(tmpdir, orbname))
         if os.path.isdir(os.path.join(self.dir_path, 'jpgs')):
-            shutil.copytree(os.path.join(self.dir_path, 'jpgs'), os.path.join(tmpdir, 'jpgs'))
+            shutil.copytree(os.path.join(self.dir_path, 'jpgs'), os.path.join(tmpdir, 'jpgs'), dirs_exist_ok=True)
         if os.path.isdir(os.path.join(self.dir_path, 'mp4s')):
-            shutil.copytree(os.path.join(self.dir_path, 'mp4s'), os.path.join(tmpdir, 'mp4s'))
+            shutil.copytree(os.path.join(self.dir_path, 'mp4s'), os.path.join(tmpdir, 'mp4s'), dirs_exist_ok=True)
         for path, _, files in os.walk(self.dir_path):
             for name in files:
                 if '_dyn_mass_fit' in name:
