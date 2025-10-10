@@ -1,0 +1,7 @@
+{
+  "httpMethod": "GET",
+  "queryStringParameters": {
+    "reqtyp": "summary",
+    "reqval": "20251008"
+  }
+}

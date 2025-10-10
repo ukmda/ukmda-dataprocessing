@@ -1,0 +1,8 @@
+{
+  "httpMethod": "GET",
+  "queryStringParameters": {
+    "reqtyp": "station",
+    "statid": "UK0006",
+    "reqval": "20251008"
+  }
+}

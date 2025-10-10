@@ -24,7 +24,7 @@ def lambda_handler(event, context):
     if reqtyp not in ['matches','detail','station','summary']:
         res = '{"invalid request type - must be one of \'matches\', \'details\', \'station\',\'summary\'"}'
     else:
-        print(f'{reqtyp} {reqval} {points}')
+        print(f'reqtype {reqtyp} reqval {reqval} points {points}')
         if reqtyp == 'summary':
             d1 = datetime.datetime.strptime(reqval, '%Y%m%d')
             idxfile = 'matches/matched/matches-full-{:04d}.csv'.format(d1.year)
@@ -47,6 +47,7 @@ def lambda_handler(event, context):
             fhi = {"FileHeaderInfo": "Use"}
         elif reqtyp == 'station':
             statid = qs['statid']
+            print(f'statid {statid}')
             d1 = datetime.datetime.strptime(reqval, '%Y%m%d')
             idxfile = 'matches/matched/matches-full-{:04d}.csv'.format(d1.year)
             res = '{"no matches"}'
@@ -78,6 +79,7 @@ def lambda_handler(event, context):
                 print('report file unavailable')
                 res = '{"points": "unavailable"}'
     
+    print(res)
     return {
         'statusCode': 200,
         'body': res

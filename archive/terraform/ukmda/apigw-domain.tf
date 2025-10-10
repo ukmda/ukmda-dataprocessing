@@ -40,6 +40,11 @@ data "aws_api_gateway_rest_api" "matchpickleapi" {
   provider    = aws.eu-west-1-prov
 }
 
+data "aws_api_gateway_rest_api" "matchdataapi" {
+  name        = "matchDataApi"
+  provider    = aws.eu-west-1-prov
+}
+
 data "aws_api_gateway_rest_api" "liveimagesapi" {
   name        = "getLiveImages"
   provider    = aws.eu-west-1-prov
@@ -68,6 +73,14 @@ resource "aws_api_gateway_base_path_mapping" "camdetapi" {
   stage_name  = "Prod"
   domain_name = aws_api_gateway_domain_name.apigwdomain.domain_name
   base_path   = "camdetails"
+  provider    = aws.eu-west-1-prov
+}
+
+resource "aws_api_gateway_base_path_mapping" "matchdataapi" {
+  api_id      = data.aws_api_gateway_rest_api.matchdataapi.id
+  stage_name  = "Prod"
+  domain_name = aws_api_gateway_domain_name.apigwdomain.domain_name
+  base_path   = "matches"
   provider    = aws.eu-west-1-prov
 }
 
