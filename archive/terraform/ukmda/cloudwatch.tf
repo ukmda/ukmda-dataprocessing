@@ -3,33 +3,6 @@
 #
 # Copyright (C) 2018-2023 Mark McIntyre
 
-resource "aws_cloudwatch_metric_alarm" "calcServerDiskSpace" {
-  alarm_name                = "CalcServer diskspace"
-  comparison_operator       = "GreaterThanThreshold"
-  evaluation_periods        = "1"
-  metric_name               = "disk_used_percent"
-  namespace                 = "CWAgent"
-  period                    = "300"
-  statistic                 = "Average"
-  threshold                 = "90"
-  alarm_description         = "CalcServer diskspace has gone over 90%"
-  insufficient_data_actions = []
-  datapoints_to_alarm       = 1
-  alarm_actions             = [aws_sns_topic.ukmdaalerts.arn, ]
-  dimensions = {
-    "ImageId"      = aws_instance.calc_server.ami
-    "InstanceId"   = aws_instance.calc_server.id
-    "InstanceType" = aws_instance.calc_server.instance_type
-    "device"       = "nvme0n1p1"
-    "fstype"       = "xfs"
-    "path"         = "/"
-  }
-  tags = {
-    "billingtag" = "ukmda"
-  }
-  actions_enabled           = true
-}
-
 resource "aws_cloudwatch_metric_alarm" "calcServerIdle" {
   alarm_name                = "CalcServer idle shutdown"
   comparison_operator       = "LessThanOrEqualToThreshold"
