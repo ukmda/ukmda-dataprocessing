@@ -2,7 +2,7 @@
 
 resource "aws_instance" "calc_server" {
   ami                  = "ami-0df2d8f6def0bd716"
-  instance_type        = "c8g.4xlarge"
+  instance_type        = "c8g.2xlarge"
   iam_instance_profile = aws_iam_instance_profile.calcserverrole.name
   key_name             = aws_key_pair.marks_key.key_name
   force_destroy        = false
@@ -44,7 +44,7 @@ resource "aws_network_interface" "calcserver_if" {
 ################################################
 #  Ubuntu calc server
 ################################################
-/*
+
 resource "aws_instance" "ubuntu_calc_server" {
   ami                  = "ami-0bdf149a42243bde8"
   instance_type        = "c6g.4xlarge"
@@ -84,7 +84,7 @@ resource "aws_network_interface" "ubuntu_calcserver_if" {
     "billingtag" = "ukmda"
   }
 }
-*/
+
 ################################################
 #  admin server
 ################################################
