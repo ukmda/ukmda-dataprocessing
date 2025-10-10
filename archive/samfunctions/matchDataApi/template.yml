@@ -11,7 +11,7 @@ Resources:
       FunctionName: matchDataApi
       Description: API backend that fetches match data
       Timeout: 120
-      Policies: [AmazonS3ReadOnlyAccess]
+      Policies: [AmazonS3ReadOnlyAccess, AmazonSSMReadOnlyAccess ]
       Environment:
         Variables:
           ARCHBUCKET: ukmda-shared
