@@ -46,7 +46,7 @@ jobs:
             echo "packaging the app now"
             cd usermgmt\windows\dist
             copy ../camera.ico .
-            copy ../stationmaint.cfg .
+            copy ../stationmaint.ini.sample .
             compress-archive -path . -update -destinationpath c:\temp\ukmon_usermgmt.zip
     release_usermgmt:
         name: release usermanagement
