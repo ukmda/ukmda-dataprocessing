@@ -69,3 +69,13 @@ jobs:
             tag_name: 2024.04.02
             default_release_name: User Management Tool 
             default_release_body_path: usermgmt\windows\release_notes.md
+    cleanup:
+        name: clean up package
+        runs-on: win10
+        needs: 
+        - build
+        - release
+        steps:
+        - name: delete package
+          run: | 
+            c:\temp\ukmon_usermgmt.zip
