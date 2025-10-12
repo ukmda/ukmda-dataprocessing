@@ -21,8 +21,12 @@ import pandas as pd
 import paramiko
 from scp import SCPClient
 
-from wmpl.Formats.ECSV import loadECSVs
-from wmpl.Formats.GenericFunctions import solveTrajectoryGeneric
+try:
+    from wmpl.Formats.ECSV import loadECSVs
+    from wmpl.Formats.GenericFunctions import solveTrajectoryGeneric
+    solveravailable = 'enabled'
+except Exception:
+    solveravailable = 'disabled'
 
 import tkinter as tk
 import tkinter.filedialog as tkFileDialog
@@ -51,6 +55,16 @@ def log_timestamp():
     """ Returns timestamp for logging.
     """
     return datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+
+def showConfig():
+    if platform.system() == 'Darwin':       # macOS
+        procid = subprocess.Popen(('open', config_file))
+    elif platform.system() == 'Windows':    # Windows
+        procid = subprocess.Popen(('cmd','/c',config_file))
+    else:                                   # linux variants
+        procid = subprocess.Popen(('xdg-open', config_file))
+    procid.wait()
 
 
 class StyledButton(Button):
@@ -212,7 +226,7 @@ class fbCollector(Frame):
         self.review_stack = False
         self.soln_outputdir = None
         self.log_files_to_keep = 30
-        self.script_loc = os.path.dirname(__file__)
+        self.script_loc = os.path.split(config_file)[0]
 
         self.readConfig()
 
@@ -345,11 +359,24 @@ class fbCollector(Frame):
         fileMenu.add_separator()
         fileMenu.add_command(label="Delete This Folder", command=self.delFolder)
         fileMenu.add_separator()
-        fileMenu.add_command(label="Configuration", command=self.showConfig)
+        fileMenu.add_command(label="Configuration", command=self.reviewConfig)
         fileMenu.add_command(label="View Logs", command=self.viewLogs)
         fileMenu.add_separator()
         fileMenu.add_command(label="Exit", command=self.quitApplication)
         self.menuBar.add_cascade(label="File", underline=0, menu=fileMenu)
+
+        if self.rms_loc:
+            rmsavailable = 'active'
+        else:
+            rmsavailable = 'disabled'
+        if self.share_loc:
+            shareavailable = 'active'
+        else:
+            shareavailable = 'disabled'
+        if self.gmn_key:
+            gmnavailable ='active' 
+        else:
+            gmnavailable ='disabled' 
 
         rawMenu = Menu(self.menuBar, tearoff=0)
         rawMenu.add_command(label="Get Live Images", command=self.get_data)
@@ -357,23 +384,19 @@ class fbCollector(Frame):
         rawMenu.add_separator()
         rawMenu.add_command(label="Get ECSVs", command=self.getRequestedECSVs)
         rawMenu.add_command(label="Excl/Incl ECSV", command=self.ignoreCamera)
-        if self.rms_loc:
-            rawMenu.add_command(label="Reduce Selected Image", command=self.reduceCamera)
-            rawMenu.add_separator()
-        if self.share_loc:
-            rawMenu.add_command(label="Share Raw Data", command=self.uploadRaw)
-        if self.gmn_key: 
-            rawMenu.add_separator()
-            watchMenu = Menu(self.menuBar, tearoff=0)
-            watchMenu.add_command(label="Get GMN Raw Data", command=self.getGMNData)
-            watchMenu.add_separator()
-            watchMenu.add_command(label="Get Watchlist", command=self.getWatchlist)
-            watchMenu.add_command(label="View Watchlist", command=self.viewWatchlist)
-            watchMenu.add_command(label="Upload Watchlist", command=self.putWatchlist)
-            watchMenu.add_separator()
-            watchMenu.add_command(label="Fetch Watchlist Event", command=self.getEventData)
-            rawMenu.add_cascade(label='GMN', menu=watchMenu)
-            # self.menuBar.add_cascade(label="Watchlist", underline=0, menu=watchMenu)
+        rawMenu.add_command(label="Reduce Selected Image", command=self.reduceCamera, state=rmsavailable)
+        rawMenu.add_separator()
+        rawMenu.add_command(label="Share Raw Data", command=self.uploadRaw, state=shareavailable)
+        rawMenu.add_separator()
+        watchMenu = Menu(self.menuBar, tearoff=0)
+        watchMenu.add_command(label="Get GMN Raw Data", command=self.getGMNData, state=gmnavailable)
+        watchMenu.add_separator()
+        watchMenu.add_command(label="Get Watchlist", command=self.getWatchlist, state=gmnavailable)
+        watchMenu.add_command(label="View Watchlist", command=self.viewWatchlist, state=gmnavailable)
+        watchMenu.add_command(label="Upload Watchlist", command=self.putWatchlist, state=gmnavailable)
+        watchMenu.add_separator()
+        watchMenu.add_command(label="Fetch Watchlist Event", command=self.getEventData, state=gmnavailable)
+        rawMenu.add_cascade(label='GMN', menu=watchMenu, state=gmnavailable)
 
         self.menuBar.add_cascade(label="Raw", underline=0, menu=rawMenu)
 
@@ -384,7 +407,7 @@ class fbCollector(Frame):
         self.menuBar.add_cascade(label="Review", underline=0, menu=revMenu)
 
         solveMenu = Menu(self.menuBar, tearoff=0)
-        solveMenu.add_command(label="Solve", command=self.solveOrbit)
+        solveMenu.add_command(label="Solve", command=self.solveOrbit, state=solveravailable)
         solveMenu.add_separator()
         solveMenu.add_command(label="View Solution", command=self.viewSolution)
         solveMenu.add_command(label="Delete Solution", command=self.removeSolution)
@@ -439,6 +462,11 @@ class fbCollector(Frame):
         self.timestamp_label = Label(self, text = "CCNNNN YYYY-MM-DD HH:MM.SS.mms", font=("Courier", 12))
         self.timestamp_label.grid(row = 7, column = 3, sticky = "E")
 
+    def reviewConfig(self):
+        showConfig()
+        self.readConfig()
+        self.initUI()
+
     def reduceCamera(self):
         current_image = self.listbox.get(ACTIVE)
         if current_image == '':
@@ -452,16 +480,20 @@ class fbCollector(Frame):
         _ = subprocess.run(['powershell.exe', tmpscr])
         frs = glob.glob(os.path.join(dirname, 'FR*.bin'))
         if len(frs) > 0:
-            if not tkMessageBox.askyesno("Rerun", f'{len(frs)} FR files detected - rerun?'):
-                return
-            for fr in frs:
-                with open(tmpscr, 'w') as outf:
-                    outf.write(f'cd {self.rms_loc}\nconda activate {self.rms_env}\npython -m Utils.SkyFit2 {fr} -c {dirname}/.config\n')
-                _ = subprocess.run(['powershell.exe', tmpscr])
+            if tkMessageBox.askyesno("Rerun", f'{len(frs)} FR files detected - rerun?'):
+                for fr in frs:
+                    with open(tmpscr, 'w') as outf:
+                        outf.write(f'cd {self.rms_loc}\nconda activate {self.rms_env}\npython -m Utils.SkyFit2 {fr} -c {dirname}/.config\n')
+                    _ = subprocess.run(['powershell.exe', tmpscr])
         try:
             os.remove(tmpscr)
         except:
             pass
+        os.makedirs(os.path.join(self.dir_path,'ecsvs'), exist_ok=True)
+        ecsvfs = glob.glob1(dirname, '*.ecsv')
+        for ecsv in ecsvfs:
+            shutil.copyfile(os.path.join(dirname, ecsv), os.path.join(self.dir_path, 'ecsvs', ecsv))
+
         return
     
     def ignoreCamera(self):
@@ -504,11 +536,15 @@ class fbCollector(Frame):
         log.info('Using ECSV files:')
         ecsv_names = []
         ecsv_paths = []
+        os.makedirs(os.path.join(self.dir_path,'ecsvs'), exist_ok=True)
         for entry in sorted(os.walk(self.dir_path), key=lambda x: x[0]):
             dir_name, _, file_names = entry
+            if 'ecsvs' in dir_name:
+                continue
             for fn in file_names:
+                if fn.lower().endswith(".ecsv"):
+                    shutil.copyfile(os.path.join(dir_name, fn), os.path.join(self.dir_path, 'ecsvs', fn))
                 if fn.lower().endswith(".ecsv") and 'REJECT' not in dir_name.upper() and 'REJECT' not in fn.upper():
-
                     # Add ECSV file, but skip duplicates
                     if fn not in ecsv_names:
                         ecsv_paths.append(os.path.join(dir_name, fn))
@@ -540,6 +576,7 @@ class fbCollector(Frame):
         if not self.soln_outputdir:
             solndir = glob.glob1(self.dir_path, os.path.split(self.dir_path)[1][:8]+'*')
             if len(solndir) == 0:
+                tkMessageBox.showinfo('Warning', 'No solution to review')
                 return
             solndir = os.path.join(self.dir_path, solndir[0])
             self.soln_outputdir = solndir
@@ -553,6 +590,7 @@ class fbCollector(Frame):
         if not self.soln_outputdir:
             solndir = glob.glob1(self.dir_path, os.path.split(self.dir_path)[1][:8]+'*')
             if len(solndir) == 0:
+                tkMessageBox.showinfo('Warning', 'No solution to remove')
                 return
             solndir = os.path.join(self.dir_path, solndir[0])
             self.soln_outputdir = solndir
@@ -565,17 +603,24 @@ class fbCollector(Frame):
         pickles=[]
         for path, _, files in os.walk(self.dir_path):
             for name in files:
-                if '.pickle' in name and '_mc_' not in name:
+                if '.pickle' in name and '_mc_' not in name and 'tmpzip' not in path:
+                    log.info(f'adding pickle {name}')
                     pickles.append(os.path.join(path, name))
+                if name.lower().endswith(".ecsv") and 'ecsvs' not in path:
+                    log.info(f'copying {name}')
+                    shutil.copyfile(os.path.join(path, name), os.path.join(self.dir_path, 'ecsvs', name))
 
         if len(pickles) == 0:
             return
-        elif len(pickles) == 1:
+        pickles = list(set(pickles))
+        if len(pickles) == 1:
             pickfile = pickles[0]
         else:
             pickfile = tkFileDialog.askopenfilename(title='Select Orbit Pickle', defaultextension='*.pickle',
                                        initialdir=self.dir_path, initialfile='*.pickle',
                                        filetypes=[('pickles','*.pickle')])
+        if not pickfile:
+            return 
         orbname = os.path.split(pickfile)[1]
         tmpdir = os.path.join(self.dir_path, 'tmpzip')
         os.makedirs(tmpdir, exist_ok=True)
@@ -584,12 +629,13 @@ class fbCollector(Frame):
             shutil.copytree(os.path.join(self.dir_path, 'jpgs'), os.path.join(tmpdir, 'jpgs'), dirs_exist_ok=True)
         if os.path.isdir(os.path.join(self.dir_path, 'mp4s')):
             shutil.copytree(os.path.join(self.dir_path, 'mp4s'), os.path.join(tmpdir, 'mp4s'), dirs_exist_ok=True)
+        if os.path.isdir(os.path.join(self.dir_path, 'ecsvs')):
+            shutil.copytree(os.path.join(self.dir_path, 'ecsvs'), os.path.join(tmpdir, 'ecsvs'), dirs_exist_ok=True)
         for path, _, files in os.walk(self.dir_path):
             for name in files:
                 if '_dyn_mass_fit' in name:
                     im = Image.open(os.path.join(path, name)).convert("RGB")
                     im.save(os.path.join(tmpdir,'jpgs', name[:-4] + '.jpg'))
-                    break
         zfname = os.path.join(self.dir_path, orbname[:15])
         shutil.make_archive(zfname,'zip',tmpdir)
         try:
@@ -660,6 +706,13 @@ class fbCollector(Frame):
             for li in lis:
                 if 'issue getting data' in li:
                     return False
+            os.makedirs(os.path.join(self.dir_path,'ecsvs'), exist_ok=True)
+            ecsvfs = glob.glob1(os.path.join(self.dir_path, statid), '*.ecsv')
+            for ecsv in ecsvfs:
+                shutil.copyfile(os.path.join(self.dir_path, statid, ecsv), os.path.join(self.dir_path, 'ecsvs', ecsv))
+
+            shutil.copyfile()
+            ## finish here
             return True
         except Exception:
             return False
@@ -700,10 +753,12 @@ class fbCollector(Frame):
     def checkStacks(self):
         self.review_stack = True
         bin_list = self.get_bin_list()
-        for b in bin_list:
-            self.selected[b] = (0, '')
-        self.update_listbox(bin_list)
-
+        if len(bin_list) > 0:
+            for b in bin_list:
+                self.selected[b] = (0, '')
+            self.update_listbox(bin_list)
+        else:
+            tkMessageBox.showinfo('Warning', 'No stacks to review')
     
     def loadFolder(self):
         self.review_stack = False
@@ -926,15 +981,6 @@ class fbCollector(Frame):
         else:
             self.putWatchlist()
 
-    def showConfig(self):
-        if platform.system() == 'Darwin':       # macOS
-            procid = subprocess.Popen(('open', config_file))
-        elif platform.system() == 'Windows':    # Windows
-            procid = subprocess.Popen(('cmd','/c',config_file))
-        else:                                   # linux variants
-            procid = subprocess.Popen(('xdg-open', config_file))
-        procid.wait()
-
     def getWatchlist(self):
         k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(self.gmn_key))
         c = paramiko.SSHClient()
@@ -1054,8 +1100,13 @@ if __name__ == '__main__':
     parser.add_argument("-d", "--datepatt", type=str, help="date pattern to retrieve")
     args = parser.parse_args()
 
-    dir_ = os.path.dirname(os.path.realpath(__file__))
+    dir_ = os.getcwd()
     config_file = os.path.join(dir_, 'config.ini')
+    if not os.path.isfile(config_file):
+        shutil.copyfile(os.path.join(dir_, 'config.ini.sample'), config_file)
+        tkMessageBox.showinfo("Config Missing", 'Please configure before using')
+        showConfig()
+
     noimg_file = os.path.join(dir_, 'noimage.jpg')
 
     log = logging.getLogger(__name__)
