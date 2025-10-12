@@ -1,4 +1,4 @@
-name: build_usermgmt
+name: build_fbmanagement
 env:
     AWS_REGION: eu-west-2
 permissions:
