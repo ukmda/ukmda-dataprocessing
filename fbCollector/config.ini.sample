@@ -23,9 +23,9 @@ shrfldr=
 [gmn]
 # the GMN key needs to be configured with Denis Vida
 # if you have permission you can then collect data from the GMN server
-gmnkey=~/.ssh/gmnanalysis
+gmnkey=
+gmnuser=
 gmnserver=gmn.uwo.ca
-gmnuser=analysis
 
 [ukmon]
 apikey=

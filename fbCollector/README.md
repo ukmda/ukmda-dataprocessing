@@ -40,6 +40,7 @@ Members of the UKMON team who frequently create solutions can request an API key
 
 ### Collecting data from GMN
 Members of the GMN coordinators group who have permission from Denis Vida can use this tool to collect data directly from GMN or using the GMN Watchlist. If you fall into this category you can fill in the `[gmnanalysis]` section of the config file with the name of your SSH private key and other details.  This will activate additional menu options to `Get GMN Raw Data` and to use the `Watchlist`. 
+If you're running on Windows, you will need WSL2 enabled and the rsync tool installed in WSL2. 
 
 ## Logs
 The programme creates logs in your system's `TEMP` folder. 
