@@ -66,7 +66,7 @@ jobs:
             #tags: true
             draft: true 
             overwrite: true
-            tag_name: 2024.04.02
+            tag_name: 2025.10.1
             default_release_name: User Management Tool 
             default_release_body_path: usermgmt\windows\release_notes.md
     cleanup:
