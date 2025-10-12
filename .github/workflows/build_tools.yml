@@ -1,0 +1,139 @@
+name: Build Fireball and Management Tools
+env:
+    AWS_REGION: eu-west-2
+permissions:
+    id-token: write
+    contents: read
+
+on:
+    push:
+        branches: [ dev, markmac99, master ]
+    pull_request:
+        # The branches below must be a subset of the branches above
+        branches: [ master ]
+jobs:
+    local_tests:
+        name: local test stage
+        runs-on: win10
+        steps:
+        - name: "☁️ checkout repository"
+          uses: actions/checkout@v4
+        - name: testing
+          run: | 
+            echo "hello from test"
+            conda activate ukmon-admin
+            dir 
+    build_usermgmt:
+        name: build stage
+        runs-on: win10
+        needs: local_tests
+        steps:
+        - name: building
+          run: |
+            echo "running build step"
+            conda activate ukmon-admin
+            cd usermgmt\windows
+            pyinstaller ./stationMaint2.py --noconsole --onefile --windowed --icon .\camera.ico
+            dir dist
+    package_usermgmt:
+        name: package app
+        runs-on: win10
+        needs: 
+        - local_tests
+        - build_usermgmt
+        steps:
+        - name: packaging
+          run: | 
+            echo "packaging the app now"
+            cd usermgmt\windows\dist
+            copy ../camera.ico .
+            ((get-content ..\stationmaint.cfg) -replace "adm_mark","") -replace "~/.ssh/ukmonhelper","" | set-content -path ./stationmaint.cfg
+            compress-archive -path . -update -destinationpath c:\temp\ukmon_usermgmt.zip
+    release_usermgmt:
+        name: release package
+        runs-on: win10
+        needs:
+        - local_tests
+        - build_usermgmt
+        - package_usermgmt
+        steps:
+        - name: release
+          uses: xresloader/upload-to-github-release@v1
+          env:
+            GITHUB_TOKEN: ${{ secrets.MM_PAT }}
+          with:
+            file: c:\temp\ukmon_usermgmt.zip
+            tags: true
+            draft: true 
+            overwrite: true
+            tag_name: 2025.10.1
+            default_release_name: User Management Tool 
+            default_release_body_path: usermgmt\windows\release_notes.md
+    cleanup_usermgmt:
+        name: clean up package
+        runs-on: win10
+        needs: 
+        - build_usermgmt
+        - release_usermgmt
+        steps:
+        - name: delete temp usermgmt package
+          run: | 
+            del c:\temp\ukmon_usermgmt.zip
+    build_fbtool:
+        name: build stage
+        runs-on: win10
+        needs: local_tests
+        steps:
+        - name: building
+          run: |
+            echo "running build step"
+            conda activate fbcollector
+            cd fbCollector
+            pyinstaller ./fireballCollector.py --onefile --windowed --icon .\ukmda.ico
+    package_fbtool:
+        name: package app
+        runs-on: win10
+        needs: 
+        - local_tests
+        - build_fbtool
+        steps:
+        - name: packaging
+          run: | 
+            echo "packaging the app now"
+            cd fbCollector\dist
+            copy ../ukmda.ico . 
+            copy ../config.ini.sample .
+            copy ../download_events.sh . 
+            copy ../noimage.jpg . 
+            copy ../README.md . 
+            compress-archive -path . -update -destinationpath c:\temp\fbcollector.zip
+    release_fbtool:
+        name: release package
+        runs-on: win10
+        needs:
+        - local_tests
+        - build_fbtool
+        - package_fbtool
+        steps:
+        - name: release
+          uses: xresloader/upload-to-github-release@v1
+          env:
+            GITHUB_TOKEN: ${{ secrets.MM_PAT }}
+          with:
+            file: c:\temp\fbcollector.zip
+            tags: true
+            draft: true 
+            overwrite: true
+            tag_name: 2025.10.1
+            default_release_name: Fireball Data Gathering and Analysis
+            default_release_body_path: fbCollector\README.md
+    cleanup_fbtool:
+        name: clean up temp package
+        runs-on: win10
+        needs: 
+        - build_fbtool
+        - release_fbtool
+        steps:
+        - name: delete package
+          run: | 
+           del  c:\temp\fbcollector.zip

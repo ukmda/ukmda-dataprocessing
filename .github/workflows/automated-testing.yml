@@ -1,4 +1,4 @@
-name: automated_testing
+name: Automated Testing
 env:
   AWS_REGION: eu-west-2
 permissions:
