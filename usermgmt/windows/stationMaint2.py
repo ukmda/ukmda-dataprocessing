@@ -21,18 +21,30 @@ import pandas as pd
 from configparser import ConfigParser
 import logging
 import logging.handlers
+import shutil
+import platform
+import subprocess
 
 
 log = logging.getLogger("logger")
 
+config_file = ''
+
 
 def loadConfig(cfgdir):
-    cfgfile = os.path.join(cfgdir, 'stationmaint.cfg')
+    config_file = os.path.join(cfgdir, 'stationmaint.ini')
+    if not os.path.isfile(config_file):
+        tkMessageBox.showinfo("Config Missing", 'Please configure before using')
+        shutil.copyfile(f'{config_file}.sample', config_file)
+        if platform.system() == 'Darwin':       # macOS
+            procid = subprocess.Popen(('open', config_file))
+        elif platform.system() == 'Windows':    # Windows
+            procid = subprocess.Popen(('cmd','/c',config_file))
+        else:                                   # linux variants
+            procid = subprocess.Popen(('xdg-open', config_file))
+        procid.wait()
     cfg = ConfigParser()
-    if not os.path.isfile(cfgfile):
-        tkMessageBox.showinfo('Warning', f'config file {cfgfile} not found')
-        exit(0)
-    cfg.read(cfgfile)
+    cfg.read(config_file)
     server = cfg['helper']['helperip'] 
     user = cfg['helper']['user']
     keyfile = cfg['helper']['sshkey']
@@ -306,7 +318,6 @@ class CamMaintenance(Frame):
         os.makedirs('users', exist_ok=True)
         os.makedirs('inifs', exist_ok=True)
         os.makedirs('sshkeys', exist_ok=True)
-        self.resyncLocalFiles()
 
         self.ddb = self.conn.resource('dynamodb', region_name='eu-west-2')
         try:
@@ -404,6 +415,10 @@ class CamMaintenance(Frame):
                                    ("end_edit_cell", self.end_edit_cell)])
 
         self.sheet.popup_menu_add_command('Sort', self.columns_sort, table_menu = False, index_menu = False)
+        self.parent.title('Please wait, syncing data...')
+        self.resyncLocalFiles()
+        self.parent.title('Station Maintenance')
+        return 
 
     def hide_columns_right_click(self, event = None):
         currently_displayed = self.sheet.display_columns()

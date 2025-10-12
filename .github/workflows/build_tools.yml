@@ -46,7 +46,7 @@ jobs:
             echo "packaging the app now"
             cd usermgmt\windows\dist
             copy ../camera.ico .
-            ((get-content ..\stationmaint.cfg) -replace "adm_mark","") -replace "~/.ssh/ukmonhelper","" | set-content -path ./stationmaint.cfg
+            copy ../stationmaint.cfg .
             compress-archive -path . -update -destinationpath c:\temp\ukmon_usermgmt.zip
     release_usermgmt:
         name: release usermanagement

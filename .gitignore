@@ -615,3 +615,4 @@ tests/testing/WesternMeteorPyLib/
 archive/ukmon_pylib/tests/testdata.tar.gz
 servercopybkp/*
 fbcollector/config.ini
+usermgmt/windows/stationmaint.ini
