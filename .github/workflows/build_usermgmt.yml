@@ -78,4 +78,4 @@ jobs:
         steps:
         - name: delete package
           run: | 
-            c:\temp\ukmon_usermgmt.zip
+            del c:\temp\ukmon_usermgmt.zip

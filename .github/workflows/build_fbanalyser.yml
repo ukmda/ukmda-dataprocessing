@@ -44,7 +44,7 @@ jobs:
         - name: packaging
           run: | 
             echo "packaging the app now"
-            cd usermgmt\windows\dist
+            cd fbCollector\dist
             copy ../ukmda.ico . 
             copy ../config.ini.sample .
             copy ../download_events.sh . 
@@ -65,7 +65,7 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.MM_PAT }}
           with:
             file: c:\temp\fbcollector.zip
-            #tags: true
+            tags: true
             draft: true 
             overwrite: true
             tag_name: 2025.10.1
@@ -80,4 +80,4 @@ jobs:
         steps:
         - name: delete package
           run: | 
-            c:\temp\fbcollector.zip
+           del  c:\temp\fbcollector.zip
