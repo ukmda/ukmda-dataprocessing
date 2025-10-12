@@ -7,10 +7,10 @@ permissions:
 
 on:
   push:
-    branches: [ dev, markmac99 ]
+    branches: [dev, markmac99]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [ master ]
+    branches: [master]
 jobs:
   conttests:
     runs-on: thelinux
@@ -20,7 +20,7 @@ jobs:
         username: ${{ secrets.DH_LOGIN_MM }}
         password: ${{ secrets.DH_PATT_MM }}
       env:
-        BRANCH: ${{ github.head_ref || github.ref_name }} 
+        BRANCH: ${{ github.head_ref || github.ref_name }}
       volumes:
         - testdata:/data
     steps:
@@ -46,7 +46,7 @@ jobs:
   apitests:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout code 
+      - name: checkout code
         uses: actions/checkout@v3
       - name: run api tests
         run: |
