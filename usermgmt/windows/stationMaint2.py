@@ -955,6 +955,7 @@ if __name__ == '__main__':
     log.info("Program start")
 
     root = tk.Tk()
+    root.minsize(400, 100)
     app = CamMaintenance(root, dir_)
     root.iconbitmap(os.path.join(dir_,'camera.ico'))
     root.protocol("WM_DELETE_WINDOW", app.on_closing)
