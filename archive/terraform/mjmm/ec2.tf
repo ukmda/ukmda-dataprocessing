@@ -2,10 +2,10 @@
 
 # built in aws_infra project as shared resources
 data "aws_security_group" "ec2publicsg" {
-    name        = "ec2PublicSG"
+  name = "ec2PublicSG"
 }
 data "aws_key_pair" "marks_key" {
-  key_name           = "markskey"
+  key_name = "markskey"
 }
 
 
@@ -15,6 +15,7 @@ resource "aws_instance" "ukmonhelper_g" {
   iam_instance_profile = aws_iam_instance_profile.S3FullAccess.name
   key_name             = data.aws_key_pair.marks_key.key_name
   security_groups      = [data.aws_security_group.ec2publicsg.name]
+  force_destroy        = false
 
   root_block_device {
     tags = {
@@ -24,16 +25,18 @@ resource "aws_instance" "ukmonhelper_g" {
     }
     volume_size = 50
     volume_type = "gp3"
-    throughput = 125
-    iops = 3000
-    encrypted = true
-    kms_key_id = aws_kms_key.container_key.arn
+    throughput  = 125
+    iops        = 3000
+    encrypted   = true
+    kms_key_id  = aws_kms_key.container_key.arn
   }
 
   tags = {
-    "Name"       = "UKMonHelper2"
-    "billingtag" = "ukmon"
-    "project"    = "UKMonHelper2"
+    "Name"          = "UKMonHelper2"
+    "billingtag"    = "ukmon"
+    "project"       = "UKMonHelper2"
+    "Route53FQDN"   = "ukmonhelper.markmcintyreastro.co.uk"
+    "DNSRecordType" = "A"
   }
 }
 

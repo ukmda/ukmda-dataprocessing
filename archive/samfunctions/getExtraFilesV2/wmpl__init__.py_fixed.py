@@ -1,0 +1,45 @@
+# This is a fixed-up version of WesternMeteorPyLib/wmpl/__init__.py which is python 3.12+ compatible
+
+""" Import all submodules. """
+
+import importlib
+import pkgutil
+import sys
+
+# Excluded packages
+exclude = ["MetSim.ML", "GUI"]
+
+__all__ = []
+for loader, module_name, is_pkg in pkgutil.walk_packages(__path__):
+    
+    # Skip the config module
+    if 'Config' in module_name:
+        continue
+
+    # Skip Supracenter
+    if 'Supracenter' in module_name:
+        continue
+
+
+    ### Skip exluded packages ###
+    skip_package = False
+    for exclude_test in exclude:
+        if exclude_test in module_name:
+            skip_package = True
+            break
+
+    if skip_package:
+        continue
+
+    ### ###
+
+
+    __all__.append(module_name)
+    if sys.version_info.major > 2 and sys.version_info.minor > 12:
+        module_spec = loader.find_spec(module_name)
+        if module_spec is not None:
+            module = importlib.util.module_from_spec(module_spec)
+            module_spec.loader.exec_module(module)
+    else:
+        module = loader.find_module(module_name).load_module(module_name)
+    exec('%s = module' % module_name)

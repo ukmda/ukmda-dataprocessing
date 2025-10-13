@@ -1,0 +1,7 @@
+{
+  "httpMethod": "GET",
+  "queryStringParameters": {
+    "reqtyp": "matches",
+    "reqval": "20251008"
+  }
+}

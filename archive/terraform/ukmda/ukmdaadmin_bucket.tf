@@ -3,17 +3,18 @@ resource "aws_s3_bucket" "adminbucket" {
   force_destroy = false
   tags = {
     "billingtag" = "ukmda"
+    "ukmdatype"  = "admin"
   }
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "adminbucketlcp" {
   bucket = aws_s3_bucket.adminbucket.id
+  transition_default_minimum_object_size = "varies_by_storage_class"
   rule {
     id     = "purge old emails"
     status = "Enabled"
     expiration {
       days                         = 30
-      expired_object_delete_marker = false
     }
     filter {
       prefix = "email/"

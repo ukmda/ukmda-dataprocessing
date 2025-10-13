@@ -57,7 +57,7 @@ resource "aws_api_gateway_base_path_mapping" "matchapi" {
   api_id      = aws_api_gateway_rest_api.matchapi_apigateway.id
   stage_name  = "prod"
   domain_name = aws_api_gateway_domain_name.apigwdomain.domain_name
-  base_path = "matches"
+  base_path = "matchesv1"
   provider                 = aws.eu-west-1-prov
   depends_on  = [aws_api_gateway_stage.matchapistage]
 }

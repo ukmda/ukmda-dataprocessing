@@ -1,0 +1,38 @@
+# SAM build file for searchArchive
+# Copyright (C) 2018-2023 Mark McIntyre
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Resources:
+  matchDataApi:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: matchDataApi.lambda_handler
+      Runtime: python3.11
+      FunctionName: matchDataApi
+      Description: API backend that fetches match data
+      Timeout: 120
+      Policies: [AmazonS3ReadOnlyAccess, AmazonSSMReadOnlyAccess ]
+      Environment:
+        Variables:
+          ARCHBUCKET: ukmda-shared
+          MPLCONFIGDIR: /tmp/mpl
+      Events:
+        HttpGet:
+          Type: Api
+          Properties:
+            Path: '/'
+            Method: get
+            RequestParameters: 
+              - method.request.querystring.reqtyp:
+                  Required: true
+              - method.request.querystring.reqval: 
+                  Required: true
+              - method.request.querystring.points: 
+                  Required: false
+              - method.request.querystring.statid: 
+                  Required: false
+      Tags:
+        billingtag: "ukmda"
+        typetag: "api"
+    Metadata:
+      BuildMethod: python3.11

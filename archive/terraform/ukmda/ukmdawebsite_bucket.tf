@@ -4,6 +4,7 @@ resource "aws_s3_bucket" "archsite" {
   force_destroy = false
   tags = {
     "billingtag" = "ukmda"
+    "ukmdatype"  = "website"
   }
 }
 
@@ -86,12 +87,14 @@ resource "aws_s3_bucket_logging" "ukmdawebsitelogs" {
 
 resource "aws_s3_bucket_lifecycle_configuration" "archsitelcp" {
   bucket = aws_s3_bucket.archsite.id
+  transition_default_minimum_object_size = "varies_by_storage_class"
   rule {
     status = "Enabled"
     id     = "purge old versions"
     noncurrent_version_expiration {
       noncurrent_days = 30
     }
+    filter {}
   }
   rule {
     status = "Enabled"

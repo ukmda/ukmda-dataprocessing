@@ -111,12 +111,17 @@ def getKeyStatuses(excludeadm=False):
     except ClientError as error:
         err = error.response['Error']['Code']
         if err == 'CredentialReportNotPresentException' or err == 'CredentialReportExpiredException':
+            print('creating credentials report')
             res = iamc.generate_credential_report()
+            time.sleep(60)
         elif err == 'CredentialReportNotReadyException':
+            print('report not ready, sleeping 30s')
             time.sleep(30)
         gotit = False
         while not gotit:
             try:
+                res = iamc.generate_credential_report()
+                time.sleep(60)
                 res = iamc.get_credential_report()
                 gotit = True
                 print('got the report')
@@ -342,7 +347,10 @@ def rollKeysForUsers(nusers=3):
     _, stalekeys, _, _ = getKeyStatuses(excludeadm=True)
     if len(stalekeys) == 0:
         return 
-    sampledf = stalekeys.sample(n=nusers)
+    if len(stalekeys) > nusers:
+        sampledf = stalekeys.sample(n=nusers)
+    else:
+        sampledf = stalekeys
     for _, rw in sampledf.iterrows():
         uid = rw.user
         if 'testtraj' in uid:

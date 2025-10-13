@@ -73,9 +73,14 @@ resource "aws_default_route_table" "ec2_rtbl" {
     vpc_peering_connection_id = aws_vpc_peering_connection.ukmdatommpeering.id
   }
   tags = {
-    "Name"     = "ec2_rtbl"
+    "Name"     = "public_rtbl"
     billingtag = "Management"
   }
+}
+
+resource "aws_route_table_association" "ec2_rtbl_assoc" {
+  subnet_id      = aws_subnet.ec2_subnet.id
+  route_table_id = aws_default_route_table.ec2_rtbl.id
 }
 
 # internet gateway for this account

@@ -1,0 +1,8 @@
+{
+  "httpMethod": "GET",
+  "queryStringParameters": {
+    "reqtyp": "detail",
+    "reqval": "20251008_235928.502_UK",
+    "points": 1
+  }
+}

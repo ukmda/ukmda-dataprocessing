@@ -136,6 +136,26 @@ def fixupTrajComments(traj, availableimages, outdir, picklename):
     return
 
 
+def checkIfFileNeeded(filename):
+
+    # update this if there's an additional file created by WMPL that we want
+    # to use on the website
+    # NB THIS ALSO HAS TO BE CHANGED in TRAJSOLVER if more files needed
+    if 'orbit_top.png' in filename or 'orbit_side.png' in filename or 'ground_track.png' in filename:
+        return True
+    if 'velocities.png' in filename or 'lengths.png' in filename or 'lags_all.png' in filename:
+        return True
+    if 'abs_mag.png' in filename or 'abs_mag_ht.png' in filename or 'report.txt' in filename:
+        return True
+    if 'all_angular_residuals.png' in filename or 'all_spatial_total_residuals_height.png' in filename:
+        return True
+    if 'trajectory.pickle' in filename:
+        return True
+    if 'extra' in filename: 
+        return True
+    return False
+
+
 def recreateOrbitFiles(outdir, pickname, doupload=False):
     traj = loadPickle(outdir, pickname)
     traj.save_results = True
@@ -149,8 +169,12 @@ def recreateOrbitFiles(outdir, pickname, doupload=False):
         print('created additional output')
     basename = pickname[:15]
     repname = basename + '_report.txt'
-    traj.saveReport(outdir, repname, None, False)
-    traj.savePlots(outdir, basename, show_plots=False, ret_figs=False)
+    try: 
+        traj.saveReport(outdir, repname, None, False)
+        traj.savePlots(outdir, basename, show_plots=False, ret_figs=False)
+    except:
+        print('unable to process pickle properly')
+        pass
     print('created reports and figures')
     orbparent, orbfldr = os.path.split(outdir)
     yr = orbfldr[:4]
@@ -161,7 +185,12 @@ def recreateOrbitFiles(outdir, pickname, doupload=False):
     availableimages = getImgList(outdir, traj)
     createExtraJpgtxt(outdir, traj, availableimages)
     createExtraJpgHtml(outdir, orbparent, yr, ym)
-    fixupTrajComments(traj, availableimages, outdir, pickname)
+    try:
+        fixupTrajComments(traj, availableimages, outdir, pickname)
+    except:
+        print('unable to fixup traj comments')
+        pass
+    
 
     if doupload:
         files = os.listdir(outdir)
@@ -172,6 +201,9 @@ def recreateOrbitFiles(outdir, pickname, doupload=False):
         else:
             webfldr = f'reports/{yr}/orbits/{ym}'
         for fil in files:
+            if not checkIfFileNeeded(fil):
+                print(f'skipping {fil}')
+                continue
             locfname = f'{outdir}/{fil}'
             if 'summary' in fil or 'extrajpgs.txt' or 'html' in fil:
                 keyname = f"{webfldr}/{orbfldr}/{fil}"

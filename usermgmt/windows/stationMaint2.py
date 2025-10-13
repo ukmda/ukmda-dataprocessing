@@ -21,18 +21,30 @@ import pandas as pd
 from configparser import ConfigParser
 import logging
 import logging.handlers
+import shutil
+import platform
+import subprocess
 
 
 log = logging.getLogger("logger")
 
+config_file = ''
+
 
 def loadConfig(cfgdir):
-    cfgfile = os.path.join(cfgdir, 'stationmaint.cfg')
+    config_file = os.path.join(cfgdir, 'stationmaint.ini')
+    if not os.path.isfile(config_file):
+        tkMessageBox.showinfo("Config Missing", 'Please configure before using')
+        shutil.copyfile(f'{config_file}.sample', config_file)
+        if platform.system() == 'Darwin':       # macOS
+            procid = subprocess.Popen(('open', config_file))
+        elif platform.system() == 'Windows':    # Windows
+            procid = subprocess.Popen(('cmd','/c',config_file))
+        else:                                   # linux variants
+            procid = subprocess.Popen(('xdg-open', config_file))
+        procid.wait()
     cfg = ConfigParser()
-    if not os.path.isfile(cfgfile):
-        tkMessageBox.showinfo('Warning', f'config file {cfgfile} not found')
-        exit(0)
-    cfg.read(cfgfile)
+    cfg.read(config_file)
     server = cfg['helper']['helperip'] 
     user = cfg['helper']['user']
     keyfile = cfg['helper']['sshkey']
@@ -297,6 +309,7 @@ class CamMaintenance(Frame):
         self.parent = parent
         Frame.__init__(self, parent)
 
+        self.config_dir = cfgdir
         self.cfg, awskeys = loadConfig(cfgdir)
         self.conn = boto3.Session(aws_access_key_id=awskeys['key'], aws_secret_access_key=awskeys['secret']) 
         self.bucket_name = self.cfg['store']['srcbucket'] 
@@ -307,7 +320,6 @@ class CamMaintenance(Frame):
         os.makedirs('users', exist_ok=True)
         os.makedirs('inifs', exist_ok=True)
         os.makedirs('sshkeys', exist_ok=True)
-        self.resyncLocalFiles()
 
         self.ddb = self.conn.resource('dynamodb', region_name='eu-west-2')
         try:
@@ -333,25 +345,27 @@ class CamMaintenance(Frame):
         camMenu = Menu(self.menuBar, tearoff=0)
         camMenu.add_command(label = "Add Camera", command = self.addCamera)
         camMenu.add_command(label = "Relocate Camera", command = self.moveCamera)
-        camMenu.add_command(label = "Deactivate Camera", command = self.delCamera)
         camMenu.add_separator()
-        camMenu.add_command(label = "Remove Location", command = self.delOperator)
+        camMenu.add_command(label = "Check Camera", command = self.checkLastUpdate)
         camMenu.add_separator()
         camMenu.add_command(label = "Download Platepar", command = self.getPlate)
-        camMenu.add_command(label = "Update platepar", command = self.newPlate)
+        camMenu.add_command(label = "Update Platepar", command = self.newPlate)
         camMenu.add_separator()
         camMenu.add_command(label = "Update SSH Key", command = self.newSSHKey)
         camMenu.add_command(label = "Update AWS Key", command = self.newAWSKey)
-        camMenu.add_separator()
-        camMenu.add_command(label = "Check Camera", command = self.checkLastUpdate)
 
         ownMenu = Menu(self.menuBar, tearoff=0)
         ownMenu.add_command(label = "View Owner Data", command = self.viewOwnerData)
         ownMenu.add_command(label = "Search Data", command = self.searchOwnerData)
 
+        helpMenu = Menu(self.menuBar, tearoff=0)
+        helpMenu.add_command(label = "Documentation", command = self.viewReadme)
+        helpMenu.add_command(label = "About", command = self.aboutBox)
+
         self.menuBar.add_cascade(label="File", underline=0, menu=fileMenu)
         self.menuBar.add_cascade(label="Camera", underline=0, menu=camMenu)
         self.menuBar.add_cascade(label="Owners", underline=0, menu=ownMenu)
+        self.menuBar.add_cascade(label="Help", underline=0, menu=helpMenu)
 
         parent.grid_columnconfigure(0, weight = 1)
         parent.grid_rowconfigure(0, weight = 1)
@@ -405,6 +419,10 @@ class CamMaintenance(Frame):
                                    ("end_edit_cell", self.end_edit_cell)])
 
         self.sheet.popup_menu_add_command('Sort', self.columns_sort, table_menu = False, index_menu = False)
+        self.parent.title('Please wait, syncing data...')
+        self.resyncLocalFiles()
+        self.parent.title('Station Maintenance')
+        return 
 
     def hide_columns_right_click(self, event = None):
         currently_displayed = self.sheet.display_columns()
@@ -428,6 +446,10 @@ class CamMaintenance(Frame):
                     'direction': data[2], 'camtype': str(data[3]), 'active': int(data[4]), 'oldcode': data[1],
                     'created': data[8]}
             addRow(newdata, ddb=self.ddb)
+            if int(data[4]) > 1:
+                self.disableEnableUnixUser(data[0], data[2], False)
+            else:
+                self.disableEnableUnixUser(data[0], data[2], True)
         return event[3]
     
     def end_delete_rows(self, event):
@@ -490,14 +512,6 @@ class CamMaintenance(Frame):
         self.parent.quit()
         self.parent.destroy()
 
-    def delCamera(self):
-        tk.messagebox.showinfo(title="Information", message='To remove a camera, set Active=current date yyyymmdd')
-        return
-
-    def delOperator(self):
-        tk.messagebox.showinfo(title="Information", message='Not implemented yet')
-        return
-    
     def viewOwnerData(self):
         statOwnerDialog(self)
         return
@@ -694,23 +708,23 @@ class CamMaintenance(Frame):
         log.info(f'running {command}')
         _, stdout, stderr = c.exec_command(command, timeout=10)
         for line in iter(stdout.readline, ""):
-            log.info(line, end="")
+            log.info(line)
         for line in iter(stderr.readline, ""):
-            log.info(line, end="")
+            log.info(line)
         command = f'sudo mv {uplfile} /var/sftp/{camname}/platepar/platepar_cmn2010.cal'
         log.info(f'running {command}')
         _, stdout, stderr = c.exec_command(command, timeout=10)
         for line in iter(stdout.readline, ""):
-            log.info(line, end="")
+            log.info(line)
         for line in iter(stderr.readline, ""):
-            log.info(line, end="")
+            log.info(line)
         command = f'sudo chown {camname}:{camname} /var/sftp/{camname}/platepar/platepar_cmn2010.cal'
         log.info(f'running {command}')
         _, stdout, stderr = c.exec_command(command, timeout=10)
         for line in iter(stdout.readline, ""):
-            log.info(line, end="")
+            log.info(line)
         for line in iter(stderr.readline, ""):
-            log.info(line, end="")
+            log.info(line)
         scpcli.close()
         c.close()
         return
@@ -763,49 +777,15 @@ class CamMaintenance(Frame):
         c.connect(hostname = server, username = user, pkey = k)
         command = f'/home/{user}/keymgmt/updateAwsKey.sh {location} force'
         log.info(f'running {command}')
-        _, stdout, stderr = c.exec_command(command, timeout=10)
-        for line in iter(stdout.readline, ""):
-            log.info(line, end="")
+        _, stdout, stderr = c.exec_command(command, timeout=60)
         for line in iter(stderr.readline, ""):
-            log.info(line, end="")
+            log.info(line)
+        for line in iter(stdout.readline, ""):
+            log.info(line)
+        tkMessageBox.showinfo('Updated', line.split(' to')[0])
         log.info('done')
         c.close()
         return 
-
-
-    def updateKeyfile(self, caminfo, location):
-        server = self.cfg['helper']['platepardir']
-        user='ec2-user'
-        keyf = os.path.join('jsonkeys', location + '.key')
-        currkey = json.load(open(keyf, 'r'))
-        archcsvf = os.path.join('csvkeys', location.lower() + '_arch.csv')
-        with open(archcsvf,'w') as outf:
-            outf.write('Access key ID,Secret access key\n')
-            outf.write('{},{}\n'.format(currkey['AccessKey']['AccessKeyId'], currkey['AccessKey']['SecretAccessKey']))
-
-        affectedcamlist = caminfo[caminfo.site==location]
-        keyfile = self.cfg['helper']['sshkey']
-        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
-        c = paramiko.SSHClient()
-        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        c.connect(hostname = server, username = user, pkey = k)
-        scpcli = SCPClient(c.get_transport())
-        # push the raw keyfile
-        scpcli.put(keyf, 'keymgmt/rawkeys/live/')
-        scpcli.put(archcsvf, 'keymgmt/rawkeys/csvkeys/')
-        scpcli.close()
-        c.close()
-        for _, cam in affectedcamlist.iterrows():
-            cameraname = cam.site.lower() + '_' + cam.site.lower()
-            keyfile = os.path.join('sshkeys', cameraname + '.pub')
-            k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
-            c = paramiko.SSHClient()
-            c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            c.connect(hostname = server, username = cameraname, pkey = k)
-            scpcli = SCPClient(c.get_transport())
-            scpcli.put(archcsvf, '.')
-            scpcli.close()
-            c.close()
 
 
     def getSSHkey(self, loc, dir):
@@ -875,7 +855,34 @@ class CamMaintenance(Frame):
         scpcli.close()
         c.close()
         return
-
+    
+    def disableEnableUnixUser(self, loc, dir, enable):
+        cameraname = loc.lower() + '_' + dir.lower()
+        server = self.cfg['helper']['helperip'] 
+        user='ec2-user'
+        log.info(f'updating Unix user {cameraname}')
+        keyfile = self.cfg['helper']['sshkey'] 
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        try:
+            c.connect(hostname = server, username = user, pkey = k)
+        except Exception:
+            c.connect(hostname = server+'.', username = user, pkey = k)
+        if enable is False:
+            command = f'/usr/bin/sudo /usr/sbin/usermod --expiredate 1 {cameraname}'
+        else:
+            command = f'/usr/bin/sudo /usr/sbin/usermod --expiredate "" {cameraname}'
+        log.info(f'running {command}')
+        line = ''
+        _, stdout, stderr = c.exec_command(command, timeout=60)
+        for line in iter(stderr.readline, ""):
+            log.info(line)
+        for line in iter(stdout.readline, ""):
+            log.info(line)
+        if enable is False:
+            tkMessageBox.showinfo('Disabled', f'{cameraname} {line}')
+        return 
 
     def createKeyFile(self, location):
         archbucket = self.cfg['store']['srcbucket'] 
@@ -908,6 +915,20 @@ class CamMaintenance(Frame):
             outf.write('export UKMONKEY=~/.ssh/ukmon\n')
             outf.write('export RMSCFG=~/source/RMS/.config\n')
         return 
+    
+    def viewReadme(self):
+        docfile = os.path.join(self.config_dir, 'README.md')
+        if platform.system() == 'Darwin':       # macOS
+            procid = subprocess.Popen(('open', docfile))
+        elif platform.system() == 'Windows':    # Windows
+            procid = subprocess.Popen(('cmd','/c',f'notepad {docfile}'))
+        else:                                   # linux variants
+            procid = subprocess.Popen(('xdg-open', docfile))
+        procid.wait()
+
+    def aboutBox(self):
+        tkMessageBox.showinfo('About', 
+            'UKMON user / camera maintenance tool.\nAll rights reserved, Mark McIntyre, 2024')
 
 
 def log_timestamp():
@@ -918,7 +939,7 @@ def log_timestamp():
 
 if __name__ == '__main__':
     # Initialize main window
-    dir_ = os.getcwd() #os.path.dirname(os.path.realpath(__file__))
+    dir_ = os.getcwd() 
 
     log.setLevel(logging.INFO)
 
@@ -941,6 +962,7 @@ if __name__ == '__main__':
     log.info("Program start")
 
     root = tk.Tk()
+    root.minsize(400, 100)
     app = CamMaintenance(root, dir_)
     root.iconbitmap(os.path.join(dir_,'camera.ico'))
     root.protocol("WM_DELETE_WINDOW", app.on_closing)

@@ -1,0 +1,14 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "updateDnsRecords"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1ulna2hoktme4"
+s3_prefix = "updateDnsRecords"
+region = "eu-west-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+disable_rollback = true
+image_repositories = []
+profile = "ukmda_admin"

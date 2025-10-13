@@ -1,0 +1,1146 @@
+#
+# UI to manage fireball data collection
+# Copyright (C) 2018-2023 Mark McIntyre
+#
+import os
+import sys
+import argparse
+import logging
+import logging.handlers
+import datetime
+import configparser
+import shutil
+import platform
+import subprocess
+import glob
+import xmltodict
+from PIL import Image 
+import requests
+import pandas as pd
+
+import paramiko
+from scp import SCPClient
+
+try:
+    from wmpl.Formats.ECSV import loadECSVs
+    from wmpl.Formats.GenericFunctions import solveTrajectoryGeneric
+    solveravailable = 'enabled'
+except Exception:
+    solveravailable = 'disabled'
+
+import tkinter as tk
+import tkinter.filedialog as tkFileDialog
+import tkinter.messagebox as tkMessageBox
+from tkinter.simpledialog import askstring
+from tkinter import StringVar, Frame, ACTIVE, END, Listbox, Menu, Entry, Button
+from tkinter.ttk import Label, Style, LabelFrame, Scrollbar
+
+from PIL import Image as img
+from PIL import ImageTk
+
+
+config_file = ''
+noimg_file = ''
+global_bg = "Black"
+global_fg = "Gray"
+
+
+def quitApp():
+    # Cleanly exits the app
+    root.quit()
+    root.destroy()
+
+
+def log_timestamp():
+    """ Returns timestamp for logging.
+    """
+    return datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+
+def showConfig():
+    if platform.system() == 'Darwin':       # macOS
+        procid = subprocess.Popen(('open', config_file))
+    elif platform.system() == 'Windows':    # Windows
+        procid = subprocess.Popen(('cmd','/c',config_file))
+    else:                                   # linux variants
+        procid = subprocess.Popen(('xdg-open', config_file))
+    procid.wait()
+
+
+class StyledButton(Button):
+    """ Button with style. 
+    """
+    def __init__(self, *args, **kwargs):
+        Button.__init__(self, *args, **kwargs)
+
+        self.configure(foreground = global_fg, background = global_bg, borderwidth = 3)
+
+
+class StyledEntry(Entry):
+    """ Entry box with style. 
+    """
+    def __init__(self, *args, **kwargs):
+        Entry.__init__(self, *args, **kwargs)
+
+        self.configure(foreground = global_fg, background = global_bg, insertbackground = global_fg, disabledbackground = global_bg, disabledforeground = "DimGray")
+
+
+class ConstrainedEntry(StyledEntry):
+    """ Entry box with constrained values which can be input (e.g. 0-255).
+    """
+    def __init__(self, *args, **kwargs):
+        StyledEntry.__init__(self, *args, **kwargs)
+        self.maxvalue = 255
+        vcmd = (self.register(self.on_validate), "%P")
+        self.configure(validate="key", validatecommand=vcmd)
+        # self.configure(foreground = global_fg, background = global_bg, insertbackground = global_fg)
+
+    def disallow(self):
+        """ Pings a bell on values which are out of bound.
+        """
+        self.bell()
+
+    def update_value(self, maxvalue):
+        """ Updates values in the entry box.
+        """
+        self.maxvalue = maxvalue
+        vcmd = (self.register(self.on_validate), "%P")
+        self.configure(validate="key", validatecommand=vcmd)
+
+    def on_validate(self, new_value):
+        """ Checks if entered value is within bounds.
+        """
+        try:
+            if new_value.strip() == "":
+                return True
+            value = int(new_value)
+            if value < 0 or value > self.maxvalue:
+                self.disallow()
+                return False
+        except ValueError:
+            self.disallow()
+            return False
+
+        return True
+
+
+def getECSVs(stationID, dateStr, savefiles=False, outdir='.'):
+    """
+    Retrieve a detection in ECSV format for the specified date  
+    """
+    apiurl='https://api.ukmeteors.co.uk/getecsv?stat={}&dt={}'
+    res = requests.get(apiurl.format(stationID, dateStr))
+    ecsvlines=''
+    if res.status_code == 200:
+        rawdata=res.text.strip()
+        if len(rawdata) > 10:
+            ecsvlines=rawdata.split('\n') # convert the raw data into a python list
+            if savefiles is True:
+                os.makedirs(outdir, exist_ok=True)
+                fnamebase = dateStr.replace(':','_').replace('.','_') # create an output filename
+                j=0
+                outf = False
+                for li in ecsvlines:
+                    if 'issue getting data' in li:
+                        print(li)
+                        return li
+                    if '# %ECSV' in li:
+                        if outf is not False:
+                            outf.close()
+                        j=j+1
+                        fname = fnamebase + f'_ukmda_{stationID}_M{j:03d}.ecsv'
+                        outf = open(os.path.join(outdir, fname), 'w')
+                        print('saving to ', os.path.join(outdir,fname))
+                    if outf:
+                        outf.write(f'{li}\n')
+                    else:
+                        print('no ECSV marker found in data')
+        else:
+            print('no error, but no data returned')
+    else:
+        print(res.status_code)
+    return ecsvlines
+
+
+def _download(url, outdir, fname=None):
+    get_response = requests.get(url, stream=True)
+    if fname is None:
+        fname = url.split('?')[0].split("/")[-1]
+    with open(os.path.join(outdir, fname), 'wb') as f:
+        for chunk in get_response.iter_content(chunk_size=4096):
+            if chunk: # filter out keep-alive new chunks
+                f.write(chunk)
+    return fname
+
+
+def getLiveJpgs(dtstr, outdir=None):
+    """
+    Retrieve live images from the ukmon website that match a pattern  
+    """
+    if outdir is None:
+        outdir = dtstr
+    os.makedirs(outdir, exist_ok=True)
+
+    apiurl = 'https://api.ukmeteors.co.uk/liveimages/getlive'
+
+    while len(dtstr) < 15:
+        dtstr = dtstr + '0'    
+    isodt1 = datetime.datetime.strptime(dtstr[:15],'%Y%m%d_%H%M%S')
+    fromdstr = isodt1.isoformat()[:19]+'.000Z'
+    isodt2 = isodt1 + datetime.timedelta(minutes=1)
+    todstr = isodt2.isoformat()[:19]+'.000Z'
+    liveimgs = pd.read_json(f'{apiurl}?dtstr={fromdstr}&enddtstr={todstr}&fmt=withxml')
+
+    for _, thisimg in liveimgs.iterrows():
+        try:
+            jpgurl = thisimg .urls['url']
+            fname = _download(jpgurl, outdir)
+            log.info(f'retrieved {fname}')
+        except:
+            log.warning(f'{img.image_name} unavailable')
+
+
+class fbCollector(Frame):
+
+    def __init__(self, parent, patt=None):
+        Frame.__init__(self, parent, bg = global_bg)
+        parent.configure(bg = global_bg)  # Set backgound color
+        parent.grid_columnconfigure(0, weight=1)
+        parent.grid_rowconfigure(0, weight=1)
+
+        self.grid(sticky="NSEW")  # Expand frame to all directions
+        self.parent = parent
+
+        self.fb_dir = ''
+        self.gmn_key = ''
+        self.gmn_user = ''
+        self.gmn_server = ''
+        self.wmpl_loc = ''
+        self.wmpl_env = ''
+        self.rms_loc = ''
+        self.rms_env = ''
+        self.api_key = None
+        self.share_loc = ''
+        self.selected = {}
+        self.evtMonTriggered = None
+        self.review_stack = False
+        self.soln_outputdir = None
+        self.log_files_to_keep = 30
+        self.script_loc = os.path.split(config_file)[0]
+
+        self.readConfig()
+
+        self.patt = patt
+        if patt is None:
+            self.dir_path = self.fb_dir.strip()
+        else:
+            self.dir_path = os.path.join(self.fb_dir, patt)
+        log.info(f'Fireball folder is {self.fb_dir}')
+        log.info(f'Scripts folder is {self.script_loc}')
+
+        self.initUI()
+        if self.dir_path != self.fb_dir:
+            bin_list = self.get_bin_list()
+            for b in bin_list:
+                self.selected[b] = (0, '')
+            self.update_listbox(bin_list)
+
+        # Update UI changes
+        parent.update_idletasks()
+        parent.update()
+
+        return 
+
+    def readConfig(self):
+        localcfg = configparser.ConfigParser()
+        localcfg.read(config_file)
+        self.fb_dir = os.path.expanduser(localcfg['Fireballs']['basedir'].replace('$HOME','~')).replace('\\','/')
+        os.makedirs(self.fb_dir, exist_ok=True)
+
+        try: 
+            self.gmn_key = localcfg['gmn']['gmnkey']
+            self.gmn_user = localcfg['gmn']['gmnuser']
+            self.gmn_server = localcfg['gmn']['gmnserver']
+        except:
+            self.gmn_key = None
+
+        try:
+            self.api_key = localcfg['ukmon']['apikey']
+            if os.path.isfile(os.path.expanduser(self.api_key)):
+                key = open(os.path.expanduser(self.api_key), 'r').readlines()[0].strip()
+            else:
+                key = self.api_key
+                if len(key) < 40:
+                    key = None
+            self.api_key = key
+        except:
+            self.api_key = None
+        # log.info(f'apikey "{self.api_key}"')
+
+        try:
+            self.wmpl_loc = os.path.expanduser(localcfg['solver']['wmpl_loc'].replace('$HOME','~')).replace('\\','/')
+            self.wmpl_env= localcfg['solver']['wmpl_env']
+        except:
+            log.error('WMPL location and environment name must be configured')
+            quitApp()
+        try:
+            self.rms_loc = os.path.expanduser(localcfg['reduction']['rms_loc'].replace('$HOME','~')).replace('\\','/')
+            self.rms_env = localcfg['reduction']['rms_env']
+        except:
+            self.rms_loc = None
+    
+        try:
+            self.share_loc = os.path.expanduser(localcfg['sharing']['shrfldr'].replace('$HOME','~')).replace('\\','/')
+        except:
+            self.share_loc = None
+        return
+
+    def quitApplication(self):
+        print('quitting')
+        logdir = os.path.join(os.getenv('TMP'), 'fbcollector')
+        logfiles = os.listdir(logdir)
+        numtokeep = self.log_files_to_keep
+        if len(logfiles) > numtokeep:
+            logfiles.sort()
+            for i in range(len(logfiles)-numtokeep):
+                try:
+                    os.remove(os.path.join(logdir, logfiles[i]))
+                except:
+                    pass
+        quitApp()
+
+    def initUI(self):
+        """ Initialize GUI elements.
+        """
+
+        self.parent.title("Fireball Downloader")
+
+        # Configure the style of each element
+        s = Style()
+        s.configure("TButton", padding=(0, 5, 0, 5), font='serif 10') 
+        s.configure('TLabelframe.Label', foreground=global_fg, background=global_bg)
+        s.configure('TLabelframe', foreground =global_fg, background=global_bg, padding=(3, 3, 3, 3))
+        s.configure("TRadiobutton", foreground = global_fg, background = global_bg)
+        s.configure("TLabel", foreground = global_fg, background = global_bg)
+        s.configure("TCheckbutton", foreground = global_fg, background = global_bg)
+        s.configure("Vertical.TScrollbar", background=global_bg, troughcolor = global_bg)
+
+        self.columnconfigure(0, pad=3)
+        self.columnconfigure(1, pad=3)
+        self.columnconfigure(2, pad=3)
+        self.columnconfigure(3, pad=3)
+        self.columnconfigure(4, pad=3)
+        self.columnconfigure(5, pad=3)
+        self.columnconfigure(6, pad=3)
+        self.columnconfigure(7, pad=3)
+        self.columnconfigure(8, pad=3)
+
+        self.rowconfigure(0, pad=3)
+        self.rowconfigure(1, pad=3)
+        self.rowconfigure(2, pad=3)
+        self.rowconfigure(3, pad=3)
+        self.rowconfigure(4, pad=3)
+        self.rowconfigure(5, pad=3)
+        self.rowconfigure(6, pad=3)
+        self.rowconfigure(7, pad=3)
+        self.rowconfigure(8, pad=3)
+        self.rowconfigure(9, pad=3)
+        self.rowconfigure(10, pad=3)
+
+        # Make menu
+        self.menuBar = Menu(self.parent)
+        self.parent.config(menu=self.menuBar)
+
+        # File menu
+        fileMenu = Menu(self.menuBar, tearoff=0)
+        fileMenu.add_command(label="Load Folder", command=self.loadFolder)
+        fileMenu.add_command(label="Archive This Folder", command=self.archiveFolder)
+        fileMenu.add_command(label="Open in Explorer", command=self.openFolder)
+        fileMenu.add_separator()
+        fileMenu.add_command(label="Delete This Folder", command=self.delFolder)
+        fileMenu.add_separator()
+        fileMenu.add_command(label="Configuration", command=self.reviewConfig)
+        fileMenu.add_command(label="View Logs", command=self.viewLogs)
+        fileMenu.add_separator()
+        fileMenu.add_command(label="Exit", command=self.quitApplication)
+        self.menuBar.add_cascade(label="File", underline=0, menu=fileMenu)
+
+        if self.rms_loc:
+            rmsavailable = 'active'
+        else:
+            rmsavailable = 'disabled'
+        if self.share_loc:
+            shareavailable = 'active'
+        else:
+            shareavailable = 'disabled'
+        if self.gmn_key:
+            gmnavailable ='active' 
+        else:
+            gmnavailable ='disabled' 
+
+        rawMenu = Menu(self.menuBar, tearoff=0)
+        rawMenu.add_command(label="Get Live Images", command=self.get_data)
+        rawMenu.add_command(label="Get Videos", command=self.get_vids)
+        rawMenu.add_separator()
+        rawMenu.add_command(label="Get ECSVs", command=self.getRequestedECSVs)
+        rawMenu.add_command(label="Excl/Incl ECSV", command=self.ignoreCamera)
+        rawMenu.add_command(label="Reduce Selected Image", command=self.reduceCamera, state=rmsavailable)
+        rawMenu.add_separator()
+        rawMenu.add_command(label="Share Raw Data", command=self.uploadRaw, state=shareavailable)
+        rawMenu.add_separator()
+        watchMenu = Menu(self.menuBar, tearoff=0)
+        watchMenu.add_command(label="Get GMN Raw Data", command=self.getGMNData, state=gmnavailable)
+        watchMenu.add_separator()
+        watchMenu.add_command(label="Get Watchlist", command=self.getWatchlist, state=gmnavailable)
+        watchMenu.add_command(label="View Watchlist", command=self.viewWatchlist, state=gmnavailable)
+        watchMenu.add_command(label="Upload Watchlist", command=self.putWatchlist, state=gmnavailable)
+        watchMenu.add_separator()
+        watchMenu.add_command(label="Fetch Watchlist Event", command=self.getEventData, state=gmnavailable)
+        rawMenu.add_cascade(label='GMN', menu=watchMenu, state=gmnavailable)
+
+        self.menuBar.add_cascade(label="Raw", underline=0, menu=rawMenu)
+
+        revMenu = Menu(self.menuBar, tearoff=0)
+        revMenu.add_command(label="Review Stacks", command=self.checkStacks)
+        revMenu.add_command(label="Review Images", command=self.viewData)
+        revMenu.add_command(label="Clean Folder", command=self.clean_folder)
+        self.menuBar.add_cascade(label="Review", underline=0, menu=revMenu)
+
+        solveMenu = Menu(self.menuBar, tearoff=0)
+        solveMenu.add_command(label="Solve", command=self.solveOrbit, state=solveravailable)
+        solveMenu.add_separator()
+        solveMenu.add_command(label="View Solution", command=self.viewSolution)
+        solveMenu.add_command(label="Delete Solution", command=self.removeSolution)
+        solveMenu.add_separator()
+        solveMenu.add_command(label="Upload Solution", command=self.uploadOrbit)
+        self.menuBar.add_cascade(label="Solve", underline=0, menu=solveMenu)
+
+        otherMenu = Menu(self.menuBar, tearoff=0)
+        otherMenu.add_command(label="Get Traj Pickle", command=self.get_trajpickle)
+        self.menuBar.add_cascade(label="Other", underline=0, menu=otherMenu)
+
+        # buttons
+        self.save_panel = LabelFrame(self, text=' Image Selection ')
+        self.save_panel.grid(row = 1, columnspan = 2, sticky='WE')
+
+        self.newpatt = StringVar()
+        self.newpatt.set(self.patt)
+
+        self.patt_entry = StyledEntry(self.save_panel, textvariable = self.newpatt, width = 20)
+        self.patt_entry.grid(row = 1, column = 1, columnspan = 2, sticky = "W")
+        save_bmp = StyledButton(self.save_panel, text="Get Images", width = 8, command = lambda: self.get_data())
+        save_bmp.grid(row = 1, column = 3)
+
+        save_bmp = StyledButton(self.save_panel, text="Remove", width = 8, command = lambda: self.remove_image())
+        save_bmp.grid(row = 1, column = 4)
+        
+
+        # Listbox
+        self.scrollbar = Scrollbar(self)
+        self.listbox = Listbox(self, width = 47, yscrollcommand=self.scrollbar.set, exportselection=0, activestyle = "none", bg = global_bg, fg = global_fg)
+        self.listbox.config(height = 25)  # Listbox size
+        self.listbox.grid(row = 4, column = 0, rowspan = 7, columnspan = 2, sticky = "NS")  # Listbox position
+        self.scrollbar.grid(row = 4, column = 2, rowspan = 7, sticky = "NS")  # Scrollbar size
+
+        self.listbox.bind('<<ListboxSelect>>', self.update_image)
+        self.scrollbar.config(command = self.listbox.yview)
+
+        # IMAGE
+        try:
+            # Show the TV test card image on program start
+            #noimage_data = img.open('noimage.bin').resize((640,360))
+            noimgdata = img.open(noimg_file).resize((640,360))
+            noimage = ImageTk.PhotoImage(noimgdata)
+        except:
+            noimage = None
+
+        self.imagelabel = Label(self, image = noimage)
+        self.imagelabel.image = noimage
+        self.imagelabel.grid(row=3, column=3, rowspan = 4, columnspan = 3)
+
+        # Timestamp label
+        self.timestamp_label = Label(self, text = "CCNNNN YYYY-MM-DD HH:MM.SS.mms", font=("Courier", 12))
+        self.timestamp_label.grid(row = 7, column = 3, sticky = "E")
+
+    def reviewConfig(self):
+        showConfig()
+        self.readConfig()
+        self.initUI()
+
+    def reduceCamera(self):
+        current_image = self.listbox.get(ACTIVE)
+        if current_image == '':
+            return 
+        camid = current_image[3:9]
+        print('selected camera is', camid)
+        dirname = os.path.join(self.dir_path, camid)
+        tmpscr = os.path.join(os.getenv('TEMP'), 'reduce.ps1')
+        with open(tmpscr, 'w') as outf:
+            outf.write(f'cd {self.rms_loc}\nconda activate {self.rms_env}\npython -m Utils.SkyFit2 {dirname} -c {dirname}/.config\n')
+        _ = subprocess.run(['powershell.exe', tmpscr])
+        frs = glob.glob(os.path.join(dirname, 'FR*.bin'))
+        if len(frs) > 0:
+            if tkMessageBox.askyesno("Rerun", f'{len(frs)} FR files detected - rerun?'):
+                for fr in frs:
+                    with open(tmpscr, 'w') as outf:
+                        outf.write(f'cd {self.rms_loc}\nconda activate {self.rms_env}\npython -m Utils.SkyFit2 {fr} -c {dirname}/.config\n')
+                    _ = subprocess.run(['powershell.exe', tmpscr])
+        try:
+            os.remove(tmpscr)
+        except:
+            pass
+        os.makedirs(os.path.join(self.dir_path,'ecsvs'), exist_ok=True)
+        ecsvfs = glob.glob1(dirname, '*.ecsv')
+        for ecsv in ecsvfs:
+            shutil.copyfile(os.path.join(dirname, ecsv), os.path.join(self.dir_path, 'ecsvs', ecsv))
+
+        return
+    
+    def ignoreCamera(self):
+        current_image = self.listbox.get(ACTIVE)
+        if current_image == '':
+            return 
+        camid = current_image[3:9]
+        log.info(f'selected camera is {camid}')
+        dirname = os.path.join(self.dir_path, camid)
+        allecsvs = glob.glob(os.path.join(dirname, '*.ecsv'))
+        ecsvs = [e for e in allecsvs if 'REJECT' not in e.upper()]
+        rejs = [e for e in allecsvs if 'REJECT' in e.upper()]
+        if len(ecsvs) == 0 and len(rejs) == 0:
+            log.info('no files to reject or include')
+            return 
+        elif len(ecsvs) > 0 and len(rejs) == 0:
+            for ecsv in ecsvs:
+                os.rename(ecsv, ecsv.replace('.ecsv','_REJECT.ecsv'))
+            jpgnames = glob.glob(os.path.join(self.dir_path, 'jpgs', current_image))
+            for jpgname in jpgnames:
+                os.rename(jpgname, jpgname.replace('.jpg','_REJECT.jpg'))
+        elif len(ecsvs) == 0 and len(rejs) > 0:
+            for rej in rejs: 
+                os.rename(rej, rej.replace('_REJECT.ecsv','.ecsv'))
+            jpgnames = glob.glob(os.path.join(self.dir_path, 'jpgs', current_image))
+            for jpgname in jpgnames:
+                os.rename(jpgname, jpgname.replace('_REJECT.jpg','.jpg'))
+        else:
+            # more than one ECSV or REJ file to handle, urk
+            log.info('urk')
+            return 
+        bin_list = [line for line in os.listdir(os.path.join(self.dir_path, 'jpgs')) if self.correct_datafile_name(line)]
+        #print(bin_list)
+        for b in bin_list:
+            self.selected[b] = (0, '')
+        self.update_listbox(bin_list)
+        return
+    
+    def solveOrbit(self):
+        log.info('Using ECSV files:')
+        ecsv_names = []
+        ecsv_paths = []
+        os.makedirs(os.path.join(self.dir_path,'ecsvs'), exist_ok=True)
+        for entry in sorted(os.walk(self.dir_path), key=lambda x: x[0]):
+            dir_name, _, file_names = entry
+            if 'ecsvs' in dir_name:
+                continue
+            for fn in file_names:
+                if fn.lower().endswith(".ecsv"):
+                    shutil.copyfile(os.path.join(dir_name, fn), os.path.join(self.dir_path, 'ecsvs', fn))
+                if fn.lower().endswith(".ecsv") and 'REJECT' not in dir_name.upper() and 'REJECT' not in fn.upper():
+                    # Add ECSV file, but skip duplicates
+                    if fn not in ecsv_names:
+                        ecsv_paths.append(os.path.join(dir_name, fn))
+                        ecsv_names.append(fn)
+                        log.info(fn)
+        if len(ecsv_paths) < 2:
+            tkMessageBox.showinfo('Warning', 'Need at least two ECSV files')
+            return 
+        jdt_ref, meteor_list = loadECSVs(ecsv_paths)
+        mcruns = 20
+        max_toffset = 15.0
+        velpart = None
+        vinitht = None
+        plotallspatial = True
+        uncertgeom = False
+        jacchia = False
+        traj = solveTrajectoryGeneric(jdt_ref, meteor_list, self.dir_path, 
+            max_toffset=max_toffset, monte_carlo=True, mc_runs=mcruns, 
+            geometric_uncert=uncertgeom, plot_all_spatial_residuals=plotallspatial, 
+            show_plots=False, v_init_part=velpart, v_init_ht=vinitht, 
+            show_jacchia=jacchia, enable_OSM_plot=True, mc_cores=8)
+        tkMessageBox.showinfo('Info', 'Solver Finished')
+        if traj is not None:
+            self.soln_outputdir = traj.output_dir
+        return 
+    
+    def viewSolution(self):
+        self.review_stack = False
+        if not self.soln_outputdir:
+            solndir = glob.glob1(self.dir_path, os.path.split(self.dir_path)[1][:8]+'*')
+            if len(solndir) == 0:
+                tkMessageBox.showinfo('Warning', 'No solution to review')
+                return
+            solndir = os.path.join(self.dir_path, solndir[0])
+            self.soln_outputdir = solndir
+        bin_list = [line for line in os.listdir(self.soln_outputdir) if self.correct_datafile_name(line)]
+        for b in bin_list:
+            self.selected[b] = (0, '')
+        self.update_listbox(bin_list)
+        return 
+    
+    def removeSolution(self):
+        if not self.soln_outputdir:
+            solndir = glob.glob1(self.dir_path, os.path.split(self.dir_path)[1][:8]+'*')
+            if len(solndir) == 0:
+                tkMessageBox.showinfo('Warning', 'No solution to remove')
+                return
+            solndir = os.path.join(self.dir_path, solndir[0])
+            self.soln_outputdir = solndir
+        if not tkMessageBox.askyesno("Delete file", f"delete {self.soln_outputdir}?"):
+            return
+        shutil.rmtree(os.path.join(self.dir_path, self.soln_outputdir))
+        return 
+    
+    def uploadOrbit(self):
+        pickles=[]
+        for path, _, files in os.walk(self.dir_path):
+            for name in files:
+                if '.pickle' in name and '_mc_' not in name and 'tmpzip' not in path:
+                    log.info(f'adding pickle {name}')
+                    pickles.append(os.path.join(path, name))
+                if name.lower().endswith(".ecsv") and 'ecsvs' not in path:
+                    log.info(f'copying {name}')
+                    shutil.copyfile(os.path.join(path, name), os.path.join(self.dir_path, 'ecsvs', name))
+
+        if len(pickles) == 0:
+            return
+        pickles = list(set(pickles))
+        if len(pickles) == 1:
+            pickfile = pickles[0]
+        else:
+            pickfile = tkFileDialog.askopenfilename(title='Select Orbit Pickle', defaultextension='*.pickle',
+                                       initialdir=self.dir_path, initialfile='*.pickle',
+                                       filetypes=[('pickles','*.pickle')])
+        if not pickfile:
+            return 
+        orbname = os.path.split(pickfile)[1]
+        tmpdir = os.path.join(self.dir_path, 'tmpzip')
+        os.makedirs(tmpdir, exist_ok=True)
+        shutil.copyfile(pickfile, os.path.join(tmpdir, orbname))
+        if os.path.isdir(os.path.join(self.dir_path, 'jpgs')):
+            shutil.copytree(os.path.join(self.dir_path, 'jpgs'), os.path.join(tmpdir, 'jpgs'), dirs_exist_ok=True)
+        if os.path.isdir(os.path.join(self.dir_path, 'mp4s')):
+            shutil.copytree(os.path.join(self.dir_path, 'mp4s'), os.path.join(tmpdir, 'mp4s'), dirs_exist_ok=True)
+        if os.path.isdir(os.path.join(self.dir_path, 'ecsvs')):
+            shutil.copytree(os.path.join(self.dir_path, 'ecsvs'), os.path.join(tmpdir, 'ecsvs'), dirs_exist_ok=True)
+        for path, _, files in os.walk(self.dir_path):
+            for name in files:
+                if '_dyn_mass_fit' in name:
+                    im = Image.open(os.path.join(path, name)).convert("RGB")
+                    im.save(os.path.join(tmpdir,'jpgs', name[:-4] + '.jpg'))
+        zfname = os.path.join(self.dir_path, orbname[:15])
+        shutil.make_archive(zfname,'zip',tmpdir)
+        try:
+            shutil.rmtree(tmpdir)
+        except Exception:
+            pass
+
+        if self.api_key: 
+            headers = {'Content-type': 'application/zip', 'Slug': orbname[:15], 'apikey': self.api_key}
+            url = f'https://api.ukmeteors.co.uk/fireballfiles?orbitfile={orbname[:15]}.zip'
+            r = requests.put(url, data=open(zfname+'.zip', 'rb'), headers=headers) #, auth=('username', 'pass'))
+            #print(r.text)
+            if r.status_code != 200:
+                tkMessageBox.showinfo('Warning', f'Problem with upload, {r.status_code}')
+            else:
+                tkMessageBox.showinfo('Info', 'Orbit Uploaded')
+            return 
+        else:
+            tkMessageBox.showinfo('Info', 'Zip File created')
+    
+    def uploadRaw(self):
+        zfname = os.path.join(os.getenv('TMP'), os.path.basename(self.dir_path))
+        log.info(f'zfname is {zfname}')
+        shutil.make_archive(zfname,'zip',self.dir_path)
+        try:
+            targname = os.path.join(self.share_loc, os.path.basename(zfname)+'.zip')
+            log.info(f'targname is {targname}')
+            shutil.copyfile(zfname+'.zip', targname)
+            tkMessageBox.showinfo('Info', 'Raw Data Uploaded to Dropbox')
+            subprocess.Popen(f'explorer "{self.share_loc}"')
+        except Exception:
+            tkMessageBox.showinfo('Warning', 'Problem with upload')
+        return 
+    
+    def viewData(self):
+        self.review_stack = False
+        self.soln_outputdir = None
+        print(self.dir_path)
+        bin_list = self.get_bin_list()
+        for b in bin_list:
+            self.selected[b] = (0, '')
+        self.update_listbox(bin_list)
+        return 
+    
+    def getRequestedECSVs(self):
+        notgotlist=[]
+        img_list = self.get_bin_list()
+        for current_image in img_list:
+            if not self.getOneEcsv(current_image):
+                notgotlist.append(current_image)
+        if len(notgotlist) > 0: 
+            tkMessageBox.showinfo('Info', f'No ECSVs for {notgotlist}')
+        return
+    
+    def getOneEcsv(self, current_image):
+        if current_image[:1] == 'M':
+            datestr = current_image[1:16]
+            statid = current_image[-11:-5]
+        elif current_image[:2] == 'FF':
+            statid = current_image[3:9]
+            datestr = current_image[10:29]
+        else:
+            return
+        #dtval = datetime.datetime.strptime(datestr, '%Y%m%d_%H%M%S')
+        #datestr = dtval.strftime('%Y-%m-%dT%H:%M:%S')
+        try:
+            lis = getECSVs(statid, datestr, savefiles=True, outdir=os.path.join(self.dir_path, statid))
+            for li in lis:
+                if 'issue getting data' in li:
+                    return False
+            os.makedirs(os.path.join(self.dir_path,'ecsvs'), exist_ok=True)
+            ecsvfs = glob.glob1(os.path.join(self.dir_path, statid), '*.ecsv')
+            for ecsv in ecsvfs:
+                shutil.copyfile(os.path.join(self.dir_path, statid, ecsv), os.path.join(self.dir_path, 'ecsvs', ecsv))
+
+            shutil.copyfile()
+            ## finish here
+            return True
+        except Exception:
+            return False
+
+    def get_bin_list(self):
+        """ Get a list of image files in a given directory.
+        """
+        if self.dir_path is None:
+            dirname = tkFileDialog.askdirectory(parent=root,initialdir=self.fb_dir,
+                title='Please select a directory')    
+            _, thispatt = os.path.split(dirname)
+            self.dir_path = dirname
+            self.patt = thispatt
+            self.newpatt.set(self.patt)
+
+        if self.review_stack is False:
+            targdir = os.path.join(self.dir_path, 'jpgs')
+        else:
+            targdir = os.path.join(self.dir_path, 'stacks')
+        if os.path.isdir(targdir):
+            bin_list = [line for line in os.listdir(targdir) if self.correct_datafile_name(line)]
+        else:
+            log.info('no jpgs available')
+            bin_list = []
+        return bin_list
+
+    def update_listbox(self, bin_list):
+        """ Updates the listbox with the current entries.
+        """
+        self.listbox.delete(0, END)
+        for line in sorted(bin_list):
+            self.listbox.insert(END, line)
+            if line not in self.selected:
+                self.selected[line] = (0, '')
+            if self.selected[line][0] == 1:
+                self.listbox.itemconfig(END, fg = 'green')
+
+    def checkStacks(self):
+        self.review_stack = True
+        bin_list = self.get_bin_list()
+        if len(bin_list) > 0:
+            for b in bin_list:
+                self.selected[b] = (0, '')
+            self.update_listbox(bin_list)
+        else:
+            tkMessageBox.showinfo('Warning', 'No stacks to review')
+    
+    def loadFolder(self):
+        self.review_stack = False
+        self.dir_path = None
+        self.soln_outputdir = None
+        bin_list = self.get_bin_list()
+        for b in bin_list:
+            self.selected[b] = (0, '')
+        self.update_listbox(bin_list)
+
+    def openFolder(self):
+        dir_path = self.dir_path.replace("/","\\")
+        os.system(f'explorer.exe {dir_path}')
+    
+    def viewLogs(self):
+        logdir = os.path.join(os.getenv('TMP'), 'fbcollector')
+        os.system(f'explorer.exe {logdir}')
+
+    def archiveFolder(self):
+        noimgdata = img.open(noimg_file).resize((640,360))
+        noimage = ImageTk.PhotoImage(noimgdata)
+        self.imagelabel.configure(image = noimage)
+        self.imagelabel.image = noimage
+        if self.dir_path == self.fb_dir.strip():
+            self.loadFolder()
+        if self.dir_path is not None and self.dir_path != self.fb_dir:
+            try:
+                _, fldr = os.path.split(os.path.normpath(self.dir_path))
+                yr = fldr[:4]
+                archdir = os.path.join(self.fb_dir, yr)
+                os.makedirs(archdir, exist_ok=True)
+                zfname = os.path.join(archdir, fldr)
+                shutil.make_archive(zfname,'zip',self.fb_dir, fldr)
+            except Exception as e:
+                log.warning(f'unable to create archive {self.dir_path}')
+                log.warning(e)
+            try:
+                os.chdir(self.fb_dir)
+                shutil.rmtree(self.dir_path)
+            except Exception as e:
+                log.warning(f'unable to remove folder, please do it manually {self.dir_path}')
+                log.warning(e)
+                self.dir_path = self.fb_dir
+
+    def delFolder(self):
+        noimgdata = img.open(noimg_file).resize((640,360))
+        noimage = ImageTk.PhotoImage(noimgdata)
+        self.imagelabel.configure(image = noimage)
+        self.imagelabel.image = noimage
+        if self.dir_path is not None and self.dir_path != self.fb_dir:
+            try:
+                shutil.rmtree(self.dir_path)
+                self.dir_path = self.fb_dir
+            except Exception as e:
+                log.warning(f'unable to remove {self.dir_path}')
+                log.warning(e)
+
+    def correct_datafile_name(self, line):
+        if ('.jpg' in line or '.png' in line) and 'noimage' not in line:
+            return True
+        return False
+    
+    def removeRelated(self, imgname):
+        camid = imgname[:6]
+        mp4s = os.listdir(os.path.join(self.dir_path, 'mp4s'))
+        badones = [x for x in mp4s if camid in x]
+        for ba in badones:
+            os.remove(os.path.join(self.dir_path, 'mp4s', ba))
+        jpgs = os.listdir(os.path.join(self.dir_path, 'jpgs'))
+        badones = [x for x in jpgs if camid in x]
+        for ba in badones:
+            os.remove(os.path.join(self.dir_path, 'jpgs', ba))
+        fldrs = os.listdir(self.dir_path)
+        badones = [x for x in fldrs if camid in x]
+        for ba in badones:
+            try:
+                shutil.rmtree(os.path.join(self.dir_path, ba))
+            except Exception:
+                os.remove(os.path.join(self.dir_path, ba))
+        os.remove(os.path.join(self.dir_path, 'stacks', imgname))
+
+    def remove_image(self):
+        """ Remove the selected image from disk
+        """
+        current_image = self.listbox.get(ACTIVE)
+        if current_image == '':
+            return 
+        if not tkMessageBox.askyesno("Delete file", f"delete {current_image}?"):
+            return
+        log.info(f'removing {current_image}')
+        if self.review_stack:
+            self.removeRelated(current_image)
+        else:
+            try:
+                os.remove(os.path.join(self.dir_path, 'jpgs', current_image))
+            except Exception:
+                pass
+            xmlf = current_image.replace('P.jpg', '.xml')
+            try:
+                os.remove(os.path.join(self.dir_path, 'jpgs', xmlf))
+            except Exception:
+                pass
+            self.selected[current_image] = (0,'')
+        self.update_listbox(self.get_bin_list())
+
+    def update_image(self, thing):
+        """ When selected, load a new image
+        """
+        try:
+            # Check if the list is empty. If it is, do nothing.
+            if self.review_stack:
+                self.current_image = os.path.join(self.dir_path, 'stacks', self.listbox.get(self.listbox.curselection()[0]))
+            elif self.soln_outputdir:
+                self.current_image = os.path.join(self.soln_outputdir, self.listbox.get(self.listbox.curselection()[0]))
+            else:
+                self.current_image = os.path.join(self.dir_path, 'jpgs', self.listbox.get(self.listbox.curselection()[0]))
+        except:
+            return 0
+        
+        with img.open(self.current_image).resize((640,360)) as imgdata:
+            thisimage = ImageTk.PhotoImage(imgdata)
+            self.imagelabel.configure(image = thisimage)
+            self.imagelabel.image = thisimage
+
+        self.timestamp_label.configure(text = os.path.split(self.current_image)[1])
+        return 
+
+    def clean_folder(self):
+        stacklist = os.listdir(os.path.join(self.dir_path, 'stacks'))
+        camlist = [x[:6] for x in stacklist if 'stack.jpg' in x]
+        datalist = os.listdir(self.dir_path)
+        datalist = [x for x in datalist if 'jpgs' not in x and 'mp4s' not in x and 'stacks' not in x]
+        for d in datalist:
+            keep = False
+            for c in camlist:
+                if c in d:
+                    keep = True
+            if keep is False:
+                try:
+                    os.remove(d)
+                except Exception:
+                    pass
+        return
+
+    def get_data(self):
+        thispatt = self.newpatt.get().strip()
+        self.patt = thispatt.ljust(15,'0')
+        self.dir_path = os.path.join(self.fb_dir, self.newpatt.get().strip())
+        log.info(f'getting data matching {thispatt}')
+        os.makedirs(os.path.join(self.dir_path, 'jpgs'), exist_ok=True)
+        reqdate = datetime.datetime.strptime(self.patt, '%Y%m%d_%H%M%S')
+        reqdate = reqdate + datetime.timedelta(seconds=-30)
+        getLiveJpgs(reqdate.strftime('%Y%m%d_%H%M%S'), outdir=os.path.join(self.dir_path, 'jpgs'))
+        self.renameImages(self.dir_path)
+        self.update_listbox(self.get_bin_list())
+
+    def get_trajpickle(self):
+        basepatt = os.path.split(self.dir_path)[1]
+        ymd = basepatt[:8]
+        fullpatt = askstring('Trajectory Name', 'eg 20240101_010203.345_UK', initialvalue=basepatt)
+        trajpick = f'{basepatt}_trajectory.pickle'
+        url = f'https://archive.ukmeteors.co.uk/reports/{ymd[:4]}/orbits/{ymd[:6]}/{ymd}/{fullpatt}/{trajpick}'
+        log.info(f'{url}')
+        get_response = requests.get(url, stream=True)
+        if get_response.status_code == 200:
+            log.info(f'retrieved {trajpick}')
+            with open(os.path.join(self.dir_path, trajpick), 'wb') as f:
+                for chunk in get_response.iter_content(chunk_size=4096):
+                    if chunk: # filter out keep-alive new chunks
+                        f.write(chunk)
+        else:
+            log.info(f'unable to retrieve {trajpick}, {get_response.status_code}')
+        return
+
+    def get_vids(self):
+        jpglist = glob.glob1(os.path.join(self.dir_path,'jpgs'), 'FF*.jpg')
+        os.makedirs(os.path.join(self.dir_path, 'mp4s'), exist_ok=True)
+        count = 0
+        for jpg in jpglist:
+            mp4 = jpg.replace('.jpg','.mp4')
+            ym = mp4[10:16]
+            url = f'https://archive.ukmeteors.co.uk/img/mp4/{ym[:4]}/{ym}/{mp4}'
+            get_response = requests.get(url, stream=True)
+            if get_response.status_code == 200:
+                log.info(f'retrieved {mp4}')
+                count += 1
+                with open(os.path.join(self.dir_path, 'mp4s', mp4), 'wb') as f:
+                    for chunk in get_response.iter_content(chunk_size=4096):
+                        if chunk: # filter out keep-alive new chunks
+                            f.write(chunk)
+        log.info(f'retrieved {count} videos')
+        tkMessageBox.showinfo("Info", f'Retrieved {count} videos')
+        return 
+
+    def renameImages(self, dir_path):
+        xmllist = glob.glob(os.path.join(dir_path,'jpgs', 'M*.xml'))
+        for xmlf in xmllist:
+            jpgf = xmlf.replace('.xml','P.jpg')
+            if os.path.isfile(jpgf):
+                xmld = xmltodict.parse(open(xmlf).read())
+                realfname = xmld['ufocapture_record']['@cap'].replace('.fits','.jpg')
+                if not os.path.isfile(os.path.join(dir_path, 'jpgs', realfname)):
+                    os.rename(jpgf, os.path.join(dir_path, 'jpgs', realfname))
+                else:
+                    os.remove(jpgf)
+                os.remove(xmlf)
+        return 
+
+    def viewWatchlist(self):
+        evtfile = os.path.join(self.fb_dir,'event_watchlist.txt')
+        if platform.system() == 'Darwin':       # macOS
+            procid = subprocess.Popen(('open', evtfile))
+        elif platform.system() == 'Windows':    # Windows
+            procid = subprocess.Popen(('cmd','/c',evtfile))
+        else:                                   # linux variants
+            procid = subprocess.Popen(('xdg-open', evtfile))
+        procid.wait()
+        if not tkMessageBox.askyesno("Upload File", "Upload event watchlist?"):
+            return
+        else:
+            self.putWatchlist()
+
+    def getWatchlist(self):
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(self.gmn_key))
+        c = paramiko.SSHClient()
+        server=self.gmn_server
+        user=self.gmn_user
+        log.info(f'trying {user}@{server} with {self.gmn_key}')
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = user, pkey = k)
+        scpcli = SCPClient(c.get_transport())
+        log.info('getting Watchlist')
+        scpcli.get('./event_watchlist.txt', self.fb_dir)
+        self.viewWatchlist()
+
+    def putWatchlist(self):
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(self.gmn_key))
+        c = paramiko.SSHClient()
+        server=self.gmn_server
+        user=self.gmn_user
+        log.info(f'trying {user}@{server} with {self.gmn_key}')
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = user, pkey = k)
+        scpcli = SCPClient(c.get_transport())
+        log.info('Uploading watchlist')
+        evtfile = os.path.join(self.fb_dir,'event_watchlist.txt')
+        scpcli.put(evtfile, 'event_watchlist.txt')
+        self.evtMonTriggered = datetime.datetime.now() + datetime.timedelta(minutes=5)
+        return 
+    
+    def getEventData(self):
+        evtdate = self.newpatt.get().strip()
+        if len(evtdate) < 15:
+            tkMessageBox.showinfo("Warning", f'Need seconds in the event date field {evtdate}')
+            return
+        cmd = os.path.join(self.script_loc, 'download_events.sh') + f' {evtdate} 1'
+        if ':' in cmd:
+            drv = cmd[0].lower()
+            cmd = '/mnt/' + drv + cmd[2:]
+        cmd = cmd.replace('\\','/')
+        log.info(f'executing {cmd}')
+        if self.evtMonTriggered is None:
+            ret = tkMessageBox.askyesno("Warning", 'Event Monitor has not been triggered, continue?')
+            if ret is False:
+                return 
+        elif datetime.datetime.now() < self.evtMonTriggered:
+            ret = tkMessageBox.askyesno("Wait", f'Should wait till {self.evtMonTriggered.strftime("%H:%M:%S")} - continue anyway?')
+            if ret is False:
+                return
+        os.chdir(self.fb_dir)
+        log.info(f'getting data for {evtdate}')
+        procid = subprocess.Popen(('bash','-c', cmd))
+        procid.wait()
+        tkMessageBox.showinfo("Info", 'Done')
+        return 
+
+    def getGMNData(self):
+        print(self.dir_path)
+        camlist = [line for line in os.listdir(os.path.join(self.dir_path,'jpgs')) if self.correct_datafile_name(line)]
+        dts=[]
+        camids=[]
+        for cam in camlist:
+            camid,_ = os.path.splitext(cam)
+            spls = camid.split('_')
+            if camid[:2] == 'FF':
+                camids.append(spls[1])
+                dts.append(camid[10:25])
+            else:
+                camids.append(spls[-1][:6])
+                dts.append(camid[1:16])
+        dts.sort()
+        dtstr = f'{dts[0]}.000000'
+        stationlist = ','.join(map(str, camids))
+        server=self.gmn_server
+        user=self.gmn_user
+        log.info('getting data from GMN')
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(self.gmn_key))
+        c = paramiko.SSHClient()
+        log.info(f'trying {user}@{server} with {self.gmn_key}')
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(hostname = server, username = user, pkey = k)
+        command = f'source ~/anaconda3/etc/profile.d/conda.sh && conda activate wmpl && python scripts/extract_fireball.py {dtstr} {stationlist}'
+        log.info(f'running {command}')
+
+        _, stdout, stderr = c.exec_command(command, timeout=900)
+        for line in iter(stdout.readline, ""):
+            log.info(line)
+        for line in iter(stderr.readline, ""):
+            print(line, end="")
+        scpcli = SCPClient(c.get_transport())
+        log.info('done, collecting output')
+        indir = os.path.join(f'event_extract/{dtstr}/')
+        scpcli.get(indir, self.dir_path, recursive=True)
+        command = f'rm -Rf event_extract/{dtstr}'
+        log.info(f'running {command}')
+        _, stdout, stderr = c.exec_command(command, timeout=120)
+        for line in iter(stdout.readline, ""):
+            log.info(line)
+        for line in iter(stderr.readline, ""):
+            log.info(line)
+        dirs = os.listdir(os.path.join(self.dir_path, dtstr))
+        for d in dirs:
+            srcdir = os.path.join(self.dir_path, dtstr, d)
+            targ = os.path.join(self.dir_path, d)
+            os.makedirs(targ, exist_ok=True)
+            for f in os.listdir(srcdir):
+                shutil.copy(os.path.join(srcdir, f), targ)
+        try:
+            shutil.rmtree(os.path.join(self.dir_path, dtstr))
+        except Exception:
+            pass
+        tkMessageBox.showinfo("Data Collected", 'data collected from GMN')
+        self.update_listbox(self.get_bin_list())
+        return
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--datepatt", type=str, help="date pattern to retrieve")
+    args = parser.parse_args()
+
+    dir_ = os.getcwd()
+    config_file = os.path.join(dir_, 'config.ini')
+    if not os.path.isfile(config_file):
+        shutil.copyfile(os.path.join(dir_, 'config.ini.sample'), config_file)
+        tkMessageBox.showinfo("Config Missing", 'Please configure before using')
+        showConfig()
+
+    noimg_file = os.path.join(dir_, 'noimage.jpg')
+
+    log = logging.getLogger(__name__)
+    log.setLevel(logging.INFO)
+
+    logdir = os.path.join(os.getenv('TMP'), 'fbcollector')
+    os.makedirs(logdir, exist_ok=True)
+    log_file = os.path.join(logdir, log_timestamp() + '.log')
+    handler = logging.handlers.TimedRotatingFileHandler(log_file, when='D', interval=1)  # Log to a different file each day
+    handler.setLevel(logging.INFO)
+
+    formatter = logging.Formatter(fmt='%(asctime)s-%(levelname)s-%(module)s-line:%(lineno)d - %(message)s', datefmt='%Y/%m/%d %H:%M:%S')
+    handler.setFormatter(formatter)
+    log.addHandler(handler)
+
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(fmt='%(asctime)s-%(levelname)s: %(message)s', datefmt='%Y/%m/%d %H:%M:%S')
+    ch.setFormatter(formatter)
+    log.addHandler(ch)
+
+    # Log program start
+    log.info("Program start")
+    log.info(f'config file is {config_file}')
+
+
+    # Initialize main window
+    root = tk.Tk()
+    root.geometry('+0+0')
+    targdir = args.datepatt
+    log.info(f'patt is {targdir}')
+
+    app = fbCollector(root, patt=targdir)
+    root.iconbitmap(os.path.join(dir_,'ukmda.ico'))
+    root.protocol('WM_DELETE_WINDOW', app.quitApplication)
+
+    root.mainloop()

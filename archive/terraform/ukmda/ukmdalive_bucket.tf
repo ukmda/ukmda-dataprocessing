@@ -65,6 +65,7 @@ resource "aws_s3_bucket_policy" "ukmdalivebp" {
 resource "aws_s3_bucket_lifecycle_configuration" "ukmdalivelcp" {
   bucket   = aws_s3_bucket.ukmdalive.id
   provider = aws.eu-west-1-prov
+  transition_default_minimum_object_size = "varies_by_storage_class"
   rule {
     status = "Enabled"
     id     = "1 months delete"
@@ -76,8 +77,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "ukmdalivelcp" {
     }
     expiration {
       days                         = 30
-      expired_object_delete_marker = false
     }
+    filter {}
   }
 }
 

@@ -5,7 +5,6 @@ import os
 import sys
 import shutil
 import json
-from zipfile import ZipFile, ZIP_DEFLATED
 from datetime import datetime, timedelta
 from boto3.dynamodb.conditions import Key
 
@@ -81,12 +80,15 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
             try:
                 js = json.loads(obs.comment)
                 ffname = js['ff_name']
-                print(ffname)
+                if ffname[0] == '[':
+                    ffname = ffname[2:-2].split(',')
+                if isinstance(ffname, list):
+                    ffname = ffname[0]
                 # case when filename is nonstandard 
                 if 'FF_' not in ffname and 'FR_' not in ffname:
                     ffname = 'FF_' + ffname
                 ffname = ffname.replace('FR_', 'FF_').replace('.bin', '.fits')
-                if '.bin' not in ffname and '.fits' not in ffname:
+                if '.bin' not in ffname and '.fits' not in ffname and '.jpg' not in ffname:
                     ffname = ffname + '.fits'
                 gotff = True
             except Exception:
@@ -98,13 +100,15 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
                 else:
                     pass
             if gotff is True: 
+                print(ffname)
                 spls = ffname.split('_')
                 id = spls[1]
                 dtstr = spls[2]
                 tmstr = spls[3]
-                jpgname=f'img/single/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('fits','jpg')
-                mp4name=f'img/mp4/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('fits','mp4')
+                jpgname=f'img/single/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('.fits','.jpg')
+                mp4name=f'img/mp4/{dtstr[:4]}/{dtstr[:6]}/{ffname}'.replace('.fits','.mp4').replace('.jpg','.mp4')
                 print('about to get a list of available jpgs')
+                print(jpgname)
                 res = s3.meta.client.list_objects_v2(Bucket=websitebucket,Prefix=jpgname)
                 if res['KeyCount'] > 0:
                     jpgf.write(f'{jpgname}\n')
@@ -157,7 +161,6 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
             print('no extrampgs.html')
             pass
 
-        # pushFilesBack creates the zipfile so we need to do this first
         print('pushing files back')
         pushFilesBack(outdir, archbucket, websitebucket, fuloutdir, s3)
         print('updating the index page')
@@ -239,9 +242,8 @@ def findOtherFiles(evtdt, archbucket, websitebucket, outdir, fldr, s3):
 
 
 def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
-    # get filelist before creating the zipfile! 
-    flist = os.listdir(outdir)
 
+    flist = os.listdir(outdir)
     _, pth =os.path.split(outdir)
     yr = pth[:4]
     ym = pth[:6]
@@ -251,13 +253,9 @@ def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
     else:
         webpth = f'reports/{yr}/orbits/{ym}/{pth}/'
 
-    zipfname = os.path.join(outdir, pth +'.zip')
-    zipf = ZipFile(zipfname, 'w', compression=ZIP_DEFLATED, compresslevel=9)
-
     for f in flist:
-        #print(f)
+        print(f)
         locfname = os.path.join(outdir, f)
-        zipf.write(locfname)
         # some files need to be pushed to the website, some to the archive bucket
         if '3dtrack' in f or '2dtrack' in f:
             key = os.path.join(webpth, f)
@@ -277,11 +275,6 @@ def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
             extraargs = getExtraArgs(locfname)
             s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
 
-    zipf.close()
-    # now we push the zipfile
-    key = os.path.join(webpth, pth + '.zip')
-    extraargs = getExtraArgs(zipfname)
-    s3.meta.client.upload_file(zipfname, websitebucket, key, ExtraArgs=extraargs) 
     return 
 
 

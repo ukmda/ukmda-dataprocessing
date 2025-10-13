@@ -1,0 +1,24 @@
+---
+- hosts: ukmonhelper2
+  gather_facts: no
+  tasks:
+  - name: import variables 
+    include_vars: ./vars.yml
+    tags: [dev,prod]
+  - name: Ensures {{destdir}} exists
+    file: path={{destdir}} state=directory  
+    delegate_to: localhost
+    tags: [dev,prod]
+  - name: Copy files
+    copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
+    tags: [dev,prod]
+    delegate_to: localhost
+    with_items:
+    - {src: '{{srcdir}}/fbCollector.ps1', dest: '{{destdir}}/', mode: '755', backup: no, directory_mode: no }
+    - {src: '{{srcdir}}/fireballCollector.py', dest: '{{destdir}}/', mode: '644', backup: no, directory_mode: no }
+    - {src: '{{srcdir}}/download_events.sh', dest: '{{destdir}}/', mode: '755', backup: no, directory_mode: no }
+    - {src: '{{srcdir}}/config.ini.sample', dest: '{{destdir}}/', mode: '644', backup: no, directory_mode: no }
+    - {src: '{{srcdir}}/noimage.jpg', dest: '{{destdir}}/', mode: '644', backup: no, directory_mode: no }
+    - {src: '{{srcdir}}/ukmda.ico', dest: '{{destdir}}/', mode: '644', backup: no, directory_mode: no }
+    - {src: '{{srcdir}}/requirements.txt', dest: '{{destdir}}/', mode: '644', backup: no, directory_mode: no }
+

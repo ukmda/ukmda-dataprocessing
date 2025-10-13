@@ -126,7 +126,7 @@ def createStatOptsHtml(sitedets, datadir, active=False, locs=False):
 def findSite(stationid, camdets=None, ddb=None):
     if camdets is None:
         camdets = loadLocationDetails(ddb=ddb) 
-    cc = camdets[camdets.stationid==stationid]
+    cc = camdets[camdets.stationid==stationid[:6]]
     if len(cc) > 0:
         res = cc.iloc[0]['site']
     else:
@@ -137,7 +137,7 @@ def findSite(stationid, camdets=None, ddb=None):
 def findEmail(stationid, camdets=None, ddb=None):
     if camdets is None:
         camdets = loadLocationDetails(ddb=ddb) 
-    cc = camdets[camdets.stationid==stationid]
+    cc = camdets[camdets.stationid==stationid[:6]]
     if len(cc) > 0:
         res = cc.iloc[0]['eMail']
     else:

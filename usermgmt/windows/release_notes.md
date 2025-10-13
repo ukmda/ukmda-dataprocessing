@@ -3,7 +3,7 @@
 This application is used to add, modify and disable RMS stations linked to UKMON. The app is intended for use only by the UKMON committee members responsible for managing users. 
 
 ## Before Installation
-First you should contact me, Mark McIntyre. You will need to send me your ssh public key, and i will then create a userid for you on our server and send you the details.
+First you should contact me, Mark McIntyre so we can set up a userid for you. 
 
 ## Installation
 Download the zip file and expand it to a location of your choice, for example `c:\programdata\ukmon`
@@ -16,3 +16,4 @@ The menus should be pretty self-explanatory.
 
 ## Release Notes
 2024.04.2 - first release.
+2025.10.1 - overhaul to fix a plethora of bugs and add new features. 

@@ -1,6 +1,6 @@
 [helper]
-USER=adm_mark
-SSHKEY=~/.ssh/ukmonhelper
+USER=
+SSHKEY=
 HELPERIP=3.11.55.160
 REMOTEDIR=/home/ec2-user/prod/data
 PLATEPARDIR=

@@ -1,6 +1,7 @@
 # UKMDA User Management
 
-This folder contains the scripts used to add/maintain new cameras to the network. 
+This Windows application is used to add/maintain new cameras to the network.  Its use is restricted to members of the UKMON 
+admin team. 
 
 ## Basic Principles
 A camera consists of an RMS ID, location and pointing direction. 
@@ -13,15 +14,18 @@ Each _camera_ is allocated a unique *Unix* ID. The public ssh key provided by th
 
 
 # User Management tool
-Unix and AWS User creation and configuration are managed by *stationMaint.ps1* which calls a python programme that uses native AWS and Unix libraries to execute the required commands. The tool requires AWS and SSH credentials which are restricted to administrators (see note below). 
+Unix and AWS User creation and configuration are managed by *stationMaint.exe* which is a compiled python programme that uses native AWS and Unix libraries to execute the required commands. 
 
 ## Setup
-Prerequisites:  
-* anaconda or miniconda
-* An AWS profile with the usermaintenance IAM permissions. The default profile name is *ukmda_maint*.
-* An SSH key thats permissioned to connect to the server. The default key name is *ukmda_admin*.
- 
-To install the app, copy the python files, requirements.txt and powershell script to a folder of your choosing, and update the environment variables in the powershell script as needed.  Now run the powershell script which will create a suitable Conda environment, install the requirements and launch the tool. 
+Reminder: To use the app you will have to be permissioned on our servers by one of the Admin team. 
+
+* Download the latest zip file from [here](https://github.com/ukmda/ukmda-dataprocessing/releases) and expand it to a location of your choosing on your computer, for example `%userprofile%\ukmon\usermgmt`
+* Create a desktop shortcut pointing to `dist\stationmaint2.exe`  in this folder. 
+
+When you first run the app you will be prompted to provide the credentials we gave you to connect to our server. 
+
+### Linux or MacOS
+In principle the code should work on Linux-like OSes. You'd need to copy the python file, icon file, sample ini file, requirements file and this README to a folder of your choosing then create a python virtual environment, activate it and install the requirements. 
 
 ## Adding a new camera
 To add a new camera the camera operator must supply the following:
@@ -37,28 +41,28 @@ by other cameras at the same location.
 Once the information has been gathered, select Camera/Add and fill in the boxes. Note that the boxes are part-prepopulated with values from whatever row your cursor was on, so that if you're adding another camera at an existing location, you can save a bit of typing. 
 
 ## Amending a camera
-The location and pointing direction cannot be changed once set. To change these values you'll need to follow the process to move a camera.  
+To change location or pointing direction follow the process to move a camera.  
 All other values can be amended by selecting the line and updating the values. 
 
 ## Moving a camera
+IMPORTANT NOTE: the camera owner should NOT make any changes - the changes will automatically flow down to their station.
+
 To move a camera to a new location, select the row containing the camera then select Camera/Move. After you fill in any new information, a new unix and AWS user will be created and the configuration files for the old user will be updated. The old camera must then be marked disabled as explained next. 
 
-IMPORTANT NOTE: the camera owner should NOT make any changes - the system will automatically update their configuration.
+## Disabling and Re-enabling a camera
+To disable a camera, change the Active column from 1 to the last active date in YYYYMMDD format eg 20220715. This removes the camera from current reporting and disables the unix user, but retains the details for any historical reporting. A camera can be reactivated by setting the Active column back to 1. 
 
-## Disabling a camera
-To disable a camera, change the Active column from 1 to today's date in YYYYMMDD format eg 20220715. This removes the camera from current reporting, but retains the details for any historical reporting. 
+## Disabling a location
+Disable all cameras at that location, and then update the AWS key. We never remove a location as there would be a risk of losing historic data. 
 
-# Disabling a location
-To disable a location, we revoke the corresponding AWS user's keys, and if necessary, delete the AWS user and Unix ID. No other user will be affected. This is not currently managed by the UI as it is a drastic action that we do not want to carry out accidentally! 
-
-# Permissions Needed
-This tool requires two sets of permissions:  
-* an AWS profile with permissions to add/amend/delete users in IAM. This is required to manage the AWS roles. 
-* an SSH key with permissions to login to the Batch server.  This is required to manage the Unix accounts. 
-
-# Parameters
-The powershell script lists the parameters that need to be set, such as AWS profile to use, the buckets and so on. The ansible YAML script sets these values. 
-
+## Other Functionality
+The tool also provides some other functionality:
+* Owners menu - search for station details and owner details. 
+* Camera menu 
+  * Check camera - this does a quick sanity test to see when the camera last connected to our server. 
+  * Download the current plateper for a camera and upload a new one. The new plate will be automaticlly installed on the camera the following morning. 
+  * Update the SSH key - if a user sends a new SSH key, we need to add it to the server. 
+  * Update the AWS key - force an update of the location's AWS key. Note that keys are autorolled every 60 days so this would only be needed if the key had been compromised.
 
 # Copyright
 All code Copyright (C) 2018-2023 Mark McIntyre

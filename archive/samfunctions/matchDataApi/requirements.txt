@@ -1,0 +1,6 @@
+#
+# requirements for matchDataApi
+# Copyright (C) 2025 Mark McIntyre
+#
+# mysql-connector-python  
+pymysql  

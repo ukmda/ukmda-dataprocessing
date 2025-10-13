@@ -14,3 +14,4 @@ rm -Rf ./WesternMeteorPyLib/wmpl/MetSim
 rm -Rf ./WesternMeteorPyLib/wmpl/CAMO
 rm -f  ./WesternMeteorPyLib/wmpl/Utils/DynamicMassFit.py
 rm -f  ./WesternMeteorPyLib/wmpl/Utils/PlotMap_OSM.py
+cp ./wmpl__init__.py_fixed.py ./WesternMeteorPyLib/wmpl/__init__.py
