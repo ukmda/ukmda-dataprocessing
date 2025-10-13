@@ -309,6 +309,7 @@ class CamMaintenance(Frame):
         self.parent = parent
         Frame.__init__(self, parent)
 
+        self.config_dir = cfgdir
         self.cfg, awskeys = loadConfig(cfgdir)
         self.conn = boto3.Session(aws_access_key_id=awskeys['key'], aws_secret_access_key=awskeys['secret']) 
         self.bucket_name = self.cfg['store']['srcbucket'] 
@@ -356,9 +357,14 @@ class CamMaintenance(Frame):
         ownMenu.add_command(label = "View Owner Data", command = self.viewOwnerData)
         ownMenu.add_command(label = "Search Data", command = self.searchOwnerData)
 
+        helpMenu = Menu(self.menuBar, tearoff=0)
+        helpMenu.add_command(label = "Documentation", command = self.viewReadme)
+        helpMenu.add_command(label = "About", command = self.aboutBox)
+
         self.menuBar.add_cascade(label="File", underline=0, menu=fileMenu)
         self.menuBar.add_cascade(label="Camera", underline=0, menu=camMenu)
         self.menuBar.add_cascade(label="Owners", underline=0, menu=ownMenu)
+        self.menuBar.add_cascade(label="Help", underline=0, menu=helpMenu)
 
         parent.grid_columnconfigure(0, weight = 1)
         parent.grid_rowconfigure(0, weight = 1)
@@ -908,6 +914,20 @@ class CamMaintenance(Frame):
             outf.write('export UKMONKEY=~/.ssh/ukmon\n')
             outf.write('export RMSCFG=~/source/RMS/.config\n')
         return 
+    
+    def viewReadme(self):
+        docfile = os.path.join(self.config_dir, 'README.md')
+        if platform.system() == 'Darwin':       # macOS
+            procid = subprocess.Popen(('open', docfile))
+        elif platform.system() == 'Windows':    # Windows
+            procid = subprocess.Popen(('cmd','/c',f'notepad {docfile}'))
+        else:                                   # linux variants
+            procid = subprocess.Popen(('xdg-open', docfile))
+        procid.wait()
+
+    def aboutBox(self):
+        tkMessageBox.showinfo('About', 
+            'UKMON user / camera maintenance tool.\nAll rights reserved, Mark McIntyre, 2024')
 
 
 def log_timestamp():
@@ -918,7 +938,7 @@ def log_timestamp():
 
 if __name__ == '__main__':
     # Initialize main window
-    dir_ = os.getcwd() #os.path.dirname(os.path.realpath(__file__))
+    dir_ = os.getcwd() 
 
     log.setLevel(logging.INFO)
 

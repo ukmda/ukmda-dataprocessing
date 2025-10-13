@@ -47,6 +47,7 @@ jobs:
           cd usermgmt\windows\dist
           copy ../camera.ico .
           copy ../stationmaint.ini.sample .
+          copy ../../README.md .
           compress-archive -path . -update -destinationpath c:\temp\ukmon_usermgmt.zip
   release_usermgmt:
     name: release usermanagement
