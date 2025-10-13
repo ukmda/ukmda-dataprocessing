@@ -343,17 +343,14 @@ class CamMaintenance(Frame):
         camMenu = Menu(self.menuBar, tearoff=0)
         camMenu.add_command(label = "Add Camera", command = self.addCamera)
         camMenu.add_command(label = "Relocate Camera", command = self.moveCamera)
-        camMenu.add_command(label = "Deactivate Camera", command = self.delCamera)
         camMenu.add_separator()
-        camMenu.add_command(label = "Remove Location", command = self.delOperator)
+        camMenu.add_command(label = "Check Camera", command = self.checkLastUpdate)
         camMenu.add_separator()
         camMenu.add_command(label = "Download Platepar", command = self.getPlate)
-        camMenu.add_command(label = "Update platepar", command = self.newPlate)
+        camMenu.add_command(label = "Update Platepar", command = self.newPlate)
         camMenu.add_separator()
         camMenu.add_command(label = "Update SSH Key", command = self.newSSHKey)
         camMenu.add_command(label = "Update AWS Key", command = self.newAWSKey)
-        camMenu.add_separator()
-        camMenu.add_command(label = "Check Camera", command = self.checkLastUpdate)
 
         ownMenu = Menu(self.menuBar, tearoff=0)
         ownMenu.add_command(label = "View Owner Data", command = self.viewOwnerData)
@@ -442,6 +439,10 @@ class CamMaintenance(Frame):
                     'direction': data[2], 'camtype': str(data[3]), 'active': int(data[4]), 'oldcode': data[1],
                     'created': data[8]}
             addRow(newdata, ddb=self.ddb)
+            if int(data[4]) > 1:
+                self.disableEnableUnixUser(data[0], data[2], False)
+            else:
+                self.disableEnableUnixUser(data[0], data[2], True)
         return event[3]
     
     def end_delete_rows(self, event):
@@ -504,14 +505,6 @@ class CamMaintenance(Frame):
         self.parent.quit()
         self.parent.destroy()
 
-    def delCamera(self):
-        tk.messagebox.showinfo(title="Information", message='To remove a camera, set Active=current date yyyymmdd')
-        return
-
-    def delOperator(self):
-        tk.messagebox.showinfo(title="Information", message='Not implemented yet')
-        return
-    
     def viewOwnerData(self):
         statOwnerDialog(self)
         return
@@ -708,23 +701,23 @@ class CamMaintenance(Frame):
         log.info(f'running {command}')
         _, stdout, stderr = c.exec_command(command, timeout=10)
         for line in iter(stdout.readline, ""):
-            log.info(line, end="")
+            log.info(line)
         for line in iter(stderr.readline, ""):
-            log.info(line, end="")
+            log.info(line)
         command = f'sudo mv {uplfile} /var/sftp/{camname}/platepar/platepar_cmn2010.cal'
         log.info(f'running {command}')
         _, stdout, stderr = c.exec_command(command, timeout=10)
         for line in iter(stdout.readline, ""):
-            log.info(line, end="")
+            log.info(line)
         for line in iter(stderr.readline, ""):
-            log.info(line, end="")
+            log.info(line)
         command = f'sudo chown {camname}:{camname} /var/sftp/{camname}/platepar/platepar_cmn2010.cal'
         log.info(f'running {command}')
         _, stdout, stderr = c.exec_command(command, timeout=10)
         for line in iter(stdout.readline, ""):
-            log.info(line, end="")
+            log.info(line)
         for line in iter(stderr.readline, ""):
-            log.info(line, end="")
+            log.info(line)
         scpcli.close()
         c.close()
         return
@@ -777,49 +770,15 @@ class CamMaintenance(Frame):
         c.connect(hostname = server, username = user, pkey = k)
         command = f'/home/{user}/keymgmt/updateAwsKey.sh {location} force'
         log.info(f'running {command}')
-        _, stdout, stderr = c.exec_command(command, timeout=10)
-        for line in iter(stdout.readline, ""):
-            log.info(line, end="")
+        _, stdout, stderr = c.exec_command(command, timeout=60)
         for line in iter(stderr.readline, ""):
-            log.info(line, end="")
+            log.info(line)
+        for line in iter(stdout.readline, ""):
+            log.info(line)
+        tkMessageBox.showinfo('Updated', line.split(' to')[0])
         log.info('done')
         c.close()
         return 
-
-
-    def updateKeyfile(self, caminfo, location):
-        server = self.cfg['helper']['platepardir']
-        user='ec2-user'
-        keyf = os.path.join('jsonkeys', location + '.key')
-        currkey = json.load(open(keyf, 'r'))
-        archcsvf = os.path.join('csvkeys', location.lower() + '_arch.csv')
-        with open(archcsvf,'w') as outf:
-            outf.write('Access key ID,Secret access key\n')
-            outf.write('{},{}\n'.format(currkey['AccessKey']['AccessKeyId'], currkey['AccessKey']['SecretAccessKey']))
-
-        affectedcamlist = caminfo[caminfo.site==location]
-        keyfile = self.cfg['helper']['sshkey']
-        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
-        c = paramiko.SSHClient()
-        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        c.connect(hostname = server, username = user, pkey = k)
-        scpcli = SCPClient(c.get_transport())
-        # push the raw keyfile
-        scpcli.put(keyf, 'keymgmt/rawkeys/live/')
-        scpcli.put(archcsvf, 'keymgmt/rawkeys/csvkeys/')
-        scpcli.close()
-        c.close()
-        for _, cam in affectedcamlist.iterrows():
-            cameraname = cam.site.lower() + '_' + cam.site.lower()
-            keyfile = os.path.join('sshkeys', cameraname + '.pub')
-            k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
-            c = paramiko.SSHClient()
-            c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            c.connect(hostname = server, username = cameraname, pkey = k)
-            scpcli = SCPClient(c.get_transport())
-            scpcli.put(archcsvf, '.')
-            scpcli.close()
-            c.close()
 
 
     def getSSHkey(self, loc, dir):
@@ -889,7 +848,34 @@ class CamMaintenance(Frame):
         scpcli.close()
         c.close()
         return
-
+    
+    def disableEnableUnixUser(self, loc, dir, enable):
+        cameraname = loc.lower() + '_' + dir.lower()
+        server = self.cfg['helper']['helperip'] 
+        user='ec2-user'
+        log.info(f'updating Unix user {cameraname}')
+        keyfile = self.cfg['helper']['sshkey'] 
+        k = paramiko.RSAKey.from_private_key_file(os.path.expanduser(keyfile))
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        try:
+            c.connect(hostname = server, username = user, pkey = k)
+        except Exception:
+            c.connect(hostname = server+'.', username = user, pkey = k)
+        if enable is False:
+            command = f'/usr/bin/sudo /usr/sbin/usermod --expiredate 1 {cameraname}'
+        else:
+            command = f'/usr/bin/sudo /usr/sbin/usermod --expiredate "" {cameraname}'
+        log.info(f'running {command}')
+        line = ''
+        _, stdout, stderr = c.exec_command(command, timeout=60)
+        for line in iter(stderr.readline, ""):
+            log.info(line)
+        for line in iter(stdout.readline, ""):
+            log.info(line)
+        if enable is False:
+            tkMessageBox.showinfo('Disabled', f'{cameraname} {line}')
+        return 
 
     def createKeyFile(self, location):
         archbucket = self.cfg['store']['srcbucket'] 
