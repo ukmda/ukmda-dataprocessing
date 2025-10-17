@@ -36,7 +36,8 @@
                 "ec2messages:GetEndpoint",
                 "ec2messages:GetMessages",
                 "ec2messages:SendReply",
-                "ses:SendEmail"
+                "ses:SendEmail",
+                "sts:GetCallerIdentity"
             ],
             "Effect": "Allow",
             "Resource": [
