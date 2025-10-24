@@ -24,7 +24,7 @@ from scp import SCPClient
 try:
     from wmpl.Formats.ECSV import loadECSVs
     from wmpl.Formats.GenericFunctions import solveTrajectoryGeneric
-    solveravailable = 'enabled'
+    solveravailable = 'active'
 except Exception:
     solveravailable = 'disabled'
 
@@ -1014,7 +1014,13 @@ class fbCollector(Frame):
         if len(evtdate) < 15:
             tkMessageBox.showinfo("Warning", f'Need seconds in the event date field {evtdate}')
             return
-        cmd = os.path.join(self.script_loc, 'download_events.sh') + f' {evtdate} 1'
+        fbdir = self.fb_dir
+        if ':' in fbdir:
+            drv = fbdir[0].lower()
+            fbdir = '/mnt/' + drv + fbdir[2:]
+        fbdir = fbdir.replace('\\','/')
+
+        cmd = os.path.join(self.script_loc, 'download_events.sh') + f' {evtdate} {fbdir} 1'
         if ':' in cmd:
             drv = cmd[0].lower()
             cmd = '/mnt/' + drv + cmd[2:]
