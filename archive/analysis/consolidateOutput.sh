@@ -37,23 +37,29 @@ consdir=${DATADIR}/consolidated/temp
 mkdir -p ${DATADIR}/single/rawcsvs 
 ls -1 $consdir/*.csv | while read csvf
 do
-    bn=$(basename $csvf)
-    typ=${bn:0:3}
-    if [ "$typ" != "M20" ] ; then 
-        pref="P"
-        yr=${bn:7:4}
+    flen=$(wc -l $csvf | awk '{print $1}')
+    if [ $flen -lt 2 ] ; then 
+        logger -s -t consolidateOutput "skipping empty file $csvf"
+        rm $csvf 
     else
-        pref="M"
-        yr=${bn:1:4}
-    fi 
-    mrgfile=${DATADIR}/consolidated/${pref}_${yr}-unified.csv
-    if [ ! -f $mrgfile ] ; then
-        cat $csvf >> $mrgfile
-    else
-        #echo $bn $mrgfile
-        sed '1d' $csvf >> $mrgfile
+        bn=$(basename $csvf)
+        typ=${bn:0:3}
+        if [ "$typ" != "M20" ] ; then 
+            pref="P"
+            yr=${bn:7:4}
+        else
+            pref="M"
+            yr=${bn:1:4}
+        fi 
+        mrgfile=${DATADIR}/consolidated/${pref}_${yr}-unified.csv
+        if [ ! -f $mrgfile ] ; then
+            cat $csvf >> $mrgfile
+        else
+            #echo $bn $mrgfile
+            sed '1d' $csvf >> $mrgfile
+        fi
+        mv $csvf ${DATADIR}/single/rawcsvs
     fi
-    mv $csvf ${DATADIR}/single/rawcsvs
 done
 
 logger -s -t consolidateOutput "pushing consolidated information back"
