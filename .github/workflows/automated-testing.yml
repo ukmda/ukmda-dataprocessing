@@ -42,7 +42,7 @@ jobs:
           fi 
           mkdir -p ~/.aws
           #cp /data/profile/credentials ~/.aws/
-          aws sys get-caller-identity
+          aws sts get-caller-identity 
           /tests.sh
   apitests:
     runs-on: ubuntu-latest
