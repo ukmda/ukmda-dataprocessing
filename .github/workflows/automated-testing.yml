@@ -32,7 +32,6 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: remote tests
         run: |
-          chmod +x /tests.sh
           if [ ! -f /data/admin/cameraLocs.json ] ; then 
             echo "getting test data"
             curl https://archive.ukmeteors.co.uk/browse/testdata/testdata.tar.gz  -o /data/testdata.tar.gz
@@ -43,7 +42,7 @@ jobs:
           aws sts get-caller-identity 
           pip install --upgrade MeteorTools | grep -v 'already satisfied'
           pip install pytest pytest-cov | grep -v 'already satisfied'
-          [ -d ./ukmda-dataprocessing] && rm -Rf ./ukmda-dataprocessing
+          [ -d ./ukmda-dataprocessing ] && rm -Rf ./ukmda-dataprocessing
           git clone https://github.com/ukmda/ukmda-dataprocessing.git
           cd ./ukmda-dataprocessing/
           git checkout $BRANCH
