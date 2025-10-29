@@ -9,7 +9,7 @@ import datetime
 import pandas as pd 
 
 
-def getLastUpdateDate(datadir=None, camfname=None):
+def getLastUpdateDate(datadir=None, camfname=None, ddb=None):
     """ Create a status report showing the last update date of each camera that
     is providing data
 
@@ -19,7 +19,7 @@ def getLastUpdateDate(datadir=None, camfname=None):
         includenever (bool) default false, include cameras that have never uploaded
         
     """
-    caminfo = loadLocationDetails()
+    caminfo = loadLocationDetails(ddb=ddb)
     caminfo = caminfo[caminfo.active==1]
 
     caminfo = caminfo.drop(columns=['direction','oldcode','active','camtype','eMail', 'humanName'])
