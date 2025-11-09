@@ -5,7 +5,8 @@ source $here/../config.ini >/dev/null 2>&1
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 mkdir -p $DATADIR/manualuploads
-cd $DATADIR/manualuploadsif [ -f ./running ] ; then
+cd $DATADIR/manualuploads
+if [ -f ./running ] ; then
    echo "already running"
    exit
 fi

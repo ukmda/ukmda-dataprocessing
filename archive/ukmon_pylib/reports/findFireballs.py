@@ -67,8 +67,16 @@ def createMDFiles(fbs, outdir, orbdir):
             targfile = os.path.join(tmpdir, 'jpgs.lst')
             try:
                 s3.download_file(srcbucket, fname, targfile)
-                bestimg = getBestView(pickfile)
-                #print(bestimg)
+                bestimg = getBestView(pickfile)                
+                if bestimg[0] == '[':
+                    bestimg = bestimg.replace('[','').replace(']','')
+                    bestimg = bestimg.split(',')
+                    bestimg = bestimg[0]
+                    if bestimg[0] == "'":
+                        bestimg = bestimg[1:-1]
+                if type(bestimg) is list:
+                    bestimg = bestimg[0]
+                print(f' bestimg is "{bestimg}"')
                 if bestimg[:3] == 'FF_':
                     pth = fb.url[:fb.url.find('reports/')]
                     bestimg = f'img/single/{yr}/{ym}/{bestimg}'
@@ -83,8 +91,7 @@ def createMDFiles(fbs, outdir, orbdir):
                     bestimgurl = ''
             except:
                 print('unable to collect jpgs.lst')
-
-            fname = loctime.strftime('%Y%m%d_%H%M%S') + '.md'
+            fname = f'{trajdir[:15]}.md'
             if os.path.isfile(os.path.join(outdir,fname)):
                 print(f'{fname} exists, not replacing it')
             else:

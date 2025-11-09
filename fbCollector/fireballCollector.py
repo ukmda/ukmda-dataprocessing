@@ -21,12 +21,6 @@ import pandas as pd
 import paramiko
 from scp import SCPClient
 
-try:
-    from wmpl.Formats.ECSV import loadECSVs
-    from wmpl.Formats.GenericFunctions import solveTrajectoryGeneric
-    solveravailable = 'enabled'
-except Exception:
-    solveravailable = 'disabled'
 
 import tkinter as tk
 import tkinter.filedialog as tkFileDialog
@@ -280,9 +274,12 @@ class fbCollector(Frame):
         try:
             self.wmpl_loc = os.path.expanduser(localcfg['solver']['wmpl_loc'].replace('$HOME','~')).replace('\\','/')
             self.wmpl_env= localcfg['solver']['wmpl_env']
+            if os.path.isdir(os.path.expanduser(self.wmpl_loc)):
+                self.solveravailable = 'active'
+            else:
+                self.solveravailable = 'disabled'
         except:
-            log.error('WMPL location and environment name must be configured')
-            quitApp()
+            self.solveravailable = 'disabled'
         try:
             self.rms_loc = os.path.expanduser(localcfg['reduction']['rms_loc'].replace('$HOME','~')).replace('\\','/')
             self.rms_env = localcfg['reduction']['rms_env']
@@ -379,8 +376,8 @@ class fbCollector(Frame):
             gmnavailable ='disabled' 
 
         rawMenu = Menu(self.menuBar, tearoff=0)
-        rawMenu.add_command(label="Get Live Images", command=self.get_data)
-        rawMenu.add_command(label="Get Videos", command=self.get_vids)
+        rawMenu.add_command(label="Get Live Images", command=self.getData)
+        rawMenu.add_command(label="Get Videos", command=self.getVids)
         rawMenu.add_separator()
         rawMenu.add_command(label="Get ECSVs", command=self.getRequestedECSVs)
         rawMenu.add_command(label="Excl/Incl ECSV", command=self.ignoreCamera)
@@ -407,7 +404,7 @@ class fbCollector(Frame):
         self.menuBar.add_cascade(label="Review", underline=0, menu=revMenu)
 
         solveMenu = Menu(self.menuBar, tearoff=0)
-        solveMenu.add_command(label="Solve", command=self.solveOrbit, state=solveravailable)
+        solveMenu.add_command(label="Solve", command=self.solveOrbit, state=self.solveravailable)
         solveMenu.add_separator()
         solveMenu.add_command(label="View Solution", command=self.viewSolution)
         solveMenu.add_command(label="Delete Solution", command=self.removeSolution)
@@ -416,7 +413,10 @@ class fbCollector(Frame):
         self.menuBar.add_cascade(label="Solve", underline=0, menu=solveMenu)
 
         otherMenu = Menu(self.menuBar, tearoff=0)
-        otherMenu.add_command(label="Get Traj Pickle", command=self.get_trajpickle)
+        otherMenu.add_command(label="Get Traj Pickle", command=self.getTrajpickle)
+        otherMenu.add_command(label="Add Image/Vid", command=self.addImageVideo)
+        solveMenu.add_separator()
+        otherMenu.add_command(label="Delete Orbit", command=self.delOrbit)
         self.menuBar.add_cascade(label="Other", underline=0, menu=otherMenu)
 
         # buttons
@@ -428,7 +428,7 @@ class fbCollector(Frame):
 
         self.patt_entry = StyledEntry(self.save_panel, textvariable = self.newpatt, width = 20)
         self.patt_entry.grid(row = 1, column = 1, columnspan = 2, sticky = "W")
-        save_bmp = StyledButton(self.save_panel, text="Get Images", width = 8, command = lambda: self.get_data())
+        save_bmp = StyledButton(self.save_panel, text="Get Images", width = 8, command = lambda: self.getData())
         save_bmp.grid(row = 1, column = 3)
 
         save_bmp = StyledButton(self.save_panel, text="Remove", width = 8, command = lambda: self.remove_image())
@@ -535,46 +535,47 @@ class fbCollector(Frame):
     def solveOrbit(self):
         log.info('Using ECSV files:')
         ecsv_names = []
-        ecsv_paths = []
-        os.makedirs(os.path.join(self.dir_path,'ecsvs'), exist_ok=True)
+        ecsv_loc = os.path.join(self.dir_path,'ecsvs')
+        os.makedirs(ecsv_loc, exist_ok=True)
         for entry in sorted(os.walk(self.dir_path), key=lambda x: x[0]):
             dir_name, _, file_names = entry
             if 'ecsvs' in dir_name:
                 continue
             for fn in file_names:
                 if fn.lower().endswith(".ecsv"):
-                    shutil.copyfile(os.path.join(dir_name, fn), os.path.join(self.dir_path, 'ecsvs', fn))
+                    shutil.copyfile(os.path.join(dir_name, fn), os.path.join(ecsv_loc, fn))
                 if fn.lower().endswith(".ecsv") and 'REJECT' not in dir_name.upper() and 'REJECT' not in fn.upper():
                     # Add ECSV file, but skip duplicates
                     if fn not in ecsv_names:
-                        ecsv_paths.append(os.path.join(dir_name, fn))
                         ecsv_names.append(fn)
                         log.info(fn)
-        if len(ecsv_paths) < 2:
+        if len(ecsv_names) < 2:
             tkMessageBox.showinfo('Warning', 'Need at least two ECSV files')
             return 
-        jdt_ref, meteor_list = loadECSVs(ecsv_paths)
-        mcruns = 20
-        max_toffset = 15.0
-        velpart = None
-        vinitht = None
-        plotallspatial = True
-        uncertgeom = False
-        jacchia = False
-        traj = solveTrajectoryGeneric(jdt_ref, meteor_list, self.dir_path, 
-            max_toffset=max_toffset, monte_carlo=True, mc_runs=mcruns, 
-            geometric_uncert=uncertgeom, plot_all_spatial_residuals=plotallspatial, 
-            show_plots=False, v_init_part=velpart, v_init_ht=vinitht, 
-            show_jacchia=jacchia, enable_OSM_plot=True, mc_cores=8)
+
+        tmpscr = os.path.join(os.getenv('TEMP'), 'solve.ps1')
+        with open(tmpscr, 'w') as outf:
+            mcruns = 20
+            outf.write(f'cd {self.wmpl_loc}\nconda activate {self.wmpl_env}\npython -m wmpl.Formats.ECSV {ecsv_loc} -l -x -r {mcruns} -w -t 15\n')
+        _ = subprocess.run(['powershell.exe', tmpscr])
+        fldrs = os.listdir(ecsv_loc)
+        print(fldrs)
+        fldrs = [f for f in fldrs if os.path.isdir(os.path.join(ecsv_loc, f))]
+        if len(fldrs) > 0:
+            log.info(f'solved into {fldrs[0]}')
+            self.soln_outputdir = os.path.join(self.dir_path, fldrs[0])
+            if os.path.isdir(self.soln_outputdir):
+                shutil.rmtree(self.soln_outputdir)
+            log.info(f'moving {os.path.join(ecsv_loc, fldrs[0])} to {self.dir_path}')
+            shutil.move(os.path.join(ecsv_loc, fldrs[0]), self.dir_path)
         tkMessageBox.showinfo('Info', 'Solver Finished')
-        if traj is not None:
-            self.soln_outputdir = traj.output_dir
         return 
     
     def viewSolution(self):
         self.review_stack = False
         if not self.soln_outputdir:
             solndir = glob.glob1(self.dir_path, os.path.split(self.dir_path)[1][:8]+'*')
+            solndir = [f for f in solndir if os.path.isdir(os.path.join(self.dir_path, f))]
             if len(solndir) == 0:
                 tkMessageBox.showinfo('Warning', 'No solution to review')
                 return
@@ -600,62 +601,8 @@ class fbCollector(Frame):
         return 
     
     def uploadOrbit(self):
-        pickles=[]
-        for path, _, files in os.walk(self.dir_path):
-            for name in files:
-                if '.pickle' in name and '_mc_' not in name and 'tmpzip' not in path:
-                    log.info(f'adding pickle {name}')
-                    pickles.append(os.path.join(path, name))
-                if name.lower().endswith(".ecsv") and 'ecsvs' not in path:
-                    log.info(f'copying {name}')
-                    shutil.copyfile(os.path.join(path, name), os.path.join(self.dir_path, 'ecsvs', name))
+        return uploadOrbitGeneric(self.dir_path, self.api_key)
 
-        if len(pickles) == 0:
-            return
-        pickles = list(set(pickles))
-        if len(pickles) == 1:
-            pickfile = pickles[0]
-        else:
-            pickfile = tkFileDialog.askopenfilename(title='Select Orbit Pickle', defaultextension='*.pickle',
-                                       initialdir=self.dir_path, initialfile='*.pickle',
-                                       filetypes=[('pickles','*.pickle')])
-        if not pickfile:
-            return 
-        orbname = os.path.split(pickfile)[1]
-        tmpdir = os.path.join(self.dir_path, 'tmpzip')
-        os.makedirs(tmpdir, exist_ok=True)
-        shutil.copyfile(pickfile, os.path.join(tmpdir, orbname))
-        if os.path.isdir(os.path.join(self.dir_path, 'jpgs')):
-            shutil.copytree(os.path.join(self.dir_path, 'jpgs'), os.path.join(tmpdir, 'jpgs'), dirs_exist_ok=True)
-        if os.path.isdir(os.path.join(self.dir_path, 'mp4s')):
-            shutil.copytree(os.path.join(self.dir_path, 'mp4s'), os.path.join(tmpdir, 'mp4s'), dirs_exist_ok=True)
-        if os.path.isdir(os.path.join(self.dir_path, 'ecsvs')):
-            shutil.copytree(os.path.join(self.dir_path, 'ecsvs'), os.path.join(tmpdir, 'ecsvs'), dirs_exist_ok=True)
-        for path, _, files in os.walk(self.dir_path):
-            for name in files:
-                if '_dyn_mass_fit' in name:
-                    im = Image.open(os.path.join(path, name)).convert("RGB")
-                    im.save(os.path.join(tmpdir,'jpgs', name[:-4] + '.jpg'))
-        zfname = os.path.join(self.dir_path, orbname[:15])
-        shutil.make_archive(zfname,'zip',tmpdir)
-        try:
-            shutil.rmtree(tmpdir)
-        except Exception:
-            pass
-
-        if self.api_key: 
-            headers = {'Content-type': 'application/zip', 'Slug': orbname[:15], 'apikey': self.api_key}
-            url = f'https://api.ukmeteors.co.uk/fireballfiles?orbitfile={orbname[:15]}.zip'
-            r = requests.put(url, data=open(zfname+'.zip', 'rb'), headers=headers) #, auth=('username', 'pass'))
-            #print(r.text)
-            if r.status_code != 200:
-                tkMessageBox.showinfo('Warning', f'Problem with upload, {r.status_code}')
-            else:
-                tkMessageBox.showinfo('Info', 'Orbit Uploaded')
-            return 
-        else:
-            tkMessageBox.showinfo('Info', 'Zip File created')
-    
     def uploadRaw(self):
         zfname = os.path.join(os.getenv('TMP'), os.path.basename(self.dir_path))
         log.info(f'zfname is {zfname}')
@@ -723,6 +670,8 @@ class fbCollector(Frame):
         if self.dir_path is None:
             dirname = tkFileDialog.askdirectory(parent=root,initialdir=self.fb_dir,
                 title='Please select a directory')    
+            if not dirname:
+                return
             _, thispatt = os.path.split(dirname)
             self.dir_path = dirname
             self.patt = thispatt
@@ -903,7 +852,7 @@ class fbCollector(Frame):
                     pass
         return
 
-    def get_data(self):
+    def getData(self):
         thispatt = self.newpatt.get().strip()
         self.patt = thispatt.ljust(15,'0')
         self.dir_path = os.path.join(self.fb_dir, self.newpatt.get().strip())
@@ -915,10 +864,12 @@ class fbCollector(Frame):
         self.renameImages(self.dir_path)
         self.update_listbox(self.get_bin_list())
 
-    def get_trajpickle(self):
+    def getTrajpickle(self):
         basepatt = os.path.split(self.dir_path)[1]
         ymd = basepatt[:8]
         fullpatt = askstring('Trajectory Name', 'eg 20240101_010203.345_UK', initialvalue=basepatt)
+        if not fullpatt:
+            return 
         trajpick = f'{basepatt}_trajectory.pickle'
         url = f'https://archive.ukmeteors.co.uk/reports/{ymd[:4]}/orbits/{ymd[:6]}/{ymd}/{fullpatt}/{trajpick}'
         log.info(f'{url}')
@@ -932,8 +883,60 @@ class fbCollector(Frame):
         else:
             log.info(f'unable to retrieve {trajpick}, {get_response.status_code}')
         return
+    
+    def delOrbit(self):
+        orbit = None
+        orbit = askstring('Trajectory Name', 'eg 20240101_010203.345_UK', initialvalue='')
+        if not orbit:
+            return 
+        tmpfname = os.path.join(self.fb_dir, f'{orbit[:15]}.delete')
+        open(tmpfname, 'w').write(orbit)
+        if self.api_key: 
+            headers = {'Content-type': 'text/plain', 'Slug': orbit[:15], 'apikey': self.api_key}
+            url = f'https://api.ukmeteors.co.uk/fireballfiles?orbitfile={orbit[:15]}.delete'
+            r = requests.put(url, data=open(tmpfname, 'r'), headers=headers)
+            if r.status_code != 200:
+                tkMessageBox.showinfo('Warning', f'Problem with request, {r.status_code}')
+            else:
+                tkMessageBox.showinfo("Info", f'deleted {orbit}')
+            return 
+        else:
+            tkMessageBox.showinfo('Info', "Can't delete without api key")
+        os.remove(tmpfname)
+        return 
 
-    def get_vids(self):
+    def addImageVideo(self):
+        orbit = None
+        dirname = tkFileDialog.askdirectory(parent=root,initialdir=self.fb_dir,
+            title='Please select a directory')
+        if not dirname:
+            return 
+        _, orbit = os.path.split(dirname)
+        ymd = orbit[:8]
+        pickname = f'{orbit[:15]}_trajectory.pickle'
+        os.makedirs(os.path.join(dirname, 'jpgs'), exist_ok=True)
+        os.makedirs(os.path.join(dirname, 'mp4s'), exist_ok=True)
+        for ext in ['jpg','mp4']:
+            files = glob.glob(f'{dirname}/*.{ext}')
+            for fil in files:
+                _, barename = os.path.split(fil)
+                shutil.move(fil, os.path.join(dirname,f'{ext}s',barename))
+        url = f'https://archive.ukmeteors.co.uk/reports/{ymd[:4]}/orbits/{ymd[:6]}/{ymd[:8]}/{orbit}/{pickname}'
+        count = 0
+        log.info(url)
+        get_response = requests.get(url, stream=True)
+        if get_response.status_code == 200:
+            log.info(f'retrieved {pickname}')
+            count += 1
+            with open(os.path.join(dirname, pickname), 'wb') as f:
+                for chunk in get_response.iter_content(chunk_size=4096):
+                    if chunk: # filter out keep-alive new chunks
+                        f.write(chunk)
+        uploadOrbitGeneric(dirname, self.api_key)
+        tkMessageBox.showinfo("Info", f'Added data to {orbit}')
+        return 
+
+    def getVids(self):
         jpglist = glob.glob1(os.path.join(self.dir_path,'jpgs'), 'FF*.jpg')
         os.makedirs(os.path.join(self.dir_path, 'mp4s'), exist_ok=True)
         count = 0
@@ -1014,7 +1017,13 @@ class fbCollector(Frame):
         if len(evtdate) < 15:
             tkMessageBox.showinfo("Warning", f'Need seconds in the event date field {evtdate}')
             return
-        cmd = os.path.join(self.script_loc, 'download_events.sh') + f' {evtdate} 1'
+        fbdir = self.fb_dir
+        if ':' in fbdir:
+            drv = fbdir[0].lower()
+            fbdir = '/mnt/' + drv + fbdir[2:]
+        fbdir = fbdir.replace('\\','/')
+
+        cmd = os.path.join(self.script_loc, 'download_events.sh') + f' {evtdate} {fbdir} 1'
         if ':' in cmd:
             drv = cmd[0].lower()
             cmd = '/mnt/' + drv + cmd[2:]
@@ -1094,6 +1103,64 @@ class fbCollector(Frame):
         self.update_listbox(self.get_bin_list())
         return
 
+
+def uploadOrbitGeneric(orbdir, api_key):
+    pickles=[]
+    for path, _, files in os.walk(orbdir):
+        for name in files:
+            if '.pickle' in name and '_mc_' not in name and 'tmpzip' not in path:
+                log.info(f'adding pickle {name}')
+                pickles.append(os.path.join(path, name))
+            if name.lower().endswith(".ecsv") and 'ecsvs' not in path:
+                log.info(f'copying {name}')
+                shutil.copyfile(os.path.join(path, name), os.path.join(orbdir, 'ecsvs', name))
+
+    if len(pickles) == 0:
+        return
+    pickles = list(set(pickles))
+    if len(pickles) == 1:
+        pickfile = pickles[0]
+    else:
+        pickfile = tkFileDialog.askopenfilename(title='Select Orbit Pickle', defaultextension='*.pickle',
+                                    initialdir=orbdir, initialfile='*.pickle',
+                                    filetypes=[('pickles','*.pickle')])
+    if not pickfile:
+        return 
+    orbname = os.path.split(pickfile)[1]
+    tmpdir = os.path.join(orbdir, 'tmpzip')
+    os.makedirs(tmpdir, exist_ok=True)
+    shutil.copyfile(pickfile, os.path.join(tmpdir, orbname))
+    if os.path.isdir(os.path.join(orbdir, 'jpgs')):
+        shutil.copytree(os.path.join(orbdir, 'jpgs'), os.path.join(tmpdir, 'jpgs'), dirs_exist_ok=True)
+    if os.path.isdir(os.path.join(orbdir, 'mp4s')):
+        shutil.copytree(os.path.join(orbdir, 'mp4s'), os.path.join(tmpdir, 'mp4s'), dirs_exist_ok=True)
+    if os.path.isdir(os.path.join(orbdir, 'ecsvs')):
+        shutil.copytree(os.path.join(orbdir, 'ecsvs'), os.path.join(tmpdir, 'ecsvs'), dirs_exist_ok=True)
+    for path, _, files in os.walk(orbdir):
+        for name in files:
+            if '_dyn_mass_fit' in name:
+                im = Image.open(os.path.join(path, name)).convert("RGB")
+                im.save(os.path.join(tmpdir,'jpgs', name[:-4] + '.jpg'))
+    zfname = os.path.join(orbdir, orbname[:15])
+    shutil.make_archive(zfname,'zip',tmpdir)
+    try:
+        shutil.rmtree(tmpdir)
+    except Exception:
+        pass
+
+    if api_key: 
+        headers = {'Content-type': 'application/zip', 'Slug': orbname[:15], 'apikey': api_key}
+        url = f'https://api.ukmeteors.co.uk/fireballfiles?orbitfile={orbname[:15]}.zip'
+        r = requests.put(url, data=open(zfname+'.zip', 'rb'), headers=headers) #, auth=('username', 'pass'))
+        #print(r.text)
+        if r.status_code != 200:
+            tkMessageBox.showinfo('Warning', f'Problem with upload, {r.status_code}')
+        else:
+            tkMessageBox.showinfo('Info', 'Orbit Uploaded')
+        return 
+    else:
+        tkMessageBox.showinfo('Info', 'Zip File created')
+    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

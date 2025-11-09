@@ -135,7 +135,7 @@ def createExecConsolSh(matchstart, matchend, execconsolsh):
         outf.write('#!/bin/bash\n')
         outf.write('source /home/ec2-user/venvs/wmpl/bin/activate\n')
         outf.write('export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib:/home/ec2-user/src/ukmon_pylib\n')
-        outf.write('export AWS_PROFILE=ukmonshared\n')
+        # outf.write('export AWS_PROFILE=ukmonshared\n')
         outf.write(f'cd {calcdir}\n')
         outf.write('logger -s -t execConsol start\n')
 
@@ -150,7 +150,7 @@ def createExecConsolSh(matchstart, matchend, execconsolsh):
         pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webbucket)
         outf.write('logger -s -t execConsol getting the image list\n')
         gatherUsedImageList(outf, matchstart, matchend, shbucket)
-        outf.write('unset AWS_PROFILE\n')
+        #outf.write('unset AWS_PROFILE\n')
         outf.write('logger -s -t execConsol done\n')
     return
 
@@ -164,13 +164,13 @@ def createExecReplotSh(matchstart, matchend, execconsolsh):
         outf.write('#!/bin/bash\n')
         outf.write('source /home/ec2-user/venvs/wmpl/bin/activate\n')
         outf.write('export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib:/home/ec2-user/src/ukmon_pylib\n')
-        outf.write('export AWS_PROFILE=ukmonshared\n')
+        #outf.write('export AWS_PROFILE=ukmonshared\n')
         outf.write(f'cd {calcdir}\n')
         outf.write('logger -s -t execReplot start\n')
         refreshTrajectories(outf, matchstart, matchend, outpath)
         createDensityPlots(outf, calcdir, enddt, False)
         gatherUsedImageList(outf, matchstart, matchend, shbucket)
-        outf.write('unset AWS_PROFILE\n')
+        #outf.write('unset AWS_PROFILE\n')
         outf.write('logger -s -t execReplot done\n')
     return
 
@@ -194,7 +194,7 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         outf.write('#!/bin/bash\n')
         outf.write('source /home/ec2-user/venvs/wmpl/bin/activate\n')
         outf.write('export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib:/home/ec2-user/src/ukmon_pylib\n')
-        outf.write('export AWS_PROFILE=ukmonshared\n')
+        #outf.write('export AWS_PROFILE=ukmonshared\n')
         outf.write(f'cd {calcdir}\n')
         outf.write('df -h . \n')
 
@@ -236,7 +236,7 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
         pushUpdatedTrajectoriesShared(outf, matchstart, matchend, shbucket)
         pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webbucket)
 
-        outf.write('unset AWS_PROFILE\n')
+        #outf.write('unset AWS_PROFILE\n')
         outf.write('logger -s -t execdistrib done\n')
 
 

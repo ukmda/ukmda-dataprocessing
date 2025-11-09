@@ -3,6 +3,7 @@
 
 import datetime
 import os
+import boto3
 
 from reports.cameraStatusReport import getLastUpdateDate, createStatusReportJSfile
 
@@ -13,7 +14,11 @@ targdate = datetime.datetime(2023,5,12)
 
 
 def test_createStatusReportJSfile():
-    stati = getLastUpdateDate(datadir)
+    # for testing we should precreate the DDB connection using the default role
+    conn = boto3.Session()
+    ddb = conn.resource('dynamodb', region_name='eu-west-2') 
+
+    stati = getLastUpdateDate(datadir=datadir, ddb=ddb)
     assert 'UK0006' in list(stati.stationid)
     createStatusReportJSfile(stati, datadir)
     csvf = os.path.join(datadir, 'reports', 'camrep.js')

@@ -7,7 +7,7 @@ import boto3
 
 
 # delete an orbit from the database
-def deleteDuplicate(trajname):
+def deleteDuplicate(trajname, jd=None):
     datadir = os.getenv('DATADIR', default='/home/pi/prod/data')
     yr=trajname[:4]
     if int(yr) > 2021:
@@ -21,18 +21,26 @@ def deleteDuplicate(trajname):
     else:
         print("can only be done for 2022 onwards")
         return 0
-    idx = df[df.orbname==trajname].index
-    if len(idx) > 0:
+    seldf = df[df.orbname==trajname]
+    idx = seldf.index
+    if jd:
+        idx = seldf[seldf._mjd == jd].index
+    if len(idx) == 1:
         df = df.drop(index=idx)
         df.to_parquet(fname, compression='snappy')
         csvfname = os.path.join(datadir, 'matched','matches-full-{}.csv'.format(yr))
         df.to_csv(csvfname, index=False)
-
-        deleteWebPage(trajname)
+        if jd is None:
+            deleteWebPage(trajname)
+        return 0
+    elif len(idx) > 1:
+        print(f'two or more matches to {trajname}, please select MJD')
+        for _,rw in seldf.iterrows():
+            print(f'{rw._mjd}, {rw.orbname}, {rw._amag}, {rw._stream}')
         return 1
     else:
         print(f'no match for {trajname}')
-        return 0
+        return 1
 
 
 def deleteWebPage(trajname):

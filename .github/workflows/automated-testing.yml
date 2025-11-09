@@ -10,7 +10,7 @@ on:
     branches: [dev, markmac99]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [master]
+    branches: [dev, markmac99]
 jobs:
   conttests:
     runs-on: thelinux
@@ -32,7 +32,6 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: remote tests
         run: |
-          chmod +x /tests.sh
           if [ ! -f /data/admin/cameraLocs.json ] ; then 
             echo "getting test data"
             curl https://archive.ukmeteors.co.uk/browse/testdata/testdata.tar.gz  -o /data/testdata.tar.gz
@@ -40,9 +39,20 @@ jobs:
           else
             echo "test data available"
           fi 
-          mkdir -p ~/.aws
-          cp /data/profile/credentials ~/.aws/
-          /tests.sh
+          aws sts get-caller-identity 
+          pip install --upgrade MeteorTools | grep -v 'already satisfied'
+          pip install pytest pytest-cov | grep -v 'already satisfied'
+          [ -d ./ukmda-dataprocessing ] && rm -Rf ./ukmda-dataprocessing
+          git clone https://github.com/ukmda/ukmda-dataprocessing.git
+          cd ./ukmda-dataprocessing/
+          git checkout $BRANCH
+          cd ./archive/ukmon_pylib/
+          curdir=$(pwd -P)
+          export DATADIR=/data
+          echo DATADIR is $DATADIR curdir is $curdir
+          export PYTHONPATH=/WesternMeteorPyLib:/RMS:${curdir}
+          pytest -v ./tests --cov=. --cov-report=term-missing
+
   apitests:
     runs-on: ubuntu-latest
     steps:

@@ -3,6 +3,7 @@
 import datetime
 import os
 import shutil
+import boto3
 
 from reports.CameraDetails import getCamLocDirFov, updateCamLocDirFovDB
 from reports.CameraDetails import loadLocationDetails, findEmail, findSite
@@ -25,7 +26,11 @@ def test_updateCamLocDirFovDB():
 
 
 def test_loadLocationDetails():
-    caminfo = loadLocationDetails()
+    # for testing we should precreate the DDB connection using the default role
+    conn = boto3.Session()
+    ddb = conn.resource('dynamodb', region_name='eu-west-2') 
+
+    caminfo = loadLocationDetails(ddb=ddb)
     caminfo = caminfo[caminfo.stationid=='UK0006']
     assert len(caminfo) == 1
 
