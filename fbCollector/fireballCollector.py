@@ -274,12 +274,8 @@ class fbCollector(Frame):
         try:
             self.wmpl_loc = os.path.expanduser(localcfg['solver']['wmpl_loc'].replace('$HOME','~')).replace('\\','/')
             self.wmpl_env= localcfg['solver']['wmpl_env']
-            if os.path.isdir(os.path.expanduser(self.wmpl_loc)):
-                self.solveravailable = 'active'
-            else:
-                self.solveravailable = 'disabled'
         except:
-            self.solveravailable = 'disabled'
+            self.wmpl_loc = None
         try:
             self.rms_loc = os.path.expanduser(localcfg['reduction']['rms_loc'].replace('$HOME','~')).replace('\\','/')
             self.rms_env = localcfg['reduction']['rms_env']
@@ -374,6 +370,10 @@ class fbCollector(Frame):
             gmnavailable ='active' 
         else:
             gmnavailable ='disabled' 
+        if self.wmpl_loc:
+            wmplavailable = 'active'
+        else:
+            wmplavailable = 'disabled'
 
         rawMenu = Menu(self.menuBar, tearoff=0)
         rawMenu.add_command(label="Get Live Images", command=self.getData)
@@ -404,7 +404,7 @@ class fbCollector(Frame):
         self.menuBar.add_cascade(label="Review", underline=0, menu=revMenu)
 
         solveMenu = Menu(self.menuBar, tearoff=0)
-        solveMenu.add_command(label="Solve", command=self.solveOrbit, state=self.solveravailable)
+        solveMenu.add_command(label="Solve", command=self.solveOrbit, state=wmplavailable)
         solveMenu.add_separator()
         solveMenu.add_command(label="View Solution", command=self.viewSolution)
         solveMenu.add_command(label="Delete Solution", command=self.removeSolution)
