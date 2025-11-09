@@ -251,14 +251,16 @@ class fbCollector(Frame):
         self.fb_dir = os.path.expanduser(localcfg['Fireballs']['basedir'].replace('$HOME','~')).replace('\\','/')
         os.makedirs(self.fb_dir, exist_ok=True)
 
-        try: 
+        self.gmn_key = None
+        self.gmn_user = None
+        self.gmn_server = None
+        if localcfg.has_option('gmnkey','gmnkey'):
             self.gmn_key = localcfg['gmn']['gmnkey']
             self.gmn_user = localcfg['gmn']['gmnuser']
             self.gmn_server = localcfg['gmn']['gmnserver']
-        except:
-            self.gmn_key = None
 
-        try:
+        self.api_key = None
+        if localcfg.has_option('ukmon','apikey'):
             self.api_key = localcfg['ukmon']['apikey']
             if os.path.isfile(os.path.expanduser(self.api_key)):
                 key = open(os.path.expanduser(self.api_key), 'r').readlines()[0].strip()
@@ -267,30 +269,22 @@ class fbCollector(Frame):
                 if len(key) < 40:
                     key = None
             self.api_key = key
-        except:
-            self.api_key = None
-        # log.info(f'apikey "{self.api_key}"')
 
-        try:
+        self.wmpl_loc = None
+        if localcfg.has_option('solver','wmpl_loc'):
             self.wmpl_loc = os.path.expanduser(localcfg['solver']['wmpl_loc'].replace('$HOME','~')).replace('\\','/')
             self.wmpl_env= localcfg['solver']['wmpl_env']
-            if os.path.isdir(os.path.expanduser(self.wmpl_loc)):
-                self.solveravailable = 'active'
-            else:
-                self.solveravailable = 'disabled'
-        except:
-            self.solveravailable = 'disabled'
-        try:
+        log.info(f'wmpl_loc {self.wmpl_loc}')
+
+        self.rms_loc = None
+        if localcfg.has_option('reduction','rms_loc'):
             self.rms_loc = os.path.expanduser(localcfg['reduction']['rms_loc'].replace('$HOME','~')).replace('\\','/')
             self.rms_env = localcfg['reduction']['rms_env']
-        except:
-            self.rms_loc = None
-    
-        try:
+
+
+        self.share_loc = None
+        if localcfg.has_option('share','shrfldr'):
             self.share_loc = os.path.expanduser(localcfg['sharing']['shrfldr'].replace('$HOME','~')).replace('\\','/')
-        except:
-            self.share_loc = None
-        return
 
     def quitApplication(self):
         print('quitting')
@@ -374,6 +368,15 @@ class fbCollector(Frame):
             gmnavailable ='active' 
         else:
             gmnavailable ='disabled' 
+        if self.wmpl_loc:
+            wmplavailable = 'active'
+        else:
+            wmplavailable = 'disabled'
+
+        log.info(f'rms available   {rmsavailable}')
+        log.info(f'share available {shareavailable}')
+        log.info(f'gmn available   {gmnavailable}')
+        log.info(f'wmpl available  {wmplavailable}')
 
         rawMenu = Menu(self.menuBar, tearoff=0)
         rawMenu.add_command(label="Get Live Images", command=self.getData)
@@ -404,7 +407,7 @@ class fbCollector(Frame):
         self.menuBar.add_cascade(label="Review", underline=0, menu=revMenu)
 
         solveMenu = Menu(self.menuBar, tearoff=0)
-        solveMenu.add_command(label="Solve", command=self.solveOrbit, state=self.solveravailable)
+        solveMenu.add_command(label="Solve", command=self.solveOrbit, state=wmplavailable)
         solveMenu.add_separator()
         solveMenu.add_command(label="View Solution", command=self.viewSolution)
         solveMenu.add_command(label="Delete Solution", command=self.removeSolution)
