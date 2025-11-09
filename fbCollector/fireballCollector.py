@@ -21,12 +21,6 @@ import pandas as pd
 import paramiko
 from scp import SCPClient
 
-try:
-    from wmpl.Formats.ECSV import loadECSVs
-    from wmpl.Formats.GenericFunctions import solveTrajectoryGeneric
-    solveravailable = 'active'
-except Exception:
-    solveravailable = 'disabled'
 
 import tkinter as tk
 import tkinter.filedialog as tkFileDialog
@@ -280,9 +274,12 @@ class fbCollector(Frame):
         try:
             self.wmpl_loc = os.path.expanduser(localcfg['solver']['wmpl_loc'].replace('$HOME','~')).replace('\\','/')
             self.wmpl_env= localcfg['solver']['wmpl_env']
+            if os.path.isdir(os.path.expanduser(self.wmpl_loc)):
+                self.solveravailable = 'active'
+            else:
+                self.solveravailable = 'disabled'
         except:
-            log.error('WMPL location and environment name must be configured')
-            quitApp()
+            self.solveravailable = 'disabled'
         try:
             self.rms_loc = os.path.expanduser(localcfg['reduction']['rms_loc'].replace('$HOME','~')).replace('\\','/')
             self.rms_env = localcfg['reduction']['rms_env']
@@ -407,7 +404,7 @@ class fbCollector(Frame):
         self.menuBar.add_cascade(label="Review", underline=0, menu=revMenu)
 
         solveMenu = Menu(self.menuBar, tearoff=0)
-        solveMenu.add_command(label="Solve", command=self.solveOrbit, state=solveravailable)
+        solveMenu.add_command(label="Solve", command=self.solveOrbit, state=self.solveravailable)
         solveMenu.add_separator()
         solveMenu.add_command(label="View Solution", command=self.viewSolution)
         solveMenu.add_command(label="Delete Solution", command=self.removeSolution)
@@ -538,46 +535,47 @@ class fbCollector(Frame):
     def solveOrbit(self):
         log.info('Using ECSV files:')
         ecsv_names = []
-        ecsv_paths = []
-        os.makedirs(os.path.join(self.dir_path,'ecsvs'), exist_ok=True)
+        ecsv_loc = os.path.join(self.dir_path,'ecsvs')
+        os.makedirs(ecsv_loc, exist_ok=True)
         for entry in sorted(os.walk(self.dir_path), key=lambda x: x[0]):
             dir_name, _, file_names = entry
             if 'ecsvs' in dir_name:
                 continue
             for fn in file_names:
                 if fn.lower().endswith(".ecsv"):
-                    shutil.copyfile(os.path.join(dir_name, fn), os.path.join(self.dir_path, 'ecsvs', fn))
+                    shutil.copyfile(os.path.join(dir_name, fn), os.path.join(ecsv_loc, fn))
                 if fn.lower().endswith(".ecsv") and 'REJECT' not in dir_name.upper() and 'REJECT' not in fn.upper():
                     # Add ECSV file, but skip duplicates
                     if fn not in ecsv_names:
-                        ecsv_paths.append(os.path.join(dir_name, fn))
                         ecsv_names.append(fn)
                         log.info(fn)
-        if len(ecsv_paths) < 2:
+        if len(ecsv_names) < 2:
             tkMessageBox.showinfo('Warning', 'Need at least two ECSV files')
             return 
-        jdt_ref, meteor_list = loadECSVs(ecsv_paths)
-        mcruns = 20
-        max_toffset = 15.0
-        velpart = None
-        vinitht = None
-        plotallspatial = True
-        uncertgeom = False
-        jacchia = False
-        traj = solveTrajectoryGeneric(jdt_ref, meteor_list, self.dir_path, 
-            max_toffset=max_toffset, monte_carlo=True, mc_runs=mcruns, 
-            geometric_uncert=uncertgeom, plot_all_spatial_residuals=plotallspatial, 
-            show_plots=False, v_init_part=velpart, v_init_ht=vinitht, 
-            show_jacchia=jacchia, enable_OSM_plot=True, mc_cores=8)
+
+        tmpscr = os.path.join(os.getenv('TEMP'), 'solve.ps1')
+        with open(tmpscr, 'w') as outf:
+            mcruns = 20
+            outf.write(f'cd {self.wmpl_loc}\nconda activate {self.wmpl_env}\npython -m wmpl.Formats.ECSV {ecsv_loc} -l -x -r {mcruns} -w -t 15\n')
+        _ = subprocess.run(['powershell.exe', tmpscr])
+        fldrs = os.listdir(ecsv_loc)
+        print(fldrs)
+        fldrs = [f for f in fldrs if os.path.isdir(os.path.join(ecsv_loc, f))]
+        if len(fldrs) > 0:
+            log.info(f'solved into {fldrs[0]}')
+            self.soln_outputdir = os.path.join(self.dir_path, fldrs[0])
+            if os.path.isdir(self.soln_outputdir):
+                shutil.rmtree(self.soln_outputdir)
+            log.info(f'moving {os.path.join(ecsv_loc, fldrs[0])} to {self.dir_path}')
+            shutil.move(os.path.join(ecsv_loc, fldrs[0]), self.dir_path)
         tkMessageBox.showinfo('Info', 'Solver Finished')
-        if traj is not None:
-            self.soln_outputdir = traj.output_dir
         return 
     
     def viewSolution(self):
         self.review_stack = False
         if not self.soln_outputdir:
             solndir = glob.glob1(self.dir_path, os.path.split(self.dir_path)[1][:8]+'*')
+            solndir = [f for f in solndir if os.path.isdir(os.path.join(self.dir_path, f))]
             if len(solndir) == 0:
                 tkMessageBox.showinfo('Warning', 'No solution to review')
                 return
