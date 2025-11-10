@@ -42,13 +42,9 @@ jobs:
       - build_usermgmt
     steps:
       - name: packaging
-        run: |
-          echo "packaging the app now"
-          cd usermgmt\windows\dist
-          copy ../camera.ico .
-          copy ../stationmaint.ini.sample .
-          copy ../../README.md .
-          compress-archive -path . -update -destinationpath c:\temp\ukmon_usermgmt.zip
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        with:
+          path: usermgmt\cam_management_setup.iss
   release_usermgmt:
     name: release usermanagement
     runs-on: win10
@@ -60,23 +56,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.MM_PAT }}
         with:
-          file: c:\temp\ukmon_usermgmt.zip
+          file: e:\temp\setup_cameraMgmt.exe
           tags: true
           draft: true
           overwrite: true
-          tag_name: 2025.10.1
+          tag_name: 2025.11.1
           default_release_name: User Management Tool
           default_release_body_path: usermgmt\windows\release_notes.md
   cleanup_usermgmt:
-    name: clean up temp usermanagement files
+    name: clean up temp cameramgmt files
     runs-on: win10
     continue-on-error: true
     needs:
       - release_usermgmt
     steps:
-      - name: delete temp usermgmt package
+      - name: delete temp cameramgmt package
         run: |
-          del c:\temp\ukmon_usermgmt.zip
+          del e:\temp\setup_cameraMgmt.exe
   build_fbtool:
     name: build fbcollector
     runs-on: win10
