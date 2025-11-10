@@ -44,7 +44,7 @@ jobs:
       - name: packaging
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
-          path: usermgmt\cam_management_setup.iss
+          path: usermgmt\windows\cam_management_setup.iss
   release_usermgmt:
     name: release usermanagement
     runs-on: win10
