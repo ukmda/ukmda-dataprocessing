@@ -15,7 +15,7 @@ OutputBaseFilename=setup_cameraMgmt
 PrivilegesRequired=lowest
 
 [Files]
-Source: ".\dist\cameraMgmt.exe"; DestDir: "{app}"
+Source: ".\dist\stationMaint2.exe"; DestDir: "{app}"
 Source: ".\camera.ico"; DestDir: "{app}"
 Source: ".\download_events.sh"; DestDir: "{app}"
 Source: ".\stationmaint.ini.sample"; DestDir: "{app}"; Permissions: users-modify
