@@ -95,10 +95,9 @@ jobs:
       - build_fbtool
     steps:
       - name: packaging
-        run: |
-          echo "packaging the app now"
-          cd fbCollector
-          & 'C:\Program Files (x86)\Inno Setup 6\Compil32.exe' .\fireballcollector_setup.iss /cc
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        with:
+          path: .\fbCollector\fireballcollector_setup.iss
   release_fbtool:
     name: release fbcollector
     runs-on: win10
@@ -110,7 +109,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.MM_PAT }}
         with:
-          file: c:\temp\setup_fireballCollector.exe
+          file: e:\temp\setup_fireballCollector.exe
           tags: true
           draft: true
           overwrite: true
@@ -126,4 +125,4 @@ jobs:
     steps:
       - name: delete package
         run: |
-          del c:\temp\fbcollector.zip
+          del e:\temp\setup_fireballCollector.exe

@@ -10,16 +10,17 @@ DefaultGroupName=UKMON_fbAnalyser
 UninstallDisplayIcon={app}\fireballCollector.exe
 Compression=lzma2
 SolidCompression=yes
-OutputDir=c:\temp
+OutputDir=e:\temp
 OutputBaseFilename=setup_fireballCollector
 PrivilegesRequired=lowest
 
 [Files]
 Source: ".\dist\fireballCollector.exe"; DestDir: "{app}"
-Source: ".\dist\noimage.jpg"; DestDir: "{app}"
-Source: ".\dist\ukmda.ico"; DestDir: "{app}"
-Source: ".\dist\download_events.sh"; DestDir: "{app}"
-Source: ".\dist\config.ini.sample"; DestDir: "{app}"; Permissions: users-modify
+Source: ".\noimage.jpg"; DestDir: "{app}"
+Source: ".\ukmda.ico"; DestDir: "{app}"
+Source: ".\download_events.sh"; DestDir: "{app}"
+Source: ".\config.ini.sample"; DestDir: "{app}"; Permissions: users-modify
+Source: ".\README.md"; DestDir: "{app}"; Permissions: users-modify
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; 
