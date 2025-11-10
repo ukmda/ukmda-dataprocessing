@@ -110,7 +110,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.MM_PAT }}
         with:
-          file: fbCollector\setup_fireballCollector.exe
+          file: c:\temp\setup_fireballCollector.exe
           tags: true
           draft: true
           overwrite: true

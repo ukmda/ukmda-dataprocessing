@@ -10,7 +10,7 @@ DefaultGroupName=UKMON_fbAnalyser
 UninstallDisplayIcon={app}\fireballCollector.exe
 Compression=lzma2
 SolidCompression=yes
-OutputDir={src}
+OutputDir=c:\temp
 OutputBaseFilename=setup_fireballCollector
 PrivilegesRequired=lowest
 
