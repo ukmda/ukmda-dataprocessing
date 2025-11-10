@@ -97,13 +97,8 @@ jobs:
       - name: packaging
         run: |
           echo "packaging the app now"
-          cd fbCollector\dist
-          copy ../ukmda.ico . 
-          copy ../config.ini.sample .
-          copy ../download_events.sh . 
-          copy ../noimage.jpg . 
-          copy ../README.md . 
-          compress-archive -path . -update -destinationpath c:\temp\fbcollector.zip
+          cd fbCollector
+          & 'C:\Program Files (x86)\Inno Setup 6\Compil32.exe' .\fireballcollector_setup.iss /cc
   release_fbtool:
     name: release fbcollector
     runs-on: win10
@@ -115,11 +110,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.MM_PAT }}
         with:
-          file: c:\temp\fbcollector.zip
+          file: fbCollector\setup_fireballCollector.exe
           tags: true
           draft: true
           overwrite: true
-          tag_name: 2025.10.1
+          tag_name: 2025.11.1
           default_release_name: Tools to Gather Fireball data and Manage UKMON Cameras
           default_release_body_path: fbCollector\README.md
   cleanup_fbtool:
