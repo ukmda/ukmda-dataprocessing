@@ -70,6 +70,7 @@ jobs:
   cleanup_usermgmt:
     name: clean up temp usermanagement files
     runs-on: win10
+    continue-on-error: true
     needs:
       - release_usermgmt
     steps:
@@ -124,9 +125,10 @@ jobs:
   cleanup_fbtool:
     name: clean up temp fbcollector files
     runs-on: win10
+    continue-on-error: true
     needs:
       - release_fbtool
     steps:
       - name: delete package
         run: |
-          del  c:\temp\fbcollector.zip
+          del c:\temp\fbcollector.zip
