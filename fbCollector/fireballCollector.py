@@ -17,6 +17,7 @@ import xmltodict
 from PIL import Image 
 import requests
 import pandas as pd
+import webbrowser
 
 import paramiko
 from scp import SCPClient
@@ -254,7 +255,7 @@ class fbCollector(Frame):
         self.gmn_key = None
         self.gmn_user = None
         self.gmn_server = None
-        if localcfg.has_option('gmnkey','gmnkey'):
+        if localcfg.has_option('gmn','gmnkey'):
             self.gmn_key = localcfg['gmn']['gmnkey']
             self.gmn_user = localcfg['gmn']['gmnuser']
             self.gmn_server = localcfg['gmn']['gmnserver']
@@ -283,7 +284,7 @@ class fbCollector(Frame):
 
 
         self.share_loc = None
-        if localcfg.has_option('share','shrfldr'):
+        if localcfg.has_option('sharing','shrfldr'):
             self.share_loc = os.path.expanduser(localcfg['sharing']['shrfldr'].replace('$HOME','~')).replace('\\','/')
 
     def quitApplication(self):
@@ -418,10 +419,13 @@ class fbCollector(Frame):
         otherMenu = Menu(self.menuBar, tearoff=0)
         otherMenu.add_command(label="Get Traj Pickle", command=self.getTrajpickle)
         otherMenu.add_command(label="Add Image/Vid", command=self.addImageVideo)
-        solveMenu.add_separator()
+        otherMenu.add_separator()
         otherMenu.add_command(label="Delete Orbit", command=self.delOrbit)
         self.menuBar.add_cascade(label="Other", underline=0, menu=otherMenu)
 
+        helpMenu = Menu(self.menuBar, tearoff=0)
+        helpMenu.add_command(label="Documentation", command=self.showDocs)
+        self.menuBar.add_cascade(label="Help", underline=0, menu=helpMenu)
         # buttons
         self.save_panel = LabelFrame(self, text=' Image Selection ')
         self.save_panel.grid(row = 1, columnspan = 2, sticky='WE')
@@ -437,7 +441,6 @@ class fbCollector(Frame):
         save_bmp = StyledButton(self.save_panel, text="Remove", width = 8, command = lambda: self.remove_image())
         save_bmp.grid(row = 1, column = 4)
         
-
         # Listbox
         self.scrollbar = Scrollbar(self)
         self.listbox = Listbox(self, width = 47, yscrollcommand=self.scrollbar.set, exportselection=0, activestyle = "none", bg = global_bg, fg = global_fg)
@@ -447,6 +450,9 @@ class fbCollector(Frame):
 
         self.listbox.bind('<<ListboxSelect>>', self.update_image)
         self.scrollbar.config(command = self.listbox.yview)
+
+        # bind delete key
+        self.listbox.bind("<Delete>", lambda x: self.remove_image())
 
         # IMAGE
         try:
@@ -469,6 +475,10 @@ class fbCollector(Frame):
         showConfig()
         self.readConfig()
         self.initUI()
+
+    def showDocs(self):
+        webbrowser.open('README.html')
+        return 
 
     def reduceCamera(self):
         current_image = self.listbox.get(ACTIVE)
@@ -748,12 +758,13 @@ class fbCollector(Frame):
                 log.warning(f'unable to create archive {self.dir_path}')
                 log.warning(e)
             try:
-                os.chdir(self.fb_dir)
                 shutil.rmtree(self.dir_path)
             except Exception as e:
                 log.warning(f'unable to remove folder, please do it manually {self.dir_path}')
                 log.warning(e)
                 self.dir_path = self.fb_dir
+        self.dir_path = self.fb_dir
+        self.viewData()
 
     def delFolder(self):
         noimgdata = img.open(noimg_file).resize((640,360))
@@ -796,6 +807,7 @@ class fbCollector(Frame):
         """ Remove the selected image from disk
         """
         current_image = self.listbox.get(ACTIVE)
+        curr_row = self.listbox.curselection()
         if current_image == '':
             return 
         if not tkMessageBox.askyesno("Delete file", f"delete {current_image}?"):
@@ -815,6 +827,11 @@ class fbCollector(Frame):
                 pass
             self.selected[current_image] = (0,'')
         self.update_listbox(self.get_bin_list())
+        maxrows = self.listbox.index("end")
+        curr_row = (max(min(maxrows-1, curr_row[0]),0),) 
+        self.listbox.select_set(curr_row)
+        self.listbox.activate(curr_row)
+        self.update_image('x')
 
     def update_image(self, thing):
         """ When selected, load a new image
@@ -868,14 +885,23 @@ class fbCollector(Frame):
         self.update_listbox(self.get_bin_list())
 
     def getTrajpickle(self):
-        basepatt = os.path.split(self.dir_path)[1]
-        ymd = basepatt[:8]
+        if self.dir_path:
+            basepatt = os.path.split(self.dir_path)[1]
+        else:
+            basepatt = ''
         fullpatt = askstring('Trajectory Name', 'eg 20240101_010203.345_UK', initialvalue=basepatt)
         if not fullpatt:
             return 
-        trajpick = f'{basepatt}_trajectory.pickle'
+        ymd = fullpatt[:8]
+        trajpick = f'{fullpatt[:15]}_trajectory.pickle'
         url = f'https://archive.ukmeteors.co.uk/reports/{ymd[:4]}/orbits/{ymd[:6]}/{ymd}/{fullpatt}/{trajpick}'
         log.info(f'{url}')
+        if self.patt is None:
+            self.dir_path = os.path.join(self.fb_dir, fullpatt[:15])
+        else:
+            self.dir_path = os.path.join(self.fb_dir, self.patt)
+        log.info(self.dir_path)
+        os.makedirs(self.dir_path, exist_ok=True)
         get_response = requests.get(url, stream=True)
         if get_response.status_code == 200:
             log.info(f'retrieved {trajpick}')
@@ -883,6 +909,9 @@ class fbCollector(Frame):
                 for chunk in get_response.iter_content(chunk_size=4096):
                     if chunk: # filter out keep-alive new chunks
                         f.write(chunk)
+            if self.patt is None:
+                self.patt = fullpatt[:15]
+                self.newpatt.set(self.patt)
         else:
             log.info(f'unable to retrieve {trajpick}, {get_response.status_code}')
         return
@@ -1040,7 +1069,6 @@ class fbCollector(Frame):
             ret = tkMessageBox.askyesno("Wait", f'Should wait till {self.evtMonTriggered.strftime("%H:%M:%S")} - continue anyway?')
             if ret is False:
                 return
-        os.chdir(self.fb_dir)
         log.info(f'getting data for {evtdate}')
         procid = subprocess.Popen(('bash','-c', cmd))
         procid.wait()
