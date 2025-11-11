@@ -20,7 +20,7 @@ Source: ".\noimage.jpg"; DestDir: "{app}"
 Source: ".\ukmda.ico"; DestDir: "{app}"
 Source: ".\download_events.sh"; DestDir: "{app}"
 Source: ".\config.ini.sample"; DestDir: "{app}"; Permissions: users-modify
-Source: ".\README.md"; DestDir: "{app}"; Permissions: users-modify
+Source: ".\README.html"; DestDir: "{app}"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; 

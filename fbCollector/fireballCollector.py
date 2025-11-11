@@ -17,6 +17,7 @@ import xmltodict
 from PIL import Image 
 import requests
 import pandas as pd
+import webbrowser
 
 import paramiko
 from scp import SCPClient
@@ -418,10 +419,13 @@ class fbCollector(Frame):
         otherMenu = Menu(self.menuBar, tearoff=0)
         otherMenu.add_command(label="Get Traj Pickle", command=self.getTrajpickle)
         otherMenu.add_command(label="Add Image/Vid", command=self.addImageVideo)
-        solveMenu.add_separator()
+        otherMenu.add_separator()
         otherMenu.add_command(label="Delete Orbit", command=self.delOrbit)
         self.menuBar.add_cascade(label="Other", underline=0, menu=otherMenu)
 
+        helpMenu = Menu(self.menuBar, tearoff=0)
+        helpMenu.add_command(label="Documentation", command=self.showDocs)
+        self.menuBar.add_cascade(label="Help", underline=0, menu=helpMenu)
         # buttons
         self.save_panel = LabelFrame(self, text=' Image Selection ')
         self.save_panel.grid(row = 1, columnspan = 2, sticky='WE')
@@ -471,6 +475,10 @@ class fbCollector(Frame):
         showConfig()
         self.readConfig()
         self.initUI()
+
+    def showDocs(self):
+        webbrowser.open('README.html')
+        return 
 
     def reduceCamera(self):
         current_image = self.listbox.get(ACTIVE)
@@ -750,7 +758,6 @@ class fbCollector(Frame):
                 log.warning(f'unable to create archive {self.dir_path}')
                 log.warning(e)
             try:
-                os.chdir(self.fb_dir)
                 shutil.rmtree(self.dir_path)
             except Exception as e:
                 log.warning(f'unable to remove folder, please do it manually {self.dir_path}')
@@ -1062,7 +1069,6 @@ class fbCollector(Frame):
             ret = tkMessageBox.askyesno("Wait", f'Should wait till {self.evtMonTriggered.strftime("%H:%M:%S")} - continue anyway?')
             if ret is False:
                 return
-        os.chdir(self.fb_dir)
         log.info(f'getting data for {evtdate}')
         procid = subprocess.Popen(('bash','-c', cmd))
         procid.wait()
