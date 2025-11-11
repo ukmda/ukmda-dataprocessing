@@ -876,6 +876,8 @@ class fbCollector(Frame):
         trajpick = f'{basepatt}_trajectory.pickle'
         url = f'https://archive.ukmeteors.co.uk/reports/{ymd[:4]}/orbits/{ymd[:6]}/{ymd}/{fullpatt}/{trajpick}'
         log.info(f'{url}')
+        self.dir_path = os.path.join(self.fb_dir, basepatt[:15])
+        os.makedirs(self.dir_path, exist_ok=True)
         get_response = requests.get(url, stream=True)
         if get_response.status_code == 200:
             log.info(f'retrieved {trajpick}')
