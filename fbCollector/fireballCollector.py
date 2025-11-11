@@ -873,10 +873,10 @@ class fbCollector(Frame):
         if not fullpatt:
             return 
         ymd = fullpatt[:8]
-        trajpick = f'{fullpatt}_trajectory.pickle'
+        trajpick = f'{fullpatt[:15]}_trajectory.pickle'
         url = f'https://archive.ukmeteors.co.uk/reports/{ymd[:4]}/orbits/{ymd[:6]}/{ymd}/{fullpatt}/{trajpick}'
         log.info(f'{url}')
-        self.dir_path = os.path.join(self.fb_dir, basepatt[:15])
+        self.dir_path = os.path.join(self.fb_dir, fullpatt[:15])
         log.info(self.dir_path)
         os.makedirs(self.dir_path, exist_ok=True)
         get_response = requests.get(url, stream=True)
