@@ -254,7 +254,7 @@ class fbCollector(Frame):
         self.gmn_key = None
         self.gmn_user = None
         self.gmn_server = None
-        if localcfg.has_option('gmnkey','gmnkey'):
+        if localcfg.has_option('gmn','gmnkey'):
             self.gmn_key = localcfg['gmn']['gmnkey']
             self.gmn_user = localcfg['gmn']['gmnuser']
             self.gmn_server = localcfg['gmn']['gmnserver']
@@ -283,7 +283,7 @@ class fbCollector(Frame):
 
 
         self.share_loc = None
-        if localcfg.has_option('share','shrfldr'):
+        if localcfg.has_option('sharing','shrfldr'):
             self.share_loc = os.path.expanduser(localcfg['sharing']['shrfldr'].replace('$HOME','~')).replace('\\','/')
 
     def quitApplication(self):
