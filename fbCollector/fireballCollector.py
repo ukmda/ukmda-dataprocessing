@@ -756,6 +756,8 @@ class fbCollector(Frame):
                 log.warning(f'unable to remove folder, please do it manually {self.dir_path}')
                 log.warning(e)
                 self.dir_path = self.fb_dir
+        self.dir_path = self.fb_dir
+        self.viewData()
 
     def delFolder(self):
         noimgdata = img.open(noimg_file).resize((640,360))
@@ -821,6 +823,7 @@ class fbCollector(Frame):
         maxrows = self.listbox.index("end")
         curr_row = (max(min(maxrows-1, curr_row[0]),0),) 
         self.listbox.select_set(curr_row)
+        self.listbox.activate(curr_row)
         self.update_image('x')
 
     def update_image(self, thing):
@@ -875,7 +878,10 @@ class fbCollector(Frame):
         self.update_listbox(self.get_bin_list())
 
     def getTrajpickle(self):
-        basepatt = os.path.split(self.dir_path)[1]
+        if self.dir_path:
+            basepatt = os.path.split(self.dir_path)[1]
+        else:
+            basepatt = ''
         fullpatt = askstring('Trajectory Name', 'eg 20240101_010203.345_UK', initialvalue=basepatt)
         if not fullpatt:
             return 
