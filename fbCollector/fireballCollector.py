@@ -437,7 +437,6 @@ class fbCollector(Frame):
         save_bmp = StyledButton(self.save_panel, text="Remove", width = 8, command = lambda: self.remove_image())
         save_bmp.grid(row = 1, column = 4)
         
-
         # Listbox
         self.scrollbar = Scrollbar(self)
         self.listbox = Listbox(self, width = 47, yscrollcommand=self.scrollbar.set, exportselection=0, activestyle = "none", bg = global_bg, fg = global_fg)
@@ -447,6 +446,9 @@ class fbCollector(Frame):
 
         self.listbox.bind('<<ListboxSelect>>', self.update_image)
         self.scrollbar.config(command = self.listbox.yview)
+
+        # bind delete key
+        self.listbox.bind("<Delete>", lambda x: self.remove_image())
 
         # IMAGE
         try:
@@ -796,6 +798,7 @@ class fbCollector(Frame):
         """ Remove the selected image from disk
         """
         current_image = self.listbox.get(ACTIVE)
+        curr_row = self.listbox.curselection()
         if current_image == '':
             return 
         if not tkMessageBox.askyesno("Delete file", f"delete {current_image}?"):
@@ -815,6 +818,10 @@ class fbCollector(Frame):
                 pass
             self.selected[current_image] = (0,'')
         self.update_listbox(self.get_bin_list())
+        maxrows = self.listbox.index("end")
+        curr_row = (max(min(maxrows-1, curr_row[0]),0),) 
+        self.listbox.select_set(curr_row)
+        self.update_image('x')
 
     def update_image(self, thing):
         """ When selected, load a new image
@@ -876,7 +883,10 @@ class fbCollector(Frame):
         trajpick = f'{fullpatt[:15]}_trajectory.pickle'
         url = f'https://archive.ukmeteors.co.uk/reports/{ymd[:4]}/orbits/{ymd[:6]}/{ymd}/{fullpatt}/{trajpick}'
         log.info(f'{url}')
-        self.dir_path = os.path.join(self.fb_dir, fullpatt[:15])
+        if self.patt is None:
+            self.dir_path = os.path.join(self.fb_dir, fullpatt[:15])
+        else:
+            self.dir_path = os.path.join(self.fb_dir, self.patt)
         log.info(self.dir_path)
         os.makedirs(self.dir_path, exist_ok=True)
         get_response = requests.get(url, stream=True)
@@ -886,6 +896,9 @@ class fbCollector(Frame):
                 for chunk in get_response.iter_content(chunk_size=4096):
                     if chunk: # filter out keep-alive new chunks
                         f.write(chunk)
+            if self.patt is None:
+                self.patt = fullpatt[:15]
+                self.newpatt.set(self.patt)
         else:
             log.info(f'unable to retrieve {trajpick}, {get_response.status_code}')
         return
