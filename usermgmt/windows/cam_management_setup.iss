@@ -24,6 +24,6 @@ Source: "..\README.md"; DestDir: "{app}"; Permissions: users-modify
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; 
 
 [Icons]
-Name: "{group}\Camera Management"; Filename: "{app}\cameraMgmt.exe"; IconFilename: "{app}\ukmda.ico"
+Name: "{group}\Camera Management"; Filename: "{app}\cameraMgmt.exe"; IconFilename: "{app}\camera.ico"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{userdesktop}\{#MyAppName}"; Filename: "{app}\cameraMgmt.exe"; Tasks: desktopicon; WorkingDir: {app}; IconFilename: "{app}\ukmda.ico"
