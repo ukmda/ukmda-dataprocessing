@@ -869,14 +869,15 @@ class fbCollector(Frame):
 
     def getTrajpickle(self):
         basepatt = os.path.split(self.dir_path)[1]
-        ymd = basepatt[:8]
         fullpatt = askstring('Trajectory Name', 'eg 20240101_010203.345_UK', initialvalue=basepatt)
         if not fullpatt:
             return 
-        trajpick = f'{basepatt}_trajectory.pickle'
+        ymd = fullpatt[:8]
+        trajpick = f'{fullpatt}_trajectory.pickle'
         url = f'https://archive.ukmeteors.co.uk/reports/{ymd[:4]}/orbits/{ymd[:6]}/{ymd}/{fullpatt}/{trajpick}'
         log.info(f'{url}')
         self.dir_path = os.path.join(self.fb_dir, basepatt[:15])
+        log.info(self.dir_path)
         os.makedirs(self.dir_path, exist_ok=True)
         get_response = requests.get(url, stream=True)
         if get_response.status_code == 200:
