@@ -18,7 +18,7 @@ PrivilegesRequired=lowest
 Source: ".\dist\stationMaint2.exe"; DestDir: "{app}"
 Source: ".\camera.ico"; DestDir: "{app}"
 Source: ".\stationmaint.ini.sample"; DestDir: "{app}"; Permissions: users-modify
-Source: ".\README.md"; DestDir: "{app}"; Permissions: users-modify
+Source: "..\README.md"; DestDir: "{app}"; Permissions: users-modify
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; 
