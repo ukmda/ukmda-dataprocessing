@@ -17,7 +17,6 @@ PrivilegesRequired=lowest
 [Files]
 Source: ".\dist\stationMaint2.exe"; DestDir: "{app}"
 Source: ".\camera.ico"; DestDir: "{app}"
-Source: ".\download_events.sh"; DestDir: "{app}"
 Source: ".\stationmaint.ini.sample"; DestDir: "{app}"; Permissions: users-modify
 Source: ".\README.md"; DestDir: "{app}"; Permissions: users-modify
 
