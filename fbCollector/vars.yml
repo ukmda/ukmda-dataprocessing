@@ -1,2 +1,0 @@
-    srcdir: "/mnt/c/Users/{{ lookup('env','USER' )}}/OneDrive/dev/meteorhunting/ukmda-dataprocessing/fbCollector"
-    destdir: "/mnt/c/Users/{{ lookup('env','USER' )}}/meteors/fbCollector"
