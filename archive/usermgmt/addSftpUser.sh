@@ -44,7 +44,7 @@ if [ ! -f $keydir/keys/$shortid_l.key ] ; then
 fi 
 
 # add a unix user and set their homedir to /var/sftp/userid
-grep $userid /etc/passwd
+grep -w $userid /etc/passwd
 if [ $? -eq 1 ] ; then 
     dt=$(date +%Y-%m-%d)
     logger -s -t addSftpUser "Creating unix user $userid"
@@ -91,6 +91,10 @@ if [ ! -z $oldloc ] ; then
     logger -s -t addSftpUser "Moving $oldloc to $userid"
     sudo cp /var/sftp/$oldloc/ukmon.ini /var/sftp/$oldloc/ukmon.ini.bkp
     sudo cp $keydir/inifs/$userid.ini /var/sftp/$oldloc/ukmon.ini
+    # and copy the ssh authorized keys file
+    sudo cp $oldloc/.ssh/authorized_keys /var/sftp/$userid/.ssh/
+    sudo chown -R $userid:$userid /var/sftp/$userid/.ssh/authorized_keys
+    sudo chmod 644 /var/sftp/$userid/.ssh/authorized_keys
 fi 
 
 logger -s -t addSftpUser "Finished"
