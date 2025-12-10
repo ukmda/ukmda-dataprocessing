@@ -3,22 +3,16 @@
   vars_files: 
     - /mnt/c/Users/{{ lookup('env','USER' )}}/apikeys/mqvariables.enc
   vars:
-    srcdir: "/mnt/c/Users/{{ lookup('env','USER' )}}/OneDrive/dev/ukmda-dataprocessing/usermgmt/server"
+    srcdir: "/mnt/c/Users/{{ lookup('env','USER' )}}/OneDrive/dev/meteorhunting/ukmda-dataprocessing/archive/usermgmt"
+    destdir: /home/ec2-user/keymgmt
   tasks:
-  - name: import dev variables 
-    include_vars: ./dev-vars.yml
-    tags: dev
-  - name: import prod variables
-    include_vars: ./prod-vars.yml
-    tags: prod
   - name: Ensures {{destdir}} exists
     file: path={{destdir}} state=directory  
-    tags: [dev,prod]
 
   - name: Copy files
-    tags: [dev,prod]
     copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
     with_items:
     - {src: '{{srcdir}}/addSftpUser.sh', dest: '{{destdir}}/', mode: '744', backup: yes, directory_mode: no }
     - {src: '{{srcdir}}/updateAwsKey.sh', dest: '{{destdir}}/', mode: '744', backup: yes, directory_mode: no }
-    - {src: '{{srcdir}}/ukmon.ini', dest: '{{destdir}}/', mode: '644', backup: yes, directory_mode: no }
+    - {src: '{{srcdir}}/addAdminUser.sh', dest: '{{destdir}}/', mode: '744', backup: yes, directory_mode: no }
+    - {src: '{{srcdir}}/addFBApiKey.sh', dest: '{{destdir}}/', mode: '744', backup: yes, directory_mode: no }

@@ -1,9 +1,0 @@
-    winsrcdir: /mnt/c/Users/{{ lookup('env','USER' )}}/OneDrive/dev/ukmda-dataprocessing/usermgmt/windows
-    windestdir: /mnt/f/videos/MeteorCam/usermgmt
-    destdir: /home/ec2-user/keymgmt
-    srcbucket: ukmda-shared
-    livebucket: ukmda-live
-    websitebucket: ukmda-website
-    helper: ukmonhelper2
-    serverip: "3.11.55.160"
-    remotedir: /home/ec2-user/prod/data
