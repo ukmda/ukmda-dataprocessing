@@ -9,10 +9,27 @@ import sys
 import os
 import pandas as pd
 import datetime 
+import boto3
+
+
+def checkUrl(s3, url):
+    siteroot = os.getenv('WEBSITEBUCKET', default='s3://ukmda-website')
+    retval = url
+    tmpurl = url
+    if url[0]==',':
+        tmpurl = url[1:]
+    try:
+        _ = s3.head_object(Bucket=siteroot[5:], Key=tmpurl[1:])
+    except Exception:
+        #print(e)
+        retval = '/img/missing-white.png'
+    print(url, retval)
+    return retval
 
 
 def convertSingletoSrchable(datadir, year, newonly=True):
     print(datetime.datetime.now(), 'single-detection searchable index start')
+    s3 = boto3.client('s3')
 
     # load the single-station combined data
     if newonly is False:
@@ -34,6 +51,10 @@ def convertSingletoSrchable(datadir, year, newonly=True):
     uadata['fn']=[f'/img/single/{y}/{y}{m:02d}/'+f.replace('.fits','.jpg') 
         for f,y,m in zip(uadata.Filename, uadata.Y, uadata.M)]
 
+    print(datetime.datetime.now(), 'checking target urls exist')
+    uadata['targfn'] = [checkUrl(s3, x) for x in uadata.fn]
+    print(datetime.datetime.now(), 'done')
+
     # create array for source
     print(datetime.datetime.now(), 'add source column')
     srcs = ['2Single']*len(uadata.Filename)
@@ -44,41 +65,13 @@ def convertSingletoSrchable(datadir, year, newonly=True):
     print(datetime.datetime.now(), 'create interim dataframe')
     hdr=['eventtime','source','shower','Mag','loccam','url','imgs', 'loctime', 'Y','M']
     resdf = pd.DataFrame(zip(uadata.Dtstamp, srcs, uadata.Shwr, 
-        uadata.Mag, uadata.ID, uadata.fn, uadata.fn, uadata.LocalTime,
+        uadata.Mag, uadata.ID, uadata.targfn, uadata.targfn, uadata.LocalTime,
         uadata.Y, uadata.M), columns=hdr)
 
     # fix up some mangled historical data
     resdf.loc[resdf.loccam=='Ringwood_N_UK000S', 'loccam'] = 'UK000S'
     resdf.loc[resdf.loccam=='Tackley_SW_UK0006', 'loccam'] = 'UK0006'
 
-    # select the RMS data out, its good now
-    # FIXME - needs to select for "not FF_UK9" so we can include non-UK cameras
-    rmsdata=resdf[resdf.url.str.contains('FF_UK0')]
-    rmsdata = rmsdata.drop(columns=['Y','M','loctime'])
-
-    # now select out the UFO dta and fix it up
-    ufodata=resdf[resdf.url.str.contains('FF_UK9')]
-    #fix up Clanfield cameras
-    ufodata.loc[ufodata.loccam=='UK9990', 'loccam'] = 'Clanfield_NE'
-    ufodata.loc[ufodata.loccam=='UK9989', 'loccam'] = 'Clanfield_NW'
-    ufodata.loc[ufodata.loccam=='UK9988', 'loccam'] = 'Clanfield_SE'
-    ufodata = ufodata.drop(columns=['url','imgs'])
-
-    # create the URL and imgs fields
-    ufodata['url']=[f'/img/single/{y}/{y}{m:02d}/M{lt}_{f}P.jpg'
-        for f,y,m,lt in zip(ufodata.loccam, ufodata.Y, ufodata.M, ufodata.loctime)]
-    ufodata['imgs'] = ufodata.url
-    ufodata = ufodata.drop(columns=['loctime','Y','M'])
-
-    # annoying special case for UK0001, H and S which do not upload JPGs
-    rmsdata.loc[rmsdata.loccam=='UK0001','url']='/img/missing-white.png'
-    rmsdata.loc[rmsdata.loccam=='UK0001','imgs']='/img/missing-white.png'
-    rmsdata.loc[rmsdata.loccam=='UK000H','url']='/img/missing-white.png'
-    rmsdata.loc[rmsdata.loccam=='UK000H','imgs']='/img/missing-white.png'
-    rmsdata.loc[rmsdata.loccam=='UK000S','url']='/img/missing-white.png'
-    rmsdata.loc[rmsdata.loccam=='UK000S','imgs']='/img/missing-white.png'
-    
-    resdf = pd.concat([rmsdata,ufodata])
     if newonly is True:
         return resdf, rmsuafile
     else:
@@ -114,19 +107,22 @@ def convertMatchToSrchable(datadir, year, newonly=True):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print('usage: python createSearchableFormat.py year dest mode')
+        print('usage: python createSearchableFormat.py year mode outdir')
         exit(1)
     else:
         datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
 
         year = sys.argv[1]
         mode = sys.argv[2]
+        outdir = os.path.join(datadir, 'searchidx')
+        if len(sys.argv) > 3:
+            outdir = sys.argv[3]
 
         # create a set of single-station data and merge with last match set
         if mode == 'singles':
             print(datetime.datetime.now(), 'converting single-station data')
             newsingles, fname = convertSingletoSrchable(datadir, year, True)
-            outfile = os.path.join(datadir, 'searchidx', '{:s}-singles-new.csv'.format(year))
+            outfile = os.path.join(outdir, '{:s}-singles-new.csv'.format(year))
             if newsingles is not None: 
                 newsingles.to_csv(outfile, index=False, header=False)
             if fname is not None:
@@ -136,11 +132,11 @@ if __name__ == '__main__':
         elif mode == 'matches':
             print(datetime.datetime.now(), 'converting match data')
             newmatches, fname = convertMatchToSrchable(datadir, year, True)
-            outfile = os.path.join(datadir, 'searchidx', '{:s}-matches-new.csv'.format(year))
+            outfile = os.path.join(outdir, '{:s}-matches-new.csv'.format(year))
             if newmatches is not None: 
                 newmatches.to_csv(outfile, index=False, header=False)
             if fname is not None:
                 os.remove(fname)
         
         else:
-            print('usage: createSearchableFormat yyyy matches_or_singles')
+            print('usage: createSearchableFormat year mode outdir')
