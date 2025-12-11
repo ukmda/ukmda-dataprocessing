@@ -22,8 +22,7 @@ export PATH=$PATH:/usr/local/geos/bin:/usr/local/proj4/bin
 
 if shopt -q login_shell ; then
  echo ""
- echo "Type 'dev' to activate the dev environment"
- echo "Type 'prd' to activate the dev environment"
+ echo "THIS IS THE PROD SERVER!!" 
  echo ""
  echo " Some handy aliases that work in either environment are"
  echo " logs => go to the logs folder"
@@ -34,8 +33,9 @@ if shopt -q login_shell ; then
  echo " tnj => tail the nightly job log"
  echo " spacecalc => display space usage in the current folder"
  echo ""
- fi
- export NVM_DIR="$HOME/.nvm"
+ prd
+fi
+export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 export PATH=$PATH:$(dirname $(which node))
