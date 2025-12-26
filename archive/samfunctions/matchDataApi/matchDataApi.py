@@ -9,6 +9,33 @@ import json
 import pymysql.cursors
 
 
+def fileToJsonString(flis):
+    hdr = ['No','statid','ign','t','jd','m1','m2','az','alt','azl','altl','rao', 
+           'deco','ral','decl','X','Y','Z','lat','lon','H','range','length','svd',
+           'lag','vel','pvel', 'hres','vres','ares','vmag','amag']
+    ptsarray='['
+    gotpts = False
+    for fli in flis:
+        if 'Points' in fli:
+            gotpts = True
+            continue
+        elif '------' in fli or ' No' in fli:
+            continue
+        elif gotpts is True and (len(fli) < 2 or 'Notes' in fli):
+            gotpts=False
+            break
+        elif gotpts is True:
+            spls = fli.split(',')
+            thisrow = '{'
+            for h, s in zip(hdr, spls):
+                thisrow = thisrow + f'"{h}": "{s.strip()}",'
+            thisrow = thisrow[:-1] + '},'
+            ptsarray = ptsarray + thisrow
+    ptsarray = ptsarray[:-1] + ']'
+    ptsarray = '{' + f'"points": {ptsarray}' + '}'
+    return ptsarray
+
+
 def getSqlLoginDetails():
     # retrieve password and host from SSM. This allows me to manage them from Terraform
     ssm = boto3.client('ssm', region_name='eu-west-1')
@@ -22,15 +49,25 @@ def getSqlLoginDetails():
     return host, user, password, db
 
 
-def getStationData(statid, dtstr):
+def periodToSqlFragment(period):
+    if period == 'am':
+        frag = "and s._h_ut < 12"
+    elif period == 'pm':
+        frag = "and s._h_ut >= 12"
+    elif '-' in period:
+        sh,eh = period.split('-')
+        frag = f"and s._h_ut >={sh} and s._h_ut < {eh}"
+    return frag
+
+
+def getStationData(statid, dtstr, period=None):
     host, user, passwd, db = getSqlLoginDetails()
     connection = pymysql.connect(host=host, user=user, password=passwd, db=db, cursorclass=pymysql.cursors.DictCursor)  
     try:
+        statfrag = f"and s.stations like '%{statid}%' " if statid is not None else ""
+        perfrag = periodToSqlFragment(period) if period is not None else ""
         with connection.cursor() as cursor:
-            if statid is None:
-                sql = f"SELECT s.orbname from matches s where s._localtime like '_{dtstr}%'"
-            else:
-                sql = f"SELECT s.orbname from matches s where s._localtime like '_{dtstr}%' and s.stations like '%{statid}%'"
+            sql = f"SELECT s.orbname from matches s where s._localtime like '_{dtstr}%' {statfrag} {perfrag}"
             cursor.execute(sql)
             result = cursor.fetchall()
     finally:
@@ -88,12 +125,10 @@ def lambda_handler(event, context):
     if qs is None:
         return {
             'statusCode': 200,
-            'body': 'usage: detections?reqtyp=xxx&reqval=yyyy[&points=1]'
+            'body': 'usage: detections?reqtyp=xxx&reqval=yyyy[&points=1][&period=am|pm|h-h]'
         }
     reqtyp = qs['reqtyp']
-    points = False
-    if 'points' in qs:
-        points = True
+    points = True if 'points' in qs else False
 
     if reqtyp == 'station':
         statid = qs['statid']
@@ -106,8 +141,9 @@ def lambda_handler(event, context):
         res = getSummaryData(dtstr)
     elif reqtyp == 'matches':
         dtstr = qs['reqval']
+        period = qs['period'] if 'period' in qs else None
         print(f'match data requested for {dtstr}')
-        res = getStationData(None, dtstr)
+        res = getStationData(None, dtstr, period)
     elif reqtyp == 'detail':
         orbname = qs['reqval']
         print(f'detail requested for {orbname}')
@@ -140,30 +176,3 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'body': res
     }
-
-
-def fileToJsonString(flis):
-    hdr = ['No','statid','ign','t','jd','m1','m2','az','alt','azl','altl','rao', 
-           'deco','ral','decl','X','Y','Z','lat','lon','H','range','length','svd',
-           'lag','vel','pvel', 'hres','vres','ares','vmag','amag']
-    ptsarray='['
-    gotpts = False
-    for fli in flis:
-        if 'Points' in fli:
-            gotpts = True
-            continue
-        elif '------' in fli or ' No' in fli:
-            continue
-        elif gotpts is True and (len(fli) < 2 or 'Notes' in fli):
-            gotpts=False
-            break
-        elif gotpts is True:
-            spls = fli.split(',')
-            thisrow = '{'
-            for h, s in zip(hdr, spls):
-                thisrow = thisrow + f'"{h}": "{s.strip()}",'
-            thisrow = thisrow[:-1] + '},'
-            ptsarray = ptsarray + thisrow
-    ptsarray = ptsarray[:-1] + ']'
-    ptsarray = '{' + f'"points": {ptsarray}' + '}'
-    return ptsarray
