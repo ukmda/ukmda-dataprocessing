@@ -31,6 +31,8 @@ Resources:
                   Required: false
               - method.request.querystring.statid: 
                   Required: false
+              - method.request.querystring.period: 
+                  Required: false
       Tags:
         billingtag: "ukmda"
         typetag: "api"

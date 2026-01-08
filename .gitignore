@@ -531,13 +531,13 @@ StandaloneCurator/.installed
 analysis/orbitSolver/testing
 analysis/FormatConverters/testing
 */test_data/*
-archive/samfunctions*/pytz*
+archive/lambdas*/pytz*
 archive/static_content/data/searchdialog.js
 ToDo*
 archive/costs/**/*.csv
 archive/costs/**/*.json
 archive/costs/plots/*.png
-archive/samfunctions*/.aws-sam/build.toml
+archive/lambdas*/.aws-sam/build.toml
 archive/costs/S3-size-empireelements.xlsx
 archive/ukmon_pylib/share/maps/BM*.jpg
 archive/ukmon_pylib/share/maps/BM*.png
@@ -556,8 +556,8 @@ archive/unused/**
 ukmon_pylib/tests/20220217_032206.832_UK/*
 unused/*
 *tfstate.lock.info
-archive/samfunctions*/getExtraFilesV2/pythoncode/WesternMeteorPyLib/*
-archive/samfunctions*/getExtraFilesForEE/pythoncode/WesternMeteorPyLib/*
+archive/lambdas/getExtraFilesV2/pythoncode/WesternMeteorPyLib/*
+archive/lambdas/getExtraFilesForEE/pythoncode/WesternMeteorPyLib/*
 archive/containers/trajsolver/WesternMeteorPyLib/*
 archive/containers/trajsolver/awskeys
 archive/containers/trajsolvertest/WesternMeteorPyLib/*
@@ -568,11 +568,11 @@ archive/containers/gui/awskeys
 archive/terraform/*/ukmonreadonly.key
 .cache_ggshield
 replacements.txt
-archive/samfunctions*/apis-mm.txt
-archive/samfunctions*/apis-ee.txt
+archive/lambdas/apis-mm.txt
+archive/lambdas/apis-ee.txt
 usermgmt/windows/createUserKeyAWS.ps1
-archive/samfunctions*/matchPickle/pythoncode/WesternMeteorPyLib/**
-archive/samfunctions*/matchPickle/pythoncode/*.npy
+archive/lambdas/matchPickle/pythoncode/WesternMeteorPyLib/**
+archive/lambdas/matchPickle/pythoncode/*.npy
 .terraform/
 archive/utils/tmp.json
 usermgmt/windows/caminfo/camera-details-new.csv
@@ -589,8 +589,8 @@ ukmon_pylib/tests/usertools/2021-07-17T02_41_05_05_M002.ecsv
 ukmon_pylib/tests/usertools/2021-07-17T02_41_05_05_M004.ecsv
 ukmon_pylib/tests/usertools/20230202_014115.kml
 archive/containers*/simpleUI/awskeys
-archive/samfunctions*/camDetails/pythoncode/camDetails.py
-archive/samfunctions*/camDetails/pythoncode/awskeys
+archive/lambdas*/camDetails/pythoncode/camDetails.py
+archive/lambdas*/camDetails/pythoncode/awskeys
 archive/containers/RMS-docker/rms_docker.tar
 archive/containers/RMS-docker/Dockerfile_orig.txt
 

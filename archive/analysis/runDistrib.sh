@@ -135,7 +135,7 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
     
     execcons=execconsol.sh
     execConsolsh=/tmp/$execcons
-    python -c "from traj.createDistribMatchingSh import createExecConsolSh;createExecConsolSh($MATCHSTART, $MATCHEND, '$execConsolsh')"
+    python -c "from traj.createDistribMatchingSh import createExecConsolSh;createExecConsolSh($MATCHSTART, $MATCHEND, '$execConsolsh', $rundate)"
     chmod +x $execConsolsh
 
     log2cw $NJLOGGRP $NJLOGSTREAM "running consolidation" runDistrib
@@ -160,7 +160,7 @@ if [ -s $DATADIR/distrib/processed_trajectories.json ] ; then
     python -m traj.jsonDbMaintenance $DATADIR/distrib/
     aws s3 cp $DATADIR/distrib/processed_trajectories.json $UKMONSHAREDBUCKET/matches/distrib/ --quiet
 
-    log2cw $NJLOGGRP $NJLOGSTREAM "compressing the procssed data" runDistrib
+    log2cw $NJLOGGRP $NJLOGSTREAM "compressing the processed data" runDistrib
     gzip < $DATADIR/distrib/processed_trajectories.json > $DATADIR/trajdb/processed_trajectories.json.${rundate}.gz
     aws s3 mv $UKMONSHAREDBUCKET/matches/distrib/${rundate}.pickle $DATADIR/distrib --quiet
     tar czvf $DATADIR/distrib/${rundate}.tgz $DATADIR/distrib/${rundate}*.json $DATADIR/distrib/${rundate}.pickle

@@ -101,7 +101,7 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
 
     s3 = boto3.client('s3')
     for i in range(0, numbucks):
-        bucknames[i] = buckroot + f'_{i:02d}'
+        bucknames[i] = buckroot + f'_{i:03d}'
         filelist = flist[i::numbucks]
         for fli in filelist:
             src = os.path.join(srcdir, fli)

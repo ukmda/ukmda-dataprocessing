@@ -17,7 +17,7 @@ resource "aws_instance" "calc_server" {
       "Name"       = "calcengine"
       "billingtag" = "ukmda"
     }
-    volume_size = 100
+    volume_size = 120
   }
   primary_network_interface {
     network_interface_id = aws_network_interface.calcserver_if.id
@@ -58,7 +58,7 @@ resource "aws_instance" "ubuntu_calc_server" {
   }
   root_block_device {
     tags = {
-      "Name"       = "calcengine2"
+      "Name"       = "calcengine_ub"
       "billingtag" = "ukmda"
     }
     volume_size = 100

@@ -124,12 +124,15 @@ def gatherUsedImageList(outf, matchstart, matchend, shbucket):
     return 
 
 
-def createExecConsolSh(matchstart, matchend, execconsolsh):
+def createExecConsolSh(matchstart, matchend, execconsolsh, rundt):
     shbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')
     webbucket = os.getenv('WEBSITEBUCKET', default='s3://ukmda-website')
     calcdir = '/home/ec2-user/ukmon-shared/matches/RMSCorrelate' # hardcoded!
     _, outpath, _ = getTrajsolverPaths()
     enddt = datetime.datetime.now() + datetime.timedelta(days=-matchend)
+    includeyear = False
+    if enddt.day == 30:
+        includeyear = True
 
     with open(execconsolsh, 'w') as outf:
         outf.write('#!/bin/bash\n')
@@ -139,12 +142,12 @@ def createExecConsolSh(matchstart, matchend, execconsolsh):
         outf.write(f'cd {calcdir}\n')
         outf.write('logger -s -t execConsol start\n')
 
-        outf.write('python -m traj.consolidateDistTraj ~/data/distrib/ ~/data/distrib/processed_trajectories.json\n')
+        outf.write(f'python -m traj.consolidateDistTraj ~/data/distrib/ ~/data/distrib/processed_trajectories.json {rundt}\n')
 
         outf.write('logger -s -t execConsol syncing any updated trajectories from shared S3\n')
         refreshTrajectories(outf, matchstart, matchend, outpath)
         outf.write('logger -s -t execConsol creating density plots\n')
-        createDensityPlots(outf, calcdir, enddt)
+        createDensityPlots(outf, calcdir, enddt, includeyear)
         outf.write('logger -s -t execConsol pushing data back to S3\n')
         pushUpdatedTrajectoriesShared(outf, matchstart, matchend, shbucket)
         pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webbucket)
