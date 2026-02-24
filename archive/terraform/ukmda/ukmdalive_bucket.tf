@@ -9,58 +9,6 @@ resource "aws_s3_bucket" "ukmdalive" {
   }
   provider = aws.eu-west-1-prov
 }
-/*
-resource "aws_s3_bucket_policy" "ukmdalivebp" {
-  bucket   = aws_s3_bucket.ukmdalive.id
-  provider = aws.eu-west-1-prov
-  policy = jsonencode(
-    {
-      Id = "ukmda-live-bp"
-      Statement = [
-        {
-            "Sid": "DataSyncCreateS3LocationAndTaskAccess",
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "arn:aws:iam::${var.eeaccountid}:role/DataSyncBetweenAccounts"
-            },
-            "Action": [
-                "s3:GetBucketLocation",
-                "s3:ListBucket",
-                "s3:ListBucketMultipartUploads",
-                "s3:AbortMultipartUpload",
-                "s3:DeleteObject",
-                "s3:GetObject",
-                "s3:ListMultipartUploadParts",
-                "s3:PutObject",
-                "s3:GetObjectTagging",
-                "s3:PutObjectTagging"
-            ],
-            "Resource": [
-                "${aws_s3_bucket.ukmdalive.arn}",
-                "${aws_s3_bucket.ukmdalive.arn}/*"
-            ]
-        },
-        {
-            "Sid": "replicatelive",
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "arn:aws:iam::${var.eeaccountid}:role/service-role/replicatelive"
-            },
-            "Action": [ 
-              "s3:Put*",
-              "s3:Get*"
-            ],
-            "Resource": [
-              "${aws_s3_bucket.ukmdalive.arn}",
-              "${aws_s3_bucket.ukmdalive.arn}/*"
-            ]
-        }        
-      ]
-      Version = "2008-10-17"
-    }
-  )
-}
-*/
 
 resource "aws_s3_bucket_lifecycle_configuration" "ukmdalivelcp" {
   bucket   = aws_s3_bucket.ukmdalive.id
