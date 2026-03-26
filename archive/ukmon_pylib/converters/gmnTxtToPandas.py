@@ -37,7 +37,7 @@ def loadOneFile(fname):
     df = df.fillna(value=np.nan)
     df['jd_beg'] = df.jd_beg.astype(float)
     df['utc_beg'] = pd.to_datetime(df.utc_beg)
-    df['ian_uo'] = df.iau_no.astype(int)
+    df['iau_no'] = df.iau_no.astype(int)
     for c in range(5,82):
         try:
             df[colhdrs[c]] = df[colhdrs[c]].astype(float)
@@ -138,4 +138,10 @@ def getStats():
 
 
 if __name__ == '__main__':
-    doYear(sys.argv[1])
+    if sys.argv[1] == 'doYear':
+        doYear(sys.argv[2])
+    if sys.argv[1] == 'convert':
+        df = loadOneFile(sys.argv[2])
+        fn, _ = os.path.splitext(sys.argv[2])
+        df.to_parquet(f'{fn}.parquet.snap', index=False)
+
