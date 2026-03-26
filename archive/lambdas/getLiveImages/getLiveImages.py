@@ -16,7 +16,10 @@ def getLiveImages(dtstr, ddb=None):
     resp = table.query(IndexName='month-image_name-index', 
                         KeyConditionExpression=Key('month').eq(dtstr[4:6]) & Key('image_name').begins_with(f'M{dtstr}'),
                         ProjectionExpression='image_name')
-    return resp
+    resp2 = table.query(IndexName='month-image_name-index', 
+                        KeyConditionExpression=Key('month').eq(dtstr[4:6]) & Key('image_name').begins_with(f'FF_{dtstr}'),
+                        ProjectionExpression='image_name')
+    return resp['Items'] + resp2['Items']
 
 
 def filterImages(d1, d2, statid=None, maxitems=-1, ddb=None):
@@ -103,10 +106,10 @@ def lambda_handler(event, context):
         patt = qs['pattern']
         print(f'searching for {patt}')
         ecsvstr = getLiveImages(patt, ddb=ddb)
-        print(f"found {ecsvstr['Items']}")
+        print(f"found {len(ecsvstr)} items")
         return {
             'statusCode': 200,
-            'body': json.dumps(ecsvstr['Items'])
+            'body': json.dumps(ecsvstr)
         }
     else:
         if 'dtstr' in qs:
@@ -119,7 +122,7 @@ def lambda_handler(event, context):
         if 'enddtstr' in qs:
             dtstr2 = qs['enddtstr'] 
         else:
-            dtstr2 = datetime.datetime.now().strftime('M%Y%m%d_%H')
+            dtstr2 = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S.000Z')
         statid = None
         if 'statid' in qs:
             statid = qs['statid']
