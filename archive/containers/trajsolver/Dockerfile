@@ -11,6 +11,8 @@ RUN conda install -y matplotlib
 RUN pip install boto3
 RUN apt-get update && apt-get -y upgrade 
 RUN conda install -y -c conda-forge numba
+RUN conda install -y -c conda-forge libsqlite sqlite
+RUN conda install -y -c conda-forge paramiko
 
 COPY WesternMeteorPyLib/ ./WesternMeteorPyLib
 ENV PYTHONPATH=./WesternMeteorPyLib

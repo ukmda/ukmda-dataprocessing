@@ -8,7 +8,7 @@ else
 fi
 
 cd /mnt/e/dev/meteorhunting/ukmda-dataprocessing/archive/containers/$targ/
-ssh ukmonhelper2 "cd src/wmpldev && git stash && git checkout forcontainer && git pull"
+ssh ukmonhelper2 "cd src/wmpldev && git stash && git checkout distrib_processing && git pull"
 rsync -avz ukmonhelper2:src/wmpldev/* ./WesternMeteorPyLib/ --exclude "build/" --exclude "*.egg*" --exclude "dist/" --exclude ".git/" --exclude "__pycache__/"
 ssh ukmonhelper2 "cd src/wmpldev && git checkout - && git stash apply"
 

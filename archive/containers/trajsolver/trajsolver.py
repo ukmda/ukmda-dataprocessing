@@ -25,7 +25,7 @@ def runCorrelator(dir_path, time_beg, time_end):
     saveplots = True
     velpart = 0.40
     uncerttime = False
-    distribute = 2
+    distribute = 3
 
     trajectory_constraints = TrajectoryConstraints()
     trajectory_constraints.max_toffset = maxtoffset
@@ -42,8 +42,8 @@ def runCorrelator(dir_path, time_beg, time_end):
     event_time_range = None
 
     # Extract time range
-    dt_beg = datetime.datetime.strptime(time_beg, "%Y%m%d-%H%M%S")
-    dt_end = datetime.datetime.strptime(time_end, "%Y%m%d-%H%M%S")
+    dt_beg = datetime.datetime.strptime(time_beg, "%Y%m%d-%H%M%S").replace(tzinfo=datetime.timezone.utc)
+    dt_end = datetime.datetime.strptime(time_end, "%Y%m%d-%H%M%S").replace(tzinfo=datetime.timezone.utc)
 
     print("Custom time range:")
     print("    BEG: {:s}".format(str(dt_beg)))
@@ -52,17 +52,7 @@ def runCorrelator(dir_path, time_beg, time_end):
     event_time_range = [dt_beg, dt_end]
 
     # Init the data handle
-    dh = RMSDataHandle(dir_path, event_time_range)
-
-    # If there is nothing to process, stop, unless we're in distributed 
-    # processing mode 2 
-    if not dh.processing_list and distribute !=2:
-        print()
-        print("Nothing to process!")
-        print("Probably everything is already processed.")
-        print("Exiting...")
-        sys.exit()
-
+    dh = RMSDataHandle(dir_path, dt_range=event_time_range, mcmode=distribute)
 
     ### GENERATE MONTHLY TIME BINS ###
     
@@ -109,12 +99,15 @@ def runCorrelator(dir_path, time_beg, time_end):
         print()
 
         # Load data of unprocessed observations
-        dh.unpaired_observations = dh.loadUnpairedObservations(dh.processing_list, dt_range=(bin_beg, bin_end))
+        #dh.unpaired_observations = dh.loadUnpairedObservations(dh.processing_list, dt_range=(bin_beg, bin_end))
 
         # Run the trajectory correlator
-        tc = TrajectoryCorrelator(dh, trajectory_constraints, velpart, data_in_j2000=True, distribute=distribute, enableOSM=True)
-        tc.run(event_time_range=event_time_range)
+        tc = TrajectoryCorrelator(dh, trajectory_constraints, velpart, data_in_j2000=True, enableOSM=True)
+        tc.run(event_time_range=event_time_range, mcmode=3)
     
+    dh.closeObservationsDatabase()
+    dh.closeTrajectoryDatabase()
+
     print("Total run time: {:s}".format(str(datetime.datetime.now(datetime.timezone.utc) - t1)))
     return 
 
@@ -162,6 +155,8 @@ def getExtraArgs(fname):
         ctyp = 'application/json'
     elif file_ext=='.zip': 
         ctyp = 'application/zip'
+    elif file_ext=='.db':
+        ctyp = 'application/vnd.sqlite3'
     extraargs = {'ContentType': ctyp}
     return extraargs
 
@@ -249,7 +244,7 @@ def startup(srcfldr, startdt, enddt, isTest=False):
 
     print(f'fetching data from {srcbucket}/{srckey} saving to {outbucket} and {webbucket}')
     objlist = s3.meta.client.list_objects_v2(Bucket=srcbucket,Prefix=srckey)
-    print(objlist)
+    #print(objlist)
     if objlist['KeyCount'] > 0:
         keys = objlist['Contents']
         for k in keys:
@@ -257,24 +252,37 @@ def startup(srcfldr, startdt, enddt, isTest=False):
             if '.pickle' in fname:
                 _, locfname = os.path.split(fname)
                 targfile = os.path.join(canddir, locfname)
-                print(f'downloading {locfname}')
+                print(f'downloading {locfname} to {targfile}')
                 s3.meta.client.download_file(srcbucket, fname, targfile)
         runCorrelator(localfldr, startdt, enddt)
 
         print('uploading data to website')
         trajfldr = os.path.join(localfldr,'trajectories')
 
-        # reacquire tokens just in case the 1hour time limit on chained roles is exceeded
+        # reacquire tokens just in case the 1 hour time limit on chained roles is exceeded
         s3 = getS3Client()
         pushToWebsite(s3, trajfldr, webbucket, webpth, outbucket, outpth)
 
+        if srcfldr[:5] == 'test/':
+            srcfldr = srcfldr[5:]
+        for dbname in ['observations', 'trajectories', 'candidates']:
+            
+            fname = f'{dbname}_{srcfldr}.db'
+            localfile = os.path.join(localfldr, f'{dbname}.db')
+            if os.path.isfile(localfile):
+                targkey = f'{outpth}/{fname}'
+                print(f'uploading {localfile} to {srcbucket}/{targkey}')
+                s3.meta.client.upload_file(localfile, srcbucket, targkey, ExtraArgs = getExtraArgs(fname)) 
+
         fname = f'{srcfldr}.json'
         jsonfile = os.path.join(localfldr, 'processed_trajectories.json')
-        targkey = f'{srcpth}/{fname}'
-        print(f'uploading {jsonfile} to {srcbucket}/{srcpth}')
-        s3.meta.client.upload_file(jsonfile, srcbucket, targkey, ExtraArgs = getExtraArgs(fname)) 
+        if os.path.isfile(jsonfile):
+            targkey = f'{srcpth}/{fname}'
+            print(f'uploading {jsonfile} to {srcbucket}/{srcpth}')
+            s3.meta.client.upload_file(jsonfile, srcbucket, targkey, ExtraArgs = getExtraArgs(fname)) 
     else:
         print('no files found')
+
     print(f"Finished at {datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}")
     return
 

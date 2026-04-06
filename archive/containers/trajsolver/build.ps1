@@ -15,7 +15,7 @@ $repo = "calcengine/${imagename}"
 write-output "building $imagename in $accid"
 
 $yn=read-host -prompt "update WMPL?"
-if ($yn.tolower() -eq "y") { bash -c "./update_wmpl.sh $env" } 
+if ($yn.tolower() -eq "y") { bash -c "./update_wmpl.sh $env" }
 
 if ($env -eq "test") { move-item awskeys.test awskeys}
 
