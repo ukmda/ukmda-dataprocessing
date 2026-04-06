@@ -37,9 +37,9 @@ function calcserver {
 	ipaddr=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text --profile ukmonshared)
 	isrunning=$(echo $sts | cut -d " " -f 1)
 	if [ $isrunning -ne 16 ] ; then
-		/home/ec2-user/prod/utils/stopstart-calcengine.sh start
+		$HOME/prod/utils/stopstart-calcengine.sh start
 		echo "starting server on ${ipaddr}... waiting 10s..."
 		sleep 10
 	fi 
-	ssh -i ~/.ssh/markskey.pem ec2-user@$ipaddr
+	ssh -i ~/.ssh/markskey.pem $SERVERUSERID@$ipaddr
 }

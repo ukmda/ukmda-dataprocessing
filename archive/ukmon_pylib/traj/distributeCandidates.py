@@ -3,6 +3,8 @@
 # Used when running the correlator in 'distributed' mode. 
 # Pick up new groups of candidate trajectories and distribute them, 
 # then wait for completion and gather the logs. 
+
+# NB this runs on the calculation engine server
 #
 
 import json
@@ -147,7 +149,7 @@ def monitorProgress(rundate):
     client = boto3.client('ecs', region_name='eu-west-2')
     s3 = boto3.client('s3')
     archbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
 
     templdir,_ = os.path.split(__file__)
     clusdets = getClusterDetails(templdir)
@@ -318,7 +320,7 @@ def getMissedLogs(picklefile):
     taskarns = dumpdata[1]
     loggrp = '/ecs/trajcont'
     contname = 'trajcont'
-    logdir = '/home/ec2-user/prod/logs/distrib'
+    logdir = os.path.expanduser('~/prod/logs/distrib')
     for thisarn in taskarns:
         tmpfname = os.path.join(logdir, f'{thisarn[51:]}.log')
         with open(tmpfname, 'w') as outf:
@@ -364,7 +366,10 @@ def getLogDetails(loggrp, thisarn, contname, region_name='eu-west-2'):
 if __name__ == '__main__':
     if len(sys.argv) < 4:
         rundt = datetime.datetime(2022,4,21)
-        srcdir = '/home/ec2-user/ukmon-shared/matches/RMSCorrelate/candidates' # hardcoded on calcserver
+        # runs on the calcserver
+        csuser = os.getenv('SERVERUSERID', default='ec2-user')
+        srcdir = f'/home/{csuser}/ukmon-shared/matches/RMSCorrelate/candidates' # hardcoded on calcserver
+
         buck = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')
         targdir = f'{buck}/matches/distrib'
     else:

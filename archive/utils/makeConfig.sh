@@ -20,6 +20,7 @@ SERVERINSTANCEID=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_
 BKPINSTANCEID=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_backupinstance --query Parameters[0].Value  | tr -d '"')
 SERVERSSHKEY=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_sshkey --query Parameters[0].Value  | tr -d '"')
 NJLOGGRP=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_batchloggroup --query Parameters[0].Value  | tr -d '"')
+SERVERUSERID=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_calcuser --query Parameters[0].Value  | tr -d '"')
 
 # hardcoded
 PYLIB=$SRC/ukmon_pylib
@@ -50,6 +51,7 @@ echo "TEMPLATES=${TEMPLATES}" >> ${CFGFILE}
 echo "RCODEDIR=${RCODEDIR}" >> ${CFGFILE}
 echo "DATADIR=${DATADIR}" >> ${CFGFILE}
 echo "SERVERINSTANCEID=${SERVERINSTANCEID}" >> ${CFGFILE}
+echo "SERVERUSERID=${SERVERUSERID}" >> ${CFGFILE}
 echo "BKPINSTANCEID=${BKPINSTANCEID}" >> ${CFGFILE}
 echo "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" >> ${CFGFILE}
 echo "RMS_ENV=${RMS_ENV}" >> ${CFGFILE}
@@ -69,7 +71,7 @@ echo "export PYLIB TEMPLATES RCODEDIR DATADIR BKPINSTANCEID AWS_DEFAULT_REGION" 
 echo "export RMS_ENV RMS_LOC WMPL_ENV WMPL_LOC" >> ${CFGFILE}
 echo "export PYTHONPATH=${RMS_LOC}:${WMPL_LOC}:${PYLIB}:${SRC}/share" >> ${CFGFILE}
 echo "export MATCHSTART MATCHEND SERVERSSHKEY" >> ${CFGFILE}
-echo "export APIKEY KMLTEMPLATE SERVERINSTANCEID NJLOGGRP" >> ${CFGFILE}
+echo "export APIKEY KMLTEMPLATE SERVERINSTANCEID SERVERUSERID NJLOGGRP" >> ${CFGFILE}
 echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/local/geos/lib:/usr/local/proj4/lib" >> ${CFGFILE}
 # enable miniconda
 echo "source ~/.condaon" >> ${CFGFILE}
