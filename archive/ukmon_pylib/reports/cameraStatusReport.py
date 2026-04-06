@@ -25,7 +25,7 @@ def getLastUpdateDate(datadir=None, camfname=None, ddb=None):
     caminfo = caminfo.drop(columns=['direction','oldcode','active','camtype','eMail', 'humanName'])
     caminfo.rename(columns={'site':'Site'}, inplace=True)
     if datadir is None:
-        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+        datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     tmplist = pd.read_csv(os.path.join(datadir,'reports','camuploadtimes.csv'), index_col=False)
 
     fldrlist = pd.merge(tmplist, caminfo, on=['stationid'], how='inner')
@@ -54,7 +54,7 @@ def getLastUpdateDate(datadir=None, camfname=None, ddb=None):
 
 def createStatusReportJSfile(stati, datadir=None):
     if datadir is None:
-        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+        datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     os.makedirs(os.path.join(datadir, 'reports'), exist_ok=True)
     repfile = os.path.join(datadir, 'reports','camrep.js')
     with open(repfile, 'w') as outf: 

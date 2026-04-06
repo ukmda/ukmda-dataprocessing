@@ -71,7 +71,7 @@ def findRowCamTimings(stationid, uploaddate, ddb=None):
 
 def getDayCamTimings(uploaddate, ddb=None, outfile=None, datadir=None):
     if datadir is None:
-        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+        datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     if not ddb:
         ddb = boto3.resource('dynamodb', region_name='eu-west-2') #, endpoint_url="http://thelinux:8000")
     table = ddb.Table('uploadtimes')
@@ -136,9 +136,10 @@ def deleteRowCamTimings(stationid, dtstamp, ddb=None):
 def backPopulate(stationid):
     s3bucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
 
-    fldrs = glob.glob1(f'/home/ec2-user/ukmon-shared/matches/RMSCorrelate/{stationid}/', '*')
+    basepath = os.path.expanduser('~/prod/ukmon-shared/matches/RMSCorrelate')
+    fldrs = glob.glob1(os.path.join(basepath, stationid), '*')
     for fldr in fldrs:
-        s3objects = glob.glob1(f'/home/ec2-user/ukmon-shared/matches/RMSCorrelate/{stationid}/{fldr}/', 'FTPd*')
+        s3objects = glob.glob1(os.path.join(basepath, stationid. fldr), 'FTPd*')
         if len(s3objects) > 0:
             s3obj = s3objects[0]
             fullobj = f'matches/RMSCorrelate/{stationid}/{fldr}/{s3obj}'
@@ -147,7 +148,7 @@ def backPopulate(stationid):
 
 
 if __name__ == '__main__':
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
 
     ddb = boto3.resource('dynamodb', region_name='eu-west-2') 
     if os.path.isfile('/sys/devices/virtual/dmi/id/board_asset_tag'):  # crude check for EC2

@@ -110,7 +110,7 @@ if __name__ == '__main__':
         print('usage: python createSearchableFormat.py year mode outdir')
         exit(1)
     else:
-        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+        datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
 
         year = sys.argv[1]
         mode = sys.argv[2]

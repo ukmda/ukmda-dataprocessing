@@ -15,7 +15,7 @@ from reports.findFireballs import findFireballs
 
 
 def createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir):
-    templdir = os.getenv('TEMPLATES', default='/home/ec2-user/prod/website/templates')
+    templdir = os.getenv('TEMPLATES', default=os.path.expanduser('~/prod/website/templates'))
     idxfile = os.path.join(outdir, 'index.html')
     shutil.copyfile(os.path.join(templdir,'header.html'), idxfile)
 
@@ -175,7 +175,7 @@ def reportActiveShowers(ymd, thisshower=None, thismth=None, includeMinor=False):
     else:
         shwrlist = [thisshower]
 
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     # pltdir=os.path.join(datadir, 'showerplots')
     dtstr = ymd[:4]
     if thismth is not None:

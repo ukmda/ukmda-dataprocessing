@@ -47,7 +47,7 @@ def graphOfData(logf, dtstr):
     plt.grid(axis='x')
     plt.gca().invert_yaxis()
     logname, _ = os.path.splitext(os.path.basename(logf))
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     os.makedirs(os.path.join(datadir, 'batchcharts'), exist_ok=True)
     plt.savefig(os.path.join(datadir, 'batchcharts',f'./{dtstr}-{logname}.jpg'), dpi=100)
     plt.close()
@@ -130,7 +130,7 @@ def getLogStats(nightlogf, matchlogf, thisdy):
 
 if __name__ == '__main__':
     dtstr = sys.argv[1]
-    logdir = os.path.join(os.getenv('SRC', default='/home/ec2-user/prod'), 'logs')
+    logdir = os.path.join(os.getenv('SRC',default=os.path.expanduser('~/prod')), 'logs')
     nowdt = datetime.datetime.now().strftime('%Y%m%d')
     if nowdt == dtstr:
         nightf = os.path.join(logdir, 'nightlyJob.log')

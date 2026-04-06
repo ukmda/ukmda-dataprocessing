@@ -17,7 +17,7 @@ colhdrs = ['id','jd_beg','utc_beg','iau_no','iau_code','sollon','lst',
            'Lat1','Lat1sd','Lon1','Lon1sd','H1','H1sd','Lat2','Lat2sd','Lon2','Lon2sd','H2','H2sd',
            'Dur','Amag','PkHt','F1','mass','Qc','MedianFitErr','BegIn','EndIn','NumStat','stats']
 
-datadir=os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
 dirpath = os.path.join(datadir, 'gmndata')
 
 

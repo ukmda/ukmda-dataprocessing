@@ -19,7 +19,7 @@ from meteortools.utils import jd2Date
 # Manually mark a trajectoriy as a "fireball"
 #
 def markAsFireball(trajname, tof=True):
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     yr=trajname[:4]
     if int(yr) > 2021:
         fname = os.path.join(datadir, 'matched','matches-full-{}.parquet.snap'.format(yr))
@@ -142,7 +142,7 @@ def findFBPre2020(df, mag=-4):
 
 
 def findFireballs(dtval, shwr, minmag=-3.99, matchdataset = None):
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     orbdir = 'matches'
 
     # check if month was passed in

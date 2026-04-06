@@ -467,7 +467,7 @@ def magDistributionVis(dta, shwrname, outdir, binwidth=0.2):
 
 
 def showerAnalysis(shwr, dtstr):
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
 
     # set up paths, files etc
     # check if month was passed in

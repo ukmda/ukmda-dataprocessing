@@ -13,7 +13,7 @@ creating and managing the more-accurate camera location info
 
 def getCamLocDirFov(camid, datadir=None):
     if datadir is None:
-        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data/')
+        datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     camdb = json.load(open(os.path.join(datadir, 'admin', 'cameraLocs.json')))
     if camid not in camdb.keys():
         return False
@@ -22,7 +22,7 @@ def getCamLocDirFov(camid, datadir=None):
 
 def updateCamLocDirFovDB(datadir=None):
     if datadir is None:
-        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data/')
+        datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     camdb = {}
     ppfiles = glob.glob(os.path.join(datadir, 'consolidated','platepars', '*.json'))
     for ppf in ppfiles:
@@ -80,7 +80,7 @@ def createCDCsv(targetloc):
     cd4csv = cd4csv[['site','stationid','oldcode','direction','camtype','dummycode','active']]
     cd4csv = cd4csv.rename(columns={'stationid':'camid', 'oldcode':'lid', 'direction':'sid'})
     cd4csv.sort_values(by=['active','camid'], inplace=True)
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data/')
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     outfname = os.path.join(datadir, targetloc, 'camera-details.csv')
     cd4csv.to_csv(outfname, index=False)
     with open(os.path.join(datadir, 'activecamcount.txt'), 'w') as outf:

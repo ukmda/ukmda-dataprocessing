@@ -618,3 +618,4 @@ fbcollector/config.ini
 usermgmt/windows/stationmaint.ini
 usermgmt/windows/README.md
 fbCollector/README.html
+archive/containers/trajsolver/WesternMeteorPyLib.old/**

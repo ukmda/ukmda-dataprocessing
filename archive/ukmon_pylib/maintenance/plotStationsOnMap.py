@@ -107,7 +107,7 @@ def plotMap(srcpath, intersect=False, plotlabels=False):
 #    ax.add_feature(cfeature.LAKES, edgecolor='black')
 #    ax.add_feature(cfeature.RIVERS)
     ax.gridlines()
-    pylib=os.getenv('PYLIB', default='/home/ec2-user/prod/ukmon_pylib')
+    pylib=os.getenv('PYLIB', default=os.path.expanduser('~/prod/ukmon_pylib'))
     os.environ['CARTOPY_USER_BACKGROUNDS'] = os.path.join(pylib, 'share','maps')
     ax.background_img(name='BM', resolution='high', extent= [minn, maxn, mina, maxa])
 
@@ -143,7 +143,7 @@ def plotMap(srcpath, intersect=False, plotlabels=False):
         plt.plot(yi, xi, 'bx', markersize=10, linewidth=1)
 
     plt.tight_layout()
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     if datadir is None:
         datadir='.'
     plt.savefig(os.path.join(datadir, 'stations.png'), dpi=200)
@@ -158,7 +158,7 @@ if __name__ == '__main__':
         plotlabels = False
     else:
         plotlabels = True
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     srcfile = os.path.join(datadir, 'admin', 'cameraLocs.json')
     intersect = False
     if len(sys.argv) > 2:

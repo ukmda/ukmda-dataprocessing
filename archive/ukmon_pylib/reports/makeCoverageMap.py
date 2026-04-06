@@ -58,8 +58,8 @@ def makeCoverageMap(kmlsource, outdir, showMarker=False, useName=False):
 def createCoveragePage():
     apikey = os.getenv('APIKEY')
     apikey = decodeApiKey(apikey)
-    templdir = os.getenv('TEMPLATES', default='/home/ec2-user/prod/website/templates')
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    templdir = os.getenv('TEMPLATES', default=os.path.expanduser('~/prod/website/templates'))
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     with open(os.path.join(templdir, 'coverage-maps.html'), 'r') as inf:
         lis = inf.readlines()
     with open(os.path.join(datadir, 'latest','coverage-maps.html'), 'w') as outf:

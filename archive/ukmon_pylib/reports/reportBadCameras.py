@@ -19,7 +19,7 @@ if __name__ == '__main__':
         print('usage: python reportBadCameras.py daysback')
         exit(0)
 
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     if datadir is None:
         print('define DATADIR first')
         exit(1)
