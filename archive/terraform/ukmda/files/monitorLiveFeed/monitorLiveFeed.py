@@ -61,28 +61,19 @@ def storeInDDb(evtdets, camdets):
     return response['ResponseMetadata']['HTTPStatusCode']
 
 
-def updateLiveTable(event, dtval):
-    record = event['Records'][0]
-    fname = record['s3']['object']['key']
-    _, barefname = os.path.split(fname)
-    if 'P.jpg' not in barefname:
-        print(f'{barefname} not a jpg')
-        return 
+def updateLiveTable(evtdets, camdets, fname):
+    statname = camdets['camid']
+    dtval = evtdets['dtval']
     expdate = int((dtval + datetime.timedelta(days=90)).timestamp())
     tstamp = str(int(dtval.timestamp()*1000))
     yr = dtval.strftime('%Y')
     mth = dtval.strftime('%m')
     ddb = boto3.resource('dynamodb', region_name='eu-west-2')
     table = ddb.Table('live')
-    if barefname[0] == 'M':
-        statname = barefname[17:].replace('P.jpg','').replace('_',' ')
-    else:
-        statname = barefname[3:9]
-
-    print(f'inserting {barefname} with timestamp {dtval}')
+    print(f'inserting {fname} with timestamp {dtval}')
     response = table.put_item(
         Item={
-            'image_name': barefname,
+            'image_name': fname,
             'timestamp': tstamp,
             'image_timestamp': tstamp, 
             'station_name': statname,
@@ -94,19 +85,15 @@ def updateLiveTable(event, dtval):
     return response['ResponseMetadata']['HTTPStatusCode'] 
 
 
-def processXml(event):
-    record = event['Records'][0]
-    fname = record['s3']['object']['key']
+def processXml(remote_xmlname):
     buck = 'ukmda-live'
     s3 = boto3.resource('s3')
 
-    if '.xml' not in fname:
-        fname = fname.replace('P.jpg','.xml')
-    _, barefname = os.path.split(fname)
+    _, barefname = os.path.split(remote_xmlname)
     tmpdir = mkdtemp()
     xmlname = os.path.join(tmpdir, barefname)
     try:
-        s3.meta.client.download_file(buck, fname, xmlname)
+        s3.meta.client.download_file(buck, remote_xmlname, xmlname)
     except Exception:
         print('xml file not available')
         return None, None
@@ -157,7 +144,12 @@ def processXml(event):
 
 
 def lambda_handler(event, context):
-    evtdets, camdets = processXml(event)
-    if evtdets is not None:
-        storeInDDb(evtdets, camdets)
-        updateLiveTable(event, evtdets['dtval'])
+    record = event['Records'][0]
+    fname = record['s3']['object']['key']
+    _, barefname = os.path.split(fname)
+    if ('M' in barefname and 'P.jpg' in barefname) or ('FF' in barefname and '.jpg' in barefname):
+        xmlname = fname.replace('P.jpg','.xml').replace('.jpg', '.xml')
+        evtdets, camdets = processXml(xmlname)
+        if evtdets is not None:
+            storeInDDb(evtdets, camdets)
+            updateLiveTable(evtdets, camdets, barefname) 

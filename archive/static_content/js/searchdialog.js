@@ -70,6 +70,17 @@ form.addEventListener("submit", function (event) {
     op = op + "l:" + strstat + "_";
   }
   //jQuery.support.cors = true;
+  if (d1 == "" ){
+    console.log("missing start date");
+    const stdt = new Date(Date.now());
+    stdt.setHours(stdt.getHours() - 12);
+    d1 = stdt.toISOString();
+  }
+  if (d2 == "" ){
+    console.log("missing end date");
+    const enddt = new Date(Date.now());
+    d2 = enddt.toISOString();
+  }
   payload = {"d1":  d1, "d2": d2, "opts":  op };
   console.log(payload);
   document.getElementById("searchresults").innerHTML = "Searching....";
@@ -96,6 +107,9 @@ function myFunc(myObj) {
     txt = "<table class=\"table table-striped table-bordered table-hover table-condensed\">"
     txt += "<tr><td><b>DateTime</b></td><td><b>Source</b></td><td><b>Shower</b></td>";
     txt += "<td><b>Mag</b></td><td><b>Camera</b></td><td><b>Link</b></td></tr>";
+    if (myObj.length == 0){
+      alert("No data available, check dates");
+    }
     for (x in myObj) {
       console.log(myObj[x]);
       var dtarr = myObj[x].split(',');
