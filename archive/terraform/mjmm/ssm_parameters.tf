@@ -50,7 +50,16 @@ resource "aws_ssm_parameter" "prod_envname" {
 resource "aws_ssm_parameter" "prod_calcinstance" {
   name  = "prod_calcinstance"
   type  = "String"
-  value = "i-04cd701c3cfc980f5" # "i-08cd1d5f6e1056f6b"
+  value = "i-04cd701c3cfc980f5" # "i-0ab47af23705beb31"
+  tags = {
+    "billingtag" = "ukmon"
+  }
+}
+ 
+resource "aws_ssm_parameter" "prod_calcuser" {
+  name  = "prod_calcuser"
+  type  = "String"
+  value = "ec2-user" # "ubuntu"
   tags = {
     "billingtag" = "ukmon"
   }

@@ -198,7 +198,7 @@ resource "aws_iam_role_policy" "stsAssumeLambda" {
       Statement = {
         Action   = "sts:AssumeRole"
         Effect   = "Allow"
-        Resource = "arn:aws:iam::183798037734:policy/s3PolicyForRadio"
+        Resource = "arn:aws:iam::183798037734:role/s3AccessForRadio"
       }
       Version = "2012-10-17"
     }

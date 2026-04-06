@@ -47,7 +47,7 @@ resource "aws_network_interface" "calcserver_if" {
 
 resource "aws_instance" "ubuntu_calc_server" {
   ami                  = "ami-0bdf149a42243bde8"
-  instance_type        = "c6g.4xlarge"
+  instance_type        = "c8g.2xlarge"
   iam_instance_profile = aws_iam_instance_profile.calcserverrole.name
   key_name             = aws_key_pair.marks_key.key_name
   tags = {
@@ -61,7 +61,7 @@ resource "aws_instance" "ubuntu_calc_server" {
       "Name"       = "calcengine_ub"
       "billingtag" = "ukmda"
     }
-    volume_size = 100
+    volume_size = 120
   }
   primary_network_interface {
     network_interface_id = aws_network_interface.ubuntu_calcserver_if.id
