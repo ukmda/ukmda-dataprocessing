@@ -56,6 +56,15 @@ resource "aws_ssm_parameter" "dev_calcinstance" {
   }
 }
  
+resource "aws_ssm_parameter" "dev_calcuser" {
+  name  = "dev_calcuser"
+  type  = "String"
+  value = "ubuntu"
+  tags = {
+    "billingtag" = "ukmon"
+  }
+}
+ 
 resource "aws_ssm_parameter" "dev_backupinstance" {
   name  = "dev_backupinstance"
   type  = "String"
