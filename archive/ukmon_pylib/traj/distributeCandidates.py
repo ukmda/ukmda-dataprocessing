@@ -18,13 +18,30 @@ import time
 import pickle
 
 
-def getClusterDetails(templdir):
-    sts = boto3.client('sts')
-    accid = sts.get_caller_identity()['Account']
-    if accid == '183798037734':
-        clusdetails = os.path.join(templdir, 'clusdetails-mda.txt')
+# read the task template to determine the paths to write any data to
+#
+def getTrajsolverPaths(istest=False):
+    templdir,_ = os.path.split(__file__)
+    if istest:
+        taskjson = 'taskrunner_test.json'
     else:
-        clusdetails = os.path.join(templdir, 'clusdetails-mm.txt')
+        taskjson = 'taskrunner.json'
+    with open(os.path.join(templdir, taskjson), 'r') as inf:
+        taskdets = json.load(inf)
+    taskenv = taskdets['overrides']['containerOverrides'][0]['environment']
+    srcpath = [x for x in taskenv if x['name']=='SRCPATH'][0]['value'] # path from which trajsolver will consume candidates
+    outpath = [x for x in taskenv if x['name']=='OUTPATH'][0]['value'] # path to which trajsolver will publish trajectories
+    webpath = [x for x in taskenv if x['name']=='WEBPATH'][0]['value'] # web loc to which trajsolver will publish trajectories
+
+    return srcpath, outpath, webpath
+
+
+def getClusterDetails(istest=False):
+    templdir,_ = os.path.split(__file__)
+    if istest:
+        clusdetails = os.path.join(templdir, 'clusdetailstest-ukmda.txt')
+    else:
+        clusdetails = os.path.join(templdir, 'clusdetails-mda.txt')
     with open(clusdetails) as inf:
         lis = inf.readlines()
     clusname = lis[0].strip()
@@ -36,12 +53,16 @@ def getClusterDetails(templdir):
     return [clusname, secgrp, subnet, exrolearn, loggrp, contname]
 
 
-def createTaskTemplate(rundate, buckname, clusdets, spandays=3):
+def createTaskTemplate(rundate, buckname, clusdets, spandays=3, istest=False):
     d1 = (rundate + datetime.timedelta(days = -(spandays-1))).strftime('%Y%m%d')
     d2 = (rundate + datetime.timedelta(days = 1)).strftime('%Y%m%d')
 
     templdir,_ = os.path.split(__file__)
-    templatefile = os.path.join(templdir, 'taskrunner.json')
+    if istest:
+        taskjson = 'taskrunner_test.json'
+    else:
+        taskjson = 'taskrunner.json'
+    templatefile = os.path.join(templdir, taskjson)
     clusname = clusdets[0]
     secgrp = clusdets[1]
     subnet = clusdets[2]
@@ -67,15 +88,24 @@ def getDebugStatus():
         return False
 
 
-def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
+def distributeCandidates(rundate, srcdir, maxcount=20, istest=False):
+
+    clusdets = getClusterDetails(istest=istest)
+    _, targdir, _ = getTrajsolverPaths(istest=istest)
 
     clusname = clusdets[0]
+
+    targdir = targdir[5:]
+    outbucket=targdir[:targdir.find('/')]
+    targdir = targdir[targdir.find('/')+1:]
 
     ecsclient = boto3.client('ecs', region_name='eu-west-2')
     status = ecsclient.describe_clusters(clusters=[clusname])
     if len(status['clusters']) == 0:
         print('cluster not running!')
         return False
+
+    print(clusdets, targdir)
 
     print(f'Reading from {srcdir}')
     # obtain a list of picklefiles and sort by name
@@ -87,12 +117,10 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
 
     # work out how many buckets i need
     numcands = len(flist)
+    print(f'processing {numcands} candidates')
     numbucks = int(math.ceil(numcands/maxcount))
 
     # create buckets
-    targdir = targdir[5:]
-    outbucket=targdir[:targdir.find('/')]
-    targdir = targdir[targdir.find('/')+1:]
     buckroot = os.path.join(targdir, rundate.strftime('%Y%m%d'))
 
     taskarns = [None] * numbucks
@@ -110,7 +138,7 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
             dst = os.path.join(bucknames[i], fli)
             s3.upload_file(src, outbucket, dst)
 
-        taskjson = createTaskTemplate(rundate, bucknames[i], clusdets)
+        taskjson = createTaskTemplate(rundate, bucknames[i], clusdets, istest=istest)
 
         response = ecsclient.run_task(**taskjson)
         while len(response['tasks']) == 0:
@@ -119,7 +147,7 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
         taskarn = response['tasks'][0]['taskArn']
         taskarns[i] = taskarn
         jsontempls[i] = taskjson
-        print(taskarn[51:])
+        print(taskarn.split('/')[-1])
         if isDbg is True and i == 3:
             break
     
@@ -145,21 +173,29 @@ def distributeCandidates(rundate, srcdir, targdir, clusdets, maxcount=20):
     return True
 
 
-def monitorProgress(rundate):
+def monitorProgress(rundatestr, istest=''):
+
+    istest = False if istest=='' else True
     client = boto3.client('ecs', region_name='eu-west-2')
     s3 = boto3.client('s3')
-    archbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
     datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
 
-    templdir,_ = os.path.split(__file__)
-    clusdets = getClusterDetails(templdir)
+    clusdets = getClusterDetails(istest=istest)
+    _, targdir, _ = getTrajsolverPaths(istest=istest)
+    targdir = targdir[5:]
+    outbucket=targdir[:targdir.find('/')]
+    targdir = targdir[targdir.find('/')+1:]
 
     # load the buckets, tasks and cluster name from the dump file
-    rundate = datetime.datetime.strptime(rundate, '%Y%m%d')
-    picklefile = os.path.join(datadir, 'distrib', rundate.strftime('%Y%m%d') + '.pickle')
-    rempickle = f"matches/distrib/{rundate.strftime('%Y%m%d')}.pickle"
+    rundate = datetime.datetime.strptime(rundatestr, '%Y%m%d')
+    if istest:
+        picklefile = os.path.join(datadir, 'distrib', 'test', rundatestr + '.pickle')
+    else:
+        picklefile = os.path.join(datadir, 'distrib', rundatestr + '.pickle')
+    rempickle = f"{targdir}/{rundatestr}.pickle"
+    os.makedirs(os.path.join(datadir, 'distrib', 'test'), exist_ok=True)
     try:
-        s3.download_file(archbucket, rempickle, picklefile)
+        s3.download_file(outbucket, rempickle, picklefile)
     except:
         print('no containers to monitor')
         return 
@@ -193,22 +229,24 @@ def monitorProgress(rundate):
                 taskcount -= 1
                 _, thisbuck = os.path.split(thisbuck)
                 try:
-                    pref = f'matches/distrib/{thisbuck}/'
-                    objects_to_delete = s3.list_objects(Bucket=archbucket, Prefix=pref)
+                    pref = f'{targdir}/{thisbuck}/'
+                    objects_to_delete = s3.list_objects(Bucket=outbucket, Prefix=pref)
                     delete_keys = {'Objects': []}
                     delete_keys['Objects'] = [{'Key': k} for k in [obj['Key'] for obj in objects_to_delete.get('Contents', [])]]
-                    s3.delete_objects(Bucket=archbucket, Delete=delete_keys)
+                    s3.delete_objects(Bucket=outbucket, Delete=delete_keys)
                 except:
                     print('folder already removed')
-                print(f'task {tsk["arn"][51:]} completed already')
+                    taskid = tsk["taskArn"].split('/')[-1]
+                print(f'task {taskid} completed already')
         for tsk in sts['tasks']:
-            print(f'checking {tsk["taskArn"][51:]}')
+            taskid = tsk["taskArn"].split('/')[-1]
+            print(f'checking {taskid}')
             idx = taskarns.index(tsk['taskArn'])
             #print(tsk['taskArn'], tsk['lastStatus'])
             if tsk['lastStatus'] == 'STOPPED':
                 if tsk['stopCode'] != 'EssentialContainerExited':
                     # retry the task
-                    thisjson = createTaskTemplate(rundate, bucknames[idx])
+                    thisjson = createTaskTemplate(rundate, bucknames[idx], clusdets, istest=istest)
                     response = client.run_task(**thisjson)
                     taskarns[idx] = response['tasks'][0]['taskArn']
                     print('task restarted')
@@ -218,11 +256,11 @@ def monitorProgress(rundate):
                     taskcount -= 1
                     _, thisbuck = os.path.split(thisbuck)
                     try:
-                        pref = f'matches/distrib/{thisbuck}/'
-                        objects_to_delete = s3.list_objects(Bucket=archbucket, Prefix=pref)
+                        pref = f'{targdir}/{thisbuck}/'
+                        objects_to_delete = s3.list_objects(Bucket=outbucket, Prefix=pref)
                         delete_keys = {'Objects': []}
                         delete_keys['Objects'] = [{'Key': k} for k in [obj['Key'] for obj in objects_to_delete.get('Contents', [])]]
-                        s3.delete_objects(Bucket=archbucket, Delete=delete_keys)
+                        s3.delete_objects(Bucket=outbucket, Delete=delete_keys)
                     except:
                         print('folder already removed')
                     print('task completed')
@@ -231,9 +269,9 @@ def monitorProgress(rundate):
                     realfname=None
                     logdir = os.path.join(datadir, '..', 'logs', 'distrib')
                     os.makedirs(logdir, exist_ok=True)
-                    tmpfname = os.path.join(logdir, f'{thisarn[51:]}.log')
+                    tmpfname = os.path.join(logdir, f'{thisarn.split("/")[-1]}.log')
                     with open(tmpfname, 'w') as outf:
-                        for events in getLogDetails(loggrp, thisarn[51:], contname):
+                        for events in getLogDetails(loggrp, thisarn.split("/")[-1], contname):
                             for evt in events:
                                 evtdt = datetime.datetime.fromtimestamp(int(evt['timestamp']) / 1000)
                                 msg = evt['message']
@@ -243,8 +281,8 @@ def monitorProgress(rundate):
 
                     locname = os.path.join(logdir, f'{realfname}.log')
                     os.rename(tmpfname, locname)
-                    remlog = f'matches/distrib/logs/{realfname}.log'
-                    s3.upload_file(Filename=locname, Bucket=archbucket, Key=remlog)
+                    remlog = f'{targdir}/logs/{realfname}.log'
+                    s3.upload_file(Filename=locname, Bucket=outbucket, Key=remlog)
         if len(taskarns) > 99:
             sts = client.describe_tasks(cluster=clusname, tasks=taskarns[99:199])
             for tsk in sts['failures']:
@@ -255,21 +293,22 @@ def monitorProgress(rundate):
                     taskcount -= 1
                     _, thisbuck = os.path.split(thisbuck)
                     try:
-                        pref = f'matches/distrib/{thisbuck}/'
-                        objects_to_delete = s3.list_objects(Bucket=archbucket, Prefix=pref)
+                        pref = f'{targdir}/{thisbuck}/'
+                        objects_to_delete = s3.list_objects(Bucket=outbucket, Prefix=pref)
                         delete_keys = {'Objects': []}
                         delete_keys['Objects'] = [{'Key': k} for k in [obj['Key'] for obj in objects_to_delete.get('Contents', [])]]
-                        s3.delete_objects(Bucket=archbucket, Delete=delete_keys)
+                        s3.delete_objects(Bucket=outbucket, Delete=delete_keys)
                     except:
                         print('folder already removed')
-                    print(f'task {tsk["arn"][51:]} completed already')
+                    print(f'task {thisarn.split("/")[-1]} completed already')
             for tsk in sts['tasks']:
-                print(f'checking {tsk["taskArn"][51:]}')
+                taskid = tsk["taskArn"].split('/')[-1]
+                print(f'checking {taskid}')
                 idx = taskarns.index(tsk['taskArn'])
                 if tsk['lastStatus'] == 'STOPPED':
                     if tsk['stopCode'] != 'EssentialContainerExited':
                         # retry the task
-                        thisjson = createTaskTemplate(rundate, bucknames[idx])
+                        thisjson = createTaskTemplate(rundate, bucknames[idx], clusdets, istest=istest)
                         response = client.run_task(**thisjson)
                         taskarns[idx] = response['tasks'][0]['taskArn']
                         print('task restarted')
@@ -279,11 +318,11 @@ def monitorProgress(rundate):
                         taskcount -= 1
                         _, thisbuck = os.path.split(thisbuck)
                         try:
-                            pref = f'matches/distrib/{thisbuck}/'
-                            objects_to_delete = s3.list_objects(Bucket=archbucket, Prefix=pref)
+                            pref = f'{targdir}/{thisbuck}/'
+                            objects_to_delete = s3.list_objects(Bucket=outbucket, Prefix=pref)
                             delete_keys = {'Objects': []}
                             delete_keys['Objects'] = [{'Key': k} for k in [obj['Key'] for obj in objects_to_delete.get('Contents', [])]]
-                            s3.delete_objects(Bucket=archbucket, Delete=delete_keys)
+                            s3.delete_objects(Bucket=outbucket, Delete=delete_keys)
                         except:
                             print('folder already removed')
                         print('task completed')
@@ -292,9 +331,9 @@ def monitorProgress(rundate):
                         realfname=None
                         logdir = os.path.join(datadir, '..', 'logs', 'distrib')
                         os.makedirs(logdir, exist_ok=True)
-                        tmpfname = os.path.join(logdir, f'{thisarn[51:]}.log')
+                        tmpfname = os.path.join(logdir, f'{thisarn.split("/")[-1]}.log')
                         with open(tmpfname, 'w') as outf:
-                            for events in getLogDetails(loggrp, thisarn[51:], contname):
+                            for events in getLogDetails(loggrp, thisarn.split("/")[-1], contname):
                                 for evt in events:
                                     evtdt = datetime.datetime.fromtimestamp(int(evt['timestamp']) / 1000)
                                     msg = evt['message']
@@ -304,8 +343,8 @@ def monitorProgress(rundate):
 
                         locname = os.path.join(logdir, f'{realfname}.log')
                         os.rename(tmpfname, locname)
-                        remlog = f'matches/distrib/logs/{realfname}.log'
-                        s3.upload_file(Filename=locname, Bucket=archbucket, Key=remlog)
+                        remlog = f'{targdir}/logs/{realfname}.log'
+                        s3.upload_file(Filename=locname, Bucket=outbucket, Key=remlog)
         if taskcount > 0:
             # wait 60s before checking again
             print('sleeping for 60s')
@@ -322,9 +361,10 @@ def getMissedLogs(picklefile):
     contname = 'trajcont'
     logdir = os.path.expanduser('~/prod/logs/distrib')
     for thisarn in taskarns:
-        tmpfname = os.path.join(logdir, f'{thisarn[51:]}.log')
+        taskid = thisarn.split('/')[-1]
+        tmpfname = os.path.join(logdir, f'{taskid}.log')
         with open(tmpfname, 'w') as outf:
-            for events in getLogDetails(loggrp, thisarn[51:], contname):
+            for events in getLogDetails(loggrp, taskid, contname):
                 for evt in events:
                     evtdt = datetime.datetime.fromtimestamp(int(evt['timestamp']) / 1000)
                     msg = evt['message']
@@ -342,6 +382,8 @@ def getLogDetails(loggrp, thisarn, contname, region_name='eu-west-2'):
     Get all event messages of a group and stream from CloudWatch Logs AWS
     """
     client = boto3.client('logs', region_name=region_name)
+
+    print(contname, thisarn)
 
     # first request
     response = client.get_log_events(
@@ -364,21 +406,15 @@ def getLogDetails(loggrp, thisarn, contname, region_name='eu-west-2'):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 4:
-        rundt = datetime.datetime(2022,4,21)
-        # runs on the calcserver
-        csuser = os.getenv('SERVERUSERID', default='ec2-user')
-        srcdir = f'/home/{csuser}/ukmon-shared/matches/RMSCorrelate/candidates' # hardcoded on calcserver
-
-        buck = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')
-        targdir = f'{buck}/matches/distrib'
+    if len(sys.argv) < 3:
+        print('usage: python distributeCandidates yyyymmdd ./candidates istest\n')
+        print('       optional istest if True then test mode used')
     else:
         rundt = datetime.datetime.strptime(sys.argv[1], '%Y%m%d')
         srcdir = sys.argv[2]
-        targdir = sys.argv[3]
-
-    templdir,_ = os.path.split(__file__)
-    clusdets = getClusterDetails(templdir)
-    print(clusdets)
-    distributeCandidates(rundt, srcdir, targdir, clusdets)
+        if len(sys.argv)>3:
+            istest = True if sys.argv[3].lower()=='true' else False
+        else:
+            istest = False
+        distributeCandidates(rundt, srcdir, istest=istest)
     

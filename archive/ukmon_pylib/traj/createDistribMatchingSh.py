@@ -6,21 +6,8 @@
 import os
 import sys
 import datetime
-import json
 
-
-# read the task template to determine the paths to write any data to
-#
-def getTrajsolverPaths():
-    templdir,_ = os.path.split(__file__)
-    with open(os.path.join(templdir, 'taskrunner.json'), 'r') as inf:
-        taskdets = json.load(inf)
-    taskenv = taskdets['overrides']['containerOverrides'][0]['environment']
-    srcpath = [x for x in taskenv if x['name']=='SRCPATH'][0]['value'] # path from which trajsolver will consume candidates
-    outpath = [x for x in taskenv if x['name']=='OUTPATH'][0]['value'] # path to which trajsolver will publish trajectories
-    webpath = [x for x in taskenv if x['name']=='WEBPATH'][0]['value'] # web loc to which trajsolver will publish trajectories
-
-    return srcpath, outpath, webpath
+from traj.distributeCandidates import getTrajsolverPaths
 
 
 # make sure the local trajectories folder is synced with the master copy
@@ -36,7 +23,7 @@ def refreshTrajectories(outf, matchstart, matchend, trajpath):
     return 
 
 
-# make sure the master copy is updated with any new locally updated trajectories
+# make sure the shared bucket is updated with any new locally updated trajectories
 #
 def pushUpdatedTrajectoriesShared(outf, matchstart, matchend, targpath):
     for d in range(matchend, matchstart+1):
@@ -46,15 +33,15 @@ def pushUpdatedTrajectoriesShared(outf, matchstart, matchend, targpath):
         ymd=thisdt.strftime('%Y%m%d')
         trajloc=f'trajectories/{yr}/{ym}/{ymd}'
         outf.write(f'if [ -d {trajloc} ] ; then \n')
-        outf.write(f'aws s3 sync {trajloc} {targpath}/matches/RMSCorrelate/{trajloc} --exclude "*" --include "*.pickle" --include "*report.txt" --quiet\n')
-        outf.write(f'aws s3 sync {trajloc}/plots {targpath}/matches/RMSCorrelate/{trajloc}/plots --quiet\n')
+        outf.write(f'aws s3 sync {trajloc} {targpath}/{trajloc} --exclude "*" --include "*.pickle" --include "*report.txt" --quiet\n')
+        outf.write(f'aws s3 sync {trajloc}/plots {targpath}/{trajloc}/plots --quiet\n')
         outf.write('fi\n')
-    outf.write(f'aws s3 sync trajectories/{yr}/plots {targpath}/matches/RMSCorrelate/trajectories/{yr}/plots --quiet\n')
-    outf.write(f'aws s3 sync trajectories/{yr}/{ym}/plots {targpath}/matches/RMSCorrelate/trajectories/{yr}/{ym}/plots --quiet\n')
+    outf.write(f'aws s3 sync trajectories/{yr}/plots {targpath}/trajectories/{yr}/plots --quiet\n')
+    outf.write(f'aws s3 sync trajectories/{yr}/{ym}/plots {targpath}/trajectories/{yr}/{ym}/plots --quiet\n')
     return 
 
 
-# make sure the master copy is updated with any new locally updated trajectories
+# make sure the website is updated with any new locally updated trajectories
 #
 def pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webpath):
     for d in range(matchend, matchstart+1):
@@ -63,16 +50,18 @@ def pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webpath):
         ym=thisdt.strftime('%Y%m')
         ymd=thisdt.strftime('%Y%m%d')
         trajloc=f'trajectories/{yr}/{ym}/{ymd}'
-        targloc=f'reports/{yr}/orbits/{ym}/{ymd}'
+        targloc=f'{yr}/orbits/{ym}/{ymd}'
         outf.write(f'if [ -d {trajloc} ] ; then \n')
         outf.write(f'aws s3 sync {trajloc} {webpath}/{targloc} --quiet\n')
         outf.write('fi\n')
         outf.write(f'aws s3 sync {trajloc}/plots {webpath}/{targloc}/plots --quiet\n')
-    outf.write(f'aws s3 sync trajectories/{yr}/plots {webpath}/reports/{yr}/orbits/plots --quiet\n')
-    outf.write(f'aws s3 sync trajectories/{yr}/{ym}/plots {webpath}/reports/{yr}/orbits/{ym}/plots --quiet\n')
+    outf.write(f'aws s3 sync trajectories/{yr}/plots {webpath}/{yr}/orbits/plots --quiet\n')
+    outf.write(f'aws s3 sync trajectories/{yr}/{ym}/plots {webpath}/{yr}/orbits/{ym}/plots --quiet\n')
     return 
 
 
+# Create the density plots showing meteor showers
+#
 def createDensityPlots(outf, calcdir, enddt, includeyear=True):
     yr = enddt.year
     ym = enddt.strftime('%Y%m')
@@ -98,17 +87,23 @@ def createDensityPlots(outf, calcdir, enddt, includeyear=True):
     return
 
 
-def SyncRawData(outf, matchstart, matchend, shbucket, calcdir):
+# Sync the raw camera data from shared storage to the local disk
+#
+def SyncRawData(outf, matchstart, matchend, shbucket):
     # camera data - no need to replicate it for an historical date
-    outf.write(f'targdirs=$(aws s3 ls {shbucket}/matches/RMSCorrelate/ | egrep -v "traj|daily|test|plot|proce"|grep PRE | awk \'{{print $2}}\')\n') 
+    outf.write(f'targdirs=$(aws s3 ls {shbucket}/ | egrep -v "traj|daily|test|plot|proce|dbs"|grep PRE | awk \'{{print $2}}\')\n') 
     outf.write('for td in $targdirs ; do\n')
     for d in range(matchend+1, matchstart+2):
         thisdt=datetime.datetime.now() + datetime.timedelta(days=-d)
         trgdy=thisdt.strftime('%Y%m%d')
-        outf.write(f'	aws s3 sync {shbucket}/matches/RMSCorrelate/$td {calcdir}/$td --exclude "*" --include "${{td:0:6}}_{trgdy}*" --quiet\n')
+        outf.write(f'	aws s3 sync {shbucket}/$td ./$td --exclude "*" --include "${{td:0:6}}_{trgdy}*" --quiet\n')
     outf.write('done\n')
     return
 
+
+#
+# Get a list of images that are used by the solutions
+#
 
 def gatherUsedImageList(outf, matchstart, matchend, shbucket):
     for d in range(matchend, matchstart+1):
@@ -117,18 +112,25 @@ def gatherUsedImageList(outf, matchstart, matchend, shbucket):
         mth = thisdt.month
         dy = thisdt.day
         trajloc = f'trajectories/{yr}/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}'
-        out_dir = '/home/ec2-user/data/distrib'
+        out_dir = '~/data/distrib'
         outf.write(f'python -c "from traj.pickleAnalyser import getAllImages;getAllImages(\'{trajloc}\', \'{out_dir}\');"\n')
     outf.write(f'aws s3 sync {out_dir}  {shbucket}/matches/consumed/ --exclude "*" --include "consumed_*.txt"\n')
     outf.write(f'rm {out_dir}/consumed_*.txt\n')
     return 
 
 
-def createExecConsolSh(matchstart, matchend, execconsolsh, rundt):
-    shbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')
-    webbucket = os.getenv('WEBSITEBUCKET', default='s3://ukmda-website')
-    calcdir = '/home/ec2-user/ukmon-shared/matches/RMSCorrelate' # hardcoded!
-    _, outpath, _ = getTrajsolverPaths()
+#
+# Create the bash script that consolidates the generated data and makes sure the website and shared area are updated 
+
+def createExecConsolSh(matchstart, matchend, execconsolsh, istest=''):
+
+    istest = True if istest.lower()=='true' else False
+    print(f'istest is {istest}')
+
+    srcpath, shbucket, webbucket = getTrajsolverPaths(istest=istest)
+    csuser = os.getenv('SERVERUSERID', default='ec2-user')
+    calcdir = f'/home/{csuser}/ukmon-shared/matches/RMSCorrelate' 
+
     enddt = datetime.datetime.now() + datetime.timedelta(days=-matchend)
     includeyear = False
     if enddt.day == 30:
@@ -136,16 +138,19 @@ def createExecConsolSh(matchstart, matchend, execconsolsh, rundt):
 
     with open(execconsolsh, 'w') as outf:
         outf.write('#!/bin/bash\n')
-        outf.write('source /home/ec2-user/venvs/wmpl/bin/activate\n')
-        outf.write('export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib:/home/ec2-user/src/ukmon_pylib\n')
-        # outf.write('export AWS_PROFILE=ukmonshared\n')
+        outf.write(f'source /home/{csuser}/venvs/wmpl/bin/activate\n')
+        outf.write(f'export PYTHONPATH=/home/{csuser}/src/WesternMeteorPyLib:/home/{csuser}/src/ukmon_pylib\n')
+
         outf.write(f'cd {calcdir}\n')
         outf.write('logger -s -t execConsol start\n')
+        outf.write(f'aws s3 sync {srcpath}/ ~/data/distrib/ --exclude "*" --include "*.db" --quiet\n')
 
-        outf.write(f'python -m traj.consolidateDistTraj ~/data/distrib/ ~/data/distrib/processed_trajectories.json {rundt}\n')
+        outf.write(f'python -m traj.consolidateDistTraj ~/data/distrib/ {calcdir}/dbs/\n')
+
+        outf.write(f'aws s3 sync {calcdir}/dbs/ {srcpath}/dbs/ --exclude "*" --include "*.db" --quiet\n')
 
         outf.write('logger -s -t execConsol syncing any updated trajectories from shared S3\n')
-        refreshTrajectories(outf, matchstart, matchend, outpath)
+        refreshTrajectories(outf, matchstart, matchend, shbucket)
         outf.write('logger -s -t execConsol creating density plots\n')
         createDensityPlots(outf, calcdir, enddt, includeyear)
         outf.write('logger -s -t execConsol pushing data back to S3\n')
@@ -153,34 +158,36 @@ def createExecConsolSh(matchstart, matchend, execconsolsh, rundt):
         pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webbucket)
         outf.write('logger -s -t execConsol getting the image list\n')
         gatherUsedImageList(outf, matchstart, matchend, shbucket)
-        #outf.write('unset AWS_PROFILE\n')
+
         outf.write('logger -s -t execConsol done\n')
     return
+
+#
+# Create a bash script to replot the density charts if needed
 
 
 def createExecReplotSh(matchstart, matchend, execconsolsh):
     shbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')
-    calcdir = '/home/ec2-user/ukmon-shared/matches/RMSCorrelate' # hardcoded!
+    csuser = os.getenv('SERVERUSERID', default='ec2-user')
+    calcdir = f'/home/{csuser}/ukmon-shared/matches/RMSCorrelate' 
+
     _, outpath, _ = getTrajsolverPaths()
     enddt = datetime.datetime.now() + datetime.timedelta(days=-matchend)
     with open(execconsolsh, 'w') as outf:
         outf.write('#!/bin/bash\n')
-        outf.write('source /home/ec2-user/venvs/wmpl/bin/activate\n')
-        outf.write('export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib:/home/ec2-user/src/ukmon_pylib\n')
-        #outf.write('export AWS_PROFILE=ukmonshared\n')
+        outf.write(f'source /home/{csuser}/venvs/wmpl/bin/activate\n')
+        outf.write(f'export PYTHONPATH=/home/{csuser}/src/WesternMeteorPyLib:/home/{csuser}/src/ukmon_pylib\n')
         outf.write(f'cd {calcdir}\n')
         outf.write('logger -s -t execReplot start\n')
         refreshTrajectories(outf, matchstart, matchend, outpath)
         createDensityPlots(outf, calcdir, enddt, False)
         gatherUsedImageList(outf, matchstart, matchend, shbucket)
-        #outf.write('unset AWS_PROFILE\n')
         outf.write('logger -s -t execReplot done\n')
     return
 
 
-def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
-    shbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')
-    webbucket = os.getenv('WEBSITEBUCKET', default='s3://ukmda-website')
+def createDistribMatchingSh(matchstart, matchend, execmatchingsh, istest=False):
+    csuser = os.getenv('SERVERUSERID', default='ec2-user')
 
     startdt = datetime.datetime.now() + datetime.timedelta(days=-matchstart)
     enddt = datetime.datetime.now() + datetime.timedelta(days=-matchend)
@@ -189,66 +196,66 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh):
     enddtstr = enddt.strftime('%Y%m%d-080000')
     rundatestr = enddt.strftime('%Y%m%d')
 
-    calcdir = '/home/ec2-user/ukmon-shared/matches/RMSCorrelate' # hardcoded!
+    calcdir = f'/home/{csuser}/ukmon-shared/matches/RMSCorrelate' 
 
-    srcpath, outpath, _ = getTrajsolverPaths()
+    _, outpath, webpath = getTrajsolverPaths(istest=istest)
+    srcpath = os.getenv('UKMONSHAREDBUCKET') + '/matches/RMSCorrelate'
 
     with open(execmatchingsh, 'w') as outf:
         outf.write('#!/bin/bash\n')
-        outf.write('source /home/ec2-user/venvs/wmpl/bin/activate\n')
-        outf.write('export PYTHONPATH=/home/ec2-user/src/WesternMeteorPyLib:/home/ec2-user/src/ukmon_pylib\n')
-        #outf.write('export AWS_PROFILE=ukmonshared\n')
+        outf.write(f'source /home/{csuser}/venvs/wmpl/bin/activate\n')
+        outf.write(f'export PYTHONPATH=/home/{csuser}/src/WesternMeteorPyLib:/home/{csuser}/src/ukmon_pylib\n')
         outf.write(f'cd {calcdir}\n')
         outf.write('df -h . \n')
 
         # fetch anything thats new from S3
+        outf.write('logger -s -t execdistrib syncing latest trajectories from shared S3\n')
         refreshTrajectories(outf, matchstart, matchend, outpath)
 
         outf.write('logger -s -t execdistrib syncing the raw data from shared S3\n')
-        outf.write(f'aws s3 cp {srcpath}/processed_trajectories.json {calcdir}/processed_trajectories.json --quiet\n')
-        outf.write(f'ls -ltr {calcdir}/*.json\n')
-
-        SyncRawData(outf, matchstart, matchend, shbucket, calcdir)
+        SyncRawData(outf, matchstart, matchend, srcpath)
+        outf.write(f'aws s3 sync {srcpath}/dbs/ ./dbs/  --quiet\n')
         
         outf.write('logger -s -t execdistrib starting correlator to update existing matches and create candidates\n')
-        outf.write(f'mkdir -p {calcdir}/candidates\n')
-        outf.write(f'rm {calcdir}/candidates/*.pickle >/dev/null 2>&1\n')
-        outf.write(f'time python -m wmpl.Trajectory.CorrelateRMS {calcdir} -i 1 -l -r \"({startdtstr},{enddtstr})\"\n')
+        outf.write('mkdir -p ./candidates/processed\n')
+        outf.write('rm ./candidates/*.pickle >/dev/null 2>&1\n')
+        outf.write(f'time python -m wmpl.Trajectory.CorrelateRMS . --dbdir ./dbs --logdir ./logs --mcmode 4 -l -r \"({startdtstr},{enddtstr})\"\n')
 
         # backup the raw candidates in case i need to reprocess some by hand
-        outf.write(f'mkdir -p {calcdir}/candidates/bkp\n')
-        outf.write(f'tar cvfz {calcdir}/candidates/bkp/{rundatestr}.tgz {calcdir}/candidates/*.pickle\n')
-        outf.write(f'find {calcdir}/candidates/bkp/ -name "*.tgz" -mtime +14 -exec rm -f ' + '{} \\;\n')
+        outf.write(f'tar cvfz ./candidates/processed/{rundatestr}.tgz ./candidates/*.pickle\n')
+        outf.write('find ./candidates/processed/ -name "*.tgz" -mtime +14 -exec rm -f ' + '{} \\;\n')
+        outf.write('find ./logs/ -mtime +28 -exec rm -f ' + '{} \\;\n')
 
+        # TODO change this to sync the SQLite databases
         outf.write('logger -s -t execdistrib backing up the database to trajdb\n')
-        outf.write(f'cp {calcdir}/processed_trajectories.json {calcdir}/trajdb/processed_trajectories.json.{rundatestr}\n')
+        outf.write(f'tar cvzf ./trajdb/databases_{rundatestr}.tgz dbs/observations.db dbs/trajectories.db dbs/candidates.db\n')
+        outf.write('find ./trajdb/ -name "*" -mtime +14 -exec rm -f ' + '{} \\;\n')
 
-        outf.write('logger -s -t execdistrib Syncing the database back to shared S3\n')
-        outf.write(f'if [ -s {calcdir}/processed_trajectories.json ] ; then\n')
-        outf.write(f'aws s3 cp {calcdir}/processed_trajectories.json {srcpath}/processed_trajectories.json --quiet\n')
-        outf.write('else echo "bad database file" ; fi \n')
+        outf.write('logger -s -t execdistrib Syncing the databases back to shared S3\n')
+        outf.write(f'aws s3 sync ./dbs/ {srcpath}/dbs/  --quiet\n')
 
         outf.write('logger -s -t execdistrib distributing candidates and launching containers\n')
-        outf.write(f'time python -m traj.distributeCandidates {rundatestr} {calcdir}/candidates {srcpath}\n')
+        outf.write(f'time python -m traj.distributeCandidates {rundatestr} ./candidates {istest}\n')
 
         # do this again to fetch todays results
         outf.write('logger -s -t execdistrib refetch latest trajectories\n')
         refreshTrajectories(outf, matchstart, matchend, outpath)
         
         outf.write('logger -s -t execdistrib and sync the back to S3 as well\n')
-        pushUpdatedTrajectoriesShared(outf, matchstart, matchend, shbucket)
-        pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webbucket)
+        pushUpdatedTrajectoriesShared(outf, matchstart, matchend, outpath)
+        pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webpath)
 
-        #outf.write('unset AWS_PROFILE\n')
         outf.write('logger -s -t execdistrib done\n')
 
 
 if __name__ == '__main__':
     if len(sys.argv) < 4:
-        print('Usage: createDistribMatchingSh day1 day2 outfile')
+        print('Usage: createDistribMatchingSh day1 day2 outfile optional_istest')
         exit(1)
     matchstart = int(sys.argv[1])
     matchend = int(sys.argv[2])
     outfname = sys.argv[3]
+    if len(sys.argv) > 4:
+        istest = True if sys.argv[4].lower()=='true' else False
 
-    createDistribMatchingSh(matchstart, matchend, outfname)
+    createDistribMatchingSh(matchstart, matchend, outfname, istest)
