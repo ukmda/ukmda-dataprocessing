@@ -8,13 +8,16 @@ import sys
 import datetime
 import numpy
 import csv
-import json
 import shutil
 import tempfile
 import boto3
 
 from traj.pickleAnalyser import getVMagCodeAndStations
 from reports.CameraDetails import findSite, loadLocationDetails
+from traj.consolidateDistTraj import mergeDatabases
+
+from wmpl.Trajectory.CorrelateDB import TrajectoryDatabase
+from wmpl.Utils.TrajConversions import datetime2JD
 
 
 def processLocalFolder(trajdir, basedir):
@@ -43,26 +46,30 @@ def getTrajPaths(trajdict):
     trajpaths=[]
     fullnames=[]
     for traj in trajdict:
-        fullnames.append(trajdict[traj]['traj_file_path'])
-        pth, _ = os.path.split(trajdict[traj]['traj_file_path'])
+        fullnames.append(traj['traj_file_path'])
+        pth, _ = os.path.split(traj['traj_file_path'])
         trajpaths.append(pth)
     return trajpaths, fullnames
 
 
-def getListOfNewMatches(dir_path, tfile, prevtfile):
-    with open(os.path.join(dir_path, tfile), 'r') as inf:
-        trajs = json.load(inf)
-    with open(os.path.join(dir_path, prevtfile), 'r') as inf:
-        ptrajs = json.load(inf)    
-    newtrajs = {k:v for k,v in trajs['trajectories'].items() if k not in ptrajs['trajectories']}
-    #print(len(newtrajs))
-    _, newdirs = getTrajPaths(newtrajs)  
+def getListOfNewMatches(dir_path):
+    trajdir = 'matches/RMSCorrelate'
+    dt_range = [datetime.datetime(2000,1,1,0,0,0).replace(tzinfo=datetime.timezone.utc), 
+                    datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)]
+    jdt_range = [datetime2JD(dt_range[0]), datetime2JD(dt_range[1])]
+    mergeDatabases(dir_path, '/tmp', ignore_missing=True, purge_records=True)
+
+    tdb = TrajectoryDatabase('/tmp')
+    newtrajs = tdb.getTrajBasics(trajdir, jdt_range)
+    tdb.closeTrajDatabase()
+
+    _, newdirs = getTrajPaths(newtrajs)
     return newdirs
 
 
-def findNewMatches(dir_path, out_path, offset, repdtstr, dbname):
-    prevdbname = 'prev_' + dbname
-    newdirs = getListOfNewMatches(dir_path, dbname, prevdbname)
+def findNewMatches(dir_path, out_path, offset, repdtstr):
+
+    newdirs = getListOfNewMatches(dir_path)
     # load camera details
     caminfo = loadLocationDetails()
     caminfo = caminfo[caminfo.active==1]
@@ -134,13 +141,8 @@ def findNewMatches(dir_path, out_path, offset, repdtstr, dbname):
 
 if __name__ == '__main__':
     repdtstr = None
-    dbname = None
     if len(sys.argv) > 4:
         repdtstr = sys.argv[4]
-    if len(sys.argv) > 5:
-        dbname = sys.argv[5]
-    else:
-        dbname = 'processed_trajectories.json.bigserver'
         
     # arguments dblocation, datadir, days ago, rundate eg 20220524, full path to database
-    findNewMatches(sys.argv[1], sys.argv[2], sys.argv[3], repdtstr, dbname)
+    findNewMatches(sys.argv[1], sys.argv[2], sys.argv[3], repdtstr)

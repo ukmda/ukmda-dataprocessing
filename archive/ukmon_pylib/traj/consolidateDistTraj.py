@@ -8,10 +8,10 @@ import datetime
 from wmpl.Trajectory.CorrelateDB import ObservationsDatabase, TrajectoryDatabase, CandidateDatabase
 
 
-def mergeDatabases(srcdir, dbdir, ignore_missing=False):
+def mergeDatabases(srcdir, dbdir, ignore_missing=False, purge_records=False):
     targdb = os.path.join(dbdir, 'observations.db')
     if os.path.isfile(targdb) or ignore_missing:
-        obsdb = ObservationsDatabase(dbdir)
+        obsdb = ObservationsDatabase(dbdir, purge_records=purge_records)
         flist = glob.glob(os.path.join(srcdir, 'observations_*.db'))
         flist.sort()
         for fl in flist:
@@ -23,7 +23,7 @@ def mergeDatabases(srcdir, dbdir, ignore_missing=False):
 
     targdb = os.path.join(dbdir, 'trajectories.db')
     if os.path.isfile(targdb) or ignore_missing:
-        trajdb = TrajectoryDatabase(dbdir)
+        trajdb = TrajectoryDatabase(dbdir, purge_records=purge_records)
         flist = glob.glob(os.path.join(srcdir, 'trajectories_*.db'))
         flist.sort()
         for fl in flist:
