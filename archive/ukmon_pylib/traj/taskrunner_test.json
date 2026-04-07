@@ -1,0 +1,44 @@
+{
+    "cluster": "trajsolvertest",
+    "count": 1,
+    "enableECSManagedTags": true,
+    "enableExecuteCommand": true,
+    "group": "trajsolvergrp",
+    "launchType": "FARGATE",
+    "networkConfiguration": {
+        "awsvpcConfiguration": {
+            "subnets":[],
+            "securityGroups": [],
+            "assignPublicIp": "ENABLED"
+        }
+    },
+    "overrides": {
+        "containerOverrides": [
+            {
+                "name": "trajcont",
+                "command": [],
+                "environment": [
+                    {
+                        "name": "SRCPATH",
+                        "value": "s3://ukmda-shared/matches/distrib/test"
+                    },
+                    {
+                        "name": "OUTPATH",
+                        "value": "s3://ukmda-shared/matches/distrib/test"
+                    },
+                    {
+                        "name": "WEBPATH",
+                        "value": "s3://ukmda-website/dummy"
+                    }
+                ]
+            }
+        ],
+        "executionRoleArn": "",
+        "taskRoleArn": ""
+    },
+    "platformVersion": "LATEST",
+    "propagateTags": "TASK_DEFINITION",
+    "referenceId": "",
+    "startedBy": "cli",
+    "taskDefinition": "trajsolvertest"
+}
