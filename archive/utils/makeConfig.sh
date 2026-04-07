@@ -8,6 +8,8 @@ fi
 RUNTIME_ENV=$1
 envname=$(echo $RUNTIME_ENV | tr '[:upper:]' '[:lower:]')
 
+export AWS_PROFILE=default
+
 # read from AWS SSM Parameterset
 SRC=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_srcdir --query Parameters[0].Value  | tr -d '"')
 SITEURL=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_siteurl --query Parameters[0].Value  | tr -d '"')
@@ -21,6 +23,7 @@ BKPINSTANCEID=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_bac
 SERVERSSHKEY=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_sshkey --query Parameters[0].Value  | tr -d '"')
 NJLOGGRP=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_batchloggroup --query Parameters[0].Value  | tr -d '"')
 SERVERUSERID=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_calcuser --query Parameters[0].Value  | tr -d '"')
+unset AWS_PROFILE
 
 # hardcoded
 PYLIB=$SRC/ukmon_pylib
