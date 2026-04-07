@@ -141,6 +141,7 @@ ssh -i $SERVERSSHKEY $SERVERUSERID@$privip "find /tmp -maxdepth 1 -name "*.pickl
 log2cw $NJLOGGRP $NJLOGSTREAM "stopping calcserver again" runDistrib
 aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 
+# grab a copy of the indvidual container trajectory dbs so we can get a list of new solutions
 rm -Rf $DATADIR/latest/dbs/
 aws s3 sync $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/ $DATADIR/latest/dbs/ --exclude "*" --include "traj*.db" --quiet
 
