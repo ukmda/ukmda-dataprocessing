@@ -8,10 +8,6 @@ import datetime
 from wmpl.Trajectory.CorrelateDB import ObservationsDatabase, TrajectoryDatabase, CandidateDatabase
 
 
-def createLatest(srcdir, dbdir):
-    mergeDatabases(os.path.expanduser(srcdir), os.path.expanduser(dbdir), ignore_missing=True)
-
-
 def mergeDatabases(srcdir, dbdir, ignore_missing=False):
     targdb = os.path.join(dbdir, 'observations.db')
     if os.path.isfile(targdb) or ignore_missing:
