@@ -38,6 +38,15 @@ WMPL_ENV=wmpl
 APIKEY=$(cat ~/.ssh/gmapsapikey)
 KMLTEMPLATE=*70km.kml
 
+# variables that can be used in scripts and python files to ensure test data doesnt overwrite live data
+if [ "$RUNTIME_ENV" == "DEV" ] ; then 
+    TESTMODE="true"
+    TESTSUFF="/test"
+else
+    TESTMODE="false"
+    TESTSUFF=""
+fi 
+
 # create the config file
 now=$(date +%Y-%m-%d-%H:%M:%S)
 CFGFILE=~/${envname}/config.ini
@@ -67,6 +76,8 @@ echo "SERVERSSHKEY=${SERVERSSHKEY}" >> ${CFGFILE}
 echo "APIKEY=${APIKEY}" >> ${CFGFILE}
 echo "KMLTEMPLATE=${KMLTEMPLATE}" >> ${CFGFILE}
 echo "NJLOGGRP=${NJLOGGRP}" >> ${CFGFILE}
+echo "TESTMODE=${TESTMODE}" >> ${CFGFILE}
+echo "TESTSUFF=${TESTSUFF}" >> ${CFGFILE}
 echo "" >> ${CFGFILE}
 echo "export RUNTIME_ENV SRC SITEURL" >> ${CFGFILE}
 echo "export WEBSITEBUCKET UKMONSHAREDBUCKET" >> ${CFGFILE}
@@ -76,6 +87,8 @@ echo "export PYTHONPATH=${RMS_LOC}:${WMPL_LOC}:${PYLIB}:${SRC}/share" >> ${CFGFI
 echo "export MATCHSTART MATCHEND SERVERSSHKEY" >> ${CFGFILE}
 echo "export APIKEY KMLTEMPLATE SERVERINSTANCEID SERVERUSERID NJLOGGRP" >> ${CFGFILE}
 echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/local/geos/lib:/usr/local/proj4/lib" >> ${CFGFILE}
+echo "export TESTMODE TESTSUFF" >> ${CFGFILE}
+
 # enable miniconda
 echo "source ~/.condaon" >> ${CFGFILE}
 # function to log to cloudwatch
