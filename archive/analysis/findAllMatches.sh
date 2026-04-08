@@ -79,7 +79,7 @@ python -m maintenance.rerunFailedLambdas
 
 cd $here
 log2cw $NJLOGGRP $NJLOGSTREAM "start reportOfLatestMatches" findAllMatches
-python -m reports.reportOfLatestMatches $DATADIR/distrib $DATADIR $MATCHEND $rundate
+python -m reports.reportOfLatestMatches $DATADIR/latest/dbs $DATADIR $MATCHEND $rundate
 
 log2cw $NJLOGGRP $NJLOGSTREAM "start getMatchStats" findAllMatches
 dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
