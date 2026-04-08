@@ -587,13 +587,14 @@ def getListOfImages(picklename):
 
 class TrajQualityParams(object):
     def __init__(self):
-        self. min_traj_points = 6
-        self. min_qc = 5.0
-        self. max_e = 1.5
-        self. max_radiant_err = 2.0
-        self. max_vg_err = 10.0
-        self. max_begin_ht = 160
-        self. min_end_ht = 20
+        self.min_traj_points = 6
+        self.min_qc = 5.0
+        self.max_e = 1.5
+        self.max_radiant_err = 2.0
+        self.max_vg_err = 10.0
+        self.max_vg = 120.0
+        self.max_begin_ht = 160
+        self.min_end_ht = 20
 
 
 def getAllImages(dir_path, outdir):
