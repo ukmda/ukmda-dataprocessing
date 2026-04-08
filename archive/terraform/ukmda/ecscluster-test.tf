@@ -22,7 +22,7 @@ data "template_file" "tasktest_json_template" {
     regionid = "eu-west-2"
     repoid   = "calcengine/trajsolvertest"
     contname = var.containername
-    loggrp   = var.ecsloggroup
+    loggrp   = var.ecsloggrouptest
   }
 }
 
@@ -72,7 +72,7 @@ resource "null_resource" "createECSdetailstest" {
       SECGRP   = "${aws_security_group.ecssecgrp.id}"
       SUBNET   = "${aws_subnet.ecs_subnet.id}"
       IAMROLE  = "${aws_iam_role.ecstaskrole.arn}"
-      LOGGRP   = "${var.ecsloggroup}"
+      LOGGRP   = "${var.ecsloggrouptest}"
       CONTNAME = "${var.containername}"
     }
   }
