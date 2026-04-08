@@ -20,9 +20,6 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 # load the configuration
 source $here/../config.ini >/dev/null 2>&1
 
- [ "$RUNTIME_ENV" == "DEV" ] && TESTMODE="true"
- [ "$RUNTIME_ENV" == "DEV" ] && TESTSUFF="/test"
-
 # logstream name inherited from parent environment but set it if not
 if [ "$NJLOGSTREAM" == "" ]; then
     NJLOGSTREAM=$(date +%Y%m%d-%H%M%S)
@@ -132,8 +129,8 @@ log2cw $NJLOGGRP $NJLOGSTREAM "running consolidation" runDistrib
 scp -i $SERVERSSHKEY $execConsolsh $SERVERUSERID@$privip:data/distrib/$execcons
 ssh -i $SERVERSSHKEY $SERVERUSERID@$privip "data/distrib/$execcons"
 
-log2cw $NJLOGGRP $NJLOGSTREAM "finished consolidation" runDistrib
-rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$privip:ukmon-shared/matches/RMSCorrelate/dbs${TESTSUFF}/*.db $DATADIR/distrib
+log2cw $NJLOGGRP $NJLOGSTREAM "finished consolidation, copying databases" runDistrib
+rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$privip:ukmon-shared/matches/RMSCorrelate/dbs/*.db $DATADIR/distrib
 
 # remote temporary files
 ssh -i $SERVERSSHKEY $SERVERUSERID@$privip "find /tmp -maxdepth 1 -name "*.pickle"  -mtime +7 -exec rm -f {} \;"
@@ -141,17 +138,22 @@ ssh -i $SERVERSSHKEY $SERVERUSERID@$privip "find /tmp -maxdepth 1 -name "*.pickl
 log2cw $NJLOGGRP $NJLOGSTREAM "stopping calcserver again" runDistrib
 aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 
-# grab a copy of the indvidual container trajectory dbs so we can get a list of new solutions
-rm -Rf $DATADIR/latest/dbs/
-aws s3 sync $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/ $DATADIR/latest/dbs/ --exclude "*" --include "traj*.db" --quiet
+# grab a copy of the indvidual container dbs so we can get a list of new solutions
+rm -Rf $DATADIR/latest/contdbs/
+mkdir -p $DATADIR/latest/contdbs/
+aws s3 sync $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/ $DATADIR/latest/contdbs/ --exclude "*" --include "*.db" --quiet
+aws s3 rm $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/ --exclude "*" --include "*${rundate}*.db" --exclude "test/*" --exclude "dbs/*" --recursive --quiet
+aws s3 mv $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/${rundate}.pickle $DATADIR/distrib --quiet
 
 log2cw $NJLOGGRP $NJLOGSTREAM "compressing the processed data" runDistrib
+
 tar czvf $DATADIR/distrib/databases_${rundate}.tgz $DATADIR/distrib/*.db
-aws s3 mv $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/${rundate}.pickle $DATADIR/distrib --quiet
-tar czvf $DATADIR/distrib/${rundate}.tgz $DATADIR/distrib/${rundate}*.json $DATADIR/distrib/${rundate}.pickle
+mkdir -p $DATADIR/trajdb
+mv $DATADIR/distrib/databases_${rundate}.tgz $DATADIR/trajdb
+tar czvf $DATADIR/distrib/${rundate}.tgz $DATADIR/latest/contdbs/*.db $DATADIR/distrib/${rundate}.pickle
 aws s3 cp $DATADIR/distrib/${rundate}.tgz $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/done/ --quiet
-rm -f $DATADIR/distrib/${rundate}*.json $DATADIR/distrib/${rundate}.pickle
-aws s3 rm $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/ --exclude "*" --include "*.db" --exclude "test/*" --exclude "dbs/*" --recursive --quiet
+rm -f $DATADIR/distrib/${rundate}.pickle
+
 
 # and then clear the profile again
 unset AWS_PROFILE
