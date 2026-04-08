@@ -11,13 +11,12 @@ import csv
 import shutil
 import tempfile
 import boto3
+import glob
 
 from traj.pickleAnalyser import getVMagCodeAndStations
 from reports.CameraDetails import findSite, loadLocationDetails
-from traj.consolidateDistTraj import mergeDatabases
 
 from wmpl.Trajectory.CorrelateDB import TrajectoryDatabase
-from wmpl.Utils.TrajConversions import datetime2JD
 
 
 def processLocalFolder(trajdir, basedir):
@@ -42,28 +41,32 @@ def processLocalFolder(trajdir, basedir):
     return outstr
 
 
-def getTrajPaths(trajdict):
-    trajpaths=[]
-    fullnames=[]
-    for traj in trajdict:
-        fullnames.append(traj['traj_file_path'])
-        pth, _ = os.path.split(traj['traj_file_path'])
-        trajpaths.append(pth)
-    return trajpaths, fullnames
-
-
 def getListOfNewMatches(dir_path):
-    trajdir = 'matches/RMSCorrelate'
-    dt_range = [datetime.datetime(2000,1,1,0,0,0).replace(tzinfo=datetime.timezone.utc), 
-                    datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)]
-    jdt_range = [datetime2JD(dt_range[0]), datetime2JD(dt_range[1])]
-    mergeDatabases(dir_path, '/tmp', ignore_missing=True, purge_records=True)
+    trajdb = TrajectoryDatabase('/tmp', purge_records=True)
+    flist = glob.glob(os.path.join(dir_path, 'trajectories_*.db'))
+    flist.sort()
+    for fl in flist:
+        tstamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        print(f'{tstamp} processing {fl}')
+        if trajdb.mergeTrajDatabase(fl):
+            pass
+            #os.remove(fl)
+        else:
+            print('error')
 
-    tdb = TrajectoryDatabase('/tmp')
-    newtrajs = tdb.getTrajBasics(trajdir, jdt_range)
-    tdb.closeTrajDatabase()
+    if os.getenv('TESTMODE') == 'true':
+        trajdir = 'matches/distrib/test'
+    else:
+        trajdir = 'matches/RMSCorrelate'
 
-    _, newdirs = getTrajPaths(newtrajs)
+    cur = trajdb.dbhandle.execute('select traj_file_path from trajectories where status=1')
+    newtrajs = cur.fetchall()
+    trajdb.closeTrajDatabase()
+
+    newdirs = []
+    for traj in newtrajs:
+        newdirs.append(f'{trajdir}/{traj[0]}')
+
     return newdirs
 
 
