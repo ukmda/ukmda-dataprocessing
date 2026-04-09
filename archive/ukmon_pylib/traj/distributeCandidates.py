@@ -383,45 +383,30 @@ def getLogDetails(loggrp, thisarn, contname, region_name='eu-west-2'):
     """
     client = boto3.client('logs', region_name=region_name)
 
-    print(contname, thisarn)
+    for thisgrp in [loggrp, '/ecs/trajcont']:
+        for logstreamname in [f'ecs/{contname}/{thisarn}',f'ecs/trajcont/{thisarn}']:
+            # first request
+            print(f'looking for {logstreamname} in {thisgrp}')
+            try: 
+                response = client.get_log_events(
+                    logGroupName=thisgrp,
+                    logStreamName=logstreamname,
+                    startFromHead=True)
+                yield response['events']
 
-    # first request
-    try: 
-        response = client.get_log_events(
-            logGroupName=loggrp,
-            logStreamName=f'ecs/{contname}/{thisarn}',
-            startFromHead=True)
-        yield response['events']
-
-        # second and later
-        while True:
-            prev_token = response['nextForwardToken']
-            response = client.get_log_events(
-                logGroupName=loggrp,
-                logStreamName=f'ecs/{contname}/{thisarn}',
-                nextToken=prev_token)
-            # same token then break
-            if response['nextForwardToken'] == prev_token:
-                break
-            yield response['events']
-    except Exception: 
-        response = client.get_log_events(
-            logGroupName=loggrp,
-            logStreamName=f'ecs/trajcont/{thisarn}',
-            startFromHead=True)
-        yield response['events']
-
-        # second and later
-        while True:
-            prev_token = response['nextForwardToken']
-            response = client.get_log_events(
-                logGroupName=loggrp,
-                logStreamName=f'ecs/trajcont/{thisarn}',
-                nextToken=prev_token)
-            # same token then break
-            if response['nextForwardToken'] == prev_token:
-                break
-            yield response['events']
+                # second and later
+                while True:
+                    prev_token = response['nextForwardToken']
+                    response = client.get_log_events(
+                        logGroupName=thisgrp,
+                        logStreamName=logstreamname,
+                        nextToken=prev_token)
+                    # same token then break
+                    if response['nextForwardToken'] == prev_token:
+                        break
+                    yield response['events']
+            except Exception: 
+                yield 'no data'
 
 
 if __name__ == '__main__':
