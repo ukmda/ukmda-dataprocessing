@@ -46,11 +46,9 @@ begdate=$(date --date="-$MATCHSTART days" '+%Y%m%d')
 rundate=$(date --date="-$MATCHEND days" '+%Y%m%d')
 
 log2cw $NJLOGGRP $NJLOGSTREAM "start correlation server" runDistrib
-stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
-if [ $stat -eq 80 ]; then 
-    aws ec2 start-instances --instance-ids $SERVERINSTANCEID
-fi
 
+aws ec2 start-instances --instance-ids $SERVERINSTANCEID
+stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
 while [ "$stat" -ne 16 ]; do
     sleep 5
     log2cw $NJLOGGRP $NJLOGSTREAM "checking server status" runDistrib
@@ -62,6 +60,7 @@ log2cw $NJLOGGRP $NJLOGSTREAM "running phase 1 for dates ${begdate} to ${rundate
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 log2cw $NJLOGGRP $NJLOGSTREAM "creating the run script" runDistrib
+
 execdist=execdistrib.sh
 execMatchingsh=/tmp/$execdist
 python -m traj.createDistribMatchingSh $MATCHSTART $MATCHEND $execMatchingsh $TESTMODE
