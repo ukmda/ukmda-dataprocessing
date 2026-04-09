@@ -49,8 +49,7 @@ def getListOfNewMatches(dir_path):
         tstamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         print(f'{tstamp} processing {fl}')
         if trajdb.mergeTrajDatabase(fl):
-            pass
-            #os.remove(fl)
+            os.remove(fl)
         else:
             print('error')
 
@@ -82,15 +81,15 @@ def findNewMatches(dir_path, out_path, offset, repdtstr):
     else:
         repdt = datetime.datetime.now() - datetime.timedelta(int(offset))
 
-    os.makedirs(os.path.join(out_path, 'dailyreports'), exist_ok=True)
+    os.makedirs(out_path, exist_ok=True)
     # create filename. Allow for three reruns in a day
-    matchlist = os.path.join(out_path, 'dailyreports', repdt.strftime('%Y%m%d.txt'))
+    matchlist = os.path.join(out_path, repdt.strftime('%Y%m%d.txt'))
     if os.path.isfile(matchlist) is True:
-        matchlist = os.path.join(out_path, 'dailyreports', repdt.strftime('%Y%m%d_1.txt'))
+        matchlist = os.path.join(out_path, repdt.strftime('%Y%m%d_1.txt'))
     if os.path.isfile(matchlist) is True:
-        matchlist = os.path.join(out_path, 'dailyreports', repdt.strftime('%Y%m%d_2.txt'))
+        matchlist = os.path.join(out_path, repdt.strftime('%Y%m%d_2.txt'))
     if os.path.isfile(matchlist) is True:
-        matchlist = os.path.join(out_path, 'dailyreports', repdt.strftime('%Y%m%d_3.txt'))
+        matchlist = os.path.join(out_path, repdt.strftime('%Y%m%d_3.txt'))
 
     s3 = boto3.client('s3')
     srcbucket=os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
@@ -137,7 +136,7 @@ def findNewMatches(dir_path, out_path, offset, repdtstr):
             outf.write('\n')
 
     # finally, create a "latest.txt" as well
-    latestlist = os.path.join(out_path, 'dailyreports', 'latest.txt')
+    latestlist = os.path.join(out_path, 'latest.txt')
     shutil.copy(matchlist, latestlist)
     return 
 
@@ -146,6 +145,10 @@ if __name__ == '__main__':
     repdtstr = None
     if len(sys.argv) > 4:
         repdtstr = sys.argv[4]
+
+    srcdir = sys.argv[1]
+    outdir = sys.argv[2]
+    offset = sys.argv[3]
         
-    # arguments dblocation, datadir, days ago, rundate eg 20220524, full path to database
-    findNewMatches(sys.argv[1], sys.argv[2], sys.argv[3], repdtstr)
+    # arguments dblocation, datadir, days ago, rundate eg 20220524
+    findNewMatches(srcdir, outdir, offset, repdtstr)
