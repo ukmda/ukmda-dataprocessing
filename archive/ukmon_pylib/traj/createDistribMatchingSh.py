@@ -143,9 +143,9 @@ def createExecConsolSh(matchstart, matchend, execconsolsh, istest=''):
 
         outf.write(f'cd {calcdir}\n')
         outf.write('logger -s -t execConsol start\n')
-        outf.write(f'aws s3 sync {srcpath}/ ~/data/distrib/ --exclude "*" --include "*.db" --quiet\n')
+        outf.write(f'aws s3 sync {srcpath}/ ~/data/distrib/canddbs/ --exclude "*" --include "*.db" --exclude "dbs/*" --quiet\n')
 
-        outf.write(f'python -m traj.consolidateDistTraj ~/data/distrib/ {calcdir}/dbs/\n')
+        outf.write(f'python -m traj.consolidateDistTraj ~/data/distrib/canddbs/ {calcdir}/dbs/\n')
 
         outf.write(f'aws s3 sync {calcdir}/dbs/ {srcpath}/dbs/ --exclude "*" --include "*.db" --quiet\n')
 
@@ -223,10 +223,10 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh, istest=False):
 
         # backup the raw candidates in case i need to reprocess some by hand
         outf.write(f'tar cvfz ./candidates/processed/{rundatestr}.tgz ./candidates/*.pickle\n')
+        outf.write(f'aws s3 cp ./candidates/processed/{rundatestr}.tgz {outpath}/candidates/\n')
         outf.write('find ./candidates/processed/ -name "*.tgz" -mtime +14 -exec rm -f ' + '{} \\;\n')
         outf.write('find ./logs/ -mtime +28 -exec rm -f ' + '{} \\;\n')
 
-        # TODO change this to sync the SQLite databases
         outf.write('logger -s -t execdistrib backing up the database to trajdb\n')
         outf.write(f'tar cvzf ./trajdb/databases_{rundatestr}.tgz dbs/observations.db dbs/trajectories.db dbs/candidates.db\n')
         outf.write('find ./trajdb/ -name "*" -mtime +14 -exec rm -f ' + '{} \\;\n')
