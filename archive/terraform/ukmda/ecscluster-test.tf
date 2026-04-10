@@ -1,6 +1,9 @@
 # terraform to create ECS cluster
 # Copyright (C) 2018-2023 Mark McIntyre
 
+variable "ecsloggrouptest" { default = "/ecs/trajcontest" }
+variable "containernametest" { default = "trajconttest" }
+
 # create a cluster
 resource "aws_ecs_cluster" "trajsolvertest" {
   name = "trajsolvertest"
@@ -21,7 +24,7 @@ data "template_file" "tasktest_json_template" {
     acctid   = data.aws_caller_identity.current.account_id
     regionid = "eu-west-2"
     repoid   = "calcengine/trajsolvertest"
-    contname = var.containername
+    contname = var.containernametest
     loggrp   = var.ecsloggrouptest
   }
 }

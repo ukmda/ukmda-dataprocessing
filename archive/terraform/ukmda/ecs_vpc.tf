@@ -5,11 +5,6 @@
 #data used by the code in several places
 data "aws_region" "current" {}
 
-# some variables for the cluster and task defns
-variable "ecsloggroup" { default = "/ecs/trajcont" }
-variable "ecsloggrouptest" { default = "/ecs/trajcontest" }
-variable "containername" { default = "trajcont" }
-
 # create a VPC for the cluster
 resource "aws_vpc" "ecs_vpc" {
   cidr_block = "172.128.0.0/16"
