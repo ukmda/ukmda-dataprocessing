@@ -228,6 +228,7 @@ def monitorProgress(rundatestr, istest=''):
                 thisbuck = bucknames.pop(idx)
                 taskcount -= 1
                 _, thisbuck = os.path.split(thisbuck)
+                taskid = tsk["arn"].split('/')[-1]
                 try:
                     pref = f'{targdir}/{thisbuck}/'
                     objects_to_delete = s3.list_objects(Bucket=outbucket, Prefix=pref)
@@ -236,8 +237,9 @@ def monitorProgress(rundatestr, istest=''):
                     s3.delete_objects(Bucket=outbucket, Delete=delete_keys)
                 except:
                     print('folder already removed')
-                    taskid = tsk["taskArn"].split('/')[-1]
                 print(f'task {taskid} completed already')
+                getContainerLog(thisarn, loggrp, contname, outbucket, s3, targdir, datadir)
+
         for tsk in sts['tasks']:
             taskid = tsk["taskArn"].split('/')[-1]
             print(f'checking {taskid}')
@@ -266,23 +268,8 @@ def monitorProgress(rundatestr, istest=''):
                     print('task completed')
 
                     # collect the logs from CloudWatch 
-                    realfname=None
-                    logdir = os.path.join(datadir, '..', 'logs', 'distrib')
-                    os.makedirs(logdir, exist_ok=True)
-                    tmpfname = os.path.join(logdir, f'{thisarn.split("/")[-1]}.log')
-                    with open(tmpfname, 'w') as outf:
-                        for events in getLogDetails(loggrp, thisarn.split("/")[-1], contname):
-                            for evt in events:
-                                evtdt = datetime.datetime.fromtimestamp(int(evt['timestamp']) / 1000)
-                                msg = evt['message']
-                                outf.write(f'{evtdt} {msg}\n')
-                                if msg[:10] == 'processing':
-                                    realfname = msg[11:].strip()
+                    getContainerLog(thisarn, loggrp, contname, outbucket, s3, targdir, datadir)
 
-                    locname = os.path.join(logdir, f'{realfname}.log')
-                    os.rename(tmpfname, locname)
-                    remlog = f'{targdir}/logs/{realfname}.log'
-                    s3.upload_file(Filename=locname, Bucket=outbucket, Key=remlog)
         if len(taskarns) > 99:
             sts = client.describe_tasks(cluster=clusname, tasks=taskarns[99:199])
             for tsk in sts['failures']:
@@ -301,6 +288,8 @@ def monitorProgress(rundatestr, istest=''):
                     except:
                         print('folder already removed')
                     print(f'task {thisarn.split("/")[-1]} completed already')
+                    getContainerLog(thisarn, loggrp, contname, outbucket, s3, targdir, datadir)
+
             for tsk in sts['tasks']:
                 taskid = tsk["taskArn"].split('/')[-1]
                 print(f'checking {taskid}')
@@ -326,55 +315,54 @@ def monitorProgress(rundatestr, istest=''):
                         except:
                             print('folder already removed')
                         print('task completed')
+                        getContainerLog(thisarn, loggrp, contname, outbucket, s3, targdir, datadir)
 
-                        # collect the logs from CloudWatch 
-                        realfname=None
-                        logdir = os.path.join(datadir, '..', 'logs', 'distrib')
-                        os.makedirs(logdir, exist_ok=True)
-                        tmpfname = os.path.join(logdir, f'{thisarn.split("/")[-1]}.log')
-                        with open(tmpfname, 'w') as outf:
-                            for events in getLogDetails(loggrp, thisarn.split("/")[-1], contname):
-                                for evt in events:
-                                    evtdt = datetime.datetime.fromtimestamp(int(evt['timestamp']) / 1000)
-                                    msg = evt['message']
-                                    outf.write(f'{evtdt} {msg}\n')
-                                    if msg[:10] == 'processing':
-                                        realfname = msg[11:].strip()
-
-                        locname = os.path.join(logdir, f'{realfname}.log')
-                        os.rename(tmpfname, locname)
-                        remlog = f'{targdir}/logs/{realfname}.log'
-                        s3.upload_file(Filename=locname, Bucket=outbucket, Key=remlog)
         if taskcount > 0:
             # wait 60s before checking again
-            print('sleeping for 60s')
-            time.sleep(60.0)
+            print('sleeping for 30s')
+            time.sleep(30.0)
     return
 
 
-def getMissedLogs(picklefile):
-    s3 = boto3.client('s3')
-    archbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
-    dumpdata = pickle.load(open(picklefile,'rb'))
-    taskarns = dumpdata[1]
-    loggrp = '/ecs/trajcont'
-    contname = 'trajcont'
-    logdir = os.path.expanduser('~/prod/logs/distrib')
-    for thisarn in taskarns:
-        taskid = thisarn.split('/')[-1]
-        tmpfname = os.path.join(logdir, f'{taskid}.log')
-        with open(tmpfname, 'w') as outf:
-            for events in getLogDetails(loggrp, taskid, contname):
-                for evt in events:
-                    evtdt = datetime.datetime.fromtimestamp(int(evt['timestamp']) / 1000)
-                    msg = evt['message']
-                    outf.write(f'{evtdt} {msg}\n')
-                    if msg[:10] == 'processing':
-                        realfname = msg[11:].strip()
+def getContainerLog(thisarn, loggrp, contname, outbucket, s3, targdir, datadir):
+    # collect the logs from CloudWatch 
+    realfname=None
+    logdir = os.path.join(datadir, '..', 'logs', 'distrib')
+    os.makedirs(logdir, exist_ok=True)
+    tmpfname = os.path.join(logdir, f'{thisarn.split("/")[-1]}.log')
+    with open(tmpfname, 'w') as outf:
+        for events in getLogDetails(loggrp, thisarn.split("/")[-1], contname):
+            for evt in events:
+                evtdt = datetime.datetime.fromtimestamp(int(evt['timestamp']) / 1000)
+                msg = evt['message']
+                outf.write(f'{evtdt} {msg}\n')
+                if msg[:10] == 'processing':
+                    realfname = msg[11:].strip()
+    if realfname:
         locname = os.path.join(logdir, f'{realfname}.log')
         os.rename(tmpfname, locname)
-        remlog = f'matches/distrib/logs/{realfname}.log'
-        s3.upload_file(Filename=locname, Bucket=archbucket, Key=remlog)
+        remlog = f'{targdir}/logs/{realfname}.log'
+        s3.upload_file(Filename=locname, Bucket=outbucket, Key=remlog)
+    return 
+
+
+def getMissedLogs(picklefile, istest=False):
+
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
+    s3 = boto3.client('s3')
+    _, targdir, _ = getTrajsolverPaths(istest=istest)
+    targdir = targdir[5:]
+    outbucket=targdir[:targdir.find('/')]
+    targdir = targdir[targdir.find('/')+1:]
+
+    clusdets = getClusterDetails(istest=istest)
+    contname = clusdets[5]
+
+    dumpdata = pickle.load(open(picklefile,'rb'))
+    taskarns = dumpdata[1]
+    loggrp = '/ecs/trajcont' 
+    for thisarn in taskarns:
+        getContainerLog(thisarn, loggrp, contname, outbucket, s3, targdir, datadir)
 
 
 def getLogDetails(loggrp, thisarn, contname, region_name='eu-west-2'):
@@ -383,30 +371,31 @@ def getLogDetails(loggrp, thisarn, contname, region_name='eu-west-2'):
     """
     client = boto3.client('logs', region_name=region_name)
 
-    for thisgrp in [loggrp, '/ecs/trajcont']:
-        for logstreamname in [f'ecs/{contname}/{thisarn}',f'ecs/trajcont/{thisarn}']:
-            # first request
-            print(f'looking for {logstreamname} in {thisgrp}')
-            try: 
-                response = client.get_log_events(
-                    logGroupName=thisgrp,
-                    logStreamName=logstreamname,
-                    startFromHead=True)
-                yield response['events']
+    logstreamname = f'ecs/{contname}/{thisarn}'
+    # first request
+    print(f'looking for {logstreamname} in {loggrp}')
+    try: 
+        response = client.get_log_events(
+            logGroupName=loggrp,
+            logStreamName=logstreamname,
+            startFromHead=True)
+        yield response['events']
 
-                # second and later
-                while True:
-                    prev_token = response['nextForwardToken']
-                    response = client.get_log_events(
-                        logGroupName=thisgrp,
-                        logStreamName=logstreamname,
-                        nextToken=prev_token)
-                    # same token then break
-                    if response['nextForwardToken'] == prev_token:
-                        break
-                    yield response['events']
-            except Exception: 
-                yield 'no data'
+        # second and later
+        while True:
+            prev_token = response['nextForwardToken']
+            response = client.get_log_events(
+                logGroupName=loggrp,
+                logStreamName=logstreamname,
+                nextToken=prev_token)
+            # same token then break
+            if response['nextForwardToken'] == prev_token:
+                break
+            yield response['events']
+    except Exception:
+        dtval = int(datetime.datetime.now().timestamp() * 1000)
+        msg = f'log for {thisarn} not available'
+        yield [{'timestamp': dtval, 'message': msg}]
 
 
 if __name__ == '__main__':
