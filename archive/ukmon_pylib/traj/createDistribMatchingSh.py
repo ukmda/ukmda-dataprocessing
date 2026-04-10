@@ -34,7 +34,9 @@ def pushUpdatedTrajectoriesShared(outf, matchstart, matchend, targpath):
         trajloc=f'trajectories/{yr}/{ym}/{ymd}'
         outf.write(f'if [ -d {trajloc} ] ; then \n')
         outf.write(f'aws s3 sync {trajloc} {targpath}/{trajloc} --exclude "*" --include "*.pickle" --include "*report.txt" --quiet\n')
+        outf.write(f'if [ -d {trajloc}/plots ] ; then \n')
         outf.write(f'aws s3 sync {trajloc}/plots {targpath}/{trajloc}/plots --quiet\n')
+        outf.write('fi\n')
         outf.write('fi\n')
     outf.write(f'aws s3 sync trajectories/{yr}/plots {targpath}/trajectories/{yr}/plots --quiet\n')
     outf.write(f'aws s3 sync trajectories/{yr}/{ym}/plots {targpath}/trajectories/{yr}/{ym}/plots --quiet\n')
@@ -223,7 +225,6 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh, istest=False):
 
         # backup the raw candidates in case i need to reprocess some by hand
         outf.write(f'tar cvfz ./candidates/processed/{rundatestr}.tgz ./candidates/*.pickle\n')
-        outf.write(f'aws s3 cp ./candidates/processed/{rundatestr}.tgz {outpath}/candidates/\n')
         outf.write('find ./candidates/processed/ -name "*.tgz" -mtime +14 -exec rm -f ' + '{} \\;\n')
         outf.write('find ./logs/ -mtime +28 -exec rm -f ' + '{} \\;\n')
 
@@ -241,7 +242,7 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh, istest=False):
         outf.write('logger -s -t execdistrib refetch latest trajectories\n')
         refreshTrajectories(outf, matchstart, matchend, outpath)
         
-        outf.write('logger -s -t execdistrib and sync the back to S3 as well\n')
+        outf.write('logger -s -t execdistrib and sync back to S3 as well\n')
         pushUpdatedTrajectoriesShared(outf, matchstart, matchend, outpath)
         pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webpath)
 
