@@ -48,15 +48,6 @@ resource "aws_ecs_task_definition" "trajsolvertest_task" {
   }
 }
 
-/*
-# print out some results - clustername, sec grp, subnet and role arn
-output "clusname" { value = aws_ecs_cluster.trajsolver.name }
-output "secgrpid" { value = aws_security_group.ecssecgrp.id }
-output "subnetid" { value = aws_subnet.ecs_subnet.id }
-output "taskrolearn" { value = aws_iam_role.ecstaskrole.arn }
-output "loggrp" { value = var.ecsloggroup }
-output "contname" { value = var.containername }
-*/
 # create a local file containing the clustername and a few other details
 #
 resource "null_resource" "createECSdetailstest" {
@@ -64,8 +55,8 @@ resource "null_resource" "createECSdetailstest" {
     clusname = join(",", tolist([aws_ecs_cluster.trajsolvertest.name,
       aws_subnet.ecs_subnet.id,
       aws_security_group.ecssecgrp.id,
-    aws_iam_role.ecstaskrole.arn, var.ecsloggroup,
-    var.containername]))
+    aws_iam_role.ecstaskrole.arn, var.ecsloggrouptest,
+    var.containernametest]))
   }
   provisioner "local-exec" {
     command     = "echo $env:CLUSNAME $env:SECGRP $env:SUBNET $env:IAMROLE $env:LOGGRP $env:CONTNAME > ../../ukmon_pylib/traj/clusdetailstest-ukmda.txt"
@@ -76,7 +67,7 @@ resource "null_resource" "createECSdetailstest" {
       SUBNET   = "${aws_subnet.ecs_subnet.id}"
       IAMROLE  = "${aws_iam_role.ecstaskrole.arn}"
       LOGGRP   = "${var.ecsloggrouptest}"
-      CONTNAME = "${var.containername}"
+      CONTNAME = "${var.containernametest}"
     }
   }
 }
