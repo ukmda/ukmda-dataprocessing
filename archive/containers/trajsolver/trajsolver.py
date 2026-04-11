@@ -6,6 +6,8 @@ import sys
 import boto3
 import datetime
 import tempfile
+import glob
+import logging
 
 from wmpl.Trajectory.CorrelateRMS import RMSDataHandle
 from wmpl.Utils.Math import generateDatetimeBins
@@ -15,8 +17,10 @@ from wmpl.Trajectory.CorrelateEngine import TrajectoryCorrelator, TrajectoryCons
 from wmpl.Trajectory.CorrelateRMS import TrajectoryReduced, DatabaseJSON # noqa: F401
 from wmpl.Trajectory.CorrelateRMS import MeteorObsRMS, PlateparDummy, MeteorPointRMS # noqa: F401
 
+log = logging.getLogger('traj_correlator') # must be the same name as the WMPL logger
 
-def runCorrelator(dir_path, time_beg, time_end):
+
+def runCorrelator(dir_path, time_beg, time_end, max_stns=9999):
     # Init trajectory constraints
     maxtoffset = 10.0
     maxstationdist = 600.0
@@ -34,6 +38,7 @@ def runCorrelator(dir_path, time_beg, time_end):
     trajectory_constraints.run_mc = not disablemc
     trajectory_constraints.save_plots = saveplots
     trajectory_constraints.geometric_uncert = not uncerttime
+    trajectory_constraints.max_stations = max_stns
 
     # Clock for measuring script time
     t1 = datetime.datetime.now(datetime.timezone.utc)
@@ -98,9 +103,6 @@ def runCorrelator(dir_path, time_beg, time_end):
         print("-----------------------------")
         print()
 
-        # Load data of unprocessed observations
-        #dh.unpaired_observations = dh.loadUnpairedObservations(dh.processing_list, dt_range=(bin_beg, bin_end))
-
         # Run the trajectory correlator
         tc = TrajectoryCorrelator(dh, trajectory_constraints, velpart, data_in_j2000=True, enableOSM=True)
         tc.run(event_time_range=event_time_range, mcmode=3)
@@ -109,6 +111,7 @@ def runCorrelator(dir_path, time_beg, time_end):
     dh.closeTrajectoryDatabase()
 
     print("Total run time: {:s}".format(str(datetime.datetime.now(datetime.timezone.utc) - t1)))
+    log.info("Total run time: {:s}".format(str(datetime.datetime.now(datetime.timezone.utc) - t1)))
     return 
 
 
@@ -129,7 +132,9 @@ def getSourceAndTargets():
     webbucket = webpth[:webpth.find('/')]
     webpth = webpth[webpth.find('/')+1:]
 
-    return srcbucket, srcpth, outbucket, outpth, webbucket, webpth
+    max_stns = int(os.getenv('MAX_STNS', default='9999'))
+
+    return srcbucket, srcpth, outbucket, outpth, webbucket, webpth, max_stns
 
 
 # extra args for setting the MIME type when uploading to S3. 
@@ -228,15 +233,37 @@ def getS3Client():
 
 # starting point for the process
 def startup(srcfldr, startdt, enddt, isTest=False):
+
+    localfldr = tempfile.mkdtemp()
+
+    # Init the logger
+    log.setLevel(logging.DEBUG)
+
+    # Init the log formatter
+    log_formatter = logging.Formatter(
+        fmt='%(asctime)s-%(levelname)-5s-%(module)-15s:%(lineno)-5d- %(message)s',
+        datefmt='%Y/%m/%d %H:%M:%S')
+
+    # Init the file handler
+    datasetname = os.path.split(srcfldr)[-1]
+    log_file = os.path.join(localfldr, f'{datasetname}.log')
+    file_handler = logging.handlers.TimedRotatingFileHandler(log_file, when="midnight", backupCount=7)
+    file_handler.setFormatter(log_formatter)
+    log.addHandler(file_handler)
+
+    # Init the console handler (i.e. print to console)
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(log_formatter)
+    log.addHandler(console_handler)
+
     print(f'processing {srcfldr}')
     print(f"Starting at {datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}")
 
-    localfldr = tempfile.mkdtemp()
     canddir = os.path.join(localfldr,'candidates')
     os.makedirs(canddir, exist_ok = True)
 
     s3 = getS3Client()
-    srcbucket, srcpth, outbucket, outpth, webbucket, webpth = getSourceAndTargets()
+    srcbucket, srcpth, outbucket, outpth, webbucket, webpth, max_stns = getSourceAndTargets()
     if isTest is True:
         outpth = os.path.join(outpth, 'test')
 
@@ -254,7 +281,12 @@ def startup(srcfldr, startdt, enddt, isTest=False):
                 targfile = os.path.join(canddir, locfname)
                 print(f'downloading {locfname} to {targfile}')
                 s3.meta.client.download_file(srcbucket, fname, targfile)
-        runCorrelator(localfldr, startdt, enddt)
+        runCorrelator(localfldr, startdt, enddt, max_stns = max_stns)
+
+        # flush and close the logs
+        file_handler.flush()
+        console_handler.flush()
+        logging.shutdown()
 
         print('uploading data to website')
         trajfldr = os.path.join(localfldr,'trajectories')
@@ -273,13 +305,14 @@ def startup(srcfldr, startdt, enddt, isTest=False):
                 targkey = f'{outpth}/{fname}'
                 print(f'uploading {localfile} to {srcbucket}/{targkey}')
                 s3.meta.client.upload_file(localfile, srcbucket, targkey, ExtraArgs = getExtraArgs(fname)) 
+        
+        lognames = glob.glob(os.path.join(localfldr, '*.log'))
+        if len(lognames)> 0:
+            fname = f'correlator_{srcfldr}.log'
+            targkey = f'{outpth}/{fname}'
+            print(f'uploading {lognames[0]} to {srcbucket}/{targkey}')
+            s3.meta.client.upload_file(lognames[0], srcbucket, targkey, ExtraArgs = getExtraArgs(fname)) 
 
-        fname = f'{srcfldr}.json'
-        jsonfile = os.path.join(localfldr, 'processed_trajectories.json')
-        if os.path.isfile(jsonfile):
-            targkey = f'{srcpth}/{fname}'
-            print(f'uploading {jsonfile} to {srcbucket}/{srcpth}')
-            s3.meta.client.upload_file(jsonfile, srcbucket, targkey, ExtraArgs = getExtraArgs(fname)) 
     else:
         print('no files found')
 

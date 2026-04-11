@@ -94,6 +94,9 @@ rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/pickleAnalyser.py $SERVERUSERI
 log2cw $NJLOGGRP $NJLOGSTREAM "start distributed processing" runDistrib
 ssh -i $SERVERSSHKEY $SERVERUSERID@$privip "data/distrib/$execdist"
 
+scp -i $SERVERSSHKEY $SERVERUSERID@$privip:ukmon-shared/matches/RMSCorrelate/logs/*${rundate}*.log $SRC/logs/distrib/cands_${rundate}.log
+ssh -i $SERVERSSHKEY $SERVERUSERID@$privip "find ukmon-shared/matches/RMSCorrelate/logs -name '*.log' -mtime +30 -exec rm -f {} \;"
+
 log2cw $NJLOGGRP $NJLOGSTREAM "job run, stop the server again" runDistrib
 aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 
