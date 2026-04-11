@@ -149,7 +149,7 @@ def createExecConsolSh(matchstart, matchend, execconsolsh, istest=''):
 
         outf.write(f'python -m traj.consolidateDistTraj ~/data/distrib/canddbs/ {calcdir}/dbs/\n')
 
-        outf.write(f'aws s3 sync {calcdir}/dbs/ {srcpath}/dbs/ --exclude "*" --include "*.db" --quiet\n')
+        outf.write(f'aws s3 sync {calcdir}/dbs/ {srcpath}/dbs/ --exclude "*" --include "*.db"\n')
 
         outf.write('logger -s -t execConsol syncing any updated trajectories from shared S3\n')
         refreshTrajectories(outf, matchstart, matchend, shbucket)
@@ -216,7 +216,6 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh, istest=False):
 
         outf.write('logger -s -t execdistrib syncing the raw data from shared S3\n')
         SyncRawData(outf, matchstart, matchend, srcpath)
-        outf.write(f'aws s3 sync {srcpath}/dbs/ ./dbs/  --quiet\n')
         
         outf.write('logger -s -t execdistrib starting correlator to update existing matches and create candidates\n')
         outf.write('mkdir -p ./candidates/processed\n')
@@ -231,9 +230,6 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh, istest=False):
         outf.write('logger -s -t execdistrib backing up the database to trajdb\n')
         outf.write(f'tar cvzf ./trajdb/databases_{rundatestr}.tgz dbs/observations.db dbs/trajectories.db dbs/candidates.db\n')
         outf.write('find ./trajdb/ -name "*" -mtime +14 -exec rm -f ' + '{} \\;\n')
-
-        outf.write('logger -s -t execdistrib Syncing the databases back to shared S3\n')
-        outf.write(f'aws s3 sync ./dbs/ {srcpath}/dbs/  --quiet\n')
 
         outf.write('logger -s -t execdistrib distributing candidates and launching containers\n')
         outf.write(f'time python -m traj.distributeCandidates {rundatestr} ./candidates {istest}\n')
