@@ -29,6 +29,10 @@
                     {
                         "name": "WEBPATH",
                         "value": "s3://ukmda-website/reports"
+                    },
+                    {
+                        "name": "MAX_STNS",
+                        "value": "9999"
                     }
                 ]
             }

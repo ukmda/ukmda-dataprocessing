@@ -15,7 +15,7 @@
     "overrides": {
         "containerOverrides": [
             {
-                "name": "trajcont",
+                "name": "trajconttest",
                 "command": [],
                 "environment": [
                     {
@@ -29,6 +29,10 @@
                     {
                         "name": "WEBPATH",
                         "value": "s3://ukmda-website/dummy"
+                    },
+                    {
+                        "name": "MAX_STNS",
+                        "value": "9999"
                     }
                 ]
             }
