@@ -168,12 +168,15 @@ def createExecConsolSh(matchstart, matchend, execconsolsh, istest=''):
 # Create a bash script to replot the density charts if needed
 
 
-def createExecReplotSh(matchstart, matchend, execconsolsh):
+def createExecReplotSh(matchstart, matchend, execconsolsh, istest=''):
+
+    istest = True if istest.lower()=='true' else False
+
     shbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')
     csuser = os.getenv('SERVERUSERID', default='ec2-user')
     calcdir = f'/home/{csuser}/ukmon-shared/matches/RMSCorrelate' 
+    _, outpath, _ = getTrajsolverPaths(istest=istest)
 
-    _, outpath, _ = getTrajsolverPaths()
     enddt = datetime.datetime.now() + datetime.timedelta(days=-matchend)
     with open(execconsolsh, 'w') as outf:
         outf.write('#!/bin/bash\n')
@@ -201,6 +204,7 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh, istest=False):
     calcdir = f'/home/{csuser}/ukmon-shared/matches/RMSCorrelate' 
 
     _, outpath, webpath = getTrajsolverPaths(istest=istest)
+
     srcpath = os.getenv('UKMONSHAREDBUCKET') + '/matches/RMSCorrelate'
 
     with open(execmatchingsh, 'w') as outf:
@@ -212,6 +216,7 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh, istest=False):
 
         # fetch anything thats new from S3
         outf.write('logger -s -t execdistrib syncing latest trajectories from shared S3\n')
+        # in test, we seeded the test area with prod trajectories in April 2026
         refreshTrajectories(outf, matchstart, matchend, outpath)
 
         outf.write('logger -s -t execdistrib syncing the raw data from shared S3\n')
@@ -237,7 +242,7 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh, istest=False):
         # do this again to fetch todays results
         outf.write('logger -s -t execdistrib refetch latest trajectories\n')
         refreshTrajectories(outf, matchstart, matchend, outpath)
-        
+    
         outf.write('logger -s -t execdistrib and sync back to S3 as well\n')
         pushUpdatedTrajectoriesShared(outf, matchstart, matchend, outpath)
         pushUpdatedTrajectoriesWeb(outf, matchstart, matchend, webpath)
