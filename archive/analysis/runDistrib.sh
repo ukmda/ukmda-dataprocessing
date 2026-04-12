@@ -84,17 +84,17 @@ while [ $? -ne 0 ] ; do
     scp -i $SERVERSSHKEY $execMatchingsh $SERVERUSERID@$privip:data/distrib/$execdist
 done 
 # push the python code and ECS templates required
-rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/clusdetails-* $SERVERUSERID@$privip:src/ukmon_pylib/traj
-rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/taskrunner*.json $SERVERUSERID@$privip:src/ukmon_pylib/traj
-rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/consolidateDistTraj.py $SERVERUSERID@$privip:src/ukmon_pylib/traj
-rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/distributeCandidates.py $SERVERUSERID@$privip:src/ukmon_pylib/traj
-rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/pickleAnalyser.py $SERVERUSERID@$privip:src/ukmon_pylib/traj
+rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/clusdetails-* $SERVERUSERID@$privip:src/ukmon_pylib/traj
+rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/taskrunner*.json $SERVERUSERID@$privip:src/ukmon_pylib/traj
+rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/consolidateDistTraj.py $SERVERUSERID@$privip:src/ukmon_pylib/traj
+rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/distributeCandidates.py $SERVERUSERID@$privip:src/ukmon_pylib/traj
+rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/pickleAnalyser.py $SERVERUSERID@$privip:src/ukmon_pylib/traj
 
 # now run the script
 log2cw $NJLOGGRP $NJLOGSTREAM "start distributed processing" runDistrib
 ssh -i $SERVERSSHKEY $SERVERUSERID@$privip "data/distrib/$execdist"
 
-scp -i $SERVERSSHKEY $SERVERUSERID@$privip:ukmon-shared/matches/RMSCorrelate/logs/*${rundate}*.log $SRC/logs/distrib/cands_${rundate}.log
+rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$privip:ukmon-shared/matches/RMSCorrelate/logs/*${rundate}*.log $SRC/logs/distrib/
 ssh -i $SERVERSSHKEY $SERVERUSERID@$privip "find ukmon-shared/matches/RMSCorrelate/logs -name '*.log' -mtime +30 -exec rm -f {} \;"
 
 log2cw $NJLOGGRP $NJLOGSTREAM "job run, stop the server again" runDistrib
@@ -147,14 +147,20 @@ aws s3 sync $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/ $DATADIR/latest/contd
 aws s3 rm $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/ --exclude "*" --include "*${rundate}*.db" --exclude "test/*" --exclude "dbs/*" --recursive --quiet
 aws s3 mv $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/${rundate}.pickle $DATADIR/distrib --quiet
 
+# grab a copy of the indvidual container logs - duplicated in monitorProgress, but never mind
+aws s3 sync $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/ $SRC/logs/distrib/ --exclude "*" --include "correl*.log"  --exclude "logs/" --quiet
+aws s3 rm $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/ --exclude "*" --include "correl*.log"  --exclude "logs/" --recursive  --quiet
+
 log2cw $NJLOGGRP $NJLOGSTREAM "compressing the processed data" runDistrib
 
-tar czvf $DATADIR/distrib/databases_${rundate}.tgz $DATADIR/distrib/*.db
 mkdir -p $DATADIR/trajdb
-mv $DATADIR/distrib/databases_${rundate}.tgz $DATADIR/trajdb
+tar czvf $DATADIR/trajdb/databases_${rundate}.tgz $DATADIR/distrib/*.db
 tar czvf $DATADIR/distrib/contdbs_${rundate}.tgz $DATADIR/latest/contdbs/*.db $DATADIR/distrib/${rundate}.pickle
 aws s3 cp $DATADIR/distrib/contdbs_${rundate}.tgz $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/done/ --quiet
-find $DATADIR/distrib/ -name "contdbs_*.tgz" -mtime +30 -exec rm -f {} \;
+
+tar czvf $DATADIR/distrib/contlogs_${rundate}.tgz $SRC/logs/distrib/correl*.log $SRC/logs/distrib/${rundate}_*.log
+
+find $DATADIR/distrib/ -name "cont_*.tgz" -mtime +30 -exec rm -f {} \;
 rm -f $DATADIR/distrib/${rundate}.pickle
 
 
