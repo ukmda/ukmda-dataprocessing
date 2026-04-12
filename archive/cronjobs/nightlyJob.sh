@@ -47,8 +47,20 @@ if [ -f $SRC/logs/$matchlog ] ; then
     suff=$(stat matchJob.log -c %X)
     mv $SRC/logs/$matchlog $SRC/logs/$matchlog-$suff
 fi 
+
+log2cw $NJLOGGRP $NJLOGSTREAM "start getRMSSingleData" nightlyJob
+# this creates the parquet table for Athena
+$SRC/analysis/getRMSSingleData.sh
+
+log2cw $NJLOGGRP $NJLOGSTREAM "start createSearchable pass 1" nightlyJob
+
+$SRC/analysis/createSearchable.sh $yr singles
+
 # Run the match process - run this only once as it scoops up all unprocessed data
 ${SRC}/analysis/findAllMatches.sh > ${SRC}/logs/${matchlog} 2>&1
+
+log2cw $NJLOGGRP $NJLOGSTREAM "start updateIndexPages" nightlyJob
+$SRC/website/updateIndexPages.sh
 
 # from here down, we're creating reports
 # consolidate the output of the match process for further analysos
