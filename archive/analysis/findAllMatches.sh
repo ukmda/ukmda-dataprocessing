@@ -29,7 +29,8 @@ if [ "$NJLOGSTREAM" == "" ]; then
     aws logs create-log-stream --log-group-name $NJLOGGRP --log-stream-name $NJLOGSTREAM --profile ukmonshared
 fi
 log2cw $NJLOGGRP $NJLOGSTREAM "start findAllMatches" findAllMatches
-rundate=$(cat $DATADIR/rundate.txt)
+
+[ -f $DATADIR/rundate.txt ] && rundate=$(cat $DATADIR/rundate.txt) || rundate=$(date +%Y%m%d)
 
 # read start/end dates from commandline if rerunning for historical date
 if [ $# -gt 0 ] ; then
@@ -47,15 +48,7 @@ if [ $# -gt 0 ] ; then
 fi
 
 # folder for logs
-mkdir -p $SRC/logs > /dev/null 2>&1
-
-log2cw $NJLOGGRP $NJLOGSTREAM "start getRMSSingleData" findAllMatches
-# this creates the parquet table for Athena
-$SRC/analysis/getRMSSingleData.sh
-
-log2cw $NJLOGGRP $NJLOGSTREAM "start createSearchable pass 1" findAllMatches
-yr=$(date +%Y)
-$SRC/analysis/createSearchable.sh $yr singles
+mkdir -p $SRC/logs/distrib > /dev/null 2>&1
 
 startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
 enddt=$(date --date="-$MATCHEND days" '+%Y%m%d-080000')
@@ -97,9 +90,6 @@ echo $(basename $dailyrep) $evts $trajs $matches $rtim >>  $DATADIR/dailyreports
 if [ "$RUNTIME_ENV" == "PROD" ] ; then 
     aws s3 sync $DATADIR/dailyreports/ $UKMONSHAREDBUCKET/matches/RMSCorrelate/dailyreports/ --quiet
 fi 
-
-log2cw $NJLOGGRP $NJLOGSTREAM "start updateIndexPages" findAllMatches
-$SRC/website/updateIndexPages.sh $dailyrep
 
 log2cw $NJLOGGRP $NJLOGSTREAM "start purgeLogs" findAllMatches
 find $SRC/logs -name "matches*" -mtime +7 -exec gzip {} \;
