@@ -152,8 +152,9 @@ log2cw $NJLOGGRP $NJLOGSTREAM "compressing the processed data" runDistrib
 tar czvf $DATADIR/distrib/databases_${rundate}.tgz $DATADIR/distrib/*.db
 mkdir -p $DATADIR/trajdb
 mv $DATADIR/distrib/databases_${rundate}.tgz $DATADIR/trajdb
-tar czvf $DATADIR/distrib/${rundate}.tgz $DATADIR/latest/contdbs/*.db $DATADIR/distrib/${rundate}.pickle
-aws s3 cp $DATADIR/distrib/${rundate}.tgz $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/done/ --quiet
+tar czvf $DATADIR/distrib/contdbs_${rundate}.tgz $DATADIR/latest/contdbs/*.db $DATADIR/distrib/${rundate}.pickle
+aws s3 cp $DATADIR/distrib/contdbs_${rundate}.tgz $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/done/ --quiet
+find $DATADIR/distrib/ -name "contdbs_*.tgz" -mtime +30 -exec rm -f {} \;
 rm -f $DATADIR/distrib/${rundate}.pickle
 
 
