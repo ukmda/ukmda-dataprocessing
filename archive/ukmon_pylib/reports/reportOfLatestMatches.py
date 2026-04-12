@@ -53,7 +53,7 @@ def getListOfNewMatches(dir_path):
         else:
             print('error')
 
-    if os.getenv('TESTMODE') == 'true':
+    if os.getenv('TESTMODE').lower() == 'true':
         trajdir = 'matches/distrib/test'
     else:
         trajdir = 'matches/RMSCorrelate'
@@ -64,7 +64,7 @@ def getListOfNewMatches(dir_path):
 
     newdirs = []
     for traj in newtrajs:
-        newdirs.append(f'{trajdir}/{traj[0]}')
+        newdirs.append(os.path.join(trajdir, traj[0]))
 
     return newdirs
 
@@ -99,10 +99,11 @@ def findNewMatches(dir_path, out_path, offset, repdtstr):
             trajdir = trajdir[trajdir.find('matches'):]
             trajpath, picklename = os.path.split(trajdir)
             localpick = os.path.join(tmpdir, picklename)
-            s3.download_file(srcbucket, trajdir, localpick)
             try:
+                s3.download_file(srcbucket, trajdir, localpick)
                 bestvmag, shwr, stationids = getVMagCodeAndStations(localpick)
             except:
+                print(f'unable to find {trajdir}')
                 bestvmag, shwr, stationids = 0,'',['']
             stations=[]
             for statid in stationids:
