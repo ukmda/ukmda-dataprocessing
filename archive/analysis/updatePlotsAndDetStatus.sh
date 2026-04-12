@@ -59,7 +59,7 @@ conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 log2cw $NJLOGGRP $NJLOGSTREAM "creating the run script" updatePlotsAndDetStatus
 execrerun=execreplot.sh
 execrerunsh=/tmp/$execrerun
-python -c "from traj.createDistribMatchingSh import createExecReplotSh;createExecReplotSh($MATCHSTART, $MATCHEND, '$execrerunsh')"
+python -c "from traj.createDistribMatchingSh import createExecReplotSh;createExecReplotSh($MATCHSTART, $MATCHEND, '$execrerunsh', '$TESTMODE')"
 chmod +x $execrerunsh
 
 log2cw $NJLOGGRP $NJLOGSTREAM "get server details" updatePlotsAndDetStatus
