@@ -121,6 +121,7 @@ while [ "$stat" -ne 16 ]; do
     log2cw $NJLOGGRP $NJLOGSTREAM "checking - status is ${stat}" runDistrib
     stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
 done
+privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
 
 execcons=execconsol.sh
 execConsolsh=/tmp/$execcons
