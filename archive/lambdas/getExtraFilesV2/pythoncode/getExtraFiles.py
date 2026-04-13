@@ -36,10 +36,15 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
     yr = orbname[:4]
     ym = orbname[:6]
     ymd= orbname[:8]
+    istest = False
     if int(yr) > 2020:
         webpth = f'reports/{yr}/orbits/{ym}/{ymd}/{orbname}/'
     else:
         webpth = f'reports/{yr}/orbits/{ym}/{orbname}/'
+
+    if 'test' in key:
+        webpth = f'dummy/{yr}/orbits/{ym}/{ymd}/{orbname}/'
+        istest = True
         
     outdir = os.path.join(tmpdir, orbname)
     try: 
@@ -162,7 +167,7 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
             pass
 
         print('pushing files back')
-        pushFilesBack(outdir, archbucket, websitebucket, fuloutdir, s3)
+        pushFilesBack(outdir, archbucket, websitebucket, fuloutdir, s3, istest=istest)
         print('updating the index page')
         createOrbitPageIndex(outdir, websitebucket, s3)
 
@@ -241,7 +246,7 @@ def findOtherFiles(evtdt, archbucket, websitebucket, outdir, fldr, s3):
     return
 
 
-def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
+def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3, istest=False):
 
     flist = os.listdir(outdir)
     _, pth =os.path.split(outdir)
@@ -253,6 +258,10 @@ def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
     else:
         webpth = f'reports/{yr}/orbits/{ym}/{pth}/'
 
+    if istest:
+        webpth = f'dummy/{yr}/orbits/{ym}/{ymd}/{pth}/'
+        
+
     for f in flist:
         print(f)
         locfname = os.path.join(outdir, f)
@@ -262,7 +271,10 @@ def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
             extraargs = getExtraArgs(locfname)
             s3.meta.client.upload_file(locfname, websitebucket, key, ExtraArgs=extraargs)
         elif '.lst' in f:
-            key = os.path.join(f'matches/RMSCorrelate/trajectories/{yr}/{ym}/{ymd}/{pth}', f)
+            if istest:
+                key = os.path.join(f'matches/distrib/test/trajectories/{yr}/{ym}/{ymd}/{pth}', f)
+            else:
+                key = os.path.join(f'matches/RMSCorrelate/trajectories/{yr}/{ym}/{ymd}/{pth}', f)
             extraargs = getExtraArgs(locfname)
             s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
         elif 'summary' in f:
@@ -271,7 +283,10 @@ def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
             extraargs = getExtraArgs(locfname)
             s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
         elif 'orbit_full.csv' in f:
-            key = os.path.join(f'matches/{yr}/fullcsv', f)
+            if istest:
+                key = os.path.join(f'matches/distrib/test/{yr}/fullcsv', f)
+            else:
+                key = os.path.join(f'matches/{yr}/fullcsv', f)
             extraargs = getExtraArgs(locfname)
             s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
 
