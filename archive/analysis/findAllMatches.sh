@@ -68,7 +68,10 @@ fi
 log2cw $NJLOGGRP $NJLOGSTREAM "Solving Run Done" findAllMatches
 
 log2cw $NJLOGGRP $NJLOGSTREAM "start rerunFailedLambdas" findAllMatches
-python -m maintenance.rerunFailedLambdas
+if [ "$RUNTIME_ENV" == "PROD" ] ; then 
+    # don't do this yet outside Prod as the code doesn't handle it
+    python -m maintenance.rerunFailedLambdas
+fi 
 
 cd $here
 log2cw $NJLOGGRP $NJLOGSTREAM "start reportOfLatestMatches" findAllMatches
