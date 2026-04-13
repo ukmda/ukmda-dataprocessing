@@ -27,7 +27,6 @@
     - {src: '{{srcdir}}/static_content/js/', dest: '{{destdir}}/static_content/js', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/static_content/latest/', dest: '{{destdir}}/static_content/latest', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/static_content/live/', dest: '{{destdir}}/static_content/live', mode: '754', backup: no, directory_mode: yes }
-    - {src: '{{srcdir}}/static_content/reports/', dest: '{{destdir}}/static_content/reports', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/static_content/search/', dest: '{{destdir}}/static_content/search', mode: '754', backup: no, directory_mode: yes }
     - {src: '{{srcdir}}/static_content/templates/', dest: '{{destdir}}/static_content/templates', mode: '754', backup: no, directory_mode: yes }
 
