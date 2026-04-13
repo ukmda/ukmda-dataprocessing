@@ -34,27 +34,42 @@ def getDailyObsCounts(logf):
 
 
 def getMatchStats(logf):
-    with open(logf) as inf:
-        loglines = inf.readlines()
+    loglines = open(logf).readlines()
+
+    events = [line.strip() for line in loglines if 'Analysing' in line and 'observations' in line]
+    if len(events) > 0: 
+        # new-style log
+        addlines = [x for x in events if '0 observations' not in x]
+        addoffs = -5
+        oldstyle = False
+    else:
+        addlines = [line.strip() for line in loglines if 'Added' in line and 'observations' in line]
+        addoffs = 1
+        oldstyle = True
     
-    addlines = [line.strip() for line in loglines if 'Added' in line and 'observations' in line]
-    nocallines = [line.strip() for line in loglines if 'Skipping' in line and 'recalibrated' in line]
-    misdflines = [line.strip() for line in loglines if 'Skipping' in line and 'missing data' in line]
-    uncal = len(nocallines)
-    missdf = len(misdflines)
+    uncal = len([line.strip() for line in loglines if 'Skipping' in line and 'recalibrated' in line])
+    missdf = len([line.strip() for line in loglines if 'Skipping' in line and 'missing data' in line])
+
     added=0
     for li in addlines:
         spls=li.split(' ')
-        added = added + int(spls[1])
+        added += int(spls[addoffs])
     
     beglowr = len([line.strip() for line in loglines if 'Begin height lower than the end height' in line])
     badalti = len([line.strip() for line in loglines if 'Meteor heights outside allowed range' in line])
     badvelo = len([line.strip() for line in loglines if 'Velocity difference too high' in line])
     badangl = len([line.strip() for line in loglines if 'Max convergence angle too small' in line])
 
-    trajs = [line.strip() for line in loglines if 'SAVING' in line and 'CANDIDATES' in line]
-    spls = trajs[0].split(' ')
-    trajs = int(spls[1])
+    if oldstyle:
+        trajs = [line.strip() for line in loglines if 'SAVING' in line and 'CANDIDATES' in line]
+        spls = trajs[0].split(' ')
+        trajs = int(spls[1])
+    else:
+        trajs = 0
+        trajlines = [line.strip() for line in loglines if 'Saved' in line and '0 candidates' not in line]
+        for li in trajlines:
+            spls=li.split(' ')
+            trajs += int(spls[-2])
 
     nonphys = beglowr + badalti + badvelo + badangl 
     tot = added + uncal + missdf
