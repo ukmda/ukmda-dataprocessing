@@ -228,7 +228,7 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh, istest=False):
         outf.write(f'time python -m wmpl.Trajectory.CorrelateRMS . --dbdir ./dbs --logdir ./logs --mcmode 4 -l -r \"({startdtstr},{enddtstr})\"\n')
 
         # backup the raw candidates in case i need to reprocess some by hand
-        outf.write(f'tar cvfz ./candidates/processed/{rundatestr}.tgz ./candidates/*.pickle\n')
+        outf.write(f'tar czf ./candidates/processed/{rundatestr}.tgz ./candidates/*.pickle\n')
         outf.write('find ./candidates/processed/ -name "*.tgz" -mtime +14 -exec rm -f ' + '{} \\;\n')
         outf.write('find ./logs/ -mtime +28 -exec rm -f ' + '{} \\;\n')
 
