@@ -16,7 +16,7 @@ import glob
 from traj.pickleAnalyser import getVMagCodeAndStations
 from reports.CameraDetails import findSite, loadLocationDetails
 
-from wmpl.Trajectory.CorrelateDB import TrajectoryDatabase
+from wmpl.Trajectory.CorrelateDB import TrajectoryDatabase, ObservationsDatabase
 
 
 def processLocalFolder(trajdir, basedir):
@@ -41,8 +41,10 @@ def processLocalFolder(trajdir, basedir):
     return outstr
 
 
-def getListOfNewMatches(dir_path):
-    trajdb = TrajectoryDatabase('/tmp', purge_records=True)
+def getListOfNewMatches(dir_path, db_path='/tmp', rundate=None):
+    os.makedirs(db_path, exist_ok=True)
+    db_name = f'{rundate}_trajectories.db' if rundate else 'trajectories.db'
+    trajdb = TrajectoryDatabase(db_path = db_path, db_name=db_name, purge_records=True)
     flist = glob.glob(os.path.join(dir_path, 'trajectories_*.db'))
     flist.sort()
     for fl in flist:
@@ -69,9 +71,29 @@ def getListOfNewMatches(dir_path):
     return newdirs
 
 
-def findNewMatches(dir_path, out_path, offset, repdtstr):
+def updatePairedDB(dir_path, db_path='/tmp', rundate=None):
+    os.makedirs(db_path, exist_ok=True)
+    db_name = f'{rundate}_observations.db' if rundate else 'observations.db'
+    obsdb = ObservationsDatabase(db_path=db_path, db_name=db_name, purge_records=True)
+    flist = glob.glob(os.path.join(dir_path, 'observations_*.db'))
+    flist.sort()
+    for fl in flist:
+        tstamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        print(f'{tstamp} processing {fl}')
+        if obsdb.mergeObsDatabase(fl):
+            os.remove(fl)
+        else:
+            print('error')
 
-    newdirs = getListOfNewMatches(dir_path)
+    cur = obsdb.dbhandle.execute('select count(*) from paired_obs where status=1')
+    obscount = cur.fetchall()
+
+    return obscount
+
+
+def findNewMatches(dir_path, out_path, offset, repdtstr):
+    daily_path = os.path.join(os.path.split(dir_path)[0], 'dailydbs')
+    newdirs = getListOfNewMatches(dir_path, daily_path, rundate=repdtstr)
     # load camera details
     caminfo = loadLocationDetails()
     caminfo = caminfo[caminfo.active==1]
@@ -147,9 +169,11 @@ if __name__ == '__main__':
     if len(sys.argv) > 4:
         repdtstr = sys.argv[4]
 
-    srcdir = sys.argv[1]
-    outdir = sys.argv[2]
+    cand_db_dir = sys.argv[1]
+    daily_db_dir = sys.argv[2]
     offset = sys.argv[3]
         
     # arguments dblocation, datadir, days ago, rundate eg 20220524
-    findNewMatches(srcdir, outdir, offset, repdtstr)
+    findNewMatches(cand_db_dir, daily_db_dir, offset, repdtstr)
+    # update the daily database of paired observations
+    updatePairedDB(cand_db_dir, daily_db_dir, repdtstr)
