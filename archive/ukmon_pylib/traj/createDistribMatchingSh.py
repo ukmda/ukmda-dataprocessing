@@ -149,7 +149,7 @@ def createExecConsolSh(matchstart, matchend, execconsolsh, istest=''):
 
         outf.write(f'python -m traj.consolidateDistTraj ~/data/distrib/canddbs/ {calcdir}/dbs/\n')
 
-        outf.write(f'aws s3 sync {calcdir}/dbs/ {srcpath}/dbs/ --exclude "*" --include "*.db"\n')
+        outf.write(f'aws s3 sync {calcdir}/dbs/ {srcpath}/dbs/ --exclude "*" --include "*.db" --quiet\n')
 
         outf.write('logger -s -t execConsol syncing any updated trajectories from shared S3\n')
         refreshTrajectories(outf, matchstart, matchend, shbucket)
