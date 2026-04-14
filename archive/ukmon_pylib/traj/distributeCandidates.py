@@ -237,13 +237,14 @@ def monitorProgress(rundatestr, istest=''):
                     s3.delete_objects(Bucket=outbucket, Delete=delete_keys)
                 except:
                     print('folder already removed')
-                print(f'task {taskid} completed already')
+                print(f'{thisbuck}: task {taskid} completed already')
                 getContainerLog(thisarn, loggrp, contname, outbucket, s3, targdir, datadir)
 
         for tsk in sts['tasks']:
             taskid = tsk["taskArn"].split('/')[-1]
-            print(f'checking {taskid}')
             idx = taskarns.index(tsk['taskArn'])
+            _, thisbuck = os.path.split(bucknames[idx])
+            print(f'{thisbuck}: checking {taskid} ')
             #print(tsk['taskArn'], tsk['lastStatus'])
             if tsk['lastStatus'] == 'STOPPED':
                 if tsk['stopCode'] != 'EssentialContainerExited':
@@ -251,7 +252,7 @@ def monitorProgress(rundatestr, istest=''):
                     thisjson = createTaskTemplate(rundate, bucknames[idx], clusdets, istest=istest)
                     response = client.run_task(**thisjson)
                     taskarns[idx] = response['tasks'][0]['taskArn']
-                    print('task restarted')
+                    print(f'{thisbuck}: task restarted')
                 else:
                     thisarn=taskarns.pop(idx)
                     thisbuck = bucknames.pop(idx)
@@ -265,7 +266,7 @@ def monitorProgress(rundatestr, istest=''):
                         s3.delete_objects(Bucket=outbucket, Delete=delete_keys)
                     except:
                         print('folder already removed')
-                    print('task completed')
+                    print(f'{thisbuck}: task completed')
 
                     # collect the logs from CloudWatch 
                     getContainerLog(thisarn, loggrp, contname, outbucket, s3, targdir, datadir)
@@ -279,6 +280,7 @@ def monitorProgress(rundatestr, istest=''):
                     thisbuck = bucknames.pop(idx)
                     taskcount -= 1
                     _, thisbuck = os.path.split(thisbuck)
+                    taskid = tsk["arn"].split('/')[-1]
                     try:
                         pref = f'{targdir}/{thisbuck}/'
                         objects_to_delete = s3.list_objects(Bucket=outbucket, Prefix=pref)
@@ -287,20 +289,21 @@ def monitorProgress(rundatestr, istest=''):
                         s3.delete_objects(Bucket=outbucket, Delete=delete_keys)
                     except:
                         print('folder already removed')
-                    print(f'task {thisarn.split("/")[-1]} completed already')
+                    print(f'{thisbuck}: task {taskid} completed already')
                     getContainerLog(thisarn, loggrp, contname, outbucket, s3, targdir, datadir)
 
             for tsk in sts['tasks']:
                 taskid = tsk["taskArn"].split('/')[-1]
-                print(f'checking {taskid}')
                 idx = taskarns.index(tsk['taskArn'])
+                _, thisbuck = os.path.split(bucknames[idx])
+                print(f'{thisbuck} : checking {taskid} ')
                 if tsk['lastStatus'] == 'STOPPED':
                     if tsk['stopCode'] != 'EssentialContainerExited':
                         # retry the task
                         thisjson = createTaskTemplate(rundate, bucknames[idx], clusdets, istest=istest)
                         response = client.run_task(**thisjson)
                         taskarns[idx] = response['tasks'][0]['taskArn']
-                        print('task restarted')
+                        print(f'{thisbuck}: task restarted')
                     else:
                         thisarn=taskarns.pop(idx)
                         thisbuck = bucknames.pop(idx)
@@ -314,7 +317,7 @@ def monitorProgress(rundatestr, istest=''):
                             s3.delete_objects(Bucket=outbucket, Delete=delete_keys)
                         except:
                             print('folder already removed')
-                        print('task completed')
+                        print(f'{thisbuck}: task completed')
                         getContainerLog(thisarn, loggrp, contname, outbucket, s3, targdir, datadir)
 
         if taskcount > 0:
@@ -373,7 +376,7 @@ def getLogDetails(loggrp, thisarn, contname, region_name='eu-west-2'):
 
     logstreamname = f'ecs/{contname}/{thisarn}'
     # first request
-    print(f'looking for {logstreamname} in {loggrp}')
+    #print(f'looking for {logstreamname} in {loggrp}')
     try: 
         response = client.get_log_events(
             logGroupName=loggrp,
