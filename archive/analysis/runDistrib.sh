@@ -159,7 +159,7 @@ tar czvf $DATADIR/trajdb/databases_${rundate}.tgz $DATADIR/distrib/*.db
 tar czvf $DATADIR/distrib/contdbs_${rundate}.tgz $DATADIR/latest/contdbs/*.db $DATADIR/distrib/${rundate}.pickle
 aws s3 cp $DATADIR/distrib/contdbs_${rundate}.tgz $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/done/ --quiet
 
-tar czvf $DATADIR/distrib/contlogs_${rundate}.tgz $SRC/logs/distrib/correl*.log $SRC/logs/distrib/${rundate}_*.log
+tar czvf $DATADIR/distrib/contlogs_${rundate}.tgz $SRC/logs/distrib/correlator_${rundate}*.log $SRC/logs/distrib/${rundate}_*.log
 
 find $DATADIR/distrib/ -name "cont_*.tgz" -mtime +30 -exec rm -f {} \;
 rm -f $DATADIR/distrib/${rundate}.pickle
