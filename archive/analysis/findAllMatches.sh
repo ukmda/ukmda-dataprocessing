@@ -75,7 +75,7 @@ log2cw $NJLOGGRP $NJLOGSTREAM "start reportOfLatestMatches" findAllMatches
 python -m reports.reportOfLatestMatches $DATADIR/latest/contdbs $DATADIR/dailyreports $MATCHEND $rundate
 
 log2cw $NJLOGGRP $NJLOGSTREAM "start getMatchStats" findAllMatches
-dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
+dailyrep=$(ls -1tr $DATADIR/dailyreports/20*.txt | tail -1)
 trajlist=$(cat $dailyrep | awk -F, '{print $2}')
 
 matchlog=${SRC}/logs/matchJob.log
