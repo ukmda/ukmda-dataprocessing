@@ -176,4 +176,5 @@ if __name__ == '__main__':
     # arguments dblocation, datadir, days ago, rundate eg 20220524
     findNewMatches(cand_db_dir, daily_db_dir, offset, repdtstr)
     # update the daily database of paired observations
+    daily_db_dir = os.path.join(os.path.split(cand_db_dir)[0], 'dailydbs')
     updatePairedDB(cand_db_dir, daily_db_dir, repdtstr)
