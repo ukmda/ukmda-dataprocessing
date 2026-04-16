@@ -5,7 +5,7 @@ if [ "$(hostname)" == "wordpresssite" ] ; then
     source /home/bitnami/venvs/openhabstuff/bin/activate
     python $here/statsToMqtt.py
     diskpct=$(df / |tail -1| awk '{print $5 }' | sed 's/%//g')
-    if [ $diskpct -gt 9 ] ; then 
+    if [ $diskpct -gt 90 ] ; then 
         /home/bitnami/src/maintenance/mysql_checks.sh
         msg="$(hostname) diskspace was ${diskpct}%"
         subj="Diskspace alert for $(hostname)"
