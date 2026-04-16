@@ -116,7 +116,7 @@ def gatherUsedImageList(outf, matchstart, matchend, shbucket):
         trajloc = f'trajectories/{yr}/{yr}{mth:02d}/{yr}{mth:02d}{dy:02d}'
         out_dir = '~/data/distrib'
         outf.write(f'python -c "from traj.pickleAnalyser import getAllImages;getAllImages(\'{trajloc}\', \'{out_dir}\');"\n')
-    outf.write(f'aws s3 sync {out_dir}  {shbucket}/matches/consumed/ --exclude "*" --include "consumed_*.txt"\n')
+    outf.write(f'aws s3 sync {out_dir}  {shbucket}/matches/consumed/ --exclude "*" --include "consumed_*.txt --quiet"\n')
     outf.write(f'rm {out_dir}/consumed_*.txt\n')
     return 
 
