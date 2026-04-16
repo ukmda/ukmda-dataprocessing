@@ -91,7 +91,8 @@ def getDebugStatus():
 def distributeCandidates(rundate, srcdir, maxcount=20, istest=False):
 
     clusdets = getClusterDetails(istest=istest)
-    _, targdir, _ = getTrajsolverPaths(istest=istest)
+    # the target for distribution is the source for the trajsolver
+    targdir, _, _ = getTrajsolverPaths(istest=istest)
 
     clusname = clusdets[0]
 
