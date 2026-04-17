@@ -60,8 +60,8 @@ resource "aws_ssm_parameter" "prod_calcinstance" {
 resource "aws_ssm_parameter" "prod_calcuser" {
   name  = "prod_calcuser"
   type  = "String"
-  value = "unbuntu"
-  #value = "ec2-user" # "unbuntu"
+  value = "ubuntu"
+  #value = "ec2-user" # "ubuntu"
   tags = {
     "billingtag" = "ukmon"
   }
