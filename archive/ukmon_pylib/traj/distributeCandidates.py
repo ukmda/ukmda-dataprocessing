@@ -176,13 +176,13 @@ def distributeCandidates(rundate, srcdir, maxcount=20, istest=False):
 
 def monitorProgress(rundatestr, istest=''):
 
-    istest = False if istest=='' else True
+    istest = False if (istest=='' or istest.lower() == 'false') else True
     client = boto3.client('ecs', region_name='eu-west-2')
     s3 = boto3.client('s3')
     datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
 
     clusdets = getClusterDetails(istest=istest)
-    _, targdir, _ = getTrajsolverPaths(istest=istest)
+    targdir, _, _ = getTrajsolverPaths(istest=istest)
     targdir = targdir[5:]
     outbucket=targdir[:targdir.find('/')]
     targdir = targdir[targdir.find('/')+1:]
@@ -198,7 +198,7 @@ def monitorProgress(rundatestr, istest=''):
     try:
         s3.download_file(outbucket, rempickle, picklefile)
     except:
-        print('no containers to monitor')
+        print(f'no containers to monitor in {outbucket}/{rempickle}')
         return 
     dumpdata = pickle.load(open(picklefile,'rb'))
     bucknames = dumpdata[0]
