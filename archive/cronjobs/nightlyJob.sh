@@ -51,6 +51,10 @@ fi
 log2cw $NJLOGGRP $NJLOGSTREAM "start getRMSSingleData" nightlyJob
 # this creates the parquet table for Athena
 $SRC/analysis/getRMSSingleData.sh
+if [ "$(date +%m%d)" == "0101" ] ; then
+    # catch any data uploaded on 01/01 that is for 31/12 the previous year
+    $SRC/analysis/getRMSSingleData.sh $(date -d 'last year' +%Y)
+fi
 
 log2cw $NJLOGGRP $NJLOGSTREAM "start createSearchable pass 1" nightlyJob
 
