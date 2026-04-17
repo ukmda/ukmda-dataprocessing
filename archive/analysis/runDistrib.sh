@@ -94,6 +94,8 @@ rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/pickleAnalyser.py $SERVERUSERID
 log2cw $NJLOGGRP $NJLOGSTREAM "start distributed processing" runDistrib
 ssh -i $SERVERSSHKEY $SERVERUSERID@$privip "data/distrib/$execdist"
 
+rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$privip:ukmon-shared/matches/RMSCorrelate/candidates/processed/*.tgz $DATADIR/distrib/candidates
+
 rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$privip:ukmon-shared/matches/RMSCorrelate/logs/*${rundate}*.log $SRC/logs/distrib/
 ssh -i $SERVERSSHKEY $SERVERUSERID@$privip "find ukmon-shared/matches/RMSCorrelate/logs -name '*.log' -mtime +30 -exec rm -f {} \;"
 
@@ -156,12 +158,14 @@ log2cw $NJLOGGRP $NJLOGSTREAM "compressing the processed data" runDistrib
 
 mkdir -p $DATADIR/trajdb
 tar czvf $DATADIR/trajdb/databases_${rundate}.tgz $DATADIR/distrib/*.db
-tar czvf $DATADIR/distrib/contdbs_${rundate}.tgz $DATADIR/latest/contdbs/*.db $DATADIR/distrib/${rundate}.pickle
-aws s3 cp $DATADIR/distrib/contdbs_${rundate}.tgz $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/done/ --quiet
+mkdir -p $DATADIR/distrib/containers
+tar czvf $DATADIR/distrib/containers/contdbs_${rundate}.tgz $DATADIR/latest/contdbs/*.db $DATADIR/distrib/${rundate}.pickle
+aws s3 cp $DATADIR/distrib/containers/contdbs_${rundate}.tgz $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/done/ --quiet
 
 tar czvf $DATADIR/distrib/contlogs_${rundate}.tgz $SRC/logs/distrib/correlator_${rundate}*.log $SRC/logs/distrib/${rundate}_*.log
 
-find $DATADIR/distrib/ -name "cont_*.tgz" -mtime +30 -exec rm -f {} \;
+find $DATADIR/distrib/containers/ -name "cont_*.tgz" -mtime +30 -exec rm -f {} \;
+find $DATADIR/distrib/ -maxdepth 1 -name "20*.tgz" -mtime +30 -exec rm -f {} \;
 rm -f $DATADIR/distrib/${rundate}.pickle
 
 
