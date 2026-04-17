@@ -90,9 +90,9 @@ else
             j=0
             echo "</tr>" >> $idxfile
         fi
-        if [ $domth -eq 1 ] ; then
-            echo "$i" >> $DATADIR/orbits/$yr/$ym.txt
-        fi
+        #if [ $domth -eq 1 ] ; then
+        #    echo "$i" >> $DATADIR/orbits/$yr/$ym.txt
+        #fi
     done
 fi
 echo "</tr></table>" >> $idxfile
