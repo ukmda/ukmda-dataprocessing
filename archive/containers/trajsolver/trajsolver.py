@@ -295,6 +295,8 @@ def startup(srcfldr, startdt, enddt, isTest=False):
         s3 = getS3Client()
         pushToWebsite(s3, trajfldr, webbucket, webpth, outbucket, outpth)
 
+
+        # databases get pushed back to source location not target
         if srcfldr[:5] == 'test/':
             srcfldr = srcfldr[5:]
         for dbname in ['observations', 'trajectories', 'candidates']:
@@ -302,14 +304,14 @@ def startup(srcfldr, startdt, enddt, isTest=False):
             fname = f'{dbname}_{srcfldr}.db'
             localfile = os.path.join(localfldr, f'{dbname}.db')
             if os.path.isfile(localfile):
-                targkey = f'{outpth}/{fname}'
+                targkey = f'{srcpth}/{fname}'
                 print(f'uploading {localfile} to {srcbucket}/{targkey}')
                 s3.meta.client.upload_file(localfile, srcbucket, targkey, ExtraArgs = getExtraArgs(fname)) 
         
         lognames = glob.glob(os.path.join(localfldr, '*.log'))
         if len(lognames)> 0:
             fname = f'correlator_{srcfldr}.log'
-            targkey = f'{outpth}/{fname}'
+            targkey = f'{srcpth}/{fname}'
             print(f'uploading {lognames[0]} to {srcbucket}/{targkey}')
             s3.meta.client.upload_file(lognames[0], srcbucket, targkey, ExtraArgs = getExtraArgs(fname)) 
 
