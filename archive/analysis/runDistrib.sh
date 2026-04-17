@@ -144,7 +144,7 @@ aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 # grab a copy of the indvidual container dbs so we can get a list of new solutions
 rm -Rf $DATADIR/latest/contdbs/
 mkdir -p $DATADIR/latest/contdbs/
-aws s3 sync $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/ $DATADIR/latest/contdbs/ --exclude "*" --include "*.db" --exclude "dbs/*" --quiet
+aws s3 sync $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/ $DATADIR/latest/contdbs/ --exclude "*" --include "*.db" --exclude "dbs/*" --exclude "test/*" --quiet
 aws s3 rm $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/ --exclude "*" --include "*${rundate}*.db" --exclude "test/*" --exclude "dbs/*" --recursive --quiet
 aws s3 mv $UKMONSHAREDBUCKET/matches/distrib${TESTSUFF}/${rundate}.pickle $DATADIR/distrib --quiet
 
