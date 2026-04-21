@@ -20,11 +20,11 @@
                 "environment": [
                     {
                         "name": "SRCPATH",
-                        "value": "s3://ukmda-shared/matches/distrib/test"
+                        "value": "s3://ukmda-shared/test/matches/distrib"
                     },
                     {
                         "name": "OUTPATH",
-                        "value": "s3://ukmda-shared/matches/distrib/test"
+                        "value": "s3://ukmda-shared/test/matches/RMSCorrelate"
                     },
                     {
                         "name": "WEBPATH",
