@@ -57,6 +57,9 @@ log2cw $NJLOGGRP $NJLOGSTREAM "solving for ${startdt} to ${enddt}" findAllMatche
 log2cw $NJLOGGRP $NJLOGSTREAM "start runDistrib" findAllMatches
 $SRC/analysis/runDistrib.sh $MATCHSTART $MATCHEND
 
+log2cw $NJLOGGRP $NJLOGSTREAM "clean duplicate/deleted trajs" findAllMatches
+$SRC/utils/cleanupDeletedTrajs.sh
+
 log2cw $NJLOGGRP $NJLOGSTREAM "start checkForFailures" findAllMatches
 success=$(grep "Total run time:" $SRC/logs/matchJob.log)
 
