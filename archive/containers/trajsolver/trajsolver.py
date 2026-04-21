@@ -117,12 +117,12 @@ def runCorrelator(dir_path, time_beg, time_end, max_stns=9999):
 
 # read the source bucket + folder and target buckets + folders from the environment
 def getSourceAndTargets():
-    srcpth = os.getenv('SRCPATH', default='s3://ukmda-shared/matches/distrib')
+    srcpth = os.getenv('SRCPATH', default='s3://ukmda-shared/test/matches/distrib')
     srcpth = srcpth[5:]
     srcbucket = srcpth[:srcpth.find('/')]
     srcpth = srcpth[srcpth.find('/')+1:]
 
-    outpth = os.getenv('OUTPATH', default='s3://ukmda-shared/matches/distrib')
+    outpth = os.getenv('OUTPATH', default='s3://ukmda-shared/test/matches/RMSCorrelate')
     outpth = outpth[5:]
     outbucket = outpth[:outpth.find('/')]
     outpth = outpth[outpth.find('/')+1:]
