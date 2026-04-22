@@ -75,19 +75,9 @@ python -m maintenance.rerunFailedLambdas
 
 cd $here
 log2cw $NJLOGGRP $NJLOGSTREAM "start reportOfLatestMatches" findAllMatches
-python -m reports.reportOfLatestMatches $DATADIR/latest/contdbs $DATADIR/dailyreports $MATCHEND $rundate
-
-log2cw $NJLOGGRP $NJLOGSTREAM "start getMatchStats" findAllMatches
-dailyrep=$(ls -1tr $DATADIR/dailyreports/20*.txt | tail -1)
-trajlist=$(cat $dailyrep | awk -F, '{print $2}')
-
 matchlog=${SRC}/logs/matchJob.log
-vals=$(python -m metrics.getMatchStats $matchlog )
-evts=$(echo $vals | awk '{print $2}')
-trajs=$(echo $vals | awk '{print $6}')
-matches=$(wc -l $dailyrep | awk '{print $1}')
-rtim=$(echo $vals | awk '{print $7}')
-echo $(basename $dailyrep) $evts $trajs $matches $rtim >>  $DATADIR/dailyreports/stats.txt
+python -m reports.reportOfLatestMatches $DATADIR/latest/contdbs $DATADIR/dailyreports $MATCHEND $rundate
+python -m metrics.getMatchStats $matchlog
 
 # copy stats to S3 so the daily report can run
 if [ "$RUNTIME_ENV" == "PROD" ] ; then 
