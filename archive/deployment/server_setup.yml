@@ -24,10 +24,10 @@
     - {src: '{{srcdir}}/server_setup/install-proj4.sh', dest: '{{destdir}}/server_setup', mode: '754', backup: no }
     - {src: '{{srcdir}}/server_setup/install-sqlite3.sh', dest: '{{destdir}}/server_setup', mode: '754', backup: no }
     - {src: '{{srcdir}}/server_setup/install_opencv.sh', dest: '{{destdir}}/server_setup', mode: '754', backup: no }
-    - {src: '{{srcdir}}/server_setup/libs/libgeos-3.7.2.so', dest: '{{destdir}}/server_setu/libsp', mode: '644', backup: no }
-    - {src: '{{srcdir}}/server_setup/libs/libgeos.so', dest: '{{destdir}}/server_setup/libs', mode: '644', backup: no }
-    - {src: '{{srcdir}}/server_setup/libs/libgeos_c.so', dest: '{{destdir}}/server_setup/libs', mode: '644', backup: no }
-    - {src: '{{srcdir}}/server_setup/libs/libproj.so', dest: '{{destdir}}/server_setup/libs', mode: '644', backup: no }
+    #- {src: '{{srcdir}}/server_setup/libs/libgeos-3.7.2.so', dest: '{{destdir}}/server_setu/libsp', mode: '644', backup: no }
+    #- {src: '{{srcdir}}/server_setup/libs/libgeos.so', dest: '{{destdir}}/server_setup/libs', mode: '644', backup: no }
+    #- {src: '{{srcdir}}/server_setup/libs/libgeos_c.so', dest: '{{destdir}}/server_setup/libs', mode: '644', backup: no }
+    #- {src: '{{srcdir}}/server_setup/libs/libproj.so', dest: '{{destdir}}/server_setup/libs', mode: '644', backup: no }
     - {src: '{{srcdir}}/server_setup/migratingBatchServer.md', dest: '{{destdir}}/server_setup', mode: '644', backup: no }
     - {src: '{{srcdir}}/server_setup/newserver.sh', dest: '{{destdir}}/server_setup', mode: '754', backup: no }
     - {src: '{{srcdir}}/server_setup/remount-s3.sh', dest: '{{destdir}}/server_setup', mode: '754', backup: no }
