@@ -66,14 +66,20 @@ ${SRC}/analysis/findAllMatches.sh > ${SRC}/logs/${matchlog} 2>&1
 log2cw $NJLOGGRP $NJLOGSTREAM "start updateIndexPages" nightlyJob
 $SRC/website/updateIndexPages.sh
 
-# from here down, we're creating reports
+# FIRST CONSOLIDATE THE DATA AND CREATE SEARCH INDEXES
 # consolidate the output of the match process for further analysos
 log2cw $NJLOGGRP $NJLOGSTREAM "start consolidateOutput" nightlyJob 
 $SRC/analysis/consolidateOutput.sh ${yr}
+if [ "$(date +%m%d)" == "0101" ] ; then
+    # catch any data uploaded on 01/01 that is for 31/12 the previous year
+    $SRC/analysis/consolidateOutput.sh $(date -d 'last year' +%Y)
+fi 
 
 # create the search indexes used on the website
 log2cw $NJLOGGRP $NJLOGSTREAM "start createSearchable pass 2" nightlyJob 
 $SRC/analysis/createSearchable.sh $yr matches
+
+# FROM HERE DOWN WE'RE CREATING REPORTS
 
 # add daily report to the website
 log2cw $NJLOGGRP $NJLOGSTREAM "start publishDailyReport" nightlyJob 
