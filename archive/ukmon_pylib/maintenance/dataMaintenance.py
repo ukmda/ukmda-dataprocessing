@@ -9,6 +9,13 @@ import argparse
 import paramiko
 from scp import SCPClient
 from time import sleep
+import pandas as pd
+import datetime
+
+import pymysql.cursors
+
+from wmpl.Utils.TrajConversions import datetime2JD
+from wmpl.Trajectory.CorrelateDB import TrajectoryDatabase
 
 
 def findInputDataByMonth(yyyymm, archbucket, outdir):
@@ -95,6 +102,95 @@ def deleteFromCalcServerByMonth(outfname):
         sts = ec2.stop_instances(InstanceIds=[instId])
     print('calcserver done')    
     return 
+
+
+def removeDeletedTraj(csvfile):
+    """
+    Remove deleted trajectories from the consolidated match CSV and Parquet files
+    and from the search index. 
+    """
+
+    csvdata = open(csvfile, 'r').readlines()
+    if 'search' in csvfile:
+        ts_end = float(csvdata[-1].split(',')[0])
+        dt_end = datetime.datetime.fromtimestamp(ts_end, tz=datetime.timezone.utc)
+        jdt_end = datetime2JD(dt_end)
+    else:
+        jdt_end = float(csvdata[-1].split(',')[3]) + 2400000.5
+
+    jdt_beg =jdt_end - 21
+
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
+    masterdb_path = os.path.join(datadir, 'distrib')
+    masterdb = TrajectoryDatabase(db_path=masterdb_path)
+    cur = masterdb.dbhandle.execute(f'select traj_file_path from trajectories where status=0 and jdt_ref >= {jdt_beg} and jdt_ref <={jdt_end}')
+    deltrajs = cur.fetchall()
+    masterdb.closeTrajDatabase()
+
+    i=0
+    for traj in deltrajs:
+        fldr = os.path.basename(os.path.dirname(traj[0]))
+        match = [tr for tr in csvdata if fldr in tr]
+        if len(match) > 0:
+            for thismtch in match:
+                print(f'removing {fldr}')
+                idx = csvdata.index(thismtch)
+                _ = csvdata.pop(idx)
+                i += 1
+    print(f'removed {i} trajectories')
+
+    open(csvfile, 'w').writelines(csvdata)
+
+    if 'search' not in csvfile:
+        df = pd.read_csv(csvfile, skipinitialspace=True)
+        df = df.drop_duplicates(subset=['_mjd','_sol','_ID1','_ra_o','_dc_o','_amag','_ra_t','_dc_t'])
+        df.to_csv(csvfile, index=False)
+
+    return 
+
+
+def getSqlLoginDetails():
+    # retrieve password and host from SSM. This allows me to manage them from Terraform
+    ssm = boto3.client('ssm', region_name='eu-west-1')
+    res = ssm.get_parameter(Name='prod_dbpw', WithDecryption=True)
+    password = res['Parameter']['Value']
+    res = ssm.get_parameter(Name='prod_dbhost')
+    host = res['Parameter']['Value'] 
+    # should really do these too but they won't change often if at all
+    user = 'batch'
+    db = 'ukmon'
+    return host, user, password, db
+
+
+def removeDelTrajFromDb():
+    dt_end = datetime.datetime.now(tz=datetime.timezone.utc)
+    jdt_end = datetime2JD(dt_end)
+    jdt_beg =jdt_end - 7
+
+    # get list of deleted trajectories
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
+    masterdb_path = os.path.join(datadir, 'distrib')
+    masterdb = TrajectoryDatabase(db_path=masterdb_path)
+    cur = masterdb.dbhandle.execute(f'select traj_file_path from trajectories where status=0 and jdt_ref >= {jdt_beg} and jdt_ref <={jdt_end}')
+    deltrajs = cur.fetchall()
+    masterdb.closeTrajDatabase()
+
+    # get connection to the SQL database
+    host, user, passwd, db = getSqlLoginDetails()
+    connection = pymysql.connect(host=host, user=user, password=passwd, database=db, cursorclass=pymysql.cursors.DictCursor)  
+
+    count = 0
+    for traj in deltrajs:
+        fldr = os.path.basename(os.path.dirname(traj[0]))
+        sqlstr = f"delete from matches where orbname like '{fldr}%'"
+        with connection.cursor() as cursor:
+            cursor.execute(sqlstr)
+            result = cursor.fetchall()
+            count += len(result)
+    connection.commit()
+    connection.close()
+    print(f'cleaned up {count} trajectories')
+    return
 
 
 if __name__ == '__main__':
