@@ -88,7 +88,7 @@ echo "\$(document).ready(function() {" >> reportindex.js
 # need single quotes here to allow the hash to be printed
 echo '$("#fbtableid").DataTable({' >> reportindex.js
 echo "columnDefs : [" >> reportindex.js
-echo "{ Type : \"numeric\", targets : [2]}" >> reportindex.js
+echo "{ Type : \"numeric\", targets : [1]}" >> reportindex.js
 echo "	]," >> reportindex.js
 echo "order : [[ 1, \"asc\"],[2,\"desc\"]]," >> reportindex.js
 echo "paging: false" >> reportindex.js

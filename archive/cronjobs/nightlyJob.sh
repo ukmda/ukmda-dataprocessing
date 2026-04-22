@@ -47,17 +47,39 @@ if [ -f $SRC/logs/$matchlog ] ; then
     suff=$(stat matchJob.log -c %X)
     mv $SRC/logs/$matchlog $SRC/logs/$matchlog-$suff
 fi 
+
+log2cw $NJLOGGRP $NJLOGSTREAM "start getRMSSingleData" nightlyJob
+# this creates the parquet table for Athena
+$SRC/analysis/getRMSSingleData.sh
+if [ "$(date +%m%d)" == "0101" ] ; then
+    # catch any data uploaded on 01/01 that is for 31/12 the previous year
+    $SRC/analysis/getRMSSingleData.sh $(date -d 'last year' +%Y)
+fi
+
+log2cw $NJLOGGRP $NJLOGSTREAM "start createSearchable pass 1" nightlyJob
+
+$SRC/analysis/createSearchable.sh $yr singles
+
 # Run the match process - run this only once as it scoops up all unprocessed data
 ${SRC}/analysis/findAllMatches.sh > ${SRC}/logs/${matchlog} 2>&1
 
-# from here down, we're creating reports
+log2cw $NJLOGGRP $NJLOGSTREAM "start updateIndexPages" nightlyJob
+$SRC/website/updateIndexPages.sh
+
+# FIRST CONSOLIDATE THE DATA AND CREATE SEARCH INDEXES
 # consolidate the output of the match process for further analysos
 log2cw $NJLOGGRP $NJLOGSTREAM "start consolidateOutput" nightlyJob 
 $SRC/analysis/consolidateOutput.sh ${yr}
+if [ "$(date +%m%d)" == "0101" ] ; then
+    # catch any data uploaded on 01/01 that is for 31/12 the previous year
+    $SRC/analysis/consolidateOutput.sh $(date -d 'last year' +%Y)
+fi 
 
 # create the search indexes used on the website
 log2cw $NJLOGGRP $NJLOGSTREAM "start createSearchable pass 2" nightlyJob 
 $SRC/analysis/createSearchable.sh $yr matches
+
+# FROM HERE DOWN WE'RE CREATING REPORTS
 
 # add daily report to the website
 log2cw $NJLOGGRP $NJLOGSTREAM "start publishDailyReport" nightlyJob 

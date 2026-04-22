@@ -1,5 +1,6 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 ########################################################################
+/*
 resource "aws_s3_bucket" "mjmm-ukmonarchive-co-uk" {
   bucket = "mjmm-ukmonarchive.co.uk"
   tags = {
@@ -52,8 +53,9 @@ data "aws_iam_policy_document" "websiteacesspolicy" {
     resources = ["${aws_s3_bucket.mjmm-ukmonarchive-co-uk.arn}/*"]
   }
 }
-
+*/
 ########################################################################
+/*
 resource "aws_s3_bucket" "mjmm-ukmon-shared" {
   bucket = "mjmm-ukmon-shared"
   timeouts {}
@@ -113,8 +115,9 @@ resource "aws_s3_bucket_versioning" "shared_versioning" {
     status = "Suspended"
   }
 }
-
+*/
 ########################################################################
+/*
 resource "aws_s3_bucket" "mjmm-ukmon-live" {
   bucket = "mjmm-ukmon-live"
   tags = {
@@ -175,4 +178,4 @@ resource "aws_s3_bucket_versioning" "live_versioning" {
     status = "Suspended"
   }
 }
-
+*/

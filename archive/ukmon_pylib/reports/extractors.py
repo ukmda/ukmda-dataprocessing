@@ -19,7 +19,7 @@ def createSplitMatchFile(yr, mth=None, shwr=None, matches=None):
         shwr (string): optional shower code. If provided, the data will be filtered 
         
     """
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     if matches is None:
         infname = os.path.join(datadir, 'matched',f'matches-full-{yr}.parquet.snap')
         if not os.path.isfile(infname):
@@ -58,7 +58,7 @@ def createUFOSingleMonthlyExtract(yr, mth=None, shwr=None, dta=None):
         
     """
     # print('ufo singles file')
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     if dta is None:
         fname = os.path.join(datadir, 'consolidated','M_{}-unified.csv'.format(yr))
         if not os.path.isfile(fname):
@@ -94,7 +94,7 @@ def createRMSSingleMonthlyExtract(yr, mth=None, shwr=None, dta=None, withshower=
         
     """
     #print(f'rms singles file, withshower {withshower}')
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     if dta is None:
         fname = os.path.join(datadir, 'single','singles-{}.parquet.snap'.format(yr))
         if not os.path.isfile(fname):
@@ -147,7 +147,7 @@ def extractAllShowersData(ymd):
         showerlist = sl.getMajorShowers(True, True).strip().split(' ')
 
     print(f'processing data for {ymd}')
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     infname = os.path.join(datadir, 'matched',f'matches-full-{yr}.parquet.snap')
     if not os.path.isfile(infname):
         print(f'unable to open {infname}')

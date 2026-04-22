@@ -8,6 +8,8 @@ fi
 RUNTIME_ENV=$1
 envname=$(echo $RUNTIME_ENV | tr '[:upper:]' '[:lower:]')
 
+export AWS_PROFILE=default
+
 # read from AWS SSM Parameterset
 SRC=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_srcdir --query Parameters[0].Value  | tr -d '"')
 SITEURL=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_siteurl --query Parameters[0].Value  | tr -d '"')
@@ -20,6 +22,8 @@ SERVERINSTANCEID=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_
 BKPINSTANCEID=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_backupinstance --query Parameters[0].Value  | tr -d '"')
 SERVERSSHKEY=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_sshkey --query Parameters[0].Value  | tr -d '"')
 NJLOGGRP=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_batchloggroup --query Parameters[0].Value  | tr -d '"')
+SERVERUSERID=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_calcuser --query Parameters[0].Value  | tr -d '"')
+unset AWS_PROFILE
 
 # hardcoded
 PYLIB=$SRC/ukmon_pylib
@@ -33,6 +37,15 @@ RMS_ENV=RMS
 WMPL_ENV=wmpl
 APIKEY=$(cat ~/.ssh/gmapsapikey)
 KMLTEMPLATE=*70km.kml
+
+# variables that can be used in scripts and python files to ensure test data doesnt overwrite live data
+if [ "$RUNTIME_ENV" == "DEV" ] ; then 
+    TESTMODE="true"
+    TESTSUFF="/test"
+else
+    TESTMODE="false"
+    TESTSUFF=""
+fi 
 
 # create the config file
 now=$(date +%Y-%m-%d-%H:%M:%S)
@@ -50,6 +63,7 @@ echo "TEMPLATES=${TEMPLATES}" >> ${CFGFILE}
 echo "RCODEDIR=${RCODEDIR}" >> ${CFGFILE}
 echo "DATADIR=${DATADIR}" >> ${CFGFILE}
 echo "SERVERINSTANCEID=${SERVERINSTANCEID}" >> ${CFGFILE}
+echo "SERVERUSERID=${SERVERUSERID}" >> ${CFGFILE}
 echo "BKPINSTANCEID=${BKPINSTANCEID}" >> ${CFGFILE}
 echo "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" >> ${CFGFILE}
 echo "RMS_ENV=${RMS_ENV}" >> ${CFGFILE}
@@ -62,6 +76,8 @@ echo "SERVERSSHKEY=${SERVERSSHKEY}" >> ${CFGFILE}
 echo "APIKEY=${APIKEY}" >> ${CFGFILE}
 echo "KMLTEMPLATE=${KMLTEMPLATE}" >> ${CFGFILE}
 echo "NJLOGGRP=${NJLOGGRP}" >> ${CFGFILE}
+echo "TESTMODE=${TESTMODE}" >> ${CFGFILE}
+echo "TESTSUFF=${TESTSUFF}" >> ${CFGFILE}
 echo "" >> ${CFGFILE}
 echo "export RUNTIME_ENV SRC SITEURL" >> ${CFGFILE}
 echo "export WEBSITEBUCKET UKMONSHAREDBUCKET" >> ${CFGFILE}
@@ -69,8 +85,10 @@ echo "export PYLIB TEMPLATES RCODEDIR DATADIR BKPINSTANCEID AWS_DEFAULT_REGION" 
 echo "export RMS_ENV RMS_LOC WMPL_ENV WMPL_LOC" >> ${CFGFILE}
 echo "export PYTHONPATH=${RMS_LOC}:${WMPL_LOC}:${PYLIB}:${SRC}/share" >> ${CFGFILE}
 echo "export MATCHSTART MATCHEND SERVERSSHKEY" >> ${CFGFILE}
-echo "export APIKEY KMLTEMPLATE SERVERINSTANCEID NJLOGGRP" >> ${CFGFILE}
+echo "export APIKEY KMLTEMPLATE SERVERINSTANCEID SERVERUSERID NJLOGGRP" >> ${CFGFILE}
 echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/local/geos/lib:/usr/local/proj4/lib" >> ${CFGFILE}
+echo "export TESTMODE TESTSUFF" >> ${CFGFILE}
+
 # enable miniconda
 echo "source ~/.condaon" >> ${CFGFILE}
 # function to log to cloudwatch

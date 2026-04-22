@@ -17,7 +17,7 @@ csvdtype = np.dtype([('dt', 'U10'), ('service','U64'), ('tag', 'U32'), ('cost', 
 
 def monthlyCostByService(dtstr, acctid):
     mth = int(dtstr[4:6])
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     df = pd.read_csv(os.path.join(datadir, 'costs', f'costs-{acctid}-90-days.csv'))
     if acctid != '183798037734':
         df = df[(df.Tag.str.contains('ukmda')) | (df.Tag.str.contains('ukmon'))]

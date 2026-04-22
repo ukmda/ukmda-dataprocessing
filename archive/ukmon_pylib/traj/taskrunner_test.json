@@ -1,5 +1,5 @@
 {
-    "cluster": "trajsolver",
+    "cluster": "trajsolvertest",
     "count": 1,
     "enableECSManagedTags": true,
     "enableExecuteCommand": true,
@@ -15,20 +15,20 @@
     "overrides": {
         "containerOverrides": [
             {
-                "name": "trajcont",
+                "name": "trajconttest",
                 "command": [],
                 "environment": [
                     {
                         "name": "SRCPATH",
-                        "value": "s3://ukmda-shared/matches/distrib"
+                        "value": "s3://ukmda-shared/test/matches/distrib"
                     },
                     {
                         "name": "OUTPATH",
-                        "value": "s3://ukmda-shared/matches/RMSCorrelate"
+                        "value": "s3://ukmda-shared/test/matches/RMSCorrelate"
                     },
                     {
                         "name": "WEBPATH",
-                        "value": "s3://ukmda-website/reports"
+                        "value": "s3://ukmda-website/dummy"
                     },
                     {
                         "name": "MAX_STNS",
@@ -44,5 +44,5 @@
     "propagateTags": "TASK_DEFINITION",
     "referenceId": "",
     "startedBy": "cli",
-    "taskDefinition": "trajsolver"
+    "taskDefinition": "trajsolvertest"
 }

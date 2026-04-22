@@ -406,7 +406,7 @@ def prepDataForRange(startdt, enddt):
     # working out what has been used,  then collecting the FTPs and platepars,
     # and finally removing the already-used meteors from the FTPs
     #
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     sdt = datetime.datetime.strptime(startdt, '%Y%m')
     edt = datetime.datetime.strptime(enddt, '%Y%m')
     smth = sdt.month
@@ -430,7 +430,7 @@ def prepDataForRange(startdt, enddt):
 
 
 def moveInterestingCands():
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     pickledir = os.path.join(datadir, 'historic', 'candidates')
     goodcandr = os.path.join(datadir, 'historic', 'goodcands')
     os.makedirs(goodcandr, exist_ok=True)

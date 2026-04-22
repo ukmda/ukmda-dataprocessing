@@ -59,7 +59,7 @@ conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 log2cw $NJLOGGRP $NJLOGSTREAM "creating the run script" updatePlotsAndDetStatus
 execrerun=execreplot.sh
 execrerunsh=/tmp/$execrerun
-python -c "from traj.createDistribMatchingSh import createExecReplotSh;createExecReplotSh($MATCHSTART, $MATCHEND, '$execrerunsh')"
+python -c "from traj.createDistribMatchingSh import createExecReplotSh;createExecReplotSh($MATCHSTART, $MATCHEND, '$execrerunsh', '$TESTMODE')"
 chmod +x $execrerunsh
 
 log2cw $NJLOGGRP $NJLOGSTREAM "get server details" updatePlotsAndDetStatus
@@ -72,18 +72,18 @@ done
 
 log2cw $NJLOGGRP $NJLOGSTREAM "deploy the script to the server $privip and run it" updatePlotsAndDetStatus
 
-scp -i $SERVERSSHKEY $execrerunsh ec2-user@$privip:data/distrib/$execrerun
+scp -i $SERVERSSHKEY $execrerunsh $SERVERUSERID@$privip:data/distrib/$execrerun
 while [ $? -ne 0 ] ; do
     # in case the server isn't responding to ssh sessions yet
     sleep 10
     log2cw $NJLOGGRP $NJLOGSTREAM "server not responding yet, retrying" updatePlotsAndDetStatus
-    scp -i $SERVERSSHKEY $execrerunsh ec2-user@$privip:data/distrib/$execrerun
+    scp -i $SERVERSSHKEY $execrerunsh $SERVERUSERID@$privip:data/distrib/$execrerun
 done 
 # push the python and templates required
-rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/pickleAnalyser.py ec2-user@$privip:src/ukmon_pylib/traj
+rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/pickleAnalyser.py $SERVERUSERID@$privip:src/ukmon_pylib/traj
 
 # now run the script
-ssh -i $SERVERSSHKEY ec2-user@$privip "data/distrib/$execrerun"
+ssh -i $SERVERSSHKEY $SERVERUSERID@$privip "data/distrib/$execrerun"
 
 log2cw $NJLOGGRP $NJLOGSTREAM "job run, stop the server again" updatePlotsAndDetStatus
 aws ec2 stop-instances --instance-ids $SERVERINSTANCEID

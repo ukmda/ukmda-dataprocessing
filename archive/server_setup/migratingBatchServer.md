@@ -1,4 +1,21 @@
-# how to move accounts to a new server
+# Replacing the UKMON helper server 
+The ukmon helper server provides two services. 
+* camera authentication and key management
+* batch processing
+
+# how to move batch processing
+The best approach is to reinstall all the code using the ansible deployment scripts.
+Both dev and prod envs should be created, though arguably the dev env should be on a separate server.
+Additionally, WMPL will need to be reinstalled. 
+After doing this, the additional UKMON python requirements can be added. 
+
+The contents of ~/prod/data should be replicated to the new server. 
+The contents of ~/keymgmt should be replicated to the new server. 
+
+Finally, double check that all required SSM variables exist in the account holding the server. These
+are used to build the config file, but originally were only in Mark McIntyre's account. 
+
+## how to move accounts to a new server
 The basic process is to extract the user accounts from the current server along with
 group and password info, then import it back in on the new server. Its important to avoid 
 accidentally overwriting system or otherwise-existing accounts on the new server. 
@@ -8,7 +25,7 @@ new accounts starting at 1000 and working both upwards and downwards!
 
 Steps in brief. NB must all be done as root, of course. 
 
-## On the old server
+### On the old server
 ``` bash
 mkdir /root/move/
 export UGIDLIMIT=500
@@ -24,7 +41,7 @@ scp /root/move/* newserver:/tmp
 
 ```
 
-## On the new server
+### On the new server
 In summary: backup the existing files, remove any accounts from the .mig files 
 that are already present in the target, then append the filtered data. 
 
@@ -33,7 +50,7 @@ When comparing groups, remember new ids will get added to the sftp group.
 
 ``` bash
 mkdir -p /root/move/bkp
-mv /tmp/*.mig /tmp/arsftp.tar.gz /root/move
+mv /tmp/*.mig /tmp/varsftp.tar.gz /root/move
 cp /etc/passwd /etc/group /etc/shadow /etc/gshadow /root/move/bkp
 
 cd /

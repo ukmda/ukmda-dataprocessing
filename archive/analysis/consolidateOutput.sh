@@ -46,12 +46,12 @@ do
         typ=${bn:0:3}
         if [ "$typ" != "M20" ] ; then 
             pref="P"
-            yr=${bn:7:4}
+            snglyr=${bn:7:4}
         else
             pref="M"
-            yr=${bn:1:4}
+            snglyr=${bn:1:4}
         fi 
-        mrgfile=${DATADIR}/consolidated/${pref}_${yr}-unified.csv
+        mrgfile=${DATADIR}/consolidated/${pref}_${snglyr}-unified.csv
         if [ ! -f $mrgfile ] ; then
             cat $csvf >> $mrgfile
         else
@@ -61,6 +61,10 @@ do
         mv $csvf ${DATADIR}/single/rawcsvs
     fi
 done
+
+logger -s -t consolidateOutput "purging older raw data which is on S3 anyway"
+find ${DATADIR}/single/rawcsvs -mtime +180 -exec rm -f {} \;
+
 
 logger -s -t consolidateOutput "pushing consolidated information back"
 aws s3 sync ${DATADIR}/consolidated ${UKMONSHAREDBUCKET}/consolidated/  --exclude 'UKMON*' --quiet 
@@ -89,6 +93,12 @@ fi
 cat ${DATADIR}/orbits/$yr/fullcsv/$yr*.csv >> ${DATADIR}/matched/matches-full-$yr.csv
 cat ${DATADIR}/orbits/$yr/fullcsv/$yr*.csv >> ${DATADIR}/searchidx/matches-full-$yr-new.csv
 mv ${DATADIR}/orbits/$yr/fullcsv/$yr*.csv ${DATADIR}/orbits/${yr}/fullcsv/processed
+
+logger -s -t consolidateOutput "purging older raw data"
+find ${DATADIR}/orbits/${yr}/fullcsv/processed -mtime +180 -exec rm -f {} \;
+# and last year, because the data is split across dated folders
+lyr=$(date -d 'last year' +%Y)
+find ${DATADIR}/orbits/${lyr}/fullcsv/processed -mtime +180 -exec rm -f {} \;
 
 python << EOD3
 import pandas as pd 

@@ -14,7 +14,7 @@ templ = '{"Records": [{"s3": {"bucket": {"name": "ukmda-shared",\
 
 def findOtherBadEvents():
     evts = []
-    datadir=os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     lastf = os.path.join(datadir,'dailyreports', 'latest.txt')
     with open(lastf, 'r') as inf:
         lis = inf.readlines()
@@ -33,7 +33,7 @@ def findOtherBadEvents():
 def findFailedEvents(prof='ukmonshared'):
     #session = boto3.Session(profile_name=prof) 
     logcli = boto3.client('logs', region_name='eu-west-2')
-    datadir=os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     lastf = os.path.join(datadir,'orbits', 'lastorbitcheck.txt')
     if os.path.isfile(lastf):
         with open(lastf, 'r') as inf:
@@ -102,7 +102,7 @@ def rerunFails(fails, prof='ukmonshared'):
     session=boto3.Session(profile_name=prof) 
     lambd = session.client('lambda', region_name='eu-west-2')
 
-    datadir=os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     lastf = os.path.join(datadir,'orbits', 'lastorbitcheck.txt')
     with open(lastf, 'w') as outf:
         rundt = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')

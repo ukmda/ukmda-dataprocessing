@@ -20,7 +20,7 @@ def getBestNMatches(reqdate=None, numtoget=10):
         tod = reqdate + datetime.timedelta(days=1)
 
     yr = reqdate.year
-    datadir=os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     mf = os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.snap')
 
     # select only the columns we need
@@ -81,7 +81,7 @@ def getUrlFromFilename(fname):
 
 
 def getBestNMp4s(yr, mth, numtoget):
-    datadir=os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     mf = os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.snap')
 
     # select only the columns we need

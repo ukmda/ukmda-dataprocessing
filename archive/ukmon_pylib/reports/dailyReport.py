@@ -115,7 +115,7 @@ if __name__ == '__main__':
     # now send the post to groups.io
     targeturl='https://archive.ukmeteors.co.uk'
 
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     recs = open(os.path.join(datadir, 'admin','dailyReportRecips.txt'), 'r').readlines()
     mailFrom = 'markmcintyre99@googlemail.com'
     mailRecip = recs[0].strip()

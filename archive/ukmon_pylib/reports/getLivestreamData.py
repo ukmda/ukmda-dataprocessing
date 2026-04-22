@@ -72,7 +72,7 @@ def getLatestLiveFiles(daysback=None, df=None):
 
 
 if __name__ == '__main__':
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     df = getLatestLiveFiles(-30)
     prvfile = os.path.join(datadir, 'ukmonlive', 'livefeed.csv')
     if os.path.isfile(prvfile):

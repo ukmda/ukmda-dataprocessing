@@ -18,7 +18,7 @@ def createSummaryTable(curryr=None, datadir=None):
     if curryr is None:
         curryr = str(datetime.datetime.now().year)
     if datadir is None:
-        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+        datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     fname = os.path.join(datadir, 'summarytable.js')
     with open(fname, 'w') as f:
         f.write('$(function() {\n')

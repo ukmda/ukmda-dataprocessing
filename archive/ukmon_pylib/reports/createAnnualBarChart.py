@@ -15,7 +15,7 @@ def createBarChart(datadir=None, yr=None):
     if yr is None:
         yr=datetime.datetime.now().year
     if datadir is None:
-        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+        datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     fname = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.snap'.format(yr))        
     if not os.path.isfile(fname):
         print('{} missing', fname)

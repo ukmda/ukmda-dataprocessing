@@ -13,7 +13,7 @@ import datetime
 
 def showerSummaryByPeriod(dtstr):
     yr = int(dtstr[:4])
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     cols = ['_stream','_M_ut']
     filt = None
     matchfile = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.snap'.format(yr))
@@ -34,7 +34,7 @@ def showerSummaryByPeriod(dtstr):
 def createSummWebpage(dtstr, outdir=None):
     yr = dtstr[:4]
     mth = None
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     if len(dtstr) > 4:
         mth = dtstr[4:6]
         if outdir is None:
@@ -43,7 +43,7 @@ def createSummWebpage(dtstr, outdir=None):
         if outdir is None:
             outdir = os.path.join(datadir, 'reports', yr, 'showers')
     os.makedirs(outdir, exist_ok=True)
-    templatedir=os.getenv('TEMPLATES', default='/home/ec2-user/prod/website/templates')
+    templatedir=os.getenv('TEMPLATES', default=os.path.expanduser('~/prod/website/templates'))
     idxfile = os.path.join(outdir, 'index.html')
     shutil.copyfile(os.path.join(templatedir, 'header.html'), idxfile)
     with open(idxfile, 'a+') as outf:
@@ -73,7 +73,7 @@ def createSummWebpage(dtstr, outdir=None):
 def createSummJS(dtstr, shwrdata, maxlines=None):
     yr = dtstr[:4]
     mth = None
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     if len(dtstr) > 4:
         mth = dtstr[4:6]
         outdir = os.path.join(datadir, 'reports', yr, 'showers', mth)

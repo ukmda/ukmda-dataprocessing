@@ -56,7 +56,10 @@ fi
 
 # push to S3 bucket for future use by AWS tools
 logger -s -t getRMSSingleData "copy to S3 bucket"
-aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/single/ --exclude "*" --include "*.csv" --exclude "new/*" --quiet
+aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/single/ --exclude "*" --include "*.csv" --exclude "new/*" --exclude "rawcsvs/*" --exclude "used/*" --quiet
 aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/singlepq/ --exclude "*" --include "*.parquet.snap" --exclude "*new.parquet.snap" --quiet
+
+logger -s -t getRMSSingleData "purge processed data"
+find $outdir/processed -mtime +180 -exec rm -f {} \;
 
 logger -s -t getRMSSingleData "finished"

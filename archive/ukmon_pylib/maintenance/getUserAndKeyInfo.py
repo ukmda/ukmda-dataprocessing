@@ -25,8 +25,8 @@ if sys.platform == 'win32':
     csvdir = 'f:/videos/meteorcam/usermgmt/csvkeys'
     lnxdir='/home/ec2-user/keymgmt/csvkeys'
 else:
-    csvdir='/home/ec2-user/keymgmt/csvkeys'
-    lnxdir='/home/ec2-user/keymgmt/csvkeys'
+    csvdir=os.path.expanduser('~/keymgmt/csvkeys')
+    csvdir=os.path.expanduser('~/keymgmt/csvkeys')
 
 
 def checkIfOnGMN(camid):

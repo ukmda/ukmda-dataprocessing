@@ -32,7 +32,7 @@ resource "aws_ssm_parameter" "dev_livebucket" {
 resource "aws_ssm_parameter" "dev_siteurl" {
   name  = "dev_siteurl"
   type  = "String"
-  value = "http://mjmm-ukmonarchive.co.uk.s3-website.eu-west-2.amazonaws.com"
+  value = "https://www.ukmeteors.co.uk/dummy/"
   tags = {
     "billingtag" = "ukmon"
   }
@@ -50,7 +50,16 @@ resource "aws_ssm_parameter" "dev_envname" {
 resource "aws_ssm_parameter" "dev_calcinstance" {
   name  = "dev_calcinstance"
   type  = "String"
-  value = "i-08cd1d5f6e1056f6b" #"i-0da38ed8aea1a1d85"
+  value = "i-0ab47af23705beb31"
+  tags = {
+    "billingtag" = "ukmon"
+  }
+}
+ 
+resource "aws_ssm_parameter" "dev_calcuser" {
+  name  = "dev_calcuser"
+  type  = "String"
+  value = "ubuntu"
   tags = {
     "billingtag" = "ukmon"
   }

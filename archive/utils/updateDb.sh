@@ -11,10 +11,11 @@ else
 	rundt=$1
 fi 
 
+cd ~/prod/data/brightness
 mysql -u batch -p$(cat ~/.ssh/db_batch.passwd) -h localhost << EOD
 use ukmon;
 select count(*) from ukmon.brightness;
-load data local infile '/home/ec2-user/prod/data/brightness/CaptureNight_${rundt}.csv' 
+load data local infile './CaptureNight_${rundt}.csv' 
 into table brightness fields terminated by ',';
 select count(*) from ukmon.brightness;
 EOD

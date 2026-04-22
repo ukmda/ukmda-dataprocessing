@@ -164,7 +164,7 @@ def createCameraFile(datadir):
 
 def createAll(targdate=None, datadir=None):
     if datadir is None:
-        datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/datas')
+        datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     if targdate is None:
         targdate = datetime.datetime.now()
         createCameraFile(datadir)

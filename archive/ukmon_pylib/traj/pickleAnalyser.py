@@ -122,6 +122,8 @@ def getShowerDets(shwr):
 
 
 def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
+    outdir = os.path.expanduser(outdir)
+
     #print('Creating UFO Orbit style output file')
     orb = traj.orbit
     if shower_obj is None:
@@ -378,6 +380,7 @@ def computeAbsoluteMagnitudes(traj, meteor_list):
 
 
 def draw3Dmap(traj, outdir):
+    outdir = os.path.expanduser(outdir)
     lats = []
     lons = []
     alts = []
@@ -493,6 +496,8 @@ def calcAdditionalValues(traj):
 
 
 def createAdditionalOutput(traj, outdir):
+    outdir = os.path.expanduser(outdir)
+
     # calculate the values
     amag, vmag, mass, id, cod, shwrname, orb, shower_obj, lg, bg, vg, _ = calcAdditionalValues(traj)
 
@@ -582,16 +587,18 @@ def getListOfImages(picklename):
 
 class TrajQualityParams(object):
     def __init__(self):
-        self. min_traj_points = 6
-        self. min_qc = 5.0
-        self. max_e = 1.5
-        self. max_radiant_err = 2.0
-        self. max_vg_err = 10.0
-        self. max_begin_ht = 160
-        self. min_end_ht = 20
+        self.min_traj_points = 6
+        self.min_qc = 5.0
+        self.max_e = 1.5
+        self.max_radiant_err = 2.0
+        self.max_vg_err = 10.0
+        self.max_vg = 120.0
+        self.max_begin_ht = 160
+        self.min_end_ht = 20
 
 
-def getAllImages(dir_path, out_path):
+def getAllImages(dir_path, outdir):
+    outdir = os.path.expanduser(outdir)
     traj_quality_params = TrajQualityParams()
     trajs = loadTrajectoryPickles(dir_path, traj_quality_params, verbose=True)
     imglist = []
@@ -604,6 +611,6 @@ def getAllImages(dir_path, out_path):
                 except Exception: 
                     pass
     outfname = os.path.split(dir_path)[1]
-    with open(os.path.join(out_path, f'consumed_{outfname}.txt'), 'w') as outf:
+    with open(os.path.join(outdir, f'consumed_{outfname}.txt'), 'w') as outf:
         for img in imglist:
             outf.write(f'{img}\n')

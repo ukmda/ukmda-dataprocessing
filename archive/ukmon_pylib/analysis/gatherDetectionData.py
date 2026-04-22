@@ -12,7 +12,7 @@ from meteortools.ukmondb import getECSVs, getLiveJpgs, getFBfiles, getDetections
 
 
 def getUncalibratedImageList(dtstr=None):
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     logfile = os.path.join(datadir, '..', 'logs', 'matchJob.log')
     flines = open(logfile, 'r').readlines()
     uncal = [f for f in flines if 'not recalibrated' in f]
@@ -37,7 +37,7 @@ def getRawData(idlist, outpth):
 
 
 def updateSingleDB(yr, consdt):
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')    
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     sngls = pd.read_csv(os.path.join(datadir, 'single', f'singles-{yr}.csv'))
     consdf = pd.read_csv(os.path.join(datadir, 'single', 'used', f'consumed_{consdt}.txt'), names=['Filename'])
     conslist = list(consdf.Filename)

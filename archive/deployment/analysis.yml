@@ -3,7 +3,7 @@
   vars_files: 
     - /mnt/c/Users/{{ lookup('env','USER' )}}/apikeys/mqvariables.enc
   vars:
-    srcdir: "/mnt/c/Users/{{ lookup('env','USER' )}}/OneDrive/dev/ukmda-dataprocessing/archive"
+    srcdir: "/mnt/c/Users/{{ lookup('env','USER' )}}/OneDrive/dev/meteorhunting/ukmda-dataprocessing/archive"
   tasks:
   - name: import dev variables 
     include_vars: ./dev-vars.yml
@@ -25,7 +25,6 @@
     - {src: '{{srcdir}}/analysis/getBadStations.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
     - {src: '{{srcdir}}/analysis/getLogData.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
     - {src: '{{srcdir}}/analysis/getRMSSingleData.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
-    - {src: '{{srcdir}}/analysis/onlyConsolDistrib.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
     - {src: '{{srcdir}}/analysis/reportActiveShowers.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
     - {src: '{{srcdir}}/analysis/runDistrib.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }
     - {src: '{{srcdir}}/analysis/showerReport.sh', dest: '{{destdir}}/analysis', mode: '754', backup: no }

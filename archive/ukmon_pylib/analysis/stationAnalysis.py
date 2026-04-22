@@ -140,7 +140,7 @@ def reportOneSite(yr, mth, loc, sngl, mful, idlist, outdir):
         when = f'{mth:02d}-{yr}'
 
     idxfile = os.path.join(outdir,'index.html')
-    templatedir=os.getenv('TEMPLATES', default='/home/ec2-user/prod/website/templates')
+    templatedir=os.getenv('TEMPLATES', default=os.path.expanduser('~/prod/website/templates'))
 
     shutil.copyfile(os.path.join(templatedir, 'header.html'), idxfile)
     outf = open(idxfile, 'a+')
@@ -291,7 +291,7 @@ if __name__ == '__main__':
         
     matchcols = ['_Y_ut','_M_ut','_mag','_mjd','mjd','_stream','orbname','stations']
     snglcols = ['ID','Shwr','Dtstamp','Ver', 'M', 'Y']
-    datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     camlist = loadLocationDetails()
    
     sngl = pd.read_parquet(os.path.join(datadir, 'single', f'singles-{yr}.parquet.snap'), columns=snglcols)

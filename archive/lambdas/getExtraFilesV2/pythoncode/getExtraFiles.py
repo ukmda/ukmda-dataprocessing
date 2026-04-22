@@ -36,10 +36,15 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
     yr = orbname[:4]
     ym = orbname[:6]
     ymd= orbname[:8]
+    istest = False
     if int(yr) > 2020:
         webpth = f'reports/{yr}/orbits/{ym}/{ymd}/{orbname}/'
     else:
         webpth = f'reports/{yr}/orbits/{ym}/{orbname}/'
+
+    if 'test' in key:
+        webpth = f'dummy/{yr}/orbits/{ym}/{ymd}/{orbname}/'
+        istest = True
         
     outdir = os.path.join(tmpdir, orbname)
     try: 
@@ -162,7 +167,7 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
             pass
 
         print('pushing files back')
-        pushFilesBack(outdir, archbucket, websitebucket, fuloutdir, s3)
+        pushFilesBack(outdir, archbucket, websitebucket, fuloutdir, s3, istest=istest)
         print('updating the index page')
         createOrbitPageIndex(outdir, websitebucket, s3)
 
@@ -241,7 +246,7 @@ def findOtherFiles(evtdt, archbucket, websitebucket, outdir, fldr, s3):
     return
 
 
-def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
+def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3, istest=False):
 
     flist = os.listdir(outdir)
     _, pth =os.path.split(outdir)
@@ -253,26 +258,32 @@ def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3):
     else:
         webpth = f'reports/{yr}/orbits/{ym}/{pth}/'
 
+    if istest:
+        webpth = f'dummy/{yr}/orbits/{ym}/{ymd}/{pth}/'
+        
+
     for f in flist:
         print(f)
         locfname = os.path.join(outdir, f)
+        extraargs = getExtraArgs(locfname)
         # some files need to be pushed to the website, some to the archive bucket
         if '3dtrack' in f or '2dtrack' in f:
             key = os.path.join(webpth, f)
-            extraargs = getExtraArgs(locfname)
             s3.meta.client.upload_file(locfname, websitebucket, key, ExtraArgs=extraargs)
         elif '.lst' in f:
-            key = os.path.join(f'matches/RMSCorrelate/trajectories/{yr}/{ym}/{ymd}/{pth}', f)
-            extraargs = getExtraArgs(locfname)
+            if istest:
+                key = os.path.join(f'matches/distrib/test/trajectories/{yr}/{ym}/{ymd}/{pth}', f)
+            else:
+                key = os.path.join(f'matches/RMSCorrelate/trajectories/{yr}/{ym}/{ymd}/{pth}', f)
             s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
         elif 'summary' in f:
             key = os.path.join(fldr, f)
-            # print(locfname, key)
-            extraargs = getExtraArgs(locfname)
             s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
         elif 'orbit_full.csv' in f:
-            key = os.path.join(f'matches/{yr}/fullcsv', f)
-            extraargs = getExtraArgs(locfname)
+            if istest:
+                key = os.path.join(f'matches/distrib/test/{yr}/fullcsv', f)
+            else:
+                key = os.path.join(f'matches/{yr}/fullcsv', f)
             s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
 
     return 
@@ -345,38 +356,8 @@ if __name__ == '__main__':
     
 
 def lambda_handler(event, context):
-    # NB: IN THE CONSOLE, ADD TRUST RELATIONSHIP 
-    # "AWS": "arn:aws:iam::317976261112:root"
-    # on the target role (replace  by this lambda's ARN). 
-
-    # Note: if the lambda is connected to a VPC you must 
-    # create a private subnet for the lambda
-    # create a NAT gateway on a public subnet
-    # create a routing table on the VPC to send 0.0.0.0/0 to the NAT gw
-    # attach the new subnet to the NAT gw
-    # 
-
-    sts_client = boto3.client('sts')
-    response = sts_client.get_caller_identity()['Account']
-    if response == '317976261112':
-        assumed_role_object=sts_client.assume_role(
-            RoleArn="arn:aws:iam::183798037734:role/service-role/S3FullAccess",
-            RoleSessionName="GetExtraFilesV2")
-        
-        credentials=assumed_role_object['Credentials']
-        
-        # Use the temporary credentials that AssumeRole returns to connections
-        s3 = boto3.resource('s3',
-            aws_access_key_id=credentials['AccessKeyId'],
-            aws_secret_access_key=credentials['SecretAccessKey'],
-            aws_session_token=credentials['SessionToken'])
-        ddb = boto3.resource('dynamodb', region_name='eu-west-2',
-            aws_access_key_id=credentials['AccessKeyId'],
-            aws_secret_access_key=credentials['SecretAccessKey'],
-            aws_session_token=credentials['SessionToken']) 
-    else:
-        s3 = boto3.resource('s3')
-        ddb = boto3.resource('dynamodb', region_name='eu-west-2')
+    s3 = boto3.resource('s3')
+    ddb = boto3.resource('dynamodb', region_name='eu-west-2')
 
     websitebucket = os.getenv('WEBSITEBUCKET')
     if websitebucket[:3] == 's3:':

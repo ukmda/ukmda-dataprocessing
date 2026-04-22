@@ -8,7 +8,7 @@ import boto3
 
 # delete an orbit from the database
 def deleteDuplicate(trajname, jd=None):
-    datadir = os.getenv('DATADIR', default='/home/pi/prod/data')
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     yr=trajname[:4]
     if int(yr) > 2021:
         fname = os.path.join(datadir, 'matched','matches-full-{}.parquet.snap'.format(yr))
