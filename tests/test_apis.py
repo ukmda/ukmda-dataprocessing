@@ -56,7 +56,7 @@ def test_getMatchPickle():
         for chunk in res.iter_content(chunk_size=4096):
             data = data + chunk
         jsd = json.loads(data)
-        assert len(jsd) == 62
+        assert len(jsd) == 64
         assert len(jsd['observations']) == 5
     else:
         assert False
