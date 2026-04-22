@@ -46,12 +46,12 @@ do
         typ=${bn:0:3}
         if [ "$typ" != "M20" ] ; then 
             pref="P"
-            yr=${bn:7:4}
+            snglyr=${bn:7:4}
         else
             pref="M"
-            yr=${bn:1:4}
+            snglyr=${bn:1:4}
         fi 
-        mrgfile=${DATADIR}/consolidated/${pref}_${yr}-unified.csv
+        mrgfile=${DATADIR}/consolidated/${pref}_${snglyr}-unified.csv
         if [ ! -f $mrgfile ] ; then
             cat $csvf >> $mrgfile
         else
