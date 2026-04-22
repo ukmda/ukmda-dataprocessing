@@ -44,13 +44,13 @@ def processLocalFolder(trajdir, basedir):
 def getListOfNewMatches(dir_path, db_path='/tmp', rundate=None):
     os.makedirs(db_path, exist_ok=True)
     db_name = f'{rundate}_trajectories.db' if rundate else 'trajectories.db'
-    trajdb = TrajectoryDatabase(db_path = db_path, db_name=db_name, purge_records=True)
+    dailydb = TrajectoryDatabase(db_path=db_path, db_name=db_name, purge_records=True)
     flist = glob.glob(os.path.join(dir_path, 'trajectories_*.db'))
     flist.sort()
     for fl in flist:
         tstamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         print(f'{tstamp} processing {fl}')
-        if trajdb.mergeTrajDatabase(fl):
+        if dailydb.mergeTrajDatabase(fl):
             os.remove(fl)
         else:
             print('error')
@@ -60,10 +60,35 @@ def getListOfNewMatches(dir_path, db_path='/tmp', rundate=None):
     else:
         trajdir = 'matches/RMSCorrelate'
 
-    cur = trajdb.dbhandle.execute('select traj_file_path from trajectories where status=1')
+    cur = dailydb.dbhandle.execute('select traj_file_path from trajectories where status=1')
     newtrajs = cur.fetchall()
-    trajdb.closeTrajDatabase()
 
+    if len(newtrajs) > 0:
+        # now get a list of logically-deleted trajs from the current master DB
+        datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
+
+        # get the date range for the new trajectories
+        cur = dailydb.dbhandle.execute('select min(jdt_ref), max(jdt_ref) from trajectories where status=1')    
+        vals = cur.fetchall()
+        jdt_beg = float(vals[0][0])
+        jdt_end = float(vals[0][1])
+
+        # retrieve a list of logically-deleted trajectories from within that date range
+        masterdb_path = os.path.join(datadir, 'distrib')
+        masterdb = TrajectoryDatabase(db_path=masterdb_path)
+        cur = masterdb.dbhandle.execute(f'select traj_file_path from trajectories where status=0 and jdt_ref >= {jdt_beg} and jdt_ref <={jdt_end}')
+        deltrajs = cur.fetchall()
+        masterdb.closeTrajDatabase()
+
+        # iterate over the delete list and update the daily db and new traj list accordingly
+        for testtr in deltrajs:
+            if testtr in newtrajs:
+                sqlstr = f'update trajectories set status=0 where "traj_file_path={testtr[0]}";'
+                dailydb.dbhandle.execute(sqlstr)
+                newtrajs.pop(newtrajs.index(testtr))
+
+    dailydb.closeTrajDatabase()
+    
     newdirs = []
     for traj in newtrajs:
         newdirs.append(os.path.join(trajdir, traj[0]))
