@@ -13,3 +13,4 @@ pyyaml
 pyswarms
 keras
 pytz
+paramiko
