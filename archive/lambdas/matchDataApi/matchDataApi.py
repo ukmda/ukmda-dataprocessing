@@ -62,7 +62,7 @@ def periodToSqlFragment(period):
 
 def getStationData(statid, dtstr, period=None):
     host, user, passwd, db = getSqlLoginDetails()
-    connection = pymysql.connect(host=host, user=user, password=passwd, db=db, cursorclass=pymysql.cursors.DictCursor)  
+    connection = pymysql.connect(host=host, user=user, password=passwd, database=db, cursorclass=pymysql.cursors.DictCursor)  
     try:
         statfrag = f"and s.stations like '%{statid}%' " if statid is not None else ""
         perfrag = periodToSqlFragment(period) if period is not None else ""
