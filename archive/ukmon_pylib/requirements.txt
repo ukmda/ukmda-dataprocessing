@@ -49,3 +49,4 @@ pytest
 pytest-cov
 requests
 paho-mqtt
+scp
