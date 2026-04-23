@@ -1,46 +1,5 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 
-resource "aws_instance" "calc_server" {
-  ami                  = "ami-0df2d8f6def0bd716"
-  instance_type        = "c8g.2xlarge"
-  iam_instance_profile = aws_iam_instance_profile.calcserverrole.name
-  key_name             = aws_key_pair.marks_key.key_name
-  force_destroy        = false
-  tags = {
-    "Name"          = "Calcengine"
-    "billingtag"    = "ukmda"
-    "Route53FQDN"   = "calcengine.ukmeteors.co.uk"
-    "DNSRecordType" = "A"
-  }
-  root_block_device {
-    tags = {
-      "Name"       = "calcengine"
-      "billingtag" = "ukmda"
-    }
-    volume_size = 120
-  }
-  primary_network_interface {
-    network_interface_id = aws_network_interface.calcserver_if.id
-  }
-
-  metadata_options {
-    http_tokens = "required"
-  }
-}
-
-# elastic network interface attached to the calc server
-
-resource "aws_network_interface" "calcserver_if" {
-  subnet_id                 = aws_subnet.ec2_subnet.id
-  description               = "Primary network interface"
-  private_ips               = [var.calcserverip]
-  security_groups           = [aws_security_group.ec2_secgrp.id]
-  ipv6_address_list_enabled = false
-  tags = {
-    "Name"       = "calcengine"
-    "billingtag" = "ukmda"
-  }
-}
 ################################################
 #  Ubuntu calc server
 ################################################
