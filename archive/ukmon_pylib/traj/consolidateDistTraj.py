@@ -84,7 +84,7 @@ def mergeDatabases(srcdir, dbdir, basedir, ignore_missing=False, purge_records=F
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print('usage: consolidateDistTraj folder_containing_srcdbs targ_dbdir outdir')
+        print('usage: consolidateDistTraj folder_containing_srcdbs targ_dbdir')
         exit(0)
     srcdir = sys.argv[1]
     dbdir = sys.argv[2]
