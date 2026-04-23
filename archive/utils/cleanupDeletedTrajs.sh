@@ -14,67 +14,41 @@ cd ${DATADIR}/distrib
 startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
 jdt_min=$(python -c "from wmpl.Utils.TrajConversions import datetime2JD;import datetime;print(datetime2JD(datetime.datetime.strptime('$startdt', '%Y%m%d-%H%M%S')))")
 
-echo "checking main storage"
+echo "checking main storage, website and csvfiles"
 sqlite3 $DATADIR/distrib/trajectories.db "select traj_file_path from trajectories where status=0 and jdt_ref > ${jdt_min} order by jdt_ref;" | while read traj ; do
+    export moved=0
     trajdir=$(dirname $traj)
-    echo $trajdir
-    moved=0
-    aws s3 ls ${UKMONSHAREDBUCKET}/matches/RMSCorrelate/$trajdir/ | awk -F " " '{print $4}' | while read fname; do
-       aws s3 mv ${UKMONSHAREDBUCKET}/matches/RMSCorrelate/$trajdir/$fname ${UKMONSHAREDBUCKET}/matches/duplicates/$trajdir/$fname --quiet
-       moved=1
+    #echo $trajdir
+    srcloc=${UKMONSHAREDBUCKET}/matches/RMSCorrelate/$trajdir
+    trgloc=${UKMONSHAREDBUCKET}/matches/duplicates/$trajdir
+    aws s3 ls $srcloc/ | awk -F " " '{print $4}' | while read fname; do
+       aws s3 mv ${srcloc}/$fname ${trgloc}/$fname --quiet
+       export moved=1
     done 
-    [ $moved == 1 ] && echo moved $trajdir
-done
 
-echo "checking website"
-sqlite3 $DATADIR/distrib/trajectories.db "select traj_file_path from trajectories where status=0 and jdt_ref > ${jdt_min} order by jdt_ref;" | while read traj ; do
-    trajdir=$(dirname $traj)
-    yr=${trajdir:13:4}
-    trajpth=${trajdir:18}
-    echo $trajdir
-    webloc=$WEBSITEBUCKET/reports/${yr}/orbits/$trajpth
-    newloc=${UKMONSHAREDBUCKET}/matches/duplicates/reports/${yr}/orbits/$trajpth
-    moved=0
-    aws s3 ls $webloc/ | awk -F " " '{print $4}' | while read fname; do
-       aws s3 mv $webloc/$fname $newloc/$fname --quiet
-       moved=1
-    done 
-    [ $moved == 1 ] && echo moved $trajdir
-done
-
-echo "checking fullcsv"
-sqlite3 $DATADIR/distrib/trajectories.db "select traj_file_path from trajectories where status=0 and jdt_ref > ${jdt_min} order by jdt_ref;" | while read traj ; do
-    trajdir=$(dirname $traj)
-    yr=${trajdir:13:4}
-    trajpth=${trajdir:34:19}
-    csvname=$(echo $trajpth | sed 's/_/-/g')
-    echo $csvname
-    csvloc=${UKMONSHAREDBUCKET}/matches/${yr}/fullcsv
-    newloc=${UKMONSHAREDBUCKET}/matches/duplicates/csvs/${yr}
-    moved=0
-    aws s3 ls $csvloc/ | awk -F " " '{print $4}' | grep $csvname | while read fname; do
-       aws s3 mv $csvloc/$fname $newloc/$fname --quiet
-       moved=1
-    done 
-    [ $moved == 1 ] && echo moved $trajdir
-done
-
-echo "checking historic fullcsv just in case"
-sqlite3 $DATADIR/distrib/trajectories.db "select traj_file_path from trajectories where status=0 and jdt_ref > ${jdt_min} order by jdt_ref;" | while read traj ; do
-    trajdir=$(dirname $traj)
     yr=${trajdir:13:4}
     trajpth=$(basename $trajdir)
-    csvname=$(echo $trajpth | sed 's/_/-/g')
-    echo $csvname
-    csvloc=$DATADIR/orbits/${yr}/fullcsv/processed
+    webloc=$WEBSITEBUCKET/reports/${yr}/orbits/$trajpth
+    newloc=${UKMONSHAREDBUCKET}/matches/duplicates/reports/${yr}/orbits/$trajpth
+    aws s3 ls $webloc/ | awk -F " " '{print $4}' | while read fname; do
+       aws s3 mv $webloc/$fname $newloc/$fname --quiet
+       export moved=1
+    done 
+
+    trajpth1=${trajdir:34:19}
+    csvname=$(echo $trajpth1 | sed 's/_/-/g')
+    csvloc=${UKMONSHAREDBUCKET}/matches/${yr}/fullcsv
     newloc=${UKMONSHAREDBUCKET}/matches/duplicates/csvs/${yr}
-    moved=0
+    aws s3 ls $csvloc/ | awk -F " " '{print $4}' | grep $csvname | while read fname; do
+       aws s3 mv $csvloc/$fname $newloc/$fname --quiet
+       export moved=1
+    done 
+    csvloc=$DATADIR/orbits/${yr}/fullcsv/processed
     ls -1 $csvloc/ | grep $csvname | while read fname; do
        aws s3 mv $csvloc/$fname $newloc/$fname --quiet
-       moved=1
+       export moved=1
     done 
-    [ $moved == 1 ] && echo moved $trajdir
-    export trajpth
+    [ $moved == 1 ] && echo "moved $trajpth"
 done
 
 echo "checking consolidated matches"
@@ -83,6 +57,7 @@ trajdir=$(dirname $lasttraj)
 yr=${trajdir:13:4}
 trajpth=$(basename $trajdir)
 matchcsv=$DATADIR/matched/matches-full-${yr}.csv
+grep $trajpth $matchcsv
 if [ $? == 0 ] ; then 
     python -c "from maintenance.dataMaintenance import removeDeletedTraj;removeDeletedTraj('$matchcsv')"
     python -m converters.toParquet $matchcsv
@@ -99,4 +74,3 @@ export AWS_PROFILE=ukmonshared # needed for mariadb connection details
 echo "checking Mariadb Database"
 python -c "from maintenance.dataMaintenance import removeDelTrajFromDb;removeDelTrajFromDb()"
 unset AWS_PROFILE
-done
