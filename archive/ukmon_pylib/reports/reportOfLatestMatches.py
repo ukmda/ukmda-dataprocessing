@@ -81,7 +81,6 @@ def getListOfNewMatches(dir_path, db_path='/tmp', rundate=None):
         masterdb.closeTrajDatabase()
 
         # iterate over the delete list and update the daily db and new traj list accordingly
-<<<<<<< markmac99
         print('cleaning up deleted trajectories in dailydb')
         for testtr in deltrajs:
             if testtr in newtrajs:
@@ -91,12 +90,6 @@ def getListOfNewMatches(dir_path, db_path='/tmp', rundate=None):
                 cur = dailydb.dbhandle.execute(f'select traj_id, status from trajectories where traj_file_path="{testtr[0]}"')
                 msg = cur.fetchone()
                 print(f'updated {msg}')
-=======
-        for testtr in deltrajs:
-            if testtr in newtrajs:
-                sqlstr = f'update trajectories set status=0 where "traj_file_path={testtr[0]}";'
-                dailydb.dbhandle.execute(sqlstr)
->>>>>>> master
                 newtrajs.pop(newtrajs.index(testtr))
 
     dailydb.closeTrajDatabase()
@@ -210,7 +203,6 @@ if __name__ == '__main__':
     daily_db_dir = sys.argv[2]
     offset = sys.argv[3]
         
-<<<<<<< markmac99
     flist = glob.glob(os.path.join(cand_db_dir, 'trajectories_*.db'))
     if len(flist) == 0:
         print('no container databases to process, aborting')
@@ -220,10 +212,3 @@ if __name__ == '__main__':
         # update the daily database of paired observations
         daily_db_dir = os.path.join(os.path.split(cand_db_dir)[0], 'dailydbs')
         updatePairedDB(cand_db_dir, daily_db_dir, repdtstr)
-=======
-    # arguments dblocation, datadir, days ago, rundate eg 20220524
-    findNewMatches(cand_db_dir, daily_db_dir, offset, repdtstr)
-    # update the daily database of paired observations
-    daily_db_dir = os.path.join(os.path.split(cand_db_dir)[0], 'dailydbs')
-    updatePairedDB(cand_db_dir, daily_db_dir, repdtstr)
->>>>>>> master
