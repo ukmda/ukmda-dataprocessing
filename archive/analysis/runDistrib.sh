@@ -66,38 +66,30 @@ execMatchingsh=/tmp/$execdist
 python -m traj.createDistribMatchingSh $MATCHSTART $MATCHEND $execMatchingsh $TESTMODE
 chmod +x $execMatchingsh
 
-log2cw $NJLOGGRP $NJLOGSTREAM "get server details" runDistrib
-privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
-while [ "$privip" == "" ] ; do
-    sleep 5
-    log2cw $NJLOGGRP $NJLOGSTREAM "getting IP address" runDistrib
-    privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
-done
+log2cw $NJLOGGRP $NJLOGSTREAM "deploy the script to the server $CALCSERVERIP and run it" runDistrib
 
-log2cw $NJLOGGRP $NJLOGSTREAM "deploy the script to the server $privip and run it" runDistrib
-
-scp -i $SERVERSSHKEY $execMatchingsh $SERVERUSERID@$privip:data/distrib/$execdist
+scp -i $SERVERSSHKEY $execMatchingsh $SERVERUSERID@$CALCSERVERIP:data/distrib/$execdist
 while [ $? -ne 0 ] ; do
     # in case the server isn't responding to ssh sessions yet
     sleep 10
     log2cw $NJLOGGRP $NJLOGSTREAM "server not responding yet, retrying" runDistrib
-    scp -i $SERVERSSHKEY $execMatchingsh $SERVERUSERID@$privip:data/distrib/$execdist
+    scp -i $SERVERSSHKEY $execMatchingsh $SERVERUSERID@$CALCSERVERIP:data/distrib/$execdist
 done 
 # push the python code and ECS templates required
-rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/clusdetails-* $SERVERUSERID@$privip:src/ukmon_pylib/traj
-rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/taskrunner*.json $SERVERUSERID@$privip:src/ukmon_pylib/traj
-rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/consolidateDistTraj.py $SERVERUSERID@$privip:src/ukmon_pylib/traj
-rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/distributeCandidates.py $SERVERUSERID@$privip:src/ukmon_pylib/traj
-rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/pickleAnalyser.py $SERVERUSERID@$privip:src/ukmon_pylib/traj
+rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/clusdetails-* $SERVERUSERID@$$CALCSERVERIP:src/ukmon_pylib/traj
+rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/taskrunner*.json $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/traj
+rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/consolidateDistTraj.py $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/traj
+rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/distributeCandidates.py $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/traj
+rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/pickleAnalyser.py $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/traj
 
 # now run the script
 log2cw $NJLOGGRP $NJLOGSTREAM "start distributed processing" runDistrib
-ssh -i $SERVERSSHKEY $SERVERUSERID@$privip "data/distrib/$execdist"
+ssh -i $SERVERSSHKEY $SERVERUSERID@$CALCSERVERIP "data/distrib/$execdist"
 
-rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$privip:ukmon-shared/matches/RMSCorrelate/candidates/processed/*.tgz $DATADIR/distrib/candidates
+rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$CALCSERVERIP:ukmon-shared/matches/RMSCorrelate/candidates/processed/*.tgz $DATADIR/distrib/candidates
 
-rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$privip:ukmon-shared/matches/RMSCorrelate/logs/*${rundate}*.log $SRC/logs/distrib/
-ssh -i $SERVERSSHKEY $SERVERUSERID@$privip "find ukmon-shared/matches/RMSCorrelate/logs -name '*.log' -mtime +30 -exec rm -f {} \;"
+rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$CALCSERVERIP:ukmon-shared/matches/RMSCorrelate/logs/*${rundate}*.log $SRC/logs/distrib/
+ssh -i $SERVERSSHKEY $SERVERUSERID@$CALCSERVERIP "find ukmon-shared/matches/RMSCorrelate/logs -name '*.log' -mtime +30 -exec rm -f {} \;"
 
 log2cw $NJLOGGRP $NJLOGSTREAM "job run, stop the server again" runDistrib
 aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
@@ -123,7 +115,6 @@ while [ "$stat" -ne 16 ]; do
     log2cw $NJLOGGRP $NJLOGSTREAM "checking - status is ${stat}" runDistrib
     stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
 done
-privip=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
 
 execcons=execconsol.sh
 execConsolsh=/tmp/$execcons
@@ -131,14 +122,14 @@ python -c "from traj.createDistribMatchingSh import createExecConsolSh;createExe
 chmod +x $execConsolsh
 
 log2cw $NJLOGGRP $NJLOGSTREAM "running consolidation" runDistrib
-scp -i $SERVERSSHKEY $execConsolsh $SERVERUSERID@$privip:data/distrib/$execcons
-ssh -i $SERVERSSHKEY $SERVERUSERID@$privip "data/distrib/$execcons"
+scp -i $SERVERSSHKEY $execConsolsh $SERVERUSERID@$CALCSERVERIP:data/distrib/$execcons
+ssh -i $SERVERSSHKEY $SERVERUSERID@$CALCSERVERIP "data/distrib/$execcons"
 
 log2cw $NJLOGGRP $NJLOGSTREAM "finished consolidation, copying databases" runDistrib
-rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$privip:ukmon-shared/matches/RMSCorrelate/dbs/*.db $DATADIR/distrib
+rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$CALCSERVERIP:ukmon-shared/matches/RMSCorrelate/dbs/*.db $DATADIR/distrib
 
 # remote temporary files
-ssh -i $SERVERSSHKEY $SERVERUSERID@$privip "find /tmp -maxdepth 1 -name "*.pickle"  -mtime +7 -exec rm -f {} \;"
+ssh -i $SERVERSSHKEY $SERVERUSERID@$CALCSERVERIP "find /tmp -maxdepth 1 -name "*.pickle"  -mtime +7 -exec rm -f {} \;"
 
 log2cw $NJLOGGRP $NJLOGSTREAM "stopping calcserver again" runDistrib
 aws ec2 stop-instances --instance-ids $SERVERINSTANCEID

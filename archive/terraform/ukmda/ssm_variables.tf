@@ -41,3 +41,13 @@ resource "aws_ssm_parameter" "prod_dbuser" {
     "billingtag" = "ukmon"
   }
 }
+
+resource "aws_ssm_parameter" "prod_calcserverip" {
+  provider = aws.eu-west-1-prov
+  name  = "prod_calcserverip"
+  type  = "String"
+  value = var.ubuntu_calcserverip
+    tags = {
+    "billingtag" = "ukmon"
+  }
+}

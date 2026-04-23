@@ -65,6 +65,15 @@ resource "aws_ssm_parameter" "dev_calcuser" {
   }
 }
  
+resource "aws_ssm_parameter" "dev_calcip" {
+  name  = "dev_calcserverip"
+  type  = "String"
+  value = "172.32.16.137"
+    tags = {
+    "billingtag" = "ukmon"
+  }
+}
+
 resource "aws_ssm_parameter" "dev_backupinstance" {
   name  = "dev_backupinstance"
   type  = "String"
@@ -127,3 +136,4 @@ resource "aws_ssm_parameter" "dev_batchloggroup" {
     "billingtag" = "ukmon"
   }
 }
+

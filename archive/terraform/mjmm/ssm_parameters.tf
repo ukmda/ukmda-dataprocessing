@@ -67,6 +67,14 @@ resource "aws_ssm_parameter" "prod_calcuser" {
   }
 }
  
+resource "aws_ssm_parameter" "prod_calcip" {
+  name  = "prod_calcserverip"
+  type  = "String"
+  value = "172.32.16.137"
+    tags = {
+    "billingtag" = "ukmon"
+  }
+}
 resource "aws_ssm_parameter" "prod_backupinstance" {
   name  = "prod_backupinstance"
   type  = "String"
@@ -129,4 +137,3 @@ resource "aws_ssm_parameter" "prod_batchloggroup" {
     "billingtag" = "ukmon"
   }
 }
-
