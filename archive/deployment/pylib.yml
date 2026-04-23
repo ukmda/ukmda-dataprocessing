@@ -14,6 +14,12 @@
   - name: Ensures {{destdir}}/ukmon_pylib exists
     file: path={{destdir}}/ukmon_pylib state=directory  
     tags: [dev,prod]
+  - name: Ensures {{destdir}}/ukmon_pylib/share exists
+    file: path={{destdir}}/ukmon_pylib/share state=directory  
+    tags: [dev,prod]
+  - name: Ensures {{destdir}}/ukmon_pylib/share/maps exists
+    file: path={{destdir}}/ukmon_pylib/share/maps state=directory  
+    tags: [dev,prod]
   - name: clean local filesystem
     ansible.builtin.command: 'pyclean {{srcdir}}/ukmon_pylib -v --debris all'
     delegate_to: localhost
