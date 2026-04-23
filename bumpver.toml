@@ -13,6 +13,3 @@ push = true
 "bumpver.toml" = [
     'current_version = "{version}"',
 ]
-".github/workflows/build_usermgmt.yml" = [
-    'tag_name: {version}'
-]
