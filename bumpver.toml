@@ -1,5 +1,5 @@
 [bumpver]
-current_version = "2024.04.2"
+current_version = "2026.04.1"
 version_pattern = "YYYY.0M.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 commit = true
@@ -13,6 +13,6 @@ push = true
 "bumpver.toml" = [
     'current_version = "{version}"',
 ]
-".github/workflows/build_usermgmt.yml" = [
-    'tag_name: {version}'
+"archive/README.md" = [
+    "version: {version}"
 ]
