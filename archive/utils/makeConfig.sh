@@ -8,7 +8,7 @@ fi
 RUNTIME_ENV=$1
 envname=$(echo $RUNTIME_ENV | tr '[:upper:]' '[:lower:]')
 
-export AWS_PROFILE=default
+#export AWS_PROFILE=default
 
 # read from AWS SSM Parameterset
 SRC=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_srcdir --query Parameters[0].Value  | tr -d '"')
@@ -19,7 +19,6 @@ UKMONLIVEBUCKET=s3://$(aws ssm get-parameters --region eu-west-2 --names ${envna
 RMS_LOC=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_rmshome --query Parameters[0].Value  | tr -d '"')
 WMPL_LOC=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_wmplhome --query Parameters[0].Value  | tr -d '"')
 SERVERINSTANCEID=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_calcinstance --query Parameters[0].Value  | tr -d '"')
-BKPINSTANCEID=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_backupinstance --query Parameters[0].Value  | tr -d '"')
 SERVERSSHKEY=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_sshkey --query Parameters[0].Value  | tr -d '"')
 NJLOGGRP=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_batchloggroup --query Parameters[0].Value  | tr -d '"')
 SERVERUSERID=$(aws ssm get-parameters --region eu-west-2 --names ${envname}_calcuser --query Parameters[0].Value  | tr -d '"')
@@ -29,7 +28,6 @@ unset AWS_PROFILE
 # hardcoded
 PYLIB=$SRC/ukmon_pylib
 TEMPLATES=$SRC/website/templates
-RCODEDIR=$SRC/R
 DATADIR=$SRC/data
 AWS_DEFAULT_REGION=eu-west-2
 MATCHSTART=2
@@ -61,12 +59,10 @@ echo "UKMONSHAREDBUCKET=${UKMONSHAREDBUCKET}" >> ${CFGFILE}
 echo "UKMONLIVEBUCKET=${UKMONLIVEBUCKET}" >> ${CFGFILE}
 echo "PYLIB=${PYLIB}" >> ${CFGFILE}
 echo "TEMPLATES=${TEMPLATES}" >> ${CFGFILE}
-echo "RCODEDIR=${RCODEDIR}" >> ${CFGFILE}
 echo "DATADIR=${DATADIR}" >> ${CFGFILE}
 echo "SERVERINSTANCEID=${SERVERINSTANCEID}" >> ${CFGFILE}
 echo "SERVERUSERID=${SERVERUSERID}" >> ${CFGFILE}
 echo "CALCSERVERIP=${CALCSERVERIP}" >> ${CFGFILE}
-echo "BKPINSTANCEID=${BKPINSTANCEID}" >> ${CFGFILE}
 echo "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" >> ${CFGFILE}
 echo "RMS_ENV=${RMS_ENV}" >> ${CFGFILE}
 echo "WMPL_ENV=${WMPL_ENV}" >> ${CFGFILE}
@@ -83,7 +79,7 @@ echo "TESTSUFF=${TESTSUFF}" >> ${CFGFILE}
 echo "" >> ${CFGFILE}
 echo "export RUNTIME_ENV SRC SITEURL" >> ${CFGFILE}
 echo "export WEBSITEBUCKET UKMONSHAREDBUCKET" >> ${CFGFILE}
-echo "export PYLIB TEMPLATES RCODEDIR DATADIR BKPINSTANCEID AWS_DEFAULT_REGION" >> ${CFGFILE}
+echo "export PYLIB TEMPLATES DATADIR AWS_DEFAULT_REGION" >> ${CFGFILE}
 echo "export RMS_ENV RMS_LOC WMPL_ENV WMPL_LOC" >> ${CFGFILE}
 echo "export PYTHONPATH=${RMS_LOC}:${WMPL_LOC}:${PYLIB}:${SRC}/share" >> ${CFGFILE}
 echo "export MATCHSTART MATCHEND SERVERSSHKEY" >> ${CFGFILE}
@@ -98,5 +94,3 @@ echo 'function log2cw() { ' >> ${CFGFILE}
 echo 'aws logs put-log-events --log-group-name $1 --log-stream-name $2 --log-events "[{\"timestamp\": $(date +%s%3N), \"message\": \"$3\"}]" --profile ukmonshared > /dev/null ' >> ${CFGFILE}
 echo 'logger -s -t $4 RUNTIME $SECONDS $3' >> ${CFGFILE}
 echo '}' >> ${CFGFILE}
-
-

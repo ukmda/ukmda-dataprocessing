@@ -8,6 +8,10 @@ variable "sharedbucket" { default = "ukmda-shared" }
 variable "livebucket" { default = "ukmda-live" }
 variable "adminbucket" { default = "ukmda-admin" }
 
+variable "dev_websitebucket" { default = "ukmda-website" }
+variable "dev_sharedbucket" { default = "ukmda-shared" }
+variable "dev_livebucket" { default = "ukmda-live" }
+
 variable "region" { default = "eu-west-2"}
 variable "liveregion" { default = "eu-west-1"}
 

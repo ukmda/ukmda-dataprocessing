@@ -2,9 +2,9 @@
 
 # SSM parameters for use in Lambdas and the batch 
 
-resource "aws_ssm_parameter" "prod_dbhost" {
+resource "aws_ssm_parameter" "dev_dbhost" {
     provider = aws.eu-west-1-prov
-    name  = "prod_dbhost"
+    name  = "dev_dbhost"
   type  = "String"
   value = "3.11.55.160"
   tags = {
@@ -12,9 +12,9 @@ resource "aws_ssm_parameter" "prod_dbhost" {
   }
 }
 
-resource "aws_ssm_parameter" "prod_dbname" {
+resource "aws_ssm_parameter" "dev_dbname" {
   provider = aws.eu-west-1-prov
-  name  = "prod_dbname"
+  name  = "dev_dbname"
   type  = "String"
   value = "ukmon"
   tags = {
@@ -22,9 +22,9 @@ resource "aws_ssm_parameter" "prod_dbname" {
   }
 }
 
-resource "aws_ssm_parameter" "prod_dbpw" {
+resource "aws_ssm_parameter" "dev_dbpw" {
   provider = aws.eu-west-1-prov
-  name  = "prod_dbpw"
+  name  = "dev_dbpw"
   type  = "SecureString"
   value = "Batch33mdl"
   tags = {
@@ -32,9 +32,9 @@ resource "aws_ssm_parameter" "prod_dbpw" {
   }
 }
 
-resource "aws_ssm_parameter" "prod_dbuser" {
+resource "aws_ssm_parameter" "dev_dbuser" {
   provider = aws.eu-west-1-prov
-  name  = "prod_dbuser"
+  name  = "dev_dbuser"
   type  = "String"
   value = "batch"
   tags = {
@@ -42,53 +42,53 @@ resource "aws_ssm_parameter" "prod_dbuser" {
   }
 }
 
-resource "aws_ssm_parameter" "prod_websitebucket" {
-  name  = "prod_websitebucket"
+resource "aws_ssm_parameter" "dev_websitebucket" {
+  name  = "dev_websitebucket"
   type  = "String"
-  value = var.websitebucket
+  value = var.dev_websitebucket
   tags = {
     "billingtag" = "ukmda"
   }
 }
 
-resource "aws_ssm_parameter" "prod_sharedbucket" {
-  name  = "prod_sharedbucket"
+resource "aws_ssm_parameter" "dev_sharedbucket" {
+  name  = "dev_sharedbucket"
   type  = "String"
-  value = var.sharedbucket
+  value = var.dev_sharedbucket
   tags = {
     "billingtag" = "ukmda"
   }
 }
 
-resource "aws_ssm_parameter" "prod_livebucket" {
-  name  = "prod_livebucket"
+resource "aws_ssm_parameter" "dev_livebucket" {
+  name  = "dev_livebucket"
   type  = "String"
-  value = var.livebucket
+  value = var.dev_livebucket
   tags = {
     "billingtag" = "ukmda"
   }
 }
 
-resource "aws_ssm_parameter" "prod_siteurl" {
-  name  = "prod_siteurl"
+resource "aws_ssm_parameter" "dev_siteurl" {
+  name  = "dev_siteurl"
   type  = "String"
-  value = "https://archive.ukmeteors.co.uk" 
+  value = "https://www.ukmeteors.co.uk/dummy/"
   tags = {
     "billingtag" = "ukmda"
   }
 }
 
-resource "aws_ssm_parameter" "prod_envname" {
-  name  = "prod_envname"
+resource "aws_ssm_parameter" "dev_envname" {
+  name  = "dev_envname"
   type  = "String"
-  value = "PROD"
+  value = "DEV"
   tags = {
     "billingtag" = "ukmda"
   }
 }
 
-resource "aws_ssm_parameter" "prod_calcinstance" {
-  name  = "prod_calcinstance"
+resource "aws_ssm_parameter" "dev_calcinstance" {
+  name  = "dev_calcinstance"
   type  = "String"
   value = "i-0ab47af23705beb31"
   tags = {
@@ -96,8 +96,8 @@ resource "aws_ssm_parameter" "prod_calcinstance" {
   }
 }
  
-resource "aws_ssm_parameter" "prod_calcuser" {
-  name  = "prod_calcuser"
+resource "aws_ssm_parameter" "dev_calcuser" {
+  name  = "dev_calcuser"
   type  = "String"
   value = "ubuntu"
   tags = {
@@ -106,8 +106,8 @@ resource "aws_ssm_parameter" "prod_calcuser" {
 }
 
  
-resource "aws_ssm_parameter" "prod_calcserverip" {
-  name  = "prod_calcserverip"
+resource "aws_ssm_parameter" "dev_calcserverip" {
+  name  = "dev_calcserverip"
   type  = "String"
   value = var.ubuntu_calcserverip
     tags = {
@@ -115,17 +115,17 @@ resource "aws_ssm_parameter" "prod_calcserverip" {
   }
 }
 
-resource "aws_ssm_parameter" "prod_wmplhome" {
-  name  = "prod_wmplhome"
+resource "aws_ssm_parameter" "dev_wmplhome" {
+  name  = "dev_wmplhome"
   type  = "String"
-  value = "$HOME/src/WesternMeteorPyLib"
+  value = "$HOME/src/wmpldev"
   tags = {
     "billingtag" = "ukmda"
   }
 }
 
-resource "aws_ssm_parameter" "prod_rmshome" {
-  name  = "prod_rmshome"
+resource "aws_ssm_parameter" "dev_rmshome" {
+  name  = "dev_rmshome"
   type  = "String"
   value = "$HOME/src/RMS"
   tags = {
@@ -133,26 +133,26 @@ resource "aws_ssm_parameter" "prod_rmshome" {
   }
 }
 
-resource "aws_ssm_parameter" "prod_srcdir" {
-  name  = "prod_srcdir"
+resource "aws_ssm_parameter" "dev_srcdir" {
+  name  = "dev_srcdir"
   type  = "String"
-  value = "$HOME/prod"
+  value = "$HOME/dev"
   tags = {
     "billingtag" = "ukmda"
   }
 }
 
-resource "aws_ssm_parameter" "prod_caminfo" {
-  name  = "prod_caminfo"
+resource "aws_ssm_parameter" "dev_caminfo" {
+  name  = "dev_caminfo"
   type  = "String"
-  value = "$HOME/prod/data/consolidated/camera-details.csv"
+  value = "$HOME/dev/data/consolidated/camera-details.csv"
   tags = {
     "billingtag" = "ukmda"
   }
 }
 
-resource "aws_ssm_parameter" "prod_sshkey" {
-  name  = "prod_sshkey"
+resource "aws_ssm_parameter" "dev_sshkey" {
+  name  = "dev_sshkey"
   type  = "String"
   value = "$HOME/.ssh/markskey.pem"
   tags = {
@@ -160,10 +160,10 @@ resource "aws_ssm_parameter" "prod_sshkey" {
   }
 }
 
-resource "aws_ssm_parameter" "prod_batchloggroup" {
-  name  = "prod_batchloggroup"
+resource "aws_ssm_parameter" "dev_batchloggroup" {
+  name  = "dev_batchloggroup"
   type  = "String"
-  value = "/ukmonbatch/nightlyjob"
+  value = "/ukmondev/nightlyjob"
   tags = {
     "billingtag" = "ukmda"
   }
