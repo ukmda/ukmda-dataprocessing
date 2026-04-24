@@ -125,18 +125,23 @@ def removeDeletedTraj(csvfile):
     masterdb = TrajectoryDatabase(db_path=masterdb_path)
     cur = masterdb.dbhandle.execute(f'select traj_file_path from trajectories where status=0 and jdt_ref >= {jdt_beg} and jdt_ref <={jdt_end}')
     deltrajs = cur.fetchall()
-    masterdb.closeTrajDatabase()
 
     i=0
     for traj in deltrajs:
-        fldr = os.path.basename(os.path.dirname(traj[0]))
-        match = [tr for tr in csvdata if fldr in tr]
-        if len(match) > 0:
-            for thismtch in match:
-                print(f'removing {fldr}')
-                idx = csvdata.index(thismtch)
-                _ = csvdata.pop(idx)
-                i += 1
+        cur = masterdb.dbhandle.execute(f'select count(traj_id) from trajectories where traj_file_path="{traj[0]}"')
+        numtraj = int(cur.fetchone()[0])
+        if numtraj == 1: 
+            fldr = os.path.basename(os.path.dirname(traj[0]))
+            match = [tr for tr in csvdata if fldr in tr]
+            if len(match) > 0:
+                for thismtch in match:
+                    print(f'removing {fldr}')
+                    idx = csvdata.index(thismtch)
+                    _ = csvdata.pop(idx)
+                    i += 1
+        else:
+            print(f'skipping {traj[0]} as there are {numtraj} with the same path')
+    masterdb.closeTrajDatabase()
     print(f'removed {i} trajectories')
 
     open(csvfile, 'w').writelines(csvdata)
@@ -156,9 +161,10 @@ def getSqlLoginDetails():
     password = res['Parameter']['Value']
     res = ssm.get_parameter(Name='prod_dbhost')
     host = res['Parameter']['Value'] 
-    # should really do these too but they won't change often if at all
-    user = 'batch'
-    db = 'ukmon'
+    res = ssm.get_parameter(Name='prod_user')
+    user = res['Parameter']['Value'] 
+    res = ssm.get_parameter(Name='prod_dbname')
+    db = res['Parameter']['Value'] 
     return host, user, password, db
 
 
@@ -173,7 +179,6 @@ def removeDelTrajFromDb():
     masterdb = TrajectoryDatabase(db_path=masterdb_path)
     cur = masterdb.dbhandle.execute(f'select traj_file_path from trajectories where status=0 and jdt_ref >= {jdt_beg} and jdt_ref <={jdt_end}')
     deltrajs = cur.fetchall()
-    masterdb.closeTrajDatabase()
 
     # get connection to the SQL database
     host, user, passwd, db = getSqlLoginDetails()
@@ -181,14 +186,20 @@ def removeDelTrajFromDb():
 
     count = 0
     for traj in deltrajs:
-        fldr = os.path.basename(os.path.dirname(traj[0]))
-        sqlstr = f"delete from matches where orbname like '{fldr}%'"
-        with connection.cursor() as cursor:
-            cursor.execute(sqlstr)
-            result = cursor.fetchall()
-            count += len(result)
+        cur = masterdb.dbhandle.execute(f'select count(traj_id) from trajectories where traj_file_path="{traj[0]}"')
+        numtraj = int(cur.fetchone()[0])
+        if numtraj == 1: 
+            fldr = os.path.basename(os.path.dirname(traj[0]))
+            sqlstr = f"delete from matches where orbname like '{fldr}%'"
+            with connection.cursor() as cursor:
+                cursor.execute(sqlstr)
+                result = cursor.fetchall()
+                count += len(result)
+        else:
+            print(f'skipping {traj[0]} as there are {numtraj} with the same path')
     connection.commit()
     connection.close()
+    masterdb.closeTrajDatabase()
     print(f'cleaned up {count} trajectories')
     return
 
