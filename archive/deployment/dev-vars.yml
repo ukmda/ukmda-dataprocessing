@@ -1,3 +1,0 @@
-destdir: dev
-env: DEV
-s3profile: default

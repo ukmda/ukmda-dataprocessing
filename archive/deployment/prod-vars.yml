@@ -1,3 +1,0 @@
-destdir: prod
-env: PROD
-s3profile: ukmda_admin
