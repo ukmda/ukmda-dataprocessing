@@ -66,3 +66,10 @@ diff passwd.orig passwd.mig
 diff shadow.orig shadow.mig
 diff group.orig group.mig
 ```
+
+# Other stuff
+To install PyQt5 - needs at least 4GB memory so add 3GB swap
+``` bash
+sudo apt install qtbase5-dev qt5-qmake
+pip install pyqt5
+```
