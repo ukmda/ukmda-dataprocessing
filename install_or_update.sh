@@ -28,6 +28,8 @@ mkdir -p $DATADIR/{lastlogs,latest,matched,orbits,reports,searchidx,single,trajd
 mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
 mkdir -p ~/$envname/logs
 
+~/$envname/utils/makeConfig.sh $RUNTIME_ENV
+
 read -n 1 -p "Update bashrc and aliases? (Y/n) " yesno 
 if [[ "$yesno" == "n"  || "$yesno" == "N" ]] 
 then 
@@ -38,5 +40,4 @@ else
         echo rsync server_setup/$fil ~
     done 
 fi 
-yesno=
 echo "$msg complete"
