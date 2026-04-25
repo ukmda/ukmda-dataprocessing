@@ -21,10 +21,22 @@ do
 	rsync -avz --delete $loc/ ~/${envname}/$loc
 	chmod +x ~/${envname}/$loc/*.sh > /dev/null 2>&1
 done
+
 DATADIR=~/$envname/data
 mkdir -p $DATADIR/{admin,browse,consolidated,costs,dailyreports,distrib,kmls,manualuploads}
 mkdir -p $DATADIR/{lastlogs,latest,matched,orbits,reports,searchidx,single,trajdb,videos}
 mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
 mkdir -p ~/$envname/logs
 
+read -n 1 -p "Update bashrc and aliases? (Y/n) " yesno 
+if [[ "$yesno" == "n"  || "$yesno" == "N" ]] 
+then 
+    echo skipping bashrc
+else
+    for fil in .bashrc .bash_aliases .vimrc .condaon 
+    do
+        echo rsync server_setup/$fil ~
+    done 
+fi 
+yesno=
 echo "$msg complete"
