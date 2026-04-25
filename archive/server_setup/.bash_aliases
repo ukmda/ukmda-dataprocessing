@@ -4,6 +4,7 @@
 alias h='history'
 alias df='df -h'
 alias du='du -h'
+alias ls='ls --color=auto'
 
 alias data='if [ "$SRC" == "" ] ; then echo select env first; else cd $SRC/data && pwd ; fi'
 alias logs='if [ "$SRC" == "" ] ; then echo select env first; else cd $SRC/logs && pwd ; fi'
@@ -20,15 +21,17 @@ alias startcalc='$SRC/utils/stopstart-calcengine.sh start'
 alias stopcalc='$SRC/utils/stopstart-calcengine.sh stop'
 
 function dev {
-	source ~/dev/config.ini >/dev/null
-	conda activate $HOME/miniconda3/envs/${WMPL_ENV}
-	PS1="(wmpl) (dev) [\W]\$ "
+	source ~/dev/config.ini
+	#conda activate $HOME/miniconda3/envs/${WMPL_ENV}
+	conda activate ${WMPL_ENV}
+	PS1="(dev) [\W]\$ "
 	cd ~/dev
 }
 function prd {
-	source ~/prod/config.ini >/dev/null
-	conda activate $HOME/miniconda3/envs/${WMPL_ENV}
-	PS1="(wmpl) (prd) [\W]\$ "
+	source ~/prod/config.ini #>/dev/null
+	#conda activate $HOME/miniconda3/envs/${WMPL_ENV}
+	conda activate ${WMPL_ENV}
+	PS1="(prd) [\W]\$ "
 	cd ~/prod
 }
 

@@ -10,4 +10,5 @@ else
     fi
 fi
 unset __conda_setup
+. ~/miniconda3/etc/profile.d/conda.sh
 # <<< conda initialize <<<
