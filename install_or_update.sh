@@ -38,7 +38,7 @@ then
 else
     for fil in .bashrc .bash_aliases .vimrc .condaon 
     do
-        echo rsync server_setup/$fil ~
+        rsync server_setup/$fil ~
     done 
 fi 
 echo "$msg complete"
