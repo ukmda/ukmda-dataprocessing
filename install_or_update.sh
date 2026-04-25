@@ -18,7 +18,7 @@ git pull
 [ -d ~/$envname/data ] && msg="upgrade" || msg="install"
 for loc in analysis ukmon_pylib website cronjobs utils share static_content
 do
-	rsync -avz --delete $loc/ ~/${envname}/$loc
+	rsync -a --delete $loc/ ~/${envname}/$loc
 	chmod +x ~/${envname}/$loc/*.sh > /dev/null 2>&1
 done
 
@@ -41,4 +41,5 @@ else
         rsync server_setup/$fil ~
     done 
 fi 
+echo ""
 echo "$msg complete"
