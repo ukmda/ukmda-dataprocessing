@@ -98,7 +98,7 @@ def timeGraph(dta, shwrname, outdir, binmins=10):
 
     # resample it 
     binned = countcol.resample('{}min'.format(binmins)).count()
-    binned.plot(kind='bar')
+    binned.plot(kind='bar', width=10)
 
     # set ticks and labels every 144 intervals
     nbins = max(len(binned)/144, 2)
@@ -139,7 +139,7 @@ def matchesGraphs(dta, shwrname, outdir, binmins=60, startdt=None, enddt=None, t
     mcountcol = mdta['_ID1']
     # resample it 
     mbinned = mcountcol.resample('{}min'.format(binmins)).count()
-    mbinned.plot(kind='bar')
+    mbinned.plot(kind='bar', width=10)
 
     # set ticks and labels every 144 intervals
     ax = plt.gca()
