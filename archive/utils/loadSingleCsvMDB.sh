@@ -17,7 +17,8 @@ if [ ! -f $csvname ] ; then echo "$csvname not found" ; exit ; fi
 echo "loading $csvname into mariadb"
 logger -s -t loadSQL "starting"
 user=batch
-passwd=$(cat ~/.ssh/db_batch.passwd )
+# leading space to prevent being inserted into environment
+ passwd=$(aws ssm get-parameters --names prod_dbpw --with-decryption --region eu-west-1 | jq .Parameters[0].Value)
 mysql -u${user} -p${passwd} << EOD
 select count(*) from ukmon.singles;
 LOAD DATA LOCAL INFILE '$csvname' 
