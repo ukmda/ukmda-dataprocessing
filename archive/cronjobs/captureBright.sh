@@ -8,7 +8,9 @@ cd $DATADIR/brightness
 rundt=$(date -d "yesterday" +%Y%m%d)
 python -m utils.compareBrightnessData $rundt
 
-mysql -u batch -p$(cat ~/.ssh/db_batch.passwd) -h localhost << EOD
+# leading space to prevent being inserted into environment
+ pwd=$(aws ssm get-parameters --names prod_dbpw --with-decryption --region eu-west-1 | jq .Parameters[0].Value)
+mysql -u batch -p$pwd -h localhost << EOD
 use ukmon;
 select count(*) from ukmon.brightness;
 load data local infile '${DATADIR}/brightness/CaptureNight_${rundt}.csv' 
