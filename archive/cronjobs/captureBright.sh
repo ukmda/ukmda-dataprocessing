@@ -6,7 +6,7 @@ conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 cd $DATADIR/brightness
 rundt=$(date -d "yesterday" +%Y%m%d)
-python -m analysis.compareBrightnessData $rundt
+python -m utils.compareBrightnessData $rundt
 
 mysql -u batch -p$(cat ~/.ssh/db_batch.passwd) -h localhost << EOD
 use ukmon;
