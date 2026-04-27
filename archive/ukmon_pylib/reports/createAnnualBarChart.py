@@ -42,8 +42,9 @@ def createBarChart(datadir=None, yr=None):
     ax.set_xlabel('Date')
     ax.set_title('Number of matched events per day. Last updated {}'.format(nowdt.strftime('%Y-%m-%d %H:%M:%S')))
 
-    if len(dts) > len(li):
-        li.append(0) # comes up one short
+    while len(li) < len(dts):
+        li.append(0) 
+        
     print(len(dts), len(li))
     ax.bar(dts, li, width, label='Events')
     fig = plt.gcf()
