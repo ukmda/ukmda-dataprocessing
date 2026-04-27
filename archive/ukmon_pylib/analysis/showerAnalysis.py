@@ -110,7 +110,7 @@ def timeGraph(dta, shwrname, outdir, binmins=10):
         lab.set_fontsize(SMALL_SIZE)
     # format x-axes
     x_labels = binned.index.strftime('%b-%d')
-    ax.set_xticklabels(x_labels)
+    plt.xticks(np.arange(len(x_labels)), x_labels)
     ax.set(xlabel="Date", ylabel="Count")
     plt.title('Observed stream activity {}min intervals ({})'.format(binmins, shwrname))
     plt.tight_layout()
@@ -157,7 +157,7 @@ def matchesGraphs(dta, shwrname, outdir, binmins=60, startdt=None, enddt=None, t
         else:
             x_labels = mbinned.index.strftime('%b-%d')
 
-        ax.set_xticklabels(x_labels)
+        plt.xticks(np.arange(len(x_labels)), x_labels)
 
     ax.set(xlabel="Date", ylabel="Count")
 
@@ -216,7 +216,7 @@ def velDistribution(dta, shwrname, outdir, vg_or_vs, binwidth=0.2):
 
     # format x-axes
     x_labels=["%.0f" % number for number in bins[:-1]]
-    ax.set_xticklabels(x_labels)
+    plt.xticks(np.arange(len(x_labels)), x_labels)
     fig = plt.gcf()
     fig.set_size_inches(11.6, 8.26)
 
@@ -254,7 +254,7 @@ def durationDistribution(dta, shwrname, outdir, binwidth=0.2):
 
     # format x-axes
     x_labels=["%.1f" % number for number in bins[:-1]]
-    ax.set_xticklabels(x_labels)
+    plt.xticks(np.arange(len(x_labels)), x_labels)
     fig = plt.gcf()
     fig.set_size_inches(11.6, 8.26)
 
@@ -292,7 +292,7 @@ def distanceDistribution(dta, shwrname, outdir, binwidth=1.0):
 
     # format x-axes
     x_labels=["%.0f" % number for number in bins[:-1]]
-    ax.set_xticklabels(x_labels)
+    plt.xticks(np.arange(len(x_labels)), x_labels)
     fig = plt.gcf()
     fig.set_size_inches(11.6, 8.26)
 
@@ -356,13 +356,6 @@ def radiantDistribution(dta, shwrname, outdir):
     magdf.plot.scatter(x=idx, y=idx2)
     ax = plt.gca()
     ax.set(xlabel='RA (deg)', ylabel="Dec (deg)")
-    #plt.locator_params(axis='x', nbins=12)
-    #for lab in ax.get_xticklabels():
-    #    lab.set_fontsize(SMALL_SIZE)
-
-    # format x-axes
-    #x_labels=["%.0f" % number for number in bins[:-1]]
-    #ax.set_xticklabels(x_labels)
     fig = plt.gcf()
     fig.set_size_inches(11.6, 8.26)
 
@@ -394,7 +387,7 @@ def semimajorDistribution(dta, shwrname, outdir, binwidth=0.5):
 
     # format x-axes
     x_labels=["%.0f" % number for number in bins[:-1]]
-    ax.set_xticklabels(x_labels)
+    plt.xticks(np.arange(len(x_labels)), x_labels)
     fig = plt.gcf()
     fig.set_size_inches(11.6, 8.26)
 
@@ -424,7 +417,7 @@ def magDistributionAbs(dta, shwrname, outdir, binwidth=0.2):
 
     # format x-axes
     x_labels=["%.0f" % number for number in bins[:-1]]
-    ax.set_xticklabels(x_labels)
+    plt.xticks(np.arange(len(x_labels)), x_labels)
     fig = plt.gcf()
     fig.set_size_inches(11.6, 8.26)
 
@@ -455,7 +448,6 @@ def magDistributionVis(dta, shwrname, outdir, binwidth=0.2):
     # format x-axes
     x_labels=["%.0f" % number for number in bins[:-1]]
     plt.xticks(np.arange(len(x_labels)), x_labels)
-    #ax.set_xticklabels(x_labels)
     fig = plt.gcf()
     fig.set_size_inches(11.6, 8.26)
 
