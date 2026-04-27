@@ -133,7 +133,7 @@ def _loadGMNShowerTable(dir_path, file_name):
                 np.radians(float(B_g)), 
                 1000*float(v_g), 
                 np.radians(float(dispersion)), 
-                int(IAU_no)], 
-                IAU_code
+                int(IAU_no)]
+                
             )
     return np.array(gmn_shower_list)
