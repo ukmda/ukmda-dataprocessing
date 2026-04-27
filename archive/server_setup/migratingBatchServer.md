@@ -54,6 +54,16 @@ aws ssm get-parameters --region eu-west-2 --names prod_siteurl --query Parameter
 "https://archive.ukmeteors.co.uk"
 ```
 
+### SSH and other API keys 
+copy the contents of ~/.ssh on the old server, and make sure permissions are correct (should all be 0600). At a minimum you need the following files
+``` bash
+gmailcreds.json
+gmailtoken.json
+```
+These are used to authenticate against gmail. The keys are currently specific to Mark McIntyre's account and will need to be replaced with keys for `ukmeteors@gmail.com`
+
+You may also need the `github` keys though this depends on how you authenticate with GitHub. 
+
 ## data
 Replicate `~/prod/data` to the new server.  (once for prod and once for dev). This will have to be repeated every day till golive. 
 ``` bash
@@ -66,7 +76,28 @@ rsync -avz ukmonhelper2:keymgmt/ ./keymgmt
 ```
 
 ## Mariadb database
-TBC
+Sudo to root and run the following to set a root password
+``` bash
+mysql -u root -p
+ALTER USER 'root'@'localhost' IDENTIFIED VIA mysql_native_password USING PASSWORD('ROOTPASSWORD');
+FLUSH PRIVILEGES;
+quit
+```
+(obviously, replace `ROOTPASSWORD` with the password in the SSM variable `prod_dbpw`)
+
+Exit the root shell, and as a 'normal' user execute the following:
+``` bash
+cd $SRC/database/
+mysql -u root -pROOTPASSWORD < ddl/create_dbs_and_users.sql
+mysql -u root -pROOTPASSWORD < ddl/create_tables.sql
+mysql -u root -pROOTPASSWORD < ddl/create_brightness_table.sq
+```
+Now dump and reload the databases from the old server.
+Make sure the old server can connect to the new one then on the old server, run the following:
+``` bash
+mysqldump -u batch -p'passwd' ukmon | ssh newserver mysql -u batch -p'passwd' ukmon
+```
+
 
 ### To install PyQt5 
 * needs at least 3GB memory so add 2GB swap if the server has less.

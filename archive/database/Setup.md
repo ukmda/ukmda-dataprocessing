@@ -29,7 +29,7 @@ make sure you've installed mariadb on the new server and created databases and u
 make sure you can ssh from old to new
 then on the old server run 
 ```
-mysqldump -u batch -p'passwd' ukmon | ssh ukmonhelper2 mysql -u batch -p'passwd' ukmon
+mysqldump -u batch -p'passwd' ukmon | ssh newserver mysql -u batch -p'passwd' ukmon
 ```
 
 ## Connecting from Python
