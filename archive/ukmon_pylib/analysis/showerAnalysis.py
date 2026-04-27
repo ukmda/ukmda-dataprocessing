@@ -157,7 +157,7 @@ def matchesGraphs(dta, shwrname, outdir, binmins=60, startdt=None, enddt=None, t
         else:
             x_labels = mbinned.index.strftime('%b-%d')
 
-        plt.xticks(np.arange(len(x_labels)), x_labels)
+        ax.set_xticklabels(x_labels)
 
     ax.set(xlabel="Date", ylabel="Count")
 
