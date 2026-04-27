@@ -7,7 +7,7 @@ import os
 import gmplot
 import glob
 from cryptography.fernet import Fernet
-from meteortools.fileformats import readCameraKML
+from utils.kmlHandlers import readCameraKML
 
 
 def decodeApiKey(enckey):

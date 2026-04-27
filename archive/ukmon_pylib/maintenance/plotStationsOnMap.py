@@ -6,13 +6,10 @@
 import numpy as np
 import os
 import sys
-import fnmatch
 import matplotlib.pyplot as plt
 import json 
 
 import cartopy.crs as ccrs
-
-from meteortools.fileformats import UFOAnalyzerXML as ua
 
 from PIL import Image
 
@@ -21,15 +18,7 @@ def getBearingsForEvent(stns, fldr):
     brngs = np.zeros(len(stns))
     listOfFiles = os.listdir(fldr)
     for entry in listOfFiles:
-        if fnmatch.fnmatch(entry, '*A.XML'):
-            fullname = os.path.join(fldr, entry)
-            xmlf = ua.UAXml(fullname)
-            sta, _, _, _, _, _ = xmlf.getStationDetails()
-            _, _, _, _, _, _, az1, _ = xmlf.getObjectStart(0)
-            i = stns.index(sta)
-            brngs[i] = az1
-
-        elif entry == 'FTPdetectinfo_UFO.txt':
+        if entry == 'FTPdetectinfo_UFO.txt':
             with open(os.path.join(fldr, 'FTPdetectinfo_UFO.txt'), 'r') as f:
                 lis = f.readlines()
                 for s in stns:
