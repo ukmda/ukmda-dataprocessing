@@ -34,7 +34,6 @@ MATCHSTART=2
 MATCHEND=0
 RMS_ENV=RMS
 WMPL_ENV=wmpl
-APIKEY=$(cat ~/.ssh/gmapsapikey)
 KMLTEMPLATE=*70km.kml
 
 # variables that can be used in scripts and python files to ensure test data doesnt overwrite live data
@@ -71,7 +70,6 @@ echo "WMPL_LOC=${WMPL_LOC}" >> ${CFGFILE}
 echo "MATCHSTART=${MATCHSTART}" >> ${CFGFILE}
 echo "MATCHEND=${MATCHEND}" >> ${CFGFILE}
 echo "SERVERSSHKEY=${SERVERSSHKEY}" >> ${CFGFILE}
-echo "APIKEY=${APIKEY}" >> ${CFGFILE}
 echo "KMLTEMPLATE=${KMLTEMPLATE}" >> ${CFGFILE}
 echo "NJLOGGRP=${NJLOGGRP}" >> ${CFGFILE}
 echo "TESTMODE=${TESTMODE}" >> ${CFGFILE}
@@ -83,7 +81,7 @@ echo "export PYLIB TEMPLATES DATADIR AWS_DEFAULT_REGION" >> ${CFGFILE}
 echo "export RMS_ENV RMS_LOC WMPL_ENV WMPL_LOC" >> ${CFGFILE}
 echo "export PYTHONPATH=${RMS_LOC}:${WMPL_LOC}:${PYLIB}:${SRC}/share" >> ${CFGFILE}
 echo "export MATCHSTART MATCHEND SERVERSSHKEY" >> ${CFGFILE}
-echo "export APIKEY KMLTEMPLATE SERVERINSTANCEID SERVERUSERID CALCSERVERIP NJLOGGRP" >> ${CFGFILE}
+echo "export KMLTEMPLATE SERVERINSTANCEID SERVERUSERID CALCSERVERIP NJLOGGRP" >> ${CFGFILE}
 echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/local/geos/lib:/usr/local/proj4/lib" >> ${CFGFILE}
 echo "export TESTMODE TESTSUFF" >> ${CFGFILE}
 
