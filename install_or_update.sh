@@ -16,11 +16,12 @@ cd $here/archive
 git pull
 
 [ -d ~/$envname/data ] && msg="upgrade" || msg="install"
-for loc in analysis ukmon_pylib website cronjobs utils share static_content
+for loc in analysis ukmon_pylib website cronjobs utils static_content
 do
 	rsync -a --delete $loc/ ~/${envname}/$loc
 	chmod +x ~/${envname}/$loc/*.sh > /dev/null 2>&1
 done
+rsync -a share/ ~/${envname}/share
 
 DATADIR=~/$envname/data
 mkdir -p $DATADIR/{admin,browse,consolidated,costs,dailyreports,distrib,kmls,manualuploads}
@@ -28,19 +29,23 @@ mkdir -p $DATADIR/{lastlogs,latest,matched,orbits,reports,searchidx,single,trajd
 mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
 mkdir -p ~/$envname/logs
 
-~/$envname/cronjobs/getImoWSfile.sh
+# update the IMO and GMN meteor shower tables if missing
+if [ ! -f ~/${envname}/share/IMO_Working_Meteor_Shower_List.xml ] 
+then
+    ~/$envname/cronjobs/getImoWSfile.sh
+fi 
 
-read -n 1 -p "Update bashrc and config? (Y/n) " yesno 
-if [[ "$yesno" == "n"  || "$yesno" == "N" ]] 
+read -n 1 -p "Update bashrc and config? (y/N) " yesno 
+if [[ "$yesno" == "y"  || "$yesno" == "Y" ]] 
 then 
-    echo skipping config and bashrc
-else
     echo "Updating config for $envname"
     ~/$envname/utils/makeConfig.sh $RUNTIME_ENV
     for fil in .bashrc .bash_aliases .vimrc .condaon 
     do
         rsync -a server_setup/$fil ~
     done 
+else
+    echo skipping config and bashrc
 fi 
 echo ""
 echo "$msg complete"
