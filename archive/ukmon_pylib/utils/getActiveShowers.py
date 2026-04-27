@@ -96,7 +96,7 @@ def getShowerPeak(shwr):
 
 def numpifyShowerData():
     """Refresh the numpy versions of the shower data files """
-    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
+    srcdir = os.getenv('SRC', default=os.path.expanduser('~/prod'))
     abs_path = os.getenv('WMPL_LOC', default=os.path.expanduser('~/src/WesternMeteorPyLib'))
 
     iau_shower_table_file = os.path.join(abs_path, 'wmpl', 'share', 'streamfulldata.csv')
@@ -104,7 +104,7 @@ def numpifyShowerData():
     iau_shower_list = np.loadtxt(iau_shower_table_file, delimiter="|", usecols=range(20), dtype=str)
     np.save(iau_shower_table_npy, iau_shower_list)
 
-    iau_shower_table_npy = os.path.join(datadir, 'share', 'streamfulldata.npy')
+    iau_shower_table_npy = os.path.join(srcdir, 'share', 'streamfulldata.npy')
     np.save(iau_shower_table_npy, iau_shower_list)
 
     gmn_shower_table_file = os.path.join(abs_path, 'wmpl', 'share', 'gmn_shower_table_20230518.txt')
@@ -112,7 +112,7 @@ def numpifyShowerData():
     gmn_shower_list = _loadGMNShowerTable(*os.path.split(gmn_shower_table_file))
     np.save(gmn_shower_table_npy, gmn_shower_list)
 
-    gmn_shower_table_npy = os.path.join(datadir, 'share', 'gmn_shower_table_20230518.npy')
+    gmn_shower_table_npy = os.path.join(srcdir, 'share', 'gmn_shower_table_20230518.npy')
     np.save(gmn_shower_table_npy, gmn_shower_list)
 
 
