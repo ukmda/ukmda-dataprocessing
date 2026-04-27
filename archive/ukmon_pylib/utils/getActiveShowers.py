@@ -62,7 +62,7 @@ def getShowerDets(shwr, stringFmt=False, dataPth=None):
     Returns:  
         (id, full name, peak solar longitude, peak date mm-dd)  
     """
-    sl = iwsl.IMOshowerList()
+    sl = iwsl()
     mtch = sl.getShowerByCode(shwr, useFull=True)
     if len(mtch) > 0 and mtch['@id'] is not None:
         id = int(mtch['@id'])
