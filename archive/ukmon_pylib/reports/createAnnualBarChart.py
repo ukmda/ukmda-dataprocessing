@@ -36,13 +36,14 @@ def createBarChart(datadir=None, yr=None):
         dts.append(dt)
 
     fig, ax = plt.subplots()
-    width = 0.35       
+    width = 0.35
     nowdt=datetime.datetime.now()
     ax.set_ylabel('# matches')
     ax.set_xlabel('Date')
     ax.set_title('Number of matched events per day. Last updated {}'.format(nowdt.strftime('%Y-%m-%d %H:%M:%S')))
 
-    li.append(0) # comes up one short
+    if len(dts) > len(li):
+        li.append(0) # comes up one short
     ax.bar(dts, li, width, label='Events')
     fig = plt.gcf()
     fig.set_size_inches(12, 5)
