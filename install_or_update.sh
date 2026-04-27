@@ -29,7 +29,7 @@ mkdir -p $DATADIR/{lastlogs,latest,matched,orbits,reports,searchidx,single,trajd
 mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
 mkdir -p ~/$envname/logs
 
-if [ -f ~/.condaon ]
+if [[ -f ~/.condaon  && -d ~/miniconda3/envs/wmpl ]]
 then
     cd $here
     source ~/.condaon
