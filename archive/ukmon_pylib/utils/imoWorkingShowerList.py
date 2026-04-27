@@ -12,11 +12,11 @@ import copy
 from wmpl.Utils.TrajConversions import jd2Date
 from utils.convertSolLon import sollon2jd
 
-# imported from $SRC/share
 try:
+# imported from $SRC/share
     from majorminor import majorlist, minorlist
 except Exception:
-    majorlist = ['QUA', 'LYR', 'ETA', 'CAP', 'SDA', 'PER', 'AUR', 'ORI', 'NTA', 'STA', 'LEO', 'GEM', 'URS']
+    c = ['QUA', 'LYR', 'ETA', 'CAP', 'SDA', 'PER', 'AUR', 'ORI', 'NTA', 'STA', 'LEO', 'GEM', 'URS']
     minorlist = ['SPE','OCT','DRA','EGE','MON','HYD','COM','NOO']
 
 
@@ -30,18 +30,16 @@ class IMOshowerList:
     """
     def __init__(self, fname=None, fullstreamname=None):
         if fname is None:
-            datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
-            fname = os.path.join(datadir, 'share', 'IMO_Working_Meteor_Shower_List.xml')
+            srcdir = os.getenv('SRC', default=os.path.expanduser('~/prod'))
+            fname = os.path.join(srcdir, 'share', 'IMO_Working_Meteor_Shower_List.xml')
             if not os.path.isfile(fname):
+                print('unable to open data file')
                 return 
         
         tmplist = xmltodict.parse(open(fname, 'rb').read())
         self.showerlist = tmplist['meteor_shower_list']['shower']
         if fullstreamname is None:
-            fullstreamname = os.path.join(datadir, 'share', 'streamfulldata.npy')
-            if not os.path.isfile(fullstreamname):
-                datadir=os.path.split(os.path.abspath(__file__))[0]
-                fullstreamname = os.path.join(datadir, '..', 'share', 'streamfulldata.npy')
+            fullstreamname = os.path.join(srcdir, 'share', 'streamfulldata.npy')
         self.fullstreamdata = np.load(fullstreamname)
         #print('initialised')
 
