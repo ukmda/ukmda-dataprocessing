@@ -57,7 +57,7 @@ class IMOshowerList:
         pksollong = -1
         #print(ds)
         subset = self.fullstreamdata[np.where(self.fullstreamdata[:,3]==iaucode)]
-        if subset is not None:
+        if subset is not None and len(subset) > 0:
             mtch = [sh for sh in subset if int(sh[6]) > -1]
             if len(mtch) > 0:
                 ds2 = copy.deepcopy(ds)
