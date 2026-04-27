@@ -10,7 +10,7 @@ import datetime
 import textwrap
 from reports.CameraDetails import loadLocationDetails
 
-from meteortools.utils import sendAnEmail
+from utils.sendAnEmail import sendAnEmail
 
 mailfrom = 'ukmonhelper2@ukmeteors.co.uk'
 

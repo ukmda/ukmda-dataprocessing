@@ -65,7 +65,7 @@ success=$(grep "Total run time:" $SRC/logs/matchJob.log)
 
 if [ "$success" == "" ]
 then
-    python -c "from meteortools.utils import sendAnEmail ; sendAnEmail('markmcintyre99@googlemail.com','problem with matching','Error in UKMON matching', mailfrom='ukmonhelper@ukmeteors.co.uk')"
+    python -c "from utils.sendAnEmail import sendAnEmail ; sendAnEmail('markmcintyre99@googlemail.com','problem with matching','Error in UKMON matching', mailfrom='ukmonhelper@ukmeteors.co.uk')"
     echo problems with solver
 fi
 log2cw $NJLOGGRP $NJLOGSTREAM "Solving Run Done" findAllMatches

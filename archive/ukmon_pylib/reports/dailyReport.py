@@ -6,7 +6,7 @@ import glob
 import sys
 import datetime
 
-from meteortools.utils import sendAnEmail
+from utils.sendAnEmail import sendAnEmail
 
 
 def AddHeader(body, bodytext, stats):

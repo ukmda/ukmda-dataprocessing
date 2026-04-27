@@ -66,7 +66,7 @@ ${SRC}/analysis/findAllMatches.sh > ${SRC}/logs/${matchlog} 2>&1
 log2cw $NJLOGGRP $NJLOGSTREAM "start updateIndexPages" nightlyJob
 $SRC/website/updateIndexPages.sh
 
-# FIRST CONSOLIDATE THE DATA AND CREATE SEARCH INDEXES
+# CONSOLIDATE THE DATA AND CREATE SEARCH INDEXES
 # consolidate the output of the match process for further analysos
 log2cw $NJLOGGRP $NJLOGSTREAM "start consolidateOutput" nightlyJob 
 $SRC/analysis/consolidateOutput.sh ${yr}
@@ -79,8 +79,10 @@ fi
 log2cw $NJLOGGRP $NJLOGSTREAM "start createSearchable pass 2" nightlyJob 
 $SRC/analysis/createSearchable.sh $yr matches
 
+############################################################
 # FROM HERE DOWN WE'RE CREATING REPORTS
-
+# and everything can be rerun safely if the data are present
+############################################################
 # add daily report to the website
 log2cw $NJLOGGRP $NJLOGSTREAM "start publishDailyReport" nightlyJob 
 $SRC/website/publishDailyReport.sh 
@@ -129,12 +131,12 @@ ${SRC}/website/cameraStatusReport.sh $rundate
 
 log2cw $NJLOGGRP $NJLOGSTREAM "start createExchangeFiles" nightlyJob
 python -c "from reports.createExchangeFiles import createAll;createAll();"
-aws s3 sync $DATADIR/browse/daily/ $WEBSITEBUCKET/browse/daily/ --region eu-west-2 --quiet
+aws s3 sync $DATADIR/browse/daily/ $WEBSITEBUCKET/browse/daily/ --quiet
 
 cd $DATADIR
 # do this manually when on PC required as it requires too much memory for the batch server; closes #61
 # python $PYLIB/maintenance/plotStationsOnMap.py False
-aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/ --region eu-west-2 --quiet
+aws s3 cp $DATADIR/stations.png $WEBSITEBUCKET/  --quiet
 
 rm -f $SRC/data/.nightly_running
 

@@ -10,7 +10,7 @@ if [ "$(hostname)" == "wordpresssite" ] ; then
         msg="$(hostname) diskspace was ${diskpct}%"
         subj="Diskspace alert for $(hostname)"
         hn="$(hostname)@aws"
-        python -c "from meteortools.utils.sendAnEmail import sendAnEmail;sendAnEmail('markmcintyre99@googlemail.com', '$msg', '$subj', '$hn')"
+        python -c "from utils.sendAnEmail import sendAnEmail;sendAnEmail('markmcintyre99@googlemail.com', '$msg', '$subj', '$hn')"
     fi
 elif [ "$(hostname)" == "ukmcalcserver" ] ; then
     source $HOME/venvs/wmpl/bin/activate
@@ -31,6 +31,6 @@ else
         msg="$(hostname) diskspace is ${diskpct}%"
         subj="Diskspace alert for $(hostname)"
         hn="$(hostname)@aws"
-        python -c "from meteortools.utils.sendAnEmail import sendAnEmail;sendAnEmail('markmcintyre99@googlemail.com', '$msg', '$subj', '$hn')"
+        python -c "from utils.sendAnEmail import sendAnEmail;sendAnEmail('markmcintyre99@googlemail.com', '$msg', '$subj', '$hn')"
     fi
 fi 
