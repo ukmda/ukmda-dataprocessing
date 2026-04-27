@@ -10,8 +10,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 import datetime
 
-from meteortools.utils import getShowerDates as sd
-from meteortools.fileformats import imoWorkingShowerList as imo
+from utils.getActiveShowers import getShowerDets
+from utils.imoWorkingShowerList import IMOshowerList
 
 SMALL_SIZE = 8
 MEDIUM_SIZE = 10
@@ -486,7 +486,7 @@ def showerAnalysis(shwr, dtstr):
     cols = ['Shwr','Dtstamp','Y','M','ID','Mag']
     filt = None
     if shwr != 'ALL':
-        sl = imo.IMOshowerList()
+        sl = IMOshowerList()
         maxdt = sl.getEnd(shwr) + datetime.timedelta(days=10)
         mindt = sl.getStart(shwr) + datetime.timedelta(days=-10)
 
@@ -498,7 +498,7 @@ def showerAnalysis(shwr, dtstr):
 
     # select the required data
     if shwr != 'ALL':
-        id, shwrname, sl, dt = sd.getShowerDets(shwr)
+        id, shwrname, sl, dt = getShowerDets(shwr)
         sngl = sngl[sngl['Shwr']==shwr]
         sngl = sngl[sngl.Dtstamp > mindt.timestamp()]
         sngl = sngl[sngl.Dtstamp < maxdt.timestamp()]
@@ -531,7 +531,7 @@ def showerAnalysis(shwr, dtstr):
 
     # select the required data
     if shwr != 'ALL':
-        id, shwrname, sl, dt = sd.getShowerDets(shwr)
+        id, shwrname, sl, dt = getShowerDets(shwr)
         mtch = mtch[mtch['_stream']==shwr]
         mtch = mtch[mtch.dtstamp > mindt.timestamp()]
         mtch = mtch[mtch.dtstamp < maxdt.timestamp()]

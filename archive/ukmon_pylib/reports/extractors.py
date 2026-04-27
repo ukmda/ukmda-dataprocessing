@@ -6,8 +6,8 @@
 import os 
 import sys
 import pandas as pd
-from meteortools.fileformats import imoWorkingShowerList as imo
-from meteortools.utils import getActiveShowers
+from utils.imoWorkingShowerList import IMOshowerList
+from utils.getActiveShowers import getActiveShowers
 
 
 def createSplitMatchFile(yr, mth=None, shwr=None, matches=None):
@@ -143,7 +143,7 @@ def extractAllShowersData(ymd):
         showerlist = getActiveShowers(ymd, retlist=True)
         showerlist.append('spo')
     else:
-        sl = imo.IMOshowerList()
+        sl = IMOshowerList()
         showerlist = sl.getMajorShowers(True, True).strip().split(' ')
 
     print(f'processing data for {ymd}')
