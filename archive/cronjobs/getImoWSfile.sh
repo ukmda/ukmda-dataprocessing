@@ -19,7 +19,7 @@ git checkout wmpl/share/streamfulldata.csv
 #git checkout wmpl/share/ShowerLookUpTable.txt
 git checkout wmpl/share/gmn_shower_table_20230518.txt
 
-python -c  "from meteortools.utils.getShowerDates import numpifyShowerData; numpifyShowerData()"
+python -c  "from utils.getShowerDates import numpifyShowerData; numpifyShowerData()"
 
 logger -s -t getImoWSfile "finished"
 

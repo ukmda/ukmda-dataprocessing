@@ -30,7 +30,7 @@ fi
 logger -s -t reportActiveShowers "report on active showers"
 python -m reports.reportActiveShowers -m
 
-python -c "from meteortools.utils import getActiveShowers; getActiveShowers('$rundt', inclMinor=True)" | while read shwr
+python -c "from utils.getActiveShowers import getActiveShowers;getActiveShowers('$rundt', inclMinor=True)" | while read shwr
 do 
     aws s3 sync $DATADIR/reports/${yr}/$shwr $WEBSITEBUCKET/reports/${yr}/${shwr} --quiet 
 done

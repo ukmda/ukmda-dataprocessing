@@ -10,7 +10,7 @@ import numpy as np
 import copy
 
 from wmpl.Utils.TrajConversions import jd2Date
-from .convertSolLon import sollon2jd
+from utils.convertSolLon import sollon2jd
 
 # imported from $SRC/share
 try:
@@ -27,18 +27,13 @@ class IMOshowerList:
     this library will reference the full shower list curated by Peter Jenniskens which contains 
     debated and unconfirmed showers. 
 
-    These list are updated whenever the library version is bumped, but if you want to override the files, define an 
-    environment variable DATADIR and place your own copies of the files at $DATADIR/share. See the share submodule 
-    for more information. 
-
     """
     def __init__(self, fname=None, fullstreamname=None):
         if fname is None:
-            datadir = os.getenv('DATADIR', default='/home/ec2-user/prod/data')
+            datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
             fname = os.path.join(datadir, 'share', 'IMO_Working_Meteor_Shower_List.xml')
             if not os.path.isfile(fname):
-                datadir=os.path.split(os.path.abspath(__file__))[0]
-                fname = os.path.join(datadir, '..', 'share', 'IMO_Working_Meteor_Shower_List.xml')
+                return 
         
         tmplist = xmltodict.parse(open(fname, 'rb').read())
         self.showerlist = tmplist['meteor_shower_list']['shower']
