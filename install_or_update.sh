@@ -29,6 +29,14 @@ mkdir -p $DATADIR/{lastlogs,latest,matched,orbits,reports,searchidx,single,trajd
 mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
 mkdir -p ~/$envname/logs
 
+if [ -f ~/.condaon ]
+then
+    cd $here
+    source ~/.condaon
+    conda activate wmpl
+    pip install -r archive/ukmon_pylib/additional_requirements.txt
+fi
+
 # update the IMO and GMN meteor shower tables if missing
 if [ ! -f ~/${envname}/share/IMO_Working_Meteor_Shower_List.xml ] 
 then
