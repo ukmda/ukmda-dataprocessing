@@ -44,8 +44,6 @@ def createBarChart(datadir=None, yr=None):
 
     while len(li) < len(dts):
         li.append(0) 
-        
-    print(len(dts), len(li))
     ax.bar(dts, li, width, label='Events')
     fig = plt.gcf()
     fig.set_size_inches(12, 5)
