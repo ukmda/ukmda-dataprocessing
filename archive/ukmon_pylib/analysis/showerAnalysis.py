@@ -454,7 +454,8 @@ def magDistributionVis(dta, shwrname, outdir, binwidth=0.2):
         
     # format x-axes
     x_labels=["%.0f" % number for number in bins[:-1]]
-    ax.set_xticklabels(x_labels)
+    plt.xticks(np.arange(len(x_labels)), x_labels)
+    #ax.set_xticklabels(x_labels)
     fig = plt.gcf()
     fig.set_size_inches(11.6, 8.26)
 
