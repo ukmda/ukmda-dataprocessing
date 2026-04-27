@@ -32,6 +32,17 @@ resource "aws_ssm_parameter" "dev_dbpw" {
   }
 }
 
+resource "aws_ssm_parameter" "dev_rootdbpw" {
+  provider = aws.eu-west-1-prov
+  name  = "dev_rootdbpw"
+  type  = "SecureString"
+  value = "Wombat33mdb"
+  tags = {
+    "billingtag" = "ukmda"
+  }
+}
+
+
 resource "aws_ssm_parameter" "dev_dbuser" {
   provider = aws.eu-west-1-prov
   name  = "dev_dbuser"
@@ -168,3 +179,13 @@ resource "aws_ssm_parameter" "dev_batchloggroup" {
     "billingtag" = "ukmda"
   }
 }
+
+resource "aws_ssm_parameter" "dev_gmapsapikey" {
+  name  = "dev_gmapsapikey"
+  type  = "SecureString"
+  value = "AIzaSyBFadTuzvLfkUhz8CwY2CtRDJ_lYlHUYyA"
+  tags = {
+    "billingtag" = "ukmda"
+  }
+}
+
