@@ -110,7 +110,7 @@ def timeGraph(dta, shwrname, outdir, binmins=10):
         lab.set_fontsize(SMALL_SIZE)
     # format x-axes
     x_labels = binned.index.strftime('%b-%d')
-    plt.xticks(np.arange(len(x_labels)), x_labels)
+    ax.set_xticklabels(x_labels)
     ax.set(xlabel="Date", ylabel="Count")
     plt.title('Observed stream activity {}min intervals ({})'.format(binmins, shwrname))
     plt.tight_layout()
