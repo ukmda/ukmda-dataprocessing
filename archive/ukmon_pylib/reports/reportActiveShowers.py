@@ -109,8 +109,8 @@ def createShowerIndexPage(dtstr, shwr, shwrname, outdir, datadir):
         outf.write('The graphs and histograms below show more information about the velocity, magnitude \n')
         outf.write('start and end altitude and other parameters. Click for larger view. \n')
         # add the charts and stuff
-        jpglist = glob.glob1(outdir, '*.jpg')
-        pnglist = glob.glob1(outdir, '*.png')
+        jpglist = glob.glob('*.jpg', root_dir=outdir)
+        pnglist = glob.glob('*.png', root_dir=outdir)
         outf.write('<div class="top-img-container">\n')
         for j in jpglist:
             outf.write(f'<a href="./{j}"><img src="./{j}" width="20%"></a>\n')

@@ -200,7 +200,7 @@ def getOverlappingStations(datadir, stationid):
     checker = EventChecker(traj_constraints=trajcons)
     ppdir = os.path.join(datadir, 'consolidated','platepars')
     rp = loadPlatepar(ppdir, stationid)
-    ppfs = glob.glob1(ppdir, '*.json')
+    ppfs = glob.glob('*.json', root_dir=ppdir)
     overlaps=[]
     for ppf in ppfs: 
         ppfname, _ = os.path.splitext(ppf)

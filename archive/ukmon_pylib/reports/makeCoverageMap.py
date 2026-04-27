@@ -45,7 +45,7 @@ def makeCoverageMap(kmlsource, outdir, showMarker=False, useName=False):
     gmap = gmplot.GoogleMapPlotter(52, -1.0, 5, apikey=apikey, 
         title=f'Camera Coverage at {heightval}', map_type='satellite')
 
-    flist = glob.glob1(kmlsource, kmltempl)
+    flist = glob.glob(kmltempl, root_dir=kmlsource)
     cols = list(gmplot.color._HTML_COLOR_CODES.keys())
 
     for col, fn in zip(cols,flist):

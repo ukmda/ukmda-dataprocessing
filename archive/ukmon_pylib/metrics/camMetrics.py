@@ -137,9 +137,9 @@ def backPopulate(stationid):
     s3bucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
 
     basepath = os.path.expanduser('~/prod/ukmon-shared/matches/RMSCorrelate')
-    fldrs = glob.glob1(os.path.join(basepath, stationid), '*')
+    fldrs = glob.glob('*', root_dir=os.path.join(basepath, stationid))
     for fldr in fldrs:
-        s3objects = glob.glob1(os.path.join(basepath, stationid. fldr), 'FTPd*')
+        s3objects = glob.glob('FTPd*', root_dir=os.path.join(basepath, stationid. fldr))
         if len(s3objects) > 0:
             s3obj = s3objects[0]
             fullobj = f'matches/RMSCorrelate/{stationid}/{fldr}/{s3obj}'

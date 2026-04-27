@@ -16,7 +16,6 @@ pyproj
 pyswarms
 Shapely
 xmltodict
-tweepy
 fastparquet
 cryptography
 python-crontab

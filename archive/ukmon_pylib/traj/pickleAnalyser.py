@@ -79,7 +79,7 @@ def getBestView(picklename):
             except Exception: 
                 pass
         beststatid = statids[vmags.index(bestvmag)]
-        imgfn = glob.glob1(outdir, '*{}*.jpg'.format(beststatid))
+        imgfn = glob.glob(f'*{beststatid}*.jpg', root_dir=outdir)
         if len(imgfn) > 0:
             bestimg = imgfn[0]
         elif os.path.isfile(os.path.join(outdir, 'jpgs.lst')):
