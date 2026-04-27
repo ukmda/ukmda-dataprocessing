@@ -12,7 +12,7 @@ from tempfile import mkdtemp
 from shutil import rmtree
 
 from traj.pickleAnalyser import getBestView
-from meteortools.utils import jd2Date
+from wmpl.Utils.TrajConversions import jd2Date
 
 
 # 
