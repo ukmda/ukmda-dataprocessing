@@ -28,6 +28,7 @@ mkdir -p $DATADIR/{lastlogs,latest,matched,orbits,reports,searchidx,single,trajd
 mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
 mkdir -p ~/$envname/logs
 
+$here/cronjobs/getImoWSfile.sh
 
 read -n 1 -p "Update bashrc and config? (Y/n) " yesno 
 if [[ "$yesno" == "n"  || "$yesno" == "N" ]] 

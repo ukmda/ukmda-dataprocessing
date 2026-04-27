@@ -13,7 +13,7 @@ from wmpl.Utils.TrajConversions import jd2Date
 from utils.convertSolLon import sollon2jd
 
 try:
-# imported from $SRC/share
+    # imported from $SRC/share
     from majorminor import majorlist, minorlist
 except Exception:
     c = ['QUA', 'LYR', 'ETA', 'CAP', 'SDA', 'PER', 'AUR', 'ORI', 'NTA', 'STA', 'LEO', 'GEM', 'URS']
