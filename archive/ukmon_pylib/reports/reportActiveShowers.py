@@ -9,7 +9,7 @@ import glob
 import shutil
 import argparse
 
-from meteortools.utils import getActiveShowers
+from utils.getActiveShowers import getActiveShowers
 from analysis.showerAnalysis import showerAnalysis
 from reports.findFireballs import findFireballs
 

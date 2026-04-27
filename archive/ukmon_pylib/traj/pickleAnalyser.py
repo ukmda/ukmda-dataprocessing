@@ -14,12 +14,10 @@ import glob
 import datetime
 import json
 
+from utils.convertSolLon import sollon2jd
+from traj.ShowerAssociation import associateShower
+
 from wmpl.Utils.TrajConversions import jd2Date
-try:
-    from meteortools.utils import sollon2jd
-    from traj.ShowerAssociation import associateShower
-except:
-    pass
 from wmpl.Utils.Math import mergeClosePoints, angleBetweenSphericalCoords
 from wmpl.Utils.Physics import calcMass
 from wmpl.Utils.Pickling import loadPickle

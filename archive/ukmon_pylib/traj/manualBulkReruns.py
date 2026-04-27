@@ -24,9 +24,10 @@ from wmpl.Utils.Pickling import loadPickle
 from wmpl.Utils.TrajConversions import geo2Cartesian
 from wmpl.Utils.TrajConversions import raDec2ECI
 from wmpl.Utils.Math import vectNorm, angleBetweenVectors, vectorFromPointDirectionAndAngle
+from wmpl.Utils.TrajConversions import raDec2AltAz, altAz2RADec, datetime2JD
+from wmpl.Utils.Earth import greatCircleDistance
 
-from meteortools.utils import raDec2AltAz, altAz2RADec, datetime2JD, greatCircleDistance
-from meteortools.fileformats import loadFTPDetectInfo, writeNewFTPFile
+from utils.ftpDetectInfo import loadFTPDetectInfo, writeNewFTPFile
 
 
 # Dummy platepar structure needed by loadPlatePar
