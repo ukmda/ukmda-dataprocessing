@@ -33,11 +33,12 @@ mkdir -p ~/.aws
 
 if [[ -f ~/.condaon  && -d ~/miniconda3/envs/wmpl ]]
 then
-    cd $here
+    pushd $here
     source ~/.condaon
     conda activate wmpl
     pip install -r archive/ukmon_pylib/additional_requirements.txt | grep -v "already satisfied"
     echo ""
+    popd
 fi
 
 # update the IMO and GMN meteor shower tables if missing
