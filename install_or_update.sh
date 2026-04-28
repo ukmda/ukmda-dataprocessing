@@ -47,10 +47,8 @@ then
     ~/$envname/cronjobs/getImoWSfile.sh
     echo ""
 fi 
-mkdir -p ~/.logrotate
-rsync -a server_setup/logs.conf ~/.logrotate
 
-read -n 1 -p "Update bashrc and config? (y/N) " yesno 
+read -n 1 -p "Update $envname configuration files? (y/N) " yesno 
 if [[ "$yesno" == "y"  || "$yesno" == "Y" ]] 
 then 
     echo "Updating config for $envname"
@@ -59,6 +57,8 @@ then
     do
         rsync -a server_setup/$fil ~
     done 
+    mkdir -p ~/.logrotate
+    rsync -a server_setup/logs.conf ~/.logrotate
 else
     echo ""
     echo skipping config and bashrc
