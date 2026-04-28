@@ -63,11 +63,16 @@ $SRC/analysis/createSearchable.sh $yr singles
 # Run the match process - run this only once as it scoops up all unprocessed data
 ${SRC}/analysis/findAllMatches.sh > ${SRC}/logs/${matchlog} 2>&1
 
+
+############################################################
+# FROM HERE DOWN WE'RE CONSOLIDATING DATA AND CREATING REPORTS
+# and everything can be rerun safely if the data are present
+############################################################
+
 log2cw $NJLOGGRP $NJLOGSTREAM "start updateIndexPages" nightlyJob
 $SRC/website/updateIndexPages.sh
 
-# CONSOLIDATE THE DATA AND CREATE SEARCH INDEXES
-# consolidate the output of the match process for further analysos
+# consolidate the output of the match process for further analysis
 log2cw $NJLOGGRP $NJLOGSTREAM "start consolidateOutput" nightlyJob 
 $SRC/analysis/consolidateOutput.sh ${yr}
 if [ "$(date +%m%d)" == "0101" ] ; then
@@ -75,14 +80,10 @@ if [ "$(date +%m%d)" == "0101" ] ; then
     $SRC/analysis/consolidateOutput.sh $(date -d 'last year' +%Y)
 fi 
 
-# create the search indexes used on the website
+# update the search indexes used on the website
 log2cw $NJLOGGRP $NJLOGSTREAM "start createSearchable pass 2" nightlyJob 
 $SRC/analysis/createSearchable.sh $yr matches
 
-############################################################
-# FROM HERE DOWN WE'RE CREATING REPORTS
-# and everything can be rerun safely if the data are present
-############################################################
 # add daily report to the website
 log2cw $NJLOGGRP $NJLOGSTREAM "start publishDailyReport" nightlyJob 
 $SRC/website/publishDailyReport.sh 
