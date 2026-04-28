@@ -28,6 +28,8 @@ mkdir -p $DATADIR/{admin,browse,consolidated,costs,dailyreports,distrib,kmls,man
 mkdir -p $DATADIR/{lastlogs,latest,matched,orbits,reports,searchidx,single,trajdb,videos}
 mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
 mkdir -p ~/$envname/logs
+mkdir -p ~/.logrotate
+mkdir -p ~/.aws
 
 if [[ -f ~/.condaon  && -d ~/miniconda3/envs/wmpl ]]
 then
@@ -44,6 +46,8 @@ then
     ~/$envname/cronjobs/getImoWSfile.sh
     echo ""
 fi 
+mkdir -p ~/.logrotate
+rsync -a server_setup/logs.conf ~/.logrotate
 
 read -n 1 -p "Update bashrc and config? (y/N) " yesno 
 if [[ "$yesno" == "y"  || "$yesno" == "Y" ]] 
