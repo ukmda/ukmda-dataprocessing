@@ -26,7 +26,7 @@ if sys.platform == 'win32':
     lnxdir='/home/ec2-user/keymgmt/csvkeys'
 else:
     csvdir=os.path.expanduser('~/keymgmt/csvkeys')
-    csvdir=os.path.expanduser('~/keymgmt/csvkeys')
+    lnxdir=os.path.expanduser('~/keymgmt/csvkeys')
 
 
 def checkIfOnGMN(camid):
