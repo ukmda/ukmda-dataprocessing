@@ -18,7 +18,7 @@ echo "loading $csvname into mariadb"
 logger -s -t loadSQL "starting"
 user=batch
 # leading space to prevent being inserted into environment
-passwd=$(aws ssm get-parameters --names prod_dbpw --with-decryption --region eu-west-1 | jq .Parameters[0].Value | sed 's'"//g')
+passwd=$(aws ssm get-parameters --names prod_dbpw --with-decryption --region eu-west-1 | jq .Parameters[0].Value | sed 's/"//g')
 mysql -p${passwd} -u${user} << EOD
 select count(*) from ukmon.singles;
 LOAD DATA LOCAL INFILE '$csvname' 
