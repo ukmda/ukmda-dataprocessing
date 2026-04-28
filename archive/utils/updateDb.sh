@@ -13,8 +13,8 @@ fi
 
 cd ~/prod/data/brightness
 # leading space to prevent being inserted into environment
- passwd=$(aws ssm get-parameters --names prod_dbpw --with-decryption --region eu-west-1 | jq .Parameters[0].Value)
-mysql -u batch -p$passwd -h localhost << EOD
+passwd=$(aws ssm get-parameters --names prod_dbpw --with-decryption --region eu-west-1 | jq .Parameters[0].Value| sed 's/"//g')
+mysql -p$passwd -ubatch -h localhost << EOD
 use ukmon;
 select count(*) from ukmon.brightness;
 load data local infile './CaptureNight_${rundt}.csv' 
