@@ -34,7 +34,7 @@ then
     cd $here
     source ~/.condaon
     conda activate wmpl
-    pip install -r archive/ukmon_pylib/additional_requirements.txt
+    pip install -r archive/ukmon_pylib/additional_requirements.txt | grep -v "already satisfied"
 fi
 
 # update the IMO and GMN meteor shower tables if missing
