@@ -35,12 +35,14 @@ then
     source ~/.condaon
     conda activate wmpl
     pip install -r archive/ukmon_pylib/additional_requirements.txt | grep -v "already satisfied"
+    echo ""
 fi
 
 # update the IMO and GMN meteor shower tables if missing
 if [ ! -f ~/${envname}/share/IMO_Working_Meteor_Shower_List.xml ] 
 then
     ~/$envname/cronjobs/getImoWSfile.sh
+    echo ""
 fi 
 
 read -n 1 -p "Update bashrc and config? (y/N) " yesno 
@@ -53,6 +55,7 @@ then
         rsync -a server_setup/$fil ~
     done 
 else
+    echo ""
     echo skipping config and bashrc
 fi 
 echo ""
