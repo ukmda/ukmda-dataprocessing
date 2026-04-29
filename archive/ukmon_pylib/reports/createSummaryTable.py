@@ -19,7 +19,9 @@ def createSummaryTable(curryr=None, datadir=None):
         curryr = str(datetime.datetime.now().year)
     if datadir is None:
         datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
-    fname = os.path.join(datadir, 'reports', curryr, 'summarytable.js')
+    outdir = os.path.join(datadir, 'reports', curryr)
+    os.makedirs(outdir, exist_ok=True)
+    fname = os.path.join(outdir, 'summarytable.js')
     with open(fname, 'w') as f:
         f.write('$(function() {\n')
         f.write('var table = document.createElement("table");\n')
