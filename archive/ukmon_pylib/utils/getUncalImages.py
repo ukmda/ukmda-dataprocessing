@@ -1,12 +1,14 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 #
 
-import os 
+import os
+import datetime 
 
 
 def getUncalibratedImageList(dtstr=None):
     datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
-    if dtstr is not None:
+    now = datetime.datetime.now(tz=datetime.timezone.utc).strftime('%Y%m%d')
+    if dtstr is not None and dtstr != now:
         logfile = os.path.join(datadir, '..', 'logs', f'matchJob.log.{dtstr}')
     else:
         logfile = os.path.join(datadir, '..', 'logs', 'matchJob.log')
