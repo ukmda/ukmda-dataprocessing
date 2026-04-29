@@ -176,3 +176,12 @@ resource "aws_ssm_parameter" "prod_batchloggroup" {
     "billingtag" = "ukmon"
   }
 }
+
+resource "aws_ssm_parameter" "prod_gmapsapikey" {
+  name  = "prod_gmapsapikey"
+  type  = "SecureString"
+  value = "AIzaSyBFadTuzvLfkUhz8CwY2CtRDJ_lYlHUYyA"
+  tags = {
+    "billingtag" = "ukmon"
+  }
+}
