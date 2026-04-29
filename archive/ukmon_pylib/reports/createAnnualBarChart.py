@@ -49,7 +49,7 @@ def createBarChart(datadir=None, yr=None):
     fig.set_size_inches(12, 5)
     fig.tight_layout()
     #plt.gca().invert_yaxis()
-    plt.savefig(os.path.join(datadir,f'Annual-{yr}.jpg'), dpi=100)
+    plt.savefig(os.path.join(datadir,'reports',yr, f'Annual-{yr}.jpg'), dpi=100)
     plt.close()
 
     return matches
