@@ -83,7 +83,7 @@ aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 log2cw $NJLOGGRP $NJLOGSTREAM "get a list of uncalibrated data" updatePlotsAndDetStatus
 aws s3 sync $UKMONSHAREDBUCKET/matches/consumed/ $DATADIR/single/used/ --exclude "*" --include "*.txt" --quiet
 rundate=$(cat $DATADIR/rundate.txt)
-python -c "from utils.getUnCalImages import getUncalibratedImageList;getUncalibratedImageList('$rundate');"
+python -c "from utils.getUncalImages import getUncalibratedImageList;getUncalibratedImageList('$rundate');"
 
 # and then clear the profile again
 unset AWS_PROFILE
