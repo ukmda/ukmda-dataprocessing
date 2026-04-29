@@ -16,9 +16,10 @@ def createSummaryTable(curryr=None, datadir=None):
 
     """
     if curryr is None:
-        curryr = str(datetime.datetime.now().year)
+        curryr = datetime.datetime.now().year
     if datadir is None:
         datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
+    curryr = str(curryr)
     outdir = os.path.join(datadir, 'reports', curryr)
     os.makedirs(outdir, exist_ok=True)
     fname = os.path.join(outdir, 'summarytable.js')
