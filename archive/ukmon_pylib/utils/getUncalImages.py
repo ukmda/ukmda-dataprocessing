@@ -6,7 +6,10 @@ import os
 
 def getUncalibratedImageList(dtstr=None):
     datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
-    logfile = os.path.join(datadir, '..', 'logs', 'matchJob.log')
+    if dtstr is not None:
+        logfile = os.path.join(datadir, '..', 'logs', f'matchJob.log.{dtstr}')
+    else:
+        logfile = os.path.join(datadir, '..', 'logs', 'matchJob.log')
     flines = open(logfile, 'r').readlines()
     uncal = [f for f in flines if 'not recalibrated' in f]
     imglist = [x.split('Skipping ')[1].split(',')[0] for x in uncal]

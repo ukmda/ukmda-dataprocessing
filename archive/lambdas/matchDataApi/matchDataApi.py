@@ -81,7 +81,7 @@ def getStationData(statid, dtstr, period=None):
 def getSummaryData(dtstr, period=None):
     host, user, passwd, db = getSqlLoginDetails()
     perfrag = periodToSqlFragment(period) if period is not None else ""
-    connection = pymysql.connect(host=host, user=user, password=passwd, db=db, cursorclass=pymysql.cursors.DictCursor)  
+    connection = pymysql.connect(host=host, user=user, password=passwd, database=db, cursorclass=pymysql.cursors.DictCursor)  
     fieldlist = '_localtime,_mjd,_sol,_ID1,_amag,_ra_o,_dc_o,_ra_t,_dc_t,_elng,_elat,_vo,_vi,_vg,_vs,_a,_q,_e,_p,_peri,_node,_incl,'\
         '_stream,_mag,_dur,_lng1,_lat1,_H1,_lng2,_lat2,_H2,_LD21,_az1r,_ev1r,_Nts,_Nos,_leap,_tme,_dt,'\
         'dtstamp,orbname,iau,shwrname as name,mass,pi,Q,true_anom,EA,MA,Tj,T,last_peri,jacchia1,Jacchia2,numstats,stations'
