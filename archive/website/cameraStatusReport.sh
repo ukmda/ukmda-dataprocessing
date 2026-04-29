@@ -27,9 +27,12 @@ conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 export PYTHONPATH=$PYLIB
 logger -s -t cameraStatusReport "starting"
 
-sudo grep publickey /var/log/secure* | grep -v ec2-user  | awk '{printf("%s-%s, %s, %s\n", $1, $2, $3,$9)}'  | awk -F ":" '{print $2$3$4}' > $DATADIR/reports/lastlogins.txt
+platform=$(grep "^NAME" /etc/os-release | awk -F'"' '{print $2}')
+[ "$platform" == "Ubuntu" ] && authlog=/var/log/auth.log || authlog=/var/log/secure 
+sudo grep publickey $authlog* | grep -v $USER   > $DATADIR/reports/lastlogins.txt
 
 python -m metrics.camMetrics $rundate
+rm -f $DATADIR/reports/lastlogins.txt
 aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --region eu-west-2 --quiet
 
 

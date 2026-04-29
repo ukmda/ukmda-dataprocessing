@@ -187,35 +187,38 @@ if __name__ == '__main__':
     pd.options.mode.chained_assignment = 'warn'
     caminfo = camlist.drop(columns=['site','direction','oldcode','active','camtype','eMail', 'humanName'])
 
-    logindf = pd.read_csv(os.path.join(datadir, 'reports', 'lastlogins.txt'), names=['dateval','timeval','siteid'], skipinitialspace=True)
-    logindf['timeval'] = logindf.timeval.astype('str').str.pad(6,fillchar='0')
-    logindf.dateval.fillna('Jan-01',inplace=True)
-    logindf.timeval.fillna('00:00:00',inplace=True)
-    # handle case round yearend where the log may have prev year's details as well as current year
-    nowdt = datetime.datetime.now()
-    yrval = str(nowdt.year) + '-'
-    yrvalback = str(nowdt.year-1) + '-'
-    logindf['lastseen'] = [datetime.datetime.strptime(x, '%Y-%b-%d_%H%M%S') for x in yrval + logindf.dateval+'_'+logindf.timeval]
-    try: # will fail on 29th Feb in a leapyear, as previous year is not leap
-        logindf['lastseen2'] = [datetime.datetime.strptime(x, '%Y-%b-%d_%H%M%S') for x in yrvalback + logindf.dateval+'_'+logindf.timeval]
-    except Exception:
-        logindf['lastseen2'] = [datetime.datetime.strptime(x, '%Y-%b-%d_%H%M%S') for x in yrval + logindf.dateval+'_'+logindf.timeval]
-    logindf.loc[logindf.lastseen > nowdt, 'lastseen'] = logindf.lastseen2
+    # process the last-login data from the SSHD log
+    lastlogs = open(os.path.join(datadir, 'reports', 'lastlogins.txt'),'r').readlines()
+    lodata = []
+    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    for li in lastlogs:
+        spls = li.split('ssh')
+        # could be ubuntu (auth.log) or amazon linux style log
+        dtstr = spls[0][spls[0].find(':')+1:][:19]
+        if ' ' in dtstr:
+            dtval = datetime.datetime.strptime(dtstr[:15], '%b %d %H:%M:%S')
+            dtval = dtval.replace(year=now.year, tzinfo=datetime.timezone.utc)
+            if dtval > now:
+                dtval = dtval.replace(year=now.year-1, tzinfo=datetime.timezone.utc)
+        else:
+            dtval = datetime.datetime.strptime(dtstr, '%Y-%m-%dT%H:%M:%S')
+            dtval = dtval.replace(tzinfo=datetime.timezone.utc)
+        location = spls[1].split(' for ')[1].split()[0]
+        lodata.append({'location':location, 'lastseen':dtval})
+
+            
+    logindf = pd.DataFrame(lodata)
     logindf = logindf.sort_values(by=['lastseen'])
-    logindf.drop_duplicates(subset=['siteid'], inplace=True, keep='last')
-    logindf.rename(columns={'siteid':'location'}, inplace=True)
-    logindf.drop(columns = ['lastseen2'], inplace=True)
+    logindf.drop_duplicates(subset=['location'], inplace=True, keep='last')
 
     # create a merged dataframe with siteid and stationid
     intdf = pd.merge(logindf,caminfo, on=['location'], how='outer')
 
     df = pd.merge(intdf, fulldf, on=['stationid'])
-    df.dateval.fillna('Jan-01',inplace=True)
-    df.timeval.fillna('00:00:00',inplace=True)
     df['uploadtime']=df.uploadtime.astype("str").str.pad(6,fillchar="0")
     df['lastupload']=df.upddate.astype('str') + '_' +df.uploadtime
     df.lastupload = [datetime.datetime.strptime(x, '%Y%m%d_%H%M%S') for x in df.lastupload]
-    df = df.drop(columns=['timeval','stationid','manual','rundate', 'upddate','uploadtime', 'dateval'])
+    df = df.drop(columns=['stationid','manual','rundate', 'upddate','uploadtime'])
     df['dateval']=[x.strftime('%b-%d') for x in df.lastupload]
     df = df.sort_values(by=['lastupload'])
 
