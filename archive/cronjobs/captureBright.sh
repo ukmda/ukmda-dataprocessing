@@ -19,4 +19,4 @@ select count(*) from ukmon.brightness;
 EOD
 
 find ${DATADIR}/brightness -name "CaptureNight*" -mtime +30 -exec rm -f {} \;
-
+find ${DATADIR}/brightness -name "matcheddata*" -mtime +30 -exec rm -f {} \;
