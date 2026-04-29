@@ -9,6 +9,7 @@
 # Consumes
 #   the single station and matched station data files in $DATADIR/single and $DATADIR/matched
 #   the most recent match run logfile
+#   information about the number of active cameras 
 #
 # Produces
 #   a webpage showing the current summary  - the site homepage
@@ -51,7 +52,7 @@ python -c "from reports.createAnnualBarChart import createBarChart; createBarCha
 popd
 
 # update index page
-numcams=$(cat $DATADIR/activecamcount.txt)
+numcams=$(cat $DATADIR/consolidated/activecamcount.txt)
 cat $TEMPLATES/frontpage.html | sed "s/#NUMCAMS#/$numcams/g" > $DATADIR/newindex.html
 
 logger -s -t createSummaryTable "copying to website"

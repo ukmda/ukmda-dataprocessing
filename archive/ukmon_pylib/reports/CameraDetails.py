@@ -83,7 +83,7 @@ def createCDCsv(targetloc, srchidxdir):
     datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     outfname = os.path.join(datadir, targetloc, 'camera-details.csv')
     cd4csv.to_csv(outfname, index=False)
-    with open(os.path.join(datadir, 'activecamcount.txt'), 'w') as outf:
+    with open(os.path.join(datadir, targetloc, 'activecamcount.txt'), 'w') as outf:
         outf.write(str(len(cd4csv[cd4csv.active==1])))
 
     outdir = os.path.join(datadir, srchidxdir)
