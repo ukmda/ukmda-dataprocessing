@@ -24,7 +24,7 @@ addOneUser() {
     echo sudo rsync -av $srchost:/var/sftp/$userid/ /var/sftp/$userid 
 }
 
-if [ $# -lt 3 ] ; then 
+if [ $# -lt 2 ] ; then 
     echo "Usage: ./migrateSftpAccounts.sh oldservername userfile"
     exit
 fi 
