@@ -148,7 +148,7 @@ and then reload sshd
 ``` bash
 service sshd reload
 ```
-### Now move the user accounts
+### Now move the user accounts and update camera config
 
 First, ensure that root on the new server can connect to the old server as the batch user by creating a default SSH keypair for root, and adding its public half to root's authorized_keys file on the old server.
 
@@ -163,4 +163,6 @@ ssh oldserver "sudo ls -1 /var/sftp" > ./move/sftp_accts.txt
 ``` bash
 $SRC/utils/migrateSftpAccts.sh oldserverFQDN ./move/sftp_accts.txt
 ```
-Once you've completed the process you can remove the `move` folder. 
+This will also update the `ukmon.ini` file for each station on both server. Upon next connection, the station should download the new ini file and thereafter connect to the new server. 
+
+This means that the old server must be kept running for a few days, till all cameras have switched over. 
