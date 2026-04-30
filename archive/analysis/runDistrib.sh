@@ -76,11 +76,13 @@ while [ $? -ne 0 ] ; do
     scp -i $SERVERSSHKEY $execMatchingsh $SERVERUSERID@$CALCSERVERIP:data/distrib/$execdist
 done 
 # push the python code and ECS templates required
-rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/clusdetails-* $SERVERUSERID@$$CALCSERVERIP:src/ukmon_pylib/traj
-rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/taskrunner*.json $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/traj
-rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/consolidateDistTraj.py $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/traj
-rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/distributeCandidates.py $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/traj
-rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/pickleAnalyser.py $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/traj
+rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/clusdetails-* $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/traj/
+rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/taskrunner*.json $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/traj/
+rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/consolidateDistTraj.py $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/traj/
+rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/distributeCandidates.py $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/traj/
+rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/pickleAnalyser.py $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/traj/
+rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/ShowerAssociation.py $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/traj/
+rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/utils/convertSolLon.py $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/utils/
 
 # now run the script
 log2cw $NJLOGGRP $NJLOGSTREAM "start distributed processing" runDistrib
