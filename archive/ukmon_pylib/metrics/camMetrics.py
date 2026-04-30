@@ -151,20 +151,6 @@ if __name__ == '__main__':
     datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
 
     ddb = boto3.resource('dynamodb', region_name='eu-west-2') 
-    if os.path.isfile('/sys/devices/virtual/dmi/id/board_asset_tag'):  # crude check for EC2
-        #print('asset tag file exists')
-        lis = open('/sys/devices/virtual/dmi/id/board_asset_tag').readlines()
-        if 'i-' in lis[0]:
-            sts_client = boto3.client('sts')
-            assumed_role_object=sts_client.assume_role(
-                RoleArn="arn:aws:iam::183798037734:role/service-role/S3FullAccess",
-                RoleSessionName="AssumeRoleSession1")
-            credentials=assumed_role_object['Credentials']
-
-            ddb = boto3.resource('dynamodb', region_name='eu-west-2',
-                aws_access_key_id=credentials['AccessKeyId'],
-                aws_secret_access_key=credentials['SecretAccessKey'],
-                aws_session_token=credentials['SessionToken'])
 
     s,d,t,m,r = getDayCamTimings(sys.argv[1], ddb=ddb)
     newdata=pd.DataFrame(zip(s,d,t,m,r), columns=['stationid','upddate','uploadtime','manual','rundate'])
@@ -206,33 +192,34 @@ if __name__ == '__main__':
         location = spls[1].split(' for ')[1].split()[0]
         lodata.append({'location':location, 'lastseen':dtval})
 
-            
-    logindf = pd.DataFrame(lodata)
-    logindf = logindf.sort_values(by=['lastseen'])
-    logindf.drop_duplicates(subset=['location'], inplace=True, keep='last')
 
-    # create a merged dataframe with siteid and stationid
-    intdf = pd.merge(logindf,caminfo, on=['location'], how='outer')
+    if len(lodata) > 0:
+        logindf = pd.DataFrame(lodata)
+        logindf = logindf.sort_values(by=['lastseen'])
+        logindf.drop_duplicates(subset=['location'], inplace=True, keep='last')
 
-    df = pd.merge(intdf, fulldf, on=['stationid'])
-    df['uploadtime']=df.uploadtime.astype("str").str.pad(6,fillchar="0")
-    df['lastupload']=df.upddate.astype('str') + '_' +df.uploadtime
-    df.lastupload = [datetime.datetime.strptime(x, '%Y%m%d_%H%M%S') for x in df.lastupload]
-    df = df.drop(columns=['stationid','manual','rundate', 'upddate','uploadtime'])
-    df['dateval']=[x.strftime('%b-%d') for x in df.lastupload]
-    df = df.sort_values(by=['lastupload'])
+        # create a merged dataframe with siteid and stationid
+        intdf = pd.merge(logindf,caminfo, on=['location'], how='outer')
 
-    outfile=os.path.join(datadir, 'reports', 'stationlogins.txt')
-    zerodate = datetime.datetime(1970,1,1,0,0,0)
-    with open(outfile,'w') as outf:
-        outf.write('Last Upload,      StationID,         Last Login\n')
-        for _,rw in df.iterrows():
-            dtval = rw.dateval
-            lastup = rw.lastupload.strftime('%H:%M:%S')
-            if pd.isnull(rw.lastseen):
-                lastseen = '> 1 month'
-            else:
-                lastseen = rw.lastseen.strftime('%b-%d %H:%M:%S')
-            if lastseen == 'Jan-01 00:00:00':
-                lastseen = '> 1 month'
-            outf.write(f'{dtval}, {lastup}, {rw.location:20s}, {lastseen}\n')
+        df = pd.merge(intdf, fulldf, on=['stationid'])
+        df['uploadtime']=df.uploadtime.astype("str").str.pad(6,fillchar="0")
+        df['lastupload']=df.upddate.astype('str') + '_' +df.uploadtime
+        df.lastupload = [datetime.datetime.strptime(x, '%Y%m%d_%H%M%S') for x in df.lastupload]
+        df = df.drop(columns=['stationid','manual','rundate', 'upddate','uploadtime'])
+        df['dateval']=[x.strftime('%b-%d') for x in df.lastupload]
+        df = df.sort_values(by=['lastupload'])
+
+        outfile=os.path.join(datadir, 'reports', 'stationlogins.txt')
+        zerodate = datetime.datetime(1970,1,1,0,0,0)
+        with open(outfile,'w') as outf:
+            outf.write('Last Upload,      StationID,         Last Login\n')
+            for _,rw in df.iterrows():
+                dtval = rw.dateval
+                lastup = rw.lastupload.strftime('%H:%M:%S')
+                if pd.isnull(rw.lastseen):
+                    lastseen = '> 1 month'
+                else:
+                    lastseen = rw.lastseen.strftime('%b-%d %H:%M:%S')
+                if lastseen == 'Jan-01 00:00:00':
+                    lastseen = '> 1 month'
+                outf.write(f'{dtval}, {lastup}, {rw.location:20s}, {lastseen}\n')

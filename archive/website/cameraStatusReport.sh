@@ -31,6 +31,13 @@ platform=$(grep "^NAME" /etc/os-release | awk -F'"' '{print $2}')
 [ "$platform" == "Ubuntu" ] && authlog=/var/log/auth.log || authlog=/var/log/secure 
 sudo grep publickey $authlog* | grep -v $USER   > $DATADIR/reports/lastlogins.txt
 
+echo TEMPORARY HACK REMOVE ME
+if [ "$platform" == "Ubuntu" ]
+then
+    ssh ukmonhelper2 "sudo grep publickey /var/log/secure* | grep -v ec2-user"  > $DATADIR/reports/lastlogins.txt
+fi
+echo TO HERE
+
 python -m metrics.camMetrics $rundate
 rm -f $DATADIR/reports/lastlogins.txt
 aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --region eu-west-2 --quiet
