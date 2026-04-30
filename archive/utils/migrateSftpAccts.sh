@@ -3,7 +3,7 @@
 
 addOneUser() {
     userid=$1
-    $srchost=$2
+    srchost=$2
     grep -w $userid /etc/passwd
     if [ $? -eq 1 ] ; then 
         dt=$(date +%Y-%m-%d)
@@ -21,7 +21,7 @@ addOneUser() {
     else
         logger -s -t addSftpUser "Unix user $userid already exists"
     fi
-    echo sudo rsync -av $srchost:/var/sftp/$userid/ /var/sftp/$userid 
+    sudo rsync -av $srchost:/var/sftp/$userid/ /var/sftp/$userid 
 }
 
 if [ $# -lt 2 ] ; then 

@@ -161,6 +161,6 @@ ssh oldserver "sudo ls -1 /var/sftp" > ./move/sftp_accts.txt
   * Edit the list to exclude defunct accounts and other entries not related to a camera account.
   * use `$SRC/$utils/migrateSftpAccts.sh`  to create accounts on the new server and copy over the user data
 ``` bash
-$SRC/utils/migrateSftpAccts.sh oldservername ./move/sftp_accts.txt
+$SRC/utils/migrateSftpAccts.sh oldserverFQDN ./move/sftp_accts.txt
 ```
 Once you've completed the process you can remove the `move` folder. 
