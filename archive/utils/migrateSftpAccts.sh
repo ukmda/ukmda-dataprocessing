@@ -24,6 +24,12 @@ addOneUser() {
     echo sudo rsync -av $srchost:/var/sftp/$userid/ /var/sftp/$userid 
 }
 
+echo "Warning: this must only be run on the new server"
+read -p "press ctrl-c to quit or enter to continue"
+if [ $# -lt 3 ] ; then 
+    echo "Usage: ./migrateSftpAccounts.sh oldservername userfile"
+    exit
+fi 
 oldserver=$1
 srcfile=$2
 
