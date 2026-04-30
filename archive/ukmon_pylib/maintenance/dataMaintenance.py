@@ -128,6 +128,7 @@ def removeDeletedTraj(csvfile):
     # loop over the deleted trajectories, removing the corresponding one from the CSV file.
     # Note that there's no need to update the MariaDB database, as it is populated
     # from the CSV file *after* it has been purged
+    offs = 4 if 'search' in csvfile else 131
     for traj in deltrajs:
         cur = masterdb.dbhandle.execute(f'select jdt_ref, participating_stations from trajectories where traj_file_path="{traj[0]}" and status=0')
         thistraj = cur.fetchall()
@@ -141,7 +142,7 @@ def removeDeletedTraj(csvfile):
             obs_ids = thistraj[0][1]
             obs_ids_str = ';'.join(json.loads(obs_ids)) + ';'
             for thismtch in match:
-                if thismtch.split(',')[131] == obs_ids_str:
+                if thismtch.split(',')[offs] == obs_ids_str:
                     print(f'removing {fldr}')
                     idx = csvdata.index(thismtch)
                     _ = csvdata.pop(idx)
