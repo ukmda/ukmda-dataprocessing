@@ -23,7 +23,7 @@ def checkUrl(s3, url):
     except Exception:
         #print(e)
         retval = '/img/missing-white.png'
-    print(url, retval)
+    #print(url, retval)
     return retval
 
 
