@@ -182,7 +182,7 @@ if __name__ == '__main__':
         # could be ubuntu (auth.log) or amazon linux style log
         dtstr = spls[0][spls[0].find(':')+1:][:19]
         if ' ' in dtstr:
-            dtval = datetime.datetime.strptime(f'{now.year} {dtstr[:15]}', '%Y %b %d %H:%M:%S')
+            dtval = datetime.datetime.strptime(f'{now.year} {dtstr[:15]}', '%Y %b %d %H:%M:%S').replace(tzinfo=datetime.timezone.utc)
             if dtval > now:
                 dtval = dtval.replace(year=now.year-1, tzinfo=datetime.timezone.utc)
         else:
