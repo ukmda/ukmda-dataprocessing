@@ -24,3 +24,6 @@ addOneUser() {
 }
 
 addOneUser tackley_sw
+addOneUser tackley_se
+addOneUser tackley_nw
+addOneUser tackley_ne
