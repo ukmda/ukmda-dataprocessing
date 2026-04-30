@@ -20,7 +20,7 @@ addOneUser() {
     else
         logger -s -t addSftpUser "Unix user $userid already exists"
     fi
-    rsync -avn 3.11.55.160:/var/sftp/$userid/ /var/sftp/$userid 
+    sudo rsync -avn 3.11.55.160:/var/sftp/$userid/ /var/sftp/$userid 
 }
 
 addOneUser tackley_sw
