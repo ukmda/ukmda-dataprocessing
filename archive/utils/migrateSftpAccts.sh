@@ -22,7 +22,7 @@ addOneUser() {
         logger -s -t addSftpUser "Unix user $userid already exists"
     fi
     sudo rsync -av $srchost:/var/sftp/$userid/ /var/sftp/$userid 
-    sudo cat /var/sftp/$userid/ukmon.ini | sed s/3.11.55.160/batchserver.ukmeteors.co.uk/g' > /tmp/$userid.ini
+    sudo cat /var/sftp/$userid/ukmon.ini | sed 's/3.11.55.160/batchserver.ukmeteors.co.uk/g' > /tmp/$userid.ini
     sudo mv /tmp/$userid.ini /var/sftp/$userid/ukmon.ini
     sudo scp /var/sftp/$userid/ukmon.ini $srchost:/var/sftp/$userid/
 }
