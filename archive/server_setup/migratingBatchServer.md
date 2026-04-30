@@ -43,8 +43,6 @@ python setup.py
 cd ~/src
 git clone git@github.com:ukmda/ukmda-dataprocessing.git
 cd ukmda-dataprocessing
-conda activate wmpl
-pip install -r additional_requirements.txt
 ./install_or_upgrade.sh PROD
 ```
 * double check that all required SSM variables exist in the account holding the server. These
@@ -55,7 +53,7 @@ aws ssm get-parameters --region eu-west-2 --names prod_siteurl --query Parameter
 ```
 
 ### SSH and other API keys 
-copy the contents of ~/.ssh on the old server, and make sure permissions are correct (should all be 0600). At a minimum you need the following files
+copy the below files from ~/.ssh on the old server, and make sure permissions are correct (should all be 0600). At a minimum you need the following files
 ``` bash
 gmailcreds.json
 gmailtoken.json
@@ -65,16 +63,20 @@ These are used to authenticate against gmail. The keys are currently specific to
 You may also need the `github` keys though this depends on how you authenticate with GitHub. 
 
 ## data
-Replicate `~/prod/data` to the new server.  (once for prod and once for dev). This will have to be repeated every day till golive. 
+Replicate `~/prod/data`, `~/prod/logs` and `~/keymgmt` to the new server.  (once for prod and once for dev).
+ 
+ This will have to be repeated every day till golive (strictly, the key data only needs to be replicated if a new camera is added). Also keep the MariaDB SQL database up to date.
 ``` bash
 cd $DATADIR
 rsync -avz ukmonhelper2:prod/data/ .
-```
-Replicate the contents of `~/keymgmt` to the new server. Repeat if any new cameras added before golive. 
-``` bash
+cd $SRC/logs
+rsync -avz ukmonhelper2:prod/logs/ .
+cd ~
 rsync -avz ukmonhelper2:keymgmt/ ./keymgmt
-```
+$SRC/utils/loadSingleCsvMDB.sh
+$SRC/utils/loadMatchCsvMDB.sh
 
+```
 ## Mariadb database
 Sudo to root and run the following to set a root password
 ``` bash
@@ -83,7 +85,7 @@ ALTER USER 'root'@'localhost' IDENTIFIED VIA mysql_native_password USING PASSWOR
 FLUSH PRIVILEGES;
 quit
 ```
-(obviously, replace `ROOTPASSWORD` with the password in the SSM variable `prod_dbpw`)
+Pbviously, replace `ROOTPASSWORD` with the password in the SSM variable `prod_dbpw`
 
 Exit the root shell, and as a 'normal' user execute the following:
 ``` bash
@@ -121,54 +123,44 @@ conda activate ${WMPL_ENV}
 ```
 
 ## how to move accounts to a new server
-The basic process is to extract the user accounts from the current server along with
-group and password info, then import it back in on the new server. Its important to avoid 
-accidentally overwriting system or otherwise-existing accounts on the new server. 
 
-On most systems, accounts below 500 are system accounts. Check though, as some AWS servers create
-new accounts starting at 1000 and working both upwards and downwards! 
-
-Steps in brief. NB must all be done as root, of course. 
-
-### On the old server
-``` bash
-mkdir /root/move/
-export UGIDLIMIT=500
-awk -v LIMIT=$UGIDLIMIT -F: '($3>=LIMIT) && ($3!=65534)' /etc/passwd > /root/move/passwd.mig
-awk -v LIMIT=$UGIDLIMIT -F: '($3>=LIMIT) && ($3!=65534)' /etc/group > /root/move/group.mig
-awk -v LIMIT=$UGIDLIMIT -F: '($3>=LIMIT) && ($3!=65534) {print $1}' /etc/passwd | tee - |egrep -f - /etc/shadow > /root/move/shadow.mig
-cp /etc/gshadow /root/move/gshadow.mig
-
-# Also backup the user homedirs. In our case, they're all in /var/sftp
-tar cvfz /root/move/varsftp.tar.gz /var/sftp
-# now copy the files to target server, 
-scp /root/move/* newserver:/tmp
-
-```
-
-### On the new server
-In summary: backup the existing files, remove any accounts from the .mig files 
-that are already present in the target, then append the filtered data. 
-
-When comparing groups, remember new ids will get added to the sftp group. 
-
+### Install and configure sftp
+First set up the SFTP server on the new host.
+Run the following as root:
 
 ``` bash
-mkdir -p /root/move/bkp
-mv /tmp/*.mig /tmp/varsftp.tar.gz /root/move
-cp /etc/passwd /etc/group /etc/shadow /etc/gshadow /root/move/bkp
-
-cd /
-tar -xvf /root/move/varsftp.tar.gz .
-
-export UGIDLIMIT=500
-awk -v LIMIT=$UGIDLIMIT -F: '($3>=LIMIT) && ($3!=65534)' /etc/passwd > /root/move/passwd.orig
-awk -v LIMIT=$UGIDLIMIT -F: '($3>=LIMIT) && ($3!=65534)' /etc/group > /root/move/group.orig
-awk -v LIMIT=$UGIDLIMIT -F: '($3>=LIMIT) && ($3!=65534) {print $1}' /etc/passwd | tee - |egrep -f - /etc/shadow > /root/move/shadow.orig
-
-cd /root/move
-diff passwd.orig passwd.mig
-diff shadow.orig shadow.mig
-diff group.orig group.mig
+groupadd sftp
+mkdir -p /var/sftp
+chown root:root /var/sftp
+chmod 751 /var/sftp
 ```
 
+Add this to /etc/ssh/sshd_config
+``` bash
+Match group sftp
+ChrootDirectory /var/sftp/%u
+AllowTCPForwarding no
+X11Forwarding no
+ForceCommand internal-sftp
+```
+
+and then reload sshd 
+``` bash
+service sshd reload
+```
+### Now move the user accounts
+
+First, ensure that root on the new server can connect to the old server as the batch user by creating a default SSH keypair for root, and adding its public half to root's authorized_keys file on the old server.
+
+* on the new server as the standard batch user:
+  * create a folder `move`
+  * Create a list of the desired SFTP user accounts using 
+``` bash
+ssh oldserver "sudo ls -1 /var/sftp" > ./move/sftp_accts.txt
+```
+  * Edit the list to exclude defunct accounts and other entries not related to a camera account.
+  * use `$SRC/$utils/migrateSftpAccts.sh`  to create accounts on the new server and copy over the user data
+``` bash
+$SRC/utils/migrateSftpAccts.sh oldservername ./move/sftp_accts.txt
+```
+Once you've completed the process you can remove the `move` folder. 
