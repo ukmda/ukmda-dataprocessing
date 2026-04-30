@@ -30,7 +30,7 @@ def getLastUpdateDate(datadir=None, camfname=None, ddb=None):
 
     fldrlist = pd.merge(tmplist, caminfo, on=['stationid'], how='inner')
     nowdt = datetime.datetime.now()
-    fldrlist.rundate.fillna(fldrlist.upddate.astype(str) + '_' + fldrlist.uploadtime.astype(str).str.pad(width=6,fillchar='0'), inplace=True)
+    fldrlist.fillna({'rundate': fldrlist.upddate.astype(str) + '_' + fldrlist.uploadtime.astype(str).str.pad(width=6,fillchar='0')}, inplace=True)
     fldrlist['dtstamp'] = [datetime.datetime.strptime(f,'%Y%m%d_%H%M%S') for f in fldrlist.rundate]
     fldrlist = fldrlist.sort_values(by=['stationid','dtstamp'])
     fldrlist.drop_duplicates(keep='last', subset=['stationid'], inplace=True)
