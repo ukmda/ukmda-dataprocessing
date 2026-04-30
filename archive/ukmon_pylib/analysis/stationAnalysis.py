@@ -77,7 +77,7 @@ def timeGraph(dta, loc, outdir, when, sampleinterval):
     #select just the shower ID col
     countcol = dta['ID']
     # resample it 
-    binned = countcol.resample('{}'.format(sampleinterval)).count()
+    binned = countcol.resample(f'{sampleinterval}').count()
     binned.plot(kind='bar')
 
     # set ticks and labels every 144 intervals
@@ -100,7 +100,7 @@ def timeGraph(dta, loc, outdir, when, sampleinterval):
         pass        
 
     fname = os.path.join(outdir, 'station_plot_timeline_single.jpg')
-    plt.title('Observed stream activity {} intervals for {} in {}'.format(sampleinterval, loc, when))
+    plt.title(f'Observed stream activity {sampleinterval} intervals for {loc} in {when}')
     try:
         plt.tight_layout()
         plt.savefig(fname)
@@ -311,7 +311,7 @@ if __name__ == '__main__':
         idlist = list(camlistfltr.stationid) 
 
         if mth is None:
-            sampleinterval="1M"
+            sampleinterval="1ME"
             shortoutdir = os.path.join('reports', str(yr), 'stations', loc)
             outdir = os.path.join(datadir, shortoutdir)
         else:
