@@ -185,11 +185,13 @@ if __name__ == '__main__':
             dtval = datetime.datetime.strptime(f'{now.year} {dtstr[:15]}', '%Y %b %d %H:%M:%S').replace(tzinfo=datetime.timezone.utc)
             if dtval > now:
                 dtval = dtval.replace(year=now.year-1, tzinfo=datetime.timezone.utc)
+            targhost = 'ukmonhelper2'
         else:
             dtval = datetime.datetime.strptime(dtstr, '%Y-%m-%dT%H:%M:%S')
             dtval = dtval.replace(tzinfo=datetime.timezone.utc)
+            targhost = 'batchserver'
         location = spls[1].split(' for ')[1].split()[0]
-        lodata.append({'location':location, 'lastseen':dtval})
+        lodata.append({'location':location, 'lastseen':dtval,'host': targhost})
 
 
     if len(lodata) > 0:
@@ -205,20 +207,14 @@ if __name__ == '__main__':
         df['lastupload']=df.upddate.astype('str') + '_' +df.uploadtime
         df.lastupload = [datetime.datetime.strptime(x, '%Y%m%d_%H%M%S') for x in df.lastupload]
         df = df.drop(columns=['stationid','manual','rundate', 'upddate','uploadtime'])
-        df['dateval']=[x.strftime('%b-%d') for x in df.lastupload]
         df = df.sort_values(by=['lastupload'])
 
         outfile=os.path.join(datadir, 'reports', 'stationlogins.txt')
         zerodate = datetime.datetime(1970,1,1,0,0,0)
         with open(outfile,'w') as outf:
-            outf.write('Last Upload,      StationID,         Last Login\n')
+            outf.write('Last Upload,          StationID,            Last Login,          Via\n')
             for _,rw in df.iterrows():
-                dtval = rw.dateval
-                lastup = rw.lastupload.strftime('%H:%M:%S')
-                if pd.isnull(rw.lastseen):
-                    lastseen = '> 1 month'
-                else:
-                    lastseen = rw.lastseen.strftime('%b-%d %H:%M:%S')
-                if lastseen == 'Jan-01 00:00:00':
-                    lastseen = '> 1 month'
-                outf.write(f'{dtval}, {lastup}, {rw.location:20s}, {lastseen}\n')
+                lastup = '> 1 month' if pd.isnull(rw.lastupload) else rw.lastupload.strftime('%Y-%m-%dT%H:%M:%S')
+                lastlo = '> 1 month' if pd.isnull(rw.lastseen) else rw.lastseen.strftime('%Y-%m-%dT%H:%M:%S')
+                via = '' if pd.isnull(rw.host) else rw.host
+                outf.write(f'{lastup} , {rw.location:20s}, {lastlo}, {via}\n')
