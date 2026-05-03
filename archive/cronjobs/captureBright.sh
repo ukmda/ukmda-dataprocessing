@@ -8,15 +8,7 @@ cd $DATADIR/brightness
 rundt=$(date -d "yesterday" +%Y%m%d)
 python -m utils.compareBrightnessData $rundt
 
-# leading space to prevent being inserted into environment
-pwd=$(aws ssm get-parameters --names prod_dbpw --with-decryption --region eu-west-1 | jq .Parameters[0].Value | sed 's/"//g')
-mysql -p$pwd -ubatch -h localhost << EOD
-use ukmon;
-select count(*) from ukmon.brightness;
-load data local infile '${DATADIR}/brightness/CaptureNight_${rundt}.csv' 
-into table brightness fields terminated by ',';
-select count(*) from ukmon.brightness;
-EOD
+$SRC/utils/loadBrightnessCsvMDB.sh
 
 find ${DATADIR}/brightness -name "CaptureNight*" -mtime +30 -exec rm -f {} \;
 find ${DATADIR}/brightness -name "matcheddata*" -mtime +30 -exec rm -f {} \;
