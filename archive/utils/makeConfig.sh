@@ -89,6 +89,6 @@ echo "export TESTMODE TESTSUFF" >> ${CFGFILE}
 echo "source ~/.condaon" >> ${CFGFILE}
 # function to log to cloudwatch
 echo 'function log2cw() { ' >> ${CFGFILE}
-echo 'aws logs put-log-events --log-group-name $1 --log-stream-name $2 --log-events "[{\"timestamp\": $(date +%s%3N), \"message\": \"$3\"}]" --profile ukmonshared > /dev/null ' >> ${CFGFILE}
+echo 'aws logs put-log-events --log-group-name $1 --log-stream-name $2 --log-events "[{\"timestamp\": $(date +%s%3N), \"message\": \"$3\"}]" > /dev/null ' >> ${CFGFILE}
 echo 'logger -s -t $4 RUNTIME $SECONDS $3' >> ${CFGFILE}
 echo '}' >> ${CFGFILE}

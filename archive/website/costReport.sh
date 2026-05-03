@@ -27,10 +27,8 @@ if [ $# -gt 1 ] ; then numdays = $1 ; fi
 
 mkdir  -p $DATADIR/costs > /dev/null 
 
-export AWS_PROFILE=ukmonshared
 logger -s -t costReport "getting data for $numdays for $AWS_PROFILE"
 python -m metrics.costMetrics $DATADIR/costs eu-west-2 $numdays
-unset AWS_PROFILE
 
 tod=$(date +%d)
 if [ "$tod" == "03" ] ; then 
@@ -74,8 +72,8 @@ done
 echo "var outer_div = document.getElementById(\"docindex\"); outer_div.appendChild(table); })" >> $frjs
 
 logger -s -t costReport "publishing data"
-aws s3 sync $DATADIR/costs/ $WEBSITEBUCKET/docs/financial/raw/ --exclude "*" --include "costs-18*.csv" --quiet --profile ukmonshared
-aws s3 cp $costfile $WEBSITEBUCKET/reports/ --quiet --profile ukmonshared
-aws s3 cp $DATADIR/$imgfile3 $WEBSITEBUCKET/reports/ --quiet --profile ukmonshared
-aws s3 cp $frjs $WEBSITEBUCKET/docs/ --quiet --profile ukmonshared
+aws s3 sync $DATADIR/costs/ $WEBSITEBUCKET/docs/financial/raw/ --exclude "*" --include "costs-18*.csv" --quiet
+aws s3 cp $costfile $WEBSITEBUCKET/reports/ --quiet 
+aws s3 cp $DATADIR/$imgfile3 $WEBSITEBUCKET/reports/ --quiet 
+aws s3 cp $frjs $WEBSITEBUCKET/docs/ --quiet 
 logger -s -t costReport "done"

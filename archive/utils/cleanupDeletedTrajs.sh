@@ -14,7 +14,7 @@ cd ${DATADIR}/distrib
 startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
 jdt_min=$(python -c "from wmpl.Utils.TrajConversions import datetime2JD;import datetime;print(datetime2JD(datetime.datetime.strptime('$startdt', '%Y%m%d-%H%M%S')))")
 
-echo "checking main storage and website"
+logger -s -t cleanupDeletedTrajs "starting: checking main storage and website"
 sqlite3 $DATADIR/distrib/trajectories.db "select traj_file_path from trajectories where status=0 and jdt_ref > ${jdt_min} order by jdt_ref;" | while read traj ; do
 
    # check if there are two trajectories with the same folder - we don't want to delete the active one
@@ -42,7 +42,7 @@ sqlite3 $DATADIR/distrib/trajectories.db "select traj_file_path from trajectorie
    fi 
 done
 
-echo "checking raw fullcsv data files"
+logger -s -t cleanupDeletedTrajs "checking raw fullcsv data files"
 yr=${startdt:0:4}
 csvloc=matches/${yr}/fullcsv
 newloc=matches/duplicates/csvs
@@ -57,7 +57,7 @@ if [ $newyr != $yr ] ; then
 
 fi 
 
-echo "checking consolidated matches"
+logger -s -t cleanupDeletedTrajs "checking consolidated matches"
 lasttraj=$(sqlite3 $DATADIR/distrib/trajectories.db "select traj_file_path from trajectories where status=0 and jdt_ref > ${jdt_min} order by jdt_ref;" | tail -1)
 trajdir=$(dirname $lasttraj)
 yr=${trajdir:13:4}
@@ -78,3 +78,4 @@ fi
 
 # no need to check the SQL database in mariadb, as it is populated from the CSV file that 
 # we cleaned up above
+logger -s -t cleanupDeletedTrajs "finished cleanupDeletedTrajs"
