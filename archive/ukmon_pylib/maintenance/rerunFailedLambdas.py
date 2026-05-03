@@ -30,8 +30,7 @@ def findOtherBadEvents():
     return badevents
 
 
-def findFailedEvents(prof='ukmonshared'):
-    #session = boto3.Session(profile_name=prof) 
+def findFailedEvents():
     logcli = boto3.client('logs', region_name='eu-west-2')
     datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     lastf = os.path.join(datadir,'orbits', 'lastorbitcheck.txt')
@@ -98,9 +97,8 @@ def checkFails(fails):
     return realfails
 
 
-def rerunFails(fails, prof='ukmonshared'):
-    session=boto3.Session(profile_name=prof) 
-    lambd = session.client('lambda', region_name='eu-west-2')
+def rerunFails(fails):
+    lambd = boto3.client('lambda', region_name='eu-west-2')
 
     datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     lastf = os.path.join(datadir,'orbits', 'lastorbitcheck.txt')
@@ -120,10 +118,9 @@ def rerunFails(fails, prof='ukmonshared'):
     return 
 
 
-def resubmitPicklesForDay(dtstr, prof='ukmonshared'):
+def resubmitPicklesForDay(dtstr):
     s3 = boto3.client('s3')
-    session = boto3.Session(profile_name=prof)
-    lambd = session.client('lambda', region_name='eu-west-2')
+    lambd = boto3.client('lambda', region_name='eu-west-2')
     pref = f'matches/RMSCorrelate/trajectories/{dtstr[:4]}/{dtstr[:6]}/{dtstr}/'
     buck = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
     res = s3.list_objects_v2(Bucket=buck, Prefix=pref)

@@ -71,8 +71,7 @@ def createExtraJpgtxt(outdir, traj, availableimages):
 
 
 def createExtraJpgHtml(outdir, parentfldr, yr, ym):
-    mdasess = boto3.Session(profile_name='ukmda_admin')
-    s3mda = mdasess.client('s3')
+    s3mda = boto3.client('s3')
     webfldr = f'img/single/{yr}/{ym}'
     with open(os.path.join(outdir, 'extrajpgs.html'), 'w') as outf:
         jpgfldr = os.path.join(parentfldr, 'jpgs')
@@ -194,8 +193,7 @@ def recreateOrbitFiles(outdir, pickname, doupload=False):
 
     if doupload:
         files = os.listdir(outdir)
-        mdasess = boto3.Session(profile_name='ukmda_admin')
-        s3mda = mdasess.client('s3')
+        s3mda = boto3.client('s3')
         if int(yr) > 2020: 
             webfldr = f'reports/{yr}/orbits/{ym}/{ymd}'
         else:

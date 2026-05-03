@@ -10,9 +10,7 @@ import datetime
 
 
 def getBrightnessData(yyyymmdd, outdir=None):
-    prof = os.getenv('UKMPROFILE',default='ukmonshared')
-    sess = boto3.Session(profile_name=prof)
-    ddb = sess.resource('dynamodb', region_name='eu-west-2')
+    ddb = boto3.resource('dynamodb', region_name='eu-west-2')
     table = ddb.Table('LiveBrightness')
     resp = table.query(KeyConditionExpression=Key('CaptureNight').eq(yyyymmdd))
     df = pd.DataFrame(ddbjson.loads(resp['Items']))
