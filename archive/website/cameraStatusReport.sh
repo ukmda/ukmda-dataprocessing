@@ -27,11 +27,17 @@ conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 export PYTHONPATH=$PYLIB
 logger -s -t cameraStatusReport "starting"
 
+echo TEMPORARY HACK REMOVE CODE PERTAINING TO OLD SERVER
 platform=$(grep "^NAME" /etc/os-release | awk -F'"' '{print $2}')
-[ "$platform" == "Ubuntu" ] && authlog=/var/log/auth.log || authlog=/var/log/secure 
-sudo grep publickey $authlog* | grep -v $USER   > $DATADIR/reports/lastlogins.txt
+if [ "$platform" == "Ubuntu" ] ; then
+    authlog=/var/log/auth.log
+    batchuser=ubuntu
+else
+    authlog=/var/log/secure 
+    batchuser=ec2-user
+fi
+sudo grep publickey $authlog* | grep -v $batchuser > $DATADIR/reports/lastlogins.txt
 
-echo TEMPORARY HACK REMOVE ME
 if [ "$platform" == "Ubuntu" ]
 then
     ssh ukmonhelper2 "sudo grep publickey /var/log/secure* | grep -v ec2-user"  > $DATADIR/reports/lastlogins_old.txt
