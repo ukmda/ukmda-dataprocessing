@@ -17,8 +17,8 @@ alias stats='if [ "$DATADIR" == "" ] ; then echo select env first; else tail $DA
 alias matchstatus='if [ "$SRC" == "" ] ; then echo select env first; else grep "Running" $SRC/logs/matchJob.log && grep TRAJ $SRC/logs/matchJob.log | grep SOLVING && echo -n "Completed " && grep Observations: $SRC/logs/matchJob.log | wc -l &&  grep "nightlyJob" $SRC/logs/nightlyJob.log ; fi '
 alias spacecalc='ls -1 | egrep -v "ukmon-shared" | while read i ; do \du -s $i ; done | sort -n'
 
-alias startcalc='$SRC/utils/stopstart-calcengine.sh start'
-alias stopcalc='$SRC/utils/stopstart-calcengine.sh stop'
+alias startcalc='$SRC/utils/stopstartCalcengine.sh start'
+alias stopcalc='$SRC/utils/stopstartCalcengine.sh stop'
 
 function dev {
 	source ~/dev/config.ini
