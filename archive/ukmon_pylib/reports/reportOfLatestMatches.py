@@ -12,6 +12,7 @@ import shutil
 import tempfile
 import boto3
 import glob
+import tarfile
 
 from traj.pickleAnalyser import getVMagCodeAndStations
 from reports.CameraDetails import findSite, loadLocationDetails
@@ -195,23 +196,27 @@ def findNewMatches(dir_path, out_path, offset, repdtstr):
 
 
 if __name__ == '__main__':
-    repdtstr = None
-    if len(sys.argv) > 4:
-        repdtstr = sys.argv[4]
 
     cand_db_dir = sys.argv[1]
     daily_db_dir = sys.argv[2]
-    offset = sys.argv[3]
+    repdtstr = sys.argv[3]
 
     if repdtstr != datetime.datetime.now().strftime('%Y%m%d'):
-        print(f'running for a past date, make sure you untarred the containerdbs to {cand_db_dir}')
+        print(f'running for a past date, extracting the container dbs to {cand_db_dir}')
+        datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
+        tarf = tarfile.open(os.path.join(datadir, 'distrib','containers',f'contdbs_{repdtstr}.tgz'), 'r')
+        members = [m for m in tarf.getmembers() if '.db' in m.name]
+        for m in members:
+            m.name = os.path.basename(m.name)
+        tarf.extractall(cand_db_dir, filter='fully_trusted')
+        tarf.close()
         
     flist = glob.glob(os.path.join(cand_db_dir, 'trajectories_*.db'))
     if len(flist) == 0:
         print('no container databases to process, aborting')
     else:
         # arguments dblocation, datadir, days ago, rundate eg 20220524
-        findNewMatches(cand_db_dir, daily_db_dir, offset, repdtstr)
+        findNewMatches(cand_db_dir, daily_db_dir, repdtstr)
         # update the daily database of paired observations
         daily_db_dir = os.path.join(os.path.split(cand_db_dir)[0], 'dailydbs')
         updatePairedDB(cand_db_dir, daily_db_dir, repdtstr)
