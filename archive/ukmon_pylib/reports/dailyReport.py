@@ -55,11 +55,7 @@ def AddRowRMS(body, bodytext, ele):
     return body, bodytext
 
 
-def LookForMatchesRMS(doff, dayfile, statsfile):
-    # get stats
-    with open(statsfile, 'r') as inf:
-        lis = inf.readlines()
-    stats = lis[-1].strip().split(' ')
+def LookForMatchesRMS(doff, dayfile, stats):
 
     bodytext = 'Daily notification of matches\n\n'
     body = ''
@@ -100,7 +96,14 @@ if __name__ == '__main__':
     dailyreps.sort()
     dailyrep = dailyreps[-1]
     statfile = os.path.join(reppth, 'stats.txt')
-    _, _, body, bodytext = LookForMatchesRMS(doff, dailyrep, statfile)
+    lis = open(statfile, 'r').readlines()
+    stats = [li for li in lis if repdtstr in li]
+    if len(stats) > 0:
+        stats = stats[0].strip().split(' ')
+    else:
+        stats = lis[-1].strip().split(' ')
+
+    _, _, body, bodytext = LookForMatchesRMS(doff, dailyrep, stats)
 
     #body = body.replace('assets/img/logo.svg', 'latest/dailyreports/dailyreportsidx.html')
     if doff == 1:
