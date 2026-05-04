@@ -123,5 +123,7 @@ if __name__ == '__main__':
         mailFrom = recs[-1].strip()
     #mailRecip = 'markmcintyre99@googlemail.com' # TODO for testing only
     yest = (datetime.date.today()-datetime.timedelta(days=doff)).strftime('%Y-%m-%d')
-    mailSubj = f'Latest Match Report for {yest}'
-    sendAnEmail(mailRecip, bodytext, mailSubj, mailFrom, msg_html=body.replace('href="/reports', f'href="{targeturl}/reports'))
+    # only send the email for the most recent report.
+    if doff == 1:
+        mailSubj = f'Latest Match Report for {yest}'
+        sendAnEmail(mailRecip, bodytext, mailSubj, mailFrom, msg_html=body.replace('href="/reports', f'href="{targeturl}/reports'))
