@@ -41,11 +41,11 @@ def processLocalFolder(trajdir, basedir):
     return outstr
 
 
-def getListOfNewMatches(dir_path, db_path='/tmp', rundate=None):
+def getListOfNewMatches(dir_path, db_path, rundate):
     os.makedirs(db_path, exist_ok=True)
-    db_name = f'{rundate}_trajectories.db' if rundate else 'trajectories.db'
+    db_name = f'{rundate}_trajectories.db'
     dailydb = TrajectoryDatabase(db_path=db_path, db_name=db_name, purge_records=True)
-    flist = glob.glob(os.path.join(dir_path, 'trajectories_*.db'))
+    flist = glob.glob(os.path.join(dir_path, f'trajectories_{rundate}_*.db'))
     flist.sort()
     for fl in flist:
         tstamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
@@ -101,11 +101,11 @@ def getListOfNewMatches(dir_path, db_path='/tmp', rundate=None):
     return newdirs
 
 
-def updatePairedDB(dir_path, db_path='/tmp', rundate=None):
+def updatePairedDB(dir_path, db_path, rundate):
     os.makedirs(db_path, exist_ok=True)
-    db_name = f'{rundate}_observations.db' if rundate else 'observations.db'
+    db_name = f'{rundate}_observations.db'
     obsdb = ObservationsDatabase(db_path=db_path, db_name=db_name, purge_records=True)
-    flist = glob.glob(os.path.join(dir_path, 'observations_*.db'))
+    flist = glob.glob(os.path.join(dir_path, f'observations_{rundate}_*.db'))
     flist.sort()
     for fl in flist:
         tstamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
@@ -202,6 +202,9 @@ if __name__ == '__main__':
     cand_db_dir = sys.argv[1]
     daily_db_dir = sys.argv[2]
     offset = sys.argv[3]
+
+    if repdtstr != datetime.datetime.now().strftime('%Y%m%d'):
+        print(f'running for a past date, make sure you untarred the containerdbs to {cand_db_dir}')
         
     flist = glob.glob(os.path.join(cand_db_dir, 'trajectories_*.db'))
     if len(flist) == 0:
