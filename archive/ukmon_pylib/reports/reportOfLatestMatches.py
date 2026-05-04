@@ -212,3 +212,4 @@ if __name__ == '__main__':
         # update the daily database of paired observations
         daily_db_dir = os.path.join(os.path.split(cand_db_dir)[0], 'dailydbs')
         updatePairedDB(cand_db_dir, daily_db_dir, repdtstr)
+        print('reportOfLatestMatches finished')
