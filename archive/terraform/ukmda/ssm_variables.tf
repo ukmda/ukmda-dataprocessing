@@ -6,7 +6,7 @@ resource "aws_ssm_parameter" "prod_dbhost" {
     provider = aws.eu-west-1-prov
     name  = "prod_dbhost"
   type  = "String"
-  value = "3.11.55.160"
+  value = "batchserver.ukmeteors.co.uk"
   tags = {
     "billingtag" = "ukmda"
   }
