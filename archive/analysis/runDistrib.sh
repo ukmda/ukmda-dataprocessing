@@ -119,10 +119,10 @@ logger -s -t runDistrib "finished consolidation, copying databases"
 rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$CALCSERVERIP:ukmon-shared/matches/RMSCorrelate/dbs/*.db $DATADIR/distrib
 ssh -i $SERVERSSHKEY $SERVERUSERID@$CALCSERVERIP "find /tmp -maxdepth 1 -name "*.pickle"  -mtime +7 -exec rm -f {} \;"
 
-loggers -s -t runDistrib "stopping calcserver again"
+logger -s -t runDistrib "stopping calcserver again"
 aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 
-loggers -s -t runDistrib "copying data to batch server and tidying up"
+logger -s -t runDistrib "copying data to batch server and tidying up"
 
 # grab a copy of the indvidual container dbs so we can get a list of new solutions
 rm -Rf $DATADIR/latest/contdbs/
@@ -147,4 +147,4 @@ find $DATADIR/distrib/containers/ -name "cont*.tgz" -mtime +30 -exec rm -f {} \;
 find $DATADIR/distrib/ -maxdepth 1 -name "20*.tgz" -mtime +30 -exec rm -f {} \;
 rm -f $DATADIR/distrib/${rundate}.pickle
 
-loggers -s -t "finished runDistrib"
+logger -s -t "finished runDistrib"
