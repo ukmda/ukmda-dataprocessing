@@ -72,7 +72,7 @@ logger -s -t findAllMatches "start reportOfLatestMatches"
 
 matchlog=${SRC}/logs/matchJob.log
 python -m reports.reportOfLatestMatches $DATADIR/latest/contdbs $DATADIR/dailyreports $rundate
-python -m metrics.getMatchStats $matchlog
+python -m metrics.getMatchStats $matchlog $rundate
 
 # copy stats to S3 so the daily report can run
 if [ "$RUNTIME_ENV" == "PROD" ] ; then 

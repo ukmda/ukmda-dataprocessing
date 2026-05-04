@@ -36,7 +36,7 @@ def getDailyObsCounts(logf):
     return
 
 
-def getMatchStats(logf):
+def getMatchStats(logf, rundate):
     loglines = open(logf).readlines()
 
     events = [line.strip() for line in loglines if 'Analysing' in line and 'observations' in line]
@@ -92,9 +92,6 @@ def getMatchStats(logf):
     cstime = str(d2 - d1)
 
     datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
-    rundate=os.getenv('rundate')
-    if not rundate:
-        rundate = open(os.path.join(datadir, 'rundate.txt'),'r').readline().strip()
     dailydbdir = os.path.join(datadir, 'latest','dailydbs')
     trajdb = TrajectoryDatabase(dailydbdir, f'{rundate}_trajectories.db')
     trajs = len(trajdb.getTrajBasics('.',[0,9999999]))
@@ -104,10 +101,6 @@ def getMatchStats(logf):
 
 def updateStats(obscount, candcount, trajcount, runtime, rundate):
     datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
-    if not rundate:
-        rundate=os.getenv('rundate')
-        if not rundate:
-            rundate = open(os.path.join(datadir, 'rundate.txt'),'r').readline().strip()
     statsdir = os.path.join(datadir, 'dailyreports')
     reports = glob.glob(os.path.join(statsdir, f'{rundate}*.txt'))
 
@@ -128,9 +121,10 @@ def updateStats(obscount, candcount, trajcount, runtime, rundate):
 
 if __name__ == '__main__':
     matchfile = sys.argv[1]
-    tot, added, uncal, missdf, nonphys, cands, trajs, runtime, cstime = getMatchStats(matchfile)
-    if '-' in matchfile:
-        rundate = matchfile[matchfile.find('-')+1:]
+    rundate = sys.argv[2]
+
+    tot, added, uncal, missdf, nonphys, cands, trajs, runtime, cstime = getMatchStats(matchfile, rundate)
+
     if len(sys.argv) < 3:
-        updateStats(added, cands, trajs, runtime, rundate=None)
+        updateStats(added, cands, trajs, runtime, rundate)
     print(tot, added, uncal, missdf, nonphys, cands, trajs, runtime, cstime)
