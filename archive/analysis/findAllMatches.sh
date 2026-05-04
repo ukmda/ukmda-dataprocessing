@@ -71,7 +71,7 @@ cd $here
 logger -s -t findAllMatches "start reportOfLatestMatches" 
 
 matchlog=${SRC}/logs/matchJob.log
-python -m reports.reportOfLatestMatches $DATADIR/latest/contdbs $DATADIR/dailyreports $MATCHEND $rundate
+python -m reports.reportOfLatestMatches $DATADIR/latest/contdbs $DATADIR/dailyreports $rundate
 python -m metrics.getMatchStats $matchlog
 
 # copy stats to S3 so the daily report can run
