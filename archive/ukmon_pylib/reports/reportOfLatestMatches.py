@@ -122,17 +122,14 @@ def updatePairedDB(dir_path, db_path, rundate):
     return obscount
 
 
-def findNewMatches(dir_path, out_path, offset, repdtstr):
+def findNewMatches(dir_path, out_path, repdtstr):
     daily_path = os.path.join(os.path.split(dir_path)[0], 'dailydbs')
     newdirs = getListOfNewMatches(dir_path, daily_path, rundate=repdtstr)
     # load camera details
     caminfo = loadLocationDetails()
     caminfo = caminfo[caminfo.active==1]
 
-    if repdtstr is not None:
-        repdt = datetime.datetime.strptime(repdtstr, '%Y%m%d')
-    else:
-        repdt = datetime.datetime.now() - datetime.timedelta(int(offset))
+    repdt = datetime.datetime.strptime(repdtstr, '%Y%m%d')
 
     os.makedirs(out_path, exist_ok=True)
     # create filename. Allow for three reruns in a day
