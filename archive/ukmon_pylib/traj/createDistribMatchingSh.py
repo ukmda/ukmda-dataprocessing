@@ -147,12 +147,15 @@ def createExecConsolSh(matchstart, matchend, execconsolsh, istest=''):
         outf.write('logger -s -t execConsol start\n')
         outf.write(f'aws s3 sync {srcpath}/ ~/data/distrib/canddbs/ --exclude "*" --include "*.db" --exclude "dbs/*" --quiet\n')
 
+        # must run this before consolidation as the process updates the database to remove any missing 
+        # trajectories ie not on disk.
+        outf.write('logger -s -t execConsol syncing any updated trajectories from shared S3\n')
+        refreshTrajectories(outf, matchstart, matchend, shbucket)
+
         outf.write(f'python -m traj.consolidateDistTraj ~/data/distrib/canddbs/ {calcdir}/dbs/\n')
 
         outf.write(f'aws s3 sync {calcdir}/dbs/ {srcpath}/dbs/ --exclude "*" --include "*.db" --quiet\n')
 
-        outf.write('logger -s -t execConsol syncing any updated trajectories from shared S3\n')
-        refreshTrajectories(outf, matchstart, matchend, shbucket)
         outf.write('logger -s -t execConsol creating density plots\n')
         createDensityPlots(outf, calcdir, enddt, includeyear)
         outf.write('logger -s -t execConsol pushing data back to S3\n')
