@@ -62,4 +62,4 @@ def getUnusedImages(dtstr):
     allimages = getAllImages(dtstr)
     uncal = getKnownImages(dtstr, 'uncal')
     used = getKnownImages(dtstr, 'consumed')
-    unused = list(set(allimages)-set(used)-set(uncal))
+    unused = list(set(allimages)-set(used + uncal))
