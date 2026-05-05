@@ -48,9 +48,10 @@ $SRC/analysis/createSearchable.sh $yr singles
 matchlog=matchJob.log
 
 # save the existing log, in case the process is being rerun on the same day
-if [ -f $SRC/logs/$matchlog ] ; then
-    suff=$(stat $SRC/logs/$matchjob -c %X)
-    mv $SRC/logs/$matchlog $SRC/logs/$matchlog-$suff
+if [ "$(find $SRC/logs -name $matchlog -mmin +1380 -ls)" != "" ] ; then
+    dt=$(stat $SRC/logs/$matchlog -c %y)
+    suff=$(date --date ${dt:0:10} +%Y%m%d)
+    mv -f $SRC/logs/$matchlog $SRC/logs/$matchlog-$suff
 fi 
 
 logger -s -t nightlyJob "start findAllMatches"
