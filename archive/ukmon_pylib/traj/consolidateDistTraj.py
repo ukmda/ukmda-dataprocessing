@@ -4,10 +4,13 @@ import os
 import sys
 import glob
 import datetime
+import logging
 
 from wmpl.Trajectory.CorrelateDB import ObservationsDatabase, TrajectoryDatabase, CandidateDatabase
 from wmpl.Trajectory.CorrelateRMS import RMSDataHandle
 from wmpl.Utils.TrajConversions import jd2Date
+
+log = logging.getLogger("consol_disttraj")
 
 
 def mergeDatabases(srcdir, dbdir, basedir, ignore_missing=False, purge_records=False, matchstart=3):
@@ -62,6 +65,11 @@ def mergeDatabases(srcdir, dbdir, basedir, ignore_missing=False, purge_records=F
     dt_end = jd2Date(int(jdt_end) + 1, dt_obj=True, tzinfo=datetime.timezone.utc)
     dt_beg = jd2Date(int(jdt_end) + 1 - matchstart, dt_obj=True, tzinfo=datetime.timezone.utc)
     event_time_range = [dt_beg, dt_end]
+
+    # capture RMSDataHandle log messages to console
+    log.setLevel(logging.DEBUG)
+    console_handler = logging.StreamHandler()
+    log.addHandler(console_handler)
 
     dh = RMSDataHandle(basedir, dt_range=event_time_range, db_dir=dbdir, output_dir=basedir,mcmode=1, archivemonths=0)    
     dh.updateTrajectoryDatabase(dt_range=event_time_range)

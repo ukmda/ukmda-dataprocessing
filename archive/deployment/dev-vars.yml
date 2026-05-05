@@ -1,3 +1,0 @@
-destdir: /home/ec2-user/dev
-env: DEV
-s3profile: default

@@ -10,8 +10,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 import datetime
 
-from meteortools.utils import getShowerDates as sd
-from meteortools.fileformats import imoWorkingShowerList as imo
+from utils.getActiveShowers import getShowerDets
+from utils.imoWorkingShowerList import IMOshowerList
 
 SMALL_SIZE = 8
 MEDIUM_SIZE = 10
@@ -97,8 +97,8 @@ def timeGraph(dta, shwrname, outdir, binmins=10):
     countcol = dta['Shwr']
 
     # resample it 
-    binned = countcol.resample('{}min'.format(binmins)).count()
-    binned.plot(kind='bar')
+    binned = countcol.resample(f'{binmins}min').count()
+    binned.plot(kind='bar', width=10)
 
     # set ticks and labels every 144 intervals
     nbins = max(len(binned)/144, 2)
@@ -138,8 +138,8 @@ def matchesGraphs(dta, shwrname, outdir, binmins=60, startdt=None, enddt=None, t
     #select just the shower ID col
     mcountcol = mdta['_ID1']
     # resample it 
-    mbinned = mcountcol.resample('{}min'.format(binmins)).count()
-    mbinned.plot(kind='bar')
+    mbinned = mcountcol.resample(f'{binmins}min').count()
+    mbinned.plot(kind='bar', width=10)
 
     # set ticks and labels every 144 intervals
     ax = plt.gca()
@@ -216,7 +216,7 @@ def velDistribution(dta, shwrname, outdir, vg_or_vs, binwidth=0.2):
 
     # format x-axes
     x_labels=["%.0f" % number for number in bins[:-1]]
-    ax.set_xticklabels(x_labels)
+    plt.xticks(np.arange(len(x_labels)), x_labels)
     fig = plt.gcf()
     fig.set_size_inches(11.6, 8.26)
 
@@ -254,7 +254,7 @@ def durationDistribution(dta, shwrname, outdir, binwidth=0.2):
 
     # format x-axes
     x_labels=["%.1f" % number for number in bins[:-1]]
-    ax.set_xticklabels(x_labels)
+    plt.xticks(np.arange(len(x_labels)), x_labels)
     fig = plt.gcf()
     fig.set_size_inches(11.6, 8.26)
 
@@ -292,7 +292,7 @@ def distanceDistribution(dta, shwrname, outdir, binwidth=1.0):
 
     # format x-axes
     x_labels=["%.0f" % number for number in bins[:-1]]
-    ax.set_xticklabels(x_labels)
+    plt.xticks(np.arange(len(x_labels)), x_labels)
     fig = plt.gcf()
     fig.set_size_inches(11.6, 8.26)
 
@@ -356,13 +356,6 @@ def radiantDistribution(dta, shwrname, outdir):
     magdf.plot.scatter(x=idx, y=idx2)
     ax = plt.gca()
     ax.set(xlabel='RA (deg)', ylabel="Dec (deg)")
-    #plt.locator_params(axis='x', nbins=12)
-    #for lab in ax.get_xticklabels():
-    #    lab.set_fontsize(SMALL_SIZE)
-
-    # format x-axes
-    #x_labels=["%.0f" % number for number in bins[:-1]]
-    #ax.set_xticklabels(x_labels)
     fig = plt.gcf()
     fig.set_size_inches(11.6, 8.26)
 
@@ -394,7 +387,7 @@ def semimajorDistribution(dta, shwrname, outdir, binwidth=0.5):
 
     # format x-axes
     x_labels=["%.0f" % number for number in bins[:-1]]
-    ax.set_xticklabels(x_labels)
+    plt.xticks(np.arange(len(x_labels)), x_labels)
     fig = plt.gcf()
     fig.set_size_inches(11.6, 8.26)
 
@@ -424,7 +417,7 @@ def magDistributionAbs(dta, shwrname, outdir, binwidth=0.2):
 
     # format x-axes
     x_labels=["%.0f" % number for number in bins[:-1]]
-    ax.set_xticklabels(x_labels)
+    plt.xticks(np.arange(len(x_labels)), x_labels)
     fig = plt.gcf()
     fig.set_size_inches(11.6, 8.26)
 
@@ -454,7 +447,7 @@ def magDistributionVis(dta, shwrname, outdir, binwidth=0.2):
         
     # format x-axes
     x_labels=["%.0f" % number for number in bins[:-1]]
-    ax.set_xticklabels(x_labels)
+    plt.xticks(np.arange(len(x_labels)), x_labels)
     fig = plt.gcf()
     fig.set_size_inches(11.6, 8.26)
 
@@ -486,7 +479,7 @@ def showerAnalysis(shwr, dtstr):
     cols = ['Shwr','Dtstamp','Y','M','ID','Mag']
     filt = None
     if shwr != 'ALL':
-        sl = imo.IMOshowerList()
+        sl = IMOshowerList()
         maxdt = sl.getEnd(shwr) + datetime.timedelta(days=10)
         mindt = sl.getStart(shwr) + datetime.timedelta(days=-10)
 
@@ -498,7 +491,7 @@ def showerAnalysis(shwr, dtstr):
 
     # select the required data
     if shwr != 'ALL':
-        id, shwrname, sl, dt = sd.getShowerDets(shwr)
+        id, shwrname, sl, dt = getShowerDets(shwr)
         sngl = sngl[sngl['Shwr']==shwr]
         sngl = sngl[sngl.Dtstamp > mindt.timestamp()]
         sngl = sngl[sngl.Dtstamp < maxdt.timestamp()]
@@ -531,7 +524,7 @@ def showerAnalysis(shwr, dtstr):
 
     # select the required data
     if shwr != 'ALL':
-        id, shwrname, sl, dt = sd.getShowerDets(shwr)
+        id, shwrname, sl, dt = getShowerDets(shwr)
         mtch = mtch[mtch['_stream']==shwr]
         mtch = mtch[mtch.dtstamp > mindt.timestamp()]
         mtch = mtch[mtch.dtstamp < maxdt.timestamp()]

@@ -6,15 +6,9 @@ conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 cd $DATADIR/brightness
 rundt=$(date -d "yesterday" +%Y%m%d)
-python -m analysis.compareBrightnessData $rundt
+python -m utils.compareBrightnessData $rundt
 
-mysql -u batch -p$(cat ~/.ssh/db_batch.passwd) -h localhost << EOD
-use ukmon;
-select count(*) from ukmon.brightness;
-load data local infile '${DATADIR}/brightness/CaptureNight_${rundt}.csv' 
-into table brightness fields terminated by ',';
-select count(*) from ukmon.brightness;
-EOD
+$SRC/utils/loadBrightnessCsvMDB.sh
 
 find ${DATADIR}/brightness -name "CaptureNight*" -mtime +30 -exec rm -f {} \;
-
+find ${DATADIR}/brightness -name "matcheddata*" -mtime +30 -exec rm -f {} \;

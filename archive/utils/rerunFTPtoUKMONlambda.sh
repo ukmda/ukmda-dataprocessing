@@ -22,6 +22,6 @@ cat /tmp/ftp2ukmon.txt | while read i
 do
 	fullname=${i}
 	cat $SRC/utils/cftpd_templ.json | sed "s|KEYGOESHERE|${fullname}|g" > ./tmp.json
-	aws lambda invoke --profile ukmonshared --function-name ftpToUkmon --log-type Tail  --payload file://./tmp.json  --region eu-west-2 --cli-binary-format raw-in-base64-out res.log
+	aws lambda invoke --function-name ftpToUkmon --log-type Tail  --payload file://./tmp.json  --region eu-west-2 --cli-binary-format raw-in-base64-out res.log
 done
 rm ./tmp.json

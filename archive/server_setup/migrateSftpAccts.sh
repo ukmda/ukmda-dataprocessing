@@ -1,0 +1,44 @@
+#!/bin/bash
+
+
+addOneUser() {
+    userid=$1
+    srchost=$2
+    grep -w $userid /etc/passwd
+    if [ $? -eq 1 ] ; then 
+        dt=$(date +%Y-%m-%d)
+        logger -s -t addSftpUser "Creating unix user $userid"
+        sudo useradd --system --shell /usr/sbin/nologin --groups sftp --home /var/sftp/$userid --comment "${dt}" $userid
+        sudo mkdir /var/sftp/$userid
+        sudo chown root:sftp /var/sftp/$userid
+        sudo chmod 751 /var/sftp/$userid
+        # create the .ssh folder, platepar folder and empty client copy of the ini file
+        sudo mkdir /var/sftp/$userid/.ssh
+        sudo mkdir /var/sftp/$userid/platepar
+        sudo touch /var/sftp/$userid/ukmon.ini.client
+        # make these three writeable by the client
+        sudo chown $userid:$userid /var/sftp/$userid/platepar /var/sftp/$userid/.ssh /var/sftp/$userid/ukmon.ini.client
+    else
+        logger -s -t addSftpUser "Unix user $userid already exists"
+    fi
+    sudo rsync -av $srchost:/var/sftp/$userid/ /var/sftp/$userid 
+    sudo cat /var/sftp/$userid/ukmon.ini | sed 's/3.11.55.160/batchserver.ukmeteors.co.uk/g' > /tmp/$userid.ini
+    sudo mv /tmp/$userid.ini /var/sftp/$userid/ukmon.ini
+    sudo scp /var/sftp/$userid/ukmon.ini $srchost:/var/sftp/$userid/
+}
+
+if [ $# -lt 2 ] ; then 
+    echo "Usage: ./migrateSftpAccounts.sh oldservername userfile"
+    exit
+fi 
+
+echo "Warning: this must only be run on the new server"
+read -p "press ctrl-c to quit or enter to continue"
+
+oldserver=$1
+srcfile=$2
+
+cat $srcfile | while read stn
+do 
+    addOneUser $stn $oldserver
+done

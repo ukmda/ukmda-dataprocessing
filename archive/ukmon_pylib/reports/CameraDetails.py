@@ -41,9 +41,7 @@ def updateCamLocDirFovDB(datadir=None):
 
 def loadLocationDetails(table='camdetails', ddb=None, loadall=False):
     if not ddb:
-        prof = os.getenv('UKMPROFILE',default='ukmonshared')
-        conn = boto3.Session(profile_name=prof)
-        ddb = conn.resource('dynamodb', region_name='eu-west-2') 
+        ddb = boto3.resource('dynamodb', region_name='eu-west-2') 
     table = ddb.Table(table)
     res = table.scan()
     # strictly, should check for LastEvaluatedKey here, in case there was more than 1MB of data,
@@ -71,7 +69,7 @@ def findLocationInfo(srchstring, ddb=None, statdets=None):
     return srchres
 
 
-def createCDCsv(targetloc):
+def createCDCsv(targetloc, srchidxdir):
     camdets = loadLocationDetails()
     cd4csv = camdets[['site','stationid','oldcode','direction','camtype','active']]
     pd.options.mode.chained_assignment = None
@@ -83,28 +81,32 @@ def createCDCsv(targetloc):
     datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     outfname = os.path.join(datadir, targetloc, 'camera-details.csv')
     cd4csv.to_csv(outfname, index=False)
-    with open(os.path.join(datadir, 'activecamcount.txt'), 'w') as outf:
+    with open(os.path.join(datadir, targetloc, 'activecamcount.txt'), 'w') as outf:
         outf.write(str(len(cd4csv[cd4csv.active==1])))
-    createStatOptsHtml(camdets, datadir)
-    createStatOptsHtml(camdets, datadir, True)
-    createStatOptsHtml(camdets, datadir, True, True)
+
+    outdir = os.path.join(datadir, srchidxdir)
+    os.makedirs(outdir, exist_ok=True)
+
+    createStatOptsHtml(camdets, outdir)
+    createStatOptsHtml(camdets, outdir, True)
+    createStatOptsHtml(camdets, outdir, True, True)
     return
 
 
-def createStatOptsHtml(sitedets, datadir, active=False, locs=False):
+def createStatOptsHtml(sitedets, outdir, active=False, locs=False):
     """
     Create an HTML file containing a list of stations or locations
     These files are used by the website search functions
     """
     if active:
         if locs:
-            siteidx = os.path.join(datadir, 'activestatlocs.html')  
+            siteidx = os.path.join(outdir, 'activestatlocs.html')  
             sitedets = sitedets.sort_values(by=['site', 'stationid'])
         else:
-            siteidx = os.path.join(datadir, 'activestatopts.html')  
+            siteidx = os.path.join(outdir, 'activestatopts.html')  
         sitedets = sitedets[sitedets.active==1]
     else:
-        siteidx = os.path.join(datadir, 'statopts.html')  
+        siteidx = os.path.join(outdir, 'statopts.html')  
     with open(siteidx, 'w') as outf:
         if not active:
             outf.write('<label for="statselect">Station</label>\n')

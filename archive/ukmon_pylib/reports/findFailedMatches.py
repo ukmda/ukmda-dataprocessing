@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     srcdir = os.getenv('SRC', default='.')
     logdir = os.path.join(srcdir, 'logs','distrib')
-    logs = glob.glob1(logdir, f'{repdt}*.log')
+    logs = glob.glob(f'{repdt}*.log', root_dir=logdir)
     for logf in logs:
         processOneLog(os.path.join(logdir, logf), reportfile)
     reportfile.close()

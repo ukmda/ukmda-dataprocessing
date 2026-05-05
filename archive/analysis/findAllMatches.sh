@@ -23,12 +23,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
-# logstream name inherited from parent environment but set it if not
-if [ "$NJLOGSTREAM" == "" ]; then
-    NJLOGSTREAM=$(date +%Y%m%d-%H%M%S)
-    aws logs create-log-stream --log-group-name $NJLOGGRP --log-stream-name $NJLOGSTREAM --profile ukmonshared
-fi
-log2cw $NJLOGGRP $NJLOGSTREAM "start findAllMatches" findAllMatches
+logger -s -t findAllMatches "starting"
 
 [ -f $DATADIR/rundate.txt ] && rundate=$(cat $DATADIR/rundate.txt) || rundate=$(date +%Y%m%d)
 
@@ -52,40 +47,39 @@ mkdir -p $SRC/logs/distrib > /dev/null 2>&1
 
 startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
 enddt=$(date --date="-$MATCHEND days" '+%Y%m%d-080000')
-log2cw $NJLOGGRP $NJLOGSTREAM "solving for ${startdt} to ${enddt}" findAllMatches
 
-log2cw $NJLOGGRP $NJLOGSTREAM "start runDistrib" findAllMatches
+logger -s -t findAllMatches "solving for ${startdt} to ${enddt}"
+logger -s -t findAllMatches "start runDistrib"
+
 $SRC/analysis/runDistrib.sh $MATCHSTART $MATCHEND
-
-log2cw $NJLOGGRP $NJLOGSTREAM "clean duplicate/deleted trajs" findAllMatches
 $SRC/utils/cleanupDeletedTrajs.sh
 
-log2cw $NJLOGGRP $NJLOGSTREAM "start checkForFailures" findAllMatches
+logger -s -t findAllMatches "Solving Run Done" 
+
 success=$(grep "Total run time:" $SRC/logs/matchJob.log)
 
 if [ "$success" == "" ]
 then
-    python -c "from meteortools.utils import sendAnEmail ; sendAnEmail('markmcintyre99@googlemail.com','problem with matching','Error in UKMON matching', mailfrom='ukmonhelper@ukmeteors.co.uk')"
+    python -c "from utils.sendAnEmail import sendAnEmail ; sendAnEmail('markmcintyre99@googlemail.com','problem with matching','Error in UKMON matching', mailfrom='ukmonhelper@ukmeteors.co.uk')"
     echo problems with solver
 fi
-log2cw $NJLOGGRP $NJLOGSTREAM "Solving Run Done" findAllMatches
 
-log2cw $NJLOGGRP $NJLOGSTREAM "start rerunFailedLambdas" findAllMatches
 python -m maintenance.rerunFailedLambdas
 
 cd $here
-log2cw $NJLOGGRP $NJLOGSTREAM "start reportOfLatestMatches" findAllMatches
+
+logger -s -t findAllMatches "start reportOfLatestMatches" 
+
 matchlog=${SRC}/logs/matchJob.log
-python -m reports.reportOfLatestMatches $DATADIR/latest/contdbs $DATADIR/dailyreports $MATCHEND $rundate
-python -m metrics.getMatchStats $matchlog
+python -m reports.reportOfLatestMatches $DATADIR/latest/contdbs $DATADIR/dailyreports $rundate
+python -m metrics.getMatchStats $matchlog $rundate
 
 # copy stats to S3 so the daily report can run
 if [ "$RUNTIME_ENV" == "PROD" ] ; then 
     aws s3 sync $DATADIR/dailyreports/ $UKMONSHAREDBUCKET/matches/RMSCorrelate/dailyreports/ --quiet
 fi 
 
-log2cw $NJLOGGRP $NJLOGSTREAM "start purgeLogs" findAllMatches
 find $SRC/logs -name "matches*" -mtime +7 -exec gzip {} \;
 find $SRC/logs -name "matches*" -mtime +30 -exec rm -f {} \;
 
-log2cw $NJLOGGRP $NJLOGSTREAM "finished findAllMatches" findAllMatches
+logger -s -t findAllMatches "finished"

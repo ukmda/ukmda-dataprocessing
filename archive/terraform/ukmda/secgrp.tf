@@ -46,17 +46,6 @@ resource "aws_security_group" "ec2_secgrp" {
   description = "Security Group for EC2 instances"
   vpc_id      = aws_vpc.ec2_vpc.id
   ingress = [
-/*    {
-      cidr_blocks      = [data.aws_vpc.mjmm_ec2_vpc.cidr_block]
-      description      = "SSH for Admin"
-      from_port        = 22
-      protocol         = "tcp"
-      to_port          = 22
-      ipv6_cidr_blocks = []
-      prefix_list_ids  = []
-      security_groups  = []
-      self             = false
-    },*/
     {
       cidr_blocks      = [aws_vpc.ec2_vpc.cidr_block]
       description      = "SSH for Admin"
@@ -78,7 +67,40 @@ resource "aws_security_group" "ec2_secgrp" {
       prefix_list_ids  = []
       security_groups  = []
       self             = false
-    }
+    },
+    {
+      cidr_blocks      = ["194.0.0.0/8"]
+      description      = "MariaDB"
+      from_port        = 3306
+      protocol         = "tcp"
+      to_port          = 3306
+      ipv6_cidr_blocks = []
+      prefix_list_ids  = []
+      security_groups  = []
+      self             = false
+    },
+    {
+      cidr_blocks      = ["0.0.0.0/0"]
+      description      = "icmp"
+      from_port        = -1
+      ipv6_cidr_blocks = []
+      prefix_list_ids  = []
+      protocol         = "icmp"
+      security_groups  = []
+      self             = false
+      to_port          = -1
+    }, 
+    {
+        cidr_blocks      = ["0.0.0.0/0"]
+        description = "mariadb"
+        from_port        = 3306
+        ipv6_cidr_blocks = []
+        prefix_list_ids  = []
+        protocol         = "tcp"
+        security_groups  = []
+        self             = false
+        to_port          = 3306
+      },
   ]
   egress = [
     {

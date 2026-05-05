@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 import requests
 
-from meteortools.utils.Math import greatCircleDistance
+from wmpl.Utils.Earth import greatCircleDistance
 
 
 def stationsNearPoint(lat, lon, dist=75, email_only=True):

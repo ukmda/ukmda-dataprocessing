@@ -1,3 +1,0 @@
-destdir: /home/ec2-user/prod
-env: PROD
-s3profile: ukmda_admin

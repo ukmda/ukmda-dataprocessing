@@ -36,7 +36,7 @@ def getDailyObsCounts(logf):
     return
 
 
-def getMatchStats(logf):
+def getMatchStats(logf, rundate):
     loglines = open(logf).readlines()
 
     events = [line.strip() for line in loglines if 'Analysing' in line and 'observations' in line]
@@ -77,7 +77,7 @@ def getMatchStats(logf):
     nonphys = beglowr + badalti + badvelo + badangl 
     tot = added + uncal + missdf
 
-    rtims = [line.strip() for line in loglines if 'runDistrib' in line]
+    rtims = [line.strip() for line in loglines if 'runDistrib' in line and '/prod/' not in line]
     stim = rtims[0][11:19]
     etim = rtims[-1][11:19]
     d1=datetime.strptime(stim,'%H:%M:%S')
@@ -92,9 +92,6 @@ def getMatchStats(logf):
     cstime = str(d2 - d1)
 
     datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
-    rundate=os.getenv('rundate')
-    if not rundate:
-        rundate = open(os.path.join(datadir, 'rundate.txt'),'r').readline().strip()
     dailydbdir = os.path.join(datadir, 'latest','dailydbs')
     trajdb = TrajectoryDatabase(dailydbdir, f'{rundate}_trajectories.db')
     trajs = len(trajdb.getTrajBasics('.',[0,9999999]))
@@ -102,11 +99,8 @@ def getMatchStats(logf):
     return tot, added, uncal, missdf, nonphys, cands, trajs, runtime, cstime
 
 
-def updateStats(obscount, candcount, trajcount, runtime):
+def updateStats(obscount, candcount, trajcount, runtime, rundate):
     datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
-    rundate=os.getenv('rundate')
-    if not rundate:
-        rundate = open(os.path.join(datadir, 'rundate.txt'),'r').readline().strip()
     statsdir = os.path.join(datadir, 'dailyreports')
     reports = glob.glob(os.path.join(statsdir, f'{rundate}*.txt'))
 
@@ -126,7 +120,10 @@ def updateStats(obscount, candcount, trajcount, runtime):
 
 
 if __name__ == '__main__':
-    tot, added, uncal, missdf, nonphys, cands, trajs, runtime, cstime = getMatchStats(sys.argv[1])
-    if len(sys.argv) < 3:
-        updateStats(added, cands, trajs, runtime)
+    matchfile = sys.argv[1]
+    rundate = sys.argv[2]
+
+    tot, added, uncal, missdf, nonphys, cands, trajs, runtime, cstime = getMatchStats(matchfile, rundate)
+
+    updateStats(added, cands, trajs, runtime, rundate)
     print(tot, added, uncal, missdf, nonphys, cands, trajs, runtime, cstime)

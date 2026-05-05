@@ -10,7 +10,7 @@ if [ "$1" != "" ] ; then
     logfile=$DATADIR/lastlogs/lastlog-${rundate}.html
 else
     rundate=$(date +%Y%m%d)
-    logfile=$DATADIR/lastlog.html
+    logfile=$DATADIR/lastlogs/lastlog.html
 fi 
 
 # create performance metrics
@@ -78,7 +78,7 @@ echo "<p><a href=/reports/batchcharts/$rundate-perfNightly.jpg><img src=/reports
 
 cat $TEMPLATES/footer.html >> $logfile
 
-if [ ! -d $DATADIR/lastlogs ] ; then mkdir $DATADIR/lastlogs ; fi
+mkdir -p $DATADIR/lastlogs
 if [ "$1" == "" ] ; then 
     aws s3 cp $logfile  $WEBSITEBUCKET/reports/ --quiet
     cp $logfile $DATADIR/lastlogs/lastlog-${rundate}.html
@@ -92,3 +92,5 @@ ls -1r $DATADIR/lastlogs/last*.html  | head -90 | while read i ; do
 done
 cat $TEMPLATES/footer.html >> $DATADIR/lastlogs/index.html
 aws s3 cp $DATADIR/lastlogs/index.html  $WEBSITEBUCKET/reports/lastlogs/ --quiet
+
+find $DATADIR/lastlogs -name "lastlog*" -mtime +90 -exec rm -f {} \;

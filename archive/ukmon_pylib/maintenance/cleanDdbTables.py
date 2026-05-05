@@ -9,9 +9,7 @@ import os
 
 
 def deleteRows():
-    archprof = os.getenv('ADM_PROFILE', default='ukmda_admin')
-    conn = boto3.Session(profile_name=archprof)
-    ddb = conn.resource('dynamodb', region_name='eu-west-2')
+    ddb = boto3.resource('dynamodb', region_name='eu-west-2')
     tbl = 'uploadtimes'
     idx = 'uploaddate-stationid-index'
     table = ddb.Table(tbl)
@@ -28,9 +26,7 @@ def deleteRows():
 
 
 def updateMissingExpiryDate():
-    archprof = os.getenv('ADM_PROFILE', default='ukmda_admin')
-    conn = boto3.Session(profile_name=archprof)
-    ddb = conn.resource('dynamodb', region_name='eu-west-2')
+    ddb = boto3.resource('dynamodb', region_name='eu-west-2')
     tbl = 'uploadtimes'
     idx = 'uploaddate-stationid-index'
     table = ddb.Table(tbl)

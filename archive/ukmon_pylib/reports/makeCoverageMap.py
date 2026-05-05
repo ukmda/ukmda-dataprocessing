@@ -6,8 +6,9 @@ import sys
 import os
 import gmplot
 import glob
+import boto3
 from cryptography.fernet import Fernet
-from meteortools.fileformats import readCameraKML
+from utils.kmlHandlers import readCameraKML
 
 
 def decodeApiKey(enckey):
@@ -24,16 +25,27 @@ def encodeApiKey(plainkey):
     return apikey.decode('utf-8')
 
 
+def getApiKey():
+    ssm = boto3.client('ssm')
+    res = ssm.get_parameter(Name='prod_gmapsapikey', WithDecryption=True)
+    if 'Parameter' in res:
+        return res['Parameter']['Value']
+    else:
+        return False
+    
+
 def makeCoverageMap(kmlsource, outdir, showMarker=False, useName=False):
-    apikey = os.getenv('APIKEY')
-    apikey = decodeApiKey(apikey)
+
+    apikey = getApiKey()
+    if not apikey:
+        return 
     kmltempl = os.getenv('KMLTEMPLATE', default='*70km.kml')
     heightval = kmltempl[1:-4]
 
     gmap = gmplot.GoogleMapPlotter(52, -1.0, 5, apikey=apikey, 
         title=f'Camera Coverage at {heightval}', map_type='satellite')
 
-    flist = glob.glob1(kmlsource, kmltempl)
+    flist = glob.glob(kmltempl, root_dir=kmlsource)
     cols = list(gmplot.color._HTML_COLOR_CODES.keys())
 
     for col, fn in zip(cols,flist):
@@ -55,14 +67,15 @@ def makeCoverageMap(kmlsource, outdir, showMarker=False, useName=False):
     return
 
 
-def createCoveragePage():
-    apikey = os.getenv('APIKEY')
-    apikey = decodeApiKey(apikey)
+def createCoveragePage(targdir):
+    apikey = getApiKey()
+    if not apikey:
+        return
     templdir = os.getenv('TEMPLATES', default=os.path.expanduser('~/prod/website/templates'))
     datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     with open(os.path.join(templdir, 'coverage-maps.html'), 'r') as inf:
         lis = inf.readlines()
-    with open(os.path.join(datadir, 'latest','coverage-maps.html'), 'w') as outf:
+    with open(os.path.join(datadir, targdir,'coverage-maps.html'), 'w') as outf:
         for li in lis:
             outf.write(li.replace('{{MAPSAPIKEY}}', apikey))
     return     

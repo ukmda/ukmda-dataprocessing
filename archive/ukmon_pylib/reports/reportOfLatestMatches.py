@@ -12,6 +12,7 @@ import shutil
 import tempfile
 import boto3
 import glob
+import tarfile
 
 from traj.pickleAnalyser import getVMagCodeAndStations
 from reports.CameraDetails import findSite, loadLocationDetails
@@ -41,11 +42,11 @@ def processLocalFolder(trajdir, basedir):
     return outstr
 
 
-def getListOfNewMatches(dir_path, db_path='/tmp', rundate=None):
+def getListOfNewMatches(dir_path, db_path, rundate):
     os.makedirs(db_path, exist_ok=True)
-    db_name = f'{rundate}_trajectories.db' if rundate else 'trajectories.db'
+    db_name = f'{rundate}_trajectories.db'
     dailydb = TrajectoryDatabase(db_path=db_path, db_name=db_name, purge_records=True)
-    flist = glob.glob(os.path.join(dir_path, 'trajectories_*.db'))
+    flist = glob.glob(os.path.join(dir_path, f'trajectories_{rundate}_*.db'))
     flist.sort()
     for fl in flist:
         tstamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
@@ -101,11 +102,11 @@ def getListOfNewMatches(dir_path, db_path='/tmp', rundate=None):
     return newdirs
 
 
-def updatePairedDB(dir_path, db_path='/tmp', rundate=None):
+def updatePairedDB(dir_path, db_path, rundate):
     os.makedirs(db_path, exist_ok=True)
-    db_name = f'{rundate}_observations.db' if rundate else 'observations.db'
+    db_name = f'{rundate}_observations.db'
     obsdb = ObservationsDatabase(db_path=db_path, db_name=db_name, purge_records=True)
-    flist = glob.glob(os.path.join(dir_path, 'observations_*.db'))
+    flist = glob.glob(os.path.join(dir_path, f'observations_{rundate}_*.db'))
     flist.sort()
     for fl in flist:
         tstamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
@@ -121,17 +122,14 @@ def updatePairedDB(dir_path, db_path='/tmp', rundate=None):
     return obscount
 
 
-def findNewMatches(dir_path, out_path, offset, repdtstr):
+def findNewMatches(dir_path, out_path, repdtstr):
     daily_path = os.path.join(os.path.split(dir_path)[0], 'dailydbs')
     newdirs = getListOfNewMatches(dir_path, daily_path, rundate=repdtstr)
     # load camera details
     caminfo = loadLocationDetails()
     caminfo = caminfo[caminfo.active==1]
 
-    if repdtstr is not None:
-        repdt = datetime.datetime.strptime(repdtstr, '%Y%m%d')
-    else:
-        repdt = datetime.datetime.now() - datetime.timedelta(int(offset))
+    repdt = datetime.datetime.strptime(repdtstr, '%Y%m%d')
 
     os.makedirs(out_path, exist_ok=True)
     # create filename. Allow for three reruns in a day
@@ -195,20 +193,28 @@ def findNewMatches(dir_path, out_path, offset, repdtstr):
 
 
 if __name__ == '__main__':
-    repdtstr = None
-    if len(sys.argv) > 4:
-        repdtstr = sys.argv[4]
 
     cand_db_dir = sys.argv[1]
     daily_db_dir = sys.argv[2]
-    offset = sys.argv[3]
+    repdtstr = sys.argv[3]
+
+    if repdtstr != datetime.datetime.now().strftime('%Y%m%d'):
+        print(f'running for a past date, extracting the container dbs to {cand_db_dir}')
+        datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
+        tarf = tarfile.open(os.path.join(datadir, 'distrib','containers',f'contdbs_{repdtstr}.tgz'), 'r')
+        members = [m for m in tarf.getmembers() if '.db' in m.name]
+        for m in members:
+            m.name = os.path.basename(m.name)
+        tarf.extractall(cand_db_dir, filter='fully_trusted')
+        tarf.close()
         
     flist = glob.glob(os.path.join(cand_db_dir, 'trajectories_*.db'))
     if len(flist) == 0:
         print('no container databases to process, aborting')
     else:
         # arguments dblocation, datadir, days ago, rundate eg 20220524
-        findNewMatches(cand_db_dir, daily_db_dir, offset, repdtstr)
+        findNewMatches(cand_db_dir, daily_db_dir, repdtstr)
         # update the daily database of paired observations
         daily_db_dir = os.path.join(os.path.split(cand_db_dir)[0], 'dailydbs')
         updatePairedDB(cand_db_dir, daily_db_dir, repdtstr)
+        print('reportOfLatestMatches finished')

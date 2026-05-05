@@ -27,9 +27,28 @@ conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 export PYTHONPATH=$PYLIB
 logger -s -t cameraStatusReport "starting"
 
-sudo grep publickey /var/log/secure* | grep -v ec2-user  | awk '{printf("%s-%s, %s, %s\n", $1, $2, $3,$9)}'  | awk -F ":" '{print $2$3$4}' > $DATADIR/reports/lastlogins.txt
+echo TEMPORARY HACK REMOVE CODE PERTAINING TO OLD SERVER
+platform=$(grep "^NAME" /etc/os-release | awk -F'"' '{print $2}')
+if [ "$platform" == "Ubuntu" ] ; then
+    authlog=/var/log/auth.log
+    batchuser=ubuntu
+else
+    authlog=/var/log/secure 
+    batchuser=ec2-user
+fi
+sudo grep publickey $authlog* | grep -v $batchuser > $DATADIR/reports/lastlogins.txt
+
+if [ "$platform" == "Ubuntu" ]
+then
+    ssh ukmonhelper2 "sudo grep publickey /var/log/secure* | grep -v ec2-user"  > $DATADIR/reports/lastlogins_old.txt
+fi
+cat $DATADIR/reports/lastlogins_old.txt >> $DATADIR/reports/lastlogins.txt
+echo TO HERE
 
 python -m metrics.camMetrics $rundate
+rm -f $DATADIR/reports/lastlogins.txt
+rm -f $DATADIR/reports/lastlogins_old.txt
+
 aws s3 cp $DATADIR/reports/stationlogins.txt $WEBSITEBUCKET/reports/stationlogins.txt --region eu-west-2 --quiet
 
 

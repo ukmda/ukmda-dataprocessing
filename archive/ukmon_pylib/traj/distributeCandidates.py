@@ -110,7 +110,7 @@ def distributeCandidates(rundate, srcdir, maxcount=20, istest=False):
 
     print(f'Reading from {srcdir}')
     # obtain a list of picklefiles and sort by name
-    flist = glob.glob1(srcdir, '*.pickle')
+    flist = glob.glob('*.pickle', root_dir=srcdir)
     if len(flist) == 0:
         print('no candidates to process')
         return False

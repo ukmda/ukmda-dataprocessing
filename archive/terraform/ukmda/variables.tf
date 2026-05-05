@@ -8,6 +8,10 @@ variable "sharedbucket" { default = "ukmda-shared" }
 variable "livebucket" { default = "ukmda-live" }
 variable "adminbucket" { default = "ukmda-admin" }
 
+variable "dev_websitebucket" { default = "ukmda-website" }
+variable "dev_sharedbucket" { default = "ukmda-shared" }
+variable "dev_livebucket" { default = "ukmda-live" }
+
 variable "region" { default = "eu-west-2"}
 variable "liveregion" { default = "eu-west-1"}
 
@@ -18,14 +22,13 @@ data "aws_canonical_user_id" "current" {}
 variable "remote_profile" { default = "default"}
 variable "remote_account_id" { default = "317976261112" }
 variable "remote_region" {default = "eu-west-2"}
-#variable "eeaccountid" {default = "822069317839" }
 
 variable "main_cidr" {default = "172.32.0.0/16" }
 variable mgmt_cidr { default = "172.32.36.0/22" }
 variable lambda_cidr { default = "172.32.32.0/22" }
 variable ec2_cidr { default = "172.32.16.0/20" }
-variable calcserverip { default = "172.32.16.136" }
 variable ubuntu_calcserverip { default = "172.32.16.137" }
+variable batchserverip { default = "172.32.16.138" }
 
 
 variable archalias { default = "archive.ukmeteors.co.uk"}

@@ -7,7 +7,7 @@ import shutil
 import argparse
 import requests
 from tempfile import mkdtemp
-from meteortools.utils import greatCircleDistance
+from wmpl.Utils.Earth import greatCircleDistance
 
 RAD2DEG=57.2958
 

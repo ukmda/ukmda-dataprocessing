@@ -8,7 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import datetime 
 
-from meteortools.utils import jd2Date
+from wmpl.Utils.TrajConversions import jd2Date
 
 
 def createBarChart(datadir=None, yr=None):
@@ -16,7 +16,8 @@ def createBarChart(datadir=None, yr=None):
         yr=datetime.datetime.now().year
     if datadir is None:
         datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
-    fname = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.snap'.format(yr))        
+    yr = str(yr)
+    fname = os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.snap')
     if not os.path.isfile(fname):
         print('{} missing', fname)
         return None
@@ -36,19 +37,20 @@ def createBarChart(datadir=None, yr=None):
         dts.append(dt)
 
     fig, ax = plt.subplots()
-    width = 0.35       
+    width = 0.35
     nowdt=datetime.datetime.now()
     ax.set_ylabel('# matches')
     ax.set_xlabel('Date')
     ax.set_title('Number of matched events per day. Last updated {}'.format(nowdt.strftime('%Y-%m-%d %H:%M:%S')))
 
-    li.append(0) # comes up one short
+    while len(li) < len(dts):
+        li.append(0) 
     ax.bar(dts, li, width, label='Events')
     fig = plt.gcf()
     fig.set_size_inches(12, 5)
     fig.tight_layout()
     #plt.gca().invert_yaxis()
-    plt.savefig(os.path.join(datadir,f'Annual-{yr}.jpg'), dpi=100)
+    plt.savefig(os.path.join(datadir,'reports',yr, f'Annual-{yr}.jpg'), dpi=100)
     plt.close()
 
     return matches

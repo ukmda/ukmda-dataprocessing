@@ -6,8 +6,8 @@
 import os 
 import sys
 import pandas as pd
-from meteortools.fileformats import imoWorkingShowerList as imo
-from meteortools.utils import getActiveShowers
+from utils.imoWorkingShowerList import IMOshowerList
+from utils.getActiveShowers import getActiveShowers
 
 
 def createSplitMatchFile(yr, mth=None, shwr=None, matches=None):
@@ -143,7 +143,7 @@ def extractAllShowersData(ymd):
         showerlist = getActiveShowers(ymd, retlist=True)
         showerlist.append('spo')
     else:
-        sl = imo.IMOshowerList()
+        sl = IMOshowerList()
         showerlist = sl.getMajorShowers(True, True).strip().split(' ')
 
     print(f'processing data for {ymd}')
@@ -159,8 +159,9 @@ def extractAllShowersData(ymd):
     fname = os.path.join(datadir, 'consolidated','M_{}-unified.csv'.format(yr))
     if not os.path.isfile(fname):
         print(f'unable to open  {fname}')
-        return 
-    ufosingles = pd.read_csv(fname, skipinitialspace=True)
+        ufosingles = None
+    else:
+        ufosingles = pd.read_csv(fname, skipinitialspace=True)
     fname = os.path.join(datadir, 'single','singles-{}.parquet.snap'.format(yr))
     if not os.path.isfile(fname):
         print(f'unable to open {fname}')
@@ -174,8 +175,9 @@ def extractAllShowersData(ymd):
         print(f'processing RMS singles for {shwr}')
         createRMSSingleMonthlyExtract(yr, shwr=shwr, dta=rmssingles)
         createRMSSingleMonthlyExtract(yr, shwr=shwr, dta=rmssingles, withshower=True)
-        print(f'processing UFO singles for {shwr}')
-        createUFOSingleMonthlyExtract(yr, shwr=shwr, dta=ufosingles)
+        if ufosingles:
+            print(f'processing UFO singles for {shwr}')
+            createUFOSingleMonthlyExtract(yr, shwr=shwr, dta=ufosingles)
     
     return 
 

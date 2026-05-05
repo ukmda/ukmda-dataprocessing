@@ -70,7 +70,7 @@ echo "mkdir \$1 ; cd \$1" >> $outdir/getVideos.ps1
 echo "foreach(\$line in Get-Content ../best_\$1.txt) { wget https://archive.ukmeteors.co.uk/\$line  }" >> $outdir/getVideos.ps1
 echo "cd .." >> $outdir/getVideos.ps1
 
-aws s3 sync $outdir $UKMONSHAREDBUCKET/videos/ --profile ukmonshared --quiet --exclude "*" --include "getVideos*" --include "README*"
+aws s3 sync $outdir $UKMONSHAREDBUCKET/videos/ --quiet --exclude "*" --include "getVideos*" --include "README*"
 
-aws s3 sync $outdir $WEBSITEBUCKET/data/bestvideos/ --profile ukmonshared --quiet --include "*.txt"
+aws s3 sync $outdir $WEBSITEBUCKET/data/bestvideos/ --quiet --include "*.txt"
 

@@ -4,6 +4,7 @@
 alias h='history'
 alias df='df -h'
 alias du='du -h'
+alias ls='ls --color=auto'
 
 alias data='if [ "$SRC" == "" ] ; then echo select env first; else cd $SRC/data && pwd ; fi'
 alias logs='if [ "$SRC" == "" ] ; then echo select env first; else cd $SRC/logs && pwd ; fi'
@@ -16,28 +17,30 @@ alias stats='if [ "$DATADIR" == "" ] ; then echo select env first; else tail $DA
 alias matchstatus='if [ "$SRC" == "" ] ; then echo select env first; else grep "Running" $SRC/logs/matchJob.log && grep TRAJ $SRC/logs/matchJob.log | grep SOLVING && echo -n "Completed " && grep Observations: $SRC/logs/matchJob.log | wc -l &&  grep "nightlyJob" $SRC/logs/nightlyJob.log ; fi '
 alias spacecalc='ls -1 | egrep -v "ukmon-shared" | while read i ; do \du -s $i ; done | sort -n'
 
-alias startcalc='$SRC/utils/stopstart-calcengine.sh start'
-alias stopcalc='$SRC/utils/stopstart-calcengine.sh stop'
+alias startcalc='$SRC/utils/stopstartCalcengine.sh start'
+alias stopcalc='$SRC/utils/stopstartCalcengine.sh stop'
 
 function dev {
-	source ~/dev/config.ini >/dev/null
-	conda activate $HOME/miniconda3/envs/${WMPL_ENV}
-	PS1="(wmpl) (dev) [\W]\$ "
+	source ~/dev/config.ini
+	#conda activate $HOME/miniconda3/envs/${WMPL_ENV}
+	conda activate ${WMPL_ENV}
+	PS1="(dev) [\W]\$ "
 	cd ~/dev
 }
 function prd {
-	source ~/prod/config.ini >/dev/null
-	conda activate $HOME/miniconda3/envs/${WMPL_ENV}
-	PS1="(wmpl) (prd) [\W]\$ "
+	source ~/prod/config.ini #>/dev/null
+	#conda activate $HOME/miniconda3/envs/${WMPL_ENV}
+	conda activate ${WMPL_ENV}
+	PS1="(prd) [\W]\$ "
 	cd ~/prod
 }
 
 function calcserver { 
-	sts=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State --output text --profile ukmonshared)
-	ipaddr=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text --profile ukmonshared)
+	sts=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State --output text)
+	ipaddr=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].PrivateIpAddress --output text)
 	isrunning=$(echo $sts | cut -d " " -f 1)
 	if [ $isrunning -ne 16 ] ; then
-		$HOME/prod/utils/stopstart-calcengine.sh start
+		$HOME/prod/utils/stopstartCalcengine.sh start
 		echo "starting server on ${ipaddr}... waiting 10s..."
 		sleep 10
 	fi 

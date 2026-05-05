@@ -14,12 +14,10 @@ import glob
 import datetime
 import json
 
+from utils.convertSolLon import sollon2jd
+from traj.ShowerAssociation import associateShower
+
 from wmpl.Utils.TrajConversions import jd2Date
-try:
-    from meteortools.utils import sollon2jd
-    from traj.ShowerAssociation import associateShower
-except:
-    pass
 from wmpl.Utils.Math import mergeClosePoints, angleBetweenSphericalCoords
 from wmpl.Utils.Physics import calcMass
 from wmpl.Utils.Pickling import loadPickle
@@ -81,7 +79,7 @@ def getBestView(picklename):
             except Exception: 
                 pass
         beststatid = statids[vmags.index(bestvmag)]
-        imgfn = glob.glob1(outdir, '*{}*.jpg'.format(beststatid))
+        imgfn = glob.glob(f'*{beststatid}*.jpg', root_dir=outdir)
         if len(imgfn) > 0:
             bestimg = imgfn[0]
         elif os.path.isfile(os.path.join(outdir, 'jpgs.lst')):
@@ -587,19 +585,20 @@ def getListOfImages(picklename):
 
 class TrajQualityParams(object):
     def __init__(self):
-        self.min_traj_points = 6
-        self.min_qc = 5.0
-        self.max_e = 1.5
-        self.max_radiant_err = 2.0
-        self.max_vg_err = 10.0
+        self.min_traj_points = 4
+        self.min_qc = 3.0
+        self.max_e = 2.5
+        self.max_radiant_err = 5.0
+        self.max_vg_err = 20.0
         self.max_vg = 120.0
         self.max_begin_ht = 160
-        self.min_end_ht = 20
+        self.min_end_ht = 0
 
 
 def getAllImages(dir_path, outdir):
     outdir = os.path.expanduser(outdir)
     traj_quality_params = TrajQualityParams()
+    
     trajs = loadTrajectoryPickles(dir_path, traj_quality_params, verbose=True)
     imglist = []
     for traj in trajs:

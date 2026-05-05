@@ -21,7 +21,7 @@ resource "aws_cloudwatch_metric_alarm" "calcServerIdle" {
     "arn:aws:automate:${var.region}:ec2:stop",
   ]
   dimensions = {
-    "InstanceId" = aws_instance.calc_server.id
+    "InstanceId" = aws_instance.ubuntu_calc_server.id
   }
   tags = {
     "billingtag" = "ukmda"

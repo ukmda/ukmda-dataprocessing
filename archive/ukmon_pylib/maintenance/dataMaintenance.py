@@ -11,8 +11,8 @@ from scp import SCPClient
 from time import sleep
 import pandas as pd
 import datetime
-
-import pymysql.cursors
+import json
+import operator
 
 from wmpl.Utils.TrajConversions import datetime2JD
 from wmpl.Trajectory.CorrelateDB import TrajectoryDatabase
@@ -55,18 +55,11 @@ def deleteS3FilesByMonth(flist, archbucket):
 
 
 def deleteFromCalcServerByMonth(outfname):
-    hname = os.getenv('HOSTNAME', default='none')
     env = os.getenv('RUNTIME_ENV', default='DEV').lower()
 
-    if hname != 'ukmonhelper2':
-        sess = boto3.Session(profile_name='default')
-        ssmc = sess.client('ssm', region_name='eu-west-2')
-        ec2 = boto3.client('ec2', region_name='eu-west-2')
-    else:
-        ssmc = boto3.client('ssm', region_name='eu-west-2')
-        prof = os.getenv('UKMPROFILE',default='ukmonshared')
-        sess = boto3.Session(profile_name=prof)
-        ec2 = sess.client('ec2', region_name='eu-west-2')
+    ssmc = boto3.client('ssm', region_name='eu-west-2')
+    ec2 = boto3.client('ec2', region_name='eu-west-2')
+
     resp = ssmc.get_parameter(Name=f'{env}_calcinstance')
     instId = resp['Parameter']['Value']
     print('clearing down calcserver')    
@@ -106,8 +99,7 @@ def deleteFromCalcServerByMonth(outfname):
 
 def removeDeletedTraj(csvfile):
     """
-    Remove deleted trajectories from the consolidated match CSV and Parquet files
-    and from the search index. 
+    Remove deleted trajectories from the consolidated match CSV, Parquet and search files
     """
 
     csvdata = open(csvfile, 'r').readlines()
@@ -117,28 +109,44 @@ def removeDeletedTraj(csvfile):
         jdt_end = datetime2JD(dt_end)
     else:
         jdt_end = float(csvdata[-1].split(',')[3]) + 2400000.5
-
-    jdt_beg =jdt_end - 21
+    jdt_beg = jdt_end - 21
 
     datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     masterdb_path = os.path.join(datadir, 'distrib')
     masterdb = TrajectoryDatabase(db_path=masterdb_path)
     cur = masterdb.dbhandle.execute(f'select traj_file_path from trajectories where status=0 and jdt_ref >= {jdt_beg} and jdt_ref <={jdt_end}')
     deltrajs = cur.fetchall()
-    masterdb.closeTrajDatabase()
 
     i=0
+    # loop over the deleted trajectories, removing the corresponding one from the CSV file.
+    # Note that there's no need to update the MariaDB database, as it is populated
+    # from the CSV file *after* it has been purged
+    offs = 4 if 'search' in csvfile else 131
     for traj in deltrajs:
-        fldr = os.path.basename(os.path.dirname(traj[0]))
-        match = [tr for tr in csvdata if fldr in tr]
-        if len(match) > 0:
-            for thismtch in match:
-                print(f'removing {fldr}')
-                idx = csvdata.index(thismtch)
-                _ = csvdata.pop(idx)
-                i += 1
-    print(f'removed {i} trajectories')
+        cur = masterdb.dbhandle.execute(f'select jdt_ref, participating_stations from trajectories where traj_file_path="{traj[0]}" and status=0')
+        thistraj = cur.fetchall()
+        if len(thistraj) == 1: 
+            fldr = os.path.basename(os.path.dirname(traj[0]))
 
+            # find the rows in the CSV file that correspond to the deleted trajectory
+            # then go through them and compare obs_ids. The one with the same obs_ids 
+            # is the one we want to remove
+            match = [tr for tr in csvdata if fldr in tr]
+            obs_ids = thistraj[0][1]
+            obs_ids_str = ';'.join(json.loads(obs_ids)) + ';'
+            for thismtch in match:
+                if thismtch.split(',')[offs] == obs_ids_str:
+                    print(f'removing {fldr}')
+                    idx = csvdata.index(thismtch)
+                    _ = csvdata.pop(idx)
+                    i += 1
+                    break
+        else:
+            print(f'skipping {traj[0]} as there are {len(thistraj)} active trajs with the same path')
+    masterdb.closeTrajDatabase()
+    print(f'removed {i} trajectories from the text file')
+
+    # save the CSV file again
     open(csvfile, 'w').writelines(csvdata)
 
     if 'search' not in csvfile:
@@ -149,48 +157,64 @@ def removeDeletedTraj(csvfile):
     return 
 
 
-def getSqlLoginDetails():
-    # retrieve password and host from SSM. This allows me to manage them from Terraform
-    ssm = boto3.client('ssm', region_name='eu-west-1')
-    res = ssm.get_parameter(Name='prod_dbpw', WithDecryption=True)
-    password = res['Parameter']['Value']
-    res = ssm.get_parameter(Name='prod_dbhost')
-    host = res['Parameter']['Value'] 
-    # should really do these too but they won't change often if at all
-    user = 'batch'
-    db = 'ukmon'
-    return host, user, password, db
+def removeDeletedTrajCsv(csvloc, targloc):
+    """
+    Remove csv files corresponding to deleted trajectories before they are 
+    consolidated into the annual CSV and Parquet files
+    """
+    srcbucket = os.getenv('UKMONSHAREDBUCKET', default='s3://ukmda-shared')[5:]
 
+    csvfiles = []
+    s3 = boto3.client('s3')
+    print('checking in ', csvloc, 'sending to ', targloc)
+    res = s3.list_objects(Bucket=srcbucket, Prefix=csvloc)
+    if 'Contents' in res:
+        for k in res['Contents']:
+            csvname = k["Key"]
+            csv_dt = datetime.datetime.strptime(os.path.basename(k["Key"])[:22], "%Y%m%d-%H%M%S.%f")
+            csvfiles.append({"name":csvname, "dt":csv_dt})
+        csvfiles.sort(key=operator.itemgetter('name'))
+        jdt_beg = datetime2JD(csvfiles[0]['dt'])
+        jdt_end = datetime2JD(csvfiles[-1]['dt'])
 
-def removeDelTrajFromDb():
-    dt_end = datetime.datetime.now(tz=datetime.timezone.utc)
-    jdt_end = datetime2JD(dt_end)
-    jdt_beg =jdt_end - 7
+        datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
+        masterdb_path = os.path.join(datadir, 'distrib')
+        masterdb = TrajectoryDatabase(db_path=masterdb_path)
+        cur = masterdb.dbhandle.execute(f'select traj_file_path from trajectories where status=0 and jdt_ref >= {jdt_beg} and jdt_ref <={jdt_end}')
+        deltrajs = cur.fetchall()
 
-    # get list of deleted trajectories
-    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
-    masterdb_path = os.path.join(datadir, 'distrib')
-    masterdb = TrajectoryDatabase(db_path=masterdb_path)
-    cur = masterdb.dbhandle.execute(f'select traj_file_path from trajectories where status=0 and jdt_ref >= {jdt_beg} and jdt_ref <={jdt_end}')
-    deltrajs = cur.fetchall()
-    masterdb.closeTrajDatabase()
+        i=0
+        # loop over the deleted trajectories, removing the corresponding CSV file.
+        for del_traj in deltrajs:
+            cur = masterdb.dbhandle.execute(f'select jdt_ref, participating_stations from trajectories where traj_file_path="{del_traj[0]}" and status=0')
+            thistraj = cur.fetchall()
+            if len(thistraj) == 1: 
+                obs_ids = thistraj[0][1]
+                obs_ids_str = ';'.join(json.loads(obs_ids)) + ';'
+                fldr = os.path.basename(os.path.dirname(del_traj[0]))[:19].replace('_', '-')
 
-    # get connection to the SQL database
-    host, user, passwd, db = getSqlLoginDetails()
-    connection = pymysql.connect(host=host, user=user, password=passwd, database=db, cursorclass=pymysql.cursors.DictCursor)  
+                matched_csvs = [x for x in csvfiles if fldr in x['name']]
+                for csv in matched_csvs:
+                    csvdata = s3.get_object(Bucket=srcbucket, Key=csv['name'])['Body'].read()
+                    csv_obs_ids = csvdata.decode('utf-8').split(',')[131].strip()
+                    if csv_obs_ids == obs_ids_str:
+                        # we have a match to within 0.001s and with the same observations
+                        print(f'removing {fldr}')
+                        bare_csv_name = os.path.basename(matched_csvs[0]['name'])
+                        yr = bare_csv_name[:4]
+                        destkey = f"{targloc}/{yr}/{bare_csv_name}"
+                        s3.copy({"Bucket":srcbucket,"Key":csv['name']}, srcbucket, destkey)       
+                        s3.delete_object(Bucket=srcbucket, Key=matched_csvs[0]['name'])
+                        i += 1
+                        break
+            else:
+                print(f'skipping {del_traj[0]} as there are {len(thistraj)} inactive trajs with the same path')
+        masterdb.closeTrajDatabase()
+        print(f'removed {i} trajectories from the text file')
+    else:
+        print('no fullcsv files to process')
 
-    count = 0
-    for traj in deltrajs:
-        fldr = os.path.basename(os.path.dirname(traj[0]))
-        sqlstr = f"delete from matches where orbname like '{fldr}%'"
-        with connection.cursor() as cursor:
-            cursor.execute(sqlstr)
-            result = cursor.fetchall()
-            count += len(result)
-    connection.commit()
-    connection.close()
-    print(f'cleaned up {count} trajectories')
-    return
+    return 
 
 
 if __name__ == '__main__':

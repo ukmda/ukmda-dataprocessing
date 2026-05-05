@@ -6,7 +6,7 @@
 import datetime
 import sys
 from crontab import CronTab
-from meteortools.utils import getNextRiseSet
+from utils.getRiseSet import getNextRiseSet
 
 
 offset = 90
