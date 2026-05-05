@@ -125,6 +125,5 @@ if __name__ == '__main__':
 
     tot, added, uncal, missdf, nonphys, cands, trajs, runtime, cstime = getMatchStats(matchfile, rundate)
 
-    if len(sys.argv) < 3:
-        updateStats(added, cands, trajs, runtime, rundate)
+    updateStats(added, cands, trajs, runtime, rundate)
     print(tot, added, uncal, missdf, nonphys, cands, trajs, runtime, cstime)
