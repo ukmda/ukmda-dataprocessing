@@ -10,6 +10,8 @@ not_upl = []
 
 livedate = datetime.datetime.now() - datetime.timedelta(days=10)
 for li in data:
+	if 'Last Upload' in li:
+		continue
 	lastup = li[:19]
 	lastlo = li[21:40]
 	loc = li[42:61]
