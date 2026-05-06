@@ -8,6 +8,7 @@ bkpOneUser() {
     srchost=$2
     mkdir -p ./backup/$userid
     sudo rsync -av $srchost:/var/sftp/$userid/ ./backup/$userid 
+    sudo chown -R $USER:$USER ./backup/$userid
     cat ./backup/$userid/ukmon.ini | sed 's/3.11.55.160/batchserver.ukmeteors.co.uk/g' > /tmp/$userid.ini
     mv -f /tmp/$userid.ini ./backup/$userid/ukmon.ini
 }
