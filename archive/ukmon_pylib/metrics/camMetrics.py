@@ -214,7 +214,7 @@ if __name__ == '__main__':
         with open(outfile,'w') as outf:
             outf.write(f'{"Last Upload":19s}  {"Last Connect":19s}  {"StationID":20s}  {"GMN ID":10s}  Via\n')
             for _,rw in df.iterrows():
-                lastup = '> 1 month' if pd.isnull(rw.lastupload) else rw.lastupload.strftime('%Y-%m-%dT%H:%M:%S')
-                lastlo = '> 1 month' if pd.isnull(rw.lastseen) else rw.lastseen.strftime('%Y-%m-%dT%H:%M:%S')
+                lastup = '> 1 month ago' if pd.isnull(rw.lastupload) else rw.lastupload.strftime('%Y-%m-%dT%H:%M:%S')
+                lastlo = '> 1 month ago' if pd.isnull(rw.lastseen) else rw.lastseen.strftime('%Y-%m-%dT%H:%M:%S')
                 via = '' if pd.isnull(rw.host) else rw.host
-                outf.write(f'{lastup}  {lastlo}  {rw.location:20s}  {rw.stationid:10s}  {via}\n')
+                outf.write(f'{lastup:19s}  {lastlo:19s}  {rw.location:20s}  {rw.stationid:10s}  {via}\n')
