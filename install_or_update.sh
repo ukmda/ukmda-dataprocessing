@@ -35,7 +35,7 @@ mkdir -p ~/.aws
 mkdir -p ~/server_setup
 
 rsync -a server_setup/*.sh ~/server_setup
-rsync -a server_setup/*. ~/server_setup
+rsync -a server_setup/*.py ~/server_setup
 chmod +x ~/server_setup/*.sh
 
 echo "Checking conda environment..."
