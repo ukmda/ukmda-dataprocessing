@@ -57,6 +57,7 @@ with open('not_live.txt','w') as outf:
 		outf.write(','.join(cam) + '\n')
 
 donelist = open('done.txt', 'r').readlines()
+donelist = [x.strip() for x in donelist]
 with open('todo.txt', 'w') as outf:
 	for nam in livenames:
 		if nam.strip() not in donelist:
