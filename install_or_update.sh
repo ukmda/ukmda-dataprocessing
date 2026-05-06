@@ -10,8 +10,8 @@ envname=$(echo $RUNTIME_ENV | tr '[:upper:]' '[:lower:]')
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
+pushd $here/archive
 echo "Updating codebase..."
-cd $here/archive
 git pull
 
 echo "Updating code..."
@@ -69,4 +69,5 @@ else
     echo skipping config and bashrc
 fi 
 echo ""
+popd
 echo "$msg complete"
