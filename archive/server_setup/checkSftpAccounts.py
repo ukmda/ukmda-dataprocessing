@@ -27,7 +27,7 @@ for li in data:
 		lastupdt = datetime.datetime.strptime(lastup, '%Y-%m-%dT%H:%M:%S')
 		if lastupdt >= livedate:
 			still_upl.append([loc, gmnid, lastup, lastlo, via])
-			livenames.append(loc)
+			livenames.append(loc.strip())
 		else:
 			if '>' in lastlo:
 				not_live.append([loc, gmnid, lastup, lastlo, via])
@@ -59,6 +59,6 @@ with open('not_live.txt','w') as outf:
 donelist = open('done.txt', 'r').readlines()
 with open('todo.txt', 'w') as outf:
 	for nam in livenames:
-		if nam not in donelist:
+		if nam.strip() not in donelist:
 			print('done list is missing', nam)
 			outf.write(f'{nam}\n')
