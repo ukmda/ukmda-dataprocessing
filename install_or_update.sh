@@ -32,6 +32,10 @@ mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
 mkdir -p ~/$envname/logs
 mkdir -p ~/.logrotate
 mkdir -p ~/.aws
+mkdir -p ~/server_setup
+
+rsync -a server_setup/*.sh ~/server_setup
+rsync -a server_setup/*.py ~/server_setup
 
 echo "Checking conda environment..."
 if [[ -f ~/.condaon  && -d ~/miniconda3/envs/wmpl ]]
