@@ -7,6 +7,7 @@ camlist = []
 not_live = []
 still_upl = []
 not_upl = []
+livenames = []
 
 livedate = datetime.datetime.now() - datetime.timedelta(days=10)
 for li in data:
@@ -26,6 +27,7 @@ for li in data:
 		lastupdt = datetime.datetime.strptime(lastup, '%Y-%m-%dT%H:%M:%S')
 		if lastupdt >= livedate:
 			still_upl.append([loc, gmnid, lastup, lastlo, via])
+			livenames.append(loc)
 		else:
 			if '>' in lastlo:
 				not_live.append([loc, gmnid, lastup, lastlo, via])
@@ -42,10 +44,6 @@ for li in data:
 		else:
 			not_live.append([loc, gmnid, lastup, lastlo, via])
 
-
-		
-
-
 with open('still-live.txt','w') as outf:
 	for cam in still_upl:
 		outf.write(','.join(cam) + '\n')
@@ -57,4 +55,10 @@ with open('not_uploading.txt','w') as outf:
 with open('not_live.txt','w') as outf:
 	for cam in not_live:
 		outf.write(','.join(cam) + '\n')
-		
+
+donelist = open('done.txt', 'r').readlines()
+with open('todo.txt', 'w') as outf:
+	for nam in livenames:
+		if nam not in donelist:
+			print('done list is missing', nam)
+			outf.write(f'{nam}\n')
