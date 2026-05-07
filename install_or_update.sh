@@ -10,8 +10,8 @@ envname=$(echo $RUNTIME_ENV | tr '[:upper:]' '[:lower:]')
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
+pushd $here/archive
 echo "Updating codebase..."
-cd $here/archive
 git pull
 
 echo "Updating code..."
@@ -32,6 +32,11 @@ mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
 mkdir -p ~/$envname/logs
 mkdir -p ~/.logrotate
 mkdir -p ~/.aws
+mkdir -p ~/server_setup
+
+rsync -a server_setup/*.sh ~/server_setup
+rsync -a server_setup/*.py ~/server_setup
+chmod +x ~/server_setup/*.sh
 
 echo "Checking conda environment..."
 if [[ -f ~/.condaon  && -d ~/miniconda3/envs/wmpl ]]
@@ -69,4 +74,5 @@ else
     echo skipping config and bashrc
 fi 
 echo ""
+popd
 echo "$msg complete"

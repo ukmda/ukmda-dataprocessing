@@ -206,15 +206,15 @@ if __name__ == '__main__':
         df['uploadtime']=df.uploadtime.astype("str").str.pad(6,fillchar="0")
         df['lastupload']=df.upddate.astype('str') + '_' +df.uploadtime
         df.lastupload = [datetime.datetime.strptime(x, '%Y%m%d_%H%M%S') for x in df.lastupload]
-        df = df.drop(columns=['stationid','manual','rundate', 'upddate','uploadtime'])
+        df = df.drop(columns=['manual','rundate', 'upddate','uploadtime'])
         df = df.sort_values(by=['lastupload'])
 
         outfile=os.path.join(datadir, 'reports', 'stationlogins.txt')
         zerodate = datetime.datetime(1970,1,1,0,0,0)
         with open(outfile,'w') as outf:
-            outf.write('Last Upload,          StationID,            Last Login,          Via\n')
+            outf.write(f'{"Last Upload":19s}  {"Last Connect":19s}  {"StationID":20s}  {"GMN ID":10s}  Via\n')
             for _,rw in df.iterrows():
-                lastup = '> 1 month' if pd.isnull(rw.lastupload) else rw.lastupload.strftime('%Y-%m-%dT%H:%M:%S')
-                lastlo = '> 1 month' if pd.isnull(rw.lastseen) else rw.lastseen.strftime('%Y-%m-%dT%H:%M:%S')
+                lastup = '> 1 month ago' if pd.isnull(rw.lastupload) else rw.lastupload.strftime('%Y-%m-%dT%H:%M:%S')
+                lastlo = '> 1 month ago' if pd.isnull(rw.lastseen) else rw.lastseen.strftime('%Y-%m-%dT%H:%M:%S')
                 via = '' if pd.isnull(rw.host) else rw.host
-                outf.write(f'{lastup} , {rw.location:20s}, {lastlo}, {via}\n')
+                outf.write(f'{lastup:19s}  {lastlo:19s}  {rw.location:20s}  {rw.stationid:10s}  {via}\n')
