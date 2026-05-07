@@ -12,3 +12,13 @@ ssh ukmonhelper2 "~/prod/server_setup/get-nbd.sh" | while read i ; do echo $i | 
 ssh ukmonhelper2 "~/prod/server_setup/get-all.sh" | while read i ; do echo $i | awk -F"/" '{print $4}' ; done > all-accounts.txt
 
 python ~/src/ukmda-dataprocessing/archive/server_setup/checkSftpAccounts.py
+
+echo "Moved:    $(wc -l moved.txt)"
+echo "Switched: $(wc -l switched.txt)"
+echo "Pending:  $(wc -l pending.txt)"
+echo "Total:    $(wc -l still-live.txt)"
+echo ""
+echo "Not Live: $(wc -l not_live.txt)"
+echo "Not Upl:  $(wc -l not_uploading.txt)"
+echo ""
+echo "Dead:     $(wc -l not-being-done.txt)"
