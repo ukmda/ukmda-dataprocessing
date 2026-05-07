@@ -56,7 +56,7 @@ with open('not_live.txt','w') as outf:
 	for cam in not_live:
 		outf.write(','.join(cam) + '\n')
 
-donelist = open('done.txt', 'r').readlines()
+donelist = open('moved.txt', 'r').readlines()
 donelist = [x.strip() for x in donelist]
 with open('todo.txt', 'w') as outf:
 	for nam in livenames:
