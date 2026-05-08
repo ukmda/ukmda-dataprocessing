@@ -5,8 +5,8 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd $here
 
 sudo ls -1 /var/sftp  | egrep -v "test|logup" > moved.txt
-grep batchs /home/ubuntu/prod/data/reports/stationlogins.txt | cut -c 42-61 | sed 's/ //g' | uniq | sort > switched.txt
-grep ukmonh /home/ubuntu/prod/data/reports/stationlogins.txt | cut -c 42-61 | sed 's/ //g' | uniq | sort > pending.txt
+grep batchs /home/ubuntu/prod/data/reports/stationlogins.txt | cut -c 42-61 | sed 's/ //g' | sort | uniq > switched.txt
+grep ukmonh /home/ubuntu/prod/data/reports/stationlogins.txt | cut -c 42-61 | sed 's/ //g' | sort | uniq > pending.txt
 
 ssh ukmonhelper2 "~/prod/server_setup/get-nbd.sh" | while read i ; do echo $i | awk -F"/" '{print $4}' ; done > not-being-done.txt
 ssh ukmonhelper2 "~/prod/server_setup/get-all.sh" | while read i ; do echo $i | awk -F"/" '{print $4}' ; done > all-accounts.txt
