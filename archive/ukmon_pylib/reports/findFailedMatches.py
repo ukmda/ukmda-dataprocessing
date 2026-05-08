@@ -16,8 +16,7 @@ def saveData(observation, repfile):
 
 
 def processOneLog(logfile, repfile):
-    with open(logfile, 'r') as inf:
-        lis = inf.readlines()
+    lis = open(logfile, 'r').readlines()
 
     obs = False
     observation = []
@@ -29,8 +28,10 @@ def processOneLog(logfile, repfile):
         if 'Shower:' in li:
             obs = False
             observation = []
-        if '-----------------------' in li:
+        if '--------------------' in li:
             if obs is True:
+                observation.append(li)
+                print('got fail')
                 saveData(observation, repfile)
             obs = False
             observation = []
@@ -48,5 +49,6 @@ if __name__ == '__main__':
     logdir = os.path.join(srcdir, 'logs','distrib')
     logs = glob.glob(f'{repdt}*.log', root_dir=logdir)
     for logf in logs:
+        print(logf)
         processOneLog(os.path.join(logdir, logf), reportfile)
     reportfile.close()
