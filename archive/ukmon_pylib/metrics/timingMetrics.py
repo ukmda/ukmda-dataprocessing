@@ -72,7 +72,7 @@ def getLogStats(nightlogf, matchlogf, thisdy):
     alldata.sort()
     starttime = None
     yr = datetime.datetime.now().year
-    with open(os.path.join(outdir, 'perfNightly1.csv'), 'a+') as outf:
+    with open(os.path.join(outdir, 'perfNightly.csv'), 'a+') as outf:
         for rw in alldata:
             dtpart = rw[4:19]
             evtdt = datetime.datetime.strptime(f'{yr} {dtpart}', '%Y %b %d %H:%M:%S')
