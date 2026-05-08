@@ -25,7 +25,7 @@ def processOneLog(logfile, repfile):
             obs = True
         if obs is True:
             observation.append(li)
-        if 'Saving trajectory:' in li:
+        if 'Saving trajectory:' in li or 'Updating database' in li:
             obs = False
             observation = []
         if 'Updating database' in li or 'added to fails' in li:
