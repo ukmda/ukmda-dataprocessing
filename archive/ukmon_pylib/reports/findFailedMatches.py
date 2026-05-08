@@ -21,7 +21,7 @@ def processOneLog(logfile, repfile):
     obs = False
     observation = []
     for li in lis:
-        if 'Observations:' in li:
+        if 'Observations ' in li:
             obs = True
         if obs is True:
             observation.append(li)
