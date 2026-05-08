@@ -62,7 +62,7 @@ echo "the entire night was uncalibrated (indicated by the 'skipping' warning).</
 echo "<p>To interpret these data, see " >> $logfile
 echo "<a href=https://github.com/markmac99/ukmon-pitools/wiki/UKMON-Pi-Toolset-FAQ#Interpreting_the_Uncalibrated_Report>here</a></p>" >> $logfile
 echo "<pre>" >> $logfile
-grep "Skipping" $lastmtch >> $logfile
+grep "Skipping" $lastmtch | egrep -v "directory|pickle" >> $logfile
 echo "</pre>" >> $logfile
 
 echo "<h2 id=fails>Failed Match Report</h2>" >> $logfile
