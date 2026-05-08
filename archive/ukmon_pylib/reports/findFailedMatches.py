@@ -31,7 +31,7 @@ def processOneLog(logfile, repfile):
         if 'Updating database' in li or 'added to fails' in li:
             if obs is True:
                 print('got fail')
-                observation.append('--------------')
+                observation.append('--------------\n\n')
                 saveData(observation, repfile)
             obs = False
             observation = []
