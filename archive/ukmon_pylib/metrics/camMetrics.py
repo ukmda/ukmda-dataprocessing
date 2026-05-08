@@ -216,5 +216,5 @@ if __name__ == '__main__':
             for _,rw in df.iterrows():
                 lastup = '> 1 month ago' if pd.isnull(rw.lastupload) else rw.lastupload.strftime('%Y-%m-%dT%H:%M:%S')
                 lastlo = '> 1 month ago' if pd.isnull(rw.lastseen) else rw.lastseen.strftime('%Y-%m-%dT%H:%M:%S')
-                via = '' if pd.isnull(rw.host) else rw.host
+                via = 'ukmonhelper2' if pd.isnull(rw.host) else rw.host
                 outf.write(f'{lastup:19s}  {lastlo:19s}  {rw.location:20s}  {rw.stationid:10s}  {via}\n')
