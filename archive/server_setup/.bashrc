@@ -55,9 +55,12 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
+# make the function keys work properly in python
+export TERM=putty
+
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
- xterm*|rxvt*)
+ xterm*|rxvt*|putty*)
     PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
     ;;
  *)
