@@ -30,7 +30,7 @@ def processOneLog(logfile, repfile):
             observation = []
         if 'Updating database' in li or 'added to fails' in li:
             if obs is True:
-                print('got fail')
+                #print('got fail')
                 observation.append('--------------\n\n')
                 saveData(observation, repfile)
             obs = False
@@ -51,6 +51,6 @@ if __name__ == '__main__':
     logdir = os.path.join(srcdir, 'logs','distrib')
     logs = glob.glob(f'{repdt}*.log', root_dir=logdir)
     for logf in logs:
-        print(logf)
+        #print(logf)
         processOneLog(os.path.join(logdir, logf), reportfile)
     reportfile.close()
