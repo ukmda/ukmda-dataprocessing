@@ -25,16 +25,18 @@ def processOneLog(logfile, repfile):
             obs = True
         if obs is True:
             observation.append(li)
-        if 'Shower:' in li:
+        if 'Saving trajectory:' in li:
             obs = False
             observation = []
-        if '--------------------' in li:
+        if 'Updating database' in li or 'added to fails' in li:
             if obs is True:
-                observation.append(li)
                 print('got fail')
+                observation.append('--------------')
                 saveData(observation, repfile)
             obs = False
             observation = []
+        if "SOLVING RUN DONE" in li:
+            break
 
     return
 
