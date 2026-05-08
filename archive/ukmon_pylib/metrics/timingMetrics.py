@@ -82,7 +82,7 @@ def getLogStats(nightlogf, matchlogf, thisdy):
             txtpart = rw[20:]
             task = txtpart[:txtpart.find(':')]
             msg = txtpart[txtpart.find(':')+1:].replace(',', ' ')
-            outstr = f'{evtdt.strftime("%Y%m%d,%H:%M:%S")},{elapsed_secs},{task},{msg}\n'
+            outstr = f'{evtdt.strftime("%Y%m%d,%H:%M:%S")},{elapsed_secs},{task},{msg}'
             outf.write(outstr)        
   
 
