@@ -72,6 +72,7 @@ echo "<a href=https://github.com/markmac99/ukmon-pitools/wiki/Trajectory-Solver-
 echo "<pre>" >> $logfile
 cat $DATADIR/failed/${rundate}_failed.txt >> $logfile
 echo "</pre>" >> $logfile
+
 echo "<h2 id=graph>Chart of Batch Element Runtimes</h2>" >> $logfile
 echo "<p>This section shows the runtime of the different jobs in the batch</p>" >> $logfile
 echo "<p><a href=/reports/batchcharts/$rundate-perfNightly.jpg><img src=/reports/batchcharts/$rundate-perfNightly.jpg width=300\%></a></p>"  >> $logfile
@@ -92,5 +93,8 @@ ls -1r $DATADIR/lastlogs/last*.html  | head -90 | while read i ; do
 done
 cat $TEMPLATES/footer.html >> $DATADIR/lastlogs/index.html
 aws s3 cp $DATADIR/lastlogs/index.html  $WEBSITEBUCKET/reports/lastlogs/ --quiet
+
+# housekeep the fails reports
+find $DATADIR/failed -mtime +90 -exec rm -f {} \;
 
 find $DATADIR/lastlogs -name "lastlog*" -mtime +90 -exec rm -f {} \;
