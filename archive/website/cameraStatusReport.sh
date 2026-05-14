@@ -36,11 +36,11 @@ else
     authlog=/var/log/secure 
     batchuser=ec2-user
 fi
-sudo grep publickey $authlog* | grep -v $batchuser > $DATADIR/reports/lastlogins.txt
+sudo grep publickey $authlog* | grep -v $batchuser | grep -v fatal > $DATADIR/reports/lastlogins.txt
 
 if [ "$platform" == "Ubuntu" ]
 then
-    ssh ukmonhelper2 "sudo grep publickey /var/log/secure* | grep -v ec2-user"  > $DATADIR/reports/lastlogins_old.txt
+    ssh ukmonhelper2 "sudo grep publickey /var/log/secure* | egrep -v 'ec2-user|fatal'"  > $DATADIR/reports/lastlogins_old.txt
 fi
 cat $DATADIR/reports/lastlogins_old.txt >> $DATADIR/reports/lastlogins.txt
 echo TO HERE
