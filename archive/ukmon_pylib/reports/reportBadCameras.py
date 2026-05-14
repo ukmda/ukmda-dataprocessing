@@ -14,6 +14,46 @@ from utils.sendAnEmail import sendAnEmail
 
 mailfrom = 'ukmonhelper2@ukmeteors.co.uk'
 
+
+def sendBespokeMessage(targlist, messagefile, subj):
+
+    messagecontent = open(messagefile, 'r').read()
+    targets = open(targlist, 'r').readlines()
+    camowners = loadLocationDetails()
+    camowners['location'] = [ x.lower() + '_' + y.lower() for x,y in zip(camowners.site,camowners.direction)]
+    camowners = camowners[camowners.active==1]
+    camowners.drop(columns=['oldcode', 'site', 'camtype', 'active', 'humanName','direction','created'], inplace=True)
+    #camowners = camowners.groupby('eMail', as_index=False).agg(lambda x: ','.join(x.tolist()))
+    owners = []
+    camids = []
+    gmnids = []
+    for target in targets:
+        locationid = target.strip()
+        if locationid[:1] == '#':
+            continue
+        thisrow = camowners[camowners.location.str.contains(locationid)]
+        if len(thisrow) > 0:
+            thisowner = thisrow.values[0][0]
+            if thisowner in owners:
+                idx = owners.index(thisowner)
+                gmnids[idx] = f'{gmnids[idx]},{thisrow.values[0][1]}'
+                camids[idx] = f'{camids[idx]},{thisrow.values[0][2]}'
+                continue
+            else:
+                owners.append(thisowner)
+                gmnids.append(thisrow.values[0][1])
+                camids.append(thisrow.values[0][2])
+    df = pd.DataFrame({'owner':owners, 'camids':camids, 'gmnids':gmnids})
+    print(df)
+    for _,rw in df.iterrows():
+        mailrecip = rw.owner
+        statid = rw.gmnids
+        locationid = rw.camids
+        print(f'emailing {mailrecip} concerning {statid} {locationid} subject {subj}')
+        sendAnEmail(mailrecip, messagecontent.format(statid, locationid), subj, mailfrom)
+    return
+
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('usage: python reportBadCameras.py daysback')

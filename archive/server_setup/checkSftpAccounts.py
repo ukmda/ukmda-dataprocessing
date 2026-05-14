@@ -63,3 +63,13 @@ with open('todo.txt', 'w') as outf:
 		if nam.strip() not in donelist:
 			print('done list is missing', nam)
 			outf.write(f'{nam}\n')
+
+
+moved = open('moved.txt').readlines()
+pending = open('pending.txt').readlines()
+switched = open('switched.txt').readlines()
+
+pendingnotmoved = [x for x in pending if x not in moved]
+
+print('stations marked pending but not moved - check if need done')
+print(pendingnotmoved)

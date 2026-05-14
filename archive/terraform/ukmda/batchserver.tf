@@ -45,3 +45,11 @@ resource "aws_network_interface" "batchserver_if" {
     "billingtag" = "ukmda"
   }
 }
+
+resource "aws_eip" "batchserver" {
+  instance = aws_instance.batchserver.id
+  tags = {
+    billingtag = "ukmda"
+    Name       = "ukmonhelper_eip"
+  }
+}
