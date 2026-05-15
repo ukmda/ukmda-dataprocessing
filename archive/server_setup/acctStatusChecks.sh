@@ -14,10 +14,11 @@ ssh ukmonhelper2 "~/server_setup/get-all.sh" | while read i ; do echo $i | awk -
 python ~/src/ukmda-dataprocessing/archive/server_setup/checkSftpAccounts.py
 
 
+echo "" > statusreport.txt
 echo "Migrated is a count of how many stations got set up on the new server," >> statusreport.txt
 echo "Done is how many have cut over, pending is how many have not" >> statusreport.txt
 echo "" >> statusreport.txt
-echo "Migrated: $(wc -l moved.txt | awk '{print $1}')" > statusreport.txt
+echo "Migrated: $(wc -l moved.txt | awk '{print $1}')" >> statusreport.txt
 echo "Done:     $(wc -l switched.txt | awk '{print $1}')" >> statusreport.txt
 echo "Pending:  $(wc -l pending.txt | awk '{print $1}')" >> statusreport.txt
 echo "" >> statusreport.txt
