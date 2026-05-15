@@ -23,10 +23,13 @@ echo "Done:     $(wc -l switched.txt | awk '{print $1}')" >> statusreport.txt
 echo "Pending:  $(wc -l pending.txt | awk '{print $1}')" >> statusreport.txt
 echo "" >> statusreport.txt
 echo "Live is how many have connected in the last 10 days" >> statusreport.txt
-echo "Inactive is how many didn't connect for 10 days, Not Upl is how many aren't uploading" >> statusreport.txt
+echo "Inactive is how many didn't connect for 10 days" >> statusreport.txt
 echo "" >> statusreport.txt
-echo "Live:     $(wc -l still-live.txt | awk '{print $1}')" >> statusreport.txt
-echo "Not Live: $(wc -l inactive.txt | awk '{print $1}')" >> statusreport.txt
+echo "Live:     $(cat still-live.txt | sort | uniq | wc -l | awk '{print $1}')" >> statusreport.txt
+echo "Not Live: $(cat inactive.txt | sort | uniq | wc -l | awk '{print $1}')" >> statusreport.txt
+echo "" >> statusreport.txt
+echo "" >Not Upl is how many aren't uploading> statusreport.txt
+echo "" >> statusreport.txt
 echo "Not Upl:  $(wc -l not_uploading.txt | awk '{print $1}')" >> statusreport.txt
 echo "" >> statusreport.txt
 echo "Dead is cameras that I'm not intending to migrate either because" >> statusreport.txt
