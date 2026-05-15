@@ -28,7 +28,7 @@ echo "" >> statusreport.txt
 echo "Live:     $(cat still-live.txt | sort | uniq | wc -l | awk '{print $1}')" >> statusreport.txt
 echo "Not Live: $(cat inactive.txt | sort | uniq | wc -l | awk '{print $1}')" >> statusreport.txt
 echo "" >> statusreport.txt
-echo "" >Not Upl is how many aren't uploading> statusreport.txt
+echo "Not Upl is how many aren't uploading" >> statusreport.txt
 echo "" >> statusreport.txt
 echo "Not Upl:  $(wc -l not_uploading.txt | awk '{print $1}')" >> statusreport.txt
 echo "" >> statusreport.txt
