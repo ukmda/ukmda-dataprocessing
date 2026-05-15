@@ -44,6 +44,7 @@ for li in data:
 		else:
 			not_live.append([loc, gmnid, lastup, lastlo, via])
 
+still_upl = list(set(still_upl))
 with open('still-live.txt','w') as outf:
 	for cam in still_upl:
 		outf.write(','.join(cam) + '\n')
