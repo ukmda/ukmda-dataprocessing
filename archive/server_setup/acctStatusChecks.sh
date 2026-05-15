@@ -6,22 +6,31 @@ cd $here
 
 sudo ls -1 /var/sftp  | egrep -v "test|logup" > moved.txt
 grep batchs /home/ubuntu/prod/data/reports/stationlogins.txt | cut -c 42-61 | sed 's/ //g' | sort | uniq > switched.txt
-grep ukmonh /home/ubuntu/prod/data/reports/stationlogins.txt | cut -c 42-61 | sed 's/ //g' | sort | uniq > pending.txt
+grep -v batchs /home/ubuntu/prod/data/reports/stationlogins.txt | cut -c 42-61 | sed 's/ //g' | grep -v StationID| sort | uniq > pending.txt
 
-ssh ukmonhelper2 "~/prod/server_setup/get-nbd.sh" | while read i ; do echo $i | awk -F"/" '{print $4}' ; done > not-being-done.txt
-ssh ukmonhelper2 "~/prod/server_setup/get-all.sh" | while read i ; do echo $i | awk -F"/" '{print $4}' ; done > all-accounts.txt
+ssh ukmonhelper2 "~/server_setup/get-nbd.sh" | while read i ; do echo $i | awk -F"/" '{print $4}' ; done > dead.txt
+ssh ukmonhelper2 "~/server_setup/get-all.sh" | while read i ; do echo $i | awk -F"/" '{print $4}' ; done > all-accounts.txt
 
 python ~/src/ukmda-dataprocessing/archive/server_setup/checkSftpAccounts.py
 
 
-echo "Moved:    $(wc -l moved.txt | awk '{print $1}')" > statusreport.txt
-echo "Switched: $(wc -l switched.txt | awk '{print $1}')" >> statusreport.txt
-echo "Pending:  $(wc -l pending.txt | awk '{print $1}')" >> statusreport.txt
-echo "Total:    $(wc -l still-live.txt | awk '{print $1}')" >> statusreport.txt
+echo "Migrated is a count of how many stations got set up on the new server," >> statusreport.txt
+echo "Done is how many have cut over, pending is how many have not" >> statusreport.txt
 echo "" >> statusreport.txt
-echo "Not Live: $(wc -l not_live.txt | awk '{print $1}')" >> statusreport.txt
+echo "Migrated: $(wc -l moved.txt | awk '{print $1}')" > statusreport.txt
+echo "Done:     $(wc -l switched.txt | awk '{print $1}')" >> statusreport.txt
+echo "Pending:  $(wc -l pending.txt | awk '{print $1}')" >> statusreport.txt
+echo "" >> statusreport.txt
+echo "Live is how many have connected in the last 10 days" >> statusreport.txt
+echo "Inactive is how many didn't connect for 10 days, Not Upl is how many aren't uploading" >> statusreport.txt
+echo "" >> statusreport.txt
+echo "Live:     $(wc -l still-live.txt | awk '{print $1}')" >> statusreport.txt
+echo "Not Live: $(wc -l inactive.txt | awk '{print $1}')" >> statusreport.txt
 echo "Not Upl:  $(wc -l not_uploading.txt | awk '{print $1}')" >> statusreport.txt
 echo "" >> statusreport.txt
-echo "Dead:     $(wc -l not-being-done.txt | awk '{print $1}')" >> statusreport.txt
+echo "Dead is cameras that I'm not intending to migrate either because" >> statusreport.txt
+echo "they've left the network or been offline for years" >> statusreport.txt
+echo "" >> statusreport.txt
+echo "Dead:     $(wc -l dead.txt | awk '{print $1}')" >> statusreport.txt
 echo "" >> statusreport.txt
 cat statusreport.txt

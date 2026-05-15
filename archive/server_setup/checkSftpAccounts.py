@@ -52,7 +52,7 @@ with open('not_uploading.txt','w') as outf:
 	for cam in not_upl:
 		outf.write(','.join(cam) + '\n')
 
-with open('not_live.txt','w') as outf:
+with open('inactive.txt','w') as outf:
 	for cam in not_live:
 		outf.write(','.join(cam) + '\n')
 
