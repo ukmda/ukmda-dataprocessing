@@ -29,7 +29,7 @@ sqlite3 $DATADIR/distrib/trajectories.db "select traj_file_path from trajectorie
          moved=1
       done 
       yr=${trajdir:13:4}
-      trajpth=$(basename $trajdir)
+      trajpth=${trajdir:18}
       webloc=$WEBSITEBUCKET/reports/${yr}/orbits/$trajpth
       newloc=${UKMONSHAREDBUCKET}/matches/duplicates/reports/${yr}/orbits/$trajpth
       aws s3 ls $webloc/ | awk -F " " '{print $4}' | while read fname; do
