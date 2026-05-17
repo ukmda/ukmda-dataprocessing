@@ -167,7 +167,8 @@ create table matches(
     Jacchia2 float,
     numstats tinyint,
     stations varchar(256),
-    isfb varchar(6)
+    isfb varchar(6),
+    status tinyint
     );
 
 alter ignore table matches add unique uniq_orbname (orbname);
