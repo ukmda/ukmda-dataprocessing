@@ -2,7 +2,7 @@
   "httpMethod": "GET",
   "queryStringParameters": {
     "reqtyp": "summary",
-    "reqval": "20251213",
+    "reqval": "20260515",
     "period": "0-3"
   }
 }
