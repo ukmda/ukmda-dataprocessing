@@ -257,7 +257,7 @@ def removeRecalcedTrajCSandS3(calcdir, outpath, webpath, rundate=None):
 
     dbhandle = sqlite3.connect(os.path.join(calcdir, 'trajectories.db'))
 
-    logs = glob.glob(os.path.join(calcdir, logs, f'correlate_rms_{rundate}*.log'))
+    logs = glob.glob(os.path.join(calcdir, 'logs', f'correlate_rms_{rundate}*.log'))
     if len(logs) == 0:
         print(f'no logfile for {rundate}')
         return 
