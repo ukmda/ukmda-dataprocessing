@@ -245,7 +245,7 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh, istest=False):
         # Remove any superceded trajectories. These are found by parsing the logfile.
         # Has to be done here to ensure they're removed from S3 stores early
         params = f"'{calcdir}','{outpath}', '{webpath}'"
-        outf.write(f'python -c "from maintenance.dataMaintenance import removeRecalcedTrajCSandS3;removeRecalcedTrajCSandS3({params})"')
+        outf.write(f'python -c "from maintenance.dataMaintenance import removeRecalcedTrajCSandS3;removeRecalcedTrajCSandS3({params})"\n')
 
         # do this again to fetch todays results
         outf.write('logger -s -t execdistrib refetch latest trajectories\n')
