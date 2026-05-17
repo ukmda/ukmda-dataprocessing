@@ -15,6 +15,7 @@ import json
 import operator
 import shutil
 import glob
+import sqlite3
 
 import pymysql.cursors
 
@@ -254,6 +255,8 @@ def removeRecalcedTrajCSandS3(calcdir, outpath, webpath, rundate=None):
     if not rundate:
         rundate = datetime.datetime.now(tz=datetime.timezone.utc).strftime('%Y%m%d')
 
+    dbhandle = sqlite3.connect(os.path.join(calcdir, 'trajectories.db'))
+
     logs = glob.glob(os.path.join(calcdir, logs, f'correlate_rms_{rundate}*.log'))
     if len(logs) == 0:
         print(f'no logfile for {rundate}')
@@ -279,7 +282,11 @@ def removeRecalcedTrajCSandS3(calcdir, outpath, webpath, rundate=None):
                 shutil.rmtree(localpath)
                 localdel += 1
 
-            # now shared S3
+            # make sure orb is marked deleted in sqlite
+            sqlstr = f'update trajectories set status=0 where traj_file_path like "{orbfldr}%"'
+            dbhandle.execute(sqlstr)
+
+            # now remove the folder from shared S3
             sharedkey = f'{outpath}/{orbfldr}'
             bucket = sharedkey[5:].split('/')[0]
             prefix = sharedkey[len(bucket)+6:]
@@ -295,6 +302,8 @@ def removeRecalcedTrajCSandS3(calcdir, outpath, webpath, rundate=None):
             bucket.objects.filter(Prefix=prefix).delete()
 
     print(f'removed {localdel} folders from calcserver')
+    dbhandle.commit()
+    dbhandle.close()
 
     return 
 
