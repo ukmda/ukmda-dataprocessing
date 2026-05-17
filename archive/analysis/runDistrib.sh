@@ -70,6 +70,7 @@ rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/distributeCandidates.py $SERVER
 rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/pickleAnalyser.py $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/traj/
 rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/ShowerAssociation.py $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/traj/
 rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/utils/convertSolLon.py $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/utils/
+rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/maintenance/dataMaintenance.py $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/maintenance/
 
 # now run the script
 logger -s -t runDistrib "start distributed processing"
