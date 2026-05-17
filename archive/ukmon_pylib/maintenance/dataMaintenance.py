@@ -281,6 +281,7 @@ def removeRecalcedTrajCSandS3(calcdir, outpath, webpath, rundate=None):
             if os.path.isdir(localpath):
                 shutil.rmtree(localpath)
                 localdel += 1
+                print(f'removed {orbfldr}')
 
             # make sure orb is marked deleted in sqlite
             sqlstr = f'update trajectories set status=0 where traj_file_path like "{orbfldr}%"'
