@@ -14,6 +14,8 @@ import datetime
 import json
 import operator
 
+import pymysql.cursors
+
 from wmpl.Utils.TrajConversions import datetime2JD
 from wmpl.Trajectory.CorrelateDB import TrajectoryDatabase
 
@@ -77,8 +79,8 @@ def deleteFromCalcServerByMonth(outfname):
             currstate = sts['Reservations'][0]['Instances'][0]['State']['Name']
             server = sts['Reservations'][0]['Instances'][0]['PrivateIpAddress']
 
-    # server='172.32.16.136'
-    user='ec2-user'
+    resp = ssmc.get_parameter(Name=f'{env}_calcuser')
+    user = resp['Parameter']['Value']
     serverkey = os.getenv('SERVERSSHKEY')
     k = paramiko.RSAKey.from_private_key_file(serverkey)
     c = paramiko.SSHClient()
@@ -97,11 +99,24 @@ def deleteFromCalcServerByMonth(outfname):
     return 
 
 
+def getSqlLoginDetails():
+    # retrieve password and host from SSM. This allows me to manage them from Terraform
+    ssm = boto3.client('ssm', region_name='eu-west-1')
+    res = ssm.get_parameter(Name='prod_dbpw', WithDecryption=True)
+    password = res['Parameter']['Value']
+    res = ssm.get_parameter(Name='prod_dbhost')
+    host = res['Parameter']['Value'] 
+    # should really do these too but they won't change often if at all
+    user = 'batch'
+    db = 'ukmon'
+    return host, user, password, db
+
+
 def removeDeletedTraj(csvfile):
     """
-    Remove deleted trajectories from the consolidated match CSV, Parquet and search files
+    Remove deleted trajectories from the consolidated match CSV, Parquet, search files and SQL database
     """
-
+    
     csvdata = open(csvfile, 'r').readlines()
     if 'search' in csvfile:
         ts_end = float(csvdata[-1].split(',')[0])
@@ -109,6 +124,8 @@ def removeDeletedTraj(csvfile):
         jdt_end = datetime2JD(dt_end)
     else:
         jdt_end = float(csvdata[-1].split(',')[3]) + 2400000.5
+        host, user, passwd, db = getSqlLoginDetails()
+        connection = pymysql.connect(host=host, user=user, password=passwd, database=db, cursorclass=pymysql.cursors.DictCursor)  
     jdt_beg = jdt_end - 21
 
     datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
@@ -117,34 +134,35 @@ def removeDeletedTraj(csvfile):
     cur = masterdb.dbhandle.execute(f'select traj_file_path from trajectories where status=0 and jdt_ref >= {jdt_beg} and jdt_ref <={jdt_end}')
     deltrajs = cur.fetchall()
 
-    i=0
-    # loop over the deleted trajectories, removing the corresponding one from the CSV file.
-    # Note that there's no need to update the MariaDB database, as it is populated
-    # from the CSV file *after* it has been purged
+    i = 0
+    j = 0
+    # loop over the deleted trajectories, removing the corresponding one from the CSV file and optionally, sql database.
     offs = 4 if 'search' in csvfile else 131
     for traj in deltrajs:
-        cur = masterdb.dbhandle.execute(f'select jdt_ref, participating_stations from trajectories where traj_file_path="{traj[0]}" and status=0')
-        thistraj = cur.fetchall()
-        if len(thistraj) == 1: 
-            fldr = os.path.basename(os.path.dirname(traj[0]))
+        orbname = traj[0].split('/')[4]
+        match = [tr for tr in csvdata if orbname in tr]
+        for thismatch in match:
+            print(f'removing {orbname} from csv file')
+            idx = csvdata.index(thismatch)
+            _ = csvdata.pop(idx)
+            i += 1
+        if 'search' not in csvfile:
+            with connection.cursor() as cursor:
+                sqlstr = f'update ukmon.matches set status=0 where orbname="{orbname}"'
+                cursor.execute(sqlstr)
+                result = cursor.fetchall()
+                if len(result) > 0:
+                    print(f'removing {orbname} from database')
+                    j += 1
 
-            # find the rows in the CSV file that correspond to the deleted trajectory
-            # then go through them and compare obs_ids. The one with the same obs_ids 
-            # is the one we want to remove
-            match = [tr for tr in csvdata if fldr in tr]
-            obs_ids = thistraj[0][1]
-            obs_ids_str = ';'.join(json.loads(obs_ids)) + ';'
-            for thismtch in match:
-                if thismtch.split(',')[offs] == obs_ids_str:
-                    print(f'removing {fldr}')
-                    idx = csvdata.index(thismtch)
-                    _ = csvdata.pop(idx)
-                    i += 1
-                    break
-        else:
-            print(f'skipping {traj[0]} as there are {len(thistraj)} active trajs with the same path')
     masterdb.closeTrajDatabase()
-    print(f'removed {i} trajectories from the text file')
+    if 'search' in csvfile:
+        print(f'removed {i} trajectories from the search file')
+    else:
+        connection.commit()
+        connection.close()
+        print(f'removed {i} trajectories from the text file and {j} from the database')
+
 
     # save the CSV file again
     open(csvfile, 'w').writelines(csvdata)
