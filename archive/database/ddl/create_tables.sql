@@ -173,3 +173,4 @@ create table matches(
     );
 
 alter ignore table matches add unique uniq_orbname (orbname);
+alter ignore table matches add unique uniq_traj_id (traj_id);
