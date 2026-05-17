@@ -168,7 +168,8 @@ create table matches(
     numstats tinyint,
     stations varchar(256),
     isfb varchar(6),
-    status tinyint
+    status tinyint,
+    traj_id varchar(24)
     );
 
 alter ignore table matches add unique uniq_orbname (orbname);
