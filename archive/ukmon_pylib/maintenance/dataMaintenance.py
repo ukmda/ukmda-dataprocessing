@@ -13,6 +13,8 @@ import pandas as pd
 import datetime
 import json
 import operator
+import shutil
+import glob
 
 import pymysql.cursors
 
@@ -233,6 +235,69 @@ def removeDeletedTrajCsv(csvloc, targloc):
         print('no fullcsv files to process')
 
     return 
+
+
+def removeRecalcedTrajCSandS3(calcdir, outpath, webpath, rundate=None):
+    """
+    Remove trajectories that have been superceded by a rerun that found more data
+    NB: this has to be run on the calcserver
+
+    parameters:
+    calcdir     path to local trajectories
+    outpath     s3 location of trajectories
+    webpath     s3 location of web data
+
+    rundate      optional date to perform analysis for. If none, then today's date will be used
+
+    """
+    s3 = boto3.resource('s3')
+    if not rundate:
+        rundate = datetime.datetime.now(tz=datetime.timezone.utc).strftime('%Y%m%d')
+
+    logs = glob.glob(os.path.join(calcdir, logs, f'correlate_rms_{rundate}*.log'))
+    if len(logs) == 0:
+        print(f'no logfile for {rundate}')
+        return 
+
+    localdel = 0
+
+    for logf in logs:
+        loglines = open(logf).readlines()
+        removed = [x[x.find('trajectories'):].replace('...','').strip() for x in loglines if 'Removing the previous' in x]
+        saved = [x[x.find('trajectories'):].strip() for x in loglines if 'saved' in x and 'to ./trajectories' in x]
+
+        # skip any rows where the new and old names are the same
+        for sav in saved:
+            if sav in removed:
+                removed.pop(removed.index(sav))
+
+        # now run through any remaining removed orbits and make sure they're removed from everywhere
+        for orbfldr in removed:
+            # local files first
+            localpath = os.path.join(calcdir, orbfldr)
+            if os.path.isdir(localpath):
+                shutil.rmtree(localpath)
+                localdel += 1
+
+            # now shared S3
+            sharedkey = f'{outpath}/{orbfldr}'
+            bucket = sharedkey[5:].split('/')[0]
+            prefix = sharedkey[len(bucket)+6:]
+            bucket = s3.Bucket(bucket)
+            bucket.objects.filter(Prefix=prefix).delete()
+
+            # lastly web S3
+            spls = orbfldr.split('/')
+            sharedkey = f'{webpath}/{spls[1]}/orbits/{spls[2]}/{spls[3]}/{spls[4]}'
+            bucket = sharedkey[5:].split('/')[0]
+            prefix = sharedkey[len(bucket)+6:]
+            bucket = s3.Bucket(bucket)
+            bucket.objects.filter(Prefix=prefix).delete()
+
+    print(f'removed {localdel} folders from calcserver')
+
+    return 
+
 
 
 if __name__ == '__main__':
