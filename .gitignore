@@ -617,3 +617,6 @@ fbcollector/config.ini
 usermgmt/windows/stationmaint.ini
 usermgmt/windows/README.md
 fbCollector/README.html
+archive/share/combined_shower_table.parquet
+archive/share/gmn_shower_table_20230518.txt
+archive/share/IMO_Working_Meteor_Shower_List.xml

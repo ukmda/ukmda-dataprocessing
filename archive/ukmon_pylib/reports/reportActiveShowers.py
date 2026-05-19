@@ -171,7 +171,7 @@ def findRelevantPngs(shwr, pltdir, outdir):
 
 def reportActiveShowers(ymd, thisshower=None, thismth=None, includeMinor=False):
     if thisshower is None:
-        shwrlist = getActiveShowers(ymd, retlist=True, inclMinor=includeMinor)
+        shwrlist = getActiveShowers(ymd, aslist=True, inclMinor=includeMinor)
     else:
         shwrlist = [thisshower]
 

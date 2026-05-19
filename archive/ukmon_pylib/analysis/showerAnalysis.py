@@ -10,8 +10,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import datetime
 
-from utils.getActiveShowers import getShowerDets
-from utils.imoWorkingShowerList import IMOshowerList
+from utils.getActiveShowers import getShowerDets, getShowerStartEnd
 
 SMALL_SIZE = 8
 MEDIUM_SIZE = 10
@@ -479,9 +478,8 @@ def showerAnalysis(shwr, dtstr):
     cols = ['Shwr','Dtstamp','Y','M','ID','Mag']
     filt = None
     if shwr != 'ALL':
-        sl = IMOshowerList()
-        maxdt = sl.getEnd(shwr) + datetime.timedelta(days=10)
-        mindt = sl.getStart(shwr) + datetime.timedelta(days=-10)
+        maxdt = getShowerStartEnd(shwr, False) + datetime.timedelta(days=10)
+        mindt = getShowerStartEnd(shwr, True) + datetime.timedelta(days=-10)
 
     # read the single-station data
     singleFile = os.path.join(datadir, 'single', f'singles-{yr}.parquet.snap')

@@ -2,13 +2,17 @@
 #
 # simple script to get the active shower list from the IMO working list
 
-from utils.imoWorkingShowerList import IMOshowerList as iwsl
 import datetime
 import numpy as np
+import pandas as pd
 import os
+import json
+import ephem
 
+from wmpl.Utils.TrajConversions import datetime2JD, jd2Date
+from wmpl.Utils.SolarLongitude import solLon2jdVSOP, jd2SolLonVSOP # good enough for our purposes here
 
-def getActiveShowers(targdate, retlist=False, inclMinor=False):
+def getActiveShowers(targdate, aslist=False, inclMinor=False, inclSpo=False, tolerance=1):
     """
     Return a list of showers active at the specified date  
 
@@ -16,41 +20,41 @@ def getActiveShowers(targdate, retlist=False, inclMinor=False):
         targdate:   [str] Date in YYYYMMDD format  
 
     Keyword Arguments:  
-        retlist:    [bool] return a list, or print to console. Default False=print  
-        inclMinor:  [bool] include minor showers or only return major showers  
+        retlist:    [bool] False return a list if True otherwise print to console 
+        inclMinor:  [bool] False, include minor showers if True
+        inclSpo:    [bool] False, include 'spo' if True
+        tolerance:  [int] default 1, number of days either side of the date to check
 
     Returns:  
         If retlist is true, returns a python list of shower short-codes eg ['PER','LYR']  
 
     """
-    sl = iwsl()
-    testdate = datetime.datetime.strptime(targdate, '%Y%m%d')
-    listofshowers=sl.getActiveShowers(testdate, True, inclMinor=inclMinor)
-    if retlist is False:
-        for shwr in listofshowers:
-            print(shwr)
+    sl = _loadShowerTable()
+    mmlist = _loadMajorMinor()
+    testdate = datetime.datetime.strptime(targdate, '%Y%m%d').replace(tzinfo=datetime.timezone.utc)
+    sollon = np.degrees(jd2SolLonVSOP(datetime2JD(testdate)))
+    sl1 = sl[sl.la_sun > sollon - tolerance]
+    sl1 = sl1[sl1.la_sun < sollon + tolerance]
+    sl1.drop_duplicates('IAU_code', inplace=True)
+
+    if inclMinor:
+        listofshowers = list(sl1.IAU_code)
     else:
+        listofshowers = []
+        for _,rw in sl1.iterrows():
+            if rw.IAU_code in mmlist['major']:
+                listofshowers.append(rw.IAU_code)
+
+    if inclSpo:
+        listofshowers.append('spo')
+
+    if aslist:
         return listofshowers
+    else:
+        print(' '.join(listofshowers))
 
 
-def getActiveShowersStr(targdatestr):
-    """
-    Prints a comma-separated list of showers active at the specified date  
-
-    Arguments:  
-        targdate:   [str] Date in YYYYMMDD format  
-
-    Returns:  
-        nothing  
-
-    """
-    shwrs = getActiveShowers(targdatestr, retlist=True)
-    shwrs.append('spo')
-    for s in shwrs:
-        print(s)
-
-
-def getShowerDets(shwr, stringFmt=False, dataPth=None):
+def getShowerDets(shwr, asstring=False):
     """ Get details of a shower 
     
     Arguments:  
@@ -60,25 +64,41 @@ def getShowerDets(shwr, stringFmt=False, dataPth=None):
         dataPth   [string] path to the datafiles. Default None means data read from internal files. 
          
     Returns:  
-        (id, full name, peak solar longitude, peak date mm-dd)  
+        either a tuple of (id, full name, peak solar longitude, peak date mm-dd)  
+        or a string "peak sollon, name, peak date,  shower code"
+
     """
-    sl = iwsl()
-    mtch = sl.getShowerByCode(shwr, useFull=True)
-    if len(mtch) > 0 and mtch['@id'] is not None:
-        id = int(mtch['@id'])
-        nam = mtch['name']
-        pkdtstr = mtch['peak']
-        dt = datetime.datetime.now()
-        yr = dt.year
-        pkdt = datetime.datetime.strptime(f'{yr} {pkdtstr}','%Y %b %d')
+    sl = _loadShowerTable()
+    thisshower = sl[sl.IAU_code == shwr]
+
+    if len(thisshower) > 0:
+        id = int(thisshower.iloc[0]['IAU_no'])
+        name = thisshower.iloc[0]['name']
+        if name is None or str(name) == 'nan':
+            name = shwr
+        pkdtstr = thisshower.iloc[0]['peak']
+        if pkdtstr is None or str(pkdtstr) == 'nan':
+            # pick the median date of the shower then the approx datetime value
+            pksollong = (thisshower.iloc[-1]['la_sun'] + thisshower.iloc[0]['la_sun'])/2
+            lve = ephem.previous_vernal_equinox(ephem.Date(datetime.datetime.now(datetime.timezone.utc)))
+            pkdt = ephem.to_timezone(ephem.date(lve+pksollong), tzinfo=datetime.timezone.utc)
+        else:        
+            pkdt = datetime.datetime.strptime(f'{datetime.datetime.now().year} {pkdtstr}','%Y %b %d')
+            pksollong = np.degrees(jd2SolLonVSOP(datetime2JD(pkdt)))
+
         dtstr = pkdt.strftime('%m-%d')
-        pksollong = mtch['pksollon']
     else:
-        id, nam, pksollong, dtstr = 0, 'Unknown', 0, 'Unknown'
-    if stringFmt:
-        return f"{pksollong},{dtstr},{nam},{shwr}"
+        id = 0
+        name = 'Unknown'
+        pksollong = 0
+        dtstr = 'Unknown'
+
+    pksollong = round(pksollong,1)
+    if not asstring:
+        return  (id, name, pksollong, dtstr)
     else:
-        return id, nam, pksollong, dtstr
+        # note, different order and return values
+        return f'{pksollong}, {name}, {dtstr}, {shwr}'
 
 
 def getShowerPeak(shwr):
@@ -94,46 +114,68 @@ def getShowerPeak(shwr):
     return pk
 
 
-def numpifyShowerData():
-    """Refresh the numpy versions of the shower data files """
-    srcdir = os.getenv('SRC', default=os.path.expanduser('~/prod'))
-    abs_path = os.getenv('WMPL_LOC', default=os.path.expanduser('~/src/WesternMeteorPyLib'))
+def getShowerStartEnd(shwr, start=True):
+    """ Get approx start/end dates of a shower 
+    
+    Arguments:  
+        shwr:   [string] three-letter shower code eg PER  
 
-    iau_shower_table_file = os.path.join(abs_path, 'wmpl', 'share', 'streamfulldata.csv')
-    iau_shower_table_npy = os.path.join(abs_path, 'wmpl', 'share', 'streamfulldata.npy')
-    iau_shower_list = np.loadtxt(iau_shower_table_file, delimiter="|", usecols=range(20), dtype=str)
-    np.save(iau_shower_table_npy, iau_shower_list)
+    Keyword Arguments:
+        start:  [bool] true if requesting the start date, otherwise you'll get the end date
+         
+    Returns:  
+        dtval:  [datetime] approx start or end date of the shower
 
-    iau_shower_table_npy = os.path.join(srcdir, 'share', 'streamfulldata.npy')
-    np.save(iau_shower_table_npy, iau_shower_list)
+    """
+    sl = _loadShowerTable()
+    thisshower = sl[sl.IAU_code == shwr]
 
-    gmn_shower_table_file = os.path.join(abs_path, 'wmpl', 'share', 'gmn_shower_table_20230518.txt')
-    gmn_shower_table_npy = os.path.join(abs_path, 'wmpl', 'share', 'gmn_shower_table_20230518.npy')
-    gmn_shower_list = _loadGMNShowerTable(*os.path.split(gmn_shower_table_file))
-    np.save(gmn_shower_table_npy, gmn_shower_list)
+    reqfield = 'start' if start else 'end'
+    if len(thisshower) > 0:
+        reqdtstr = thisshower.iloc[0][reqfield]
+        if reqdtstr is None or str(reqdtstr) == 'nan':
+            reqsl = thisshower.iloc[0]['la_sun'] if start else thisshower.iloc[-1]['la_sun']
+            lve = ephem.previous_vernal_equinox(ephem.Date(datetime.datetime.now(datetime.timezone.utc)))
+            reqdt = ephem.to_timezone(ephem.date(lve + reqsl), tzinfo=datetime.timezone.utc)
+        else:
+            reqdt = datetime.datetime.strptime(f'{datetime.datetime.now(datetime.timezone.utc).year} {reqdtstr}','%Y %b %d').replace(tzinfo=datetime.timezone.utc)
 
-    gmn_shower_table_npy = os.path.join(srcdir, 'share', 'gmn_shower_table_20230518.npy')
-    np.save(gmn_shower_table_npy, gmn_shower_list)
+        return reqdt
 
 
-def _loadGMNShowerTable(dir_path, file_name):
-    gmn_shower_list = []
-    with open(os.path.join(dir_path, file_name), encoding='cp1252') as f:
-        for line in f:
-            if line.startswith('#'):
-                continue
-            line = line.strip()
-            line = line.replace('\n', '').replace('\r', '')
-            if not line:
-                continue
-            la_sun, L_g, B_g, v_g, dispersion, IAU_no, IAU_code = line.split()
+def _loadMajorMinor(dir_path=None):
+    if not dir_path:
+        dir_path = os.path.join(os.getenv('DATADIR', default=os.path.expanduser('~/prod/data')), 'share')
+    return json.load(open(os.path.join(dir_path,'majorminor.json')))
+
+
+def _loadShowerTable(dir_path=None, file_name=None, forceRedo=False):
+    if not dir_path:
+        dir_path = os.path.join(os.getenv('DATADIR', default=os.path.expanduser('~/prod/data')), 'share')
+        file_name = 'gmn_shower_table_20230518.txt'
+    if not os.path.isfile(os.path.join(dir_path, 'combined_shower_table.parquet')) or forceRedo:
+        gmn_shower_list = []
+        lis = open(os.path.join(dir_path, file_name), encoding='cp1252').readlines()
+        lis = [x for x in lis if x[0]!='#']
+        for line in lis:
+            if len(line) < 10:
+                    continue
+            la_sun, L_g, B_g, v_g, dispersion, IAU_no, IAU_code = line.strip().split()
             gmn_shower_list.append([
-                np.radians(float(la_sun)), 
+                float(la_sun), 
                 np.radians(float(L_g)),
                 np.radians(float(B_g)), 
                 1000*float(v_g), 
                 np.radians(float(dispersion)), 
-                int(IAU_no)]
-                
+                int(IAU_no), 
+                IAU_code]
             )
-    return np.array(gmn_shower_list)
+        df = pd.DataFrame(gmn_shower_list, columns=['la_sun', 'L_g', 'B_g', 'v_g', 'dispersion', 'IAU_no', 'IAU_code'])
+
+        imodf = pd.read_xml(os.path.join(dir_path, 'IMO_Working_Meteor_Shower_List.xml'))
+        imodf.set_index('IAU_code', inplace=True)
+        df = df.join(imodf, on='IAU_code')
+        df.to_parquet(os.path.join(dir_path, 'combined_shower_table.parquet'))
+    else:
+        df = pd.read_parquet(os.path.join(dir_path, 'combined_shower_table.parquet'))
+    return df
