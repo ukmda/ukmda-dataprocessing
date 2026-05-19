@@ -54,17 +54,17 @@ chmod +x $execrerunsh
 
 logger -s -t updatePlotsAndDetStatus "deploy the script to the server $CALCSERVERIP and run it"
 
-scp -i $SERVERSSHKEY $execrerunsh $SERVERUSERID@$CALCSERVERIP:data/distrib/$execrerun
+scp -i $SERVERSSHKEY $execrerunsh $SERVERUSERID@$CALCSERVERIP:runtime/scripts/$execrerun
 while [ $? -ne 0 ] ; do
     # in case the server isn't responding to ssh sessions yet
     sleep 10
-    scp -i $SERVERSSHKEY $execrerunsh $SERVERUSERID@$CALCSERVERIP:data/distrib/$execrerun
+    scp -i $SERVERSSHKEY $execrerunsh $SERVERUSERID@$CALCSERVERIP:runtime/scripts/$execrerun
 done 
 # push the python and templates required
 rsync -avz  -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/pickleAnalyser.py $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/traj
 
 # now run the script
-ssh -i $SERVERSSHKEY $SERVERUSERID@$CALCSERVERIP "data/distrib/$execrerun"
+ssh -i $SERVERSSHKEY $SERVERUSERID@$CALCSERVERIP "runtime/scripts/$execrerun"
 
 logger -s -t $(basename $0 .sh) "job run, stop the server again"
 

@@ -56,11 +56,11 @@ chmod +x $execMatchingsh
 
 logger -s -t $(basename $0 .sh) "deploy the script to the server $CALCSERVERIP and run it"
 
-scp -i $SERVERSSHKEY $execMatchingsh $SERVERUSERID@$CALCSERVERIP:data/distrib/$execdist
+scp -i $SERVERSSHKEY $execMatchingsh $SERVERUSERID@$CALCSERVERIP:runtime/scripts/$execdist
 while [ $? -ne 0 ] ; do
     # in case the server isn't responding to ssh sessions yet
     sleep 10
-    scp -i $SERVERSSHKEY $execMatchingsh $SERVERUSERID@$CALCSERVERIP:data/distrib/$execdist
+    scp -i $SERVERSSHKEY $execMatchingsh $SERVERUSERID@$CALCSERVERIP:runtime/scripts/$execdist
 done 
 # push the python code and ECS templates required
 rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/traj/clusdetails-* $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/traj/
@@ -74,7 +74,7 @@ rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/maintenance/dataMaintenance.py $SERV
 
 # now run the script
 logger -s -t $(basename $0 .sh) "start distributed processing"
-ssh -i $SERVERSSHKEY $SERVERUSERID@$CALCSERVERIP "data/distrib/$execdist"
+ssh -i $SERVERSSHKEY $SERVERUSERID@$CALCSERVERIP "runtime/scripts/$execdist"
 
 rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$CALCSERVERIP:ukmon-shared/matches/RMSCorrelate/candidates/processed/*.tgz $DATADIR/distrib/candidates
 
@@ -112,8 +112,8 @@ chmod +x $execConsolsh
 
 logger -s -t $(basename $0 .sh) "running consolidation"
 
-scp -i $SERVERSSHKEY $execConsolsh $SERVERUSERID@$CALCSERVERIP:data/distrib/$execcons
-ssh -i $SERVERSSHKEY $SERVERUSERID@$CALCSERVERIP "data/distrib/$execcons"
+scp -i $SERVERSSHKEY $execConsolsh $SERVERUSERID@$CALCSERVERIP:runtime/scripts/$execcons
+ssh -i $SERVERSSHKEY $SERVERUSERID@$CALCSERVERIP "runtime/scripts/$execcons"
 
 logger -s -t $(basename $0 .sh) "finished consolidation, copying databases"
 
