@@ -84,6 +84,8 @@ def getShowerDets(shwr, asstring=False):
         pkdtstr = thisshower.iloc[0]['peak']
         if pkdtstr is None or str(pkdtstr) == 'nan':
             pksollong = getAltShwrPeak(shwr)
+            if pksollong is None:
+                pksollong = (thisshower.iloc[0]['la_sun'] + thisshower.iloc[-1]['la_sun'])/2
             lve = ephem.previous_vernal_equinox(ephem.Date(datetime.datetime.now(datetime.timezone.utc)))
             pkdt = ephem.to_timezone(ephem.date(lve + pksollong), tzinfo=datetime.timezone.utc)
         else:        
@@ -169,9 +171,9 @@ def getAltShwrPeak(shwr, dir_path=None):
     srcfile = os.path.join(dir_path, 'streamfulldata.csv')
     rawdf = pd.read_csv(os.path.expanduser(srcfile), sep='|', header=None)
     usefuldf = pd.concat([rawdf[3],rawdf[6], rawdf[7]], axis=1)
-    usefuldf.rename(columns={3:'IAU_code',7:'la_sun'}, inplace=True)
+    usefuldf.rename(columns={3:'IAU_code',6:'sts', 7:'la_sun'}, inplace=True)
     match = usefuldf[usefuldf.IAU_code==shwr]
-    match = match[match[6] > -1]
+    match = match[match['sts'] > -1]
     if len(match) > 0:
         sollon = match.iloc[-1]['la_sun']
     else:
