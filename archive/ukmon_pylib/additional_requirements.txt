@@ -35,3 +35,4 @@ behave
 pdoc
 pytest
 pytest-cov
+lxml
