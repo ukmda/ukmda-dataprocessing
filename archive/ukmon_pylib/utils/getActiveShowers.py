@@ -12,7 +12,7 @@ import ephem
 from wmpl.Utils.TrajConversions import datetime2JD, jd2Date
 from wmpl.Utils.SolarLongitude import solLon2jdVSOP, jd2SolLonVSOP # good enough for our purposes here
 
-def getActiveShowers(targdate, aslist=False, inclMinor=False, inclSpo=False, tolerance=1):
+def getActiveShowers(targdate, aslist=False, inclMinor=False, inclSpo=False, showall=False, tolerance=1):
     """
     Return a list of showers active at the specified date  
 
@@ -37,13 +37,18 @@ def getActiveShowers(targdate, aslist=False, inclMinor=False, inclSpo=False, tol
     sl1 = sl1[sl1.la_sun < sollon + tolerance]
     sl1.drop_duplicates('IAU_code', inplace=True)
 
-    if inclMinor:
+    if showall:
         listofshowers = list(sl1.IAU_code)
     else:
         listofshowers = []
-        for _,rw in sl1.iterrows():
-            if rw.IAU_code in mmlist['major']:
-                listofshowers.append(rw.IAU_code)
+        if not inclMinor:
+            for _,rw in sl1.iterrows():
+                if rw.IAU_code in mmlist['major']:
+                    listofshowers.append(rw.IAU_code)
+        else:
+            for _,rw in sl1.iterrows():
+                if rw.IAU_code in mmlist['major'] or rw.IAU_code in mmlist['minor']:
+                    listofshowers.append(rw.IAU_code)
 
     if inclSpo:
         listofshowers.append('spo')
@@ -75,7 +80,7 @@ def getShowerDets(shwr, asstring=False):
         id = int(thisshower.iloc[0]['IAU_no'])
         name = thisshower.iloc[0]['name']
         if name is None or str(name) == 'nan':
-            name = shwr
+            name = getAltShwrName(shwr)
         pkdtstr = thisshower.iloc[0]['peak']
         if pkdtstr is None or str(pkdtstr) == 'nan':
             # pick the median date of the shower then the approx datetime value
@@ -141,6 +146,22 @@ def getShowerStartEnd(shwr, start=True):
             reqdt = datetime.datetime.strptime(f'{datetime.datetime.now(datetime.timezone.utc).year} {reqdtstr}','%Y %b %d').replace(tzinfo=datetime.timezone.utc)
 
         return reqdt
+    
+
+def getAltShwrName(shwr, dir_path=None):
+    if not dir_path:
+        dir_path = os.path.join(os.getenv('WMPL_LOC', default=os.path.expanduser('~/src/WesternMeteorPyLib/')), 'wmpl','share')
+    srcfile = os.path.join(dir_path, 'streamfulldata.csv')
+    rawdf = pd.read_csv(os.path.expanduser(srcfile), sep='|', header=None)
+    usefuldf = pd.concat([rawdf[3],rawdf[4]], axis=1)
+    usefuldf.rename(columns={3:'IAU_code',4:'name'}, inplace=True)
+    usefuldf.drop_duplicates(inplace=True)
+    match = usefuldf[usefuldf.IAU_code==shwr]
+    if len(match) > 0:
+        shower_name = match.iloc[0]['name'].strip()
+    else:
+        shower_name = f'{shwr} unknown'
+    return shower_name
 
 
 def _loadMajorMinor(dir_path=None):
