@@ -83,9 +83,9 @@ def getShowerDets(shwr, asstring=False):
             name = getAltShwrName(shwr)
         pkdtstr = thisshower.iloc[0]['peak']
         if pkdtstr is None or str(pkdtstr) == 'nan':
-            sollon = getAltShwrPeak(shwr)
+            pksollong = getAltShwrPeak(shwr)
             lve = ephem.previous_vernal_equinox(ephem.Date(datetime.datetime.now(datetime.timezone.utc)))
-            pkdt = ephem.to_timezone(ephem.date(lve + sollon), tzinfo=datetime.timezone.utc)
+            pkdt = ephem.to_timezone(ephem.date(lve + pksollong), tzinfo=datetime.timezone.utc)
         else:        
             pkdt = datetime.datetime.strptime(f'{datetime.datetime.now().year} {pkdtstr}','%Y %b %d')
             pksollong = np.degrees(jd2SolLonVSOP(datetime2JD(pkdt)))
