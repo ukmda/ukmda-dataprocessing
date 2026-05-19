@@ -85,6 +85,7 @@ def getShowerDets(shwr, asstring=False):
         if pkdtstr is None or str(pkdtstr) == 'nan':
             pksollong = getAltShwrPeak(shwr)
             if pksollong is None:
+                print('no data for', shwr)
                 pksollong = (thisshower.iloc[0]['la_sun'] + thisshower.iloc[-1]['la_sun'])/2
             lve = ephem.previous_vernal_equinox(ephem.Date(datetime.datetime.now(datetime.timezone.utc)))
             pkdt = ephem.to_timezone(ephem.date(lve + pksollong), tzinfo=datetime.timezone.utc)
