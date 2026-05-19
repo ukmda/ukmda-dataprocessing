@@ -5,6 +5,7 @@ alias h='history'
 alias df='df -h'
 alias du='du -h'
 alias ls='ls --color=auto'
+alias vi='TERM=xterm vi' # needed to get colours in vi 
 
 alias data='if [ "$SRC" == "" ] ; then echo select env first; else cd $SRC/data && pwd ; fi'
 alias logs='if [ "$SRC" == "" ] ; then echo select env first; else cd $SRC/logs && pwd ; fi'

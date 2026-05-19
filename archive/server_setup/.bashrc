@@ -56,7 +56,7 @@ unset __conda_setup
 # <<< conda initialize <<<
 
 # make the function keys work properly in python
-export TERM=putty
+export TERM=putty+256color
 
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
