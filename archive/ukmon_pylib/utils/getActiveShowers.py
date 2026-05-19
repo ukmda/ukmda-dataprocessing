@@ -98,7 +98,7 @@ def getShowerDets(shwr, asstring=False):
         return  (id, name, pksollong, dtstr)
     else:
         # note, different order and return values
-        return f'{pksollong}, {name}, {dtstr}, {shwr}'
+        return f'{pksollong},{name},{dtstr},{shwr}'
 
 
 def getShowerPeak(shwr):
