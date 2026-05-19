@@ -139,7 +139,7 @@ $SRC/utils/loadSingleCsvMDB.sh
 $SRC/analysis/updatePlotsAndDetStatus.sh
 
 # push the API data dictionary to the website for end-user use
-aws s3 sync $SRC/share/ s3://ukmda-website/browse --exclude "*" --include "datadictionary.xlsx" --quiet
+aws s3 sync $DATADIR/share/ s3://ukmda-website/browse --exclude "*" --include "datadictionary.xlsx" --quiet
 
 logger -s -t $(basename $0 .sh) "finished"
 
