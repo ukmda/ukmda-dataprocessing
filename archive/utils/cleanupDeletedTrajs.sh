@@ -59,23 +59,24 @@ fi
 
 logger -s -t cleanupDeletedTrajs "checking consolidated matches"
 lasttraj=$(sqlite3 $DATADIR/distrib/trajectories.db "select traj_file_path from trajectories where status=0 and jdt_ref > ${jdt_min} order by jdt_ref;" | tail -1)
-trajdir=$(dirname $lasttraj)
-yr=${trajdir:13:4}
-trajpth=$(basename $trajdir)
-matchcsv=$DATADIR/matched/matches-full-${yr}.csv
-grep $trajpth $matchcsv > /dev/null 
-if [ $? == 0 ] ; then 
-    python -c "from maintenance.dataMaintenance import removeDeletedTraj;removeDeletedTraj('$matchcsv')"
-    python -m converters.toParquet $matchcsv
-    aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matched/ --include "*" --exclude "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet
-    aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matchedpq/ --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet 
-    aws s3 sync $DATADIR/matched/ $WEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet
+if [ "$lasttraj" != "" ] ; then 
+   trajdir=$(dirname $lasttraj)
+   yr=${trajdir:13:4}
+   trajpth=$(basename $trajdir)
+   matchcsv=$DATADIR/matched/matches-full-${yr}.csv
+   grep $trajpth $matchcsv > /dev/null 
+   if [ $? == 0 ] ; then 
+      python -c "from maintenance.dataMaintenance import removeDeletedTraj;removeDeletedTraj('$matchcsv')"
+      python -m converters.toParquet $matchcsv
+      aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matched/ --include "*" --exclude "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet
+      aws s3 sync $DATADIR/matched/ $UKMONSHAREDBUCKET/matches/matchedpq/ --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet 
+      aws s3 sync $DATADIR/matched/ $WEBSITEBUCKET/browse/parquet/  --exclude "*" --include "*.snap" --exclude "*.bkp" --exclude "*.gzip" --quiet
 
-    srchcsv=$DATADIR/searchidx/${yr}-allevents.csv
-    python -c "from maintenance.dataMaintenance import removeDeletedTraj;removeDeletedTraj('$srchcsv')"
-    aws s3 sync  $DATADIR/searchidx/ $WEBSITEBUCKET/search/indexes/ --exclude "*" --include "*allevents.csv" --quiet 
-fi 
-
-# no need to check the SQL database in mariadb, as it is populated from the CSV file that 
-# we cleaned up above
+      srchcsv=$DATADIR/searchidx/${yr}-allevents.csv
+      python -c "from maintenance.dataMaintenance import removeDeletedTraj;removeDeletedTraj('$srchcsv')"
+      aws s3 sync  $DATADIR/searchidx/ $WEBSITEBUCKET/search/indexes/ --exclude "*" --include "*allevents.csv" --quiet 
+   fi 
+else
+   echo "No deleted traj since $startdt"
+fi
 logger -s -t cleanupDeletedTrajs "finished cleanupDeletedTrajs"
