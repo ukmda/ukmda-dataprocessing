@@ -83,8 +83,7 @@ def getShowerDets(shwr, asstring=False):
             name = getAltShwrName(shwr)
         pkdtstr = thisshower.iloc[0]['peak']
         if pkdtstr is None or str(pkdtstr) == 'nan':
-            # pick the median date of the shower then the approx datetime value
-            pksollong = (thisshower.iloc[-1]['la_sun'] + thisshower.iloc[0]['la_sun'])/2
+            pkdt = getAltShwrPeak(shwr)
             lve = ephem.previous_vernal_equinox(ephem.Date(datetime.datetime.now(datetime.timezone.utc)))
             pkdt = ephem.to_timezone(ephem.date(lve+pksollong), tzinfo=datetime.timezone.utc)
         else:        
@@ -162,6 +161,22 @@ def getAltShwrName(shwr, dir_path=None):
     else:
         shower_name = f'{shwr} unknown'
     return shower_name
+
+
+def getAltShwrPeak(shwr, dir_path=None):
+    if not dir_path:
+        dir_path = os.path.join(os.getenv('WMPL_LOC', default=os.path.expanduser('~/src/WesternMeteorPyLib/')), 'wmpl','share')
+    srcfile = os.path.join(dir_path, 'streamfulldata.csv')
+    rawdf = pd.read_csv(os.path.expanduser(srcfile), sep='|', header=None)
+    usefuldf = pd.concat([rawdf[3],rawdf[6], rawdf[7]], axis=1)
+    usefuldf.rename(columns={3:'IAU_code',7:'la_sun'}, inplace=True)
+    match = usefuldf[usefuldf.IAU_code==shwr]
+    match = match[match[6] > -1]
+    if len(match) > 0:
+        sollon = match.iloc[-1]['la_sun']
+    else:
+        sollon = None
+    return sollon
 
 
 def _loadMajorMinor(dir_path=None):
