@@ -22,7 +22,7 @@ git checkout wmpl/share/gmn_shower_table_20230518.txt
 rsync wmpl/share/gmn_shower_table_20230518.txt $DATADIR/share/
 popd
 
-python -c  "from utils.getActiveShowers import _loadShowerTable;_LoadShowerTable(forceRedo=True)"
+python -c  "from utils.getActiveShowers import _loadShowerTable;_loadShowerTable(forceRedo=True)"
 
 logger -s -t getImoWSfile "finished"
 
