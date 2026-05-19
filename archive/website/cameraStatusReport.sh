@@ -25,7 +25,7 @@ rundate=$(date +%Y%m%d)
 
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 export PYTHONPATH=$PYLIB
-logger -s -t cameraStatusReport "starting"
+logger -s -t $(basename $0 .sh) "start"
 
 echo TEMPORARY HACK REMOVE CODE PERTAINING TO OLD SERVER
 platform=$(grep "^NAME" /etc/os-release | awk -F'"' '{print $2}')
@@ -68,4 +68,4 @@ python -m reports.cameraStatusReport
 aws s3 cp $DATADIR/reports/statrep.html $WEBSITEBUCKET/reports/ --quiet
 aws s3 cp $DATADIR/reports/camrep.js $WEBSITEBUCKET/reports/ --quiet
 
-logger -s -t cameraStatusReport "finished"
+logger -s -t $(basename $0 .sh) "finished"

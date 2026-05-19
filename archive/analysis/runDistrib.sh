@@ -20,7 +20,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 # load the configuration
 source $here/../config.ini >/dev/null 2>&1
 
-logger -s -t runDistrib "starting runDistrib" 
+logger -s -t $(basename $0 .sh) "starting"
 
 if [ $# -gt 0 ] ; then
     if [ "$1" != "" ] ; then
@@ -35,9 +35,9 @@ fi
 begdate=$(date --date="-$MATCHSTART days" '+%Y%m%d')
 rundate=$(date --date="-$MATCHEND days" '+%Y%m%d')
 
-logger -s -t runDistrib "running phase 1 for dates ${begdate} to ${rundate}"
+logger -s -t $(basename $0 .sh) "running phase 1 for dates ${begdate} to ${rundate}"
 
-logger -s -t runDistrib  "start correlation server" 
+logger -s -t $(basename $0 .sh)  "start correlation server" 
 aws ec2 start-instances --instance-ids $SERVERINSTANCEID
 stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
 while [ "$stat" -ne 16 ]; do
@@ -47,14 +47,14 @@ done
 
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
-logger -s -t runDistrib "creating the run script"
+logger -s -t $(basename $0 .sh) "creating the run script"
 
 execdist=execdistrib.sh
 execMatchingsh=/tmp/$execdist
 python -m traj.createDistribMatchingSh $MATCHSTART $MATCHEND $execMatchingsh $TESTMODE
 chmod +x $execMatchingsh
 
-logger -s -t runDistrib "deploy the script to the server $CALCSERVERIP and run it"
+logger -s -t $(basename $0 .sh) "deploy the script to the server $CALCSERVERIP and run it"
 
 scp -i $SERVERSSHKEY $execMatchingsh $SERVERUSERID@$CALCSERVERIP:data/distrib/$execdist
 while [ $? -ne 0 ] ; do
@@ -73,7 +73,7 @@ rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/utils/convertSolLon.py $SERVERUSERID
 rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/maintenance/dataMaintenance.py $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/maintenance/
 
 # now run the script
-logger -s -t runDistrib "start distributed processing"
+logger -s -t $(basename $0 .sh) "start distributed processing"
 ssh -i $SERVERSSHKEY $SERVERUSERID@$CALCSERVERIP "data/distrib/$execdist"
 
 rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$CALCSERVERIP:ukmon-shared/matches/RMSCorrelate/candidates/processed/*.tgz $DATADIR/distrib/candidates
@@ -81,7 +81,7 @@ rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$CALCSERVERIP:ukmon-shared/ma
 rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$CALCSERVERIP:ukmon-shared/matches/RMSCorrelate/logs/*${rundate}*.log $SRC/logs/distrib/
 ssh -i $SERVERSSHKEY $SERVERUSERID@$CALCSERVERIP "find ukmon-shared/matches/RMSCorrelate/logs -name '*.log' -mtime +30 -exec rm -f {} \;"
 
-logger -s -t runDistrib "job run, stop the server again"
+logger -s -t $(basename $0 .sh) "job run, stop the server again"
 aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 
 logger -s -t runDistrib "monitoring and waiting for completion"
@@ -91,7 +91,7 @@ python -c "from traj.distributeCandidates import monitorProgress as mp; mp('${ru
 mkdir -p $DATADIR/distrib
 cd $DATADIR/distrib
 
-logger -s -t runDistrib "restarting server to consolidate results"
+logger -s -t $(basename $0 .sh) "restarting server to consolidate results"
 
 stat=$(aws ec2 describe-instances --instance-ids $SERVERINSTANCEID --query Reservations[*].Instances[*].State.Code --output text)
 if [ $stat -eq 80 ]; then 
@@ -110,20 +110,20 @@ execConsolsh=/tmp/$execcons
 python -c "from traj.createDistribMatchingSh import createExecConsolSh;createExecConsolSh($MATCHSTART, $MATCHEND, '$execConsolsh', '$TESTMODE')"
 chmod +x $execConsolsh
 
-logger -s -t runDistrib "running consolidation"
+logger -s -t $(basename $0 .sh) "running consolidation"
 
 scp -i $SERVERSSHKEY $execConsolsh $SERVERUSERID@$CALCSERVERIP:data/distrib/$execcons
 ssh -i $SERVERSSHKEY $SERVERUSERID@$CALCSERVERIP "data/distrib/$execcons"
 
-logger -s -t runDistrib "finished consolidation, copying databases"
+logger -s -t $(basename $0 .sh) "finished consolidation, copying databases"
 
 rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$CALCSERVERIP:ukmon-shared/matches/RMSCorrelate/dbs/*.db $DATADIR/distrib
 ssh -i $SERVERSSHKEY $SERVERUSERID@$CALCSERVERIP "find /tmp -maxdepth 1 -name "*.pickle"  -mtime +7 -exec rm -f {} \;"
 
-logger -s -t runDistrib "stopping calcserver again"
+logger -s -t $(basename $0 .sh) "stopping calcserver again"
 aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 
-logger -s -t runDistrib "copying data to batch server and tidying up"
+logger -s -t $(basename $0 .sh) "copying data to batch server and tidying up"
 
 # grab a copy of the indvidual container dbs so we can get a list of new solutions
 rm -Rf $DATADIR/latest/contdbs/
@@ -148,4 +148,4 @@ find $DATADIR/distrib/containers/ -name "cont*.tgz" -mtime +30 -exec rm -f {} \;
 find $DATADIR/distrib/ -maxdepth 1 -name "20*.tgz" -mtime +30 -exec rm -f {} \;
 rm -f $DATADIR/distrib/${rundate}.pickle
 
-logger -s -t "finished runDistrib"
+logger -s -t $(basename $0 .sh) "finished"

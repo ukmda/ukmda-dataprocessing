@@ -21,13 +21,13 @@ source $here/../config.ini >/dev/null 2>&1
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 export PYTHONPATH=$PYLIB
 
-logger -s -t costReport "starting"
+logger -s -t $(basename $0 .sh) "starting"
 numdays=90
 if [ $# -gt 1 ] ; then numdays = $1 ; fi
 
 mkdir  -p $DATADIR/costs > /dev/null 
 
-logger -s -t costReport "getting data for $numdays for $AWS_PROFILE"
+logger -s -t $(basename $0 .sh) "getting data for $numdays"
 python -m metrics.costMetrics $DATADIR/costs eu-west-2 $numdays
 
 tod=$(date +%d)
@@ -71,9 +71,9 @@ for fr in $finreps ; do
 done 
 echo "var outer_div = document.getElementById(\"docindex\"); outer_div.appendChild(table); })" >> $frjs
 
-logger -s -t costReport "publishing data"
+logger -s -t $(basename $0 .sh) "publishing data"
 aws s3 sync $DATADIR/costs/ $WEBSITEBUCKET/docs/financial/raw/ --exclude "*" --include "costs-18*.csv" --quiet
 aws s3 cp $costfile $WEBSITEBUCKET/reports/ --quiet 
 aws s3 cp $DATADIR/$imgfile3 $WEBSITEBUCKET/reports/ --quiet 
 aws s3 cp $frjs $WEBSITEBUCKET/docs/ --quiet 
-logger -s -t costReport "done"
+logger -s -t $(basename $0 .sh) "finished"

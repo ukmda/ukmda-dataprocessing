@@ -4,7 +4,6 @@ This folder contains some utility functions useful for managing the environment.
 
 ## Used by the Batch
 * cleanupDeletedTrajs.sh - checks for and removes any logically-deleted trajectories eg duplicates
-* getCostmetrics.sh - extract costs data from AWS and push to the website
 * loadMatchCsvMDB.sh - loads the match data into MariaDB
 * loadSingleCsvMDB.sh - loads the single-station data into MariaDB
 * loadBrightCsvMDB.sh - loads brightness data into MariaDB
@@ -35,4 +34,4 @@ This folder contains some utility functions useful for managing the environment.
 * getGmnData.sh - pulls GMN datasets from the GMN server
 
 ## Copyright
-All code Copyright (C) 2018-2023 Mark McIntyre
+All code Copyright (C) 2018- Mark McIntyre

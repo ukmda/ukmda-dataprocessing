@@ -10,11 +10,12 @@ source $here/../config.ini >/dev/null 2>&1
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 cd ${DATADIR}/distrib
+logger -s -t $(basename $0 .sh) "starting"
 
 startdt=$(date --date="-$MATCHSTART days" '+%Y%m%d-080000')
 jdt_min=$(python -c "from wmpl.Utils.TrajConversions import datetime2JD;import datetime;print(datetime2JD(datetime.datetime.strptime('$startdt', '%Y%m%d-%H%M%S')))")
 
-logger -s -t cleanupDeletedTrajs "starting: checking main storage and website"
+logger -s -t $(basename $0 .sh) "checking main storage and website"
 sqlite3 $DATADIR/distrib/trajectories.db "select traj_file_path from trajectories where status=0 and jdt_ref > ${jdt_min} order by jdt_ref;" | while read traj ; do
 
    # check if there are two trajectories with the same folder - we don't want to delete the active one
@@ -42,7 +43,7 @@ sqlite3 $DATADIR/distrib/trajectories.db "select traj_file_path from trajectorie
    fi 
 done
 
-logger -s -t cleanupDeletedTrajs "checking raw fullcsv data files"
+logger -s -t $(basename $0 .sh) "checking raw fullcsv data files"
 yr=${startdt:0:4}
 csvloc=matches/${yr}/fullcsv
 newloc=matches/duplicates/csvs
@@ -57,7 +58,7 @@ if [ $newyr != $yr ] ; then
 
 fi 
 
-logger -s -t cleanupDeletedTrajs "checking consolidated matches"
+logger -s -t $(basename $0 .sh) "checking consolidated matches"
 lasttraj=$(sqlite3 $DATADIR/distrib/trajectories.db "select traj_file_path from trajectories where status=0 and jdt_ref > ${jdt_min} order by jdt_ref;" | tail -1)
 if [ "$lasttraj" != "" ] ; then 
    trajdir=$(dirname $lasttraj)
@@ -79,4 +80,4 @@ if [ "$lasttraj" != "" ] ; then
 else
    echo "No deleted traj since $startdt"
 fi
-logger -s -t cleanupDeletedTrajs "finished cleanupDeletedTrajs"
+logger -s -t $(basename $0 .sh) "finished"

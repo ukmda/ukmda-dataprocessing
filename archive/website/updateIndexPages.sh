@@ -12,6 +12,8 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 
+logger -s -t $(basename $0 .sh) "starting"
+
 if [ $# -eq 0 ]; then
     dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
 else
@@ -19,7 +21,7 @@ else
 fi
 trajlist=$(cat $dailyrep | awk -F, '{print $2}')
 
-logger -s -t updateIndexPages "Updating indexes"
+
 for traj in $trajlist ; do bn=$(basename $traj); echo ${bn:0:8} >> /tmp/days.txt ; done
 daystodo=$(cat /tmp/days.txt | sort | uniq)
 for dtd in $daystodo
@@ -44,4 +46,4 @@ do
 done
 rm /tmp/days.txt
 
-logger -s -t updateIndexPages "Finished"
+logger -s -t $(basename $0 .sh) "finished"

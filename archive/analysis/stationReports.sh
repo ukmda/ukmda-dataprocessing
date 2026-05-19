@@ -19,24 +19,27 @@ source $here/../config.ini >/dev/null 2>&1
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 $SRC/utils/clearCaches.sh
 
+logger -s -t $(basename $0 .sh) "starting"
+
 if [ $# -eq 0 ]; then
     ym=$(date +%Y%m)
 else
     ym=$1
 fi
 yr=${ym:0:4}
+
 if [ "$2" != "" ] ; then
     loc=$2
-    logger -s -t stationReports "running station reports for $ym for $loc"
+    logger -s -t $(basename $0 .sh) "running station reports for $ym for $loc"
 else
-    logger -s -t stationReports "running station reports for $ym for all stations"
+    logger -s -t $(basename $0 .sh) "running station reports for $ym for all stations"
 fi
 python -m analysis.stationAnalysis $ym $loc
 python -m analysis.stationAnalysis $yr $loc
 
 aws s3 sync $DATADIR/reports/$yr/stations/  $WEBSITEBUCKET/reports/$yr/stations/ --quiet
 
-logger -s -t stationReports "station reports done creating index"
+logger -s -t $(basename $0 .sh) "station reports done creating index"
 
 mkdir -p $DATADIR/reports/$yr/stations > /dev/null 2>&1
 cd $DATADIR/reports/$yr/stations
@@ -69,5 +72,5 @@ cp $TEMPLATES/statreportindex.html index.html
 aws s3 cp $DATADIR/reports/$yr/stations/index.html  $WEBSITEBUCKET/reports/$yr/stations/ --quiet
 aws s3 cp $DATADIR/reports/$yr/stations/reportindex.js  $WEBSITEBUCKET/reports/$yr/stations/ --quiet
 
-logger -s -t stationReports "finished"
+logger -s -t $(basename $0 .sh) "finished"
 $SRC/utils/clearCaches.sh

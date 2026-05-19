@@ -20,6 +20,7 @@ ym=$1
 yr=${ym:0:4}
 mth=${ym:4:2}
 dy=${ym:6:2}
+logger -s -t $(basename $0 .sh) "finished"
 
 logger -s -t createOrbitIndex "creating orbit index page for $yr $mth $dy"
 
@@ -125,8 +126,8 @@ fi
 
 cat $TEMPLATES/footer.html >> $idxfile
 
-logger -s -t createOrbitIndex "copying to website"
+logger -s -t $(basename $0 .sh) "copying to website"
 aws s3 cp $idxfile $targ/index.html --quiet
 rm -f $idxfile
 
-logger -s -t createOrbitIndex "finished"
+logger -s -t $(basename $0 .sh) "finished"

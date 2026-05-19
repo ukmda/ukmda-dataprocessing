@@ -6,6 +6,8 @@ source $here/../config.ini >/dev/null 2>&1
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 cd $here
 
+logger -s -t $(basename $0 .sh) "starting"
+
 fn=$DATADIR/dailyreports/latest.txt
 profile=ukmonshared
 bucket=ukmda-shared
@@ -24,3 +26,5 @@ do
     echo $orbn $bucket $profile 
 	aws lambda invoke --profile $profile --function-name getExtraOrbitFilesV2 --invocation-type Event --log-type Tail  --payload file://./tmp.json  --region eu-west-2 --cli-binary-format raw-in-base64-out res.log
 done
+
+logger -s -t $(basename $0 .sh) "finished"
