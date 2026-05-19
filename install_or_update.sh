@@ -27,12 +27,14 @@ rsync -a share/ ~/${envname}/share
 echo "Creating data folders..."
 DATADIR=~/$envname/data
 mkdir -p $DATADIR/{admin,browse,consolidated,costs,dailyreports,distrib,kmls,manualuploads}
-mkdir -p $DATADIR/{lastlogs,latest,matched,orbits,reports,searchidx,single,trajdb,videos}
+mkdir -p $DATADIR/{lastlogs,latest,matched,orbits,reports,searchidx,single,trajdb,videos,shwrinfo}
 mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
 mkdir -p ~/$envname/logs
 mkdir -p ~/.logrotate
 mkdir -p ~/.aws
 mkdir -p ~/server_setup
+
+rsync -a --delete shwrinfo/ ~$DATADIR/shwrinfo
 
 rsync -a server_setup/*.sh ~/server_setup
 rsync -a server_setup/*.py ~/server_setup
