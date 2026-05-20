@@ -89,7 +89,7 @@ def getUncalibratedImageList(dtstr=None):
     else:
         print('file not found', logfile)
         imglist=[]
-    cur.commit()
+    connection.commit()
     cur.close()
     connection.close()
     return imglist

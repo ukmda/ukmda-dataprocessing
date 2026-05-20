@@ -34,6 +34,7 @@ create table singles(
 
 alter ignore table ukmon.singles add unique uniq_Dtstamp (Dtstamp);
 create index t_filname on singles(filname);
+create index t_status on singles(status);
 
 create table matches(
     _dbver varchar(6),
