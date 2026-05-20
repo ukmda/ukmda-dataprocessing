@@ -65,6 +65,22 @@ def getKnownImages(dtstr, datatype='consumed'):
     return imglist
 
 
+def getMatchedImageList(dtstr):
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
+
+    host, user, passwd, db = getSqlLoginDetails()
+    connection = pymysql.connect(host=host, user=user, password=passwd, database=db, cursorclass=pymysql.cursors.DictCursor)  
+    cur = connection.cursor()
+    imglist = open(os.path.join(datadir, 'single', 'used', f'consumed_{dtstr}.txt'), 'r').readlines()
+    for li in imglist:
+        sqlstr = f"update singles set status='M' where filname='{li.strip()}'"
+        #print(sqlstr)
+        cur.execute(sqlstr)
+    connection.commit()
+    cur.close()
+    connection.close()
+
+
 def getUncalibratedImageList(dtstr=None):
     datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     now = datetime.datetime.now(tz=datetime.timezone.utc).strftime('%Y%m%d')
