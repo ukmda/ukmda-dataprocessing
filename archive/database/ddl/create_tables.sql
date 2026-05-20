@@ -33,6 +33,7 @@ create table singles(
     );
 
 alter ignore table ukmon.singles add unique uniq_Dtstamp (Dtstamp);
+create index t_filname on singles(filname);
 
 create table matches(
     _dbver varchar(6),
