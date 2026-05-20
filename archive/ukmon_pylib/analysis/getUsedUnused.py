@@ -4,6 +4,7 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 
 import os
+import sys
 import boto3
 import json
 import pymysql.cursors
@@ -174,8 +175,8 @@ def getAllObservations(dt_range, dbdir, datadir):
                 print(f'skipping {rel_proc_path}')
                 continue
 
-        print("")
-        print(f"Processing station: {station_code} {rel_proc_path}")
+        #print("")
+        #print(f"Processing station: {station_code} {rel_proc_path}")
 
         ftpdetectinfo_name = None
         platepar_recalibrated_name = None
@@ -215,7 +216,7 @@ def getAllObservations(dt_range, dbdir, datadir):
         
         # Skip these observations if no data files were found inside
         if (ftpdetectinfo_name is None) or (platepar_recalibrated_name is None):
-            print(f"  Skipping {rel_proc_path} due to missing data files...")
+            #print(f"  Skipping {rel_proc_path} due to missing data files...")
             continue
 
         if len(platepars_recalibrated_dict) == 0:
@@ -264,7 +265,7 @@ def getAllObservations(dt_range, dbdir, datadir):
             if cams_met_obs.ff_name in platepars_recalibrated_dict:
                 pp_dict = platepars_recalibrated_dict[cams_met_obs.ff_name]
             else:
-                print("    Skipping {:s}, not found in platepar dict".format(cams_met_obs.ff_name))
+                #print("    Skipping {:s}, not found in platepar dict".format(cams_met_obs.ff_name))
                 continue
 
             pp = PlateparDummy(**pp_dict)
@@ -272,7 +273,7 @@ def getAllObservations(dt_range, dbdir, datadir):
             # Skip observations which weren't recalibrated
             if hasattr(pp, "auto_recalibrated"):
                 if not pp.auto_recalibrated:
-                    print("    Skipping {:s}, not recalibrated!".format(cams_met_obs.ff_name))
+                    #print("    Skipping {:s}, not recalibrated!".format(cams_met_obs.ff_name))
                     continue
 
             # Init meteor data
@@ -299,10 +300,10 @@ def getAllObservations(dt_range, dbdir, datadir):
             con.commit()
             added_count += 1
             
-        print(f'  Added {added_count} observations')
+        print(f'  Added {added_count} observations from {rel_proc_path}')
         total_obs_added += added_count
 
-    print(f'Finished loading {total_obs_added} observations')
+    print(f'Finished adding {total_obs_added} observations')
     con.close()
     markObsPaired(dbdir)
     return
@@ -347,3 +348,21 @@ def markObsPaired(dbdir, allobsdb=None, obsdb=None, obsdbdir=None):
             print(f'unable to open observations.db in {obsdbdir}')
     else:
         print(f'unable to open all_observations.db in {dbdir}')
+
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print('usage: getUsedUnused.py action {args}')
+    else:
+        action = sys.argv[1]
+        if action.lower() == 'updateobs':
+            start = int(sys.argv[2])
+            end = int(sys.argv[3])
+            dbdir = os.path.expanduser(sys.argv[4])
+            datadir = os.path.expanduser(sys.argv[5])
+
+            dt_beg = datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(days=start)
+            dt_end = datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(days=end)
+            dt_range = [dt_beg, dt_end]
+            getAllObservations(dt_range, dbdir, datadir)

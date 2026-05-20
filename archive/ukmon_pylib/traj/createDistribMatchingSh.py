@@ -154,6 +154,9 @@ def createExecConsolSh(matchstart, matchend, execconsolsh, istest=''):
 
         outf.write(f'python -m traj.consolidateDistTraj ~/data/distrib/canddbs/ {calcdir}/dbs/\n')
 
+        outf.write('logger -s -t execConsol updating used/unused database\n')
+        outf.write(f'python -m analysis.getUsedUnused updateobs {matchstart} {matchend} {calcdir}/dbs {calcdir}')
+
         outf.write(f'aws s3 sync {calcdir}/dbs/ {srcpath}/dbs/ --exclude "*" --include "*.db" --quiet\n')
 
         outf.write('logger -s -t execConsol creating density plots\n')
