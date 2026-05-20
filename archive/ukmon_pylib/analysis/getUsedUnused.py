@@ -65,6 +65,36 @@ def getKnownImages(dtstr, datatype='consumed'):
     return imglist
 
 
+def getUncalibratedImageList(dtstr=None):
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
+    now = datetime.datetime.now(tz=datetime.timezone.utc).strftime('%Y%m%d')
+
+    host, user, passwd, db = getSqlLoginDetails()
+    connection = pymysql.connect(host=host, user=user, password=passwd, database=db, cursorclass=pymysql.cursors.DictCursor)  
+    cur = connection.cursor()
+
+    if dtstr is not None and dtstr != now:
+        logfile = os.path.join(datadir, '..', 'logs', f'matchJob.log-{dtstr}')
+    else:
+        logfile = os.path.join(datadir, '..', 'logs', 'matchJob.log')
+    if os.path.isfile(logfile):
+        flines = open(logfile, 'r').readlines()
+        uncal = [f for f in flines if 'not recalibrated' in f]
+        imglist = [x.split('Skipping ')[1].split(',')[0] for x in uncal]
+        with open(os.path.join(datadir, 'single', 'used', f'uncal_{dtstr}.txt'), 'w') as outf:
+            for li in imglist:
+                outf.write(f'{li}\n')
+                sqlstr = f"update singles set status='U' where filname='{li}"
+                cur.execute(sqlstr)
+    else:
+        print('file not found', logfile)
+        imglist=[]
+    cur.commit()
+    cur.close()
+    connection.close()
+    return imglist
+
+
 def getUnusedImages(dtstr):
     """
     Find all images for 'dtstr' which are not associated with a
@@ -75,9 +105,18 @@ def getUnusedImages(dtstr):
     uncal = getKnownImages(dtstr, 'uncal')
     used = getKnownImages(dtstr, 'consumed')
     unused = list(set(allimages)-set(used + uncal))
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
+    with open(os.path.join(datadir,'single','used',f'unused_{dtstr}.txt'), 'w') as outf:
+        pass
+
+    #   df.index[df.a==3].tolist() to get row indexes where column a == 3
+    #   df.loc[1, 'b'] = 5 to set row 1, column 'b' to value 5
+
 
 ##########################################################
 # Handling of observations
+# This has to be run on the calcserver as it needs access
+# to the raw RMS data.
 ##########################################################
 
 def initMeteorObs(station_code, ftpdetectinfo_path, platepars_recalibrated_dict):
@@ -366,3 +405,6 @@ if __name__ == '__main__':
             dt_end = datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(days=end)
             dt_range = [dt_beg, dt_end]
             getAllObservations(dt_range, dbdir, datadir)
+        elif action.lower() == 'unusedimgs':
+            dtstr = sys.argv[2]
+            getUnusedImages(dtstr)
