@@ -74,7 +74,7 @@ logger -s -t $(basename $0 .sh) "get a list of uncalibrated data"
 
 aws s3 sync $UKMONSHAREDBUCKET/matches/consumed/ $DATADIR/single/used/ --exclude "*" --include "*.txt" --quiet
 rundate=$(cat $DATADIR/rundate.txt)
-python -c "from utils.getUsedUnused import getUncalibratedImageList;getUncalibratedImageList('$rundate');"
+python -c "from analysis.getUsedUnused import getUncalibratedImageList;getUncalibratedImageList('$rundate');"
 
 # refresh the website index pages just in case any new data
 dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
