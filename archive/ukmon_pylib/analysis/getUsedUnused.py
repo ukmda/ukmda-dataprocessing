@@ -89,7 +89,7 @@ def getUncalibratedImageList(dtstr=None):
     else:
         imglist = open(os.path.join(datadir, 'single', 'used', f'uncal_{dtstr}.txt'), 'r').readlines()
         for li in imglist:
-            sqlstr = f"update singles set status='U' where filname='{li}'"
+            sqlstr = f"update singles set status='U' where filname='{li.strip()}'"
             cur.execute(sqlstr)
     connection.commit()
     cur.close()
