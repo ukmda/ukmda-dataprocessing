@@ -70,11 +70,12 @@ logger -s -t $(basename $0 .sh) "job run, stop the server again"
 
 aws ec2 stop-instances --instance-ids $SERVERINSTANCEID
 
-logger -s -t $(basename $0 .sh) "get a list of uncalibrated data"
+logger -s -t $(basename $0 .sh) "get a list of uncalibrated and matched data"
 
 aws s3 sync $UKMONSHAREDBUCKET/matches/consumed/ $DATADIR/single/used/ --exclude "*" --include "*.txt" --quiet
 rundate=$(cat $DATADIR/rundate.txt)
 python -c "from analysis.getUsedUnused import getUncalibratedImageList;getUncalibratedImageList('$rundate');"
+python -c "from analysis.getUsedUnused import getMatchedImageList;getMatchedImageList('$rundate');"
 
 # refresh the website index pages just in case any new data
 dailyrep=$(ls -1tr $DATADIR/dailyreports/20* | tail -1)
