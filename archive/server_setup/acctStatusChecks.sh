@@ -29,7 +29,7 @@ echo "Pending is how many are pending cutover but no response from owner." >> st
 echo "" >> statusreport.txt
 echo "Migrated:  $(wc -l moved.txt | awk '{print $1}')" >> statusreport.txt
 echo "Done:      $(wc -l switched.txt | awk '{print $1}')" >> statusreport.txt
-echo "In Flight: $(wc -l owneraware.txt)| awk '{print $1}')" >> statusreport.txt
+echo "In Flight: $(wc -l owneraware.txt| awk '{print $1}')" >> statusreport.txt
 echo "Pending:   $(wc -l pending.txt | awk '{print $1}')" >> statusreport.txt
 echo "" >> statusreport.txt
 echo "Live is how many have connected in the last 10 days" >> statusreport.txt
