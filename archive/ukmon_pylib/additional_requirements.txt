@@ -27,7 +27,7 @@ pre-commit
 s3fs
 dynamodb_json
 requests
-paho-mqtt
+paho-mqtt<2.0
 scp
 # testing requirements
 pytest
