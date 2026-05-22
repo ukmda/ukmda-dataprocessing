@@ -188,3 +188,13 @@ resource "aws_ssm_parameter" "prod_gmapsapikey" {
   }
 }
 
+# App password for ukmeteors@gmail.com
+resource "aws_ssm_parameter" "prod_gmailkey" {
+  name  = "prod_gmailkey"
+  type  = "SecureString"
+  value = "uphgxodohmfijwse"
+  tags = {
+    "billingtag" = "ukmda"
+  }
+}
+
