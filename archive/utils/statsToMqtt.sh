@@ -31,6 +31,6 @@ else
         msg="$(hostname) diskspace is ${diskpct}%"
         subj="Diskspace alert for $(hostname)"
         hn="$(hostname)@aws"
-        python -c "from utils.sendAnEmail import sendAnEmail;sendAnEmail('markmcintyre99@googlemail.com', '$msg', '$subj', '$hn')"
+        python -c "from utils.sendAnEmail import sendAnEmail;sendAnEmail('markmcintyre99@googlemail.com', '$msg', '$subj')"
     fi
 fi 

@@ -11,7 +11,7 @@ from utils.sendAnEmail import sendAnEmail
 
 def AddHeader(body, bodytext, stats):
     rtstr = datetime.datetime.strptime(stats[4], '%H:%M:%S').strftime('%Hh%Mm')
-    body = body + '<br>Today we examined {} detections, found {} potential matches and confirmed {} in {}.<br>'.format(stats[1], stats[2], stats[3], rtstr)
+    body = body + '<html><body><br>Today we examined {} detections, found {} potential matches and confirmed {} in {}.<br>'.format(stats[1], stats[2], stats[3], rtstr)
     if int(stats[3]) > 0:
         body = body + 'Up to the 100 brightest matched events are shown below. '
         body = body + 'Note that this may include older data for which a new match has been found.<br>'
@@ -28,7 +28,7 @@ def AddHeader(body, bodytext, stats):
 
 def addFooter(body, bodytext):
     fbm = 'Seen a fireball? <a href=http://fireballs.imo.net/?org=spa>Click here</a> to report it'
-    body = body + '</table><br><br>\n' + fbm + '<br>'
+    body = body + '</table><br><br>\n' + fbm + '<br></body></html>'
     bodytext = bodytext + '\n' + fbm + '\n'
     return body, bodytext
 
@@ -105,7 +105,6 @@ if __name__ == '__main__':
 
     _, _, body, bodytext = LookForMatchesRMS(doff, dailyrep, stats)
 
-    #body = body.replace('assets/img/logo.svg', 'latest/dailyreports/dailyreportsidx.html')
     if doff == 1:
         outfname = 'report_latest.html'
     else:
@@ -120,13 +119,9 @@ if __name__ == '__main__':
 
     datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     recs = open(os.path.join(datadir, 'admin','dailyReportRecips.txt'), 'r').readlines()
-    mailFrom = 'markmcintyre99@googlemail.com'
     mailRecip = recs[0].strip()
-    if len(recs) > 1:
-        mailFrom = recs[-1].strip()
-    #mailRecip = 'markmcintyre99@googlemail.com' # TODO for testing only
     yest = (datetime.date.today()-datetime.timedelta(days=doff)).strftime('%Y-%m-%d')
     # only send the email for the most recent report.
     if doff == 1:
         mailSubj = f'Latest Match Report for {yest}'
-        sendAnEmail(mailRecip, bodytext, mailSubj, mailFrom, msg_html=body.replace('href="/reports', f'href="{targeturl}/reports'))
+        sendAnEmail(mailRecip, bodytext, mailSubj, msg_html=body.replace('href="/reports', f'href="{targeturl}/reports'))
