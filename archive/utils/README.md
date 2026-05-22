@@ -12,7 +12,6 @@ This folder contains some utility functions useful for managing the environment.
 
 ## Other routine maintenance
 * checkAndRollKeys.sh - rolls station AWS Key/Secret pairs periodically to avoid stale keys
-* statsToMqtt.sh - posts server space/memory etc statistics to MQ 
 * userAudit.sh - performs a user audit and emails a report
 
 ## User tools to maintain data  
