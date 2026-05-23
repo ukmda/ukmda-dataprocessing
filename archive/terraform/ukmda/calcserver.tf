@@ -48,7 +48,7 @@ resource "aws_network_interface" "ubuntu_calcserver_if" {
 #  admin server
 ################################################
 
-
+/*
 resource "aws_instance" "admin_server" {
   ami                  = "ami-0c1ce90bf42d9802b"
   instance_type        = "t2.micro"
@@ -72,3 +72,4 @@ resource "aws_instance" "admin_server" {
   }
 
 }
+*/
