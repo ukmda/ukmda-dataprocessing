@@ -12,11 +12,11 @@ from utils.sendAnEmail import sendAnEmail
 def AddHeader(body, bodytext, stats):
     rtstr = datetime.datetime.strptime(stats[4], '%H:%M:%S').strftime('%Hh%Mm')
     body = body + '<html><body><br>Today we examined {} detections, found {} potential matches and confirmed {} in {}.<br>'.format(stats[1], stats[2], stats[3], rtstr)
+    bodytext = bodytext + 'Today we examined {} events, founnd {} potential matches and confirmed {} in {}\n'.format(stats[1], stats[2], stats[3], rtstr)
     if int(stats[3]) > 0:
         body = body + 'Up to the 100 brightest matched events are shown below. '
         body = body + 'Note that this may include older data for which a new match has been found.<br>'
         body = body + 'Click each link to see analysis of these events.<br>'
-        bodytext = bodytext + 'Today we examined {} events, founnd {} potential matches and confirmed {}\n'.format(stats[1], stats[2], stats[3])
         bodytext = bodytext + 'Up to the 100 brightest matched events are shown below.\n'
         bodytext = bodytext + 'Note that this may include older data for which a new match has been found.\n'
         body = body + '<table border=\"0\">'
@@ -50,7 +50,7 @@ def AddRowRMS(body, bodytext, ele):
 
     str1 = '<tr><td><a href="{:s}">{:s}</a></td><td>{:s}</td><td>{:s}</td><td>{:s}</td></tr>'.format(lnkstr, pth, shwr, mag, stats)
     body = body + str1
-    bodytext = bodytext + f'{lnkstr} {pth} {shwr} {mag} {stats}\n'
+    bodytext = bodytext + f'{lnkstr} {shwr} {mag} {stats}\n'
 
     return body, bodytext
 
