@@ -16,8 +16,8 @@ def AddHeader(body, bodytext, stats):
         body = body + 'Up to the 100 brightest matched events are shown below. '
         body = body + 'Note that this may include older data for which a new match has been found.<br>'
         body = body + 'Click each link to see analysis of these events.<br>'
-        bodytext = bodytext + 'Events: {}, Trajectories: {}. Matches {}'.format(stats[1], stats[2], stats[3])
-        bodytext = bodytext + 'The following multiple detections were found in the last 24 hour period,\n'
+        bodytext = bodytext + 'Today we examined {} events, founnd {} potential matches and confirmed {}\n'.format(stats[1], stats[2], stats[3])
+        bodytext = bodytext + 'Up to the 100 brightest matched events are shown below.\n'
         bodytext = bodytext + 'Note that this may include older data for which a new match has been found.\n'
         body = body + '<table border=\"0\">'
         body = body + '<tr><td><b>Event</b></td><td><b>Shwr</b></td><td><b>Vis Mag</b></td><td><b>Stations</b></td></tr>'
@@ -27,9 +27,9 @@ def AddHeader(body, bodytext, stats):
 
 
 def addFooter(body, bodytext):
-    fbm = 'Seen a fireball? <a href=http://fireballs.imo.net/?org=spa>Click here</a> to report it'
+    fbm = 'Seen a fireball? <a href=https://fireballs.imo.net/?org=ukmon>Click here</a> to report it'
     body = body + '</table><br><br>\n' + fbm + '<br></body></html>'
-    bodytext = bodytext + '\n' + fbm + '\n'
+    bodytext = bodytext + '\nSeen a fireball? Click https://fireballs.imo.net/?org=ukmon  to report it\n'
     return body, bodytext
 
 
@@ -50,7 +50,7 @@ def AddRowRMS(body, bodytext, ele):
 
     str1 = '<tr><td><a href="{:s}">{:s}</a></td><td>{:s}</td><td>{:s}</td><td>{:s}</td></tr>'.format(lnkstr, pth, shwr, mag, stats)
     body = body + str1
-    bodytext = bodytext + str1 + '\n'
+    bodytext = bodytext + f'{lnkstr} {pth} {shwr} {mag} {stats}\n'
 
     return body, bodytext
 
@@ -124,4 +124,6 @@ if __name__ == '__main__':
     # only send the email for the most recent report.
     if doff == 1:
         mailSubj = f'Latest Match Report for {yest}'
-        sendAnEmail(mailRecip, bodytext, mailSubj, msg_html=body.replace('href="/reports', f'href="{targeturl}/reports'))
+        bodytext = bodytext.replace('/reports', f'{targeturl}/reports')
+        body = body.replace('href="/reports', f'href="{targeturl}/reports')
+        sendAnEmail(mailRecip, bodytext, mailSubj, msg_html=body)
