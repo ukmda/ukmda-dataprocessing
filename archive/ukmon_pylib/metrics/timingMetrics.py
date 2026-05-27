@@ -12,6 +12,7 @@ import datetime
 
 
 def graphOfData(logf, dtstr):
+    
     lis = open(logf,'r').readlines()
     dta = [li for li in lis if li[:8]==dtstr]
 
@@ -55,78 +56,35 @@ def graphOfData(logf, dtstr):
 
 
 def getLogStats(nightlogf, matchlogf, thisdy):
-    with open(nightlogf,'r') as inf:
-        loglines = inf.readlines()
-    
-    #logf = os.path.basename(nightlogf)
-    #spls = logf.split('-')
-    #thisdy= spls[1]
-    matchstr = 'RUNTIME'    
-
-    # <13>Nov  1 11:49:55 nightlyJob: RUNTIME 10554 showerReport ALL 202211
-    startFAM = 0
-    startRD = 0
-    dts = []
-    tss = []
-    tsks = []
-    secs = []
-    msgs = []
-    for li in loglines:
-        if matchstr in li:
-            li = ' '.join(li.split()) # remove double-spaces eg when date is ' 6 Jan' as opposed to '16 Jan'
-            spls = li.split()
-            msg = ''
-            for s in range(6, len(spls)):
-                msg = msg + ' ' + spls[s]
-            if 'start findAllMatches' in msg:
-                startFAM = int(spls[5])
-            dts.append(thisdy)
-            tss.append(spls[2])
-            tsks.append(spls[3].replace(':',''))
-            secs.append(int(spls[5]))
-            msgs.append(msg.strip())
-
-    with open(matchlogf,'r') as inf:
-        loglines = inf.readlines()
-    
-    # scan for findAllMatches data first
-    for li in loglines:
-        if matchstr in li:
-            spls = li.split()
-            if 'runDistrib' in spls[3]: 
-                continue
-            msg = ''
-            for s in range(6, len(spls)):
-                msg = msg + ' ' + spls[s]
-            if 'start runDistrib' in msg:
-                startRD = int(spls[5])
-            dts.append(thisdy)
-            tss.append(spls[2])
-            tsks.append(spls[3].replace(':',''))
-            secs.append(int(spls[5])+startFAM)
-            msgs.append(msg.strip())
-
-    # rescan for runDistrib data
-    for li in loglines:
-        if matchstr in li:
-            spls = li.split()
-            if 'runDistrib' not in spls[3]: 
-                continue
-            msg = ''
-            for s in range(6, len(spls)):
-                msg = msg + ' ' + spls[s]
-            dts.append(thisdy)
-            tss.append(spls[2])
-            tsks.append(spls[3].replace(':',''))
-            secs.append(int(spls[5]) + startFAM + startRD)
-            msgs.append(msg.strip())
-
-    df = pd.DataFrame(zip(dts,tss,secs,tsks,msgs), columns=['dts','tss','secs','tsk','msgs'])
-    df = df.sort_values(by=['tss'])
-    #print(df)
+    # logline example
+    # <13>May  8 06:10:02 nightlyJob: start nightlyJob
     outdir = os.path.split(nightlogf)[0]
-    df.to_csv(os.path.join(outdir, 'perfNightly.csv'), mode='a', header=False, index=False)
     
+    loglines = open(nightlogf,'r').readlines()
+    bsfs = [x for x in loglines if 'start'in x or 'finish' in x or 'end' in x]
+    bsfs = [x for x in bsfs if x[0]=='<']
+
+    loglines = open(matchlogf,'r').readlines()
+    msfs = [x for x in loglines if 'start'in x or 'finish' in x or 'end' in x]
+    msfs = [x for x in msfs if x[0]=='<']
+
+    alldata = msfs + bsfs
+    alldata.sort()
+    starttime = None
+    yr = datetime.datetime.now().year
+    with open(os.path.join(outdir, 'perfNightly.csv'), 'a+') as outf:
+        for rw in alldata:
+            dtpart = rw[4:19]
+            evtdt = datetime.datetime.strptime(f'{yr} {dtpart}', '%Y %b %d %H:%M:%S')
+            if 'start nightlyJob' in rw:
+                starttime = evtdt
+            elapsed_secs = (evtdt - starttime).seconds
+            txtpart = rw[20:]
+            task = txtpart[:txtpart.find(':')]
+            msg = txtpart[txtpart.find(':')+1:].replace(',', ' ')
+            outstr = f'{evtdt.strftime("%Y%m%d,%H:%M:%S")},{elapsed_secs},{task},{msg}'
+            outf.write(outstr)        
+  
 
 if __name__ == '__main__':
     dtstr = sys.argv[1]

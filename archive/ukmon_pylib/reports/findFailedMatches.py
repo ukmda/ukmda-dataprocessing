@@ -16,24 +16,27 @@ def saveData(observation, repfile):
 
 
 def processOneLog(logfile, repfile):
-    with open(logfile, 'r') as inf:
-        lis = inf.readlines()
+    lis = open(logfile, 'r').readlines()
 
     obs = False
     observation = []
     for li in lis:
-        if 'Observations:' in li:
+        if 'Observations ' in li:
             obs = True
         if obs is True:
             observation.append(li)
-        if 'Shower:' in li:
+        if 'Saving trajectory:' in li or 'Updating database' in li:
             obs = False
             observation = []
-        if '-----------------------' in li:
+        if 'Updating database' in li or 'added to fails' in li:
             if obs is True:
+                #print('got fail')
+                observation.append('--------------\n\n')
                 saveData(observation, repfile)
             obs = False
             observation = []
+        if "SOLVING RUN DONE" in li:
+            break
 
     return
 
@@ -48,5 +51,6 @@ if __name__ == '__main__':
     logdir = os.path.join(srcdir, 'logs','distrib')
     logs = glob.glob(f'{repdt}*.log', root_dir=logdir)
     for logf in logs:
+        #print(logf)
         processOneLog(os.path.join(logdir, logf), reportfile)
     reportfile.close()

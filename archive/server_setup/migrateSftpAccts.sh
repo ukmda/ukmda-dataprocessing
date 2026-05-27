@@ -1,5 +1,7 @@
 #!/bin/bash
 
+here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+cd $here
 
 addOneUser() {
     userid=$1
