@@ -14,6 +14,19 @@ from utils.sendAnEmail import sendAnEmail
 
 
 def sendBespokeMessage(targlist, messagefile, subj):
+    """
+    send a message contained in 'messagefile' to a list of stations
+
+    arguments:
+    targlist:       a file containing a list of locations in the first column
+    messagefile:    a file containing the message to be sent
+    subj:           the subject to use for the mail
+
+    the targlist file can contain other information, but hte first column must be station locations eg tackley_nw
+
+    The targlist contents will be treated as an f-string and must contain placeholders for the GMN ID and location in that order. 
+    
+    """
 
     messagecontent = open(messagefile, 'r').read()
     targets = open(targlist, 'r').readlines()
@@ -24,6 +37,7 @@ def sendBespokeMessage(targlist, messagefile, subj):
     owners = []
     camids = []
     gmnids = []
+    targets = [x.split()[0].strip() for x in targets]
     for target in targets:
         locationid = target.strip()
         if locationid[:1] == '#':
