@@ -1,5 +1,5 @@
 # UK Meteor Data Analysis Shared code and libraries
-version: 2026.05.3
+version: 2026.05.4
 
 This repository contains the code behind the UK Meteors data archive and data processing pipeline. 
 
