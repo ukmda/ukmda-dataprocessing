@@ -5,6 +5,9 @@
 #
 
 # built in the aws_infra project as shared resource
+
+variable "vpc_id" { default = "vpc-a19015c8" }
+
 data "aws_vpc" "main_vpc" {
   id = var.vpc_id
 }

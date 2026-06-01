@@ -9,6 +9,14 @@ data "aws_key_pair" "marks_key" {
 }
 
 
+# encryption/decryption key in the AWS KMS keystore
+resource "aws_kms_key" "container_key" {
+  description = "My KMS Key"
+  tags = {
+    "billingtag" = "ukmon"
+  }
+}
+
 resource "aws_instance" "ukmonhelper_g" {
   ami                  = "ami-0c127ddea5a07804b"
   instance_type        = "t4g.micro"

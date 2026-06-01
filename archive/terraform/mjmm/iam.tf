@@ -73,15 +73,6 @@ resource "aws_iam_policy" "pol4s3fullaccess" {
             Effect =  "Allow"
             Resource = [ "*" ]
         },
-        {
-          Sid      = "PassRolePermission"
-          Effect   = "Allow"
-          Action   = [
-            "iam:PassRole",
-            "iam:GetRole",
-            ]
-          Resource = aws_iam_role.ecstaskrole.arn
-        }
       ]
       Version = "2012-10-17"
     }
@@ -176,84 +167,4 @@ resource "aws_iam_service_linked_role" "cweventslrole" {
 resource "aws_iam_role_policy_attachment" "cweventspolicy" {
   role       = aws_iam_service_linked_role.cweventslrole.name
   policy_arn = "arn:aws:iam::aws:policy/aws-service-role/CloudWatchEventsServiceRolePolicy"
-}
-
-
-
-
-################################
-# for testing with 
-
-# User, Policy and Roles used by ukmon-backup process. 
-# don't think this is used 
-resource "aws_iam_user" "ukmon_tester" {
-  name = "ukmon_tester"
-  tags = {
-    "billingtag" = "ukmon"
-    "AKIAUUCG4WH4B3XOH3WZ" = "ukmon_tester"
-  }
-}
-
-resource "aws_iam_policy" "pol_ukmon_tester" {
-  name        = "pol_ukmon_tester"
-  policy      = data.aws_iam_policy_document.ukmon_tester_pol_doc.json
-  description = "policu for my test user"
-}
-
-data "aws_iam_policy_document" "ukmon_tester_pol_doc" {
-  statement {
-    actions = [
-      "s3:*"
-    ]
-    effect = "Allow"
-    resources = [
-      "arn:aws:s3:::mjmm-ukmon-shared",
-      "arn:aws:s3:::mjmm-ukmon-shared/*",
-      "arn:aws:s3:::mjmm-ukmon-live",
-      "arn:aws:s3:::mjmm-ukmon-live/*",
-      "arn:aws:s3:::mjmm-ukmonarchive.co.uk",
-      "arn:aws:s3:::mjmm-ukmonarchive.co.uk/*",
-    ]
-  }
-  version = "2012-10-17"
-}
-
-resource "aws_iam_user_policy_attachment" "ukmon-tester-pol-attachment" {
-  user       = aws_iam_user.ukmon_tester.name
-  policy_arn = aws_iam_policy.pol_ukmon_tester.arn
-}
-
-
-# iam role for the task to use
-resource "aws_iam_role" "ecstaskrole" {
-  name               = "ecsTaskExecutionRole"
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "ecs-tasks.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
-    },
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
-    }
-  ]
-}
-EOF
-}
-
-# iam policies to attach to iam role 
-resource "aws_iam_role_policy_attachment" "ecspolicy1" {
-  role       = aws_iam_role.ecstaskrole.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
