@@ -16,8 +16,8 @@ cat inflight.txt | while read i; do grep $i withowner.txt | awk -F "," '{print $
 rm inflight.txt
 
 
-ssh ukmonhelper2 "~/server_setup/get-nbd.sh" | while read i ; do echo $i | awk -F"/" '{print $4}' ; done > dead.txt
-ssh ukmonhelper2 "~/server_setup/get-all.sh" | while read i ; do echo $i | awk -F"/" '{print $4}' ; done > all-accounts.txt
+#ssh ukmonhelper2 "~/server_setup/get-nbd.sh" | while read i ; do echo $i | awk -F"/" '{print $4}' ; done > dead.txt
+#ssh ukmonhelper2 "~/server_setup/get-all.sh" | while read i ; do echo $i | awk -F"/" '{print $4}' ; done > all-accounts.txt
 
 python ~/src/ukmda-dataprocessing/archive/server_setup/checkSftpAccounts.py
 
