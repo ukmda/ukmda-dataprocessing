@@ -91,41 +91,6 @@ resource "aws_iam_policy" "pol4s3fullaccess" {
   }
 }
 
-/*
-resource "aws_iam_policy" "crossacctpolicy" {
-  name = "CrossAcctPolForS3FullAccess"
-  policy = jsonencode(
-    {
-      Statement = [
-        {
-          Action = [
-            "sts:AssumeRole",
-          ]
-          Effect = "Allow"
-          Resource = [
-            "arn:aws:iam::${var.mda_account_id}:role/service-role/S3FullAccess",
-          ]
-        },
-        {
-          Action = [
-            "lambda:InvokeFunction",
-          ]
-          Effect = "Allow"
-          Resource = [
-            "arn:aws:lambda:eu-west-2:${var.mda_account_id}:function:dailyReport",
-          ]
-        },
-      ]
-      Version = "2012-10-17"
-    }
-  )
-  tags = {
-    "billingtag" = "ukmon"
-  }
-}
-*/
-
-
 # role and permissions used by Lambda 
 resource "aws_iam_role" "lambda-s3-full-access-role" {
   name        = "lambda-s3-full-access-role"
