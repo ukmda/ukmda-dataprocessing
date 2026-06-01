@@ -38,11 +38,6 @@ resource "aws_iam_role_policy_attachment" "aws-managed-policy-attachment2" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-resource "aws_iam_role_policy_attachment" "xacctaccess" {
-  role       = aws_iam_role.S3FullAccess.name
-  policy_arn = aws_iam_policy.crossacctpolicy.arn
-}
-
 resource "aws_iam_role_policy_attachment" "polatt4s3fullaccess" {
   role       = aws_iam_role.S3FullAccess.name
   policy_arn = aws_iam_policy.pol4s3fullaccess.arn
@@ -96,6 +91,7 @@ resource "aws_iam_policy" "pol4s3fullaccess" {
   }
 }
 
+/*
 resource "aws_iam_policy" "crossacctpolicy" {
   name = "CrossAcctPolForS3FullAccess"
   policy = jsonencode(
@@ -127,7 +123,7 @@ resource "aws_iam_policy" "crossacctpolicy" {
     "billingtag" = "ukmon"
   }
 }
-
+*/
 
 
 # role and permissions used by Lambda 
