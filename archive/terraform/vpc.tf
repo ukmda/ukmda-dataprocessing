@@ -14,12 +14,6 @@ resource "aws_default_subnet" "default_subnet" {
   availability_zone = "eu-west-2a"
 }
 
-# remote VPC in the MJMM account, needed for peering
-#data "aws_vpc" "mjmm_ec2_vpc" {
-#	provider = aws.mjmmacct
-#	cidr_block = "172.31.0.0/16"
-#}
-
 # VPC for the EC2 instances in this account
 resource "aws_vpc" "ec2_vpc" {
   cidr_block = var.main_cidr
@@ -68,10 +62,6 @@ resource "aws_default_route_table" "ec2_rtbl" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.main_igw.id
   }
-  #route {
-  #  cidr_block                = data.aws_vpc.mjmm_ec2_vpc.cidr_block
-  #  vpc_peering_connection_id = aws_vpc_peering_connection.ukmdatommpeering.id
-  #}
   tags = {
     "Name"     = "public_rtbl"
     billingtag = "Management"
@@ -91,14 +81,4 @@ resource "aws_internet_gateway" "main_igw" {
     billingtag = "Management"
   }
 }
-
-# peering connection with the MJMM account 
-#resource "aws_vpc_peering_connection" "ukmdatommpeering" {
-#  peer_vpc_id = data.aws_vpc.mjmm_ec2_vpc.id
-#  vpc_id      = aws_vpc.ec2_vpc.id
-#  tags = {
-#    "Name"       = "mda-to-mm-peering"
-#    "billingtag" = "ukmda"
-#  }
-#}
 

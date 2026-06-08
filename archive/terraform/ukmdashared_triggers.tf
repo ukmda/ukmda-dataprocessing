@@ -3,9 +3,8 @@
 # bucket notifications that trigger lambdas
 # 
 
-# lambda running in MJMM account but invoked from EE account
+# Lambdas created by SAM functions
 data "aws_lambda_function" "getextraorbitfiles" {
-#  provider      = aws.mjmmacct
   function_name = "getExtraOrbitFilesV2"
 }
 
