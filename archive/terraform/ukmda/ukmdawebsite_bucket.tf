@@ -24,30 +24,6 @@ resource "aws_s3_bucket_policy" "archsite_bp" {
             "Resource": "${aws_s3_bucket.archsite.arn}/*"
         },
         {
-            "Sid": "2",
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": [
-                    "arn:aws:iam::${var.remote_account_id}:role/lambda-s3-full-access-role",
-                    "arn:aws:iam::${var.remote_account_id}:role/ecsTaskExecutionRole",
-                    "arn:aws:iam::${var.remote_account_id}:user/s3user",
-                    "arn:aws:iam::${var.remote_account_id}:user/Mary",
-                    "arn:aws:iam::${var.remote_account_id}:role/S3FullAccess",
-                    "arn:aws:iam::${var.remote_account_id}:user/Mark"
-                ]
-            },
-            "Action": [
-                "s3:Put*",
-                "s3:ListBucket",
-                "s3:Get*",
-                "s3:Delete*"
-            ],
-            "Resource": [
-                "${aws_s3_bucket.archsite.arn}/*",
-                "${aws_s3_bucket.archsite.arn}"
-            ]
-        },
-        {
             "Sid": "4",
             "Effect": "Allow",
             "Principal": {

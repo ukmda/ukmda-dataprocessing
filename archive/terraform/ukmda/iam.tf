@@ -73,41 +73,7 @@ resource "aws_iam_role" "S3FullAccess" {
           }
         },
         {
-          # not sure this one is used, double check 
-          Action = "sts:AssumeRole"
-          Effect = "Allow"
-          Principal = {
-            Service = "lambda.amazonaws.com"
-            "AWS" : "arn:aws:iam::${var.remote_account_id}:root"
-          }
-        },
-        {
-          # give access to lambda functions in MJMM account
-          Action = "sts:AssumeRole"
-          Effect = "Allow"
-          Principal = {
-            AWS     = "arn:aws:iam::${var.remote_account_id}:role/lambda-s3-full-access-role"
-            Service = "lambda.amazonaws.com"
-          }
-        },
-        {
-          # give access to S3FullAccess role used by EC2 in MJMM account
-          Action = "sts:AssumeRole"
-          Effect = "Allow"
-          Principal = {
-            AWS = "arn:aws:iam::${var.remote_account_id}:role/S3FullAccess"
-          }
-        },
-        {
-          # give access to ecsTaskRole role used by ECS in MJMM account
-          Action = "sts:AssumeRole"
-          Effect = "Allow"
-          Principal = {
-            AWS = "arn:aws:iam::${var.remote_account_id}:role/ecsTaskExecutionRole"
-          }
-        },
-        {
-          # give access to ecsTaskRole role used by ECS in EE account
+          # give access to ecsTaskRole role used by ECS in this account
           Action = "sts:AssumeRole"
           Effect = "Allow"
           Principal = {
