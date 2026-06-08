@@ -24,13 +24,19 @@ resource "aws_dynamodb_table" "live_bright_table" {
   }
 
   global_secondary_index {
-    hash_key           = "camid"
     name               = "camid-CaptureNight-index"
     non_key_attributes = []
     projection_type    = "ALL"
-    range_key          = "CaptureNight"
     read_capacity      = 0
     write_capacity     = 0
+    key_schema {
+      attribute_name = "camid"
+      key_type       = "HASH"
+    }
+    key_schema {
+      attribute_name = "CaptureNight"
+      key_type       = "RANGE"
+    }
   }
   ttl {
     attribute_name = "ExpiryDate"
@@ -49,7 +55,7 @@ resource "aws_dynamodb_table" "camera_table" {
   #write_capacity = 20
   hash_key  = "stationid"
   range_key = "site"
-#  provider  = aws.eu-west-1-prov
+  #  provider  = aws.eu-west-1-prov
 
   attribute {
     name = "stationid"
@@ -60,15 +66,21 @@ resource "aws_dynamodb_table" "camera_table" {
     name = "site"
     type = "S"
   }
-      global_secondary_index {
-          hash_key           = "site"
-          name               = "site-stationid-index"
-          non_key_attributes = []
-          projection_type    = "ALL"
-          range_key          = "stationid"
-          read_capacity      = 0
-          write_capacity     = 0
-        }
+  global_secondary_index {
+    name               = "site-stationid-index"
+    non_key_attributes = []
+    projection_type    = "ALL"
+    read_capacity      = 0
+    write_capacity     = 0
+    key_schema {
+      attribute_name = "site"
+      key_type       = "HASH"
+    }
+    key_schema {
+      attribute_name = "stationid"
+      key_type       = "RANGE"
+    }
+  }
   tags = {
     Name       = "camdetails"
     billingtag = "ukmda"
@@ -102,9 +114,15 @@ resource "aws_dynamodb_table" "uploadtimes_table" {
 
   global_secondary_index {
     name            = "uploaddate-stationid-index"
-    hash_key        = "uploaddate"
-    range_key       = "stationid"
     projection_type = "ALL"
+    key_schema {
+      attribute_name = "uploaddate"
+      key_type       = "HASH"
+    }
+    key_schema {
+      attribute_name = "stationid"
+      key_type       = "RANGE"
+    }
   }
   ttl {
     attribute_name = "ExpiryDate"
@@ -119,7 +137,7 @@ resource "aws_dynamodb_table" "uploadtimes_table" {
 resource "aws_dynamodb_table" "live_table" {
   name         = "live"
   billing_mode = "PAY_PER_REQUEST"
-#  provider     = aws.eu-west-1-prov
+  #  provider     = aws.eu-west-1-prov
 
   hash_key  = "image_name"
   range_key = "timestamp"
@@ -146,21 +164,34 @@ resource "aws_dynamodb_table" "live_table" {
   }
   global_secondary_index {
     name               = "year-image_timestamp-index"
-    hash_key           = "year"
-    range_key          = "image_timestamp"
     projection_type    = "ALL"
     non_key_attributes = []
     read_capacity      = 0
     write_capacity     = 0
+    key_schema {
+      attribute_name = "year"
+      key_type       = "HASH"
+    }
+    key_schema {
+      attribute_name = "image_timestamp"
+      key_type       = "RANGE"
+    }
+
   }
   global_secondary_index {
     name               = "month-image_name-index"
-    hash_key           = "month"
-    range_key          = "image_name"
     projection_type    = "ALL"
     non_key_attributes = []
     read_capacity      = 0
     write_capacity     = 0
+    key_schema {
+      attribute_name = "month"
+      key_type       = "HASH"
+    }
+    key_schema {
+      attribute_name = "image_name"
+      key_type       = "RANGE"
+    }
   }
   ttl {
     attribute_name = "expirydate"
