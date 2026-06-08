@@ -69,10 +69,10 @@ then
     ~/$envname/utils/makeConfig.sh $RUNTIME_ENV
     for fil in .bashrc .bash_aliases .vimrc .condaon 
     do
-        rsync -a server_setup/$fil ~
+        rsync -a server_setup/batchserver/$fil ~
     done 
     mkdir -p ~/.logrotate
-    rsync -a server_setup/logs.conf ~/.logrotate
+    rsync -a server_setup/batchserver/logs.conf ~/.logrotate
 else
     echo ""
     echo skipping config and bashrc
