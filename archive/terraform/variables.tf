@@ -33,3 +33,4 @@ variable batchserverip { default = "172.32.16.138" }
 
 variable archalias { default = "archive.ukmeteors.co.uk"}
 variable mainalias { default = "www.ukmeteors.co.uk"}
+variable domain_name {default="ukmeteors.co.uk"}

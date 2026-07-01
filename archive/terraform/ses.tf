@@ -1,7 +1,20 @@
 # Copyright (C) 2018- Mark McIntyre
 
 resource "aws_ses_domain_identity" "ukmeteors" {
-  domain = "ukmeteors.co.uk"
+  domain = var.domain_name
+}
+
+# ses mail records
+resource "aws_route53_record" "ukmda_mx_records" {
+  zone_id = aws_route53_zone.ukmeteors.id
+  name    = var.domain_name
+  type    = "MX"
+  ttl     = "600"
+
+  records = [
+    "10 inbound-smtp.eu-west-2.amazonses.com",
+    "10 inbound-smtp.eu-west-2.amazonaws.com",
+  ]
 }
 
 resource "aws_route53_record" "ukmeteors_amazonses_verification_record" {

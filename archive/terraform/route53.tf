@@ -2,11 +2,10 @@
 # Route53 stuff for ukmda
 
 resource "aws_route53_zone" "ukmeteors" {
-  name         = "ukmeteors.co.uk"
+  name         = var.domain_name
   comment       = "Hosted zone for ukmeteors.co.uk"
   tags = {
     billingtag = "ukmda"
     Project  = "www.ukmeteors.co.uk"
   }
 }
-

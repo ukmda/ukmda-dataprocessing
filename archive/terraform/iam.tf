@@ -438,7 +438,7 @@ policy = <<EOF
 }
 EOF
 }
-
+#####################################################
 # role used by the Orbit Uploader API
 resource "aws_iam_role" "orbUploadRole" {
   name        = "orbUploadRole"
@@ -462,6 +462,59 @@ resource "aws_iam_role" "orbUploadRole" {
 resource "aws_iam_role_policy" "orbUploadPolicy" {
   name   = "orbUploadPolicy"
   role   = aws_iam_role.orbUploadRole.name
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowLogs",
+            "Effect": "Allow",
+            "Action": [
+      			  "logs:CreateLogGroup",
+      			  "logs:CreateLogStream"
+            ],
+            "Resource": [
+                "*"
+            ]
+        },
+        {
+            "Sid": "uploadFiles",
+            "Effect": "Allow",
+            "Action": [
+                "s3:Put*"
+            ],
+            "Resource": [
+                "*"
+            ]
+        }
+    ]
+}
+EOF
+}
+#####################################################
+# role used by the Video Uploader email process
+resource "aws_iam_role" "vidUploadRole" {
+  name        = "vidUploadRole"
+  description = "Allows SES to upload emails"
+  assume_role_policy = jsonencode(
+    {
+      Statement = [
+        {
+          Action = "sts:AssumeRole"
+          Effect = "Allow"
+          Principal = {
+            Service = "ses.amazonaws.com"
+          }
+        },
+      ]
+      Version = "2012-10-17"
+    }
+  )
+}
+# policy used by the Video Uploader API
+resource "aws_iam_role_policy" "vidUploadPolicy" {
+  name   = "vidUploadPolicy"
+  role   = aws_iam_role.vidUploadRole.name
   policy = <<EOF
 {
     "Version": "2012-10-17",
