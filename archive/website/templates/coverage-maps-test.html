@@ -193,17 +193,19 @@
                     console.log(strstat);
                     var src1 = '/img/kmls/' + strstat + '-' + height + '.kml';
                     console.log(src1);
-                    const response = fetch(src1);
-                    if (response.ok){
+                    try {
+                        const response = fetch(src1);
+                        if (!response.ok) {
+                            throw new Error(`Response status: ${response.status}`);
+                        }
                         const textdata = response.text();
                         console.log(textdata);
                         const geojs1 = toGeoJSON.kml(new DOMParser().parseFromString(textdata, "text/xml"));
                         console.log(geojs1);
                         map.data.addGeoJson(geojs1);
                     }
-                    else
-                    {
-                        console.log(response.status)
+                    catch(error){
+                        console.error(error.message);
                     }
                     
                     map.data.addListener('click', (mapsMouseEvent) => {
