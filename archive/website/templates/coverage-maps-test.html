@@ -178,7 +178,7 @@
                 });
 
                 if (strstat != '') {
-                    var src1 = 'https://archive.ukmeteors.co.uk/img/kmls/' + strstat + '-' + height + '.kml';
+                    var src1 = '/img/kmls/' + strstat + '-' + height + '.kml';
                     var geojs1 = fetch(src1)
                         .then(function (response) {
                         return response.text();
@@ -187,7 +187,7 @@
                         return toGeoJSON.kml(new DOMParser().parseFromString(xml, "text/xml"));
                         });
 
-                    console.log(JSON.parse(geojs1));
+                    console.log(geojs1);
                     //map.data.addGeoJson(JSON.parse(geojs1))
                     
                     map.data.addListener('click', (mapsMouseEvent) => {
