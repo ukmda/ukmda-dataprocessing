@@ -176,9 +176,9 @@
                     zoom: 2,
                     mapTypeId: 'terrain'
                 });
-                var src1 = 'https://archive.ukmeteors.co.uk/img/kmls/' + strstat + '-' + height + '.kml';
 
-                if (strstat1 != '') {
+                if (strstat != '') {
+                    var src1 = 'https://archive.ukmeteors.co.uk/img/kmls/' + strstat + '-' + height + '.kml';
                     var geojs1 = fetch(src1)
                         .then(function (response) {
                         return response.text();
