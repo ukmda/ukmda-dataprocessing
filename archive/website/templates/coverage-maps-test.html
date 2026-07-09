@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Coverage Maps</title>
+    <!-- Code Copyright (C) 2018-2023 Mark McIntyre -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Meteor Observation Data">
+    <meta name="author" content="Mark McIntyre">
+
+    <meta name="keywords" content="meteors,astronomy,space" />
+    <!-- Bootstrap Core CSS -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
+    <link href="/css/dragontail.css" rel="stylesheet">
+    <link href="/css/plugins/timeline.css" rel="stylesheet">
+    <link href="/css/plugins/morris.css" rel="stylesheet">
+    <link href="/css/font-awesome.min.css" rel="stylesheet" />
+
+    <style>
+        html,
+        body {
+            height: 610px;
+            padding: 0;
+            margin: 0;
+        }
+
+        #map {
+            height: 600px;
+            width: 800px;
+            overflow: hidden;
+            float: left;
+            border: thin solid #333;
+        }
+
+        #capture {
+            height: 600px;
+            width: 100px;
+            overflow: hidden;
+            float: left;
+            background-color: #ECECFB;
+            border: thin solid #333;
+            border-left: none;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- jQuery -->
+    <script src="/js/jquery.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/plugins/metisMenu/metisMenu.min.js"></script>
+    <script src="/js/plugins/morris/raphael.min.js"></script>
+    <script src="/js/plugins/morris/morris.min.js"></script>
+
+    <!-- better datatable support -->
+    <script src="/js/jquery.dataTables.min.js"></script>
+    <script src="/js/dataTables.bootstrap.min.js"></script>
+    <script src="/js/stringMonthYear.js"></script>
+
+    <script src="/js/constellation.js"></script>
+    <script src="/js/sb-admin-2.js"></script>
+    <script src="/js/kit.fontawesome.com_f4e5d7e1d1.js"></script>
+    <script src="/js/sharebuttons.js"></script>
+    <script src="/js/gtagadder.js"></script>
+    <script src='togeojson.js'></script>
+
+    <div id="nav-placeholder"></div>
+
+    <script>
+        $(function () {
+            $("#nav-placeholder").load("/templates/navbar.html");
+        });
+    </script>
+
+    <div class="container">
+        <br><br>
+        <h2>Station Coverage Maps</h2>
+        <p>
+            To use this page, select a camera or cameras from the dropdown, then select an altitude.
+            Click on Show to reveal the coverage of those cameras at that altitude. You can click on a shaded area to
+            see the latitude and longitude and to draw a 200km radius circle round the point.
+            <br>
+            The view will remain centred on the first camera and the second or third may not be
+            visible if they don't overlap. If no coverage is displayed for a specific camera, then it means it has not
+            been calibrated by the owner.
+
+        </p>
+        <p>
+            You can also see total coverage over the UK at different altitudes:
+            <a href="/data/coverage-25km.html">25km</a>, <a href="/data/coverage-70km.html">70km</a> and <a
+                href="/data/coverage-100km.html">100km</a>
+        </p>
+
+        <form id="selectStation" onsubmit="return formSubmit()">
+            <div id="stationsplaceholder"></div>
+            <label for="statselect">Station 1</label>
+            <select class="bootstrap-select" id="statselect" name="statselect">
+                <script>
+                    $(function () {
+                        $("#statselect").load("/search/activestatopts.html");
+                    });
+                </script>
+            </select>
+            <label for="statselect2">Station 2</label>
+            <select class="bootstrap-select" id="statselect2" name="statselect2">
+                <script>
+                    $(function () {
+                        $("#statselect2").load("/search/activestatopts.html");
+                    });
+                </script>
+            </select>
+            <label for="statselect3">Station 3</label>
+            <select class="bootstrap-select" id="statselect3" name="statselect3">
+                <script>
+                    $(function () {
+                        $("#statselect3").load("/search/activestatopts.html");
+                    });
+                </script>
+            </select>
+            <label for="heightsel">Height</label>
+            <select class="bootstrap-select" id="heightsel" name="heightsel">
+                <option value="25km" >25km</option>
+                <option value="70km" selected="selected" >70km</option>
+                <option value="100km" >100km</option>
+            </select>
+            <button type="submit">Show</button>
+        </form>
+        <div id="map"></div>
+        <div id="capture"></div>
+        <script>
+            var strstat;
+            var strstat2;
+            var strstat3;
+            var height;
+            function formSubmit() {
+                //console.log('in formSubmit');
+                var e = document.getElementById('statselect');
+                strstat = e.options[e.selectedIndex].text;
+                selidx = e.selectedIndex;
+
+                var e = document.getElementById('statselect2');
+                strstat2 = e.options[e.selectedIndex].text;
+
+                var e = document.getElementById('statselect3');
+                strstat3 = e.options[e.selectedIndex].text;
+
+                var e = document.getElementById('heightsel');
+                height = e.options[e.selectedIndex].text;
+                console.log('station is', strstat, 'height ', height, 'station 2', strstat2, 'station 3', strstat3)
+
+                initMap();
+                return false;
+            }
+            function getParameterByName(name, url) {
+                if (!url) url = window.location.href;
+                name = name.replace(/\\/g, '\\\\').replace(/[\[\]]/g, '\\$&');
+                var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                    results = regex.exec(url);
+                if (!results) return null;
+                if (!results[2]) return '';
+                return decodeURIComponent(results[2].replace(/\+/g, ' '));
+            }
+
+            function initMap() {
+                //var sn = getParameterByName('statselect');
+                var map;
+                var circle;
+                map = new google.maps.Map(document.getElementById('map'), {
+                    center: new google.maps.LatLng(54.0, 1.5),
+                    scaleControl: true,
+                    zoom: 2,
+                    mapTypeId: 'terrain'
+                });
+                var src1 = 'https://archive.ukmeteors.co.uk/img/kmls/' + strstat + '-' + height + '.kml';
+
+                var geojs1 = toGeoJSON(src1)
+                console.log(geojs1);
+                map.data.addGeoJSON(geojs1)
+                
+                var kmlLayer = new google.maps.KmlLayer(src1, {
+                    suppressInfoWindows: true,
+                    preserveViewport: false,
+                    map: map
+                });
+                kmlLayer.addListener('click', (mapsMouseEvent) => {
+                    var content = mapsMouseEvent.latLng.toJSON()
+                    var testimonial = document.getElementById('capture');
+                    var lati = content.lat;
+                    var lngi = content.lng;
+                    var outputstr = "<font color=black>Selected Station<br>" + strstat + "<br><br>Circle centre<br>lat: " + Math.round(lati * 100) / 100 + "<br>lng: " + Math.round(lngi * 100) / 100 + "</font>";
+                    console.log(outputstr);
+                    testimonial.innerHTML = outputstr;
+                    if (circle == null) {
+                        circle = new google.maps.Circle({
+                            map: map,
+                            strokeColor: "#FF0000",
+                            strokeOpacity: 0.5,
+                            center: { lat: lati, lng: lngi },
+                            radius: 200000
+                        });
+                    }
+                    else {
+                        circle.setCenter({ lat: lati, lng: lngi });
+                    }
+                });
+                if (strstat2 != '') {
+                    var src2 = 'https://archive.ukmeteors.co.uk/img/kmls/' + strstat2 + '-' + height + '.kml';
+
+                    var kmlLayer = new google.maps.KmlLayer(src2, {
+                        suppressInfoWindows: true,
+                        preserveViewport: true,
+                        map: map
+                    });
+                    kmlLayer.addListener('click', (mapsMouseEvent) => {
+                        var content = mapsMouseEvent.latLng.toJSON()
+                        var testimonial = document.getElementById('capture');
+                        var lati = content.lat;
+                        var lngi = content.lng;
+                        var outputstr = "<font color=black>Selected Station<br>" + strstat2 + "<br><br>Circle centre<br>lat: " + Math.round(lati * 100) / 100 + "<br>lng: " + Math.round(lngi * 100) / 100 + "</font>";
+                        console.log(outputstr);
+                        testimonial.innerHTML = outputstr;
+                        if (circle == null) {
+                            circle = new google.maps.Circle({
+                                map: map,
+                                strokeColor: "#FF0000",
+                                strokeOpacity: 0.5,
+                                center: { lat: lati, lng: lngi },
+                                radius: 200000
+                            });
+                        }
+                        else {
+                            circle.setCenter({ lat: lati, lng: lngi });
+                        }
+                    });
+                }
+                if (strstat3 != '') {
+                    var src3 = 'https://archive.ukmeteors.co.uk/img/kmls/' + strstat3 + '-' + height + '.kml';
+
+                    var kmlLayer = new google.maps.KmlLayer(src3, {
+                        suppressInfoWindows: true,
+                        preserveViewport: true,
+                        map: map
+                    });
+                    kmlLayer.addListener('click', (mapsMouseEvent) => {
+                        var content = mapsMouseEvent.latLng.toJSON()
+                        var testimonial = document.getElementById('capture');
+                        var lati = content.lat;
+                        var lngi = content.lng;
+                        var outputstr = "<font color=black>Selected Station<br>" + strstat3 + "<br><br>Circle centre<br>lat: " + Math.round(lati * 100) / 100 + "<br>lng: " + Math.round(lngi * 100) / 100 + "</font>";
+                        console.log(outputstr);
+                        testimonial.innerHTML = outputstr;
+                        if (circle == null) {
+                            circle = new google.maps.Circle({
+                                map: map,
+                                strokeColor: "#FF0000",
+                                strokeOpacity: 0.5,
+                                center: { lat: lati, lng: lngi },
+                                radius: 200000
+                            });
+                        }
+                        else {
+                            circle.setCenter({ lat: lati, lng: lngi });
+                        }
+                    });
+                }
+            }
+        </script>
+        <script async
+            src="https://maps.googleapis.com/maps/api/js?key={{MAPSAPIKEY}}&v=3.65&callback=initMap">
+            </script>
+    </div>
+</body>
+
+</html>

@@ -76,7 +76,7 @@ def createCoveragePage(targdir, test=False):
     outfname = 'coverage-maps-test.html' if test else 'coverage-maps.html'
     with open(os.path.join(templdir, outfname), 'r') as inf:
         lis = inf.readlines()
-    with open(os.path.join(datadir, targdir,outfname), 'w') as outf:
+    with open(os.path.join(datadir, targdir, outfname), 'w') as outf:
         for li in lis:
             outf.write(li.replace('{{MAPSAPIKEY}}', apikey))
     return     
