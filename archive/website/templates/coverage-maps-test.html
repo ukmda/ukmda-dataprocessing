@@ -193,16 +193,17 @@
                     console.log(strstat);
                     var src1 = '/img/kmls/' + strstat + '-' + height + '.kml';
                     console.log(src1);
-                    console.log('got here');
                     var geojs1 = fetch(src1)
                         .then(function (response) {
                             var res = response.text();
                             console.log(res);
+                            console.log('got here 1');
                             return res;
                         })
                         .then(function (xml) {
                             var dta = toGeoJSON.kml(new DOMParser().parseFromString(xml, "text/xml"));
                             console.log(dta);
+                            console.log('got here 2');
                             return dta;
                         });
 
