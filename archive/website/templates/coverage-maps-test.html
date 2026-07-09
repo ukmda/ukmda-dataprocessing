@@ -182,12 +182,7 @@
                 console.log(geojs1);
                 map.data.addGeoJSON(geojs1)
                 
-                var kmlLayer = new google.maps.KmlLayer(src1, {
-                    suppressInfoWindows: true,
-                    preserveViewport: false,
-                    map: map
-                });
-                kmlLayer.addListener('click', (mapsMouseEvent) => {
+                map.data.addListener('click', (mapsMouseEvent) => {
                     var content = mapsMouseEvent.latLng.toJSON()
                     var testimonial = document.getElementById('capture');
                     var lati = content.lat;
