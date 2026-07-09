@@ -193,21 +193,15 @@
                     console.log(strstat);
                     var src1 = '/img/kmls/' + strstat + '-' + height + '.kml';
                     console.log(src1);
-                    var geojs1 = fetch(src1)
-                        .then(function (response) {
-                            var res = response.text();
-                            console.log(res);
-                            console.log('got here 1');
-                            return res;
-                        })
-                        .then(function (xml) {
-                            var dta = toGeoJSON.kml(new DOMParser().parseFromString(xml, "text/xml"));
-                            console.log(dta);
-                            console.log('got here 2');
-                            return dta;
-                        });
 
-                    map.data.addGeoJson(geojs1);
+                    const response = fetch(url);
+                    if (response.ok){
+                        const textdata = response.text();
+                        console.log(textdata);
+                        const geojs1 = toGeoJSON.kml(new DOMParser().parseFromString(textdata, "text/xml"));
+                        console.log(geojs1);
+                        map.data.addGeoJson(geojs1);
+                    }
                     
                     map.data.addListener('click', (mapsMouseEvent) => {
                         var content = mapsMouseEvent.latLng.toJSON()
