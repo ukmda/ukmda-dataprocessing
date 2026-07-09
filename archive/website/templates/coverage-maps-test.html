@@ -201,6 +201,10 @@
                         console.log(geojs1);
                         map.data.addGeoJson(geojs1);
                     }
+                    else
+                    {
+                        console.log(response.status)
+                    }
                     
                     map.data.addListener('click', (mapsMouseEvent) => {
                         var content = mapsMouseEvent.latLng.toJSON()
