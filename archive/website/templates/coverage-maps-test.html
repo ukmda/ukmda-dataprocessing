@@ -178,7 +178,15 @@
                 });
                 var src1 = 'https://archive.ukmeteors.co.uk/img/kmls/' + strstat + '-' + height + '.kml';
 
-                var geojs1 = toGeoJSON(src1)
+                var geojs1 = fetch(src1)
+                    .then(function (response) {
+                    return response.text();
+                    })
+                    .then(function (xml) {
+                     return toGeoJSON.kml(new DOMParser().parseFromString(xml, "text/xml"));
+                    });
+
+                //var geojs1 = toGeoJSON(src1)
                 console.log(geojs1);
                 map.data.addGeoJSON(geojs1)
                 
