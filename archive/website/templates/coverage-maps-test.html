@@ -186,9 +186,8 @@
                      return toGeoJSON.kml(new DOMParser().parseFromString(xml, "text/xml"));
                     });
 
-                //var geojs1 = toGeoJSON(src1)
-                console.log(geojs1);
-                map.data.addGeoJson(geojs1)
+                console.log(JSON.parse(geojs1));
+                //map.data.addGeoJson(JSON.parse(geojs1))
                 
                 map.data.addListener('click', (mapsMouseEvent) => {
                     var content = mapsMouseEvent.latLng.toJSON()
