@@ -182,11 +182,18 @@
                 var e = document.getElementById('statselect');
                 strstat = e.options[e.selectedIndex].text;
 
+                var e = document.getElementById('statselect2');
+                strstat2 = e.options[e.selectedIndex].text;
+
+                var e = document.getElementById('statselect3');
+                strstat3 = e.options[e.selectedIndex].text;
+
                 if (strstat != 'All') {
                     console.log('processing station 1');
                     console.log(strstat);
                     var src1 = '/img/kmls/' + strstat + '-' + height + '.kml';
                     console.log(src1);
+                    console.log('got here');
                     var geojs1 = fetch(src1)
                         .then(function (response) {
                             var res = response.text();
