@@ -67,15 +67,16 @@ def makeCoverageMap(kmlsource, outdir, showMarker=False, useName=False):
     return
 
 
-def createCoveragePage(targdir):
+def createCoveragePage(targdir, test=False):
     apikey = getApiKey()
     if not apikey:
         return
     templdir = os.getenv('TEMPLATES', default=os.path.expanduser('~/prod/website/templates'))
     datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
-    with open(os.path.join(templdir, 'coverage-maps.html'), 'r') as inf:
+    outfname = 'coverage-maps-test.html' if test else 'coverage-maps.html'
+    with open(os.path.join(templdir, outfname), 'r') as inf:
         lis = inf.readlines()
-    with open(os.path.join(datadir, targdir,'coverage-maps.html'), 'w') as outf:
+    with open(os.path.join(datadir, targdir,outfname), 'w') as outf:
         for li in lis:
             outf.write(li.replace('{{MAPSAPIKEY}}', apikey))
     return     

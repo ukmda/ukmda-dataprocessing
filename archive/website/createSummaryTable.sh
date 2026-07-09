@@ -36,15 +36,17 @@ logger -s -t $(basename $0 .sh) "create a coverage map from the kmls"
 #LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/geos/lib:/usr/local/proj4/lib
 #export LD_LIBRARY_PATH
 mkdir -p $DATADIR/kmls
+mkdir -p $DATADIR/reports/${yr}/coverage
+
 aws s3 sync $WEBSITEBUCKET/img/kmls/ $DATADIR/kmls --quiet 
 export KMLTEMPLATE="*25km.kml"
-python -m reports.makeCoverageMap $DATADIR/kmls $DATADIR/reports/${yr}
+python -m reports.makeCoverageMap $DATADIR/kmls $DATADIR/reports/${yr}/coverage
 export KMLTEMPLATE="*70km.kml"
-python -m reports.makeCoverageMap $DATADIR/kmls $DATADIR/reports/${yr}
+python -m reports.makeCoverageMap $DATADIR/kmls $DATADIR/reports/${yr}/coverage
 export KMLTEMPLATE="*100km.kml"
-python -m reports.makeCoverageMap $DATADIR/kmls $DATADIR/reports/${yr}
+python -m reports.makeCoverageMap $DATADIR/kmls $DATADIR/reports/${yr}/coverage
 
-python -c "from reports.makeCoverageMap import createCoveragePage as ccp ; ccp('reports/${yr}') ;"
+python -c "from reports.makeCoverageMap import createCoveragePage as ccp ; ccp('reports/${yr}/coverage') ;"
 
 logger -s -t $(basename $0 .sh) "create year-to-date barchart"
 python -c "from reports.createAnnualBarChart import createBarChart; createBarChart('${DATADIR}','${yr}')"
@@ -54,11 +56,8 @@ numcams=$(cat $DATADIR/consolidated/activecamcount.txt)
 cat $TEMPLATES/frontpage.html | sed "s/#NUMCAMS#/$numcams/g" > $DATADIR/reports/${yr}/newindex.html
 
 logger -s -t $(basename $0 .sh) "copying to website"
-aws s3 cp $DATADIR/reports/${yr}/coverage-maps.html $WEBSITEBUCKET/latest/ --quiet
-aws s3 cp $DATADIR/reports/${yr}/coverage-100km.html  $WEBSITEBUCKET/data/ --quiet
-aws s3 cp $DATADIR/reports/${yr}/coverage-70km.html  $WEBSITEBUCKET/data/ --quiet
-aws s3 cp $DATADIR/reports/${yr}/coverage-70km.html  $WEBSITEBUCKET/data/coverage.html --quiet
-aws s3 cp $DATADIR/reports/${yr}/coverage-25km.html  $WEBSITEBUCKET/data/ --quiet
+aws s3 sync $DATADIR/reports/${yr}/coverage/ $WEBSITEBUCKET/latest/ --exclude "*" --include "coverage*.html" --quiet
+aws s3 cp $DATADIR/reports/${yr}/coverage/coverage-70km.html  $WEBSITEBUCKET/data/coverage.html --quiet
 
 aws s3 cp $DATADIR/reports/${yr}/Annual-${yr}.jpg $WEBSITEBUCKET/YearToDate.jpg --quiet
 
