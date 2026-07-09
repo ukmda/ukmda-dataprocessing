@@ -184,12 +184,14 @@
                     console.log(src1);
                     var geojs1 = fetch(src1)
                         .then(function (response) {
-                            console.log(response.text());
-                            return response.text();
+                            var res = response.text();
+                            console.log(res);
+                            return res;
                         })
                         .then(function (xml) {
-                            console.log(toGeoJSON.kml(new DOMParser().parseFromString(xml, "text/xml")));
-                            return toGeoJSON.kml(new DOMParser().parseFromString(xml, "text/xml"));
+                            var dta = toGeoJSON.kml(new DOMParser().parseFromString(xml, "text/xml"));
+                            console.log(dta);
+                            return dta;
                         });
 
                     map.data.addGeoJson(geojs1);
