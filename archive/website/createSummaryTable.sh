@@ -47,6 +47,7 @@ export KMLTEMPLATE="*100km.kml"
 python -m reports.makeCoverageMap $DATADIR/kmls $DATADIR/reports/${yr}/coverage
 
 python -c "from reports.makeCoverageMap import createCoveragePage as ccp ; ccp('reports/${yr}/coverage') ;"
+python -c "from reports.makeCoverageMap import createCoveragePage as ccp ; ccp('reports/${yr}/coverage', True) ;"
 
 logger -s -t $(basename $0 .sh) "create year-to-date barchart"
 python -c "from reports.createAnnualBarChart import createBarChart; createBarChart('${DATADIR}','${yr}')"
@@ -57,7 +58,6 @@ cat $TEMPLATES/frontpage.html | sed "s/#NUMCAMS#/$numcams/g" > $DATADIR/reports/
 
 logger -s -t $(basename $0 .sh) "copying to website"
 aws s3 sync $DATADIR/reports/${yr}/coverage/ $WEBSITEBUCKET/latest/ --exclude "*" --include "coverage*.html" --quiet
-aws s3 cp $DATADIR/reports/${yr}/coverage/coverage-70km.html  $WEBSITEBUCKET/data/coverage.html --quiet
 
 aws s3 cp $DATADIR/reports/${yr}/Annual-${yr}.jpg $WEBSITEBUCKET/YearToDate.jpg --quiet
 
