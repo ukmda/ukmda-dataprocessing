@@ -177,7 +177,7 @@
                     mapTypeId: 'terrain'
                 });
 
-                if (strstat != '') {
+                if (strstat != 'All') {
                     var src1 = '/img/kmls/' + strstat + '-' + height + '.kml';
                     var geojs1 = fetch(src1)
                         .then(function (response) {
@@ -212,7 +212,7 @@
                         }
                     });
                 }
-                if (strstat2 != '') {
+                if (strstat2 != 'All') {
                     var src2 = 'https://archive.ukmeteors.co.uk/img/kmls/' + strstat2 + '-' + height + '.kml';
 
                     var kmlLayer = new google.maps.KmlLayer(src2, {
@@ -242,7 +242,7 @@
                         }
                     });
                 }
-                if (strstat3 != '') {
+                if (strstat3 != 'All') {
                     var src3 = 'https://archive.ukmeteors.co.uk/img/kmls/' + strstat3 + '-' + height + '.kml';
 
                     var kmlLayer = new google.maps.KmlLayer(src3, {
