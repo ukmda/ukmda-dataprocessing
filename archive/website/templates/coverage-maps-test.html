@@ -193,8 +193,7 @@
                     console.log(strstat);
                     var src1 = '/img/kmls/' + strstat + '-' + height + '.kml';
                     console.log(src1);
-
-                    const response = fetch(url);
+                    const response = fetch(src1);
                     if (response.ok){
                         const textdata = response.text();
                         console.log(textdata);
