@@ -178,6 +178,7 @@
                 });
 
                 if (strstat != 'All') {
+                    console.log('processing station 1')
                     var src1 = '/img/kmls/' + strstat + '-' + height + '.kml';
                     var geojs1 = fetch(src1)
                         .then(function (response) {
