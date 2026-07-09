@@ -167,7 +167,6 @@
             }
 
             function initMap() {
-                //var sn = getParameterByName('statselect');
                 var map;
                 var circle;
                 map = new google.maps.Map(document.getElementById('map'), {
@@ -176,6 +175,12 @@
                     zoom: 2,
                     mapTypeId: 'terrain'
                 });
+
+                var e = document.getElementById('heightsel');
+                height = e.options[e.selectedIndex].text;
+
+                var e = document.getElementById('statselect');
+                strstat = e.options[e.selectedIndex].text;
 
                 if (strstat != 'All') {
                     console.log('processing station 1');
