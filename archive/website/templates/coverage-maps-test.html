@@ -242,11 +242,32 @@
                     catch(error){
                         console.error(error.message);
                     }
+                    map.data.addListener('click', (mapsMouseEvent) => {
+                        var content = mapsMouseEvent.latLng.toJSON()
+                        var testimonial = document.getElementById('capture');
+                        var lati = content.lat;
+                        var lngi = content.lng;
+                        var outputstr = "<font color=black>Selected Station<br>" + strstat + "<br><br>Circle centre<br>lat: " + Math.round(lati * 100) / 100 + "<br>lng: " + Math.round(lngi * 100) / 100 + "</font>";
+                        console.log(outputstr);
+                        testimonial.innerHTML = outputstr;
+                        if (circle == null) {
+                            circle = new google.maps.Circle({
+                                map: map,
+                                strokeColor: "#FF0000",
+                                strokeOpacity: 0.5,
+                                center: { lat: lati, lng: lngi },
+                                radius: 200000
+                            });
+                        }
+                        else {
+                            circle.setCenter({ lat: lati, lng: lngi });
+                        }
+                    });
                 }
                 if (strstat3 != 'All') {
                     const src3 = '/img/kmls/' + strstat3 + '-' + height + '.kml';
                     console.log('processing station 3');
-                    console.log(src2);
+                    console.log(src3);
                     try {
                         const response = await fetch(src3);
                         if (!response.ok) {
@@ -259,6 +280,27 @@
                     catch(error){
                         console.error(error.message);
                     }
+                    map.data.addListener('click', (mapsMouseEvent) => {
+                        var content = mapsMouseEvent.latLng.toJSON()
+                        var testimonial = document.getElementById('capture');
+                        var lati = content.lat;
+                        var lngi = content.lng;
+                        var outputstr = "<font color=black>Selected Station<br>" + strstat + "<br><br>Circle centre<br>lat: " + Math.round(lati * 100) / 100 + "<br>lng: " + Math.round(lngi * 100) / 100 + "</font>";
+                        console.log(outputstr);
+                        testimonial.innerHTML = outputstr;
+                        if (circle == null) {
+                            circle = new google.maps.Circle({
+                                map: map,
+                                strokeColor: "#FF0000",
+                                strokeOpacity: 0.5,
+                                center: { lat: lati, lng: lngi },
+                                radius: 200000
+                            });
+                        }
+                        else {
+                            circle.setCenter({ lat: lati, lng: lngi });
+                        }
+                    });
                 }
             }
         </script>
