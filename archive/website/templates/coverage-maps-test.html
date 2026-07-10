@@ -141,7 +141,6 @@
                 //console.log('in formSubmit');
                 var e = document.getElementById('statselect');
                 strstat = e.options[e.selectedIndex].text;
-                selidx = e.selectedIndex;
 
                 var e = document.getElementById('statselect2');
                 strstat2 = e.options[e.selectedIndex].text;
@@ -190,8 +189,7 @@
 
                 if (strstat != 'All') {
                     console.log('processing station 1');
-                    console.log(strstat);
-                    var src1 = '/img/kmls/' + strstat + '-' + height + '.kml';
+                    const src1 = '/img/kmls/' + strstat + '-' + height + '.kml';
                     console.log(src1);
                     try {
                         const response = await fetch(src1);
@@ -199,9 +197,7 @@
                             throw new Error(`Response status: ${response.status}`);
                         }
                         const textdata = await response.text();
-                        console.log(textdata);
                         const geojs1 = toGeoJSON.kml(new DOMParser().parseFromString(textdata, "text/xml"));
-                        console.log(geojs1);
                         map.data.addGeoJson(geojs1);
                     }
                     catch(error){
@@ -231,69 +227,43 @@
                     });
                 }
                 if (strstat2 != 'All') {
-                    var src2 = 'https://archive.ukmeteors.co.uk/img/kmls/' + strstat2 + '-' + height + '.kml';
-
-                    var kmlLayer = new google.maps.KmlLayer(src2, {
-                        suppressInfoWindows: true,
-                        preserveViewport: true,
-                        map: map
-                    });
-                    kmlLayer.addListener('click', (mapsMouseEvent) => {
-                        var content = mapsMouseEvent.latLng.toJSON()
-                        var testimonial = document.getElementById('capture');
-                        var lati = content.lat;
-                        var lngi = content.lng;
-                        var outputstr = "<font color=black>Selected Station<br>" + strstat2 + "<br><br>Circle centre<br>lat: " + Math.round(lati * 100) / 100 + "<br>lng: " + Math.round(lngi * 100) / 100 + "</font>";
-                        console.log(outputstr);
-                        testimonial.innerHTML = outputstr;
-                        if (circle == null) {
-                            circle = new google.maps.Circle({
-                                map: map,
-                                strokeColor: "#FF0000",
-                                strokeOpacity: 0.5,
-                                center: { lat: lati, lng: lngi },
-                                radius: 200000
-                            });
+                    const src2 = '/img/kmls/' + strstat2 + '-' + height + '.kml';
+                    console.log('processing station 2');
+                    console.log(src2);
+                    try {
+                        const response = await fetch(src2);
+                        if (!response.ok) {
+                            throw new Error(`Response status: ${response.status}`);
                         }
-                        else {
-                            circle.setCenter({ lat: lati, lng: lngi });
-                        }
-                    });
+                        const textdata = await response.text();
+                        const geojs1 = toGeoJSON.kml(new DOMParser().parseFromString(textdata, "text/xml"));
+                        map.data.addGeoJson(geojs1);
+                    }
+                    catch(error){
+                        console.error(error.message);
+                    }
                 }
                 if (strstat3 != 'All') {
-                    var src3 = 'https://archive.ukmeteors.co.uk/img/kmls/' + strstat3 + '-' + height + '.kml';
-
-                    var kmlLayer = new google.maps.KmlLayer(src3, {
-                        suppressInfoWindows: true,
-                        preserveViewport: true,
-                        map: map
-                    });
-                    kmlLayer.addListener('click', (mapsMouseEvent) => {
-                        var content = mapsMouseEvent.latLng.toJSON()
-                        var testimonial = document.getElementById('capture');
-                        var lati = content.lat;
-                        var lngi = content.lng;
-                        var outputstr = "<font color=black>Selected Station<br>" + strstat3 + "<br><br>Circle centre<br>lat: " + Math.round(lati * 100) / 100 + "<br>lng: " + Math.round(lngi * 100) / 100 + "</font>";
-                        console.log(outputstr);
-                        testimonial.innerHTML = outputstr;
-                        if (circle == null) {
-                            circle = new google.maps.Circle({
-                                map: map,
-                                strokeColor: "#FF0000",
-                                strokeOpacity: 0.5,
-                                center: { lat: lati, lng: lngi },
-                                radius: 200000
-                            });
+                    const src3 = '/img/kmls/' + strstat3 + '-' + height + '.kml';
+                    console.log('processing station 3');
+                    console.log(src2);
+                    try {
+                        const response = await fetch(src3);
+                        if (!response.ok) {
+                            throw new Error(`Response status: ${response.status}`);
                         }
-                        else {
-                            circle.setCenter({ lat: lati, lng: lngi });
-                        }
-                    });
+                        const textdata = await response.text();
+                        const geojs1 = toGeoJSON.kml(new DOMParser().parseFromString(textdata, "text/xml"));
+                        map.data.addGeoJson(geojs1);
+                    }
+                    catch(error){
+                        console.error(error.message);
+                    }
                 }
             }
         </script>
         <script async
-            src="https://maps.googleapis.com/maps/api/js?key={{MAPSAPIKEY}}&v=3.65&callback=initMap">
+            src="https://maps.googleapis.com/maps/api/js?key={{MAPSAPIKEY}}&v=3.65&callback=initMap&loading=async">
             </script>
     </div>
 </body>
