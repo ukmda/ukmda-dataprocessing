@@ -191,9 +191,13 @@
                 if (strstat != 'All') {
                     console.log('processing station 1');
                     console.log(strstat);
-                    var src1 = 'https://archive.ukmeteors.co.uk/img/kmls/' + strstat + '-' + height + '.kml';
+                    var src1 = '/img/kmls/' + strstat + '-' + height + '.kml';
                     console.log(src1);
                     try {
+                        const reader = new FileReader();
+                        reader.readAsText(src1);
+                        const kmldata = reader.result;
+                        console.log(kmldata)
                         const response = fetch(src1);
                         if (!response.ok) {
                             throw new Error(`Response status: ${response.status}`);
