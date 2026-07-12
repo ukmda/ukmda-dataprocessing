@@ -1,0 +1,8 @@
+{
+  "httpMethod": "GET",
+  "queryStringParameters": {
+    "stat": "UK005U",
+    "dt": "2024-08-09T20:53:37.58",
+    "metcount": 1
+  }
+}

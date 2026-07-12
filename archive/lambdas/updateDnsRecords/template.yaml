@@ -19,7 +19,7 @@ Resources:
           - route53:ChangeResourceRecordSets
           Resource: '*'
           Effect: Allow
-      Runtime: python3.11
+      Runtime: python3.14
       Events:
         EC2StateChangeEvent:
           Type: CloudWatchEvent
