@@ -51,8 +51,14 @@ def getTrueImgs(dtstr, dtstr2, statid, ddb=None):
     if ddb is None:
         ddb = boto3.resource('dynamodb', region_name='eu-west-2')
     table = ddb.Table('LiveBrightness')
-    d1 = datetime.datetime.strptime(dtstr, '%Y-%m-%dT%H:%M:%S.000Z')
-    d2 = datetime.datetime.strptime(dtstr2, '%Y-%m-%dT%H:%M:%S.000Z')
+    if dtstr == 'latest':
+        d2 = datetime.datetime.now()
+        d1 = datetime.datetime.now() - datetime.timedelta(days=1)
+        maxitems = 100
+    else:
+        d1 = datetime.datetime.strptime(dtstr, '%Y-%m-%dT%H:%M:%S.000Z')
+        d2 = datetime.datetime.strptime(dtstr2, '%Y-%m-%dT%H:%M:%S.000Z')
+        maxitems = 2000
     if d1.hour < 13:
         capnight=(d1 + datetime.timedelta(days=-1)).strftime('%Y%m%d')
     else:
@@ -61,6 +67,7 @@ def getTrueImgs(dtstr, dtstr2, statid, ddb=None):
     hv=Decimal(f'{d2.timestamp():.0f}')
     resp = table.query(KeyConditionExpression=Key('CaptureNight').eq(int(capnight)) & Key('Timestamp').between(lv, hv),
                         ProjectionExpression='ffname',
+                        Limit=maxitems,
                         ScanIndexForward = False)
     if statid is not None:
         imglist = [x['ffname'] for x in resp['Items'] if statid in x['ffname']]
