@@ -174,47 +174,51 @@ if __name__ == '__main__':
     caminfo = camlist.drop(columns=['site','direction','oldcode','active','camtype','eMail', 'humanName'])
 
     # process the last-login data from the SSHD log
-    lastlogs = open(os.path.join(datadir, 'reports', 'lastlogins.txt'),'r').readlines()
     lodata = []
     now = datetime.datetime.now(tz=datetime.timezone.utc)
-    for li in lastlogs:
-        spls = li.split('ssh')
-        # could be ubuntu (auth.log) or amazon linux style log
-        dtstr = spls[0][spls[0].find(':')+1:][:19]
-        if ' ' in dtstr:
-            dtval = datetime.datetime.strptime(f'{now.year} {dtstr[:15]}', '%Y %b %d %H:%M:%S').replace(tzinfo=datetime.timezone.utc)
-            if dtval > now:
-                dtval = dtval.replace(year=now.year-1, tzinfo=datetime.timezone.utc)
-            targhost = 'ukmonhelper2'
-        else:
-            dtval = datetime.datetime.strptime(dtstr, '%Y-%m-%dT%H:%M:%S')
-            dtval = dtval.replace(tzinfo=datetime.timezone.utc)
-            targhost = 'batchserver'
-        location = spls[1].split(' for ')[1].split()[0]
-        lodata.append({'location':location, 'lastseen':dtval,'host': targhost})
+    loginfile = os.path.join(datadir, 'reports', 'lastlogins.txt')
+    if os.path.isfile(loginfile):
+        lastlogs = open(loginfile,'r').readlines()
+        for li in lastlogs:
+            spls = li.split('ssh')
+            # could be ubuntu (auth.log) or amazon linux style log
+            dtstr = spls[0][spls[0].find(':')+1:][:19]
+            if ' ' in dtstr:
+                dtval = datetime.datetime.strptime(f'{now.year} {dtstr[:15]}', '%Y %b %d %H:%M:%S').replace(tzinfo=datetime.timezone.utc)
+                if dtval > now:
+                    dtval = dtval.replace(year=now.year-1, tzinfo=datetime.timezone.utc)
+                targhost = 'ukmonhelper2'
+            else:
+                dtval = datetime.datetime.strptime(dtstr, '%Y-%m-%dT%H:%M:%S')
+                dtval = dtval.replace(tzinfo=datetime.timezone.utc)
+                targhost = 'batchserver'
+            location = spls[1].split(' for ')[1].split()[0]
+            lodata.append({'location':location, 'lastseen':dtval,'host': targhost})
 
 
-    if len(lodata) > 0:
-        logindf = pd.DataFrame(lodata)
-        logindf = logindf.sort_values(by=['lastseen'])
-        logindf.drop_duplicates(subset=['location'], inplace=True, keep='last')
+        if len(lodata) > 0:
+            logindf = pd.DataFrame(lodata)
+            logindf = logindf.sort_values(by=['lastseen'])
+            logindf.drop_duplicates(subset=['location'], inplace=True, keep='last')
 
-        # create a merged dataframe with siteid and stationid
-        intdf = pd.merge(logindf,caminfo, on=['location'], how='outer')
+            # create a merged dataframe with siteid and stationid
+            intdf = pd.merge(logindf,caminfo, on=['location'], how='outer')
 
-        df = pd.merge(intdf, fulldf, on=['stationid'])
-        df['uploadtime']=df.uploadtime.astype("str").str.pad(6,fillchar="0")
-        df['lastupload']=df.upddate.astype('str') + '_' +df.uploadtime
-        df.lastupload = [datetime.datetime.strptime(x, '%Y%m%d_%H%M%S') for x in df.lastupload]
-        df = df.drop(columns=['manual','rundate', 'upddate','uploadtime'])
-        df = df.sort_values(by=['lastupload'])
+            df = pd.merge(intdf, fulldf, on=['stationid'])
+            df['uploadtime']=df.uploadtime.astype("str").str.pad(6,fillchar="0")
+            df['lastupload']=df.upddate.astype('str') + '_' +df.uploadtime
+            df.lastupload = [datetime.datetime.strptime(x, '%Y%m%d_%H%M%S') for x in df.lastupload]
+            df = df.drop(columns=['manual','rundate', 'upddate','uploadtime'])
+            df = df.sort_values(by=['lastupload'])
 
-        outfile=os.path.join(datadir, 'reports', 'stationlogins.txt')
-        zerodate = datetime.datetime(1970,1,1,0,0,0)
-        with open(outfile,'w') as outf:
-            outf.write(f'{"Last Upload":19s}  {"Last Connect":19s}  {"StationID":20s}  {"GMN ID":10s}  Via\n')
-            for _,rw in df.iterrows():
-                lastup = '> 1 month ago' if pd.isnull(rw.lastupload) else rw.lastupload.strftime('%Y-%m-%dT%H:%M:%S')
-                lastlo = '> 1 month ago' if pd.isnull(rw.lastseen) else rw.lastseen.strftime('%Y-%m-%dT%H:%M:%S')
-                via = 'ukmonhelper2' if pd.isnull(rw.host) else rw.host
-                outf.write(f'{lastup:19s}  {lastlo:19s}  {rw.location:20s}  {rw.stationid:10s}  {via}\n')
+            outfile=os.path.join(datadir, 'reports', 'stationlogins.txt')
+            zerodate = datetime.datetime(1970,1,1,0,0,0)
+            with open(outfile,'w') as outf:
+                outf.write(f'{"Last Upload":19s}  {"Last Connect":19s}  {"StationID":20s}  {"GMN ID":10s}  Via\n')
+                for _,rw in df.iterrows():
+                    lastup = '> 1 month ago' if pd.isnull(rw.lastupload) else rw.lastupload.strftime('%Y-%m-%dT%H:%M:%S')
+                    lastlo = '> 1 month ago' if pd.isnull(rw.lastseen) else rw.lastseen.strftime('%Y-%m-%dT%H:%M:%S')
+                    via = 'ukmonhelper2' if pd.isnull(rw.host) else rw.host
+                    outf.write(f'{lastup:19s}  {lastlo:19s}  {rw.location:20s}  {rw.stationid:10s}  {via}\n')
+    else:
+        print(f'camera login times file missing, not updating report')
