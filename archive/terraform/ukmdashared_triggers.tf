@@ -12,6 +12,10 @@ data "aws_lambda_function" "ftptoukmdalambda" {
   function_name = "ftpToUkmon"
 }
 
+data "aws_lambda_function" "videohandler" {
+  function_name = "videohandler"
+}
+
 resource "aws_s3_bucket_notification" "ukmdashared_notification" {
   bucket = aws_s3_bucket.ukmdashared.id
   lambda_function {
@@ -32,12 +36,12 @@ resource "aws_s3_bucket_notification" "ukmdashared_notification" {
     filter_suffix       = ".txt"
   }
 
-  #lambda_function {
-  #  lambda_function_arn = aws_lambda_function.imgreplicatelambda.arn
-  #  id                  = "synctoukmon"
-  #  events              = ["s3:ObjectCreated:*"]
-  #  filter_prefix       = "archive/"
-  #}
+  lambda_function {
+    lambda_function_arn = data.aws_lambda_function.videohandler.arn
+    id                  = "videohandler"
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "fireballs/videouploads/raw/"
+  }
 
 }
 
@@ -59,11 +63,11 @@ resource "aws_lambda_permission" "permftptoukmdalambda" {
   source_arn     = aws_s3_bucket.ukmdashared.arn
 }
 
-#resource "aws_lambda_permission" "permarcreplicatelambda" {
-#  statement_id   = "AllowExecutionFromShrBucket"
-#  action         = "lambda:InvokeFunction"
-#  function_name  = aws_lambda_function.imgreplicatelambda.arn
-#  principal      = "s3.amazonaws.com"
-#  source_account = data.aws_caller_identity.current.account_id
-#  source_arn     = aws_s3_bucket.ukmdashared.arn
-#}
+resource "aws_lambda_permission" "permvideohandler" {
+  statement_id   = "AllowExecutionFromShrBucket"
+  action         = "lambda:InvokeFunction"
+  function_name  = data.aws_lambda_function.videohandler.arn
+  principal      = "s3.amazonaws.com"
+  source_account = data.aws_caller_identity.current.account_id
+  source_arn     = aws_s3_bucket.ukmdashared.arn
+}

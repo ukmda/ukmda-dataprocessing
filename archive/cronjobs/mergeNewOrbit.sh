@@ -35,25 +35,20 @@ python << EOD
 from wmpl.Utils.Pickling import loadPickle;
 from wmpl.Utils.TrajConversions import jd2Date;
 pick = loadPickle('${evt}/$orb','${pickname}');
-if len(pick.output_dir) < 19:
-    print( jd2Date(pick.jdt_ref, dt_obj=True).strftime('%Y%m%d_%H%M%S.%f')[:19]+'_UK');
+if hasattr(pick, 'longname'):
+    print(pick.longname)
 else:
-    print(pick.output_dir)
+    print(jd2Date(pick.jdt_ref, dt_obj=True).strftime('%Y%m%d_%H%M%S.%f')[:19]+'_UK');
 EOD
 )
-        odux=$(echo $origdir | sed 's|\\|/|g')
-        pickname=$(basename $odux)
-        truncpn=${pickname:0:19}_UK
-        mv $evt/$orb $evt/$truncpn
+        mv $evt/$orb $evt/$origdir
         aws s3 sync $evt/jpgs s3://ukmda-website/img/single/${yr}/${ym}/
         aws s3 sync $evt/mp4s s3://ukmda-website/img/mp4/${yr}/${ym}/
-        orb=$truncpn
-        pick=$(ls -1 $evt/$orb/*.pickle)
+        aws s3 sync $evt/notes s3://ukmda-website/reports/${yr}/orbits/${ym}/${ymd}/${origdir}/notes
+        pick=$(ls -1 $evt/$origdir/*.pickle)
         python -m maintenance.recreateOrbitPages $pick force
         $SRC/website/createOrbitIndex.sh ${ymd}
-        aws s3 ls ${UKMONSHAREDBUCKET}/matches/${yr}/fullcsv/
         sleep 30 # to allow the lambda to write the CSV file to s3
-        aws s3 ls ${UKMONSHAREDBUCKET}/matches/${yr}/fullcsv/
         $SRC/analysis/consolidateOutput.sh ${yr}
         $SRC/website/createFireballPage.sh ${yr}
         aws s3 mv $UKMONSHAREDBUCKET/fireballs/uploads/$fil $UKMONSHAREDBUCKET/fireballs/uploads/processed/$fil.done

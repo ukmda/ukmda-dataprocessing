@@ -17,6 +17,7 @@ def lambda_handler(event, context):
         print('no record')
         return 
     record = event['Records'][0]
+    print(record)
     if 'eventSource' not in record:
         print('no eventSource')
         return 
@@ -24,13 +25,15 @@ def lambda_handler(event, context):
     ############################################################
     #
     # get the email details and extract the information we need
-
+    key = record['s3']['object']['key']
+    #key = 'fireballs/videouploads/raw/' + record['ses']['mail']['messageId']
     try:
-        fsobj = s3.get_object(Bucket=targetBucket, Key='fireballs/videouploads/raw/' + record['ses']['mail']['messageId'])
-    except:
-        print('email object not found')
+        print(f"getting {key} from {targetBucket}")
+        fsobj = s3.get_object(Bucket=targetBucket, Key=key)
+    except Exception:
+        print(f'email object {key} not found')
         return
-    print(f"reading {record['ses']['mail']['messageId']}")
+    print(f"reading {key}")
 
     try:
         raw_mail = fsobj['Body'].read()
@@ -69,79 +72,69 @@ def lambda_handler(event, context):
 
     ############################################################
     #
-    # create a plaintext summary of the email and save it on S3
-
-    fileName = f"{orbname[:15]}_{uploader.replace(' ','_')}.txt"
-    filePath = os.path.join(tmpdir, fileName)
-    with open(filePath, 'w') as fp:
-        fp.write(f'{uploader}\n')
-        fp.write(f'{email}\n')
-        fp.write(f'{orbname}\n')
-        fp.write(f'{fileName}\n')
-        fp.write(f'{link}\n')
-        fp.write(f'{extratxt}')
-
-    tmpf = 'fireballs/videouploads/' + fileName
-    s3.upload_file(Bucket=targetBucket, Key=tmpf, Filename=filePath, ExtraArgs={'ContentType': "text/plain"})
-
-    # TODO 
-    # get extra-text file if it exists
-    # append extratxt to the extra-text file, if its not already in it
-    # make zip from the folder (without the /tmp part)
-    # upload zip to s3://ukmda-shared/fireballs/uploads
-    # update page index builder to include the extratext if available
-
-    ############################################################
-    #
     # create folder and store artefacts in it for zipping
 
     localdir = os.path.join(tmpdir, orbname[:15])
     os.makedirs(os.path.join(localdir, 'mp4s'), exist_ok=True)
+    os.makedirs(os.path.join(localdir, 'notes'), exist_ok=True)
+
+    ############################################################
+    #
+    # create a plaintext summary and save it on S3
+
+    vidName = f"{orbname[:15]}_{uploader.replace(' ','_')}{origext}"
+    fileName = f"{orbname[:15]}_{uploader.replace(' ','_')}.txt"
+    filePath = os.path.join(localdir, 'notes', fileName)
+    with open(filePath, 'w') as fp:
+        fp.write(f'{uploader}\n')
+        fp.write(f'{orbname}\n')
+        fp.write(f'{vidName}\n')
+        fp.write(f'{extratxt}')
+
+    tmpf = 'fireballs/videouploads/' + fileName
+    s3.upload_file(Bucket=targetBucket, Key=tmpf, Filename=filePath, ExtraArgs={'ContentType': "text/plain"})
+    print('uploaded plaintext')
 
     # get the video from the ukmeteornetwork.org server
 
-    vidName = f"{orbname[:15]}_{uploader.replace(' ','_')}{origext}"
     vidPath = os.path.join(localdir, 'mp4s', vidName)
-
+    
     with requests.get(link, stream=True) as r:
         r.raise_for_status()
         with open(vidPath, 'wb') as f:
             for chunk in r.iter_content(chunk_size=8192): 
-                # If you have chunk encoded response uncomment if
-                # and set chunk_size parameter to None.
-                #if chunk: 
                 f.write(chunk)
 
-    # upload a copy of it to S3 for reference
-    vidtype = origext[1:]
-    tmpf = 'fireballs/videouploads/' + vidName
-    s3.upload_file(Bucket=targetBucket, Key=tmpf, Filename=vidPath, ExtraArgs={'ContentType': f'video/{vidtype}'})
+    print('got video from link')
+
+    # in debug mode upload a copy of it to S3 for reference
+    if int(os.getenv('DEBUG', default=0)) == 1:
+        vidtype = origext[1:]
+        tmpf = 'fireballs/videouploads/' + vidName
+        s3.upload_file(Bucket=targetBucket, Key=tmpf, Filename=vidPath, ExtraArgs={'ContentType': f'video/{vidtype}'})
 
     # get the pickle file from the S3 archive
     pickfile = f'matches/RMSCorrelate/trajectories/{orbname[:4]}/{orbname[:6]}/{orbname[:8]}/{orbname}/{orbname[:15]}_trajectory.pickle'
     localpick = os.path.join(localdir, f'{orbname[:15]}_trajectory.pickle')
-    s3.download_file(Bucket=targetBucket, Key=pickfile, Filename=localpick)
-
-    # get the notes from S3
-    notefile = f'matches/RMSCorrelate/trajectories/{orbname[:4]}/{orbname[:6]}/{orbname[:8]}/{orbname}/notes.txt'
-    localnote = os.path.join(localdir, 'notes.txt')
-
-    # if the file exists, append the notes, otherwise create it
     try:
-        s3.download_file(Bucket=targetBucket, Key=notefile, Filename=localnote)
-        notestxt = open(localnote,'r').readlines()
-        notestxt.append(f'{vidName} provided by {uploader}\n{extratxt}\n')
-    except Exception:
-        notestxt = f'{vidName} provided by {uploader}\n{extratxt}\n'
-    open(localnote, 'w').writelines(notestxt)
+        s3.download_file(Bucket=targetBucket, Key=pickfile, Filename=localpick)
+        print('got pickle')
+    except Exception as e:
+        print(f'unable to get pickle {pickfile}')
+        print(e)
+        # with no pickle we can't proceed. 
+        return 
 
     # make the zip file
     zipname = os.path.join(os.getenv('TMP'), f'{orbname[:15]}')
-    make_archive(zipname, 'zip',root_dir=tmpdir)
+    make_archive(zipname, 'zip',root_dir=localdir, base_dir = '.')
 
-    tmpf = 'fireballs/videouploads/' + f'{orbname[:15]}.zip'
+    # upload the zip file so it can be processed
+    tmpf = 'fireballs/uploads/' + f'{orbname[:15]}.zip'
     s3.upload_file(Bucket=targetBucket, Key=tmpf, Filename=f'{zipname}.zip', ExtraArgs={'ContentType': 'application/zip'})
+    print('uploaded zip')
 
+    # clean up after ourselves
     try:
         rmtree(tmpdir)
     except Exception:
