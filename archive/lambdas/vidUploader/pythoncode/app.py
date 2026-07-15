@@ -54,7 +54,6 @@ def lambda_handler(event, context):
     fromline = [x for x in lines if 'From:' in x]
     datetime = [x for x in lines if 'Subject:' in x]
     emailadd = [x for x in lines if 'email:' in x]
-    extratxt = [x for x in lines if 'Message Body:' in x]
     if not fromline or not datetime or not emailadd:
         print(f'From, Date or email missing, unable to continue')
         return 
@@ -64,6 +63,17 @@ def lambda_handler(event, context):
     orbname = datetime[0].split(':')[1].strip()
 
     linkline = lines.index('Link:')
+    bdyline = [x for x in lines if 'Message Body:' in x]
+    if len(bdyline) > 0:
+        commentline = lines.index(bdyline[0])
+        for i in range(commentline, linkline):
+            if i == commentline:
+                comment = lines[i].split(':')[1].strip()
+            else:
+                comment += lines[i]+ ' '
+    else:
+        comment = 'No remarks'
+
     origname = lines[linkline+1].strip()
     origext = os.path.splitext(origname)[1]
     link = lines[linkline+2].strip().replace('<https','https').replace('>','')
@@ -89,12 +99,14 @@ def lambda_handler(event, context):
         fp.write(f'{uploader}\n')
         fp.write(f'{orbname}\n')
         fp.write(f'{vidName}\n')
-        fp.write(f'{extratxt}')
+        fp.write(f'{comment}')
 
     tmpf = 'fireballs/videouploads/' + fileName
     s3.upload_file(Bucket=targetBucket, Key=tmpf, Filename=filePath, ExtraArgs={'ContentType': "text/plain"})
     print('uploaded plaintext')
 
+    ############################################################
+    #
     # get the video from the ukmeteornetwork.org server
 
     vidPath = os.path.join(localdir, 'mp4s', vidName)
@@ -107,12 +119,16 @@ def lambda_handler(event, context):
 
     print('got video from link')
 
+    ############################################################
+    #
     # in debug mode upload a copy of it to S3 for reference
     if int(os.getenv('DEBUG', default=0)) == 1:
         vidtype = origext[1:]
         tmpf = 'fireballs/videouploads/' + vidName
         s3.upload_file(Bucket=targetBucket, Key=tmpf, Filename=vidPath, ExtraArgs={'ContentType': f'video/{vidtype}'})
 
+    ############################################################
+    #
     # get the pickle file from the S3 archive
     pickfile = f'matches/RMSCorrelate/trajectories/{orbname[:4]}/{orbname[:6]}/{orbname[:8]}/{orbname}/{orbname[:15]}_trajectory.pickle'
     localpick = os.path.join(localdir, f'{orbname[:15]}_trajectory.pickle')
@@ -125,15 +141,21 @@ def lambda_handler(event, context):
         # with no pickle we can't proceed. 
         return 
 
+    ############################################################
+    #
     # make the zip file
     zipname = os.path.join(os.getenv('TMP'), f'{orbname[:15]}')
     make_archive(zipname, 'zip',root_dir=localdir, base_dir = '.')
 
+    ############################################################
+    #
     # upload the zip file so it can be processed
     tmpf = 'fireballs/uploads/' + f'{orbname[:15]}.zip'
     s3.upload_file(Bucket=targetBucket, Key=tmpf, Filename=f'{zipname}.zip', ExtraArgs={'ContentType': 'application/zip'})
     print('uploaded zip')
 
+    ############################################################
+    #
     # clean up after ourselves
     try:
         rmtree(tmpdir)
