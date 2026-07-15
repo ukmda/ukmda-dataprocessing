@@ -45,3 +45,75 @@ resource "aws_cloudwatch_log_group" "devnightly" {
     "billingtag" = "ukmda"
   }
 }
+
+resource "aws_cloudwatch_log_group" "monitorlivefeed" {
+  provider    = aws.eu-west-1-prov
+  name = "/aws/lambda/MonitorLiveFeed"
+  retention_in_days = 30
+  tags = {
+    "billingtag" = "ukmda"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "matchDataApi" {
+  provider    = aws.eu-west-1-prov
+  name = "/aws/lambda/matchDataApi"
+  retention_in_days = 30
+  tags = {
+    "billingtag" = "ukmda"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "matchPickleApi" {
+  provider    = aws.eu-west-1-prov
+  name = "/aws/lambda/matchPickleApi"
+  retention_in_days = 30
+  tags = {
+    "billingtag" = "ukmda"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "searchArchive" {
+  provider    = aws.eu-west-1-prov
+  name = "/aws/lambda/searchArchive"
+  retention_in_days = 30
+  tags = {
+    "billingtag" = "ukmda"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "getLiveImages" {
+  provider    = aws.eu-west-1-prov
+  name = "/aws/lambda/getLiveImages"
+  retention_in_days = 30
+  tags = {
+    "billingtag" = "ukmda"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "getFireballFiles" {
+  provider    = aws.eu-west-1-prov
+  name = "/aws/lambda/getFireballFiles"
+  retention_in_days = 30
+  tags = {
+    "billingtag" = "ukmda"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "fetchECSV" {
+  provider    = aws.eu-west-1-prov
+  name = "/aws/lambda/fetchECSV"
+  retention_in_days = 30
+  tags = {
+    "billingtag" = "ukmda"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "camDetails" {
+  provider    = aws.eu-west-1-prov
+  name = "/aws/lambda/camDetails"
+  retention_in_days = 30
+  tags = {
+    "billingtag" = "ukmda"
+  }
+}
