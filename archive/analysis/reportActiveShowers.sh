@@ -31,7 +31,8 @@ fi
 logger -s -t $(basename $0 .sh) "start reportActiveShowers"
 python -m reports.reportActiveShowers -m
 
-python -c "from utils.getActiveShowers import getActiveShowers;getActiveShowers('$rundt', inclMinor=True)" | while read shwr
+shwrs=$(python -c "from utils.getActiveShowers import getActiveShowers;getActiveShowers('$rundt', inclMinor=True)")
+for shwr in $shwrs
 do 
     aws s3 sync $DATADIR/reports/${yr}/$shwr $WEBSITEBUCKET/reports/${yr}/${shwr} --quiet 
 done
