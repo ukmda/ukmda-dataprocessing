@@ -42,8 +42,10 @@ else:
 EOD
 )
         mv $evt/$orb $evt/$origdir
+        # upload the files here as sync is more efficient 
         [ -d jpgs ] && aws s3 sync $evt/jpgs s3://ukmda-website/img/single/${yr}/${ym}/
         [ -d mp4s ] && aws s3 sync $evt/mp4s s3://ukmda-website/img/mp4/${yr}/${ym}/
+        [ -d ecsvs ] && aws s3 sync $evt/ecsvs s3://ukmda-website/img/mp4/${yr}/${ym}/
         [ -d notes ] && aws s3 sync $evt/notes s3://ukmda-website/reports/${yr}/orbits/${ym}/${ymd}/${origdir}/notes
         pick=$(ls -1 $evt/$origdir/*.pickle)
         python -m maintenance.recreateOrbitPages $pick force
