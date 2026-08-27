@@ -247,4 +247,4 @@ if __name__ == '__main__':
     else:
         targdate = cml_args.targdate
 
-    shwrs = reportActiveShowers(targdate, cml_args.shower, cml_args.thismonth, cml_args.includeminor, cml_args.mincount)
+    shwrs = reportActiveShowers(targdate, cml_args.shower, cml_args.thismonth, cml_args.includeminor, int(cml_args.mincount))
