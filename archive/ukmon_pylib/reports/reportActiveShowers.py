@@ -187,7 +187,7 @@ def getBusyShowers(ymd, minmeteors=150, aslist=True):
         maxd = mtch[mtch._stream==shwr].dtstamp.max()
         maxd = datetime.datetime.fromtimestamp(maxd)
         shwrage = (currdt - maxd).days
-        if shwrage > 10:
+        if shwrage > 2:
             showerlist.pop(showerlist.index(shwr))
     if aslist:
         return showerlist
