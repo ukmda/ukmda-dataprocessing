@@ -183,15 +183,23 @@ def getBusyShowers(ymd, minmeteors=150, aslist=True):
     topshwrs = shwrs[shwrs >= minmeteors]
     showerlist = [x for x in topshwrs.index if x != 'spo']
     currdt = datetime.datetime.strptime(ymd, '%Y%m%d')
+    # filter out showers that are inactive now
     for shwr in showerlist:
         maxd = mtch[mtch._stream==shwr].dtstamp.max()
         maxd = datetime.datetime.fromtimestamp(maxd)
         shwrage = (currdt - maxd).days
         if shwrage > 2:
             showerlist.pop(showerlist.index(shwr))
+        else:
+            mind = mtch[mtch._stream==shwr].dtstamp.min()
+            mind = datetime.datetime.fromtimestamp(mind)
+            shwrpre = (mind - currdt).days
+            if shwrpre > 2:
+                showerlist.pop(showerlist.index(shwr))
     if aslist:
         return showerlist
-    else:print(' '.join(showerlist))
+    else:
+        print(' '.join(showerlist))
 
 
 def reportActiveShowers(ymd, thisshower=None, thismth=None, includeMinor=False, minmeteors=-1):
