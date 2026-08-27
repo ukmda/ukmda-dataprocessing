@@ -170,20 +170,28 @@ def findRelevantPngs(shwr, pltdir, outdir):
     return
 
 
-def getBusyShowers(ymd, minmeteors=150):
+def getBusyShowers(ymd, minmeteors=150, aslist=True):
     showerlist = []
     datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     # pltdir=os.path.join(datadir, 'showerplots')
     yr = ymd[:4]
-
-    cols = ['_stream']
+    cols = ['_stream', 'dtstamp']
     filt = None
     matchfile = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.snap'.format(yr))
     mtch = pd.read_parquet(matchfile, columns=cols, filters=filt)
     shwrs = mtch.groupby('_stream').size()
     topshwrs = shwrs[shwrs >= minmeteors]
     showerlist = [x for x in topshwrs.index if x != 'spo']
-    return showerlist
+    currdt = datetime.datetime.strptime(ymd, '%Y%m%d')
+    for shwr in showerlist:
+        maxd = mtch[mtch._stream==shwr].dtstamp.max()
+        maxd = datetime.datetime.fromtimestamp(maxd)
+        shwrage = (currdt - maxd).days
+        if shwrage > 10:
+            showerlist.pop(showerlist.index(shwr))
+    if aslist:
+        return showerlist
+    else:print(' '.join(showerlist))
 
 
 def reportActiveShowers(ymd, thisshower=None, thismth=None, includeMinor=False, minmeteors=-1):
