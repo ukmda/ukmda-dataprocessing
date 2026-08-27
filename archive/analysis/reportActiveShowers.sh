@@ -29,13 +29,15 @@ else
 fi
 
 logger -s -t $(basename $0 .sh) "start reportActiveShowers"
-python -m reports.reportActiveShowers -m
+python -m reports.reportActiveShowers -m -c 150
 
-shwrs=$(python -c "from utils.getActiveShowers import getActiveShowers;getActiveShowers('$rundt', inclMinor=True)")
+#shwrs=$(python -c "from utils.getActiveShowers import getActiveShowers;getActiveShowers('$rundt', inclMinor=True)")
+shwrs=$(python -c "from reports.reportActiveShowers import getBusyShowers;getBusyShowers('$rundt', minmeteors=150, aslist=False)")
 for shwr in $shwrs
 do 
     aws s3 sync $DATADIR/reports/${yr}/$shwr $WEBSITEBUCKET/reports/${yr}/${shwr} --quiet 
 done
+
 logger -s -t $(basename $0 .sh) "updating annual index"
 ${SRC}/website/createReportIndex.sh ${yr}
 
