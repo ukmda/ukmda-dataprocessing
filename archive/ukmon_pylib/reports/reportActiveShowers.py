@@ -190,12 +190,9 @@ def getBusyShowers(ymd, minmeteors=150, aslist=True):
         shwrage = (currdt - maxd).days
         if shwrage > 2:
             showerlist.pop(showerlist.index(shwr))
-        else:
-            mind = mtch[mtch._stream==shwr].dtstamp.min()
-            mind = datetime.datetime.fromtimestamp(mind)
-            shwrpre = (mind - currdt).days
-            if shwrpre > 2:
-                showerlist.pop(showerlist.index(shwr))
+    # unless we're in late december, skip the quadrantids, the only shower that wraps calendar yearend
+    if currdt < datetime.datetime(int(yr), 12,28) and 'QUA' in showerlist:
+        showerlist.pop(showerlist.index('QUA'))
     if aslist:
         return showerlist
     else:
