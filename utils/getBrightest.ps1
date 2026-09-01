@@ -28,7 +28,7 @@ Push-Location $repdir
 
 conda activate ukmon-shared
 
-Write-Output "working..."
+Write-Output "working... getting data for $reqdate"
 if ($reqdate -eq "" ) {
     python -c "from reports.findBestMp4s import getBestNSingles;getBestNSingles(numtoget=30,outdir='$outdir')"
 }else{
