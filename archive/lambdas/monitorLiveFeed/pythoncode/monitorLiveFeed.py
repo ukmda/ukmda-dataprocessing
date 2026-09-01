@@ -79,7 +79,8 @@ def updateLiveTable(evtdets, camdets, fname):
             'station_name': statname,
             'year': yr,
             'month': mth,
-            'expirydate': expdate
+            'expirydate': expdate,
+            'camloc': camdets['loc']
         }  
     ) 
     return response['ResponseMetadata']['HTTPStatusCode'] 
@@ -118,6 +119,7 @@ def processXml(remote_xmlname):
     cx = int(spls[15][4:-1])
     cy = int(spls[16][4:-1])
     fps = float(spls[17][5:-1])
+    location = spls[25][5:-1]
     camid = spls[28][5:-1]
     ffname = spls[30][5:-1]
 
@@ -138,7 +140,7 @@ def processXml(remote_xmlname):
     
     dtval = datetime.datetime(yr, mt, dy, hr, mi, 0) + datetime.timedelta(seconds = secs)
 
-    camdets = {'camid':camid, 'lati': lati, 'longi': longi, 'alti': alti, 'cx': cx, 'cy': cy, 'fps': fps}
+    camdets = {'camid':camid, 'lati': lati, 'longi': longi, 'alti': alti, 'cx': cx, 'cy': cy, 'fps': fps, 'loc': location}
     evtdets={'dtval':dtval, 'fno':fno, 'ffname':ffname, 'bmax':bmax, 'bave':bave, 'bstd':bstd}
     return evtdets, camdets
 
