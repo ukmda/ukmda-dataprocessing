@@ -3,6 +3,7 @@
 
 # reads from $DATADIR/single/new/processed to find list of files
 
+logger -s -t $(basename $0 .sh) "starting"
 dt=$1
 if [ "$dt" == "" ] ; then echo "need date" ; exit ; fi 
 if [ -f /tmp/ftp2ukmon.txt ] ; then rm /tmp/ftp2ukmon.txt ; fi
@@ -25,3 +26,5 @@ do
 	aws lambda invoke --function-name ftpToUkmon --log-type Tail  --payload file://./tmp.json  --region eu-west-2 --cli-binary-format raw-in-base64-out res.log
 done
 rm ./tmp.json
+
+logger -s -t $(basename $0 .sh) "finished"

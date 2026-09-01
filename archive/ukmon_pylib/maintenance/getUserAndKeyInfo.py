@@ -227,10 +227,10 @@ def createAndSaveKey(uid):
 
 def copyToHomedirs(uid, camlocs):
     if sys.platform == 'win32':
-        com = f'scp {csvdir}/{uid}.csv ukmonhelper2.:{lnxdir}' 
+        com = f'scp {csvdir}/{uid}.csv ukmbatch:{lnxdir}' 
         subprocess.call(com, shell=True, cwd=csvdir)
         for cam in camlocs:
-            com = f'ssh ukmonhelper2. "sudo cp {lnxdir}/{uid}.csv /var/sftp/{cam}/{cam}.csv"'
+            com = f'ssh ukmbatch "sudo cp {lnxdir}/{uid}.csv /var/sftp/{cam}/{cam}.csv"'
             subprocess.call(com, shell=True, cwd=csvdir)
     else:
         for cam in camlocs:

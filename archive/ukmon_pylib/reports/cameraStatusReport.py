@@ -14,10 +14,10 @@ def getLastUpdateDate(datadir=None, camfname=None, ddb=None):
     is providing data
 
     Args:
-        pth (str): path containing the camera data folders
-        skipfldrs (list): list of folders to ignore eg ['trajectories','dailyreports']
-        includenever (bool) default false, include cameras that have never uploaded
-        
+        datadir:    path to the DATADIR, defaults to ~/prod/data
+        camfname:   unused
+        ddb:        dynamodb boto3 client
+
     """
     caminfo = loadLocationDetails(ddb=ddb)
     caminfo = caminfo[caminfo.active==1]

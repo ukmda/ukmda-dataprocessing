@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2023 Mark McIntyre
+# Copyright (C) 2018- Mark McIntyre
 import json
 import os
 import boto3

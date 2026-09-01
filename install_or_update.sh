@@ -22,17 +22,21 @@ do
 	rsync -a --delete $loc/ ~/${envname}/$loc
 	chmod +x ~/${envname}/$loc/*.sh > /dev/null 2>&1
 done
-rsync -a share/ ~/${envname}/share
+rsync -a share/*.json ~/${envname}/data/share
+rsync -a share/*.xlsx ~/${envname}/data/share
+rsync -a share/*.md ~/${envname}/data/share
 
 echo "Creating data folders..."
 DATADIR=~/$envname/data
-mkdir -p $DATADIR/{admin,browse,consolidated,costs,dailyreports,distrib,kmls,manualuploads}
-mkdir -p $DATADIR/{lastlogs,latest,matched,orbits,reports,searchidx,single,trajdb,videos}
+mkdir -p $DATADIR/{admin,browse,consolidated,costs,dailyreports,distrib,kmls,manualuploads,share}
+mkdir -p $DATADIR/{lastlogs,latest,matched,orbits,reports,searchidx,single,trajdb,videos,shwrinfo}
 mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
 mkdir -p ~/$envname/logs
 mkdir -p ~/.logrotate
 mkdir -p ~/.aws
 mkdir -p ~/server_setup
+
+rsync -a --delete shwrinfo/ $DATADIR/shwrinfo
 
 rsync -a server_setup/*.sh ~/server_setup
 rsync -a server_setup/*.py ~/server_setup
@@ -51,7 +55,7 @@ fi
 
 echo "Updating meteor shower tables..."
 # update the IMO and GMN meteor shower tables if missing
-if [ ! -f ~/${envname}/share/IMO_Working_Meteor_Shower_List.xml ] 
+if [ ! -f ~/${envname}/data/share/IMO_Working_Meteor_Shower_List.xml ] 
 then
     ~/$envname/cronjobs/getImoWSfile.sh
     echo ""
@@ -65,10 +69,10 @@ then
     ~/$envname/utils/makeConfig.sh $RUNTIME_ENV
     for fil in .bashrc .bash_aliases .vimrc .condaon 
     do
-        rsync -a server_setup/$fil ~
+        rsync -a server_setup/batchserver/$fil ~
     done 
     mkdir -p ~/.logrotate
-    rsync -a server_setup/logs.conf ~/.logrotate
+    rsync -a server_setup/batchserver/logs.conf ~/.logrotate
 else
     echo ""
     echo skipping config and bashrc

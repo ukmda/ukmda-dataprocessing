@@ -19,7 +19,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 conda activate ${WMPL_ENV}
 
-logger -s -t updateCameraDets "starting"
+logger -s -t $(basename $0 .sh) "starting"
 
 python -c "from reports.CameraDetails import updateCamLocDirFovDB; updateCamLocDirFovDB();"
 aws s3 cp $DATADIR/admin/cameraLocs.json $UKMONSHAREDBUCKET/admin/ --quiet
@@ -34,4 +34,4 @@ aws s3 cp $DATADIR/searchidx/statopts.html $WEBSITEBUCKET/search/ --quiet
 aws s3 cp $DATADIR/searchidx/activestatopts.html $WEBSITEBUCKET/search/ --quiet
 aws s3 cp $DATADIR/searchidx/activestatlocs.html $WEBSITEBUCKET/search/ --quiet
 
-logger -s -t updateCameraDets "finished"
+logger -s -t $(basename $0 .sh) "finished"

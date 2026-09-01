@@ -288,6 +288,8 @@ if __name__ == '__main__':
 
     # set up paths, files etc
     yr = int(ym[:4])
+
+    print(f'processing for period {ym}')
         
     matchcols = ['_Y_ut','_M_ut','_mag','_mjd','mjd','_stream','orbname','stations']
     snglcols = ['ID','Shwr','Dtstamp','Ver', 'M', 'Y']

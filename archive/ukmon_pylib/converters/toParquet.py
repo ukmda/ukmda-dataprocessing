@@ -16,7 +16,10 @@ df = df.rename(columns={'_m_ut':'_mi_ut'})
 if 'match' in fn:
     # fill in any #NAs in the mjd column
     df.fillna({'mjd': df._mjd}, inplace=True)
+    if 'traj_id' in df.columns:
+        df.fillna({'traj_id':'n/a'}, inplace=True)
 if 'single' in fn:
     df = df.drop_duplicates()
+
 
 df.to_parquet(fn + '.parquet.snap', compression='snappy')

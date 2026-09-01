@@ -27,6 +27,26 @@ def findSite(stationid, ddb):
     return None
 
 
+def getNotes(websitebucket, srcpath, s3):
+    print(f'checking in {srcpath}notes/ for notes')
+    res = s3.meta.client.list_objects(Bucket=websitebucket, Prefix = f'{srcpath}notes/')
+    if 'Contents' in res:
+        notes = 'Notes:\n'
+        for k in res['Contents']:
+            key = k['Key']
+            fsobj = s3.meta.client.get_object(Bucket=websitebucket, Key=key)
+            if 'Body' in fsobj:
+                note = fsobj['Body'].read()
+                spls = note.decode('utf-8').split('\n')
+                if len(spls) > 3:
+                    notes += f'{spls[0]}: {spls[3]}\n'
+                else:
+                    notes += f'{spls[0]}: No remarks.\n'
+        return notes
+    else:
+        return None
+
+
 def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
     print(f'event {key} using {archbucket} and {websitebucket}')
     fuloutdir, fname = os.path.split(key)
@@ -158,6 +178,13 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
             print('no extrajpgs.html')
             pass
 
+        try:
+            notes = getNotes(websitebucket, webpth, s3)
+        except Exception as e: 
+            print('unable to get notes')
+            print(e)
+            notes = None
+
         key2 = webpth + 'extrampgs.html'
         locfname = os.path.join(outdir, 'extrampgs.html')
         try:
@@ -169,7 +196,7 @@ def generateExtraFiles(key, archbucket, websitebucket, ddb, s3):
         print('pushing files back')
         pushFilesBack(outdir, archbucket, websitebucket, fuloutdir, s3, istest=istest)
         print('updating the index page')
-        createOrbitPageIndex(outdir, websitebucket, s3)
+        createOrbitPageIndex(outdir, websitebucket, notes, s3)
 
         idxname = os.path.join(outdir, 'index.html')
         key = os.path.join(webpth, 'index.html')

@@ -17,7 +17,7 @@
 
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
-logger -s -t createFireballPage "starting"
+logger -s -t $(basename $0 .sh) "starting"
 $SRC/utils/clearCaches.sh
 
 if [ $# -eq 0 ]; then
@@ -26,7 +26,7 @@ else
     yr=$1
 fi
 
-logger -s -t createFireballPage "creating fireball page for $yr"
+logger -s -t $(basename $0 .sh) "creating fireball page for $yr"
 
 mkdir -p $DATADIR/reports/$yr/fireballs > /dev/null 2>&1
 cd $DATADIR/reports/$yr/fireballs
@@ -96,8 +96,8 @@ echo "});});" >> reportindex.js
 
 cp $TEMPLATES/fbreportindex.html index.html
 
-logger -s -t createFireballPage "copy to website"
+logger -s -t $(basename $0 .sh) "copy to website"
 
 aws s3 sync $DATADIR/reports/$yr/fireballs/ $WEBSITEBUCKET/reports/$yr/fireballs/ --quiet
 
-logger -s -t createFireballPage "finished"
+logger -s -t $(basename $0 .sh) "finished"

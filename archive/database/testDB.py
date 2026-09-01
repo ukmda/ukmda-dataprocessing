@@ -8,7 +8,7 @@ def testDB(id):
     pwdfile = os.path.expanduser(f'~/.ssh/db_{user}.passwd')
     with open(pwdfile, 'r') as inf:
         pwd = inf.readline().strip()
-    connection = pymysql.connect(host='ukmonhelper2',  
+    connection = pymysql.connect(host='ukmbatch',  
         user=user,  
         password=pwd,  
         db='test',  
