@@ -117,7 +117,7 @@ def getImageUrls(dtstr, dtstr2, statid, token=None, maxitems=100, includexml=Fal
             if includexml:
                 xmlkey = keyval.replace('P.jpg', '.xml')
                 psurl = s3.generate_presigned_url(ClientMethod='get_object',Params={'Bucket': buckname,'Key': xmlkey}, ExpiresIn=1800)
-                urls.append({'url': f'{psurl}', 'dtstamp': dtstamp, 'imgtitle': getTitle(keyval)})
+                urls.append({'url': f'{psurl}', 'dtstamp': dtstamp, 'imgtitle': getTitle(keyval, loc)})
     urls.sort(key = lambda k: k['dtstamp'], reverse=True)
     if maxitems > 0:
         urls = urls[:maxitems+1]
