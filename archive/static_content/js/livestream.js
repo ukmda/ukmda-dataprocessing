@@ -102,13 +102,33 @@ function getCurrentDate() {
 }
 
 function getTitle(urlstr){
+  // extract the filename from the URL
   var filename = urlstr.substring(urlstr.lastIndexOf('/')+1);
-  var qm = filename.lastIndexOf('?')-5;
-  filename = filename.substring(1,qm);
-
+  // we could have either legacy UFO files starting Myyyymmdd or new RMS starting FF_stationid
+  // initially assume legacy format
+  var sm = 1;
+  var em = filename.lastIndexOf('?')-5;
+  var rmsfmt = 0;
+  if (filename[0]=="F") {
+    sm = 3;
+    em = em - 11;
+    rmsfmt=1;
+  }
+  // extract the date/time and station details, replace underscores with spaces 
+  // then if its not RMS format, swap the elements round so stationid is first
+  filename = filename.substring(sm,em);
+  filename = filename.replaceAll("_", " ");
+  if (rmsfmt == 0)
+  {
+    var spls = filename.split(" ");
+    filename = spls[spls.length-1] + " " + spls[0] + " " + spls[1] + " " + spls[2] + "_" +spls[3];
+  }
+  // return value will be something like "UK0006 20260512 213054"
   return filename;
 }
 
+// this function is invoked when the liveimages/getlive API is called:
+// the backend lambda function returns javascript that calls showImages() with a list of image URLS
 function showImages(myObj) {
   pagetok = myObj.pagetoken;
   urls = myObj.urls;
