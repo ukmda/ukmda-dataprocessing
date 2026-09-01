@@ -55,6 +55,14 @@ resource "aws_cloudwatch_log_group" "monitorlivefeed" {
   }
 }
 
+resource "aws_cloudwatch_log_group" "monitorlive" {
+  provider    = aws.eu-west-1-prov
+  name = "/aws/lambda/monitorLive"
+  retention_in_days = 30
+  tags = {
+    "billingtag" = "ukmda"
+  }
+}
 resource "aws_cloudwatch_log_group" "matchDataApi" {
   provider    = aws.eu-west-1-prov
   name = "/aws/lambda/matchDataApi"

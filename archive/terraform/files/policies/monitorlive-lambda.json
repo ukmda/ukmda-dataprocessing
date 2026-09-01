@@ -12,7 +12,7 @@
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ],
-      "Resource": "arn:aws:logs:${liveregion}:${accountid}:log-group:/aws/lambda/MonitorLiveFeed:*"
+      "Resource": "arn:aws:logs:${liveregion}:${accountid}:log-group:/aws/lambda/monitorLive:*"
     },
     {
       "Effect": "Allow",

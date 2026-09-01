@@ -544,3 +544,41 @@ resource "aws_iam_role_policy" "vidUploadPolicy" {
 }
 EOF
 }
+
+#####################################################
+# the role used to monitor live uploads to ukmda-live from ukmon-pitools
+resource "aws_iam_role" "monitorlive_role" {
+  name               = "monitorLiveRole"
+  path               = "/service-role/"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+# policy granted to the IAM role used by the Lambda function
+data "template_file" "livemonitorlambdatempl" {
+  template = file("files/policies/monitorlive-lambda.json")
+  vars = {
+    liveregion = var.liveregion
+    accountid = data.aws_caller_identity.current.account_id
+  }
+
+}
+
+resource "aws_iam_role_policy" "monitorlive_policy" {
+  name   = "monitorLivePolicy"
+  role   = aws_iam_role.monitorlive_role.id
+  policy = data.template_file.livemonitorlambdatempl.rendered
+}  

@@ -143,11 +143,15 @@ def processXml(remote_xmlname):
     return evtdets, camdets
 
 
+# this function is triggered whenever a JPG is uploaded to the live bucket.
+# - see ukmdalive-triggers.tf
 def lambda_handler(event, context):
     record = event['Records'][0]
     fname = record['s3']['object']['key']
     _, barefname = os.path.split(fname)
     if ('M' in barefname and 'P.jpg' in barefname) or ('FF' in barefname and '.jpg' in barefname):
+        # ukmon-pitools uploads the XML file before the JPG, so that both files are present
+        # when the trigger is activated
         xmlname = fname.replace('P.jpg','.xml').replace('.jpg', '.xml')
         evtdets, camdets = processXml(xmlname)
         if evtdets is not None:
