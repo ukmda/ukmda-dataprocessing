@@ -1,9 +1,19 @@
 #Terraform 
 
 ## UKMON Terraform Modules
-All infrastructure has been built with Terraform. 
+Terraform code to :-  
+* build and permission the batch and calculation server
+* configure the S3 buckets' security, triggers and rules
+* build the ECR and ECS container environments and runtime cluster
+* permission users and processes
+* create and permission the website (in an S3 bucket)
+* create DynamoDB NoSQL database tables
+* setup DNS
+* log events, accesses and actions
+* create the API gateway and front ends
+* Create SSM variables that are used by the Python and Bash scripts
 
-Data from cameras upload to this account in realtime for the Livestream, and each morning for the data analysis and archive. This account holds the batch server, calculation server, ECS cluster and containers that run the distributed trajectory solver, plus ECR repos for containers to manage data conversions and gathering for the website. It also hosts the archive website and the APIs.  
+Note that the API backend and s3 event trigger lambdas are created via SAM rather than Terraform as this is simpler! 
 
 ## Copyright
-All code Copyright (C) 2018-2023 Mark McIntyre
+All code Copyright (C) 2018- Mark McIntyre

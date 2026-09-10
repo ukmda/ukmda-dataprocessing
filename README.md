@@ -10,7 +10,7 @@ The code for archive.ukmeteors.co.uk, including the data processing pipeline.
 The software is a mix of Python and Bash shell scripts. Deployment is via an install script. 
 
 #### Scripts and Python
-The shell scripts and python code are deployed with `install_or_update.sh`. First, clone the repository onto the target server then run `install_or_update.sh` with an argument "PROD"  to create/update a production environment, or "DEV"  for a development environment. . 
+The shell scripts and python code are deployed with `install_or_update.sh`. First, clone the repository onto the target server then run `install_or_update.sh` with an argument "PROD"  to create/update a production environment, or "DEV"  for a development environment. 
 
 #### Configuration Files
 Parameters are created with Terraform and stored in the AWS Systems Manager Parameter Store. 
