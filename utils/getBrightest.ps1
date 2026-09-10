@@ -8,12 +8,12 @@
 
 # copyright (c) Mark McIntyre, 2025-
 
-Param($config='.\analysis.ini', $reqdate='')
+Param($config='analysis.ini', $reqdate='')
 
 # load the helper functions
 . $PSScriptRoot\helperfunctions.ps1
 
-$ini=get-inicontent $config
+$ini=get-inicontent "$psscriptroot\$config"
 
 $bdir = $ini['localdata']['fbfolder'].replace('$HOME',$home)
 $bdir = $bdir + "/brightest"
