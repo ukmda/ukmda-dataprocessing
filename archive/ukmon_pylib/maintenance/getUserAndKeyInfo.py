@@ -50,12 +50,21 @@ def checkIfOnGMN(camid):
         return False, "date not parseable"
 
 
-def getLinkedCams(site, camdets, active=False):
+def getCamOwner(camid):
+    camdets = loadLocationDetails()
+    fltlist = camdets[camdets.stationid.str.lower()==camid.lower()]
+    email = str(fltlist.iloc[0].eMail)
+    return email
+
+
+def getLinkedCams(site, camdets=None, active=False):
     """
     Given a site name, find the owner, status GMN and ukmon IDs of cameras at that site
     """
     if site == 'Testpi4':
         return 'markmcintyre@googlemail.com', [1], ['UK0006'], ['testpi4']
+    if not camdets:
+        camdets = loadLocationDetails()
     fltlist = camdets[camdets.site.str.lower()==site.lower()]
     if active:
         fltlist = fltlist[fltlist.active==1]
