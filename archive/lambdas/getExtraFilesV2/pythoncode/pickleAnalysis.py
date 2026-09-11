@@ -189,6 +189,8 @@ def createUFOOrbitFile(traj, outdir, amag, mass, shower_obj):
             csvf.write(',True')
         else:
             csvf.write(',False')
+        csvf.write(',1') # status flag
+        csvf.write(f',{traj.traj_id}')
         csvf.write('\n')
     return
 

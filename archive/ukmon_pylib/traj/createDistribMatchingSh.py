@@ -154,6 +154,9 @@ def createExecConsolSh(matchstart, matchend, execconsolsh, istest=''):
 
         outf.write(f'python -m traj.consolidateDistTraj ~/data/distrib/canddbs/ {calcdir}/dbs/\n')
 
+        outf.write('logger -s -t execConsol updating used/unused database\n')
+        outf.write(f'python -m analysis.getUsedUnused updateobs {matchstart} {matchend} {calcdir}/dbs {calcdir}\n')
+
         outf.write(f'aws s3 sync {calcdir}/dbs/ {srcpath}/dbs/ --exclude "*" --include "*.db" --quiet\n')
 
         outf.write('logger -s -t execConsol creating density plots\n')
@@ -241,6 +244,11 @@ def createDistribMatchingSh(matchstart, matchend, execmatchingsh, istest=False):
 
         outf.write('logger -s -t execdistrib distributing candidates and launching containers\n')
         outf.write(f'time python -m traj.distributeCandidates {rundatestr} ./candidates {istest}\n')
+
+        # Remove any superceded trajectories. These are found by parsing the logfile.
+        # Has to be done here to ensure they're removed from S3 stores early
+        params = f"'{calcdir}','{outpath}', '{webpath}'"
+        outf.write(f'python -c "from maintenance.dataMaintenance import removeRecalcedTrajCSandS3;removeRecalcedTrajCSandS3({params})"\n')
 
         # do this again to fetch todays results
         outf.write('logger -s -t execdistrib refetch latest trajectories\n')

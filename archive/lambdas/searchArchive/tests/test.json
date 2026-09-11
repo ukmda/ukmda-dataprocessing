@@ -1,0 +1,12 @@
+{
+  "resource": "/",
+  "path": "/",
+  "httpMethod": "GET",
+  "headers": null,
+  "multiValueHeaders": null,
+  "queryStringParameters": {
+    "d1": "2023-04-21T00:00:00.000Z",
+    "opts": "s:LYR_t:",
+    "d2": "2023-04-21T00:30:00.000Z"
+  }
+}

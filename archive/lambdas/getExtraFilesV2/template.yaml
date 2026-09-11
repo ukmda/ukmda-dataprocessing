@@ -6,7 +6,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  python3.8
+  get additional files for an orbit
 
   SAM Template for getExtraOrbitFilesV2
 

@@ -8,7 +8,7 @@ import os
 import shutil
 
 
-def createOrbitPageIndex(fldr, websitebucket, s3):
+def createOrbitPageIndex(fldr, websitebucket, notes, s3):
     hdrname = '/tmp/header.txt'
     ftrname = '/tmp/footer.txt'
     if not os.path.isfile(hdrname):
@@ -31,9 +31,6 @@ def createOrbitPageIndex(fldr, websitebucket, s3):
             lis = sumf.readlines()
         idxf.writelines(lis)
 
-        #zipf = orbitname + '.zip'
-        #if os.path.isfile(os.path.join(fldr, zipf)):
-        #    idxf.write(f"Click <a href=\"./{zipf}\">here</a> to download a zip of the raw and processed data.\n")
         idxf.write("</pre>\n")
         idxf.write("<p><b>Detailed report below graphs</b></p>\n")
         idxf.write("<h3>Click on an image to see a larger view</h3>\n")
@@ -80,9 +77,16 @@ def createOrbitPageIndex(fldr, websitebucket, s3):
         idxf.writelines(lis)
         idxf.write("</div>\n")
 
-        idxf.write("<pre>\n")
+        if notes:
+            print('adding notes')
+            idxf.write('<div>')
+            idxf.write(notes.replace('\n', '<br>'))
+            idxf.write('</div>')
+        else:
+            print('no notes')
+
+        idxf.write("<br><pre>\n")
         repf = os.path.join(fldr, pref + 'report.txt')
-        #print(repf)
         if os.path.isfile(repf):
             with open(repf) as sumf:
                 lis = sumf.readlines()
@@ -100,6 +104,7 @@ def createOrbitPageIndex(fldr, websitebucket, s3):
         with open(ftrname, 'r') as footf:
             lis = footf.readlines()
         idxf.writelines(lis)
+        print('done')
     return
 
 

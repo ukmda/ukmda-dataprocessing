@@ -24,7 +24,7 @@ conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
 mkdir -p $DATADIR/browse/showers
 
-logger -s -t createShwrExtracts "starting"
+logger -s -t $(basename $0 .sh) "starting"
 
 if [ $# -gt 0 ] ; then
     ymd=$1
@@ -33,10 +33,10 @@ else
 fi 
 
 cd ${DATADIR}/matched
-logger -s -t createShwrExtracts "creating annual shower extracts"
+logger -s -t $(basename $0 .sh) "creating annual shower extracts"
 python -c "from reports import extractors as ex; ex.extractAllShowersData('$ymd');"
 
-logger -s -t createShwrExtracts "done gathering data, creating tables"
+logger -s -t $(basename $0 .sh) "done gathering data, creating tables"
 # sync data so its all there to get a list of 
 aws s3 sync $DATADIR/browse/showers/  $WEBSITEBUCKET/browse/showers/ --quiet
 
@@ -44,7 +44,7 @@ cd $DATADIR/browse/showers/
 # get a list of files on the website
 aws s3 ls $WEBSITEBUCKET/browse/showers/ | awk '{ print $4 }' | grep csv > /tmp/browseshwr.txt
 
-shwrs=$(python -c "from utils.getActiveShowers import getActiveShowersStr ; getActiveShowersStr('${ymd}')")
+shwrs=$(python -c "from utils.getActiveShowers import getActiveShowers;getActiveShowers('${ymd}', aslist=False, inclSpo=True)")
 for shwr in $shwrs
 do 
     now=$(date '+%Y-%m-%d %H:%M:%S')
@@ -91,7 +91,7 @@ do
 done
 \rm -f /tmp/browseshwr.txt
 
-logger -s -t createShwrExtracts "sending to website"
+logger -s -t $(basename $0 .sh) "sending to website"
 aws s3 sync $DATADIR/browse/showers/  $WEBSITEBUCKET/browse/showers/ --quiet
 
-logger -s -t createShwrExtracts "finished"
+logger -s -t $(basename $0 .sh) "finished"

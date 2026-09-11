@@ -5,6 +5,7 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 
+logger -s -t $(basename $0 .sh) "starting"
 yr=$1
 if [ "$yr" == "" ] ; then
     yr=$(date +%Y)
@@ -14,11 +15,11 @@ cd ${DATADIR}
 
 csvname=$DATADIR/matched/matches-full-${yr}.csv
 if [ ! -f $csvname ] ; then echo "$csvname not found" ; exit ; fi
-echo "loading $csvname into mariadb"
-logger -s -t loadSQL "starting"
+logger -s -t $(basename $0 .sh) "loading $csvname into mariadb"
+
 user=batch
-# leading space to prevent being inserted into environment
 passwd=$(aws ssm get-parameters --names prod_dbpw --with-decryption --region eu-west-1 | jq .Parameters[0].Value | sed 's/"//g')
+
 mysql -p${passwd} -u${user} << EOD
 select count(*) from ukmon.matches;
 LOAD DATA LOCAL INFILE '$csvname' 
@@ -31,4 +32,4 @@ commit;
 select count(*) from ukmon.matches;
 EOD
 
-logger -s -t loadSQL "done"
+logger -s -t $(basename $0 .sh) "finished"

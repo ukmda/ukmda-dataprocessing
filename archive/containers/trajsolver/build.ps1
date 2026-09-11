@@ -34,8 +34,8 @@ if ($yn.tolower() -eq "y") {
     docker tag ${imagename}:latest ${registry}/${repo}:latest
     docker push ${registry}/${repo}:latest
 }else {
-    write-output "To test the container do docker run -t $imagename test/20220924_01"
-    Write-Output "where the last arg is a folder in s3://ukmda-shared/matches/distrib"
+    write-output "To test the container do docker run -t $imagename 20260416_000"
+    Write-Output "where the last arg is a folder in s3://ukmda-shared/test/matches/distrib"
     Write-Output "that contains candidate pickles"
 }
 

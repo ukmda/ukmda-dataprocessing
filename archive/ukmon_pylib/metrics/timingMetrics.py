@@ -76,7 +76,7 @@ def getLogStats(nightlogf, matchlogf, thisdy):
         for rw in alldata:
             dtpart = rw[4:19]
             evtdt = datetime.datetime.strptime(f'{yr} {dtpart}', '%Y %b %d %H:%M:%S')
-            if 'start nightlyJob' in rw:
+            if 'nightlyJob: starting' in rw:
                 starttime = evtdt
             elapsed_secs = (evtdt - starttime).seconds
             txtpart = rw[20:]

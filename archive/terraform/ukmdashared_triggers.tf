@@ -1,0 +1,73 @@
+# Copyright (C) 2018-2023 Mark McIntyre
+#
+# bucket notifications that trigger lambdas
+# 
+
+# Lambdas created by SAM functions
+data "aws_lambda_function" "getextraorbitfiles" {
+  function_name = "getExtraOrbitFilesV2"
+}
+
+data "aws_lambda_function" "ftptoukmdalambda" {
+  function_name = "ftpToUkmon"
+}
+
+data "aws_lambda_function" "videohandler" {
+  function_name = "videohandler"
+}
+
+resource "aws_s3_bucket_notification" "ukmdashared_notification" {
+  bucket = aws_s3_bucket.ukmdashared.id
+  lambda_function {
+    lambda_function_arn = data.aws_lambda_function.getextraorbitfiles.arn
+    id                  = "pickles"
+    events = [
+      "s3:ObjectCreated:*"
+    ]
+    filter_prefix = "matches/RMSCorrelate/trajectories"
+    filter_suffix = ".pickle"
+  }
+
+  lambda_function {
+    lambda_function_arn = data.aws_lambda_function.ftptoukmdalambda.arn
+    id                  = "ftptoukmda"
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "matches/RMSCorrelate/"
+    filter_suffix       = ".txt"
+  }
+
+  lambda_function {
+    lambda_function_arn = data.aws_lambda_function.videohandler.arn
+    id                  = "videohandler"
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "fireballs/videouploads/raw/"
+  }
+
+}
+
+resource "aws_lambda_permission" "permgetextraorbfileslambda" {
+  statement_id   = "AllowExecutionFromS3Bucket"
+  action         = "lambda:InvokeFunction"
+  function_name  = data.aws_lambda_function.getextraorbitfiles.arn
+  principal      = "s3.amazonaws.com"
+  source_account = data.aws_caller_identity.current.account_id
+  source_arn     = aws_s3_bucket.ukmdashared.arn
+}
+
+resource "aws_lambda_permission" "permftptoukmdalambda" {
+  statement_id   = "AllowExecutionFromS3Bucket"
+  action         = "lambda:InvokeFunction"
+  function_name  = data.aws_lambda_function.ftptoukmdalambda.arn
+  principal      = "s3.amazonaws.com"
+  source_account = data.aws_caller_identity.current.account_id
+  source_arn     = aws_s3_bucket.ukmdashared.arn
+}
+
+resource "aws_lambda_permission" "permvideohandler" {
+  statement_id   = "AllowExecutionFromShrBucket"
+  action         = "lambda:InvokeFunction"
+  function_name  = data.aws_lambda_function.videohandler.arn
+  principal      = "s3.amazonaws.com"
+  source_account = data.aws_caller_identity.current.account_id
+  source_arn     = aws_s3_bucket.ukmdashared.arn
+}

@@ -165,10 +165,10 @@ def drawBarChart(costsfile, typflag, accid):
     ax.set_ylabel('Cost ($)')
     ax.set_xlabel('Day of Month')
     if typflag == 0:
-        ax.set_title(f'{accid}: cost for month starting {mthdate}: total \${totcost:.2f}') # noqa:W605
+        ax.set_title(f'{accid}: cost for month starting {mthdate}: total ${totcost:.2f}') 
     else:
         avg = totcost/typflag
-        title = f'{accid}: cost for last {typflag} days: total \${totcost:.2f}, average \${avg:.2f}' # noqa:W605
+        title = f'{accid}: cost for last {typflag} days: total ${totcost:.2f}, average ${avg:.2f}' 
         ax.set_title(title)
     ax.legend()
     tickbase = 7

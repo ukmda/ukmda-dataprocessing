@@ -67,7 +67,7 @@ def getStationData(statid, dtstr, period=None):
         statfrag = f"and s.stations like '%{statid}%' " if statid is not None else ""
         perfrag = periodToSqlFragment(period) if period is not None else ""
         with connection.cursor() as cursor:
-            sql = f"SELECT s.orbname from matches s where s.orbname like '{dtstr}%' {statfrag} {perfrag}"
+            sql = f"SELECT s.orbname from matches s where s.orbname like '{dtstr}%' {statfrag} {perfrag} and status=1"
             cursor.execute(sql)
             result = cursor.fetchall()
     finally:
@@ -85,7 +85,7 @@ def getSummaryData(dtstr, period=None):
     fieldlist = '_localtime,_mjd,_sol,_ID1,_amag,_ra_o,_dc_o,_ra_t,_dc_t,_elng,_elat,_vo,_vi,_vg,_vs,_a,_q,_e,_p,_peri,_node,_incl,'\
         '_stream,_mag,_dur,_lng1,_lat1,_H1,_lng2,_lat2,_H2,_LD21,_az1r,_ev1r,_Nts,_Nos,_leap,_tme,_dt,'\
         'dtstamp,orbname,iau,shwrname as name,mass,pi,Q,true_anom,EA,MA,Tj,T,last_peri,jacchia1,Jacchia2,numstats,stations'
-    expr = f"SELECT {fieldlist} from matches s where s.orbname like '{dtstr}%' {perfrag}"
+    expr = f"SELECT {fieldlist} from matches s where s.orbname like '{dtstr}%' {perfrag} and status=1"
     result=[]
     try:
         with connection.cursor() as cursor:

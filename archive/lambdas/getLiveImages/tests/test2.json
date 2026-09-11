@@ -1,0 +1,7 @@
+{
+  "httpMethod": "GET",
+  "queryStringParameters": {
+    "fmt": "trueimg",
+    "dtstr": "2026-07-13T03:00:00.000Z"
+  }
+}

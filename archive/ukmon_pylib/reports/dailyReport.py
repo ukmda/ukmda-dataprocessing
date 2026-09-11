@@ -11,13 +11,13 @@ from utils.sendAnEmail import sendAnEmail
 
 def AddHeader(body, bodytext, stats):
     rtstr = datetime.datetime.strptime(stats[4], '%H:%M:%S').strftime('%Hh%Mm')
-    body = body + '<br>Today we examined {} detections, found {} potential matches and confirmed {} in {}.<br>'.format(stats[1], stats[2], stats[3], rtstr)
+    body = body + '<html><body><br>Today we examined {} detections, found {} potential matches and confirmed {} in {}.<br>'.format(stats[1], stats[2], stats[3], rtstr)
+    bodytext = bodytext + 'Today we examined {} events, founnd {} potential matches and confirmed {} in {}\n'.format(stats[1], stats[2], stats[3], rtstr)
     if int(stats[3]) > 0:
         body = body + 'Up to the 100 brightest matched events are shown below. '
         body = body + 'Note that this may include older data for which a new match has been found.<br>'
         body = body + 'Click each link to see analysis of these events.<br>'
-        bodytext = bodytext + 'Events: {}, Trajectories: {}. Matches {}'.format(stats[1], stats[2], stats[3])
-        bodytext = bodytext + 'The following multiple detections were found in the last 24 hour period,\n'
+        bodytext = bodytext + 'Up to the 100 brightest matched events are shown below.\n'
         bodytext = bodytext + 'Note that this may include older data for which a new match has been found.\n'
         body = body + '<table border=\"0\">'
         body = body + '<tr><td><b>Event</b></td><td><b>Shwr</b></td><td><b>Vis Mag</b></td><td><b>Stations</b></td></tr>'
@@ -27,9 +27,9 @@ def AddHeader(body, bodytext, stats):
 
 
 def addFooter(body, bodytext):
-    fbm = 'Seen a fireball? <a href=http://fireballs.imo.net/?org=spa>Click here</a> to report it'
-    body = body + '</table><br><br>\n' + fbm + '<br>'
-    bodytext = bodytext + '\n' + fbm + '\n'
+    fbm = 'Seen a fireball? <a href=https://fireballs.imo.net/?org=ukmon>Click here</a> to report it'
+    body = body + '</table><br><br>\n' + fbm + '<br></body></html>'
+    bodytext = bodytext + '\nSeen a fireball? Click https://fireballs.imo.net/?org=ukmon  to report it\n'
     return body, bodytext
 
 
@@ -50,7 +50,7 @@ def AddRowRMS(body, bodytext, ele):
 
     str1 = '<tr><td><a href="{:s}">{:s}</a></td><td>{:s}</td><td>{:s}</td><td>{:s}</td></tr>'.format(lnkstr, pth, shwr, mag, stats)
     body = body + str1
-    bodytext = bodytext + str1 + '\n'
+    bodytext = bodytext + f'{lnkstr} {shwr} {mag} {stats}\n'
 
     return body, bodytext
 
@@ -105,7 +105,6 @@ if __name__ == '__main__':
 
     _, _, body, bodytext = LookForMatchesRMS(doff, dailyrep, stats)
 
-    #body = body.replace('assets/img/logo.svg', 'latest/dailyreports/dailyreportsidx.html')
     if doff == 1:
         outfname = 'report_latest.html'
     else:
@@ -120,13 +119,11 @@ if __name__ == '__main__':
 
     datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
     recs = open(os.path.join(datadir, 'admin','dailyReportRecips.txt'), 'r').readlines()
-    mailFrom = 'markmcintyre99@googlemail.com'
     mailRecip = recs[0].strip()
-    if len(recs) > 1:
-        mailFrom = recs[-1].strip()
-    #mailRecip = 'markmcintyre99@googlemail.com' # TODO for testing only
     yest = (datetime.date.today()-datetime.timedelta(days=doff)).strftime('%Y-%m-%d')
     # only send the email for the most recent report.
     if doff == 1:
         mailSubj = f'Latest Match Report for {yest}'
-        sendAnEmail(mailRecip, bodytext, mailSubj, mailFrom, msg_html=body.replace('href="/reports', f'href="{targeturl}/reports'))
+        bodytext = bodytext.replace('/reports', f'{targeturl}/reports')
+        body = body.replace('href="/reports', f'href="{targeturl}/reports')
+        sendAnEmail(mailRecip, bodytext, mailSubj, msg_html=body)

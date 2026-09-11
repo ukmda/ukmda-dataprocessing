@@ -5,6 +5,8 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
+logger -s -t $(basename $0 .sh) "starting"
+
 if [ "$1" != "" ] ; then
     rundate=$1
     logfile=$DATADIR/lastlogs/lastlog-${rundate}.html
@@ -98,3 +100,5 @@ aws s3 cp $DATADIR/lastlogs/index.html  $WEBSITEBUCKET/reports/lastlogs/ --quiet
 find $DATADIR/failed -mtime +90 -exec rm -f {} \;
 
 find $DATADIR/lastlogs -name "lastlog*" -mtime +90 -exec rm -f {} \;
+
+logger -s -t $(basename $0 .sh) "finished"

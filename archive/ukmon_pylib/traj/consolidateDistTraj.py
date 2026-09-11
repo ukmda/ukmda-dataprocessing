@@ -75,6 +75,7 @@ def mergeDatabases(srcdir, dbdir, basedir, ignore_missing=False, purge_records=F
     dh.updateTrajectoryDatabase(dt_range=event_time_range)
 
     # should never need to run this part as the candidates are all made in one place
+    """
     targdb = os.path.join(dbdir, 'candidates.db')
     if os.path.isfile(targdb):
         canddb = CandidateDatabase(dbdir)
@@ -86,7 +87,7 @@ def mergeDatabases(srcdir, dbdir, basedir, ignore_missing=False, purge_records=F
             if canddb.mergeCandDatabase(fl):
                 os.remove(fl)
         canddb.closeCandDatabase()
-
+    """
     print('done')
 
 

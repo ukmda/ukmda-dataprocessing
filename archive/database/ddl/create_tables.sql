@@ -33,6 +33,8 @@ create table singles(
     );
 
 alter ignore table ukmon.singles add unique uniq_Dtstamp (Dtstamp);
+create index t_filname on singles(filname);
+create index t_status on singles(status);
 
 create table matches(
     _dbver varchar(6),
@@ -167,7 +169,10 @@ create table matches(
     Jacchia2 float,
     numstats tinyint,
     stations varchar(256),
-    isfb varchar(6)
+    isfb varchar(6),
+    status tinyint,
+    traj_id varchar(24)
     );
 
 alter ignore table matches add unique uniq_orbname (orbname);
+alter ignore table matches add unique uniq_traj_id (traj_id);

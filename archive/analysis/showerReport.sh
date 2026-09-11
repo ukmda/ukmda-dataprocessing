@@ -21,7 +21,7 @@ conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 if [ $# -lt 2 ] ; then
 	echo Usage: showerReport.sh GEM 2017
 else
-    logger -s -t showerReport "starting"
+    logger -s -t $(basename $0 .sh) "starting"
     shwr=$1
     dt=$2
     yr=${dt:0:4}
@@ -51,21 +51,21 @@ else
 
     cd $DATADIR/$outdir
 
-    logger -s -t showerReport "copying files to website"
+    logger -s -t $(basename $0 .sh) "copying files to website"
     
     aws s3 sync $DATADIR/$outdir $WEBSITEBUCKET/$outdir --quiet
 
-    logger -s -t showerReport "all done"
+    logger -s -t $(basename $0 .sh) "all done"
 
     if [ -f $DATADIR/reports/${yr}/reportindex.js ] ; then 
         grep "$yr/$shwr" $DATADIR/reports/${yr}/reportindex.js > /dev/null
         if [ $? -eq 1 ] ; then 
-            logger -s -t showerReport "updating annual index"
+            logger -s -t $(basename $0 .sh) "updating annual index"
             ${SRC}/website/createReportIndex.sh ${yr}
         fi
     else
-        logger -s -t showerReport "updating annual index"
+        logger -s -t $(basename $0 .sh) "updating annual index"
         ${SRC}/website/createReportIndex.sh ${yr}
     fi 
-    logger -s -t showerReport "finished"    
+    logger -s -t $(basename $0 .sh) "finished"
 fi 

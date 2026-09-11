@@ -7,7 +7,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
-logger -s -t nightlyJob "start nightlyJob" 
+logger -s -t $(basename $0 .sh) "starting"
 
 # dates to process for
 rundate=$(date +%Y%m%d)
@@ -54,7 +54,6 @@ if [ "$(find $SRC/logs -name $matchlog -mmin +1380 -ls)" != "" ] ; then
     mv -f $SRC/logs/$matchlog $SRC/logs/$matchlog-$suff
 fi 
 
-logger -s -t nightlyJob "start findAllMatches"
 # Run the match process - run this only once as it scoops up all unprocessed data
 ${SRC}/analysis/findAllMatches.sh > ${SRC}/logs/${matchlog} 2>&1
 
@@ -140,9 +139,9 @@ $SRC/utils/loadSingleCsvMDB.sh
 $SRC/analysis/updatePlotsAndDetStatus.sh
 
 # push the API data dictionary to the website for end-user use
-aws s3 sync $SRC/share/ s3://ukmda-website/browse --exclude "*" --include "datadictionary.xlsx" --quiet
+aws s3 sync $DATADIR/share/ s3://ukmda-website/browse --exclude "*" --include "datadictionary.xlsx" --quiet
 
-logger -s -t nightlyJog "finished nightlyJob"
+logger -s -t $(basename $0 .sh) "finished"
 
 # grab the logs for the website - run this last to capture the above Finished message
 $SRC/analysis/getLogData.sh

@@ -11,6 +11,7 @@ $('#selectInterval .date').datepicker({
     'endDate': '0'
 });
 
+
 // initialize datepair
 var res = document.getElementById("selectInterval");
 var dateSelect = new Datepair(res, {
@@ -37,7 +38,7 @@ $('#selectInterval').on('rangeSelected', function(){
         }
     }
 });
-      
+
 var apiurl = 'https://api.ukmeteors.co.uk/liveimages/getlive';
 var form = document.querySelector("form");
 form.addEventListener("submit", function (event) {
@@ -52,6 +53,10 @@ form.addEventListener("submit", function (event) {
   if (statSelect != 1 ) {
     var e = document.getElementById("statselect");
     strstat = e.options[e.selectedIndex].text;
+  }
+  if (intvlid != 0) {
+    clearInterval(intvlid);
+    console.log("refresh interval cancelled");
   }
   if (d1==="") {
     dtval = "latest";
@@ -79,9 +84,9 @@ form.addEventListener("submit", function (event) {
     },
     complete: function (xhr, status) {
     }
-  });
+  }); // end ajax call
   event.preventDefault();}
-);
+); // end form
 
 
 function getCurrentDate() {
@@ -90,31 +95,30 @@ function getCurrentDate() {
   var mt = (now.getMonth()+1).toString().padStart(2,"0");
   var dy = (now.getDate()).toString().padStart(2,"0");
   var hr = (now.getHours()).toString().padStart(2,"0");
-  var z =  + yr + mt + dy + "_" + hr;
+  var mi = (now.getMinutes()).toString().padStart(2,"0");
+  var se = (now.getSeconds()).toString().padStart(2,"0");
+  var z =  + yr + "-"+ mt +"-"+ dy + " " + hr +":"+ mi +":"+ se;
   return z;  
 }
 
-function getTitle(urlstr){
-  var filename = urlstr.substring(urlstr.lastIndexOf('/')+1);
-  var qm = filename.lastIndexOf('?')-5;
-  filename = filename.substring(1,qm);
-
-  return filename;
-}
-
+// this function is invoked when the liveimages/getlive API is called:
+// the backend lambda function returns javascript that calls showImages() with a list of image URLS
 function showImages(myObj) {
   pagetok = myObj.pagetoken;
   urls = myObj.urls;
   //console.log(urls);
   txt = "";
   for (x in urls) {
-    thisurl = urls[x].url
+    thisurl = urls[x].url;
+    thistitle = urls[x].imgtitle;
     txt += "<a href=\"" + 
-      thisurl+ "\" title=\"" + getTitle(thisurl) + "\"><img src=\"" + 
+      thisurl+ "\" title=\"" + thistitle + "\"><img src=\"" + 
       thisurl + "\" width=\"18%\"></a>\n";
   }
   numimgs = urls.length;
   console.log(numimgs);
   document.getElementById("searchresults").innerHTML = txt;
   document.getElementById("eventcount").innerHTML = numimgs;
+  document.getElementById("lastupdate").innerHTML = getCurrentDate();
+
 }

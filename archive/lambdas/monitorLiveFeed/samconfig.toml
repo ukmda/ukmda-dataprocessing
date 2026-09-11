@@ -1,0 +1,36 @@
+# More information about the configuration file can be found here:
+# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-config.html
+version = 0.1
+
+[default]
+
+[default.build.parameters]
+cached = true
+parallel = true
+
+[default.validate.parameters]
+lint = true
+
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "monitorLive"
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1cy2k1achj9nv"
+region = "eu-west-1"
+disable_rollback = true
+profile = "ukmda_admin"
+s3_prefix = "monitorLive"
+
+
+[default.package.parameters]
+resolve_s3 = true
+
+[default.sync.parameters]
+watch = true
+
+[default.local_start_api.parameters]
+warm_containers = "EAGER"
+
+[default.local_start_lambda.parameters]
+warm_containers = "EAGER"

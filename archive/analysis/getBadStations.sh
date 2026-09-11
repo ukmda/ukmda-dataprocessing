@@ -7,8 +7,8 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
-logger -s -t getBadStations "starting"
+logger -s -t $(basename $0 .sh) "starting"
 aws s3 sync $UKMONSHAREDBUCKET/admin  $DATADIR/admin --dryrun --quiet 
 
 python -m reports.reportBadCameras 3
-logger -s -t getBadStations "finished"
+logger -s -t $(basename $0 .sh) "finished"

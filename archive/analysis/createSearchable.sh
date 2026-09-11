@@ -17,7 +17,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 source $here/../config.ini >/dev/null 2>&1
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
-logger -s -t createSearchable "starting"
+logger -s -t $(basename $0 .sh) "starting"
 
 yr=$1
 whichpass=$2
@@ -38,4 +38,4 @@ fi
 
 aws s3 sync  $DATADIR/searchidx/ $WEBSITEBUCKET/search/indexes/ --exclude "*" --include "*allevents.csv" --quiet 
 
-logger -s -t createSearchable "finished"
+logger -s -t $(basename $0 .sh) "finished"

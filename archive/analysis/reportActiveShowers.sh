@@ -17,7 +17,8 @@
 here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
-logger -s -t reportActiveShowers "starting"
+
+logger -s -t $(basename $0 .sh) "starting"
 
 if [ $# -eq 0 ]; then
     yr=$(date +%Y)
@@ -27,16 +28,20 @@ else
     rundt=${1}$(date +%m%d)
 fi
 
-logger -s -t reportActiveShowers "report on active showers"
-python -m reports.reportActiveShowers -m
+logger -s -t $(basename $0 .sh) "start reportActiveShowers"
+python -m reports.reportActiveShowers -m -c 150
 
-python -c "from utils.getActiveShowers import getActiveShowers;getActiveShowers('$rundt', inclMinor=True)" | while read shwr
+#shwrs=$(python -c "from utils.getActiveShowers import getActiveShowers;getActiveShowers('$rundt', inclMinor=True)")
+shwrs=$(python -c "from reports.reportActiveShowers import getBusyShowers;getBusyShowers('$rundt', minmeteors=150, aslist=False)")
+for shwr in $shwrs
 do 
     aws s3 sync $DATADIR/reports/${yr}/$shwr $WEBSITEBUCKET/reports/${yr}/${shwr} --quiet 
 done
-logger -s -t reportActiveShowers "updating annual index"
+
+logger -s -t $(basename $0 .sh) "updating annual index"
 ${SRC}/website/createReportIndex.sh ${yr}
 
 python -m analysis.summaryAnalysis ${yr}
 aws s3 sync $DATADIR/reports/${yr}/showers $WEBSITEBUCKET/reports/${yr}/showers --quiet
-logger -s -t reportActiveShowers "finished"
+
+logger -s -t $(basename $0 .sh) "finished"

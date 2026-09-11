@@ -1,8 +1,8 @@
-from datetime import datetime, timedelta, MINYEAR
 import numpy as np
+from datetime import datetime, timedelta, MINYEAR
 import scipy
 import os
-from numpy.core.umath_tests import inner1d
+#from numpy.core.umath_tests import inner1d
 import math
 
 # Define Julian epoch
@@ -224,7 +224,7 @@ def greatCirclePhase(theta, phi, theta0, phi0):
     # Find the phase angle on the great circle which corresponds to the pick
     res = scipy.optimize.minimize(_pointDist, 0)
 
-    return res.x
+    return res.x[0]
 
 
 
@@ -449,7 +449,8 @@ def vectNorm(vect):
 
 def vectMag(vect):
     """ Calculate the magnitude of the given vector. """
-    return np.sqrt(inner1d(vect, vect))
+    return np.linalg.norm(vect)
+    return np.sqrt(np.dot(vect, vect))
 
 
 def raDec2Vector(ra, dec):
@@ -553,8 +554,7 @@ def jd2SolLonSteyaert(jd):
 
 
 class simpleConfig(object):
-    """ Holds Earth's shape and physical parameters. """
-
+    """ Extremely simple config object used in this code """
     def __init__(self):
         self.latitude = None
         self.longitude = None
@@ -575,13 +575,13 @@ def loadConfigFromDirectory(pth, cfgname='.config'):
         spls = li.split()
         if len(spls) > 0:
             if 'latitude:' in spls[0]:
-                cfgobj.latitude = float(spls[1])
+                cfgobj.latitude = float(spls[1].replace(';',' '))
             if 'longitude:' in spls[0]:
-                cfgobj.longitude = float(spls[1])
+                cfgobj.longitude = float(spls[1].replace(';',' '))
             if 'elevation:' in spls[0]:
-                cfgobj.elevation = float(spls[1])
+                cfgobj.elevation = float(spls[1].replace(';',' '))
             if 'fps:' in spls[0]:
-                cfgobj.fps = float(spls[1])
+                cfgobj.fps = float(spls[1].replace(';',' '))
     cfgobj.shower_path = '.'
 
     return cfgobj

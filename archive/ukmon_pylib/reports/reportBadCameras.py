@@ -12,10 +12,21 @@ from reports.CameraDetails import loadLocationDetails
 
 from utils.sendAnEmail import sendAnEmail
 
-mailfrom = 'ukmonhelper2@ukmeteors.co.uk'
-
 
 def sendBespokeMessage(targlist, messagefile, subj):
+    """
+    send a message contained in 'messagefile' to a list of stations
+
+    arguments:
+    targlist:       a file containing a list of locations in the first column
+    messagefile:    a file containing the message to be sent
+    subj:           the subject to use for the mail
+
+    the targlist file can contain other information, but hte first column must be station locations eg tackley_nw
+
+    The targlist contents will be treated as an f-string and must contain placeholders for the GMN ID and location in that order. 
+    
+    """
 
     messagecontent = open(messagefile, 'r').read()
     targets = open(targlist, 'r').readlines()
@@ -23,10 +34,10 @@ def sendBespokeMessage(targlist, messagefile, subj):
     camowners['location'] = [ x.lower() + '_' + y.lower() for x,y in zip(camowners.site,camowners.direction)]
     camowners = camowners[camowners.active==1]
     camowners.drop(columns=['oldcode', 'site', 'camtype', 'active', 'humanName','direction','created'], inplace=True)
-    #camowners = camowners.groupby('eMail', as_index=False).agg(lambda x: ','.join(x.tolist()))
     owners = []
     camids = []
     gmnids = []
+    targets = [x.split()[0].strip() for x in targets]
     for target in targets:
         locationid = target.strip()
         if locationid[:1] == '#':
@@ -50,7 +61,7 @@ def sendBespokeMessage(targlist, messagefile, subj):
         statid = rw.gmnids
         locationid = rw.camids
         print(f'emailing {mailrecip} concerning {statid} {locationid} subject {subj}')
-        sendAnEmail(mailrecip, messagecontent.format(statid, locationid), subj, mailfrom)
+        sendAnEmail(mailrecip, messagecontent.format(statid, locationid), subj)
     return
 
 
@@ -132,7 +143,6 @@ if __name__ == '__main__':
             mailrecip = row['eMail']
             statid = row['stationid']
             dayslate = int(sys.argv[1])
-            #sendAnEmail(mailrecip, latemsg1.format(statid, dayslate), subj, mailfrom)
             mailmsg = mailmsg + '{} {} {}\n'.format(row['stationid'], row['ts'], row['eMail'])
 
     subj = 'camera upload missing'
@@ -152,5 +162,5 @@ if __name__ == '__main__':
             mailrecip = row['eMail']
             statid = row['stationid']
             dayslate = int(sys.argv[1]) + 7
-            sendAnEmail(mailrecip, latemsg1.format(statid, dayslate), subj, mailfrom)
+            sendAnEmail(mailrecip, latemsg1.format(statid, dayslate), subj)
             mailmsg = mailmsg + '{} {} {}\n'.format(row['stationid'], row['ts'], row['eMail'])

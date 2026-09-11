@@ -1,0 +1,1 @@
+{"statusCode": 200, "body": "[{\"stationid\": \"UK005U\", \"eMail\": \"steve.carter@outlook.com\", \"humanName\": \"Steve Carter\", \"active\": \"1\", \"direction\": \"SE\", \"camtype\": \"2\", \"created\": \"20220222\", \"oldcode\": \"UK005U\", \"site\": \"WelwynGardenCity\"}]"}
