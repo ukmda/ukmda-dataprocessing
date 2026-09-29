@@ -18,24 +18,15 @@ sudo apt-get install unzip net-tools dos2unix mariadb-server
 ```
 
 ### Miniconda
-* Install miniconda with the default settings
+* Install miniconda with the default settings from [here](https://www.anaconda.com/docs/getting-started/miniconda/install/linux-install)
 
 ### WMPL
 * Install WMPL 
   * create a 'wmpl' conda environment with at least python 3.13
-  * install the python requirements
+  * install the required python modules using `conda` as explained in the WMPL [readme](https://github.com/wmpg/WesternMeteorPyLib/blob/master/README.md).
+  * You cannot install via the main pip requirements file as many of the packages are not available for ARM64 from pip. 
   * See note below for how to get PyQt5 working. 
   * Alternatively you can delete subfolders of wmpl that rely on QT (`CAM0` `MetSIM` and `Utils/DynamicMassFit.py`). 
-``` bash
-conda create -n wmpl python=3.13
-mkdir -p ~/src
-cd ~/src
-git clone --recursive git@github.com:markmac99/WesternMeteorPyLib.git
-cd WesternMeteorPyLib
-conda activate wmpl
-pip install -r requirements.txt
-python setup.py
-```
 
 ### UKMDA Dataprocessing
 * Clone the ukmda git repo and then install all the code using the deployment script. Both dev and prod envs should be created, though arguably the dev env should be on a separate server.
