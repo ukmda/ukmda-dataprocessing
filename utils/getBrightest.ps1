@@ -8,7 +8,7 @@
 
 # copyright (c) Mark McIntyre, 2025-
 
-Param($config='analysis.ini', $reqdate='')
+Param($config='analysis.ini', $reqdate='', $todate='')
 
 # load the helper functions
 . $PSScriptRoot\helperfunctions.ps1
@@ -28,11 +28,12 @@ Push-Location $repdir
 
 conda activate ukmon-shared
 
-Write-Output "working... getting data for $reqdate"
+if ($todate -eq "") { $todate = $reqdate}
+
 if ($reqdate -eq "" ) {
     python -c "from reports.findBestMp4s import getBestNSingles;getBestNSingles(numtoget=30,outdir='$outdir')"
 }else{
-    python -c "from reports.findBestMp4s import getBestNSingles;getBestNSingles(numtoget=30,outdir='$outdir', reqdate='$reqdate')"
+    python -c "from reports.findBestMp4s import getBestNSingles;getBestNSingles(numtoget=50,outdir='$outdir', reqdate='$reqdate', todate='$todate')"
 }
 
 $outdirw = $outdir.replace('/','\')
