@@ -6,7 +6,6 @@
 import os 
 import sys
 import pandas as pd
-from utils.imoWorkingShowerList import IMOshowerList
 from utils.getActiveShowers import getActiveShowers
 
 
@@ -139,12 +138,7 @@ def createRMSSingleMonthlyExtract(yr, mth=None, shwr=None, dta=None, withshower=
 def extractAllShowersData(ymd):
     print('getting shower data')
     yr = str(ymd)[:4]
-    if int(ymd) > 9999:
-        showerlist = getActiveShowers(ymd, retlist=True)
-        showerlist.append('spo')
-    else:
-        sl = IMOshowerList()
-        showerlist = sl.getMajorShowers(True, True).strip().split(' ')
+    showerlist = getActiveShowers(ymd, aslist=True, inclSpo=True)
 
     print(f'processing data for {ymd}')
     datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))

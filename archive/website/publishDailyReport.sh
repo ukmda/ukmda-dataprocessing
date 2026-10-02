@@ -19,7 +19,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
-logger -s -t publishDailyReport "creating report file"
+logger -s -t $(basename $0 .sh) "starting"
 cd $DATADIR
 
 daysback=1
@@ -55,3 +55,5 @@ echo "</table>" >> $DATADIR/latest/dailyreports/dailyreportsidx.html
 cat $TEMPLATES/footer.html >> $DATADIR/latest/dailyreports/dailyreportsidx.html
 
 aws s3 sync $DATADIR/latest/dailyreports/  $WEBSITEBUCKET/latest/dailyreports/ --quiet
+
+logger -s -t $(basename $0 .sh) "finished"

@@ -7,7 +7,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: matchDataApi.lambda_handler
-      Runtime: python3.11
+      Runtime: python3.14
       FunctionName: matchDataApi
       Description: API backend that fetches match data
       Timeout: 120
@@ -37,4 +37,4 @@ Resources:
         billingtag: "ukmda"
         typetag: "api"
     Metadata:
-      BuildMethod: python3.11
+      BuildMethod: python3.14

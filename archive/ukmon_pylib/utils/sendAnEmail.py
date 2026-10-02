@@ -1,192 +1,64 @@
 # Copyright (C) 2018-2023 Mark McIntyre
-import os
-import platform
-import base64
-import email
+
+from email.message import EmailMessage
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-
-SCOPES =['https://mail.google.com/']
+import boto3
+import smtplib
+import os
 
 
-def _getGmailCreds(tokfile=None, crdfile=None):
-    creds = None
-    # The token stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
-    if tokfile is None:
-        tokfile = '~/.ssh/gmailtoken.json'
-    if crdfile is None:
-        crdfile = '~/.ssh/gmailcreds.json'
-    tokfile = os.path.expanduser(tokfile)
-    crdfile = os.path.expanduser(crdfile)
-    if os.path.exists(tokfile):
-        creds = Credentials.from_authorized_user_file(tokfile, SCOPES)
+def sendAnEmail(recipients, body, subject, sender='ukmeteors@gmail.com', files=None, passwd=None, msg_html=None):
+    """
+    Send an email via google, using the ukmeteors@gmail.com account.
+    The app password for this account is stored in an SSM variable, if you want to use
+    a different account you must pass the app password in to the function. 
 
-    # If there are no (valid) credentials available, ask the user to log in interactively.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            if not os.path.isfile(crdfile):
-                print(f'to use this function you must have stored your Google OAUTH2 secret json file in {crdfile}')
-                print('To set up OAUTH2 go to your google cloud console, select APIs then Credentials, and add an OAUTH2 desktop client ID.')
-                return None
-            flow = InstalledAppFlow.from_client_secrets_file(crdfile, SCOPES)
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open(tokfile, 'w') as token:
-            token.write(creds.to_json())
-    return creds
+    Arguments:  
+        mailrecip:  [string] comma-separated string containing email addresses of recipients.  
+        message:    [string] the message to send.  
+        subject:    [string] Subject line.  
 
-
-def _refreshCreds(tokfile=None, crdfile=None):
-    creds = None
-    if tokfile is None:
-        tokfile = '~/.ssh/gmailtoken.json'
-    if crdfile is None:
-        crdfile = '~/.ssh/gmailcreds.json'
-    tokfile = os.path.expanduser(tokfile)
-    crdfile = os.path.expanduser(crdfile)
-    if os.path.exists(tokfile):
-        creds = Credentials.from_authorized_user_file(tokfile, SCOPES)
-        
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            try: 
-                creds.refresh(Request())
-            except: 
-                flow = InstalledAppFlow.from_client_secrets_file(crdfile, SCOPES)
-                creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        if creds.valid:
-            with open(tokfile, 'w') as token:
-                token.write(creds.to_json())
-        else:
-            print('credentials not valid, try again')
-    return creds
-
-
-def _create_message(sender, to, subject, message_text, msg_text_html=None):
-    if msg_text_html is None:
-        msg = MIMEText(message_text)
-    else:
-        msg = MIMEMultipart('alternative')
-        msg.attach(MIMEText(message_text, 'plain'))
-        msg.attach(MIMEText(msg_text_html, 'html')) # html must be the last part
-    msg['to'] = to
-    msg['from'] = sender
-    msg['subject'] = subject
-    return {'raw': base64.urlsafe_b64encode(msg.as_string().encode('utf-8')).decode('utf-8')}
-
-
-
-def sendAnEmail(mailrecip, message, subject, mailfrom, files=None, tokfile=None, crdfile=None, msg_html=None):
-    """ sends an email using gmail. 
-    
-        Arguments:  
-            mailrecip:  [string] email address of recipient.  
-            message:    [string] the message to send.  
-            subject:    [string] Subject line.
-            mailfrom:   [string] email address of sender.   
-        Keyword Args:
-            files:      [list]   list of files to attach, not currently implemented.  
-            tokfile:    [string] full path to token file, if not ~/.ssh/gmailtoken.json  
-            crdfile:    [string] full path to credentials file, if not ~/.ssh/gmailcreds.json  
-            msg_html:   [string] HTML version of the message body, if any  
+    Keyword Args:
+        sender:     [string] email address of sender. Default 'ukmeteors@gmail.com' 
+        passwd:     [string] 16-character app password created in google. Default read from SSM. 
+        msg_html:   [string] HTML version of the message body, if any. 
+        files:      [list]   list of files to attach - supports jpg, png, bmp. Want to support txt and pdf
 
         Returns:  
             Nothing, though a message is printed onscreen.  
+    """
 
-        Notes:  
-            You must have gmail OAUTH2 set up. The gmail credentials default to gmailtoken.json and
-            gmailcreds.json in the  $HOME/.ssh folder.  
-        """
-    
-    if subject is None:
-        subject = platform.uname()[1]
+    if passwd is None:
+        ssm = boto3.client('ssm', region_name='eu-west-2')
+        res = ssm.get_parameter(Name='prod_gmailkey', WithDecryption=True)
+        passwd = res['Parameter']['Value']
 
-    # email a summary to the mailrecip
-    creds = _getGmailCreds(tokfile, crdfile)
-    if not creds:
-        return 
-    service = build('gmail', 'v1', credentials=creds)
+    msg = EmailMessage()
+    msg['To'] = recipients
+    msg['From'] = sender
+    msg['Subject'] = subject
+    msg.set_content(body)
+    if msg_html:
+        msg.add_alternative(msg_html, subtype="html")
+    if files:
+        for file in files:
+            extn = os.path.splitext(file)[1]
+            if extn in ['.jpg','.png','.bmp']:
+                img_data = open(file, 'rb').read()
+                msg.add_attachment(img_data, maintype='image', subtype=extn[1:])
 
-    subj = subject
-    mailmsg = _create_message(mailfrom, mailrecip, subj, message, msg_text_html=msg_html)
-
-    try:
-        retval = (service.users().messages().send(userId='me', body=mailmsg).execute())
-        print('Message Id: %s' % retval['id'])
-    except:
-        print('An error occurred sending the message')
-
-
-def forwardAnEmail(reciplist, msgid=None, tokfile=None, crdfile=None):
-    """ Forward email from a gmail account to a list of recipients  
-    
-        Arguments:  
-            recplist:   [list of strings] list of addresses to forward to  
-
-        Keyword arguments:  
-            msgid:      [string] gmail message id. If None, then all unread mail is forwarded  
-            tokfile:    [string] full path to a gmail oauth2 json token file  
-            crdfile:    [string] full path to a gmail oauth2 json credentials file for initial authorization 
-
-        To obtain the oauth2 credentials file, go to the google cloud console, select APIs and enable gmail. Then 
-         go to Credentials and create an OAUTH2 Client ID for Desktop and download the JSON credentials file. 
-         Upon first run, you'll be taken to the gmail authorisation screen and the token file will be created. 
-         Subsequent runs will use the token file. The creds file will be used to reauthorise periodically. 
-       """
-    creds = _getGmailCreds(tokfile, crdfile)
-    if not creds:
-        return 
-    service = build('gmail', 'v1', credentials=creds)
-    userid = 'me'
-    if msgid is None:
-        try:
-            msglist = (service.users().messages().list(userId=userid, labelIds=['INBOX','UNREAD']).execute())
-            for msg in msglist['messages']:
-                msgid = msg['id']
-                # retrieve raw mail
-                message = (service.users().messages().get(userId='me', id=msgid, format='raw').execute())
-                # decode it from base64
-                decmsg = base64.urlsafe_b64decode(message['raw'])
-                newmsg = email.message_from_bytes(decmsg)
-                newmsg.add_header('Reply-To',newmsg['from']) 
-                newmsg.replace_header('Subject','Fwd: ' + newmsg['subject'])
-                # Send it
-                for recip in reciplist:
-                    newmsg.replace_header('To', recip)
-                    mailmsg = {'raw': base64.urlsafe_b64encode(newmsg.as_string().encode('utf-8')).decode('utf-8')}
-                    retval = (service.users().messages().send(userId='me', body=mailmsg).execute())
-                    # This will mark the messagea as read
-                    service.users().messages().modify(userId=userid, id=msgid, body={'removeLabelIds': ['UNREAD']}).execute() 
-                    print(retval)
-        except Exception:
-            print('Nothing to forward')
-    else:
-        try:
-            message = (service.users().messages().get(userId='me', id=msgid, format='raw').execute())
-            # decode it from base64
-            decmsg = base64.urlsafe_b64decode(message['raw'])
-            newmsg = email.message_from_bytes(decmsg)
-            newmsg.add_header('Reply-To',newmsg['from']) 
-            newmsg.replace_header('Subject','Fwd: ' + newmsg['subject'])
-            # Send it
-            for recip in reciplist:
-                newmsg.replace_header('To', recip)
-                mailmsg = {'raw': base64.urlsafe_b64encode(newmsg.as_string().encode('utf-8')).decode('utf-8')}
-                retval = (service.users().messages().send(userId='me', body=mailmsg).execute())
-                # This will mark the messagea as read
-                service.users().messages().modify(userId=userid, id=msgid, body={'removeLabelIds': ['UNREAD']}).execute() 
-                print(retval)
-        except Exception:
-            print('Nothing to forward')
+    smtp_server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=30)
+    smtp_server.login(sender, passwd)
+    smtp_server.send_message(msg, sender, recipients)
+    smtp_server.quit()
+    smtp_server.close()
     return 
+
+
+def test():
+    subject = 'testing'
+    body = 'Test for new from address for daily report'
+    html_body = '<html><body><h2>test</h2>some text<br><li>foo</li></body></html>'
+    recipients = 'markmcintyre99@googlemail.com'
+    sendAnEmail(recipients, body, subject, msg_html=html_body)

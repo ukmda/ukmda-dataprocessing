@@ -1,3 +1,3 @@
 # database
 
-This folder is unused, i think. I will check if i have time. 
+This folder contains the DDL and DML for the MariaDB databases holding the single, matched and brightness data.

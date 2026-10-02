@@ -2,7 +2,7 @@
 
 Routines used to maintain and keep data organized
 
-* dataMaintenance.py    - cleardown and space freeing routines
+* dataMaintenance.py    - routines to maintain data and keep the various databases in line
 * sortToDateDirs.py     - one off tool to convert the WMPL trajectory database to a new layout
 * getNextBatchStart.py  - update the crontab to start the batch at the right time
 * rerunFailedLambdas.py - rerun any failed lambdas

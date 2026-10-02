@@ -122,6 +122,12 @@ def updatePairedDB(dir_path, db_path, rundate):
     return obscount
 
 
+def removeUnusedCandDbs(dir_path, rundate):
+    flist = glob.glob(os.path.join(dir_path, f'candidates_{rundate}_*.db'))
+    for fl in flist:
+        os.remove(fl)
+
+
 def findNewMatches(dir_path, out_path, repdtstr):
     daily_path = os.path.join(os.path.split(dir_path)[0], 'dailydbs')
     newdirs = getListOfNewMatches(dir_path, daily_path, rundate=repdtstr)
@@ -217,4 +223,5 @@ if __name__ == '__main__':
         # update the daily database of paired observations
         daily_db_dir = os.path.join(os.path.split(cand_db_dir)[0], 'dailydbs')
         updatePairedDB(cand_db_dir, daily_db_dir, repdtstr)
+        removeUnusedCandDbs(cand_db_dir, repdtstr)
         print('reportOfLatestMatches finished')

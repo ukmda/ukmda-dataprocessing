@@ -4,7 +4,7 @@
 # Copyright (C) 2018-2023 Mark McIntyre
 
 import pandas as pd
-from traj import pickleAnalyser as pa
+from utils.getActiveShowers import getShowerDets
 import os
 import sys
 import shutil
@@ -24,7 +24,7 @@ def showerSummaryByPeriod(dtstr):
     grpdata = mtch.groupby(by=['_stream']).count()
     grpdata = grpdata.sort_values(by=['_M_ut'], ascending=False)
     grpdata['stream'] = grpdata.index
-    shwrdata=[(shwr, pa.getShowerDets(shwr),ct) for shwr, ct in zip(grpdata.stream,grpdata._M_ut)]
+    shwrdata=[(shwr, getShowerDets(shwr),ct) for shwr, ct in zip(grpdata.stream,grpdata._M_ut)]
 #    for sh in shwrdata:
 #        print(sh[0], sh[1][1], sh[1][3], sh[2])
 

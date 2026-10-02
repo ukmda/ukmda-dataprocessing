@@ -1,0 +1,7 @@
+{
+  "httpMethod": "GET",
+  "queryStringParameters": {
+    "dtval": "latest",
+    "enddtstr": "latest"
+  }
+}

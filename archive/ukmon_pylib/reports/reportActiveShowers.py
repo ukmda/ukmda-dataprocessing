@@ -8,6 +8,7 @@ import os
 import glob
 import shutil
 import argparse
+import pandas as pd
 
 from utils.getActiveShowers import getActiveShowers
 from analysis.showerAnalysis import showerAnalysis
@@ -169,9 +170,41 @@ def findRelevantPngs(shwr, pltdir, outdir):
     return
 
 
-def reportActiveShowers(ymd, thisshower=None, thismth=None, includeMinor=False):
+def getBusyShowers(ymd, minmeteors=150, aslist=True):
+    showerlist = []
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
+    # pltdir=os.path.join(datadir, 'showerplots')
+    yr = ymd[:4]
+    cols = ['_stream', 'dtstamp']
+    filt = None
+    matchfile = os.path.join(datadir, 'matched', 'matches-full-{}.parquet.snap'.format(yr))
+    mtch = pd.read_parquet(matchfile, columns=cols, filters=filt)
+    shwrs = mtch.groupby('_stream').size()
+    topshwrs = shwrs[shwrs >= minmeteors]
+    showerlist = [x for x in topshwrs.index if x != 'spo']
+    currdt = datetime.datetime.strptime(ymd, '%Y%m%d')
+    # filter out showers that are inactive now
+    for shwr in showerlist:
+        maxd = mtch[mtch._stream==shwr].dtstamp.max()
+        maxd = datetime.datetime.fromtimestamp(maxd)
+        shwrage = (currdt - maxd).days
+        if shwrage > 2:
+            showerlist.pop(showerlist.index(shwr))
+    # unless we're in late december, skip the quadrantids, the only shower that wraps calendar yearend
+    if currdt < datetime.datetime(int(yr), 12,28) and 'QUA' in showerlist:
+        showerlist.pop(showerlist.index('QUA'))
+    if aslist:
+        return showerlist
+    else:
+        print(' '.join(showerlist))
+
+
+def reportActiveShowers(ymd, thisshower=None, thismth=None, includeMinor=False, minmeteors=-1):
     if thisshower is None:
-        shwrlist = getActiveShowers(ymd, retlist=True, inclMinor=includeMinor)
+        if minmeteors < 0:
+            shwrlist = getActiveShowers(ymd, aslist=True, inclMinor=includeMinor)
+        else:
+            shwrlist = getBusyShowers(ymd, minmeteors)
     else:
         shwrlist = [thisshower]
 
@@ -205,6 +238,8 @@ if __name__ == '__main__':
         help='Specific month to include')
     arg_parser.add_argument('-m', '--includeminor', action="store_true",
         help='include minor showers')
+    arg_parser.add_argument('-c', '--mincount', default=-1,
+        help='report all showers with more than this many meteors')
 
     cml_args = arg_parser.parse_args()
     if cml_args.targdate is None:
@@ -212,4 +247,4 @@ if __name__ == '__main__':
     else:
         targdate = cml_args.targdate
 
-    shwrs = reportActiveShowers(targdate, cml_args.shower, cml_args.thismonth, cml_args.includeminor)
+    shwrs = reportActiveShowers(targdate, cml_args.shower, cml_args.thismonth, cml_args.includeminor, int(cml_args.mincount))

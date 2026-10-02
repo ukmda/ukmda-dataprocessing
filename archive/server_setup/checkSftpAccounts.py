@@ -52,7 +52,7 @@ with open('not_uploading.txt','w') as outf:
 	for cam in not_upl:
 		outf.write(','.join(cam) + '\n')
 
-with open('not_live.txt','w') as outf:
+with open('inactive.txt','w') as outf:
 	for cam in not_live:
 		outf.write(','.join(cam) + '\n')
 
@@ -64,12 +64,26 @@ with open('todo.txt', 'w') as outf:
 			print('done list is missing', nam)
 			outf.write(f'{nam}\n')
 
-
+"""
 moved = open('moved.txt').readlines()
 pending = open('pending.txt').readlines()
 switched = open('switched.txt').readlines()
 
+# accounts in the 'pending' list that are not in the moved list 
+# are ones that i need to migrate urgently! 
 pendingnotmoved = [x for x in pending if x not in moved]
+if len(pendingnotmoved) > 0:
+	print('stations marked pending but not moved - check if need done')
+	print(pendingnotmoved)
 
-print('stations marked pending but not moved - check if need done')
-print(pendingnotmoved)
+# accounts i have moved that are neither in the switched nor pending lists
+# these are probably accounts i know need to move but are currently offline
+movednotpending = [x for x in moved if x not in pending and x not in switched]
+if len(movednotpending) > 0:
+	print('stations moved but# not connecting - check on these too')
+	print(movednotpending)
+with open('notpending.txt', 'w') as outf:
+	for nam in movednotpending:
+		outf.write(f'{nam}\n')
+print("")
+"""

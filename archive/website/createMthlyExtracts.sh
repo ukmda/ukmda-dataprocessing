@@ -17,7 +17,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
-logger -s -t createMthlyExtracts "starting"
+logger -s -t $(basename $0 .sh) "starting"
 
 if [ $# -gt 0 ] ; then
     ymd=$1
@@ -28,10 +28,10 @@ else
     mth=$(date +%m)
 fi 
 
-logger -s -t createMthlyExtracts "gathering annual data"
+logger -s -t $(basename $0 .sh) "gathering annual data"
 
 cd $DATADIR/matched
-logger -s -t createMthlyExtracts "creating extracts"
+logger -s -t $(basename $0 .sh) "creating extracts"
 
 # sync the website with the S3 bucket so the annual data is all available
 # Essential as we're using the content of the website to build the pages
@@ -45,7 +45,7 @@ python -m reports.extractors $yr $mth
 # Essential as we're using the content of the website to build the pages
 aws s3 sync $DATADIR/browse/monthly/  $WEBSITEBUCKET/browse/monthly/ --quiet
 
-logger -s -t createMthlyExtracts "done gathering data, creating monthly table"
+logger -s -t $(basename $0 .sh) "done gathering data, creating monthly table"
 idxfile=$DATADIR/browse/monthly/browselist.js
 
 echo "\$(function() {" > $idxfile
@@ -101,10 +101,10 @@ echo "var outer_div = document.getElementById(\"browselist\");" >> $idxfile
 echo "outer_div.appendChild(table);" >> $idxfile
 echo "})" >> $idxfile
 
-logger -s -t createMthlyExtracts "js table created, copying to website"
+logger -s -t $(basename $0 .sh) "js table created, copying to website"
 aws s3 sync $DATADIR/browse/monthly/  $WEBSITEBUCKET/browse/monthly/ --quiet
 
-logger -s -t createMthlyExtracts "creating annual table"
+logger -s -t $(basename $0 .sh) "creating annual table"
 idxfile=$DATADIR/browse/annual/browselist.js
 yr=$(date +%Y)
 # get a list of files on the website
@@ -152,7 +152,7 @@ echo "var outer_div = document.getElementById(\"browselist\");" >> $idxfile
 echo "outer_div.appendChild(table);" >> $idxfile
 echo "})" >> $idxfile
 
-logger -s -t createMthlyExtracts "annual js table created, copying to website"
+logger -s -t $(basename $0 .sh) "annual js table created, copying to website"
 aws s3 sync $DATADIR/browse/annual/  $WEBSITEBUCKET/browse/annual/ --quiet
 
-logger -s -t createMthlyExtracts "finished"
+logger -s -t $(basename $0 .sh) "finished"

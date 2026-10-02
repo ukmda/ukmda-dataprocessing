@@ -35,16 +35,22 @@ def getBestNMatches(reqdate=None, numtoget=10):
     sorteddata.drop_columns(['_localtime'], inplace=True)
 
 
-def getBestNSingles(reqdate=None, numtoget=20, shwr=None, outdir=None):
+def getBestNSingles(reqdate=None, todate=None, numtoget=20, shwr=None, outdir=None):
     if reqdate is None:
         tod = datetime.datetime.now()
-        tod = tod.replace(hour=12, minute=0, second=0, microsecond=0)
         reqdate = tod + datetime.timedelta(days=-1)
     else:
-        print(reqdate)
         reqdate = datetime.datetime.strptime(reqdate, '%Y%m%d')
-        reqdate = reqdate.replace(hour=12, minute=0, second=0, microsecond=0)
-        tod = reqdate + datetime.timedelta(days=1)
+    if todate is None:
+        todate = reqdate + datetime.timedelta(days=1)
+    else:
+        todate = datetime.datetime.strptime(todate, '%Y%m%d')
+    
+    reqdate = reqdate.replace(hour=12, minute=0, second=0, microsecond=0)
+    todate = todate.replace(hour=12, minute=0, second=0, microsecond=0)
+    if todate.year > reqdate.year:
+        todate = datetime.datetime(reqdate.year, 12, 31, 23, 59, 59)
+    print(f'fetching data for {reqdate} to {todate}')
     yr = reqdate.year
     url = f'https://archive.ukmeteors.co.uk/browse/parquet/singles-{yr}.parquet.snap'
 
@@ -53,7 +59,7 @@ def getBestNSingles(reqdate=None, numtoget=20, shwr=None, outdir=None):
     matches = pd.read_parquet(url, columns=cols)
 
     matches = matches[matches.Dtstamp >= reqdate.timestamp()]
-    matches = matches[matches.Dtstamp <= tod.timestamp()]
+    matches = matches[matches.Dtstamp <= todate.timestamp()]
     sepdata = matches.sort_values(by=['Mag'])
     sepdata['url'] = [getUrlFromFilename(x) for x in sepdata.Filename]
     if shwr:

@@ -16,7 +16,7 @@ here="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 source $here/../config.ini >/dev/null 2>&1
 conda activate $HOME/miniconda3/envs/${WMPL_ENV}
 
-logger -s -t createReportIndex "starting"
+logger -s -t $(basename $0 .sh) "starting"
 if [ $# -lt 1 ] ; then 
     curryr=$(date +%Y)
     fldr=.
@@ -49,7 +49,7 @@ echo "cell.innerHTML = \"<a href="$prefix/$curryr/fireballs/index.html">Fireball
 echo "var cell = row.insertCell(4);" >> $repidx
 echo "cell.innerHTML = \"<a href="$prefix/$curryr/stations/index.html">Stations</a>\";" >> $repidx
 
-logger -s -t createReportIndex "creating shower statistics report"
+logger -s -t $(basename $0 .sh) "creating shower statistics report"
 python -m analysis.summaryAnalysis $curryr
 echo "var row = table.insertRow(-1);" >> $repidx
 echo "var cell = row.insertCell(0);" >> $repidx
@@ -58,7 +58,7 @@ echo "cell.innerHTML = \"<a href="$prefix/$curryr/showers/index.html">Shower Sta
 
 if [ -f $curryr/tmp.txt ] ; then rm -f $curryr/tmp.txt ; fi
 
-aws s3 ls $WEBSITEBUCKET/reports/$curryr/ | grep PRE | egrep -v "ALL|orbits|stations|fireballs|showers|.js|.html" | awk '{print $2 }' | while read j
+aws s3 ls $WEBSITEBUCKET/reports/$curryr/ | grep PRE | egrep -v "ALL|orbits|cover|stations|fireballs|showers|.js|.html" | awk '{print $2 }' | while read j
 do 
     python -c "from utils.getActiveShowers import getShowerDets ; x=getShowerDets('${j:0:3}', True); print(x)" >> $curryr/tmp.txt
 done
@@ -102,14 +102,11 @@ echo "var outer_div = document.getElementById(\"prevyrs\");" >> $previdx
 echo "outer_div.appendChild(table);" >> $previdx
 echo "})" >> $previdx
 
-logger -s -t createReportIndex "done, sending to website"
+logger -s -t $(basename $0 .sh) "done, sending to website"
 if [ "$prefix" == "." ] ; then 
     aws s3 cp $SRC/website/templates/reportindex.html $WEBSITEBUCKET/reports/index.html --quiet
     aws s3 cp $repidx  $WEBSITEBUCKET/reports/ --quiet
     aws s3 cp $previdx  $WEBSITEBUCKET/reports/ --quiet
-
-    cp $repidx $DATADIR/reports/${yr}/
-    cp $previdx $DATADIR/reports/${yr}/
 else
     aws s3 cp $SRC/website/templates/reportindex.html $WEBSITEBUCKET/reports/$curryr/index.html --quiet
     aws s3 cp $repidx  $WEBSITEBUCKET/reports/$curryr/ --quiet
@@ -123,4 +120,4 @@ else
     fi 
 fi
 aws s3 sync ${DATADIR}/reports/$curryr/showers $WEBSITEBUCKET/reports/$curryr/showers --quiet
-logger -s -t createReportIndex "finished"
+logger -s -t $(basename $0 .sh) "finished"

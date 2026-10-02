@@ -1,7 +1,7 @@
 Data Processing and Flows
 ==========================
 
-version: 2026.05.3
+version: 2026.05.4
 
 This diagram shows the overall flow of data from Cameras to websites and out to the public.
 
@@ -29,7 +29,10 @@ This diagram shows the overall flow of data from Cameras to websites and out to 
 
 Daily Batch Process
 ===================
-This diagram shows the various scripts and processes called, in order
+This diagram shows the various scripts and processes called, in order.
+
+The starting point is `cronjobs/nightlyJob.sh` which runs each morning 150 minutes after dawn (Central UK).
+
 
 ```mermaid
     flowchart TD

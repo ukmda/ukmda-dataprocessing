@@ -17,7 +17,7 @@ from wmpl.Trajectory.CorrelateEngine import TrajectoryCorrelator, TrajectoryCons
 from wmpl.Trajectory.CorrelateRMS import TrajectoryReduced, DatabaseJSON # noqa: F401
 from wmpl.Trajectory.CorrelateRMS import MeteorObsRMS, PlateparDummy, MeteorPointRMS # noqa: F401
 
-log = logging.getLogger('traj_correlator') # must be the same name as the WMPL logger
+log = logging.getLogger('wmpl_logger') # must be the same name as the WMPL logger
 
 
 def runCorrelator(dir_path, time_beg, time_end, max_stns=9999):

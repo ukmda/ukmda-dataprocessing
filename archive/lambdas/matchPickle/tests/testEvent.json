@@ -1,0 +1,7 @@
+{
+  "httpMethod": "GET",
+  "queryStringParameters": {
+    "orbit": "20260421_000017.759_UK",
+    "format": "json"
+  }
+}

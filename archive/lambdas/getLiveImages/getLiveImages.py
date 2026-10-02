@@ -32,27 +32,39 @@ def filterImages(d1, d2, statid=None, maxitems=-1, ddb=None):
         hv=f'{d2.timestamp()*1000:.0f}'
         resp = table.query(IndexName='year-image_timestamp-index', 
                             KeyConditionExpression=Key('year').eq(str(d1.year)) & Key('image_timestamp').between(lv, hv),
-                            ProjectionExpression='image_name',
+                            ProjectionExpression='image_name,camloc',
                             ScanIndexForward = False)
     else:
         resp = table.query(IndexName='year-image_timestamp-index', 
                             KeyConditionExpression=Key('year').eq(str(d2.year)),
                             Limit=maxitems,
-                            ProjectionExpression='image_name',
+                            ProjectionExpression='image_name,camloc',
                             ScanIndexForward = False)
+
+    for i in range(len(resp['Items'])):
+        if 'camloc' not in resp['Items'][i]:
+            resp['Items'][i]['camloc'] = ''
     if statid is not None:
         imglist = [x['image_name'] for x in resp['Items'] if statid in x['image_name']]
+        loclist = [x['camloc'] for x in resp['Items'] if statid in x['image_name']]
     else:
         imglist = [x['image_name'] for x in resp['Items']]
-    return imglist
+        loclist = [x['camloc'] for x in resp['Items']]
+    return imglist, loclist
 
 
 def getTrueImgs(dtstr, dtstr2, statid, ddb=None):
     if ddb is None:
         ddb = boto3.resource('dynamodb', region_name='eu-west-2')
     table = ddb.Table('LiveBrightness')
-    d1 = datetime.datetime.strptime(dtstr, '%Y-%m-%dT%H:%M:%S.000Z')
-    d2 = datetime.datetime.strptime(dtstr2, '%Y-%m-%dT%H:%M:%S.000Z')
+    if dtstr == 'latest':
+        d2 = datetime.datetime.now()
+        d1 = datetime.datetime.now() - datetime.timedelta(days=1)
+        maxitems = 100
+    else:
+        d1 = datetime.datetime.strptime(dtstr, '%Y-%m-%dT%H:%M:%S.000Z')
+        d2 = datetime.datetime.strptime(dtstr2, '%Y-%m-%dT%H:%M:%S.000Z')
+        maxitems = 2000
     if d1.hour < 13:
         capnight=(d1 + datetime.timedelta(days=-1)).strftime('%Y%m%d')
     else:
@@ -61,12 +73,25 @@ def getTrueImgs(dtstr, dtstr2, statid, ddb=None):
     hv=Decimal(f'{d2.timestamp():.0f}')
     resp = table.query(KeyConditionExpression=Key('CaptureNight').eq(int(capnight)) & Key('Timestamp').between(lv, hv),
                         ProjectionExpression='ffname',
+                        Limit=maxitems,
                         ScanIndexForward = False)
     if statid is not None:
         imglist = [x['ffname'] for x in resp['Items'] if statid in x['ffname']]
     else:
         imglist = [x['ffname'] for x in resp['Items']]
     return {'images': imglist}
+
+
+def getTitle(filename, loc):
+    if filename[0] == 'F':
+        imgname = filename[3:25]
+        title = imgname.replace('_', ' ')
+        title = f'{title} {loc}'
+    else:
+        imgname = filename[1:-5]
+        spls = imgname.split('_')
+        title = f'{spls[-1]} {spls[0]} {spls[1]} {spls[2]}_{spls[3]}'
+    return title
 
 
 def getImageUrls(dtstr, dtstr2, statid, token=None, maxitems=100, includexml=False, ddb=None):
@@ -81,18 +106,19 @@ def getImageUrls(dtstr, dtstr2, statid, token=None, maxitems=100, includexml=Fal
         startdt = datetime.datetime.strptime(dtstr, '%Y-%m-%dT%H:%M:%S.000Z')
         enddt = datetime.datetime.strptime(dtstr2, '%Y-%m-%dT%H:%M:%S.000Z')
         maxitems = -1
-    imglist = filterImages(startdt, enddt, statid, maxitems, ddb)
+    imglist, loclist = filterImages(startdt, enddt, statid, maxitems, ddb)
     urls = []
-    for keyval in imglist:
+    for keyval, loc in zip(imglist, loclist):
         if '.jpg' in keyval:
-            print(statid, keyval)
+            #print(statid, keyval)
             psurl = s3.generate_presigned_url(ClientMethod='get_object',Params={'Bucket': buckname,'Key': keyval}, ExpiresIn=1800)
-            urls.append({'url': f'{psurl}'})
+            dtstamp=keyval[10:25] if keyval[0] == 'F' else keyval[1:16]
+            urls.append({'url': f'{psurl}', 'dtstamp': dtstamp, 'imgtitle': getTitle(keyval,loc)})
             if includexml:
                 xmlkey = keyval.replace('P.jpg', '.xml')
                 psurl = s3.generate_presigned_url(ClientMethod='get_object',Params={'Bucket': buckname,'Key': xmlkey}, ExpiresIn=1800)
-                urls.append({'url': f'{psurl}'})
-    urls.sort(key = lambda k: k['url'], reverse=True)
+                urls.append({'url': f'{psurl}', 'dtstamp': dtstamp, 'imgtitle': getTitle(keyval, loc)})
+    urls.sort(key = lambda k: k['dtstamp'], reverse=True)
     if maxitems > 0:
         urls = urls[:maxitems+1]
     retval = {'pagetoken': token, 'urls': urls}

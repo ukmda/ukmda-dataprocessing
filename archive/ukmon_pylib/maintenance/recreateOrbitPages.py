@@ -70,30 +70,52 @@ def createExtraJpgtxt(outdir, traj, availableimages):
                 outf.write(img)
 
 
-def createExtraJpgHtml(outdir, parentfldr, yr, ym):
+def createExtraJpgHtml(outdir, parentfldr, yr, ym, doupload=False):
     s3mda = boto3.client('s3')
+
     webfldr = f'img/single/{yr}/{ym}'
-    with open(os.path.join(outdir, 'extrajpgs.html'), 'w') as outf:
-        jpgfldr = os.path.join(parentfldr, 'jpgs')
-        if os.path.isdir(jpgfldr):
-            jpgs = os.listdir(jpgfldr)
-            for jpg in jpgs:
-                li = f"<a href=\"/img/single/{yr}/{ym}/{jpg}\"><img src=\"/img/single/{yr}/{ym}/{jpg}\" width=\"20%\"></a>\n"
-                outf.write(li)
+    jpglist = []
+    extrajpgsfile = os.path.join(outdir, 'extrajpgs.html')
+    if os.path.isfile(extrajpgsfile):
+        jpglist = open(extrajpgsfile, 'r').readlines()
+
+    jpgfldr = os.path.join(parentfldr, 'jpgs')
+    if os.path.isdir(jpgfldr):
+        for jpg in os.listdir(jpgfldr):
+            print('adding', jpg)
+            li = f"<a href=\"/img/single/{yr}/{ym}/{jpg}\"><img src=\"/img/single/{yr}/{ym}/{jpg}\" width=\"20%\"></a>\n"
+            jpglist.append(li)
+            if doupload:
                 locfname = f'{jpgfldr}/{jpg}'
                 keyname = f'{webfldr}/{jpg}'
                 s3mda.upload_file(locfname, 'ukmda-website', keyname, ExtraArgs=getExtraArgs(jpg))
+
+    if len(jpglist)>0:
+        jpglist = sorted(list(set(jpglist)))
+        open(extrajpgsfile, 'w').writelines(jpglist)
+
     webfldr = f'img/mp4/{yr}/{ym}'
-    with open(os.path.join(outdir, 'extrampgs.html'), 'w') as outf:
-        jpgfldr = os.path.join(parentfldr, 'mp4s')
-        if os.path.isdir(jpgfldr):
-            jpgs = os.listdir(jpgfldr)
-            for jpg in jpgs:
-                li = f"<a href=\"/img/mp4/{yr}/{ym}/{jpg}\"><video width=\"20%\"><source src=\"/img/mp4/{yr}/{ym}/{jpg}\" width=\"20%\" type=\"video/mp4\"></video></a>\n"
-                outf.write(li)
-                locfname = f'{jpgfldr}/{jpg}'
-                keyname = f'{webfldr}/{jpg}'
-                s3mda.upload_file(locfname, 'ukmda-website', keyname, ExtraArgs=getExtraArgs(jpg))
+    mpglist = []
+    extrampgsfile = os.path.join(outdir, 'extrampgs.html')
+    if os.path.isfile(extrampgsfile):
+        mpglist = open(extrampgsfile, 'r').readlines()
+
+    mpgfldr = os.path.join(parentfldr, 'mp4s')
+    if os.path.isdir(mpgfldr):
+        for mpg in os.listdir(mpgfldr):
+            print('adding', mpg)
+            li = f"<a href=\"/img/mp4/{yr}/{ym}/{mpg}\"><video width=\"20%\"><source src=\"/img/mp4/{yr}/{ym}/{mpg}\" width=\"20%\" type=\"video/mp4\"></video></a>\n"
+            mpglist.append(li)
+            if doupload:
+                locfname = f'{jpgfldr}/{mpg}'
+                keyname = f'{webfldr}/{mpg}'
+                s3mda.upload_file(locfname, 'ukmda-website', keyname, ExtraArgs=getExtraArgs(mpg))
+
+    if len(mpglist)>0:
+        mpglist = sorted(list(set(mpglist)))
+        open(extrampgsfile, 'w').writelines(mpglist)
+
+    return 
 
 
 def fixupTrajComments(traj, availableimages, outdir, picklename):
@@ -179,11 +201,25 @@ def recreateOrbitFiles(outdir, pickname, doupload=False):
     yr = orbfldr[:4]
     ym = orbfldr[:6]
     ymd = orbfldr[:8]
-    print(f'orbit folder is {orbfldr}')
+
+    if int(yr) > 2020: 
+        webfldr = f'reports/{yr}/orbits/{ym}/{ymd}'
+    else:
+        webfldr = f'reports/{yr}/orbits/{ym}'
+
+    print('adding any extra jpgs or mp4s')
+    s3mda = boto3.client('s3')
+    for fil in ['extrajpgs.html', 'extrampgs.html']:
+        try:
+            keyname = f"{webfldr}/{orbfldr}/{fil}"
+            s3mda.download_file('ukmda-website', keyname, os.path.join(outdir, fil))
+            # get the file
+        except Exception:
+            pass
 
     availableimages = getImgList(outdir, traj)
     createExtraJpgtxt(outdir, traj, availableimages)
-    createExtraJpgHtml(outdir, orbparent, yr, ym)
+    createExtraJpgHtml(outdir, orbparent, yr, ym, doupload=False) # don't upload here as the wrapper script does it
     try:
         fixupTrajComments(traj, availableimages, outdir, pickname)
     except:
@@ -194,16 +230,12 @@ def recreateOrbitFiles(outdir, pickname, doupload=False):
     if doupload:
         files = os.listdir(outdir)
         s3mda = boto3.client('s3')
-        if int(yr) > 2020: 
-            webfldr = f'reports/{yr}/orbits/{ym}/{ymd}'
-        else:
-            webfldr = f'reports/{yr}/orbits/{ym}'
         for fil in files:
             if not checkIfFileNeeded(fil):
                 print(f'skipping {fil}')
                 continue
             locfname = f'{outdir}/{fil}'
-            if 'summary' in fil or 'extrajpgs.txt' or 'html' in fil:
+            if 'summary' in fil or 'extrajpgs.txt' in fil or 'html' in fil:
                 keyname = f"{webfldr}/{orbfldr}/{fil}"
             else:
                 keyname = f"{webfldr}/{orbfldr}/{orbfldr[:15]}{fil[15:]}"

@@ -8,14 +8,15 @@
 
 # copyright (c) Mark McIntyre, 2025-
 
-set-location $PSScriptRoot
+Param($config='analysis.ini', $reqdate='', $todate='')
 
 # load the helper functions
-. .\helperfunctions.ps1
-$ini=get-inicontent analysis.ini
+. $PSScriptRoot\helperfunctions.ps1
+
+$ini=get-inicontent "$psscriptroot\$config"
+
 $bdir = $ini['localdata']['fbfolder'].replace('$HOME',$home)
 $bdir = $bdir + "/brightest"
-set-location $bdir
 
 $outdir  = $bdir.replace('\','/')
 
@@ -27,12 +28,12 @@ Push-Location $repdir
 
 conda activate ukmon-shared
 
-Write-Output "working..."
-if ($args.count -eq 0) {
+if ($todate -eq "") { $todate = $reqdate}
+
+if ($reqdate -eq "" ) {
     python -c "from reports.findBestMp4s import getBestNSingles;getBestNSingles(numtoget=30,outdir='$outdir')"
 }else{
-    $reqdate = $args[0]
-    python -c "from reports.findBestMp4s import getBestNSingles;getBestNSingles(numtoget=30,outdir='$outdir', reqdate='$reqdate')"
+    python -c "from reports.findBestMp4s import getBestNSingles;getBestNSingles(numtoget=50,outdir='$outdir', reqdate='$reqdate', todate='$todate')"
 }
 
 $outdirw = $outdir.replace('/','\')
