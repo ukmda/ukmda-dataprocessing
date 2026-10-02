@@ -1,18 +1,20 @@
 # README for Tests 
 
-## APIs
+## SCRIPTS
+Various scripts that can be used to test, compare and validate runs of WMPL and other tools. 
+
+## APIS
 These two scripts are used to test the APIs. They're triggered from a GitHub action `.github/workflows/automated-testing.yml` whenever code is checked in. 
 
-## TESTING container
-This container is used to test the other python code in this repository. Its also triggered from a GitHub action in `.github/workflows/automated-testing.yml` and is launched automatically when code is checked in. 
+## CONTAINER
+This container is used to test `ukmon_pylib`. Its triggered from a GitHub action in `.github/workflows/automated-testing.yml` and is launched automatically when code is checked in. 
 
-The container includes copies of RMS, WMPL, MeteorTools and the other python libraries required to run the tests. If any changes are made to RMS, WMPL or the requirements then the container must be rebuilt with 
+The container includes copies of RMS, WMPL and the other python libraries required to run the tests. If any changes are made to RMS, WMPL or the requirements then the container must be rebuilt with 
 ```bash
 docker build -t ukmdatester .
 docker tag ukmdatester:latest markmac99/ukmdatester:latest
 docker push markmac99/ukmdatester:latest
 ```
-(TODO: move this container to the GH ukmda-dataprocessing registry)
 
 ### Using the container
 The GitHub action is launched automatically when you check code into the dev branch. If you'd like to run it on your own branch, then please contact me so i can configure access.
