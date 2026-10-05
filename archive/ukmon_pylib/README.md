@@ -20,8 +20,11 @@ Code used to generate shower, station, status, and other reports, as well as to 
 ## Share 
 Some shared files, mainly maps 
 
+## Testing
+Scripts useful in testing.
+
 ## Tests
-Testing scripts.
+Actual pytest test cases. 
 
 ## Traj
 Code used by the trajectory solver, and by other processes that need to manage WMPL trajectory objects. 
