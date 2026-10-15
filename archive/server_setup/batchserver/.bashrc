@@ -68,4 +68,5 @@ case "$TERM" in
 esac
 export rundate=$(date +%Y%m%d)
 conda activate wmpl
-
+export yr=$(date +%Y)
+export ym=$(date +%Y%m)
