@@ -21,6 +21,7 @@ def deleteDuplicate(trajname, jd=None):
     else:
         print("can only be done for 2022 onwards")
         return 0
+    print(f'looking for {trajname} in {fname}')
     seldf = df[df.orbname==trajname]
     idx = seldf.index
     if jd:
@@ -55,5 +56,6 @@ def deleteWebPage(trajname):
     delete_keys = {'Objects': []}
     delete_keys['Objects'] = [{'Key': k} for k in [obj['Key'] for obj in objects_to_delete.get('Contents', [])]]
     #print(delete_keys)
-    s3.meta.client.delete_objects(Bucket=webbucket, Delete=delete_keys)
+    if len(delete_keys['Objects']) > 0:
+        s3.meta.client.delete_objects(Bucket=webbucket, Delete=delete_keys)
     return
