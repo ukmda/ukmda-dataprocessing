@@ -76,3 +76,45 @@ else
     cd ..
     rm -rf tmp 
 fi 
+
+logger -s -t $(basename $0 .sh) "archiving trajectory candidates older than 30 days"
+BKPBUCKET="s3://ukmda-admin/backups/candidates"
+cd $DATADIR/distrib/candidates
+mkdir tmp
+cd tmp
+arcperiod=30
+arcdate=$( date --date "${arcperiod} days ago" +%Y%m)
+find .. -maxdepth 1 -type f -name "*.tgz" -mtime +${arcperiod} -exec mv {} . \;
+tar -cvzf candidates-${arcdate}.tar.gz *.tgz
+if [ $? -eq 0 ] ; then 
+    aws s3 cp candidates-${arcdate}.tar.gz ${BKPBUCKET}/candidates-${arcdate}.tar.gz
+    logger -s -t $(basename $0 .sh) "purging older raw data which is now backed up"
+    cd ..
+    rm -rf tmp 
+    find $DATADIR/distrib/candidates -maxdepth 1 -type f -name "*.tgz" -mtime +${arcperiod} -exec rm -f {} \;
+else
+    logger -s -t $(basename $0 .sh) "problem creating tarball, not purging older files"
+    cd ..
+    rm -rf tmp 
+fi 
+
+logger -s -t $(basename $0 .sh) "archiving database backups older than 30 days"
+BKPBUCKET="s3://ukmda-admin/backups/databases"
+cd $DATADIR/trajdb
+mkdir tmp
+cd tmp
+arcperiod=30
+arcdate=$( date --date "${arcperiod} days ago" +%Y%m)
+find .. -maxdepth 1 -type f -name "*.tgz" -mtime +${arcperiod} -exec mv {} . \;
+tar -cvzf databases-${arcdate}.tar.gz *.tgz
+if [ $? -eq 0 ] ; then 
+    aws s3 cp databases-${arcdate}.tar.gz ${BKPBUCKET}/databases-${arcdate}.tar.gz
+    logger -s -t $(basename $0 .sh) "purging older raw data which is now backed up"
+    cd ..
+    rm -rf tmp 
+    find $DATADIR/trajdb -maxdepth 1 -type f -name "*.tgz" -mtime +${arcperiod} -exec rm -f {} \;
+else
+    logger -s -t $(basename $0 .sh) "problem creating tarball, not purging older files"
+    cd ..
+    rm -rf tmp 
+fi 
