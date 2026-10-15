@@ -20,7 +20,6 @@ else
 fi 
 if [ $? == 0 ] ; then 
     $SRC/website/createOrbitIndex.sh $ymd
-
     # update the daily report files
     repfiles=$(grep $traj $DATADIR/dailyreports/*.txt| awk -F: '{ print $1 }')
     for repfile in $repfiles ; do

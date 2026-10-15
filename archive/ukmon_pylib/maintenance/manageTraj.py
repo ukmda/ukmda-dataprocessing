@@ -23,18 +23,19 @@ def deleteDuplicate(trajname, jd=None):
         return 0
     print(f'looking for {trajname} in {fname}')
     seldf = df[df.orbname==trajname]
-    idx = seldf.index
-    if jd:
-        idx = seldf[seldf._mjd == jd].index
-    if len(idx) == 1:
-        df = df.drop(index=idx)
-        df.to_parquet(fname, compression='snappy')
+    if len(seldf) == 1:
+        if not jd:
+            savedf = df[df.orbname != trajname]
+        else:
+            savedf = df.query(f'not (orbname={trajname} and _mjd={jd})')
+        print(f'{len(savedf)} records remaining')
+        savedf.to_parquet(fname, compression='snappy')
         csvfname = os.path.join(datadir, 'matched','matches-full-{}.csv'.format(yr))
-        df.to_csv(csvfname, index=False)
+        savedf.to_csv(csvfname, index=False)
         if jd is None:
             deleteWebPage(trajname)
         return 0
-    elif len(idx) > 1:
+    elif len(seldf) > 1:
         print(f'two or more matches to {trajname}, please select MJD')
         for _,rw in seldf.iterrows():
             print(f'{rw._mjd}, {rw.orbname}, {rw._amag}, {rw._stream}')
