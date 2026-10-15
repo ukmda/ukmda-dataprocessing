@@ -31,10 +31,10 @@ if [ $? -eq 0 ] ; then
     cd ..
     rm -rf tmp 
     logger -s -t $(basename $0 .sh) "purging older raw data"
-    echo find ${DATADIR}/orbits/${yr}/fullcsv/processed -mtime +180 -exec rm -f {} \;
+    find ${DATADIR}/orbits/${yr}/fullcsv/processed -mtime +180 -exec rm -f {} \;
     # and last year, because the data is split across dated folders
     lyr=$(date -d 'last year' +%Y)
-    echo find ${DATADIR}/orbits/${lyr}/fullcsv/processed -mtime +180 -exec rm -f {} \;
+    find ${DATADIR}/orbits/${lyr}/fullcsv/processed -mtime +180 -exec rm -f {} \;
 else
     logger -s -t $(basename $0 .sh) "problem creating tarball, not purging older files"
     cd ..
@@ -52,7 +52,25 @@ if [ $? -eq 0 ] ; then
     logger -s -t $(basename $0 .sh) "purging older raw data which is now backed up"
     cd ..
     rm -rf tmp 
-    echo find ${DATADIR}/single/rawcsvs -mtime +180 -exec rm -f {} \;
+    find ${DATADIR}/single/rawcsvs -mtime +180 -exec rm -f {} \;
+else
+    logger -s -t $(basename $0 .sh) "problem creating tarball, not purging older files"
+    cd ..
+    rm -rf tmp 
+fi 
+
+logger -s -t $(basename $0 .sh) "archiving raw ukmda format CSVs"
+cd $DATADIR/single/new/processed
+mkdir tmp
+cd tmp
+find .. -mtime +180 -exec cp {} . \;
+tar -cvzf ukmda_csvs-${arcdate}.tar.gz *.csv
+if [ $? -eq 0 ] ; then 
+    aws s3 cp ukmda_csvs-${arcdate}.tar.gz ${BKPBUCKET}/ukmda_csvs-${arcdate}.tar.gz
+    logger -s -t $(basename $0 .sh) "purging older raw data which is now backed up"
+    cd ..
+    rm -rf tmp 
+    find $DATADIR/single/new/processed -mtime +180 -exec rm -f {} \;
 else
     logger -s -t $(basename $0 .sh) "problem creating tarball, not purging older files"
     cd ..
