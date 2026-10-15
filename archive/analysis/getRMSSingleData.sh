@@ -60,7 +60,6 @@ logger -s -t $(basename $0 .sh) "copy to S3 bucket"
 aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/single/ --exclude "*" --include "*.csv" --exclude "new/*" --exclude "rawcsvs/*" --exclude "used/*" --quiet
 aws s3 sync $SRC/data/single/ $UKMONSHAREDBUCKET/matches/singlepq/ --exclude "*" --include "*.parquet.snap" --exclude "*new.parquet.snap" --quiet
 
-logger -s -t getRMSSingleData "purge processed data"
-find $outdir/processed -mtime +180 -exec rm -f {} \;
+# no need to purge here as its done in the backup job
 
 logger -s -t $(basename $0 .sh) "finished"

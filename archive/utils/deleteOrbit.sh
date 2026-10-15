@@ -12,7 +12,7 @@ fi
 
 traj=$1
 ymd=${traj:0:8}
-
+yr=${traj:0:4}
 if [ "$2" == "" ]; then 
     python -c "from maintenance.manageTraj import deleteDuplicate as dd; dd('$traj'); "
 else
@@ -20,7 +20,6 @@ else
 fi 
 if [ $? == 0 ] ; then 
     $SRC/website/createOrbitIndex.sh $ymd
-
     # update the daily report files
     repfiles=$(grep $traj $DATADIR/dailyreports/*.txt| awk -F: '{ print $1 }')
     for repfile in $repfiles ; do
@@ -28,4 +27,5 @@ if [ $? == 0 ] ; then
         cat $repfile  | grep -v $traj > /tmp/newrep.txt
         mv -f /tmp/newrep.txt $repfile
     done 
+    ${SRC}/website/createFireballPage.sh ${yr} -3.99
 fi
