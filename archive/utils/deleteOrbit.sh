@@ -12,7 +12,7 @@ fi
 
 traj=$1
 ymd=${traj:0:8}
-
+yr=${traj:0:4}
 if [ "$2" == "" ]; then 
     python -c "from maintenance.manageTraj import deleteDuplicate as dd; dd('$traj'); "
 else
@@ -27,4 +27,5 @@ if [ $? == 0 ] ; then
         cat $repfile  | grep -v $traj > /tmp/newrep.txt
         mv -f /tmp/newrep.txt $repfile
     done 
+    ${SRC}/website/createFireballPage.sh ${yr} -3.99
 fi
