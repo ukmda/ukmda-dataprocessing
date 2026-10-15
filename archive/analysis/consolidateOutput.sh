@@ -63,9 +63,7 @@ do
     fi
 done
 
-logger -s -t $(basename $0 .sh) "purging older raw data which is on S3 anyway"
-find ${DATADIR}/single/rawcsvs -mtime +180 -exec rm -f {} \;
-
+# cleardown is done in the backup scheduled job
 
 logger -s -t $(basename $0 .sh) "pushing consolidated information back"
 aws s3 sync ${DATADIR}/consolidated ${UKMONSHAREDBUCKET}/consolidated/  --exclude 'UKMON*' --quiet 
@@ -97,11 +95,7 @@ cat ${DATADIR}/orbits/$yr/fullcsv/$yr*.csv >> ${DATADIR}/matched/matches-full-$y
 cat ${DATADIR}/orbits/$yr/fullcsv/$yr*.csv >> ${DATADIR}/searchidx/matches-full-$yr-new.csv
 mv ${DATADIR}/orbits/$yr/fullcsv/$yr*.csv ${DATADIR}/orbits/${yr}/fullcsv/processed
 
-logger -s -t $(basename $0 .sh) "purging older raw data"
-find ${DATADIR}/orbits/${yr}/fullcsv/processed -mtime +370 -exec rm -f {} \;
-# and last year, because the data is split across dated folders
-lyr=$(date -d 'last year' +%Y)
-find ${DATADIR}/orbits/${lyr}/fullcsv/processed -mtime +370 -exec rm -f {} \;
+# cleardown is done in the backup job
 
 python << EOD3
 import pandas as pd 
