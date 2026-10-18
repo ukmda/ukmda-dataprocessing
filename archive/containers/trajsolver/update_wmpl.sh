@@ -7,7 +7,7 @@ else
     targ=$1
 fi
 
-cd /mnt/e/dev/meteorhunting/ukmda-dataprocessing/archive/containers/$targ/
+cd /mnt/c/dev/meteorhunting/ukmda-dataprocessing/archive/containers/$targ/
 ssh ukmbatch "cd ~/src/wmpldev && git stash && git checkout distrib_processing && git pull"
 rsync -avz ukmbatch:src/wmpldev/* ./WesternMeteorPyLib/ --exclude "build/" --exclude "*.egg*" --exclude "dist/" --exclude ".git/" --exclude "__pycache__/"
 ssh ukmbatch "cd ~/src/wmpldev && git checkout - && git stash apply"
