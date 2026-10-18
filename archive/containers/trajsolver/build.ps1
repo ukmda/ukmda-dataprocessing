@@ -15,7 +15,20 @@ $repo = "calcengine/${imagename}"
 write-output "building $imagename in $accid"
 
 $yn=read-host -prompt "update WMPL?"
-if ($yn.tolower() -eq "y") { bash -c "./update_wmpl.sh $env" }
+if ($yn.tolower() -eq "y")
+{
+    ssh ukmbatch "cd ~/src/wmpldev && git stash && git checkout distrib_processing && git pull"
+    bash -c 'rsync -avz ukmbatch:src/wmpldev/* ./WesternMeteorPyLib/ --exclude "build/" --exclude "*.egg*" --exclude "dist/" --exclude ".git/" --exclude "__pycache__/"'
+    pushd WesternMeteorPyLib
+    Remove-Item -Recurse wmpl/MetSim
+    Remove-Item -Recurse wmpl/CAMO
+    Remove-Item wmpl/Utils/DynamicMassFit.py
+    python ./UpdateOrbitFiles.py
+    echo "getting DE430 Planetary Ephemerides Kernel"
+    curl "https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de430.bsp" -o wmpl/share/de430.bsp
+    python -c "from wmpl.Utils.ShowerAssociation import loadGMNShowerTable"
+    popd
+}
 
 if ($env -eq "test") { move-item awskeys.test awskeys}
 
