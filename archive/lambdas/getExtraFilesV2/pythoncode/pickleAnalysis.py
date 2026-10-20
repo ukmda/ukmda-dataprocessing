@@ -20,6 +20,12 @@ from wmpl.Utils.Physics import calcMass
 from wmpl.Utils.ShowerAssociation import associateShower
 from wmpl.Utils.Earth import greatCircleDistance
 from wmpl.Config import config
+try:
+    from wmpl.Utils.OrbitClassification import classifyBorovicka
+    gotBoro = True
+except ImportError:
+    print('Borovicka classification not available')
+    gotBoro = False
 
 
 def sollon2jd(Year, Month, Long):
@@ -510,6 +516,9 @@ def createAdditionalOutput(traj, outdir):
                     f.write('shower ID {:d} {:s} '.format(id, cod))
                     f.write('<a href={:s}>({:s})</a>\n'.format(iau_link, shwrname))
 
+                if gotBoro:
+                    meteorclass = classifyBorovicka(orb.q, orb.e, orb.i, (True if id != -1 else False))
+                    f.write('Classification {:s} \n'.format(meteorclass))
                 if orb.L_g is not None:
                     f.write('Lg {:.2f}&deg; Bg {:.2f}&deg; Vg {:.2f}km/s\n'.format(lg, bg, vg / 1000))
 

@@ -290,29 +290,32 @@ def pushFilesBack(outdir, archbucket, websitebucket, fldr, s3, istest=False):
         
 
     for f in flist:
-        print(f)
         locfname = os.path.join(outdir, f)
         extraargs = getExtraArgs(locfname)
         # some files need to be pushed to the website, some to the archive bucket
         if '3dtrack' in f or '2dtrack' in f:
+            print(f)
             key = os.path.join(webpth, f)
             s3.meta.client.upload_file(locfname, websitebucket, key, ExtraArgs=extraargs)
         elif '.lst' in f:
+            print(f)
             if istest:
                 key = os.path.join(f'matches/distrib/test/trajectories/{yr}/{ym}/{ymd}/{pth}', f)
             else:
                 key = os.path.join(f'matches/RMSCorrelate/trajectories/{yr}/{ym}/{ymd}/{pth}', f)
             s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
         elif 'summary' in f:
+            print(f)
             key = os.path.join(fldr, f)
             s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
         elif 'orbit_full.csv' in f:
+            print(f)
             if istest:
                 key = os.path.join(f'matches/distrib/test/{yr}/fullcsv', f)
             else:
                 key = os.path.join(f'matches/{yr}/fullcsv', f)
             s3.meta.client.upload_file(locfname, archbucket, key, ExtraArgs=extraargs)
-
+        # other files are ignored
     return 
 
 
@@ -341,46 +344,6 @@ def getExtraArgs(fname):
     extraargs = {'ContentType': ctyp}
     return extraargs
 
-
-if __name__ == '__main__':
-    if len(sys.argv)>1:
-        key = sys.argv[1]
-    else:
-        key = 'matches/RMSCorrelate/trajectories/2022/202202/20220211/20220211_233015.510_UK/20220211_233015_trajectory.pickle'
-
-    # NB: IN THE CONSOLE, ADD TRUST RELATIONSHIP 
-    # "AWS": "arn:aws:iam::317976261112:root"
-    # on the target role. 
-
-    # create an STS client object that represents a live connection to the 
-    # STS service
-    sts_client = boto3.client('sts')
-    
-    # Call the assume_role method of the STSConnection object and pass the role
-    # ARN and a role session name.
-    assumed_role_object=sts_client.assume_role(
-        RoleArn="arn:aws:iam::183798037734:role/service-role/S3FullAccess",
-        RoleSessionName="GetExtraFilesV2")
-    
-    # From the response that contains the assumed role, get the temporary 
-    # credentials that can be used to make subsequent API calls
-    credentials=assumed_role_object['Credentials']
-    
-    # Use the temporary credentials that AssumeRole returns to connections
-    s3 = boto3.resource('s3',
-        aws_access_key_id=credentials['AccessKeyId'],
-        aws_secret_access_key=credentials['SecretAccessKey'],
-        aws_session_token=credentials['SessionToken'])
-    ddb = boto3.resource('dynamodb', region_name='eu-west-2',
-        aws_access_key_id=credentials['AccessKeyId'],
-        aws_secret_access_key=credentials['SecretAccessKey'],
-        aws_session_token=credentials['SessionToken']) #, endpoint_url="http://thelinux:8000")
-
-    archbucket = os.getenv('SHAREDBUCKET', default='ukmda-shared')
-    websitebucket = os.getenv('WEBSITEBUCKET', default='ukmda-website')
-
-    generateExtraFiles(key, archbucket, websitebucket, ddb, s3)
-    
 
 def lambda_handler(event, context):
     s3 = boto3.resource('s3')
