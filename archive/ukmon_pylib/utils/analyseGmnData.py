@@ -4,8 +4,97 @@ import pandas as pd
 import os
 import sys
 import datetime
+import glob
 
-from converters.gmnTxtToPandas import dirpath
+from converters.gmnTxtToPandas import loadOneFile
+
+def compareTwoFiles(file1, file2):
+    df1 = loadOneFile(file1)
+    df2 = loadOneFile(file2)
+
+    df1['dupe']=df1.duplicated(subset=['id'])
+    print(f'file 1 contains {len(df1[df1.dupe==True].id.unique())} duplicates')
+    dupe1 = df1[df1.dupe==True] # noqa: E712
+    df1.drop(columns=['dupe'])
+
+    df2['dupe']=df2.duplicated(subset=['id'])
+    print(f'file 2 contains {len(df2[df2.dupe==True].id.unique())} duplicates')
+    dupe2 = df2[df2.dupe==True] # noqa: E712
+    df2.drop(columns=['dupe'])
+
+    mrg = df1.merge(df2.drop_duplicates(), on=['id'], how='left', indicator=True)
+    old_not_new = mrg[mrg._merge!='both']
+    print(f'there are {len(old_not_new)} rows in the first file not in the second')
+
+    mrg = df2.merge(df1.drop_duplicates(), on=['id'], how='left', indicator=True)
+    new_not_old = mrg[mrg._merge!='both']
+    print(f'there are {len(new_not_old)} rows in the second file not in the first')
+
+    print(old_not_new)
+    old_not_new.to_csv('./old_not_new.csv')
+    new_not_old.to_csv('./old_not_new.csv')
+    return df1,df2, old_not_new, new_not_old, dupe1, dupe2
+
+
+def aggregateOneMonth(dirpath, yr, mth):
+    startdt = datetime.datetime(yr, mth, 1) - datetime.timedelta(days=1)
+    syr = startdt.year
+    smth = startdt.month
+    sday = startdt.day
+    datafiles = glob.glob(os.path.join(dirpath, 'daily', f'traj_summary_{syr:04d}{smth:02d}{sday:02d}*.txt'))
+    prevfile = datafiles[0]
+    datafiles = [prevfile] + glob.glob(os.path.join(dirpath, 'daily', f'traj_summary_{yr:04d}{mth:02d}*.txt'))
+    mthlydata = None
+    for datfile in datafiles:
+        newdata = loadOneFile(datfile)
+        if mthlydata is None:
+            mthlydata = newdata
+        else:
+            mthlydata = pd.concat([mthlydata, newdata], sort=True)
+    mthlydata = mthlydata[mthlydata.utc_beg >= datetime.datetime(yr,mth,1,0,0,0)]
+    return mthlydata
+
+
+def doYear(dirpath, yr):
+    datafiles = glob.glob(os.path.join(dirpath, 'monthly', f'traj_summary_monthly_{yr}*.txt'))
+    for datfile in datafiles:
+        print(f'processing {datfile}')
+        newdata = loadOneFile(datfile)
+        fn, _ = os.path.splitext(datfile)
+        ym = fn[-6:]
+        newdata.to_parquet(os.path.join(dirpath, 'parquet', 'monthly', f'gmn_{ym}.parquet.snap'), index=False)
+
+    datafiles = glob.glob(os.path.join(dirpath, f'traj_summary_yearly_{yr}.txt'))
+    for datfile in datafiles:
+        print(f'processing {datfile}')
+        newdata = loadOneFile(datfile)
+        newdata.to_parquet(os.path.join(dirpath, 'parquet', f'gmn_{yr}.parquet.snap'), index=False)
+    return
+
+
+def getStats(dirpath):
+    for yr in range(2022,2025):
+        df = pd.read_parquet(os.path.join(dirpath, f'gmn_{yr}01.parquet.snap'))
+        for mth in range(2,13):
+            try: 
+                df2 = pd.read_parquet(f'gmn_{yr}{mth:02d}.parquet.snap')
+                df = pd.concat(df, df2)
+            except:
+                pass
+#        df = df[df.Amag < -3.99]
+        print(f'{yr}, {len(df)}, {df.Lat1.mean():.1f}, {df.Lat1.max():.1f}, {df.Lat1.min():.1f}, {df.Lat1.std():.1f}')
+    print('-----')
+    for yr in range(2022,2025):
+        df = pd.read_parquet(f'gmn_{yr}01.parquet.snap')
+        for mth in range(2,13):
+            try: 
+                df2 = pd.read_parquet(f'gmn_{yr}{mth:02d}.parquet.snap')
+                df = pd.concat(df, df2)
+            except:
+                pass
+        df = df[df.Amag < -3.99]
+        print(f'{yr}, {len(df)}, {df.Lat1.mean():.1f}, {df.Lat1.max():.1f}, {df.Lat1.min():.1f}, {df.Lat1.std():.1f}')
+
 
 
 def analyseAMonth(fulldf, yr, mth):
@@ -35,7 +124,7 @@ def analyseAMonth(fulldf, yr, mth):
     return len(distinctuk), len(distinctother), num_uk_traj, tot_num, len(otherctrydf)
 
 
-def findDuplicatesById(yr, mth=None):
+def findDuplicatesById(dirpath, yr, mth=None):
     if mth:
         datafile = os.path.join(dirpath, 'parquet', 'monthly', f'gmn_{yr:04d}{mth:02d}.parquet.snap')
     else:

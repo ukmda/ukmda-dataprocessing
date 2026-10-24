@@ -3,9 +3,7 @@
 import pandas as pd
 import numpy as np
 import os
-import glob
-import sys
-import datetime
+import argparse
 
 
 colhdrs = ['id','jd_beg','utc_beg','iau_no','iau_code','sollon','lst',
@@ -16,9 +14,6 @@ colhdrs = ['id','jd_beg','utc_beg','iau_no','iau_code','sollon','lst',
            'Azim','Azimsd','Elev','Elevsd','Vinit','Vinitsd','Vavg','Vavgsd',
            'Lat1','Lat1sd','Lon1','Lon1sd','H1','H1sd','Lat2','Lat2sd','Lon2','Lon2sd','H2','H2sd',
            'Dur','Amag','PkHt','F1','mass','Qc','MedianFitErr','BegIn','EndIn','NumStat','stats']
-
-datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
-dirpath = os.path.join(datadir, 'gmndata')
 
 
 def loadOneFile(fname):
@@ -49,99 +44,36 @@ def loadOneFile(fname):
     return df
 
 
-def compareTwoFiles(file1, file2):
-    df1 = loadOneFile(file1)
-    df2 = loadOneFile(file2)
-
-    df1['dupe']=df1.duplicated(subset=['id'])
-    print(f'file 1 contains {len(df1[df1.dupe==True].id.unique())} duplicates')
-    dupe1 = df1[df1.dupe==True] # noqa: E712
-    df1.drop(columns=['dupe'])
-
-    df2['dupe']=df2.duplicated(subset=['id'])
-    print(f'file 2 contains {len(df2[df2.dupe==True].id.unique())} duplicates')
-    dupe2 = df2[df2.dupe==True] # noqa: E712
-    df2.drop(columns=['dupe'])
-
-    mrg = df1.merge(df2.drop_duplicates(), on=['id'], how='left', indicator=True)
-    old_not_new = mrg[mrg._merge!='both']
-    print(f'there are {len(old_not_new)} rows in the first file not in the second')
-
-    mrg = df2.merge(df1.drop_duplicates(), on=['id'], how='left', indicator=True)
-    new_not_old = mrg[mrg._merge!='both']
-    print(f'there are {len(new_not_old)} rows in the second file not in the first')
-
-    print(old_not_new)
-    old_not_new.to_csv('./old_not_new.csv')
-    new_not_old.to_csv('./old_not_new.csv')
-    return df1,df2, old_not_new, new_not_old, dupe1, dupe2
-
-
-def aggregateOneMonth(yr, mth):
-    startdt = datetime.datetime(yr, mth, 1) - datetime.timedelta(days=1)
-    syr = startdt.year
-    smth = startdt.month
-    sday = startdt.day
-    datafiles = glob.glob(os.path.join(dirpath, 'daily', f'traj_summary_{syr:04d}{smth:02d}{sday:02d}*.txt'))
-    prevfile = datafiles[0]
-    datafiles = [prevfile] + glob.glob(os.path.join(dirpath, 'daily', f'traj_summary_{yr:04d}{mth:02d}*.txt'))
-    mthlydata = None
-    for datfile in datafiles:
-        newdata = loadOneFile(datfile)
-        if mthlydata is None:
-            mthlydata = newdata
-        else:
-            mthlydata = pd.concat([mthlydata, newdata], sort=True)
-    mthlydata = mthlydata[mthlydata.utc_beg >= datetime.datetime(yr,mth,1,0,0,0)]
-    return mthlydata
-
-
-def doYear(yr):
-    datafiles = glob.glob(os.path.join(dirpath, 'monthly', f'traj_summary_monthly_{yr}*.txt'))
-    for datfile in datafiles:
-        print(f'processing {datfile}')
-        newdata = loadOneFile(datfile)
-        fn, _ = os.path.splitext(datfile)
-        ym = fn[-6:]
-        newdata.to_parquet(os.path.join(dirpath, 'parquet', 'monthly', f'gmn_{ym}.parquet.snap'), index=False)
-
-    datafiles = glob.glob(os.path.join(dirpath, f'traj_summary_yearly_{yr}.txt'))
-    for datfile in datafiles:
-        print(f'processing {datfile}')
-        newdata = loadOneFile(datfile)
-        newdata.to_parquet(os.path.join(dirpath, 'parquet', f'gmn_{yr}.parquet.snap'), index=False)
-    return
-
-
-def getStats():
-    for yr in range(2022,2025):
-        df = pd.read_parquet(f'gmn_{yr}01.parquet.snap')
-        for mth in range(2,13):
-            try: 
-                df2 = pd.read_parquet(f'gmn_{yr}{mth:02d}.parquet.snap')
-                df = pd.concat(df, df2)
-            except:
-                pass
-#        df = df[df.Amag < -3.99]
-        print(f'{yr}, {len(df)}, {df.Lat1.mean():.1f}, {df.Lat1.max():.1f}, {df.Lat1.min():.1f}, {df.Lat1.std():.1f}')
-    print('-----')
-    for yr in range(2022,2025):
-        df = pd.read_parquet(f'gmn_{yr}01.parquet.snap')
-        for mth in range(2,13):
-            try: 
-                df2 = pd.read_parquet(f'gmn_{yr}{mth:02d}.parquet.snap')
-                df = pd.concat(df, df2)
-            except:
-                pass
-        df = df[df.Amag < -3.99]
-        print(f'{yr}, {len(df)}, {df.Lat1.mean():.1f}, {df.Lat1.max():.1f}, {df.Lat1.min():.1f}, {df.Lat1.std():.1f}')
-
-
 if __name__ == '__main__':
-    if sys.argv[1] == 'doYear':
-        doYear(sys.argv[2])
-    if sys.argv[1] == 'convert':
-        df = loadOneFile(sys.argv[2])
-        fn, _ = os.path.splitext(sys.argv[2])
-        df.to_parquet(f'{fn}.parquet.snap', index=False)
+    arg_parser = argparse.ArgumentParser(description='Convert a WMPL trajectory_summary.txt file into a Pandas parquet file')
+    arg_parser.add_argument('reportname', metavar='REPORTNAME', type=str, help='source file to read in')
+    arg_parser.add_argument('-o', '--outdir', metavar='OUTDIR', type=str, 
+                            help='Where to save the output. Default is the folder containing the source file.')
+    arg_parser.add_argument('-r', '--outname', metavar='OUTNAME', type=str, 
+                            help='Name to use for the output file. Default is based on the date range of the data.')
+    
+    cml_args = arg_parser.parse_args()
+    print(f' reading from {cml_args.reportname}')
+    df = loadOneFile(cml_args.reportname)
 
+    if len(df) == 0:
+        print(f'{cml_args.reportname} contained no data')
+    else:
+        outdir = cml_args.outdir
+        if not outdir:
+            outdir = os.path.split(cml_args.outname)[0]
+
+        if cml_args.outname:
+            # use the provided report name
+            repname = f'{cml_args.outname}.parquet.snap'
+        else:
+            # construct a name from the earliest and latest dates in the file
+            sdt = df.iloc[0].utc_beg.strftime('%Y%m')
+            edt = df.iloc[0].utc_beg.strftime('%Y%m')
+            if sdt == edt:
+                repname = f'{sdt}.parquet.snap'
+            else:
+                repname = f'{sdt}-{edt}.parquet.snap'
+        repname = os.path.join(outdir, repname)
+        df.to_parquet(repname, index=False)
+        print(f'saved to {repname}')
