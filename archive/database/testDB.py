@@ -1,6 +1,7 @@
 import pymysql.cursors  
 import sys
 import os
+import argparse
 
 
 def testDB(id):
@@ -27,4 +28,9 @@ def testDB(id):
 
 
 if __name__ == '__main__':
-    testDB(sys.argv[1])
+    arg_parser = argparse.ArgumentParser(description='Test the database')
+    arg_parser.add_argument('action', metavar='ACTION', type=str, help='test string.')
+
+    cml_args = arg_parser.parse_args()
+    
+    testDB(cml_args.action)
