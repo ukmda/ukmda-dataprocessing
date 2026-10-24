@@ -29,13 +29,14 @@ fi
 yr=${ym:0:4}
 
 if [ "$2" != "" ] ; then
-    loc=$2
-    logger -s -t $(basename $0 .sh) "running station reports for $ym for $loc"
+    logger -s -t $(basename $0 .sh) "running station reports for $ym for $2"
+    python -m analysis.stationAnalysis $ym -s $2
+    python -m analysis.stationAnalysis $yr -s $2
 else
     logger -s -t $(basename $0 .sh) "running station reports for $ym for all stations"
+    python -m analysis.stationAnalysis $ym
+    python -m analysis.stationAnalysis $yr
 fi
-python -m analysis.stationAnalysis $ym $loc
-python -m analysis.stationAnalysis $yr $loc
 
 aws s3 sync $DATADIR/reports/$yr/stations/  $WEBSITEBUCKET/reports/$yr/stations/ --quiet
 

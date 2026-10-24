@@ -10,6 +10,8 @@ from matplotlib import pyplot as plt
 import shutil
 import datetime
 import boto3
+import argparse
+
 from reports.CameraDetails import loadLocationDetails
 
 SMALL_SIZE = 8
@@ -275,37 +277,38 @@ def pushToWebsite(fuloutdir, outdir, websitebucket):
 
 
 if __name__ == '__main__':
+    arg_parser = argparse.ArgumentParser(description='Create a station report')
+    arg_parser.add_argument('period', metavar='PERIOD', type=str, help='Period to report for eg 2017, 201710.')
+    arg_parser.add_argument('-s', '--site', metavar='SITE', type=str, help='location to report for.')
+   
+    cml_args = arg_parser.parse_args()
 
-    if len(sys.argv) < 1:
-        print('usage: python stationAnalysis.py 201710 {site}')
-        exit(0)
-        
-    ym=sys.argv[1]
+    site = cml_args.site
 
     mth = None
-    if len(ym) > 4:
-        mth = int(ym[4:6])
+    if len(cml_args.period) > 4:
+        mth = int(cml_args.period[4:6])
+        yr = int(cml_args.period[:4])
+    else:
+        yr = int(cml_args.period)
 
-    # set up paths, files etc
-    yr = int(ym[:4])
+    camlist = loadLocationDetails()
+    if not cml_args.site or cml_args.site=='ALL':
+        locs = list(camlist[camlist.active==1].site.drop_duplicates().sort_values())
+    else:
+        locs = [cml_args.site]
 
-    print(f'processing for period {ym}')
+    print(f'processing for period {cml_args.period}, location {locs}')
         
     matchcols = ['_Y_ut','_M_ut','_mag','_mjd','mjd','_stream','orbname','stations']
     snglcols = ['ID','Shwr','Dtstamp','Ver', 'M', 'Y']
     datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
-    camlist = loadLocationDetails()
    
     sngl = pd.read_parquet(os.path.join(datadir, 'single', f'singles-{yr}.parquet.snap'), columns=snglcols)
     mful = pd.read_parquet(os.path.join(datadir, 'matched', f'matches-full-{yr}.parquet.snap'), columns=matchcols)
 
     sngl = sngl[sngl['Y']==int(yr)] # just in case there's some pollution in the database
     mful = mful[mful['_Y_ut']==int(yr)] 
-
-    if len(sys.argv) > 2:
-        locs = [sys.argv[2]]
-    else:
-        locs = list(camlist[camlist.active==1].site.drop_duplicates().sort_values())
 
     for loc in locs: 
         camlistfltr = camlist[camlist.site == loc]
