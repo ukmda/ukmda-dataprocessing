@@ -1,0 +1,11 @@
+{"Records":[
+    {
+      "s3": {
+        "object": {
+          "key": "fireballs/videouploads/raw/qd4l5ef8gt6u1cdsnr375dr1de51dcs5a78l6r81"
+        }
+      },
+      "eventSource": "ses"
+    }
+  ]
+}

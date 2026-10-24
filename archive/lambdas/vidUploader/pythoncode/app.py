@@ -144,7 +144,8 @@ def lambda_handler(event, context):
     ############################################################
     #
     # make the zip file
-    zipname = os.path.join(os.getenv('TMP'), f'{orbname[:15]}')
+    zipname = os.path.join(tmpdir, f'{orbname[:15]}')
+    print('saving to ', zipname)
     make_archive(zipname, 'zip',root_dir=localdir, base_dir = '.')
 
     ############################################################
@@ -163,18 +164,3 @@ def lambda_handler(event, context):
         print(f'unable to remove {tmpdir}')
         
     print('done')
-
-
-if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        msg = {'messageId': sys.argv[1]}
-    else:
-        msg = {'messageId': '4k5581gt9drndeof7v46ol8jqkq9e0k8f4nqr4o1'}
-    ml = {'mail': msg}
-    ses = {'ses': ml, 'eventSource': 'aws:ses'}
-    recs = []
-    recs.append(ses)
-    recorddets = {'Records': recs}
-    print(f'processing {msg}')
-    print(f'details{recorddets}')
-    lambda_handler(recorddets, 0)

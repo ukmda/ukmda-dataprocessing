@@ -1,16 +1,19 @@
 # Installing MariaDB
 
 ## Installing and Migrating
+
 For installation and migration instructions see `migratingBatchServer.md` in the `server_setup` folder
 
 ## Connecting from Python
 
-These packages are installed as part of the ukmda tooling. 
+These packages are installed as part of the ukmda tooling.  
+
 ``` bash
 pip install mysql-connector-python  
 pip install pymysql  
 ```
-``` python 
+
+``` python
 
     import pymysql.cursors  
     connection = pymysql.connect(host='localhost',  

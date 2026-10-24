@@ -106,7 +106,3 @@ def createOrbitPageIndex(fldr, websitebucket, notes, s3):
         idxf.writelines(lis)
         print('done')
     return
-
-
-if __name__ == '__main__':
-    createOrbitPageIndex(sys.argv[1])

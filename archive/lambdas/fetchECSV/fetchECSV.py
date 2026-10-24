@@ -257,14 +257,3 @@ def lambda_handler(event, context):
             'statusCode': 200,
             'body': "usage: getecsv?stat=UKxxxx&dt=YYYY-mm-ddTHH:MM:SS.fff&metcount=n"
         }
-
-
-if __name__ == '__main__':
-    camid = sys.argv[1]
-    reqdate = sys.argv[2]
-    if len(sys.argv) > 3:
-        ecsvstr = fetchECSV(camid, reqdate, int(sys.argv[3]))
-    else:
-        ecsvstr = fetchECSV(camid, reqdate)
-    #ecsvstr = fetchECSV('UK001M', '2022-01-10T19:43:30.567111')
-    print(ecsvstr)

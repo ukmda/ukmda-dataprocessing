@@ -281,17 +281,3 @@ def loadFTPDetectInfo(ftpdetectinfo_file_name, time_offsets=None,
         meteor_list = [element for i, element in enumerate(meteor_list) if i not in merged_indices]
 
     return meteor_list
-
-
-if __name__ == '__main__':
-    if len(sys.argv) < 1:
-        print('usage: python ftpDetectInfo.py ftpfile')
-        print('note: requires .config and platepar to be in the same folder')
-        exit(0)
-        
-    ftpname = sys.argv[1]
-    metlist = loadFTPDetectInfo(sys.argv[1])
-    m1 = metlist[0]
-    print(m1.jdt_ref, m1.ff_name)
-    for f,t,r,d,a,e,x,y,m in zip(m1.frames,m1.time_data, m1.ra_data, m1.dec_data, m1.azim_data, m1.elev_data, m1.x_data, m1.y_data, m1.mag_data):
-        print(f,t,r,d,a,e,x,y,m)
