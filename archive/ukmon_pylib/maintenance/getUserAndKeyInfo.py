@@ -18,6 +18,7 @@ import requests
 import subprocess
 from reports.CameraDetails import loadLocationDetails
 from botocore.exceptions import ClientError
+import argparse
 
 MAXAGE = 90     # connections older than this are regarded stale
 
@@ -371,27 +372,24 @@ def rollKeysForUsers(nusers=3):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print('usage: getUserAndKeyInfo audit|dormant|delete|update|autoroll')
-        exit(0)
-    if sys.argv[1] == 'audit':
+    arg_parser = argparse.ArgumentParser(description='Get information about users and keys.')
+    arg_parser.add_argument('action', metavar='ACTION', type=str, help='action to perform')
+    arg_parser.add_argument('-s','--station', metavar='STATION', type=str, help='station to apply it to')
+    arg_parser.add_argument('-f','--force', metavar='FORCE', type=bool, help='force the update')
+    cml_args = arg_parser.parse_args()
+
+    if cml_args.action == 'audit':
         auditReport()
-    if sys.argv[1] == 'dormant':
+    if cml_args.action == 'dormant':
         getDormantUsers()
-    if sys.argv[1] == 'autoroll':
+    if cml_args.action == 'autoroll':
         rollKeysForUsers(nusers=5)
-    elif sys.argv[1] == 'update':
-        if len(sys.argv) < 3:
-            print('need a location code')
-            exit(1)
+    elif cml_args.action == 'update':
         force = False
-        if len(sys.argv) == 4:
+        if cml_args.force:
             force = True
-        issueNewKey(sys.argv[2], force=force)
-    elif sys.argv[1] == 'delete':
-        if len(sys.argv) < 3:
-            print('need a location code')
-            exit(1)
-        deleteDormantAwsUser(sys.argv[2])
+        issueNewKey(cml_args.station, force=force)
+    elif cml_args.action == 'delete':
+        deleteDormantAwsUser(cml_args.station)
 
     
