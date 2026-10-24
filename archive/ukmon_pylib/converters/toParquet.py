@@ -4,10 +4,15 @@
 import sys
 import pandas as pd
 import os
+import argparse
 
-df = pd.read_csv(sys.argv[1], skipinitialspace=True)
+arg_parser = argparse.ArgumentParser(description='Convert a WMPL trajectory_summary.txt file into a Pandas parquet file')
+arg_parser.add_argument('csvfile', metavar='CSVFILE', type=str, help='source file to read in')
+cml_args = arg_parser.parse_args()
 
-fn, _ = os.path.splitext(sys.argv[1])
+df = pd.read_csv(cml_args.csvfile, skipinitialspace=True)
+
+fn, _ = os.path.splitext(cml_args.csvfile)
 
 # rename columns to be unique
 df = df.rename(columns={'m':'mi'})

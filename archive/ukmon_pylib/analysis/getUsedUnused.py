@@ -12,6 +12,7 @@ import sqlite3
 import re
 import datetime
 import numpy as np
+import argparse
 
 from wmpl.Formats.CAMS import loadFTPDetectInfo
 from wmpl.Utils.TrajConversions import jd2Date, datetime2JD
@@ -392,17 +393,27 @@ def markObsPaired(dbdir, allobsdb=None, obsdb=None, obsdbdir=None):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print('usage: getUsedUnused.py action {args}')
-    else:
-        action = sys.argv[1]
-        if action.lower() == 'updateobs':
-            start = int(sys.argv[2])
-            end = int(sys.argv[3])
-            dbdir = os.path.expanduser(sys.argv[4])
-            datadir = os.path.expanduser(sys.argv[5])
+    arg_parser = argparse.ArgumentParser(description='Filter used and unused detections')
+    arg_parser.add_argument('action', metavar='ACTION', type=str, help='Action to perform (only updateobs supported currently).')
+    arg_parser.add_argument('start', metavar='START', type=str, help='Start date for the report.')
+    arg_parser.add_argument('end', metavar='END', type=str, help='End date for the report.')
+    arg_parser.add_argument('dbdir', metavar='DBDIR', type=str, help='Directory containing the sqlite databases.')
+    arg_parser.add_argument('datadir', metavar='DATADIR', type=str, help='Data directory.')
+   
+    cml_args = arg_parser.parse_args()
 
-            dt_beg = datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(days=start)
-            dt_end = datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(days=end)
-            dt_range = [dt_beg, dt_end]
-            getAllObservations(dt_range, dbdir, datadir)
+    action = cml_args.action
+    if action != 'updateobs':
+        print('action not supported')
+    else:
+        start = int(cml_args.start)
+        end = int(cml_args.end)
+        dbdir = os.path.expanduser(cml_args.dbdir)
+        datadir = os.path.expanduser(cml_args.datadir)
+
+        dt_beg = datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(days=start)
+        dt_end = datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(days=end)
+        dt_range = [dt_beg, dt_end]
+
+        print(action, dt_range, dbdir, datadir)
+        getAllObservations(dt_range, dbdir, datadir)

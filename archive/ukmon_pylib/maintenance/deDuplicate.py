@@ -4,6 +4,7 @@ import pandas as pd
 import shutil
 import sys
 import os
+import argparse
 
 
 def deduplicateUFO(fname):
@@ -27,15 +28,16 @@ def deduplicateRMS(fname):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print('usage: python deDuplicate.py UFOfiletodedupe')
+    arg_parser = argparse.ArgumentParser(description='Deduplicate source data')
+    arg_parser.add_argument('srcfile', metavar='SRCFILE', type=str, help='source file to read in')
+    cml_args = arg_parser.parse_args()
+
+    fname = cml_args.srcfile
+    if not os.path.isfile(fname):
+        print(f'{cml_args.srcfile} not found')
     else:
-        fname = sys.argv[1]
-        if not os.path.isfile(fname):
-            print(f'{sys.argv[1]} not found')
+        if fname[0] == 'M':
+            deduplicateUFO(fname)
         else:
-            if fname[0] == 'M':
-                deduplicateUFO(fname)
-            else:
-                deduplicateRMS(fname)
+            deduplicateRMS(fname)
 

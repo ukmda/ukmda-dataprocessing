@@ -9,6 +9,7 @@ import os
 import sys
 import shutil
 import datetime 
+import argparse
 
 
 def showerSummaryByPeriod(dtstr):
@@ -133,10 +134,13 @@ def createSummJS(dtstr, shwrdata, maxlines=None):
 
 
 if __name__ == '__main__':
-    dtstr = sys.argv[1]
-    maxrows = None
-    if len(sys.argv) >2:
-        maxrows = int(sys.argv[2])
+    arg_parser = argparse.ArgumentParser(description='Create Summary Analysis report')
+    arg_parser.add_argument('dtstr', metavar='DTSTR', type=str, help='Date to report for.')
+    arg_parser.add_argument('-m','--maxrows', metavar='MAXROWS', type=int, help='Max number of rows to return.')
+    cml_args = arg_parser.parse_args()
+
+    dtstr = cml_args.dtstr
+    maxrows = cml_args.maxrows
     shwrdata = showerSummaryByPeriod(dtstr)
     createSummJS(dtstr, shwrdata, maxlines=maxrows)
     createSummWebpage(dtstr)
