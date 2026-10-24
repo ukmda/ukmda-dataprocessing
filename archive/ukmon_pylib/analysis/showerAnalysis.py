@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 import datetime
+import argparse
 
 from utils.getActiveShowers import getShowerDets, getShowerStartEnd
 
@@ -601,11 +602,14 @@ def showerAnalysis(shwr, dtstr):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print('usage: python showerAnalysis.py GEM 2017')
-        exit(0)
-    yr=int(sys.argv[2])
-    shwr = sys.argv[1]
+    arg_parser = argparse.ArgumentParser(description='Create a shower analysis report')
+    arg_parser.add_argument('shower', metavar='SHOWER', type=str, help='Shower IAU code eg GEM')
+    arg_parser.add_argument('year',  metavar='YEAR', type=int, help='Year to report for.')
+   
+    cml_args = arg_parser.parse_args()
+
+    yr = int(cml_args.year)
+    shwr = cml_args.shower
     showerAnalysis(shwr, yr)
 
 # to possibly add : 
