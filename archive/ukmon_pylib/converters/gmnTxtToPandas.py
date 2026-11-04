@@ -59,10 +59,6 @@ if __name__ == '__main__':
     if len(df) == 0:
         print(f'{cml_args.reportname} contained no data')
     else:
-        outdir = cml_args.outdir
-        if not outdir:
-            outdir = os.path.split(cml_args.outname)[0]
-
         if cml_args.outname:
             # use the provided report name
             repname = f'{cml_args.outname}.parquet.snap'
@@ -74,6 +70,11 @@ if __name__ == '__main__':
                 repname = f'{sdt}.parquet.snap'
             else:
                 repname = f'{sdt}-{edt}.parquet.snap'
+
+        outdir = cml_args.outdir
+        if not outdir:
+            outdir = os.path.split(cml_args.reportname)[0]
+
         repname = os.path.join(outdir, repname)
         df.to_parquet(repname, index=False)
         print(f'saved to {repname}')
