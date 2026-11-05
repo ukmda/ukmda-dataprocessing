@@ -15,11 +15,10 @@ def makePlots(trajfldr):
     for pth, dirs, files in os.walk(trajfldr):
         for fil in files:
             if '.pickle' in fil:
-                trajname = os.path.join(pth, fil)
                 print(f'processing {fil}')
-                traj = loadPickle(trajfldr, trajname)
+                traj = loadPickle(pth, fil)
                 traj.save_results = True
-                traj.savePlots(trajfldr, trajname[:15], show_plots=False)
+                traj.savePlots(pth, fil[:15], show_plots=False)
     print('done')
 
 
