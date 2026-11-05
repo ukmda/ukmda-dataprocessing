@@ -454,17 +454,17 @@ def findWhenSolutionCalculated(trajdf, logdir='.'):
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(description='Analyse Correlator logs')
+    arg_parser.add_argument('-t', '--type', metavar='TYPE', type=str, help='What to analyse', default='solved')
     arg_parser.add_argument('dir_path', metavar='DIR_PATH', type=str, help='Folder containing the logs')
-    arg_parser.add_argument('log_date', metavar='LOG_date', type=str, help='logfile date YYYYMMDD')
+    arg_parser.add_argument('log_date', metavar='LOG_date', type=str, help='logfile name fragment')
     cml_args = arg_parser.parse_args()
 
-    print('analysing')
-    getBinRuntimes(cml_args.dir_path, cml_args.log_date)
+    print(f'analysing {cml_args.type} for {cml_args.dir_path} and {cml_args.log_date}')
 
-    #getSolverRunDurations2(logdir, logdt)
-    #logfilename = os.path.expanduser(sys.argv[1])
-    #logdir = os.path.split(logfilename)[0]
-    #ph1dir = os.path.expanduser('~/data/phase1/processed')
-    #getFTPtimes(logdir)
-    #getAllTrajStations(ph1dir, logdir)
-    #findAllSolvedEvents(logfilename, logdir)
+    if cml_args.type == 'solved':
+        res = getSolvedTrajCount(cml_args.dir_path, cml_args.log_date)
+    elif cml_args.type == 'cands':
+        res = getSavedCandidateCount(cml_args.dir_path, cml_args.log_date)
+    else:
+        res = getBinRuntimes(cml_args.dir_path, cml_args.log_date)
+    print(f'{type}: {res}')
