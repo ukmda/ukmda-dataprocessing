@@ -16,7 +16,7 @@ def getSavedCandidateCount(logdir, logname):
     for log in logs:
         lis = open(os.path.join(logdir, log), 'r').readlines()
         savelis = [x for x in lis if 'Saved' in x and 'candidates' in x]
-        savelis = [x for x in savelis if '0 candidates' not in x]
+        savelis = [x for x in savelis if ' 0 candidates' not in x]
         for li in savelis:
             numcands = li.split('Saved ')[1]
             total_cands += int(numcands.split(' ')[0])
@@ -29,7 +29,7 @@ def getSolvedTrajCount(logdir, logname):
     for log in logs:
         lis = open(os.path.join(logdir, log), 'r').readlines()
         savelis = [x for x in lis if 'SOLVED' in x and 'TRAJECTORIES' in x]
-        savelis = [x for x in savelis if '0 TRAJ' not in x]
+        savelis = [x for x in savelis if ' 0 TRAJ' not in x]
         for li in savelis:
             numcands = li.split('SOLVED ')[1]
             total_traj += int(numcands.split(' ')[0])
