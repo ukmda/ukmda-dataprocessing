@@ -467,4 +467,4 @@ if __name__ == '__main__':
         res = getSavedCandidateCount(cml_args.dir_path, cml_args.log_date)
     else:
         res = getBinRuntimes(cml_args.dir_path, cml_args.log_date)
-    print(f'{type}: {res}')
+    print(f'{cml_args.type}: {res}')
