@@ -31,7 +31,7 @@ def getSolvedTrajCount(logdir, logname):
         savelis = [x for x in lis if 'SOLVED' in x and 'TRAJECTORIES' in x]
         savelis = [x for x in savelis if '0 TRAJ' not in x]
         for li in savelis:
-            numcands = li.split('Saved ')[1]
+            numcands = li.split('SOLVED ')[1]
             total_traj += int(numcands.split(' ')[0])
     return total_traj
 
