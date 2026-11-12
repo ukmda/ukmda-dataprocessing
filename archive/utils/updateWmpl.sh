@@ -28,3 +28,10 @@ updateOrbitFiles()
 
 EOD
 popd
+
+echo "make sure you have updated the containers:"
+echo "  trajsolver"
+echo ""
+echo "And the lambdas:"
+echo "  getExtraFilesV2"
+echo "  matchpickle"

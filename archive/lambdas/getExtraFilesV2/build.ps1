@@ -15,8 +15,6 @@ if ($yn.tolower() -eq "y")
     if (test-path wmpl/MetSim) {Remove-Item -Recurse wmpl/MetSim}
     if (test-path wmpl/CAMO) {Remove-Item -Recurse wmpl/CAMO}
     if (test-path wmpl/Utils/DynamicMassFit.py) {Remove-Item wmpl/Utils/DynamicMassFit.py}
-    if (test-path wmpl/Utils/DynamicMassFit.py) {Remove-Item wmpl/Utils/DynamicMassFit.py}
-    bash -c "rsync -avz ../../../../../../wmpl_master/wmpl/Utils/Orbit* ./wmpl/Utils"
     conda activate wmpl
     python ./UpdateOrbitFiles.py
     echo "getting DE430 Planetary Ephemerides Kernel"
