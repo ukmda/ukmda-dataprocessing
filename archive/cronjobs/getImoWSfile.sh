@@ -10,6 +10,8 @@ mkdir -p $DATADIR/share >/dev/null 2>&1
 cd $DATADIR/share
 mv IMO*.xml $(date +%Y%m%d_%H%M%S).xml > /dev/null 2>&1
 /usr/bin/wget https://www.imo.net/members/imo_showers/IMO_Working_Meteor_Shower_list/IMO_Working_Meteor_Shower_List.xml --no-check-certificate
+[ ! -f IMO_Working_Meteor_Shower_List.xml ] && cp $(date +%Y%m%d_%H%M%S).xml IMO_Working_Meteor_Shower_List.xml
+touch IMO_Working_Meteor_Shower_List.xml
 find . -mtime +21 -name "*.xml" -exec rm -f {} \;
 
 # update WMPL static data 
