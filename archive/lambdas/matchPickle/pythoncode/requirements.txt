@@ -14,3 +14,4 @@ pyswarms
 keras
 pytz
 paramiko
+pymsis>=0.13
