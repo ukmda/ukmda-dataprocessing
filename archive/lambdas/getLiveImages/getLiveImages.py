@@ -26,7 +26,7 @@ def filterImages(d1, d2, statid=None, maxitems=-1, ddb=None):
     if ddb is None:
         ddb = boto3.resource('dynamodb', region_name='eu-west-2')
     table = ddb.Table('live')
-    # print(maxitems, d1, d2)
+    print(maxitems, d1, d2, statid)
     if maxitems == -1 or isinstance(d1, datetime.datetime):
         lv=f'{d1.timestamp()*1000:.0f}'
         hv=f'{d2.timestamp()*1000:.0f}'
@@ -41,15 +41,19 @@ def filterImages(d1, d2, statid=None, maxitems=-1, ddb=None):
                             ProjectionExpression='image_name,camloc',
                             ScanIndexForward = False)
 
+    print(f'retrieved {len(resp["Items"])}')
     for i in range(len(resp['Items'])):
         if 'camloc' not in resp['Items'][i]:
             resp['Items'][i]['camloc'] = ''
+
+    #print(resp['Items'])
     if statid is not None:
         imglist = [x['image_name'] for x in resp['Items'] if statid in x['image_name']]
         loclist = [x['camloc'] for x in resp['Items'] if statid in x['image_name']]
     else:
         imglist = [x['image_name'] for x in resp['Items']]
         loclist = [x['camloc'] for x in resp['Items']]
+    print(f'left with {len(imglist)}')
     return imglist, loclist
 
 
