@@ -23,6 +23,7 @@ mkdir -p $DATADIR/browse/{annual,monthly,daily,showers}
 ####################################################################################
 # START OF DATA PROCESSING. FIRST WE UPDATE THE SEARCH PAGE WITH SINGLE-STATION
 # AND CAMERA DETAILS SO IT CAN BE SEARCHED WITHOUT WAITING FOR THE MATCHING ENGINE
+# This section is safe to rerun at any time. 
 ####################################################################################
 
 # update the JSON and html files containing camera and location details, used by the website
