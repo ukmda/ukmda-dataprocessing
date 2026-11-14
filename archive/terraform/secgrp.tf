@@ -100,7 +100,29 @@ resource "aws_security_group" "ec2_secgrp" {
         security_groups  = []
         self             = false
         to_port          = 3306
-      },
+    },
+    {
+        cidr_blocks      = [ "0.0.0.0/0",  ]
+        description      = "HTTP"
+        from_port        = 80
+        ipv6_cidr_blocks = []
+        prefix_list_ids  = []
+        protocol         = "tcp"
+        security_groups  = []
+        self             = false
+        to_port          = 80
+    },
+    {
+        cidr_blocks      = [ "0.0.0.0/0",]
+        description      = "HTTPS"
+        from_port        = 443
+        ipv6_cidr_blocks = []
+        prefix_list_ids  = []
+        protocol         = "tcp"
+        security_groups  = []
+        self             = false
+        to_port          = 443
+    },      
   ]
   egress = [
     {
