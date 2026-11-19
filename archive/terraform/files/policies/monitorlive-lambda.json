@@ -15,6 +15,14 @@
       "Resource": "arn:aws:logs:${liveregion}:${accountid}:log-group:/aws/lambda/monitorLive:*"
     },
     {
+			"Effect": "Allow",
+      "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:${liveregion}:${accountid}:log-group:/aws/lambda/monitorLive"
+    },
+    {
       "Effect": "Allow",
       "Action": [
         "s3:*",
