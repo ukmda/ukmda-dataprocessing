@@ -149,8 +149,19 @@ def openAllObsDb(dbdir, dbname='all_observations.db', force_create=False):
     con.commit()
     return con  
 
+def getObservationCount(dt_range, dbdir):
+    dbname = 'all_observations.db'
+    con = openAllObsDb(dbdir, dbname, force_create=True)
+    res = con.execute('select count(*) from all_obs where obs_dt >= ? and obs_dt <= ?',
+                      (datetime2JD(dt_range[0]), datetime2JD(dt_range[1]))).fetchone()
+    if res:
+        return int(res[0])
+    else:
+        print('unable to obtain observations count')
+        return 0 
 
-def getAllObservations(dt_range, dbdir, datadir):
+
+def loadObservations(dt_range, dbdir, datadir):
     """
     Find all observations in 'datadir' within 'dt_range' and add them to the all-observations database in dbdir. 
 
@@ -159,7 +170,6 @@ def getAllObservations(dt_range, dbdir, datadir):
     dbdir:      [string] the location of the all-obs database
     datadir:    [string] the location of the RMS data to be scanned
     """
-
 
     dbname = 'all_observations.db'
     con = openAllObsDb(dbdir, dbname, force_create=True)
@@ -416,4 +426,4 @@ if __name__ == '__main__':
         dt_range = [dt_beg, dt_end]
 
         print(action, dt_range, dbdir, datadir)
-        getAllObservations(dt_range, dbdir, datadir)
+        loadObservations(dt_range, dbdir, datadir)
