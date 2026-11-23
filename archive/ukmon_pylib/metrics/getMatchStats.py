@@ -3,7 +3,7 @@
 # python to get matching engine statistics
 #
 
-from datetime import datetime
+import datetime
 import sys
 import os
 import glob
