@@ -171,7 +171,7 @@ def getMatchStats(logf, rundate, startdt):
     runtime = str(getRunTime(rundate))
     cstime = str(getRunTime(rundate, totalruntime=False))
 
-    return tot, added, uncal, missdf, nonphys, cands, trajs, runtime, cstime
+    return tot, obs, uncal, missdf, nonphys, cands, trajs, runtime, cstime
 
 
 def updateStats(obscount, candcount, trajcount, runtime, rundate):
