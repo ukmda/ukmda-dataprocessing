@@ -66,8 +66,9 @@ def getMatchStats(logf, rundate):
     cands = 0
     if oldstyle:
         cands = [line.strip() for line in loglines if 'SAVING' in line and 'CANDIDATES' in line]
-        spls = cands[0].split(' ')
-        cands = int(spls[1])
+        if len(cands) > 0:
+            spls = cands[0].split(' ')
+            cands = int(spls[1])
     else:
         trajlines = [line.strip() for line in loglines if 'Saved' in line and ' 0 candidates' not in line]
         for li in trajlines:
