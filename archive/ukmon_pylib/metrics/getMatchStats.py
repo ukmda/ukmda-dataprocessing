@@ -114,20 +114,24 @@ def getRunTime(rundate, totalruntime=True):
             return datetime.timedelta(0)
     else:
         finishedlines = [x for x in loglines if f'finished consolidation for {rundate}' in x]
-        finishtime = finishedlines[-1].split(' ')[2]
-        finishtime = datetime.datetime.strptime(f'{rundate} {finishtime}', '%Y%m%d %H:%M:%S')
+        if finishedlines:
+            finishtime = finishedlines[-1].split(' ')[2]
+            finishtime = datetime.datetime.strptime(f'{rundate} {finishtime}', '%Y%m%d %H:%M:%S')
 
-        startedlines = [x for x in loglines if f'start distributed processing for {rundate}' in x]
-        starttime = None
-        for i in reversed(range(len(startedlines))):
-            starttime = startedlines[i].split(' ')[2]
-            starttime = datetime.datetime.strptime(f'{rundate} {starttime}', '%Y%m%d %H:%M:%S')
-            if starttime < finishtime:
-                break
-        if starttime:
-            return (finishtime -starttime)
+            startedlines = [x for x in loglines if f'start distributed processing for {rundate}' in x]
+            starttime = None
+            for i in reversed(range(len(startedlines))):
+                starttime = startedlines[i].split(' ')[2]
+                starttime = datetime.datetime.strptime(f'{rundate} {starttime}', '%Y%m%d %H:%M:%S')
+                if starttime < finishtime:
+                    break
+            if starttime:
+                return (finishtime -starttime)
+            else:
+                print('unable to get runtime')
+                return datetime.timedelta(0)
         else:
-            print('unable to get runtime')
+            print('unable to get calcserver runtime')
             return datetime.timedelta(0)
 
 
