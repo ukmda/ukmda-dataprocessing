@@ -7,36 +7,131 @@ from datetime import datetime
 import sys
 import os
 import glob
+import tarfile
+
 from wmpl.Trajectory.CorrelateDB import TrajectoryDatabase
 
-
-def getDailyObsCounts(logf):
-    loglines = open(logf).readlines()
-    addlines = [line.strip() for line in loglines if ('Added' in line and 'observations' in line) or 'Processing station' in line]
-    res=[0,0,0,0]
-    stn = ''
-    offs = 0
-    totalval = 0
-    uniquestns = 0
-    for i in range(len(addlines)):
-        if 'Processing' in addlines[i]:
-            print(addlines[i])
-            newstn = addlines[i].split(' ')[-1]
-            if stn != newstn:
-                stn = newstn
-                offs = 0
-                uniquestns += 1
-            if 'Processing' in addlines[i+1]:
-                continue
-            val = int(addlines[i+1].split(' ')[1])
-            totalval += val
-            res[offs] += val
-            offs += 1
-    print(res, uniquestns)
-    return
+from analysis.getUsedUnused import getObservationCount
 
 
-def getMatchStats(logf, rundate):
+def getDailyObsCount(startdt, rundate):
+    """
+    Get a count of all observations in the period defined by startdt to rundate
+
+    Arguments:
+    startdt:    [string] start-date in the format YYYYMMDD-HHMMSS
+    rundate:    [string] end-date in the foramt YYYYMMDD 
+
+    returns:
+    count of candidates within that window
+
+    """
+
+    sdt = datetime.datetime.strptime(startdt, '%Y%m%d-%H%M%S')
+    edt = datetime.datetime.strptime(f'{rundate}-080000', '%Y%m%d-%H%M%S')
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
+    dbdir = os.path.join(datadir,'distrib')
+    return getObservationCount([sdt, edt], dbdir)
+
+
+def getDailyCandCount(rundate):
+    """ 
+    Obtain a count of candidates for a given date
+
+    Arguments
+    rundate: [str] date to run for in YYYYMMDD format
+
+    """
+    datadir = os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
+    cand_tgz = os.path.join(datadir, 'distrib','candidates',f'{rundate}.tgz')
+    if os.path.isfile(cand_tgz):
+        try:
+            return len(tarfile.open(cand_tgz,'r:gz').getnames())
+        except Exception as e:
+            print(f'unable to read candidate tarfile {cand_tgz}')
+            print(e)
+            return 0
+    else:
+        return 0
+    
+
+def getDailyTrajCount(rundate):
+    """ 
+    Obtain a count of trajectories for a given date
+
+    Arguments
+    rundate: [str] date to run for in YYYYMMDD format
+
+    """
+    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
+    dailydbdir = os.path.join(datadir, 'latest','dailydbs')
+    if os.path.isfile(os.path.join(dailydbdir, f'{rundate}_trajectories.db')):
+        trajdb = TrajectoryDatabase(dailydbdir, f'{rundate}_trajectories.db')
+        return len(trajdb.getTrajBasics('.',[0,9999999]))
+    else:
+        return 0
+
+
+def getRunTime(rundate, totalruntime=True):
+    """
+    Gets the runtime for runDistrib or execdistrib
+    Arguments:
+    rundate: [str] date to run for in YYYYMMDD format
+
+    keyword arguments:
+    totalruntime: [bool] if true, return the total runtime for runDistrib. 
+                         Otherwise return the runtime for candidate finding, distribution and solving
+
+    returns:
+        runtime: [timedelta] a datetime.timedelta representation of the runtime
+    """
+
+    cmd = f'journalctl -t runDistrib -S "{rundate[:4]}-{rundate[4:6]}-{rundate[6:8]}T00:00:00Z"'
+    loglines = os.popen(cmd).read().split('\n')
+
+    starttime = None
+    finishtime = None
+    if totalruntime:
+        finishline = None
+        startedlines = [x for x in loglines if 'running phase 1' in x and f'to {rundate}' in x]
+        for i in reversed(range(len(startedlines))):
+            startline = startedlines[i]
+            starttime = startedlines[i].split(' ')[2]
+            starttime = datetime.datetime.strptime(f'{rundate} {starttime}', '%Y%m%d %H:%M:%S')
+            currline = loglines.index(startline)
+            for j in range(currline, len(loglines)):
+                if 'finished' in loglines[j] and 'consolidation' not in loglines[j]:
+                    finishline = loglines[j]
+                    finishtime = finishline.split(' ')[2]
+                    finishtime = datetime.datetime.strptime(f'{rundate} {finishtime}', '%Y%m%d %H:%M:%S')
+                    break
+            if finishtime:
+                break
+        if starttime and finishtime:
+            return (finishtime -starttime)
+        else:
+            print('unable to get runtime')
+            return datetime.timedelta(0)
+    else:
+        finishedlines = [x for x in loglines if f'finished consolidation for {rundate}' in x]
+        finishtime = finishedlines[-1].split(' ')[2]
+        finishtime = datetime.datetime.strptime(f'{rundate} {finishtime}', '%Y%m%d %H:%M:%S')
+
+        startedlines = [x for x in loglines if f'start distributed processing for {rundate}' in x]
+        starttime = None
+        for i in reversed(range(len(startedlines))):
+            starttime = startedlines[i].split(' ')[2]
+            starttime = datetime.datetime.strptime(f'{rundate} {starttime}', '%Y%m%d %H:%M:%S')
+            if starttime < finishtime:
+                break
+        if starttime:
+            return (finishtime -starttime)
+        else:
+            print('unable to get runtime')
+            return datetime.timedelta(0)
+
+
+def getMatchStats(logf, rundate, startdt):
     loglines = open(logf).readlines()
 
     events = [line.strip() for line in loglines if 'Analysing' in line and 'observations' in line]
@@ -63,39 +158,14 @@ def getMatchStats(logf, rundate):
     badvelo = len([line.strip() for line in loglines if 'Velocity difference too high' in line])
     badangl = len([line.strip() for line in loglines if 'Max convergence angle too small' in line])
 
-    cands = 0
-    if oldstyle:
-        cands = [line.strip() for line in loglines if 'SAVING' in line and 'CANDIDATES' in line]
-        if len(cands) > 0:
-            spls = cands[0].split(' ')
-            cands = int(spls[1])
-    else:
-        trajlines = [line.strip() for line in loglines if 'Saved' in line and ' 0 candidates' not in line]
-        for li in trajlines:
-            spls=li.split(' ')
-            cands += int(spls[-2])
-
     nonphys = beglowr + badalti + badvelo + badangl 
     tot = added + uncal + missdf
 
-    rtims = [line.strip() for line in loglines if 'runDistrib' in line and '/prod/' not in line]
-    stim = rtims[0][11:19]
-    etim = rtims[-1][11:19]
-    d1=datetime.strptime(stim,'%H:%M:%S')
-    d2=datetime.strptime(etim,'%H:%M:%S')
-    runtime = str(d2 - d1)
-
-    cstims = [line.strip() for line in loglines if 'execdistrib' in line]
-    stim = cstims[0][11:19]
-    etim = cstims[-1][11:19]
-    d1=datetime.strptime(stim,'%H:%M:%S')
-    d2=datetime.strptime(etim,'%H:%M:%S')
-    cstime = str(d2 - d1)
-
-    datadir=os.getenv('DATADIR', default=os.path.expanduser('~/prod/data'))
-    dailydbdir = os.path.join(datadir, 'latest','dailydbs')
-    trajdb = TrajectoryDatabase(dailydbdir, f'{rundate}_trajectories.db')
-    trajs = len(trajdb.getTrajBasics('.',[0,9999999]))
+    obs = getDailyObsCount(startdt, rundate)
+    cands = getDailyCandCount(rundate)
+    trajs = getDailyTrajCount(rundate)
+    runtime = str(getRunTime(rundate))
+    cstime = str(getRunTime(rundate, totalruntime=False))
 
     return tot, added, uncal, missdf, nonphys, cands, trajs, runtime, cstime
 
@@ -123,8 +193,9 @@ def updateStats(obscount, candcount, trajcount, runtime, rundate):
 if __name__ == '__main__':
     matchfile = sys.argv[1]
     rundate = sys.argv[2]
+    startdt = sys.argv[3]
 
-    tot, added, uncal, missdf, nonphys, cands, trajs, runtime, cstime = getMatchStats(matchfile, rundate)
+    tot, added, uncal, missdf, nonphys, cands, trajs, runtime, cstime = getMatchStats(matchfile, rundate, startdt)
 
     updateStats(added, cands, trajs, runtime, rundate)
     print(tot, added, uncal, missdf, nonphys, cands, trajs, runtime, cstime)
