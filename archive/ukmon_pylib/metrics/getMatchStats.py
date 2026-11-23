@@ -138,17 +138,6 @@ def getRunTime(rundate, totalruntime=True):
 def getMatchStats(logf, rundate, startdt):
     loglines = open(logf).readlines()
 
-    events = [line.strip() for line in loglines if 'Analysing' in line and 'observations' in line]
-    if len(events) > 0: 
-        # new-style log
-        addlines = [x for x in events if ' 0 observations' not in x]
-        addoffs = -5
-        oldstyle = False
-    else:
-        addlines = [line.strip() for line in loglines if 'Added' in line and 'observations' in line]
-        addoffs = 1
-        oldstyle = True
-    
     uncal = len([line.strip() for line in loglines if 'Skipping' in line and 'recalibrated' in line])
     missdf = len([line.strip() for line in loglines if 'Skipping' in line and 'missing data' in line])
     beglowr = len([line.strip() for line in loglines if 'Begin height lower than the end height' in line])
@@ -163,6 +152,7 @@ def getMatchStats(logf, rundate, startdt):
     trajs = getDailyTrajCount(rundate)
     runtime = str(getRunTime(rundate))
     cstime = str(getRunTime(rundate, totalruntime=False))
+
     tot = uncal + missdf + obs
 
     return tot, obs, uncal, missdf, nonphys, cands, trajs, runtime, cstime
