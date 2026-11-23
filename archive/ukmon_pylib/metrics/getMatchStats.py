@@ -151,25 +151,19 @@ def getMatchStats(logf, rundate, startdt):
     
     uncal = len([line.strip() for line in loglines if 'Skipping' in line and 'recalibrated' in line])
     missdf = len([line.strip() for line in loglines if 'Skipping' in line and 'missing data' in line])
-
-    added=0
-    for li in addlines:
-        spls=li.split(' ')
-        added += int(spls[addoffs])
-    
     beglowr = len([line.strip() for line in loglines if 'Begin height lower than the end height' in line])
     badalti = len([line.strip() for line in loglines if 'Meteor heights outside allowed range' in line])
     badvelo = len([line.strip() for line in loglines if 'Velocity difference too high' in line])
     badangl = len([line.strip() for line in loglines if 'Max convergence angle too small' in line])
 
     nonphys = beglowr + badalti + badvelo + badangl 
-    tot = added + uncal + missdf
 
     obs = getDailyObsCount(startdt, rundate)
     cands = getDailyCandCount(rundate)
     trajs = getDailyTrajCount(rundate)
     runtime = str(getRunTime(rundate))
     cstime = str(getRunTime(rundate, totalruntime=False))
+    tot = uncal + missdf + obs
 
     return tot, obs, uncal, missdf, nonphys, cands, trajs, runtime, cstime
 
