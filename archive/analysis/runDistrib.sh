@@ -74,7 +74,7 @@ rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/maintenance/dataMaintenance.py $SERV
 rsync -avz -e "ssh -i $SERVERSSHKEY" $PYLIB/analysis/getUsedUnused.py $SERVERUSERID@$CALCSERVERIP:src/ukmon_pylib/analysis/
 
 # now run the script
-logger -s -t $(basename $0 .sh) "start distributed processing"
+logger -s -t $(basename $0 .sh) "start distributed processing for ${rundate}"
 ssh -i $SERVERSSHKEY $SERVERUSERID@$CALCSERVERIP "runtime/scripts/$execdist"
 
 rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$CALCSERVERIP:ukmon-shared/matches/RMSCorrelate/candidates/processed/*.tgz $DATADIR/distrib/candidates
@@ -116,7 +116,7 @@ logger -s -t $(basename $0 .sh) "running consolidation"
 scp -i $SERVERSSHKEY $execConsolsh $SERVERUSERID@$CALCSERVERIP:runtime/scripts/$execcons
 ssh -i $SERVERSSHKEY $SERVERUSERID@$CALCSERVERIP "runtime/scripts/$execcons"
 
-logger -s -t $(basename $0 .sh) "finished consolidation, copying databases"
+logger -s -t $(basename $0 .sh) "finished consolidation for ${rundate}, copying databases"
 
 rsync -avz -e "ssh -i $SERVERSSHKEY" $SERVERUSERID@$CALCSERVERIP:ukmon-shared/matches/RMSCorrelate/dbs/*.db $DATADIR/distrib
 ssh -i $SERVERSSHKEY $SERVERUSERID@$CALCSERVERIP "find /tmp -maxdepth 1 -name "*.pickle"  -mtime +7 -exec rm -f {} \;"
@@ -149,4 +149,4 @@ find $DATADIR/distrib/containers/ -name "cont*.tgz" -mtime +30 -exec rm -f {} \;
 find $DATADIR/distrib/ -maxdepth 1 -name "20*.tgz" -mtime +30 -exec rm -f {} \;
 rm -f $DATADIR/distrib/${rundate}.pickle
 
-logger -s -t $(basename $0 .sh) "finished"
+logger -s -t $(basename $0 .sh) "finished for ${rundate}"
